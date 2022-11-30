@@ -9,15 +9,29 @@
  */
 
 {
+    "envs/ao-node": {
+        "scope": "",
+        "version": "",
+        "defaultScope": "ao.lab",
+        "mainFile": "index.ts",
+        "rootDir": "lab/envs/ao-node",
+        "config": {
+            "teambit.envs/env": {},
+            "teambit.envs/envs": {
+                "env": "teambit.envs/env"
+            }
+        }
+    },
     "tools/usfm-parser": {
         "scope": "",
         "version": "",
+        "defaultScope": "ao.lab",
         "mainFile": "index.ts",
         "rootDir": "lab/tools/usfm-parser",
         "config": {
-            "teambit.harmony/node": {},
+            "ao.lab/envs/ao-node": {},
             "teambit.envs/envs": {
-                "env": "teambit.harmony/node"
+                "env": "ao.lab/envs/ao-node"
             }
         }
     },
