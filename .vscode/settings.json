@@ -1,5 +1,6 @@
 {
     "files.exclude": {
         "public/": true
-    }
+    },
+    "jest.jestCommandLine": "jest"
 }
