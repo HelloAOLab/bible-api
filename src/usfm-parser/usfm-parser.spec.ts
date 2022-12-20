@@ -727,6 +727,11 @@ describe('UsfmParser', () => {
                     const parsed = parser.parse(data);
                     const numChapters = parsed.content.filter(c => c.type === 'chapter').length;
                     expect(numChapters).toBe(expectedChapters);
+
+                    const json = JSON.stringify(parsed);
+                    const result = JSON.parse(json);
+
+                    expect(result).toEqual(parsed);
                 });
             });
         });

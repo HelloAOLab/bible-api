@@ -17,6 +17,7 @@
     "vitest": "^0.26.0"
   },
   "dependencies": {
+    "highlight.js": "^11.7.0",
     "lodash": "^4.17.21",
     "markdown-it": "^13.0.1"
   }
