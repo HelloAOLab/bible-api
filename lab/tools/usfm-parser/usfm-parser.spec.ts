@@ -273,6 +273,40 @@ describe('UsfmParser', () => {
         });
     });
 
+    describe('parse()', () => {
+        it('should produce a list of chapters', () => {
+            const tree = parser.parse(`\\c 1
+                \\v 1 In the beginning God created the heavens and the earth.
+                \\v 2 Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.
+            `);
+
+            expect(tree).toEqual({
+                type: 'root',
+                content: [
+                    {
+                        type: 'chapter',
+                        number: 1,
+                        content: [
+                            { 
+                                type: 'verse', 
+                                number: 1,
+                                content: [
+                                    'In the beginning God created the heavens and the earth.'
+                                ]
+                            },
+                            { 
+                                type: 'verse', 
+                                number: 2,
+                                content: [
+                                    'Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.'
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            });
+        });
+    });
 });
 
 describe('isDigit()', () => {

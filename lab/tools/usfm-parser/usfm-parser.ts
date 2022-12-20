@@ -177,6 +177,64 @@ export class UsfmParser {
         return tokens;
     }
 
+    parse(input: string): ParseTree {
+        let root: ParseTree = {
+            type: 'root',
+            content: []
+        };
+
+        const tokens = this.tokenize(input);
+
+        let chapter: Chapter | null = null;
+        let verse: Verse | null = null;
+
+        for(let token of tokens) {
+            if (token.kind === 'marker') {
+                if (token.command === '\\c') {
+                    chapter = {
+                        type: 'chapter',
+                        number: NaN,
+                        content: []
+                    };
+
+                    root.content.push(chapter);
+                } else if (token.command === '\\v') {
+                    if (!chapter) {
+                        throw new Error('Cannot parse a verse without chapter information!');
+                    }
+                    verse = {
+                        type: 'verse',
+                        number: NaN,
+                        content: []
+                    };
+
+                    chapter.content.push(verse);
+                }
+            } else if (token.kind === 'word') {
+                if (chapter && isNaN(chapter.number)) {
+                    chapter.number = parseInt(token.word);
+                    if (isNaN(chapter.number)) {
+                        this._throwError(token, 'The first word token after a chapter marker must be parsable to an integer!');
+                    }
+                } else if (verse && isNaN(verse.number)) {
+                    verse.number = parseInt(token.word);
+                    if (isNaN(verse.number)) {
+                        this._throwError(token, 'The first word token after a verse marker must be parsable to an integer!');
+                    }
+                } else if (verse) {
+                    verse.content.push(token.word);
+                }
+            } else if (token.kind === 'whitespace') {
+                
+            }
+        }
+
+        return root;
+    }
+
+    private _throwError(token: Token, message: string) {
+        throw new Error(`(${token.loc.start}, ${token.loc.end}) ${message}`);
+    }
 }
 
 /**
@@ -334,4 +392,43 @@ export interface WordToken {
 export interface SourceLocation {
     start: number;
     end: number;
+}
+
+/**
+ * The parse tree that is gathered.
+ */
+export interface ParseTree {
+    type: 'root';
+
+    /**
+     * The list of chapters for the tree.
+     */
+    content: Chapter[];
+}
+
+/**
+ * Defines an interface that represents a chapter.
+ */
+export interface Chapter {
+    type: 'chapter';
+    number: number;
+
+    /**
+     * The contents of the chapter.
+     */
+    content: Verse[];
+}
+
+/**
+ * Defines an interface that represents a verse.
+ */
+export interface Verse {
+    type: 'verse';
+
+    number: number;
+
+    /**
+     * The contents of the verse.
+     */
+    content: string[];
 }
