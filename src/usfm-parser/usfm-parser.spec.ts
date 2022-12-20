@@ -13,10 +13,8 @@ import { isDigit,
     word
 } from './usfm-parser';
 
-// describe('UsfmParser', () => {
-    
-// })
-
+import { readFile } from 'fs/promises';
+import { resolve } from 'path';
 
 describe('UsfmTokenizer', () => {
     let tokenizer: UsfmTokenizer;
@@ -281,6 +279,8 @@ describe('UsfmParser', () => {
             const tree = parser.parse(`\\c 1
                 \\v 1 In the beginning God created the heavens and the earth.
                 \\v 2 Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.
+                \\c 2
+                \\v 1 Thus the heavens and the earth were completed in all their vast array.
             `);
 
             expect(tree).toEqual({
@@ -305,9 +305,345 @@ describe('UsfmParser', () => {
                                 ]
                             }
                         ]
+                    },
+                    {
+                        type: 'chapter',
+                        number: 2,
+                        content: [
+                            { 
+                                type: 'verse', 
+                                number: 1,
+                                content: [
+                                    'Thus the heavens and the earth were completed in all their vast array.'
+                                ]
+                            },
+                        ]
                     }
                 ]
             });
+        });
+
+        it('should infer the first verse of a chapter', () => {
+            const tree = parser.parse(`\\c 1
+                \\q1 Blessed is the man 
+                \\q2 who does not walk in the counsel of the wicked, 
+                \\q1 or set foot on the path of sinners, 
+                \\q2 or sit in the seat of mockers. 
+                \\q1
+                \\v 2 But his delight is in the Law of the LORD, 
+                \\q2 and on His law he meditates day and night. 
+                \\q1
+                \\c 2
+                \\q1 Why do the nations rage
+                \\q2 and the peoples plot in vain? 
+                \\q1 
+            `);
+
+            expect(tree).toEqual({
+                type: 'root',
+                content: [
+                    {
+                        type: 'chapter',
+                        number: 1,
+                        content: [
+                            { 
+                                type: 'verse', 
+                                number: 1,
+                                content: [
+                                    { text: 'Blessed is the man', poem: 1 },
+                                    { text: 'who does not walk in the counsel of the wicked,', poem: 2 },
+                                    { text: 'or set foot on the path of sinners,', poem: 1 },
+                                    { text: 'or sit in the seat of mockers.', poem: 2 }
+                                ]
+                            },
+                            { 
+                                type: 'verse',
+                                number: 2,
+                                content: [
+                                    { text: 'But his delight is in the Law of the LORD,', poem: 1 },
+                                    { text: 'and on His law he meditates day and night.', poem: 2 }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        type: 'chapter',
+                        number: 2,
+                        content: [
+                            { 
+                                type: 'verse', 
+                                number: 1,
+                                content: [
+                                    { text: 'Why do the nations rage', poem: 1 },
+                                    { text: 'and the peoples plot in vain?', poem: 2 }
+                                ]
+                            },
+                        ]
+                    }
+                ]
+            });
+        });
+
+        it('should support line breaks', () => {
+            const tree = parser.parse(`\\c 1
+                \\v 1 In the beginning God created the heavens and the earth.
+                \\b
+                \\v 2 Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.
+                \\b
+                \\c 2
+                \\v 1 Thus the heavens and the earth were completed in all their vast array.
+            `);
+
+            expect(tree).toEqual({
+                type: 'root',
+                content: [
+                    {
+                        type: 'chapter',
+                        number: 1,
+                        content: [
+                            { 
+                                type: 'verse', 
+                                number: 1,
+                                content: [
+                                    'In the beginning God created the heavens and the earth.'
+                                ]
+                            },
+                            {
+                                type: 'line_break'
+                            },
+                            { 
+                                type: 'verse', 
+                                number: 2,
+                                content: [
+                                    'Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.'
+                                ]
+                            },
+                            {
+                                type: 'line_break'
+                            },
+                        ]
+                    },
+                    {
+                        type: 'chapter',
+                        number: 2,
+                        content: [
+                            { 
+                                type: 'verse', 
+                                number: 1,
+                                content: [
+                                    'Thus the heavens and the earth were completed in all their vast array.'
+                                ]
+                            },
+                        ]
+                    }
+                ]
+            });
+        });
+
+        it('should support ID tags', () => {
+            const tree = parser.parse(`
+                \\id GEN - Berean Study Bible
+                \\c 1
+                \\v 1 In the beginning God created the heavens and the earth.
+                \\v 2 Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.
+                \\c 2
+                \\v 1 Thus the heavens and the earth were completed in all their vast array.
+            `);
+
+            expect(tree).toEqual({
+                type: 'root',
+                id: 'GEN',
+                content: [
+                    {
+                        type: 'chapter',
+                        number: 1,
+                        content: [
+                            { 
+                                type: 'verse', 
+                                number: 1,
+                                content: [
+                                    'In the beginning God created the heavens and the earth.'
+                                ]
+                            },
+                            { 
+                                type: 'verse', 
+                                number: 2,
+                                content: [
+                                    'Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.'
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        type: 'chapter',
+                        number: 2,
+                        content: [
+                            { 
+                                type: 'verse', 
+                                number: 1,
+                                content: [
+                                    'Thus the heavens and the earth were completed in all their vast array.'
+                                ]
+                            },
+                        ]
+                    }
+                ]
+            });
+        });
+
+        it('should support major title headings', () => {
+            const tree = parser.parse(`
+                \\mt Genesis
+                \\c 1
+                \\v 1 In the beginning God created the heavens and the earth.
+                \\v 2 Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.
+                \\c 2
+                \\v 1 Thus the heavens and the earth were completed in all their vast array.
+            `);
+
+            expect(tree).toEqual({
+                type: 'root',
+                title: 'Genesis',
+                content: [
+                    {
+                        type: 'chapter',
+                        number: 1,
+                        content: [
+                            { 
+                                type: 'verse', 
+                                number: 1,
+                                content: [
+                                    'In the beginning God created the heavens and the earth.'
+                                ]
+                            },
+                            { 
+                                type: 'verse', 
+                                number: 2,
+                                content: [
+                                    'Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.'
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        type: 'chapter',
+                        number: 2,
+                        content: [
+                            { 
+                                type: 'verse', 
+                                number: 1,
+                                content: [
+                                    'Thus the heavens and the earth were completed in all their vast array.'
+                                ]
+                            },
+                        ]
+                    }
+                ]
+            });
+        });
+
+        it('should support section headings in chapters', () => {
+            const tree = parser.parse(`\\c 1
+                \\s1 The Creation
+                \\v 1 In the beginning God created the heavens and the earth.
+                \\v 2 Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.
+                \\c 2
+                \\v 1 Thus the heavens and the earth were completed in all their vast array.
+            `);
+
+            expect(tree).toEqual({
+                type: 'root',
+                content: [
+                    {
+                        type: 'chapter',
+                        number: 1,
+                        content: [
+                            {
+                                type: 'heading',
+                                content: [
+                                    'The Creation'
+                                ]
+                            },
+                            { 
+                                type: 'verse', 
+                                number: 1,
+                                content: [
+                                    'In the beginning God created the heavens and the earth.'
+                                ]
+                            },
+                            { 
+                                type: 'verse', 
+                                number: 2,
+                                content: [
+                                    'Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.'
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        type: 'chapter',
+                        number: 2,
+                        content: [
+                            { 
+                                type: 'verse', 
+                                number: 1,
+                                content: [
+                                    'Thus the heavens and the earth were completed in all their vast array.'
+                                ]
+                            },
+                        ]
+                    }
+                ]
+            });
+        });
+
+        it('should support section headings outside of chapters', () => {
+            const tree = parser.parse(`\\s1 The Creation
+            `);
+
+            expect(tree).toEqual({
+                type: 'root',
+                content: [
+                    {
+                        type: 'heading',
+                        content: [
+                            'The Creation'
+                        ]
+                    }
+                ]
+            });
+        });
+        
+        describe('Bible', () => {
+            describe('BSB', () => {
+                const cases = [
+                    ['bsb/01GENBSB.usfm', 50] as const
+                ];
+
+                it.each(cases)('should be able to parse %s', async (file, expectedChapters) => {
+                    const filePath = resolve(__dirname, '..', '..', 'bible', file);
+                    const data = await readFile(filePath, { encoding: 'utf-8' });
+                    const parsed = parser.parse(data);
+                    const numChapters = parsed.content.filter(c => c.type === 'chapter').length;
+                    expect(numChapters).toBe(expectedChapters);
+                });
+            });
+        });
+    });
+
+    describe('renderMarkdown()', () => {
+        it('should create basic markdown from a parse tree', () => {
+            const tree = parser.parse(`
+                \\mt Genesis
+                \\c 1
+                \\v 1 In the beginning God created the heavens and the earth.
+                \\v 2 Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.
+                \\c 2
+                \\v 1 Thus the heavens and the earth were completed in all their vast array.
+            `);
+
+            const md = parser.renderMarkdown(tree);
+            expect(md).toMatchSnapshot();
         });
     });
 });

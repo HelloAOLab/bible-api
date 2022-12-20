@@ -1,14 +1,10 @@
-export function usfmParser() {
-    return 'Hello world!';
-}
-
 /**
  * Defines a class that can tokenize a stream of characters into tokens.
  */
 export class UsfmTokenizer {
-    private _input: string;
-    private _index: number;
-    private _start: number;
+    private _input: string = '';
+    private _index: number = 0;
+    private _start: number = 0;
 
     private get _tokenLength() {
         return this._index - this._start;
@@ -127,6 +123,8 @@ export interface UsfmParseOptions {
  * Defines a USFM Parser.
  */
 export class UsfmParser {
+
+    private _poem: number | null = null;
     
     tokenize(input: string): Token[] {
         const simpleTokens = new UsfmTokenizer().tokenize(input);
@@ -185,33 +183,124 @@ export class UsfmParser {
 
         const tokens = this.tokenize(input);
 
+        let expectingId = 0;
+        let expectingTitle = 0;
+        let expectingSectionHeading = 0;
         let chapter: Chapter | null = null;
         let verse: Verse | null = null;
+        let words: string[] = [];
+        let verseContent: (Text | string)[] = [];
+        let sectionContent: string = '';
+        
+        this._poem = null;
+
+        const addWordsToVerse = () => {
+            if (words.length > 0) {
+                const text = this._text(words.join(' '));
+                if (verse) {
+                    verse.content.push(text);
+                } else {
+                    verseContent.push(text);
+                }
+                words = [];
+            }
+        };
+
+        const addVerseContentToChapter = (token: Token | null) => {
+            if (!chapter) {
+                return;
+            }
+            if (verseContent.length > 0) {
+                if (chapter.content.length > 0) {
+                    this._throwError(token, 'Cannot infer first verse after content has been added to the chapter!');
+                }
+                // Implicit first verse
+                chapter.content.push({
+                    type: 'verse',
+                    number: 1,
+                    content: verseContent
+                });
+                verseContent = [];
+            }
+        };
+
+        const completeVerse = (token: Token | null) => {
+            if (verse) {
+                addWordsToVerse();
+            }
+
+            addVerseContentToChapter(token);
+        };
 
         for(let token of tokens) {
             if (token.kind === 'marker') {
                 if (token.command === '\\c') {
+                    addWordsToVerse();
+
                     chapter = {
                         type: 'chapter',
                         number: NaN,
                         content: []
                     };
+                    verse = null;
+                    verseContent = [];
 
                     root.content.push(chapter);
                 } else if (token.command === '\\v') {
                     if (!chapter) {
-                        throw new Error('Cannot parse a verse without chapter information!');
+                        this._throwError(token, 'Cannot parse a verse without chapter information!');
                     }
+
+                    completeVerse(token);
+
                     verse = {
                         type: 'verse',
                         number: NaN,
                         content: []
                     };
-
+                    
                     chapter.content.push(verse);
+                } else if(token.command === '\\b') {
+                    if (!chapter) {
+                        this._throwError(token, 'Cannot parse a line break without chapter information!');
+                    }
+
+                    completeVerse(token);
+                    chapter.content.push({
+                        type: 'line_break'
+                    });
+                } else if (token.command === '\\q') {
+                    addWordsToVerse();
+                    this._poem = token.number;
+                } else if (token.command === '\\p') {
+                    addWordsToVerse();
+                    this._poem = null;
+                } else if (token.command === '\\id') {
+                    expectingId = 1;
+                } else if (token.command === '\\mt') {
+                    expectingTitle = 1;
+                } else if (token.command === '\\s') {
+                    expectingSectionHeading = 1;
                 }
             } else if (token.kind === 'word') {
-                if (chapter && isNaN(chapter.number)) {
+                if (expectingId > 0) {
+                    if  (expectingId === 1) {
+                        root.id = token.word;
+                        expectingId = 2;
+                    }
+                } else if (expectingTitle > 0) {
+                    if (root.title) {
+                        root.title += ' ' + token.word;
+                    } else {
+                        root.title = token.word;
+                    }
+                } else if(expectingSectionHeading > 0) {
+                    if (sectionContent) {
+                        sectionContent += ' ' + token.word;
+                    } else {
+                        sectionContent = token.word;
+                    }
+                } else if (chapter && isNaN(chapter.number)) {
                     chapter.number = parseInt(token.word);
                     if (isNaN(chapter.number)) {
                         this._throwError(token, 'The first word token after a chapter marker must be parsable to an integer!');
@@ -221,19 +310,104 @@ export class UsfmParser {
                     if (isNaN(verse.number)) {
                         this._throwError(token, 'The first word token after a verse marker must be parsable to an integer!');
                     }
-                } else if (verse) {
-                    verse.content.push(token.word);
+                } else {
+                    words.push(token.word);
                 }
             } else if (token.kind === 'whitespace') {
-                
+                if (expectingId > 0) {
+                    if (token.whitespace.includes('\n')) {
+                        expectingId = 0;
+                    }
+                } else if (expectingTitle > 0) {
+                    if (token.whitespace.includes('\n')) {
+                        expectingTitle = 0;
+                    }
+                } else if (expectingSectionHeading > 0) {
+                    if (token.whitespace.includes('\n')) {
+                        if (chapter) {
+                            chapter.content.push({
+                                type: 'heading',
+                                content: [sectionContent]
+                            });
+                        } else {
+                            root.content.push({
+                                type: 'heading',
+                                content: [sectionContent]
+                            });
+                        }
+                        sectionContent = '';
+                        expectingSectionHeading = 0;
+                    }
+                }
             }
         }
+
+        completeVerse(null);
 
         return root;
     }
 
-    private _throwError(token: Token, message: string) {
-        throw new Error(`(${token.loc.start}, ${token.loc.end}) ${message}`);
+    renderMarkdown(tree: ParseTree): string {
+        let md = '';
+
+        if (tree.title) {
+            md += `# ${tree.title}\n`;
+        }
+
+        for (let c of tree.content) {
+            if (c.type === 'heading') {
+                md += `## ${c.content.join(' ')}\n`;
+            } else if(c.type === 'chapter') {
+                md += `### ${c.number}\n`;
+
+                for(let content of c.content) {
+                    if (content.type === 'heading') {
+                        md += `#### ${content.content.join(' ')}\n`;
+                    } else if(content.type === 'line_break') {
+                        md += '\n\n';
+                    } else if(content.type === 'verse') {
+                        md += `<em>${content.number}</em>`;
+                        for (let v of content.content) {
+                            if (typeof v === 'string') {
+                                md += v + ' ';
+                            } else {
+                                md += v.text + ' ';
+                            }
+                        }
+                        md += '\n';
+                    }
+                }
+            }
+        }
+
+        return md;
+    }
+
+    private _hasAttribute() {
+        return this._poem !== null;
+    }
+
+    private _text(text: string): Text | string {
+        if(!this._hasAttribute()) {
+            return text;
+        }
+        const t: Text = {
+            text
+        };
+
+        if (this._poem !== null) {
+            t.poem = this._poem;
+        }
+
+        return t;
+    }
+
+    private _throwError(token: Token | null, message: string): never {
+        if (token) {
+            throw new Error(`(${token.loc.start}, ${token.loc.end}) ${message}`);
+        } else {
+            throw new Error(message);
+        }
     }
 }
 
@@ -401,9 +575,24 @@ export interface ParseTree {
     type: 'root';
 
     /**
+     * The ID of the parse tree.
+     */
+    id?: string;
+
+    /**
+     * The major title that was associated with the tree.
+     */
+    title?: string;
+
+    /**
      * The list of chapters for the tree.
      */
-    content: Chapter[];
+    content: (Heading | Chapter)[];
+}
+
+export interface Heading {
+    type: 'heading';
+    content: string[];
 }
 
 /**
@@ -416,7 +605,7 @@ export interface Chapter {
     /**
      * The contents of the chapter.
      */
-    content: Verse[];
+    content: (Heading | Verse | LineBreak)[];
 }
 
 /**
@@ -430,5 +619,26 @@ export interface Verse {
     /**
      * The contents of the verse.
      */
-    content: string[];
+    content: (string | Text)[];
+}
+
+/**
+ * Defines an interface that represents text that has some markup attributes applied to it.
+ */
+export interface Text {
+
+    /**
+     * The text that is contained.
+     */
+    text: string;
+
+    /**
+     * Whether the text represents a poem.
+     * The number indicates the level of indent.
+     */
+    poem?: number;
+}
+
+export interface LineBreak {
+    type: 'line_break';
 }
