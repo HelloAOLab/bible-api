@@ -83,7 +83,7 @@ export class UsfmTokenizer {
                     break;
                 }
             } else if (state === 'word') {
-                if (isWhitespace(codePoint)) {
+                if (isWhitespace(codePoint) || codePoint === '\\') {
                     kind = 'word';
                     break;
                 }
@@ -186,11 +186,16 @@ export class UsfmParser {
         let expectingId = 0;
         let expectingTitle = 0;
         let expectingSectionHeading = 0;
+        let expectingFootnote = 0;
+        let expectingFootnoteReference = 0;
+        let expectingFootnoteText = 0;
         let chapter: Chapter | null = null;
         let verse: Verse | null = null;
         let words: string[] = [];
-        let verseContent: (Text | string)[] = [];
+        let verseContent: (Text | FootnoteReference | string)[] = [];
         let sectionContent: string = '';
+        let currentFootnoteId = 0;
+        let footnote: Footnote | null = null;
         
         this._poem = null;
 
@@ -232,6 +237,13 @@ export class UsfmParser {
             addVerseContentToChapter(token);
         };
 
+        const addWordsToFootnote = () => {
+            if (footnote && words.length > 0) {
+                footnote.text += words.join(' ');
+                words = [];
+            }
+        };
+
         for(let token of tokens) {
             if (token.kind === 'marker') {
                 if (token.command === '\\c') {
@@ -240,7 +252,8 @@ export class UsfmParser {
                     chapter = {
                         type: 'chapter',
                         number: NaN,
-                        content: []
+                        content: [],
+                        footnotes: [],
                     };
                     verse = null;
                     verseContent = [];
@@ -281,6 +294,49 @@ export class UsfmParser {
                     expectingTitle = 1;
                 } else if (token.command === '\\s') {
                     expectingSectionHeading = 1;
+                } else if (token.command === '\\f') {
+                    if (token.type === 'start') {
+                        if (!chapter) {
+                            this._throwError(token, 'Cannot start a footnote outside of a chapter!');
+                        }
+
+                        addWordsToVerse();
+                        footnote = {
+                            noteId: currentFootnoteId,
+                            text: ''
+                        };
+                        const ref: FootnoteReference = {
+                            noteId: footnote.noteId
+                        };
+                        expectingFootnote = 1;
+
+                        chapter.footnotes.push(footnote);
+
+                        if (verse) {
+                            verse.content.push(ref);
+                        } else {
+                            verseContent.push(ref);
+                        }
+
+                        currentFootnoteId += 1;
+                    } else {
+                        addWordsToFootnote();
+                        expectingFootnote = 0;
+                        expectingFootnoteText = 0;
+                        expectingFootnoteReference = 0;
+                        footnote = null;
+                    }
+                } else if (token.command === '\\fr') {
+                    if (!footnote) {
+                        this._throwError(token, 'Cannot start a footnote reference outside of a footnote!');
+                    }
+                    expectingFootnoteReference = 1;
+                } else if (token.command === '\\ft') {
+                    if (!footnote) {
+                        this._throwError(token, 'Cannot start footnote text outside of a footnote!');
+                    }
+
+                    expectingFootnoteText = 1;
                 }
             } else if (token.kind === 'word') {
                 if (expectingId > 0) {
@@ -299,6 +355,30 @@ export class UsfmParser {
                         sectionContent += ' ' + token.word;
                     } else {
                         sectionContent = token.word;
+                    }
+                } else if (expectingFootnoteReference > 0) {
+                    if (expectingFootnoteReference = 1) {
+                        const [chapter, verse] = token.word.split(/[\.\:]/);
+
+                        if (footnote) {
+                            footnote.reference = {
+                                chapter: parseInt(chapter),
+                                verse: parseInt(verse)
+                            };
+                        }
+
+                        expectingFootnoteReference = 0;
+                    }
+                } else if (expectingFootnoteText > 0) {
+                    words.push(token.word);
+                } else if (expectingFootnote > 0) {
+                    if (expectingFootnote === 1) {
+                        if (token.word !== '+') {
+                            this._throwError(token, 'Footnotes must use the "+" caller.');
+                        }
+                        expectingFootnote = 2;
+                    } else {
+                        words.push(token.word);
                     }
                 } else if (chapter && isNaN(chapter.number)) {
                     chapter.number = parseInt(token.word);
@@ -370,7 +450,7 @@ export class UsfmParser {
                         for (let v of content.content) {
                             if (typeof v === 'string') {
                                 md += v + ' ';
-                            } else {
+                            } else if ('text' in v) {
                                 md += v.text + ' ';
                             }
                         }
@@ -606,6 +686,11 @@ export interface Chapter {
      * The contents of the chapter.
      */
     content: (Heading | Verse | LineBreak)[];
+
+    /**
+     * The list of footnotes for the chapter.
+     */
+    footnotes: Footnote[];
 }
 
 /**
@@ -619,7 +704,7 @@ export interface Verse {
     /**
      * The contents of the verse.
      */
-    content: (string | Text)[];
+    content: (string | Text | FootnoteReference)[];
 }
 
 /**
@@ -637,6 +722,30 @@ export interface Text {
      * The number indicates the level of indent.
      */
     poem?: number;
+}
+
+export interface FootnoteReference {
+    /**
+     * The ID of the note that is referenced.
+     */
+    noteId: number;
+}
+
+export interface Footnote {
+    noteId: number;
+
+    /**
+     * The text of the footnote.
+     */
+    text: string;
+
+    /**
+     * The verse reference for the footnote.
+     */
+    reference?: {
+        chapter: number,
+        verse: number
+    };
 }
 
 export interface LineBreak {

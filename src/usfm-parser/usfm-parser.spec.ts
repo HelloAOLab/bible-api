@@ -89,6 +89,15 @@ describe('UsfmTokenizer', () => {
                 ]);
             });
 
+            it('should be able to parse end markers that have text before them', () => {
+                const tokens = tokenizer.tokenize(`z\\abc*`);
+
+                expect(tokens).toEqual([
+                    t(loc(0, 1), 'word'),
+                    t(loc(1, 6), 'marker'),
+                ]);
+            });
+
             it('should be able to parse markers that have a space after them', () => {
                 const tokens = tokenizer.tokenize(`\\abc z`);
 
@@ -243,6 +252,15 @@ describe('UsfmParser', () => {
             ]);
         });
 
+        it('should be able to parse end markers that have text before them', () => {
+            const tokens = parser.tokenize(`z\\abc*`);
+
+            expect(tokens).toEqual([
+                word(loc(0, 1), 'z'),
+                marker(loc(1, 6), '\\abc', null, 'end'),
+            ]);
+        });
+
         it('should be able to parse markers that have a space after them', () => {
             const tokens = parser.tokenize(`\\abc z`);
 
@@ -304,7 +322,8 @@ describe('UsfmParser', () => {
                                     'Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.'
                                 ]
                             }
-                        ]
+                        ],
+                        footnotes: [],
                     },
                     {
                         type: 'chapter',
@@ -317,7 +336,8 @@ describe('UsfmParser', () => {
                                     'Thus the heavens and the earth were completed in all their vast array.'
                                 ]
                             },
-                        ]
+                        ],
+                        footnotes: [],
                     }
                 ]
             });
@@ -364,7 +384,8 @@ describe('UsfmParser', () => {
                                     { text: 'and on His law he meditates day and night.', poem: 2 }
                                 ]
                             }
-                        ]
+                        ],
+                        footnotes: [],
                     },
                     {
                         type: 'chapter',
@@ -378,7 +399,8 @@ describe('UsfmParser', () => {
                                     { text: 'and the peoples plot in vain?', poem: 2 }
                                 ]
                             },
-                        ]
+                        ],
+                        footnotes: [],
                     }
                 ]
             });
@@ -421,7 +443,8 @@ describe('UsfmParser', () => {
                             {
                                 type: 'line_break'
                             },
-                        ]
+                        ],
+                        footnotes: [],
                     },
                     {
                         type: 'chapter',
@@ -434,7 +457,8 @@ describe('UsfmParser', () => {
                                     'Thus the heavens and the earth were completed in all their vast array.'
                                 ]
                             },
-                        ]
+                        ],
+                        footnotes: [],
                     }
                 ]
             });
@@ -472,7 +496,8 @@ describe('UsfmParser', () => {
                                     'Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.'
                                 ]
                             }
-                        ]
+                        ],
+                        footnotes: [],
                     },
                     {
                         type: 'chapter',
@@ -485,7 +510,8 @@ describe('UsfmParser', () => {
                                     'Thus the heavens and the earth were completed in all their vast array.'
                                 ]
                             },
-                        ]
+                        ],
+                        footnotes: [],
                     }
                 ]
             });
@@ -523,7 +549,8 @@ describe('UsfmParser', () => {
                                     'Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.'
                                 ]
                             }
-                        ]
+                        ],
+                        footnotes: [],
                     },
                     {
                         type: 'chapter',
@@ -536,7 +563,8 @@ describe('UsfmParser', () => {
                                     'Thus the heavens and the earth were completed in all their vast array.'
                                 ]
                             },
-                        ]
+                        ],
+                        footnotes: [],
                     }
                 ]
             });
@@ -578,7 +606,8 @@ describe('UsfmParser', () => {
                                     'Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.'
                                 ]
                             }
-                        ]
+                        ],
+                        footnotes: [],
                     },
                     {
                         type: 'chapter',
@@ -591,7 +620,8 @@ describe('UsfmParser', () => {
                                     'Thus the heavens and the earth were completed in all their vast array.'
                                 ]
                             },
-                        ]
+                        ],
+                        footnotes: [],
                     }
                 ]
             });
@@ -608,7 +638,78 @@ describe('UsfmParser', () => {
                         type: 'heading',
                         content: [
                             'The Creation'
+                        ],
+                    }
+                ]
+            });
+        });
+
+        it('should support footnotes', () => {
+            const tree = parser.parse(`\\c 1
+                \\v 1 In the beginning God created the heavens and the earth.
+                \\v 2 Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.
+                \\v 3 And God said, “Let there be light,” \\f + \\fr 1:3 \\ft Cited in 2 Corinthians 4:6\\f* and there was light. 
+                \\c 2
+                \\v 1 Thus the heavens and the earth were completed in all their vast array.
+            `);
+
+            expect(tree).toEqual({
+                type: 'root',
+                content: [
+                    {
+                        type: 'chapter',
+                        number: 1,
+                        content: [
+                            { 
+                                type: 'verse', 
+                                number: 1,
+                                content: [
+                                    'In the beginning God created the heavens and the earth.'
+                                ]
+                            },
+                            { 
+                                type: 'verse', 
+                                number: 2,
+                                content: [
+                                    'Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.'
+                                ]
+                            },
+                            {
+                                type: 'verse',
+                                number: 3,
+                                content: [
+                                    'And God said, “Let there be light,”',
+                                    {
+                                        noteId: 0
+                                    },
+                                    'and there was light.'
+                                ]
+                            }
+                        ],
+                        footnotes: [
+                            {
+                                noteId: 0,
+                                text: 'Cited in 2 Corinthians 4:6',
+                                reference: {
+                                    chapter: 1,
+                                    verse: 3
+                                }
+                            }
                         ]
+                    },
+                    {
+                        type: 'chapter',
+                        number: 2,
+                        content: [
+                            { 
+                                type: 'verse', 
+                                number: 1,
+                                content: [
+                                    'Thus the heavens and the earth were completed in all their vast array.'
+                                ]
+                            },
+                        ],
+                        footnotes: []
                     }
                 ]
             });
@@ -638,6 +739,7 @@ describe('UsfmParser', () => {
                 \\c 1
                 \\v 1 In the beginning God created the heavens and the earth.
                 \\v 2 Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.
+                \\v 3 And God said, “Let there be light,” \\f + \\fr 1:3 \\ft Cited in 2 Corinthians 4:6\\f* and there was light. 
                 \\c 2
                 \\v 1 Thus the heavens and the earth were completed in all their vast array.
             `);
