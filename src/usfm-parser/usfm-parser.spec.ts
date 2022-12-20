@@ -1,3 +1,6 @@
+import { describe, it, expect, beforeEach } from 'vitest';
+
+
 import { isDigit,
     isWhitespace,
     loc,

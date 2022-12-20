@@ -1,6 +1,3 @@
 {
-    "files.exclude": {
-        "public/": true
-    },
-    "jest.jestCommandLine": "jest"
+    "testing.automaticallyOpenPeekView": "never"
 }

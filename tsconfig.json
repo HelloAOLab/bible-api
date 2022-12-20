@@ -1,32 +1,19 @@
 {
-    "compilerOptions": {
-      "jsx": "react",
-      "experimentalDecorators": true,
-      "emitDecoratorMetadata": true,
-      "strict": true,
-      "moduleResolution": "node",
-      "module": "commonjs",
-      "target": "es2015",
-      "skipLibCheck": true,
-      "noImplicitAny": false,
-      "typeRoots": ["custom-types", "node_modules/@types"],
-      "preserveConstEnums": true,
-      "strictPropertyInitialization": false,
-      "esModuleInterop": true,
-      "resolveJsonModule": true,
-      "sourceMap": true,
-      "outDir": "./dist"
-    },
-    "include": [
-      "src",
-      "scopes",
-      "e2e",
-      "components",
-      "toolbox"
-    ],
-    "exclude": [
-      "node_modules",
-      "e2e/fixtures",
-      "scopes/semantics/schema/mock"
-    ]
-  }
+  "compilerOptions": {
+    "target": "ESNext",
+    "useDefineForClassFields": true,
+    "module": "ESNext",
+    "lib": ["ESNext", "DOM"],
+    "moduleResolution": "Node",
+    "strict": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "noEmit": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "skipLibCheck": true
+  },
+  "include": ["src"]
+}
