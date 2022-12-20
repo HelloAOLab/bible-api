@@ -1,1 +1,1 @@
-export { usfmParser } from './usfm-parser';
+export * from './usfm-parser';
