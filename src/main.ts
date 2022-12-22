@@ -2,11 +2,12 @@
 import { UsfmParser } from './usfm-parser';
 import MarkdownIt from 'markdown-it';
 import hljs from 'highlight.js';
-import Genesis from '../bible/bsb/01GENBSB.usfm?raw';
+// import Genesis from '../bible/bsb/01GENBSB.usfm?raw';
+import Exodus from '../bible/bsb/02EXOBSB.usfm?raw';
 
 const parser = new UsfmParser();
 
-const tree = parser.parse(Genesis);
+const tree = parser.parse(Exodus);
 
 const markdown = parser.renderMarkdown(tree);
 
@@ -29,12 +30,8 @@ if (!json) {
     throw new Error('json element not found!');
 }
 
-// json.innerText = JSON.stringify(tree, undefined, 2);
-
-// setTimeout(() => {
 const final = hljs.highlight(JSON.stringify(tree, undefined, 2), { 
     language: 'json'
 });
 
 json.innerHTML = final.value;
-// }, 5000);

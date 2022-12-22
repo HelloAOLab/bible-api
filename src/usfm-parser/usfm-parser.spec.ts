@@ -345,6 +345,7 @@ describe('UsfmParser', () => {
 
         it('should infer the first verse of a chapter', () => {
             const tree = parser.parse(`\\c 1
+                \\s1 The Two Paths
                 \\q1 Blessed is the man 
                 \\q2 who does not walk in the counsel of the wicked, 
                 \\q1 or set foot on the path of sinners, 
@@ -366,6 +367,12 @@ describe('UsfmParser', () => {
                         type: 'chapter',
                         number: 1,
                         content: [
+                            {
+                                type: 'heading',
+                                content: [
+                                    'The Two Paths'
+                                ]
+                            },
                             { 
                                 type: 'verse', 
                                 number: 1,
@@ -711,6 +718,121 @@ describe('UsfmParser', () => {
                         ],
                         footnotes: []
                     }
+                ]
+            });
+        });
+
+        it('should support references', () => {
+            const tree = parser.parse(`\\c 1
+                \\r (John 1:1–5; Hebrews 11:1–3)
+                \\v 1 In the beginning God created the heavens and the earth.
+                \\v 2 Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.
+                \\c 2
+                \\v 1 Thus the heavens and the earth were completed in all their vast array.
+            `);
+
+            expect(tree).toEqual({
+                type: 'root',
+                content: [
+                    {
+                        type: 'chapter',
+                        number: 1,
+                        content: [
+                            { 
+                                type: 'verse', 
+                                number: 1,
+                                content: [
+                                    'In the beginning God created the heavens and the earth.'
+                                ]
+                            },
+                            { 
+                                type: 'verse', 
+                                number: 2,
+                                content: [
+                                    'Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.'
+                                ]
+                            }
+                        ],
+                        footnotes: [],
+                    },
+                    {
+                        type: 'chapter',
+                        number: 2,
+                        content: [
+                            { 
+                                type: 'verse', 
+                                number: 1,
+                                content: [
+                                    'Thus the heavens and the earth were completed in all their vast array.'
+                                ]
+                            },
+                        ],
+                        footnotes: [],
+                    }
+                ]
+            });
+        });
+
+        it('should support parsing descriptive titles', () => {
+            const tree = parser.parse(`\\c 6
+                \\s1 Do Not Rebuke Me in Your Anger
+                \\r (Psalm 38:1–22)
+                \\b
+                \\d For the choirmaster. With stringed instruments, according to Sheminith.\\f + \\fr 6:1 \\ft Sheminith is probably a musical term; here and in 1 Chronicles 15:21 and Psalm 12:1.\\f* A Psalm of David. 
+                \\b
+                \\q1 
+                \\v 1 O LORD, do not rebuke me in Your anger 
+                \\q2 or discipline me in Your wrath. 
+                \\q1 
+            `);
+
+            expect(tree).toEqual({
+                type: 'root',
+                content: [
+                    {
+                        type: 'chapter',
+                        number: 6,
+                        content: [
+                            {
+                                type: 'heading',
+                                content: [
+                                    'Do Not Rebuke Me in Your Anger'
+                                ]
+                            },
+                            {
+                                type: 'line_break',
+                            },
+                            {
+                                type: 'hebrew_subtitle',
+                                content: [
+                                    'For the choirmaster. With stringed instruments, according to Sheminith.',
+                                    { noteId: 0 },
+                                    'A Psalm of David.'
+                                ]
+                            },
+                            {
+                                type: 'line_break',
+                            },
+                            { 
+                                type: 'verse', 
+                                number: 1,
+                                content: [
+                                    { text: 'O LORD, do not rebuke me in Your anger', poem: 1 },
+                                    { text: 'or discipline me in Your wrath.', poem: 2 },
+                                ]
+                            },
+                        ],
+                        footnotes: [
+                            {
+                                noteId: 0,
+                                text: 'Sheminith is probably a musical term; here and in 1 Chronicles 15:21 and Psalm 12:1.',
+                                reference: {
+                                    chapter: 6,
+                                    verse: 1
+                                }
+                            }
+                        ],
+                    },
                 ]
             });
         });
