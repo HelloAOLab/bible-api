@@ -4,3 +4,8 @@ declare module "*?raw" {
     const str: string;
     export default str;
 }
+
+declare module "*.json" {
+    const data: any;
+    export default data;
+}

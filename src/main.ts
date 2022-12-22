@@ -1,37 +1,26 @@
 
-import { UsfmParser } from './usfm-parser';
-import MarkdownIt from 'markdown-it';
+
 import hljs from 'highlight.js';
-// import Genesis from '../bible/bsb/01GENBSB.usfm?raw';
-import Exodus from '../bible/bsb/02EXOBSB.usfm?raw';
+import Genesis1 from '../build/bible/BSB/Genesis/1.json';
+import { ChapterContent, TranslationBookChapter } from './usfm-parser/generator';
+import { createRouter, createWebHashHistory } from 'vue-router';
+import { createApp } from 'vue';
+import Bible from './Bible.vue';
+import App from './App.vue';
 
-const parser = new UsfmParser();
-
-const tree = parser.parse(Exodus);
-
-const markdown = parser.renderMarkdown(tree);
-
-const md = new MarkdownIt({
-    html: true,
-    breaks: false
+const router = createRouter({
+    history: createWebHashHistory(),
+    routes: [
+        {
+            path: '/:book/:chapter',
+            component: Bible,
+            props: true
+        }
+    ]
 });
 
-const html = md.render(markdown);
+const app = createApp(App);
 
-const app = document.getElementById('app');
-if (!app) {
-    throw new Error('App element not found!');
-}
-app.innerHTML = html;
+app.use(router);
 
-const json = document.getElementById('json');
-
-if (!json) {
-    throw new Error('json element not found!');
-}
-
-const final = hljs.highlight(JSON.stringify(tree, undefined, 2), { 
-    language: 'json'
-});
-
-json.innerHTML = final.value;
+app.mount('#app');
