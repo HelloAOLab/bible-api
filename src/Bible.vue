@@ -15,6 +15,7 @@ import { TranslationBookChapter } from './usfm-parser/generator';
 import MarkdownIt from 'markdown-it';
 
 const props = defineProps({
+  translation: { type: String, required: true },
   book: { type: String, required: true },
   chapter: { type: String, required: true }
 });
@@ -23,7 +24,7 @@ const chapter = ref<string | null>(null);
 
 const load = async () => {
   console.log("Load!");
-  const url = `/build/bible/bsb/${props.book}/${props.chapter}.json`;
+  const url = `/build/bible/${props.translation}/${props.book}/${props.chapter}.json`;
   const result = await fetch(url);
   const final = await result.json();
 

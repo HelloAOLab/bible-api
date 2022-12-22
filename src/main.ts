@@ -12,7 +12,7 @@ const router = createRouter({
     history: createWebHashHistory(),
     routes: [
         {
-            path: '/:book/:chapter',
+            path: '/:translation/:book/:chapter',
             component: Bible,
             props: true
         }
