@@ -10,7 +10,7 @@
   "repository": "https://github.com/HelloAOLab/bible-api",
   "scripts": {
     "dev": "vuepress dev src",
-    "build": "vuepress build src"
+    "build": "vuepress build src --dest ../build/docs"
   },
   "license": "MIT",
   "devDependencies": {

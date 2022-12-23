@@ -6,8 +6,11 @@
     "dev": "vite",
     "test": "vitest",
     "build": "ts-node src/generate-api.ts",
+    "build:docs": "cd docs && yarn install && yarn build",
+    "dev:docs": "vuepress dev docs/src",
     "preview": "vite preview",
-    "generate": "ts-node src/generate-api.ts"
+    "generate": "ts-node src/generate-api.ts",
+    "build-api": "yarn install && yarn build && yarn build:docs"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.191",

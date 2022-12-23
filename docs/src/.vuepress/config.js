@@ -1,6 +1,8 @@
 const { description } = require('../../package')
 
 module.exports = {
+  base: '/docs/',
+
   /**
    * Ref：https://v1.vuepress.vuejs.org/config/#title
    */
