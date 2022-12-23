@@ -36,7 +36,7 @@ async function start() {
         let promise = mkdir(dir, {
             recursive: true
         }).then(() => {
-            return writeFile(finalPath, file.content);
+            return writeFile(finalPath, JSON.stringify(file.content));
         });
 
         writePromises.push(promise);

@@ -133,7 +133,7 @@ export function generate(files: InputFile[]): OutputFile[] {
 function jsonFile(path: string, content: any): OutputFile {
     return {
         path,
-        content: JSON.stringify(content)
+        content
     };
 }
 
@@ -147,7 +147,7 @@ export interface InputFile {
 
 export interface OutputFile {
     path: string;
-    content: string;
+    content: object;
 }
 
 /**
@@ -281,55 +281,157 @@ export interface TranslationBook {
 }
 
 export interface TranslationBookChapter {
+    /**
+     * The translation information for the book chapter.
+     */
     translation: Translation;
+
+    /**
+     * The book information for the book chapter.
+     */
     book: TranslationBook;
+
+    /**
+     * The link to the next chapter.
+     * Null if this is the last chapter in the book.
+     */
     nextChapterApiLink: string | null;
+
+    /**
+     * The link to the previous chapter.
+     * Null if this is the first chapter in the book.
+     */
     previousChapterApiLink: string | null;
+
+    /**
+     * The information for the chapter.
+     */
     chapter: ChapterData;
 }
 
 export interface ChapterData {
+    /**
+     * The number of the chapter.
+     */
     number: number;
+
+    /**
+     * The content of the chapter.
+     */
     content: ChapterContent[];
+
+    /**
+     * The list of footnotes for the chapter.
+     */
     footnotes: ChapterFootnote[];
 }
 
+/**
+ * A union type that represents a single piece of chapter content.
+ * A piece of chapter content can be one of the following things:
+ * - A heading.
+ * - A line break.
+ * - A verse.
+ * - A Hebrew Subtitle.
+ */
 export type ChapterContent = ChapterHeading | ChapterLineBreak | ChapterVerse | ChapterHebrewSubtitle;
 
+/**
+ * A heading in a chapter.
+ */
 export interface ChapterHeading {
+    /**
+     * Indicates that the content represents a heading.
+     */
     type: 'heading';
+
+    /**
+     * The content for the heading.
+     * If multiple strings are included in the array, they should be concatenated with a space.
+     */
     content: string[];
 }
 
+/**
+ * A line break in a chapter.
+ */
 export interface ChapterLineBreak {
+    /**
+     * Indicates that the content represents a line break.
+     */
     type: 'line_break';
 }
 
+/**
+ * A Hebrew Subtitle in a chapter.
+ * These are often used included as informational content that appeared in the original manuscripts.
+ * For example, Psalms 49 has the Hebrew Subtitle "To the choirmaster. A Psalm of the Sons of Korah."
+ */
 export interface ChapterHebrewSubtitle {
+    /**
+     * Indicates that the content represents a Hebrew Subtitle.
+     */
     type: 'hebrew_subtitle';
-    content: (string | VerseText | VerseFootnoteReference)[];
+
+    /**
+     * The list of content that is contained in the subtitle.
+     * Each element in the list could be a string, formatted text, or a footnote reference.
+     */
+    content: (string | FormattedText | VerseFootnoteReference)[];
 }
 
+/**
+ * A verse in a chapter.
+ */
 export interface ChapterVerse {
+    /**
+     * Indicates that the content is a verse.
+     */
     type: 'verse';
+
+    /**
+     * The number of the verse.
+     */
     number: number;
-    content: (string | VerseText | VerseFootnoteReference)[];
+    
+    /**
+     * The list of content for the verse.
+     * Each element in the list could be a string, formatted text, or a footnote reference.
+     */
+    content: (string | FormattedText | VerseFootnoteReference)[];
 }
 
-export interface VerseText {
+/**
+ * Formatted text. That is, text that is formated in a particular manner.
+ */
+export interface FormattedText {
+    /**
+     * The text that is formatted.
+     */
     text: string;
 
     /**
      * Whether the text represents a poem.
      * The number indicates the level of indent.
+     * 
+     * Common in Psalms.
      */
     poem?: number;
 }
 
+/**
+ * A footnote reference in a verse or a Hebrew Subtitle.
+ */
 export interface VerseFootnoteReference {
+    /**
+     * The ID of the note.
+     */
     noteId: number;
 }
 
+/**
+ * Information about a footnote.
+ */
 export interface ChapterFootnote {
     /**
      * The ID of the note that is referenced.

@@ -289,7 +289,7 @@ function fileTree(outputFiles: OutputFile[]): any {
     let result: any = {};
 
     for (let file of outputFiles) {
-        result[file.path] = JSON.parse(file.content);
+        result[file.path] = file.content;
     }
 
     return result;
