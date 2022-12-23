@@ -1,0 +1,19 @@
+{
+  "name": "@helloao/bible-api-docs",
+  "version": "0.0.1",
+  "description": "An easy-to-use and fully featured JSON API for accessing the Bible",
+  "main": "index.js",
+  "authors": {
+    "name": "Kal Gowdy",
+    "email": "kal@helloao.org"
+  },
+  "repository": "https://github.com/HelloAOLab/bible-api",
+  "scripts": {
+    "dev": "vuepress dev src",
+    "build": "vuepress build src"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "vuepress": "^1.5.3"
+  }
+}
