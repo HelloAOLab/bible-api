@@ -116,16 +116,16 @@ export function generate(files: InputFile[]): OutputFile[] {
         output.push(jsonFile(link, books));
     }
 
-    output.push(jsonFile('/bible/available_translations.json', availableTranslations));
+    output.push(jsonFile('/api/available_translations.json', availableTranslations));
 
     return output;
 
     function listOfBooksApiLink(translationId: string): string {
-        return `/bible/${translationId}/books.json`;
+        return `/api/${translationId}/books.json`;
     }
     
     function bookChapterApiLink(translationId: string, commonBookName: string, chapterNumber: number, extension: string) {
-        return `/bible/${translationId}/${replaceSpacesWithUnderscores(commonBookName)}/${chapterNumber}.${extension}`;
+        return `/api/${translationId}/${replaceSpacesWithUnderscores(commonBookName)}/${chapterNumber}.${extension}`;
     }
 }
 

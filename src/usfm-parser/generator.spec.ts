@@ -67,42 +67,42 @@ describe('generator()', () => {
             availableFormats: [
                 'json'
             ],
-            listOfBooksApiLink: '/bible/bsb/books.json',
+            listOfBooksApiLink: '/api/bsb/books.json',
         }
 
         expect(tree).toEqual({
-            '/bible/available_translations.json': {
+            '/api/available_translations.json': {
                 translations: [
                     expectedTranslation
                 ]
             },
-            '/bible/bsb/books.json': {
+            '/api/bsb/books.json': {
                 translation: expectedTranslation,
                 books: [
                     {
                         id: 'GEN',
                         commonName: 'Genesis',
                         numberOfChapters: 1,
-                        firstChapterApiLink: '/bible/bsb/Genesis/1.json',
-                        lastChapterApiLink: '/bible/bsb/Genesis/1.json',
+                        firstChapterApiLink: '/api/bsb/Genesis/1.json',
+                        lastChapterApiLink: '/api/bsb/Genesis/1.json',
                     },
                     {
                         id: 'EXO',
                         commonName: 'Exodus',
                         numberOfChapters: 1,
-                        firstChapterApiLink: '/bible/bsb/Exodus/1.json',
-                        lastChapterApiLink: '/bible/bsb/Exodus/1.json',
+                        firstChapterApiLink: '/api/bsb/Exodus/1.json',
+                        lastChapterApiLink: '/api/bsb/Exodus/1.json',
                     }
                 ]
             },
-            '/bible/bsb/Genesis/1.json': {
+            '/api/bsb/Genesis/1.json': {
                 translation: expectedTranslation,
                 book: {
                     id: 'GEN',
                     commonName: 'Genesis',
                     numberOfChapters: 1,
-                    firstChapterApiLink: '/bible/bsb/Genesis/1.json',
-                    lastChapterApiLink: '/bible/bsb/Genesis/1.json'
+                    firstChapterApiLink: '/api/bsb/Genesis/1.json',
+                    lastChapterApiLink: '/api/bsb/Genesis/1.json'
                 },
                 nextChapterApiLink: null,
                 previousChapterApiLink: null,
@@ -139,14 +139,14 @@ describe('generator()', () => {
                     footnotes: []
                 }
             },
-            '/bible/bsb/Exodus/1.json': {
+            '/api/bsb/Exodus/1.json': {
                 translation: expectedTranslation,
                 book: {
                     id: 'EXO',
                     commonName: 'Exodus',
                     numberOfChapters: 1,
-                    firstChapterApiLink: '/bible/bsb/Exodus/1.json',
-                    lastChapterApiLink: '/bible/bsb/Exodus/1.json'
+                    firstChapterApiLink: '/api/bsb/Exodus/1.json',
+                    lastChapterApiLink: '/api/bsb/Exodus/1.json'
                 },
                 nextChapterApiLink: null,
                 previousChapterApiLink: null,
@@ -220,35 +220,35 @@ describe('generator()', () => {
             availableFormats: [
                 'json'
             ],
-            listOfBooksApiLink: '/bible/bsb/books.json',
+            listOfBooksApiLink: '/api/bsb/books.json',
         }
 
         expect(tree).toEqual({
-            '/bible/available_translations.json': {
+            '/api/available_translations.json': {
                 translations: [
                     expectedTranslation
                 ]
             },
-            '/bible/bsb/books.json': {
+            '/api/bsb/books.json': {
                 translation: expectedTranslation,
                 books: [
                     {
                         id: '1CH',
                         commonName: '1 Chronicles',
                         numberOfChapters: 1,
-                        firstChapterApiLink: '/bible/bsb/1_Chronicles/1.json',
-                        lastChapterApiLink: '/bible/bsb/1_Chronicles/1.json',
+                        firstChapterApiLink: '/api/bsb/1_Chronicles/1.json',
+                        lastChapterApiLink: '/api/bsb/1_Chronicles/1.json',
                     },
                 ]
             },
-            '/bible/bsb/1_Chronicles/1.json': {
+            '/api/bsb/1_Chronicles/1.json': {
                 translation: expectedTranslation,
                 book: {
                     id: '1CH',
                     commonName: '1 Chronicles',
                     numberOfChapters: 1,
-                    firstChapterApiLink: '/bible/bsb/1_Chronicles/1.json',
-                    lastChapterApiLink: '/bible/bsb/1_Chronicles/1.json'
+                    firstChapterApiLink: '/api/bsb/1_Chronicles/1.json',
+                    lastChapterApiLink: '/api/bsb/1_Chronicles/1.json'
                 },
                 nextChapterApiLink: null,
                 previousChapterApiLink: null,
