@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { bookIdMap, generate, InputFile, InputTranslationMetadata, OutputFile } from './generator';
 import Genesis from '../../bible/bsb/01GENBSB.usfm?raw';
 import Exodus from '../../bible/bsb/02EXOBSB.usfm?raw';
+import _1Chronicles from '../../bible/bsb/131CHBSB.usfm?raw';
 
 // const genesisBsb = `\id GEN - Berean Study Bible
 // \\h Genesis
@@ -66,29 +67,31 @@ describe('generator()', () => {
             availableFormats: [
                 'json'
             ],
-            listOfBooksApiLink: '/bible/bsb/books',
+            listOfBooksApiLink: '/bible/bsb/books.json',
         }
 
         expect(tree).toEqual({
-            '/bible/available_translations': {
+            '/bible/available_translations.json': {
                 translations: [
                     expectedTranslation
                 ]
             },
-            '/bible/bsb/books': {
+            '/bible/bsb/books.json': {
                 translation: expectedTranslation,
                 books: [
                     {
                         id: 'GEN',
                         commonName: 'Genesis',
                         numberOfChapters: 1,
-                        firstChapterApiLink: '/bible/bsb/Genesis/1.json'
+                        firstChapterApiLink: '/bible/bsb/Genesis/1.json',
+                        lastChapterApiLink: '/bible/bsb/Genesis/1.json',
                     },
                     {
                         id: 'EXO',
                         commonName: 'Exodus',
                         numberOfChapters: 1,
-                        firstChapterApiLink: '/bible/bsb/Exodus/1.json'
+                        firstChapterApiLink: '/bible/bsb/Exodus/1.json',
+                        lastChapterApiLink: '/bible/bsb/Exodus/1.json',
                     }
                 ]
             },
@@ -98,9 +101,11 @@ describe('generator()', () => {
                     id: 'GEN',
                     commonName: 'Genesis',
                     numberOfChapters: 1,
-                    firstChapterApiLink: '/bible/bsb/Genesis/1.json'
+                    firstChapterApiLink: '/bible/bsb/Genesis/1.json',
+                    lastChapterApiLink: '/bible/bsb/Genesis/1.json'
                 },
-                nextChapterLink: null,
+                nextChapterApiLink: null,
+                previousChapterApiLink: null,
                 chapter: {
                     number: 1,
                     content: [
@@ -140,9 +145,11 @@ describe('generator()', () => {
                     id: 'EXO',
                     commonName: 'Exodus',
                     numberOfChapters: 1,
-                    firstChapterApiLink: '/bible/bsb/Exodus/1.json'
+                    firstChapterApiLink: '/bible/bsb/Exodus/1.json',
+                    lastChapterApiLink: '/bible/bsb/Exodus/1.json'
                 },
-                nextChapterLink: null,
+                nextChapterApiLink: null,
+                previousChapterApiLink: null,
                 chapter: {
                     number: 1,
                     content: [
@@ -176,6 +183,98 @@ describe('generator()', () => {
                     footnotes: []
                 }
             }
+        });
+    });
+
+    it('should use underscores for spaces in the book name', () => {
+        let translation1: InputTranslationMetadata = {
+            id: 'bsb',
+            name: 'Berean Standard Bible',
+            shortName: 'BSB',
+            language: 'en',
+            licenseUrl: 'https://berean.bible/terms.htm',
+            website: 'https://berean.bible'
+        };
+
+        let inputFiles = [
+            {
+                fileType: 'usfm',
+                metadata: {
+                    translation: translation1
+                },
+                content: firstXLines(_1Chronicles, 11)
+            },
+        ] as InputFile[];
+
+        const generated = generate(inputFiles);
+
+        const tree = fileTree(generated);
+
+        const expectedTranslation = {
+            id: 'bsb',
+            name: 'Berean Standard Bible',
+            shortName: 'BSB',
+            language: 'en',
+            licenseUrl: 'https://berean.bible/terms.htm',
+            website: 'https://berean.bible',
+            availableFormats: [
+                'json'
+            ],
+            listOfBooksApiLink: '/bible/bsb/books.json',
+        }
+
+        expect(tree).toEqual({
+            '/bible/available_translations.json': {
+                translations: [
+                    expectedTranslation
+                ]
+            },
+            '/bible/bsb/books.json': {
+                translation: expectedTranslation,
+                books: [
+                    {
+                        id: '1CH',
+                        commonName: '1 Chronicles',
+                        numberOfChapters: 1,
+                        firstChapterApiLink: '/bible/bsb/1_Chronicles/1.json',
+                        lastChapterApiLink: '/bible/bsb/1_Chronicles/1.json',
+                    },
+                ]
+            },
+            '/bible/bsb/1_Chronicles/1.json': {
+                translation: expectedTranslation,
+                book: {
+                    id: '1CH',
+                    commonName: '1 Chronicles',
+                    numberOfChapters: 1,
+                    firstChapterApiLink: '/bible/bsb/1_Chronicles/1.json',
+                    lastChapterApiLink: '/bible/bsb/1_Chronicles/1.json'
+                },
+                nextChapterApiLink: null,
+                previousChapterApiLink: null,
+                chapter: {
+                    number: 1,
+                    content: [
+                        {
+                            type: 'heading',
+                            content: [
+                                'From Adam to Abraham'
+                            ]
+                        },
+                        {
+                            type: 'line_break'
+                        },
+                        {
+                            type: 'verse',
+                            number: 1,
+                            content: [
+                                'Adam, Seth, Enosh,'
+                            ],
+                        },
+                    ],
+                    footnotes: []
+                }
+            },
         });
     });
 

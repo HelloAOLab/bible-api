@@ -73,6 +73,7 @@ export function generate(files: InputFile[]): OutputFile[] {
                 id: id,
                 commonName: bookName.commonName,
                 firstChapterApiLink: bookChapterApiLink(translation.id, bookName.commonName, 1, 'json'),
+                lastChapterApiLink: bookChapterApiLink(translation.id, bookName.commonName, 1, 'json'),
                 numberOfChapters: 0
             };
 
@@ -84,7 +85,8 @@ export function generate(files: InputFile[]): OutputFile[] {
                     let chapter: TranslationBookChapter = {
                         translation,
                         book,
-                        nextChapterLink: null,
+                        nextChapterApiLink: null,
+                        previousChapterApiLink: previousChapter ? bookChapterApiLink(translation.id, book.commonName, previousChapter.chapter.number, 'json') : null,
                         chapter: {
                             number: content.number,
                             content: content.content,
@@ -94,10 +96,11 @@ export function generate(files: InputFile[]): OutputFile[] {
                     book.numberOfChapters += 1;
 
                     const link = bookChapterApiLink(translation.id, book.commonName, chapter.chapter.number, 'json');
+                    book.lastChapterApiLink = link;
                     output.push(jsonFile(link, chapter));
 
                     if (previousChapter) {
-                        previousChapter.nextChapterLink = link;
+                        previousChapter.nextChapterApiLink = link;
                     }
                     previousChapter = chapter;
                 }
@@ -113,16 +116,16 @@ export function generate(files: InputFile[]): OutputFile[] {
         output.push(jsonFile(link, books));
     }
 
-    output.push(jsonFile('/bible/available_translations', availableTranslations));
+    output.push(jsonFile('/bible/available_translations.json', availableTranslations));
 
     return output;
 
     function listOfBooksApiLink(translationId: string): string {
-        return `/bible/${translationId}/books`;
+        return `/bible/${translationId}/books.json`;
     }
     
     function bookChapterApiLink(translationId: string, commonBookName: string, chapterNumber: number, extension: string) {
-        return `/bible/${translationId}/${commonBookName}/${chapterNumber}.${extension}`;
+        return `/bible/${translationId}/${replaceSpacesWithUnderscores(commonBookName)}/${chapterNumber}.${extension}`;
     }
 }
 
@@ -190,7 +193,10 @@ export interface InputTranslationMetadata {
 }
 
 export interface AvailableTranslations {
-    translations: Translation[]
+    /**
+     * The list of translations.
+     */
+    translations: Translation[];
 }
 
 export interface Translation {
@@ -236,21 +242,49 @@ export interface Translation {
 }
 
 export interface TranslationBooks {
+    /**
+     * The translation information for the books.
+     */
     translation: Translation;
+
+    /**
+     * The list of books that are available for the translation.
+     */
     books: TranslationBook[];
 }
 
 export interface TranslationBook {
+    /**
+     * The ID of the book.
+     */
     id: string;
+
+    /**
+     * The common name for the book.
+     */
     commonName: string;
+
+    /**
+     * The number of chapters that the book contains.
+     */
     numberOfChapters: number;
+
+    /**
+     * The link to the first chapter of the book.
+     */
     firstChapterApiLink: string;
+
+    /**
+     * The link to the last chapter of the book.
+     */
+    lastChapterApiLink: string;
 }
 
 export interface TranslationBookChapter {
     translation: Translation;
     book: TranslationBook;
-    nextChapterLink: string | null;
+    nextChapterApiLink: string | null;
+    previousChapterApiLink: string | null;
     chapter: ChapterData;
 }
 
@@ -388,3 +422,7 @@ export const bookIdMap = new Map([
         ])
     ]
 ]);
+
+function replaceSpacesWithUnderscores(str: string): string {
+    return str.replaceAll(' ', '_');
+}
