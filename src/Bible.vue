@@ -24,7 +24,7 @@ const chapter = ref<string | null>(null);
 
 const load = async () => {
   console.log("Load!");
-  const url = `/build/bible/${props.translation}/${props.book}/${props.chapter}.json`;
+  const url = `/build/api/${props.translation}/${props.book}/${props.chapter}.json`;
   const result = await fetch(url);
   const final = await result.json();
 
