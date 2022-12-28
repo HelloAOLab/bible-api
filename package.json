@@ -12,7 +12,7 @@
     "generate": "ts-node src/generate-api.ts",
     "build-api": "yarn install && yarn build && yarn build:docs && yarn build:read-site",
     "dev:g": "gatsby develop",
-    "build:read-site": "gatsby build && cp -nr ./public/ ./build/"
+    "build:read-site": "gatsby build && cp -nr ./public/* ./build/"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.191",
