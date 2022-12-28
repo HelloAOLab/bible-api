@@ -1,15 +1,10 @@
-import React from 'react';
+import * as React from 'react';
 import type { TranslationBookChapter, ChapterData, ChapterContent, ChapterVerse } from '../usfm-parser/generator';
+import type { PageProps } from 'gatsby';
+import Layout from '../components/Layout';
 
 type ArrayElement<ArrayType extends readonly unknown[]> = 
   ArrayType extends readonly (infer ElementType)[] ? ElementType : never;
-
-export function Chapter({chapter}: { chapter: TranslationBookChapter }): any {
-    return (<div>
-        <h1>{chapter.book.commonName} ${chapter.chapter.number}</h1>
-        {chapter.chapter.content.map(c => <ChapterContent content={c} />)}
-    </div>)
-}
 
 function ChapterContent( {content}: { content: ChapterContent }) {
     if (content.type === 'heading') {
@@ -24,15 +19,15 @@ function ChapterContent( {content}: { content: ChapterContent }) {
 }
 
 function Verse({verse}: { verse: ChapterVerse}) {
-    return <span><em>{verse.number}</em> {verse.content.map(c => <VerseContent content={c}></VerseContent>)}</span>
+    return <span> <em>{verse.number}</em> {verse.content.map(c => <VerseContent content={c}></VerseContent>)}</span>
 }
 
 function VerseContent({ content }: { content: ArrayElement<ChapterVerse['content']> }) {
     if (typeof content === 'string') {
-        return <>{content}</>;
+        return <> {content}</>;
     } else if(typeof content === 'object') {
         if ('text' in content) {
-            return <>content.text</>;
+            return <> {content.text}</>;
         } else if('noteId' in content) {
             return <></>;
         }
@@ -40,3 +35,13 @@ function VerseContent({ content }: { content: ArrayElement<ChapterVerse['content
 
     return <></>;
 }
+
+function ChapterTemplate({ pageContext }: PageProps<any, { chapter: TranslationBookChapter }>): any {
+        const chapter: TranslationBookChapter = pageContext.chapter;
+    return <Layout>
+        <h1>{chapter.book.commonName} {chapter.chapter.number}</h1>
+        {chapter.chapter.content.map(c => <ChapterContent content={c} />)}
+    </Layout>
+}
+
+export default ChapterTemplate;

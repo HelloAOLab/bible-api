@@ -10,7 +10,8 @@
     "dev:docs": "vuepress dev docs/src",
     "preview": "vite preview",
     "generate": "ts-node src/generate-api.ts",
-    "build-api": "yarn install && yarn build && yarn build:docs"
+    "build-api": "yarn install && yarn build && yarn build:docs",
+    "dev:g": "gatsby develop"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.191",
@@ -25,7 +26,9 @@
     "vitest": "^0.26.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "gatsby": "5.3.3"
+    "gatsby": "5.3.3",
+    "gatsby-source-filesystem": "5.3.1",
+    "gatsby-transformer-json": "5.3.0"
   },
   "dependencies": {
     "highlight.js": "^11.7.0",

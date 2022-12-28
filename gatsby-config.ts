@@ -2,9 +2,17 @@ import type { GatsbyConfig } from "gatsby";
 
 const config: GatsbyConfig = {
     siteMetadata: {
-        title: "Your Title",
+        title: "AO Lab",
     },
-    plugins: [],
+    plugins: [
+        // 'gatsby-transformer-json',
+        {
+            resolve: 'gatsby-source-filesystem',
+            options: {
+                path: './build/api/'
+            }
+        }
+    ],
 }
 
 export default config;
