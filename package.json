@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "vite",
     "test": "vitest",
-    "build": "ts-node src/generate-api.ts && ts-node src/bible-app/index.ts",
+    "build": "ts-node src/generate-api.ts",
     "build:docs": "cd docs && yarn install && yarn build",
     "dev:docs": "vuepress dev docs/src",
     "preview": "vite preview",
