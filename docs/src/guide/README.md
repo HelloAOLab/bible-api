@@ -4,7 +4,7 @@ The Bible, the very inspired word of God, is the most important set of documents
 
 ## About Us
 
-[AO Lab](https://linktr.ee/helloaolab) is a non-profit company dedicated to spreading the Word of God. The goal of this project is to make the Bible freely available to anyone who should need it in a format that is optimized for use by applications.
+[AO Lab](https://linktr.ee/helloaolab) is a non-profit company dedicated to loving and living out the Word of God. The goal of this project is to make the Bible freely available to anyone who should need it in a format that is optimized for use by applications.
 
 We are excited to partner with the [BSB team](https://bereanbibles.com/). Without their help and support, this API would not be available.
 
