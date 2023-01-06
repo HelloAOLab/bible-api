@@ -1,6 +1,6 @@
 # Introduction
 
-In our opinion, The Bible, the very inspired word of God, is the most important set of documents in the history of the world. It has been studied for countless generations by cultures from all around the world, and it contains many foundational truths upon which our entire existence is built.
+The Bible, the very inspired word of God, is the most important set of documents in the history of the world. It has been studied for countless generations by cultures from all around the world, and it contains many foundational truths upon which our entire existence is built.
 
 ## About Us
 
