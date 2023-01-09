@@ -56,6 +56,7 @@ module.exports = {
           children: [
             '',
             'making-requests',
+            'a-biblical-model-for-licensing-the-bible',
           ]
         }
       ],
