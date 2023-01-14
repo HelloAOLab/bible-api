@@ -2,6 +2,7 @@ import * as React from 'react';
 import type { TranslationBookChapter, ChapterData, ChapterContent, ChapterVerse } from '../usfm-parser/generator';
 import type { PageProps } from 'gatsby';
 import Layout from '../components/Layout';
+import { FormatNumber } from '../components/Language';
 
 type ArrayElement<ArrayType extends readonly unknown[]> = 
   ArrayType extends readonly (infer ElementType)[] ? ElementType : never;
@@ -19,7 +20,7 @@ function ChapterContent( {content}: { content: ChapterContent }) {
 }
 
 function Verse({verse}: { verse: ChapterVerse}) {
-    return <span> <em>{verse.number}</em> {verse.content.map(c => <VerseContent content={c}></VerseContent>)}</span>
+    return <span> <em><FormatNumber value={verse.number}/></em> {verse.content.map((c, i) => <VerseContent content={c} key={i}></VerseContent>)}</span>
 }
 
 function VerseContent({ content }: { content: ArrayElement<ChapterVerse['content']> }) {
@@ -37,11 +38,11 @@ function VerseContent({ content }: { content: ArrayElement<ChapterVerse['content
 }
 
 function ChapterTemplate({ pageContext }: PageProps<any, { chapter: TranslationBookChapter }>): any {
-        const chapter: TranslationBookChapter = pageContext.chapter;
-    return <Layout>
-        <h1>{chapter.book.commonName} {chapter.chapter.number}</h1>
+    const chapter: TranslationBookChapter = pageContext.chapter;
+    return <Layout language={ chapter.translation.language }>
+        <h1>{chapter.book.commonName} <FormatNumber value={chapter.chapter.number} /></h1>
         <h6>{chapter.translation.shortName ?? chapter.translation.name}</h6>
-        {chapter.chapter.content.map(c => <ChapterContent content={c} />)}
+        {chapter.chapter.content.map((c, i) => <ChapterContent content={c} key={i} />)}
     </Layout>
 }
 
