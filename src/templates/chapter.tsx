@@ -40,6 +40,7 @@ function ChapterTemplate({ pageContext }: PageProps<any, { chapter: TranslationB
         const chapter: TranslationBookChapter = pageContext.chapter;
     return <Layout>
         <h1>{chapter.book.commonName} {chapter.chapter.number}</h1>
+        <h6>{chapter.translation.shortName ?? chapter.translation.name}</h6>
         {chapter.chapter.content.map(c => <ChapterContent content={c} />)}
     </Layout>
 }
