@@ -30,8 +30,9 @@ describe('generator()', () => {
         let translation1: InputTranslationMetadata = {
             id: 'bsb',
             name: 'Berean Standard Bible',
+            englishName: 'Berean Standard Bible',
             shortName: 'BSB',
-            language: 'en',
+            language: 'en-US',
             licenseUrl: 'https://berean.bible/terms.htm',
             website: 'https://berean.bible'
         };
@@ -60,8 +61,9 @@ describe('generator()', () => {
         const expectedTranslation = {
             id: 'bsb',
             name: 'Berean Standard Bible',
+            englishName: 'Berean Standard Bible',
             shortName: 'BSB',
-            language: 'en',
+            language: 'en-US',
             licenseUrl: 'https://berean.bible/terms.htm',
             website: 'https://berean.bible',
             availableFormats: [
@@ -81,6 +83,7 @@ describe('generator()', () => {
                 books: [
                     {
                         id: 'GEN',
+                        name: 'Genesis',
                         commonName: 'Genesis',
                         numberOfChapters: 1,
                         firstChapterApiLink: '/api/bsb/Genesis/1.json',
@@ -88,6 +91,7 @@ describe('generator()', () => {
                     },
                     {
                         id: 'EXO',
+                        name: 'Exodus',
                         commonName: 'Exodus',
                         numberOfChapters: 1,
                         firstChapterApiLink: '/api/bsb/Exodus/1.json',
@@ -99,6 +103,7 @@ describe('generator()', () => {
                 translation: expectedTranslation,
                 book: {
                     id: 'GEN',
+                    name: 'Genesis',
                     commonName: 'Genesis',
                     numberOfChapters: 1,
                     firstChapterApiLink: '/api/bsb/Genesis/1.json',
@@ -143,6 +148,7 @@ describe('generator()', () => {
                 translation: expectedTranslation,
                 book: {
                     id: 'EXO',
+                    name: 'Exodus',
                     commonName: 'Exodus',
                     numberOfChapters: 1,
                     firstChapterApiLink: '/api/bsb/Exodus/1.json',
@@ -190,8 +196,9 @@ describe('generator()', () => {
         let translation1: InputTranslationMetadata = {
             id: 'bsb',
             name: 'Berean Standard Bible',
+            englishName: 'Berean Standard Bible',
             shortName: 'BSB',
-            language: 'en',
+            language: 'en-US',
             licenseUrl: 'https://berean.bible/terms.htm',
             website: 'https://berean.bible'
         };
@@ -213,8 +220,9 @@ describe('generator()', () => {
         const expectedTranslation = {
             id: 'bsb',
             name: 'Berean Standard Bible',
+            englishName: 'Berean Standard Bible',
             shortName: 'BSB',
-            language: 'en',
+            language: 'en-US',
             licenseUrl: 'https://berean.bible/terms.htm',
             website: 'https://berean.bible',
             availableFormats: [
@@ -234,6 +242,7 @@ describe('generator()', () => {
                 books: [
                     {
                         id: '1CH',
+                        name: '1 Chronicles',
                         commonName: '1 Chronicles',
                         numberOfChapters: 1,
                         firstChapterApiLink: '/api/bsb/1_Chronicles/1.json',
@@ -245,6 +254,7 @@ describe('generator()', () => {
                 translation: expectedTranslation,
                 book: {
                     id: '1CH',
+                    name: '1 Chronicles',
                     commonName: '1 Chronicles',
                     numberOfChapters: 1,
                     firstChapterApiLink: '/api/bsb/1_Chronicles/1.json',

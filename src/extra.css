@@ -2,3 +2,7 @@ em {
   margin-right: 2px;
   font-size: 0.8em;
 }
+
+.lang-arb {
+  direction: rtl;
+}

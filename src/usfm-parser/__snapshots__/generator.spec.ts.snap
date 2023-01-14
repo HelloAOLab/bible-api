@@ -202,5 +202,405 @@ Map {
       "commonName": "Revelation",
     },
   },
+  "en-US" => Map {
+    "GEN" => {
+      "commonName": "Genesis",
+    },
+    "EXO" => {
+      "commonName": "Exodus",
+    },
+    "LEV" => {
+      "commonName": "Leviticus",
+    },
+    "NUM" => {
+      "commonName": "Numbers",
+    },
+    "DEU" => {
+      "commonName": "Deuteronomy",
+    },
+    "JOS" => {
+      "commonName": "Joshua",
+    },
+    "JDG" => {
+      "commonName": "Judges",
+    },
+    "RUT" => {
+      "commonName": "Ruth",
+    },
+    "1SA" => {
+      "commonName": "1 Samuel",
+    },
+    "2SA" => {
+      "commonName": "2 Samuel",
+    },
+    "1KI" => {
+      "commonName": "1 Kings",
+    },
+    "2KI" => {
+      "commonName": "2 Kings",
+    },
+    "1CH" => {
+      "commonName": "1 Chronicles",
+    },
+    "2CH" => {
+      "commonName": "2 Chronicles",
+    },
+    "EZR" => {
+      "commonName": "Ezra",
+    },
+    "NEH" => {
+      "commonName": "Nehemiah",
+    },
+    "EST" => {
+      "commonName": "Esther",
+    },
+    "JOB" => {
+      "commonName": "Job",
+    },
+    "PSA" => {
+      "commonName": "Psalms",
+    },
+    "PRO" => {
+      "commonName": "Proverbs",
+    },
+    "ECC" => {
+      "commonName": "Ecclesiastes",
+    },
+    "SNG" => {
+      "commonName": "Song of Songs",
+    },
+    "ISA" => {
+      "commonName": "Isaiah",
+    },
+    "JER" => {
+      "commonName": "Jeremiah",
+    },
+    "LAM" => {
+      "commonName": "Lamentations",
+    },
+    "EZK" => {
+      "commonName": "Ezekiel",
+    },
+    "DAN" => {
+      "commonName": "Daniel",
+    },
+    "HOS" => {
+      "commonName": "Hosea",
+    },
+    "JOL" => {
+      "commonName": "Joel",
+    },
+    "AMO" => {
+      "commonName": "Amos",
+    },
+    "OBA" => {
+      "commonName": "Obadiah",
+    },
+    "JON" => {
+      "commonName": "Jonah",
+    },
+    "MIC" => {
+      "commonName": "Micah",
+    },
+    "NAM" => {
+      "commonName": "Nahum",
+    },
+    "HAB" => {
+      "commonName": "Habakkuk",
+    },
+    "ZEP" => {
+      "commonName": "Zephaniah",
+    },
+    "HAG" => {
+      "commonName": "Haggai",
+    },
+    "ZEC" => {
+      "commonName": "Zechariah",
+    },
+    "MAL" => {
+      "commonName": "Malachi",
+    },
+    "MAT" => {
+      "commonName": "Matthew",
+    },
+    "MRK" => {
+      "commonName": "Mark",
+    },
+    "LUK" => {
+      "commonName": "Luke",
+    },
+    "JHN" => {
+      "commonName": "John",
+    },
+    "ACT" => {
+      "commonName": "Acts",
+    },
+    "ROM" => {
+      "commonName": "Romans",
+    },
+    "1CO" => {
+      "commonName": "1 Corinthians",
+    },
+    "2CO" => {
+      "commonName": "2 Corinthians",
+    },
+    "GAL" => {
+      "commonName": "Galatians",
+    },
+    "EPH" => {
+      "commonName": "Ephesians",
+    },
+    "PHP" => {
+      "commonName": "Philippians",
+    },
+    "COL" => {
+      "commonName": "Colossians",
+    },
+    "1TH" => {
+      "commonName": "1 Thessalonians",
+    },
+    "2TH" => {
+      "commonName": "2 Thessalonians",
+    },
+    "1TI" => {
+      "commonName": "1 Timothy",
+    },
+    "2TI" => {
+      "commonName": "2 Timothy",
+    },
+    "TIT" => {
+      "commonName": "Titus",
+    },
+    "PHM" => {
+      "commonName": "Philemon",
+    },
+    "HEB" => {
+      "commonName": "Hebrews",
+    },
+    "JAS" => {
+      "commonName": "James",
+    },
+    "1PE" => {
+      "commonName": "1 Peter",
+    },
+    "2PE" => {
+      "commonName": "2 Peter",
+    },
+    "1JN" => {
+      "commonName": "1 John",
+    },
+    "2JN" => {
+      "commonName": "2 John",
+    },
+    "3JN" => {
+      "commonName": "3 John",
+    },
+    "JUD" => {
+      "commonName": "Jude",
+    },
+    "REV" => {
+      "commonName": "Revelation",
+    },
+  },
+  "arb" => Map {
+    "GEN" => {
+      "commonName": "التَّكوين",
+    },
+    "EXO" => {
+      "commonName": "الخُرُوج",
+    },
+    "LEV" => {
+      "commonName": "اللّاويِّين",
+    },
+    "NUM" => {
+      "commonName": "العَدَد",
+    },
+    "DEU" => {
+      "commonName": "التَّثْنِيَة",
+    },
+    "JOS" => {
+      "commonName": "يَشُوع",
+    },
+    "JDG" => {
+      "commonName": "القُضاة",
+    },
+    "RUT" => {
+      "commonName": "راعُوث",
+    },
+    "1SA" => {
+      "commonName": "صَمُوئيلَ الأوَّلُ",
+    },
+    "2SA" => {
+      "commonName": "صموئيلَ الثّانِي",
+    },
+    "1KI" => {
+      "commonName": "المُلُوكِ الأوَّلُ",
+    },
+    "2KI" => {
+      "commonName": "المُلُوكِ الثّانِي",
+    },
+    "1CH" => {
+      "commonName": "أخبارِ الأيّامِ الأوّلُ",
+    },
+    "2CH" => {
+      "commonName": " أخبارِ الأيّامِ الثّانِي",
+    },
+    "EZR" => {
+      "commonName": "عَزْرا",
+    },
+    "NEH" => {
+      "commonName": "نَحَمْيا",
+    },
+    "EST" => {
+      "commonName": "أسْتِير",
+    },
+    "JOB" => {
+      "commonName": "أيُّوب",
+    },
+    "PSA" => {
+      "commonName": "المَزامِير",
+    },
+    "PRO" => {
+      "commonName": "الأمثال",
+    },
+    "ECC" => {
+      "commonName": "الجامِعَة",
+    },
+    "SNG" => {
+      "commonName": "نَشِيدِ الأنشاد",
+    },
+    "ISA" => {
+      "commonName": "إشَعْياء",
+    },
+    "JER" => {
+      "commonName": "إرْمِيا",
+    },
+    "LAM" => {
+      "commonName": "ﻣﺮﺍﺛﻲ ﺇﺭﻣﻴﺎ",
+    },
+    "EZK" => {
+      "commonName": "حِزْقِيال",
+    },
+    "DAN" => {
+      "commonName": "دانيال",
+    },
+    "HOS" => {
+      "commonName": "هُوشَع",
+    },
+    "JOL" => {
+      "commonName": "يُوئيل",
+    },
+    "AMO" => {
+      "commonName": "عامُوس",
+    },
+    "OBA" => {
+      "commonName": "عُوبَدْيا",
+    },
+    "JON" => {
+      "commonName": "ﻳﻮﻧﺎﻥ",
+    },
+    "MIC" => {
+      "commonName": "ميخا",
+    },
+    "NAM" => {
+      "commonName": "ناحُوم",
+    },
+    "HAB" => {
+      "commonName": "حَبَقُّوق",
+    },
+    "ZEP" => {
+      "commonName": "صَفَنْيا",
+    },
+    "HAG" => {
+      "commonName": "حَجَّي",
+    },
+    "ZEC" => {
+      "commonName": "زَكَريّا",
+    },
+    "MAL" => {
+      "commonName": "مَلاخِي",
+    },
+    "MAT" => {
+      "commonName": "ﻣﺘﻰ",
+    },
+    "MRK" => {
+      "commonName": "مَرْقُس",
+    },
+    "LUK" => {
+      "commonName": "لُوقا",
+    },
+    "JHN" => {
+      "commonName": "يُوحَنّا",
+    },
+    "ACT" => {
+      "commonName": "اعمال الرسل",
+    },
+    "ROM" => {
+      "commonName": "ﺭﻭﻣﻴﺔ",
+    },
+    "1CO" => {
+      "commonName": "ﻛﻮﺭﻧﺜﻮﺱ ﺍﻻﻭﻝ",
+    },
+    "2CO" => {
+      "commonName": "ﻛﻮﺭﻧﺜﻮﺱ ﺍﻟﺜﺎﻧﻴﺔ",
+    },
+    "GAL" => {
+      "commonName": "غَلاطِيَّة",
+    },
+    "EPH" => {
+      "commonName": "أفَسُس",
+    },
+    "PHP" => {
+      "commonName": "فِيلِبِّي",
+    },
+    "COL" => {
+      "commonName": "كُولُوسِي",
+    },
+    "1TH" => {
+      "commonName": "الرِّسالَةُ الأُولَى إلَى تَسالُونِيكِي",
+    },
+    "2TH" => {
+      "commonName": "الرِّسالَةُ الثّانيَةُ إلَى تَسالُونِيكِي",
+    },
+    "1TI" => {
+      "commonName": "الرِّسالَةُ الأُولَى إلَى تِيمُوثاوُس",
+    },
+    "2TI" => {
+      "commonName": "الرِّسالَةُ الثّانيَةُ إلَى تِيمُوثاوُس",
+    },
+    "TIT" => {
+      "commonName": "تِيطُس",
+    },
+    "PHM" => {
+      "commonName": "فِلِيْمُون",
+    },
+    "HEB" => {
+      "commonName": "العِبرانِيّين",
+    },
+    "JAS" => {
+      "commonName": "يَعقُوب",
+    },
+    "1PE" => {
+      "commonName": "رسالَةُ بُطرُسَ الأُولَى",
+    },
+    "2PE" => {
+      "commonName": "رسالَةُ بُطرُسَ الثّانيَة",
+    },
+    "1JN" => {
+      "commonName": "رسالَةُ يُوحَنّا الأُولَى",
+    },
+    "2JN" => {
+      "commonName": "رسالَةُ يُوحَنّا الثّانيَة",
+    },
+    "3JN" => {
+      "commonName": "رسالَةُ يُوحَنّا الثّالثَة",
+    },
+    "JUD" => {
+      "commonName": "يَهُوذا",
+    },
+    "REV" => {
+      "commonName": "رُؤيا يُوحَنّا",
+    },
+  },
 }
 `;
