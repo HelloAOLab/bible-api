@@ -172,6 +172,11 @@ export interface InputTranslationMetadata {
     name: string;
 
     /**
+     * The english name of the translation.
+     */
+    englishName: string;
+
+    /**
      * The website for the translation.
      */
     website: string;
@@ -224,6 +229,11 @@ export interface Translation {
      * The short name for the translation.
      */
     shortName?: string;
+
+    /**
+     * The English name for the translation.
+     */
+    englishName: string;
 
     /**
      * The two letter language code that the translation is primarily in.
@@ -453,7 +463,7 @@ export interface ChapterFootnote {
 }
 
 export const bookIdMap = new Map([
-    ['en',
+    ['en-US',
         new Map([
             ["GEN", { "commonName": "Genesis" }]
             , ["EXO", { "commonName": "Exodus" }]
