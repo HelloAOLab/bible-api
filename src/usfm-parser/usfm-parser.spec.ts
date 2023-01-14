@@ -886,6 +886,8 @@ describe('UsfmParser', () => {
             const cases = [
                 ['bsb/01GENBSB.usfm', 50] as const,
                 ['bsb/02EXOBSB.usfm', 40] as const,
+                ['engwebp/02-GENengwebp.usfm', 50] as const,
+                ['engwebp/03-EXOengwebp.usfm', 40] as const,
             ];
 
             it.each(cases)('should consistently parse %s', async (file, expectedChapters) => {
