@@ -71,6 +71,7 @@ export function generate(files: InputFile[]): OutputFile[] {
 
             let book: TranslationBook = {
                 id: id,
+                name: parsed.title ?? bookName.commonName,
                 commonName: bookName.commonName,
                 firstChapterApiLink: bookChapterApiLink(translation.id, bookName.commonName, 1, 'json'),
                 lastChapterApiLink: bookChapterApiLink(translation.id, bookName.commonName, 1, 'json'),
@@ -236,7 +237,7 @@ export interface Translation {
     englishName: string;
 
     /**
-     * The two letter language code that the translation is primarily in.
+     * The RFC 5646 letter language tag that the translation is primarily in.
      */
     language: string;
 
@@ -268,6 +269,11 @@ export interface TranslationBook {
      * The ID of the book.
      */
     id: string;
+
+    /**
+     * The name that the translation provided for the book.
+     */
+    name: string;
 
     /**
      * The common name for the book.
