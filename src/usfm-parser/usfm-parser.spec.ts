@@ -12,6 +12,7 @@ import { isDigit,
     whitespace,
     word
 } from './usfm-parser';
+import hash from 'hash.js';
 
 import { readFile } from 'fs/promises';
 import { resolve } from 'path';
@@ -838,23 +839,25 @@ describe('UsfmParser', () => {
         });
         
         describe('Bible', () => {
-            describe('BSB', () => {
-                const cases = [
-                    ['bsb/01GENBSB.usfm', 50] as const
-                ];
+            const cases = [
+                ['bsb/01GENBSB.usfm', 50] as const,
+                ['bsb/02EXOBSB.usfm', 40] as const,
+            ];
 
-                it.each(cases)('should be able to parse %s', async (file, expectedChapters) => {
-                    const filePath = resolve(__dirname, '..', '..', 'bible', file);
-                    const data = await readFile(filePath, { encoding: 'utf-8' });
-                    const parsed = parser.parse(data);
-                    const numChapters = parsed.content.filter(c => c.type === 'chapter').length;
-                    expect(numChapters).toBe(expectedChapters);
+            it.each(cases)('should consistently parse %s', async (file, expectedChapters) => {
+                const filePath = resolve(__dirname, '..', '..', 'bible', file);
+                const data = await readFile(filePath, { encoding: 'utf-8' });
+                const parsed = parser.parse(data);
+                const numChapters = parsed.content.filter(c => c.type === 'chapter').length;
+                expect(numChapters).toBe(expectedChapters);
 
-                    const json = JSON.stringify(parsed);
-                    const result = JSON.parse(json);
+                const json = JSON.stringify(parsed);
+                const result = JSON.parse(json);
 
-                    expect(result).toEqual(parsed);
-                });
+                expect(result).toEqual(parsed);
+
+                const parsedHash = hash.sha256().update(json).digest('hex');
+                expect(parsedHash).toMatchSnapshot();
             });
         });
     });
