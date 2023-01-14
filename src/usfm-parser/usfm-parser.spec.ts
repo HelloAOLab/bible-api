@@ -836,6 +836,32 @@ describe('UsfmParser', () => {
                 ]
             });
         });
+
+        it('should ignore word level attributes', () => {
+            const tree = parser.parse(`\\c 1
+                \\v 1  \\w In|strong="H0430"\\w* \\w the|strong="H0853"\\w* \\w beginning|strong="H7225"\\w*, \\w God|strong="H0430"\\w* \\w created|strong="H1254"\\w* \\w the|strong="H0853"\\w* \\w heavens|strong="H8064"\\w* \\w and|strong="H0430"\\w* \\w the|strong="H0853"\\w* \\w earth|strong="H0776"\\w*.
+            `);
+
+            expect(tree).toEqual({
+                type: 'root',
+                content: [
+                    {
+                        type: 'chapter',
+                        number: 1,
+                        content: [
+                            { 
+                                type: 'verse', 
+                                number: 1,
+                                content: [
+                                    'In the beginning, God created the heavens and the earth.'
+                                ]
+                            },
+                        ],
+                        footnotes: [],
+                    },
+                ]
+            });
+        });
         
         describe('Bible', () => {
             describe('BSB', () => {

@@ -190,6 +190,7 @@ export class UsfmParser {
         let expectingFootnoteReference = 0;
         let expectingFootnoteText = 0;
         let expectingReferenceText = 0;
+        let expectingWordAttribute = 0;
         let chapter: Chapter | null = null;
         let verse: Verse | null = null;
         let subtitle: HebrewSubtitle | null = null;
@@ -200,10 +201,10 @@ export class UsfmParser {
         let footnote: Footnote | null = null;
         
         this._poem = null;
-
+        
         const addWordsToVerseOrSubtitle = () => {
             if (words.length > 0) {
-                const text = this._text(words.join(' '));
+                const text = this._text(words.join('').trimEnd());
                 if (verse) {
                     verse.content.push(text);
                 } else if (subtitle) {
@@ -358,6 +359,12 @@ export class UsfmParser {
                     }
 
                     expectingFootnoteText = 1;
+                } else if (token.command === '\\w') {
+                    if (token.type === 'start') {
+                        expectingWordAttribute = 1;
+                    } else {
+                        expectingWordAttribute = 0;
+                    }
                 }
             } else if (token.kind === 'word') {
                 if (expectingId > 0) {
@@ -415,6 +422,19 @@ export class UsfmParser {
                     if (isNaN(verse.number)) {
                         this._throwError(input, token, 'The first word token after a verse marker must be parsable to an integer!');
                     }
+                } else if (expectingWordAttribute > 0) {
+                    if (expectingWordAttribute === 1) {
+                        const firstVerticalBarIndex = token.word.indexOf('|');
+
+                        if (firstVerticalBarIndex >= 0) {
+                            const name = token.word.slice(0, firstVerticalBarIndex);
+                            // const rest = token.word.slice(firstVerticalBarIndex + '|'.length);
+                            words.push(name);
+                            expectingWordAttribute = 2;
+                        } else {
+                            words.push(token.word);
+                        }
+                    }
                 } else {
                     words.push(token.word);
                 }
@@ -443,9 +463,16 @@ export class UsfmParser {
                         sectionContent = '';
                         expectingSectionHeading = 0;
                     }
-                } else if(expectingReferenceText > 0) {
+                } else if (expectingReferenceText > 0) {
                     if (token.whitespace.includes('\n')) {
                         expectingReferenceText = 0;
+                    }
+                } else if (expectingId > 0 || expectingTitle > 0 || expectingSectionHeading > 0 || expectingFootnote > 0 || expectingFootnoteReference > 0 || expectingFootnoteText > 0 || expectingReferenceText > 0 || expectingWordAttribute > 0) {
+                    // Skip
+                } else if (words.length > 0) {
+                    let lastWord = words[words.length - 1];
+                    if (lastWord !== ' ') {
+                        words.push(' ');
                     }
                 }
             }
