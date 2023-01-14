@@ -7,5 +7,5 @@ export default {
     shortName: 'NAV',
     language: 'arb',
     licenseUrl: 'https://ebible.org/find/details.php?id=arbnav',
-    website: 'https://ebible.org/find/details.php?id=arbnav',
+    website: 'https://ebible.org/arbnav/',
 } as InputTranslationMetadata;
