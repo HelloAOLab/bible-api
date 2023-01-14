@@ -187,7 +187,7 @@ export interface InputTranslationMetadata {
     shortName?: string;
 
     /**
-     * The two letter language code that the translation is primarily in.
+     * The RFC 5646 letter language tag that the translation is primarily in.
      */
     language: string;
 }

@@ -1,7 +1,6 @@
 
 
 import hljs from 'highlight.js';
-import Genesis1 from '../build/bible/BSB/Genesis/1.json';
 import { ChapterContent, TranslationBookChapter } from './usfm-parser/generator';
 import { createRouter, createWebHashHistory } from 'vue-router';
 import { createApp } from 'vue';

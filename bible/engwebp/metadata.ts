@@ -4,7 +4,7 @@ export default {
     id: 'ENGWEBP',
     name: 'World English Bible',
     shortName: 'WEBP',
-    language: 'en',
+    language: 'en-US',
     licenseUrl: 'https://ebible.org/find/show.php?id=engwebp',
     website: 'https://worldenglish.bible/',
 } as InputTranslationMetadata;

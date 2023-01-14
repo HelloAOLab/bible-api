@@ -4,7 +4,7 @@ export default {
     id: 'BSB',
     name: 'Berean Standard Bible',
     shortName: 'BSB',
-    language: 'en',
+    language: 'en-US',
     licenseUrl: 'https://berean.bible/terms.htm',
     website: 'https://berean.bible',
 } as InputTranslationMetadata;
