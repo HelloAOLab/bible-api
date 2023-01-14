@@ -294,7 +294,7 @@ export class UsfmParser {
                     };
 
                     chapter.content.push(subtitle);
-                } else if(token.command === '\\b') {
+                } else if(token.command === '\\b' || token.command === '\\p') {
                     if (!chapter) {
                         this._throwError(input, token, 'Cannot parse a line break without chapter information!');
                     }

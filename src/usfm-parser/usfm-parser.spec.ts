@@ -472,6 +472,64 @@ describe('UsfmParser', () => {
             });
         });
 
+        it('should treat paragraphs like line breaks', () => {
+            const tree = parser.parse(`\\c 1
+                \\v 1 In the beginning God created the heavens and the earth.
+                \\p
+                \\v 2 Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.
+                \\p
+                \\c 2
+                \\v 1 Thus the heavens and the earth were completed in all their vast array.
+            `);
+
+            expect(tree).toEqual({
+                type: 'root',
+                content: [
+                    {
+                        type: 'chapter',
+                        number: 1,
+                        content: [
+                            { 
+                                type: 'verse', 
+                                number: 1,
+                                content: [
+                                    'In the beginning God created the heavens and the earth.'
+                                ]
+                            },
+                            {
+                                type: 'line_break'
+                            },
+                            { 
+                                type: 'verse', 
+                                number: 2,
+                                content: [
+                                    'Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.'
+                                ]
+                            },
+                            {
+                                type: 'line_break'
+                            },
+                        ],
+                        footnotes: [],
+                    },
+                    {
+                        type: 'chapter',
+                        number: 2,
+                        content: [
+                            { 
+                                type: 'verse', 
+                                number: 1,
+                                content: [
+                                    'Thus the heavens and the earth were completed in all their vast array.'
+                                ]
+                            },
+                        ],
+                        footnotes: [],
+                    }
+                ]
+            });
+        });
+
         it('should support ID tags', () => {
             const tree = parser.parse(`
                 \\id GEN - Berean Study Bible
