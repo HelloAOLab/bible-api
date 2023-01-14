@@ -71,6 +71,7 @@ export function generate(files: InputFile[]): OutputFile[] {
 
             let book: TranslationBook = {
                 id: id,
+                name: parsed.title ?? bookName.commonName,
                 commonName: bookName.commonName,
                 firstChapterApiLink: bookChapterApiLink(translation.id, bookName.commonName, 1, 'json'),
                 lastChapterApiLink: bookChapterApiLink(translation.id, bookName.commonName, 1, 'json'),
@@ -172,6 +173,11 @@ export interface InputTranslationMetadata {
     name: string;
 
     /**
+     * The english name of the translation.
+     */
+    englishName: string;
+
+    /**
      * The website for the translation.
      */
     website: string;
@@ -187,7 +193,7 @@ export interface InputTranslationMetadata {
     shortName?: string;
 
     /**
-     * The two letter language code that the translation is primarily in.
+     * The RFC 5646 letter language tag that the translation is primarily in.
      */
     language: string;
 }
@@ -226,7 +232,12 @@ export interface Translation {
     shortName?: string;
 
     /**
-     * The two letter language code that the translation is primarily in.
+     * The English name for the translation.
+     */
+    englishName: string;
+
+    /**
+     * The RFC 5646 letter language tag that the translation is primarily in.
      */
     language: string;
 
@@ -258,6 +269,11 @@ export interface TranslationBook {
      * The ID of the book.
      */
     id: string;
+
+    /**
+     * The name that the translation provided for the book.
+     */
+    name: string;
 
     /**
      * The common name for the book.
@@ -453,7 +469,7 @@ export interface ChapterFootnote {
 }
 
 export const bookIdMap = new Map([
-    ['en',
+    ['en-US',
         new Map([
             ["GEN", { "commonName": "Genesis" }]
             , ["EXO", { "commonName": "Exodus" }]

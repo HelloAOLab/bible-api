@@ -38,6 +38,10 @@ exports[`UsfmParser > parse() > Bible > should consistently parse bsb/131CHBSB.u
 
 exports[`UsfmParser > parse() > Bible > should consistently parse bsb/142CHBSB.usfm 1`] = `"7775ddb8b5af29c0175b7962ea3297c16243a109960cda2c4602cf6d179a3aed"`;
 
+exports[`UsfmParser > parse() > Bible > should consistently parse engwebp/02-GENengwebp.usfm 1`] = `"dfaf30edb8379f692d9f277f57ad43da08e9199d8d51d9514131d866a171c725"`;
+
+exports[`UsfmParser > parse() > Bible > should consistently parse engwebp/03-EXOengwebp.usfm 1`] = `"11242ae1043f9cd8d43d41cdce4f354e9060f15459cbd1db9e60694899674fb8"`;
+
 exports[`UsfmParser > renderMarkdown() > should create basic markdown from a parse tree 1`] = `
 "# Genesis
 ### 1

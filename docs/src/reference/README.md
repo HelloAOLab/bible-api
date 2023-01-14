@@ -29,8 +29,14 @@ interface Translation {
 
     /**
      * The name of the translation.
+     * This is usually the name of the translation in the translation's language.
      */
     name: string;
+
+    /**
+     * The English name of the translation.
+     */
+    englishName: string;
 
     /**
      * The website for the translation.
@@ -48,7 +54,7 @@ interface Translation {
     shortName?: string;
 
     /**
-     * The two letter language code that the translation is primarily in.
+     * The RFC 5646 letter language tag that the translation is primarily in.
      */
     language: string;
 
@@ -111,6 +117,11 @@ interface TranslationBook {
      * The ID of the book.
      */
     id: string;
+
+    /**
+     * The name that the translation provided for the book.
+     */
+    name: string;
 
     /**
      * The common name for the book.

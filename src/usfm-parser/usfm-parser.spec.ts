@@ -472,6 +472,64 @@ describe('UsfmParser', () => {
             });
         });
 
+        it('should treat paragraphs like line breaks', () => {
+            const tree = parser.parse(`\\c 1
+                \\v 1 In the beginning God created the heavens and the earth.
+                \\p
+                \\v 2 Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.
+                \\p
+                \\c 2
+                \\v 1 Thus the heavens and the earth were completed in all their vast array.
+            `);
+
+            expect(tree).toEqual({
+                type: 'root',
+                content: [
+                    {
+                        type: 'chapter',
+                        number: 1,
+                        content: [
+                            { 
+                                type: 'verse', 
+                                number: 1,
+                                content: [
+                                    'In the beginning God created the heavens and the earth.'
+                                ]
+                            },
+                            {
+                                type: 'line_break'
+                            },
+                            { 
+                                type: 'verse', 
+                                number: 2,
+                                content: [
+                                    'Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.'
+                                ]
+                            },
+                            {
+                                type: 'line_break'
+                            },
+                        ],
+                        footnotes: [],
+                    },
+                    {
+                        type: 'chapter',
+                        number: 2,
+                        content: [
+                            { 
+                                type: 'verse', 
+                                number: 1,
+                                content: [
+                                    'Thus the heavens and the earth were completed in all their vast array.'
+                                ]
+                            },
+                        ],
+                        footnotes: [],
+                    }
+                ]
+            });
+        });
+
         it('should support ID tags', () => {
             const tree = parser.parse(`
                 \\id GEN - Berean Study Bible
@@ -723,6 +781,24 @@ describe('UsfmParser', () => {
             });
         });
 
+        it('should ignore introduction paragraphs', () => {
+            const tree = parser.parse(`
+                \\ip The Holy Bible is translated into many languages, and being translated into many more, so that everyone may have an opportunity to hear the Good News about Jesus Christ.\\f + \\fr 1:0  \\ft “Christ” means “Anointed One”.\\f* 
+            `);
+
+            expect(tree).toEqual({
+                type: 'root',
+                content: [
+                    // {
+                    //     type: 'intro_paragraph',
+                    //     content: [
+                    //         'The Holy Bible is translated into many languages, and being translated into many more, so that everyone may have an opportunity to hear the Good News about Jesus Christ.'
+                    //     ]
+                    // }
+                ]
+            });
+        });
+
         it('should support references', () => {
             const tree = parser.parse(`\\c 1
                 \\r (John 1:1–5; Hebrews 11:1–3)
@@ -837,6 +913,32 @@ describe('UsfmParser', () => {
                 ]
             });
         });
+
+        it('should ignore word level attributes', () => {
+            const tree = parser.parse(`\\c 1
+                \\v 1  \\w In|strong="H0430"\\w* \\w the|strong="H0853"\\w* \\w beginning|strong="H7225"\\w*, \\w God|strong="H0430"\\w* \\w created|strong="H1254"\\w* \\w the|strong="H0853"\\w* \\w heavens|strong="H8064"\\w* \\w and|strong="H0430"\\w* \\w the|strong="H0853"\\w* \\w earth|strong="H0776"\\w*.
+            `);
+
+            expect(tree).toEqual({
+                type: 'root',
+                content: [
+                    {
+                        type: 'chapter',
+                        number: 1,
+                        content: [
+                            { 
+                                type: 'verse', 
+                                number: 1,
+                                content: [
+                                    'In the beginning, God created the heavens and the earth.'
+                                ]
+                            },
+                        ],
+                        footnotes: [],
+                    },
+                ]
+            });
+        });
         
         describe('Bible', () => {
             const cases = [
@@ -859,6 +961,8 @@ describe('UsfmParser', () => {
                 ['bsb/17ESTBSB.usfm', 10] as const,
                 ['bsb/18JOBBSB.usfm', 42] as const,
                 ['bsb/19PSABSB.usfm', 150] as const,
+                ['engwebp/02-GENengwebp.usfm', 50] as const,
+                ['engwebp/03-EXOengwebp.usfm', 40] as const,
             ];
 
             it.each(cases)('should consistently parse %s', async (file, expectedChapters) => {

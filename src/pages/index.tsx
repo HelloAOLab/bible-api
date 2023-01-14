@@ -9,6 +9,7 @@ export default function Index() {
         <h3>Translations:</h3>
         <ul>
             <li><Link to="/read/BSB/Genesis/1">BSB</Link></li>
+            <li><Link to="/read/ENGWEBP/Genesis/1">ENGWEBP</Link></li>
         </ul>
         <h3>API</h3>
         <p>Want to make the Bible accessible in your app/website? Use our <a href="/docs">API</a>!</p>

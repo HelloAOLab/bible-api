@@ -1,11 +1,11 @@
 import { InputTranslationMetadata } from '../../src/usfm-parser/generator';
 
 export default {
-    id: 'BSB',
-    name: 'Berean Standard Bible',
+    id: 'ENGWEBP',
+    name: 'World English Bible',
     englishName: 'World English Bible',
-    shortName: 'BSB',
+    shortName: 'WEBP',
     language: 'en-US',
-    licenseUrl: 'https://berean.bible/terms.htm',
-    website: 'https://berean.bible',
+    licenseUrl: 'https://ebible.org/find/show.php?id=engwebp',
+    website: 'https://worldenglish.bible/',
 } as InputTranslationMetadata;
