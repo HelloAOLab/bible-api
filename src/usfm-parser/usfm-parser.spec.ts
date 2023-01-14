@@ -722,6 +722,24 @@ describe('UsfmParser', () => {
             });
         });
 
+        it('should ignore introduction paragraphs', () => {
+            const tree = parser.parse(`
+                \\ip The Holy Bible is translated into many languages, and being translated into many more, so that everyone may have an opportunity to hear the Good News about Jesus Christ.\\f + \\fr 1:0  \\ft “Christ” means “Anointed One”.\\f* 
+            `);
+
+            expect(tree).toEqual({
+                type: 'root',
+                content: [
+                    // {
+                    //     type: 'intro_paragraph',
+                    //     content: [
+                    //         'The Holy Bible is translated into many languages, and being translated into many more, so that everyone may have an opportunity to hear the Good News about Jesus Christ.'
+                    //     ]
+                    // }
+                ]
+            });
+        });
+
         it('should support references', () => {
             const tree = parser.parse(`\\c 1
                 \\r (John 1:1–5; Hebrews 11:1–3)

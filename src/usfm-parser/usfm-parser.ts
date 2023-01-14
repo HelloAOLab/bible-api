@@ -191,6 +191,9 @@ export class UsfmParser {
         let expectingFootnoteText = 0;
         let expectingReferenceText = 0;
         let expectingWordAttribute = 0;
+        let expectingIntroParagraph = 0;
+
+        let canParseFootnotes = true;
         let chapter: Chapter | null = null;
         let verse: Verse | null = null;
         let subtitle: HebrewSubtitle | null = null;
@@ -314,7 +317,7 @@ export class UsfmParser {
                     expectingSectionHeading = 1;
                 } else if (token.command === '\\r') {
                     expectingReferenceText = 1;
-                } else if (token.command === '\\f') {
+                } else if (token.command === '\\f' && canParseFootnotes) {
                     if (token.type === 'start') {
                         if (!chapter) {
                             this._throwError(input, token, 'Cannot start a footnote outside of a chapter!');
@@ -348,12 +351,12 @@ export class UsfmParser {
                         expectingFootnoteReference = 0;
                         footnote = null;
                     }
-                } else if (token.command === '\\fr') {
+                } else if (token.command === '\\fr' && canParseFootnotes) {
                     if (!footnote) {
                         this._throwError(input, token, 'Cannot start a footnote reference outside of a footnote!');
                     }
                     expectingFootnoteReference = 1;
-                } else if (token.command === '\\ft') {
+                } else if (token.command === '\\ft' && canParseFootnotes) {
                     if (!footnote) {
                         this._throwError(input, token, 'Cannot start footnote text outside of a footnote!');
                     }
@@ -365,6 +368,9 @@ export class UsfmParser {
                     } else {
                         expectingWordAttribute = 0;
                     }
+                } else if (token.command === '\\ip') {
+                    expectingIntroParagraph = 1;
+                    canParseFootnotes = false;
                 }
             } else if (token.kind === 'word') {
                 if (expectingId > 0) {
@@ -435,6 +441,8 @@ export class UsfmParser {
                             words.push(token.word);
                         }
                     }
+                } else if (expectingIntroParagraph > 0) {
+                    // Skip processing words for intro paragraphs
                 } else {
                     words.push(token.word);
                 }
@@ -466,6 +474,11 @@ export class UsfmParser {
                 } else if (expectingReferenceText > 0) {
                     if (token.whitespace.includes('\n')) {
                         expectingReferenceText = 0;
+                    }
+                } else if (expectingIntroParagraph > 0) {
+                    if (token.whitespace.includes('\n')) {
+                        expectingIntroParagraph = 0;
+                        canParseFootnotes = true;
                     }
                 } else if (expectingId > 0 || expectingTitle > 0 || expectingSectionHeading > 0 || expectingFootnote > 0 || expectingFootnoteReference > 0 || expectingFootnoteText > 0 || expectingReferenceText > 0 || expectingWordAttribute > 0) {
                     // Skip
