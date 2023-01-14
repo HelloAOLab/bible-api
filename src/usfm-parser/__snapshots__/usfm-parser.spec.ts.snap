@@ -1,5 +1,9 @@
 // Vitest Snapshot v1
 
+exports[`UsfmParser > parse() > Bible > should consistently parse arbnav/02-GENarbnav.usfm 1`] = `"7a123ac0509f1a850032c97396f97525cae9c9606aac027b882ab3b6bc7f5f91"`;
+
+exports[`UsfmParser > parse() > Bible > should consistently parse arbnav/03-EXOarbnav.usfm 1`] = `"144fd43432d4c61437e27cba170d060b12e773489a7bb051f66e5dbc251af5d6"`;
+
 exports[`UsfmParser > parse() > Bible > should consistently parse bsb/01GENBSB.usfm 1`] = `"8fe2cb8bc2e60019f519ae34426edc7c1e99ab590dedd84997f01e888ae2f6c0"`;
 
 exports[`UsfmParser > parse() > Bible > should consistently parse bsb/02EXOBSB.usfm 1`] = `"370e1c0af26668480816084ac95723275be0ebf64a3885dbc155bd0ada05c597"`;
