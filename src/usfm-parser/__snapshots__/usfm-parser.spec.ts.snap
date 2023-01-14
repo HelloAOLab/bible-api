@@ -1,5 +1,9 @@
 // Vitest Snapshot v1
 
+exports[`UsfmParser > parse() > Bible > should consistently parse bsb/01GENBSB.usfm 1`] = `"8fe2cb8bc2e60019f519ae34426edc7c1e99ab590dedd84997f01e888ae2f6c0"`;
+
+exports[`UsfmParser > parse() > Bible > should consistently parse bsb/02EXOBSB.usfm 1`] = `"370e1c0af26668480816084ac95723275be0ebf64a3885dbc155bd0ada05c597"`;
+
 exports[`UsfmParser > renderMarkdown() > should create basic markdown from a parse tree 1`] = `
 "# Genesis
 ### 1
