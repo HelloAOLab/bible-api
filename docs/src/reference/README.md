@@ -7,7 +7,7 @@ sidebar: auto
 
 ## Available Translations
 
-`GET https://bible.helloao.org/api/available_translations.json`
+`GET https://bible-api.pages.dev/api/available_translations.json`
 
 Gets the list of available translations in the API.
 
@@ -93,7 +93,7 @@ interface Translation {
 
 ## List Books in a Translation
 
-`GET https://bible.helloao.org/api/{translation}/books.json`
+`GET https://bible-api.pages.dev/api/{translation}/books.json`
 
 Gets the list of books that are available for the given translation.
 
@@ -174,7 +174,7 @@ interface TranslationBook {
 
 ## Get a Chapter from a Translation
 
-`GET https://bible.helloao.org/api/{translation}/{book}/{chapter}.json`
+`GET https://bible-api.pages.dev/api/{translation}/{book}/{chapter}.json`
 
 Gets the content of a single chapter for a given book and translation.
 
