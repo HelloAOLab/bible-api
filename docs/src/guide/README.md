@@ -36,8 +36,8 @@ Using these files, you can get a list of available translations, the list of boo
 
 These files are available at the following paths:
 
--   `https://bible-api.pages.dev/api/available_translations.json`
--   `https://bible-api.pages.dev/api/{translation}/books.json`
--   `https://bible-api.pages.dev/api/{translation}/{book}/{chapter}.json`
+-   `https://bible.helloao.org/api/available_translations.json`
+-   `https://bible.helloao.org/api/{translation}/books.json`
+-   `https://bible.helloao.org/api/{translation}/{book}/{chapter}.json`
 
 For more information about each endpoint, see the [next page](./making-requests.md).
