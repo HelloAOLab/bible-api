@@ -19,6 +19,10 @@ function ChapterContent( {content}: { content: ChapterContent }) {
     return <></>
 }
 
+function WordsOfJesus({ children }: { children: string | string[] }) {
+    return <span className='words-of-jesus'>{children}</span>
+}
+
 function Verse({verse}: { verse: ChapterVerse}) {
     return <span> <em><FormatNumber value={verse.number}/></em> {verse.content.map((c, i) => <VerseContent content={c} key={i}></VerseContent>)}</span>
 }
@@ -28,7 +32,11 @@ function VerseContent({ content }: { content: ArrayElement<ChapterVerse['content
         return <> {content}</>;
     } else if(typeof content === 'object') {
         if ('text' in content) {
-            return <> {content.text}</>;
+            if (content.wordsOfJesus) {
+                return <WordsOfJesus> {content.text}</WordsOfJesus>
+            } else {
+                return <> {content.text}</>;
+            }
         } else if('noteId' in content) {
             return <></>;
         }
