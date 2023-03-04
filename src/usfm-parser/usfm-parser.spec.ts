@@ -939,6 +939,104 @@ describe('UsfmParser', () => {
                 ]
             });
         });
+
+        it('should support the Words of Jesus', () => {
+            const tree = parser.parse(`\\c 8
+                \\v 10  \\w When|strong="G2532"\\w* \\w Jesus|strong="G2424"\\w* \\w heard|strong="G0191"\\w* \\w it|strong="G0191"\\w*, \\w he|strong="G2532"\\w* \\w marveled|strong="G2296"\\w* \\w and|strong="G2532"\\w* \\w said|strong="G3004"\\w* \\w to|strong="G3004"\\w* \\w those|strong="G3588"\\w* \\w who|strong="G3588"\\w* \\w followed|strong="G0190"\\w*, \\wj “Most \\+w certainly|strong="G2532"\\+w* \\+w I|strong="G0281"\\+w* \\+w tell|strong="G3004"\\+w* \\+w you|strong="G5210"\\+w*, \\+w I|strong="G0281"\\+w* \\+w haven’t|strong="G3761"\\+w* \\+w found|strong="G2147"\\+w* \\+w so|strong="G2532"\\+w* \\+w great|strong="G5118"\\+w* \\+w a|strong="G2147"\\+w* \\+w faith|strong="G4102"\\+w*, \\+w not|strong="G3761"\\+w* \\+w even|strong="G2532"\\+w* \\+w in|strong="G1722"\\+w* \\+w Israel|strong="G2474"\\+w*. \\wj* 
+                \\v 11  \\wj  \\+w I|strong="G2532"\\+w* \\+w tell|strong="G3004"\\+w* \\+w you|strong="G5210"\\+w* \\+w that|strong="G3754"\\+w* \\+w many|strong="G4183"\\+w* \\+w will|strong="G4183"\\+w* \\+w come|strong="G2240"\\+w* \\+w from|strong="G0575"\\+w* \\+w the|strong="G3588"\\+w* \\+w east|strong="G0395"\\+w* \\+w and|strong="G2532"\\+w* \\+w the|strong="G3588"\\+w* \\+w west|strong="G1424"\\+w*, \\+w and|strong="G2532"\\+w* \\+w will|strong="G4183"\\+w* \\+w sit|strong="G0347"\\+w* \\+w down|strong="G0347"\\+w* \\+w with|strong="G3326"\\+w* \\+w Abraham|strong="G0011"\\+w*, \\+w Isaac|strong="G2464"\\+w*, \\+w and|strong="G2532"\\+w* \\+w Jacob|strong="G2384"\\+w* \\+w in|strong="G1722"\\+w* \\+w the|strong="G3588"\\+w* \\+w Kingdom|strong="G0932"\\+w* \\+w of|strong="G0932"\\+w* \\+w Heaven|strong="G3772"\\+w*, \\wj* 
+                \\v 12  \\wj  \\+w but|strong="G1161"\\+w* \\+w the|strong="G3588"\\+w* children \\+w of|strong="G5207"\\+w* \\+w the|strong="G3588"\\+w* \\+w Kingdom|strong="G0932"\\+w* \\+w will|strong="G1510"\\+w* \\+w be|strong="G1510"\\+w* thrown \\+w out|strong="G1831"\\+w* \\+w into|strong="G1519"\\+w* \\+w the|strong="G3588"\\+w* \\+w outer|strong="G1857"\\+w* \\+w darkness|strong="G4655"\\+w*. \\+w There|strong="G1563"\\+w* \\+w will|strong="G1510"\\+w* \\+w be|strong="G1510"\\+w* \\+w weeping|strong="G2805"\\+w* \\+w and|strong="G2532"\\+w* \\+w gnashing|strong="G1030"\\+w* \\+w of|strong="G5207"\\+w* \\+w teeth|strong="G3599"\\+w*.”\\wj* 
+                \\v 13  \\w Jesus|strong="G2424"\\w* \\w said|strong="G3004"\\w* \\w to|strong="G3004"\\w* \\w the|strong="G3588"\\w* \\w centurion|strong="G1543"\\w*, \\wj “\\+w Go|strong="G5217"\\+w* \\+w your|strong="G2532"\\+w* \\+w way|strong="G1722"\\+w*. \\+w Let|strong="G1096"\\+w* \\+w it|strong="G2532"\\+w* \\+w be|strong="G1096"\\+w* \\+w done|strong="G1096"\\+w* \\+w for|strong="G1722"\\+w* \\+w you|strong="G4771"\\+w* \\+w as|strong="G5613"\\+w* \\+w you|strong="G4771"\\+w* \\+w have|strong="G2532"\\+w* \\+w believed|strong="G4100"\\+w*.”\\wj* \\w His|strong="G5613"\\w* \\w servant|strong="G3816"\\w* \\w was|strong="G2424"\\w* \\w healed|strong="G2390"\\w* \\w in|strong="G1722"\\w* \\w that|strong="G1565"\\w* \\w hour|strong="G5610"\\w*. 
+            `);
+
+            expect(tree).toEqual({
+                type: 'root',
+                content: [
+                    {
+                        type: 'chapter',
+                        number: 8,
+                        content: [
+                            { 
+                                type: 'verse', 
+                                number: 10,
+                                content: [
+                                    'When Jesus heard it, he marveled and said to those who followed,',
+                                    {
+                                        text: '“Most certainly I tell you, I haven’t found so great a faith, not even in Israel.',
+                                        wordsOfJesus: true
+                                    }
+                                ]
+                            },
+                            { 
+                                type: 'verse', 
+                                number: 11,
+                                content: [
+                                    {
+                                        text: 'I tell you that many will come from the east and the west, and will sit down with Abraham, Isaac, and Jacob in the Kingdom of Heaven,',
+                                        wordsOfJesus: true
+                                    }
+                                ]
+                            },
+                            {
+                                type: 'verse',
+                                number: 12,
+                                content: [
+                                    {
+                                        text: 'but the children of the Kingdom will be thrown out into the outer darkness. There will be weeping and gnashing of teeth.”',
+                                        wordsOfJesus: true
+                                    }
+                                ]
+                            },
+                            {
+                                type: 'verse',
+                                number: 13,
+                                content: [
+                                    'Jesus said to the centurion,',
+                                    {
+                                        text: '“Go your way. Let it be done for you as you have believed.”',
+                                        wordsOfJesus: true
+                                    },
+                                    "His servant was healed in that hour.",
+                                ]
+                            }
+                        ],
+                        footnotes: []
+                    },
+                ]
+            });
+        });
+
+        it('should not place spaces between Words of Jesus', () => {
+            const tree = parser.parse(`\\c 8
+            \\v 11  \\wj I tell you that many will come \\wj* \\wj from the east and the west, and will sit down with Abraham, Isaac, and Jacob in the Kingdom of Heaven, \\wj*
+            `);
+
+            expect(tree).toEqual({
+                type: 'root',
+                content: [
+                    {
+                        type: 'chapter',
+                        number: 8,
+                        content: [
+                            { 
+                                type: 'verse', 
+                                number: 11,
+                                content: [
+                                    {
+                                        text: 'I tell you that many will come',
+                                        wordsOfJesus: true
+                                    },
+                                    {
+                                        text: 'from the east and the west, and will sit down with Abraham, Isaac, and Jacob in the Kingdom of Heaven,',
+                                        wordsOfJesus: true
+                                    }
+                                ]
+                            },
+                        ],
+                        footnotes: []
+                    },
+                ]
+            });
+        });
         
         describe('Bible', () => {
             const cases = [
@@ -961,10 +1059,12 @@ describe('UsfmParser', () => {
                 ['bsb/17ESTBSB.usfm', 10] as const,
                 ['bsb/18JOBBSB.usfm', 42] as const,
                 ['bsb/19PSABSB.usfm', 150] as const,
+                ['bsb/41MATBSB.usfm', 28] as const,
                 ['engwebp/02-GENengwebp.usfm', 50] as const,
                 ['engwebp/03-EXOengwebp.usfm', 40] as const,
+                ['engwebp/70-MATengwebp.usfm', 28] as const,
                 ['arbnav/02-GENarbnav.usfm', 50] as const,
-                ['arbnav/03-EXOarbnav.usfm', 40] as const,
+                ['arbnav/70-MATarbnav.usfm', 28] as const,
             ];
 
             it.each(cases)('should consistently parse %s', async (file, expectedChapters) => {
@@ -988,7 +1088,7 @@ describe('UsfmParser', () => {
     describe('renderMarkdown()', () => {
         it('should create basic markdown from a parse tree', () => {
             const tree = parser.parse(`
-                \\mt Genesis
+                \\\mt Genesis
                 \\c 1
                 \\v 1 In the beginning God created the heavens and the earth.
                 \\v 2 Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.

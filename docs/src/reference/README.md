@@ -318,6 +318,11 @@ interface FormattedText {
      * Common in Psalms.
      */
     poem?: number;
+
+    /**
+     * Whether the text represents the Words of Jesus.
+     */
+    wordsOfJesus?: boolean;
 }
 
 /**

@@ -125,6 +125,7 @@ export interface UsfmParseOptions {
 export class UsfmParser {
 
     private _poem: number | null = null;
+    private _wordsOfJesus: boolean = false;
     
     tokenize(input: string): Token[] {
         const simpleTokens = new UsfmTokenizer().tokenize(input);
@@ -191,6 +192,8 @@ export class UsfmParser {
         let expectingFootnoteText = 0;
         let expectingReferenceText = 0;
         let expectingWordAttribute = 0;
+        let expectingNestedWordAttribute = 0;
+        let expectingWordsOfJesus = 0;
         let expectingIntroParagraph = 0;
 
         let canParseFootnotes = true;
@@ -368,6 +371,20 @@ export class UsfmParser {
                     } else {
                         expectingWordAttribute = 0;
                     }
+                } else if(token.command === '\\+w') {
+                    if (token.type === 'start') {
+                        expectingNestedWordAttribute = 1;
+                    } else {
+                        expectingNestedWordAttribute = 0;
+                    }
+                } else if (token.command === '\\wj' || token.command === '\\+wj') {
+                    if (token.type === 'start') {
+                        addWordsToVerseOrSubtitle();
+                        this._wordsOfJesus = true;
+                    } else {
+                        addWordsToVerseOrSubtitle();
+                        this._wordsOfJesus = false;
+                    }
                 } else if (token.command === '\\ip') {
                     expectingIntroParagraph = 1;
                     canParseFootnotes = false;
@@ -441,6 +458,19 @@ export class UsfmParser {
                             words.push(token.word);
                         }
                     }
+                } else if (expectingNestedWordAttribute > 0) {
+                    if (expectingNestedWordAttribute === 1) {
+                        const firstVerticalBarIndex = token.word.indexOf('|');
+
+                        if (firstVerticalBarIndex >= 0) {
+                            const name = token.word.slice(0, firstVerticalBarIndex);
+                            // const rest = token.word.slice(firstVerticalBarIndex + '|'.length);
+                            words.push(name);
+                            expectingNestedWordAttribute = 2;
+                        } else {
+                            words.push(token.word);
+                        }
+                    }
                 } else if (expectingIntroParagraph > 0) {
                     // Skip processing words for intro paragraphs
                 } else {
@@ -480,7 +510,7 @@ export class UsfmParser {
                         expectingIntroParagraph = 0;
                         canParseFootnotes = true;
                     }
-                } else if (expectingId > 0 || expectingTitle > 0 || expectingSectionHeading > 0 || expectingFootnote > 0 || expectingFootnoteReference > 0 || expectingFootnoteText > 0 || expectingReferenceText > 0 || expectingWordAttribute > 0) {
+                } else if (expectingId > 0 || expectingTitle > 0 || expectingSectionHeading > 0 || expectingFootnote > 0 || expectingFootnoteReference > 0 || expectingFootnoteText > 0 || expectingReferenceText > 0 || expectingWordAttribute > 0 || expectingNestedWordAttribute > 0) {
                     // Skip
                 } else if (words.length > 0) {
                     let lastWord = words[words.length - 1];
@@ -533,7 +563,7 @@ export class UsfmParser {
     }
 
     private _hasAttribute() {
-        return this._poem !== null;
+        return this._poem !== null || this._wordsOfJesus;
     }
 
     private _text(text: string): Text | string {
@@ -546,6 +576,10 @@ export class UsfmParser {
 
         if (this._poem !== null) {
             t.poem = this._poem;
+        }
+
+        if (this._wordsOfJesus) {
+            t.wordsOfJesus = true;
         }
 
         return t;
@@ -827,6 +861,11 @@ export interface Text {
      * The number indicates the level of indent.
      */
     poem?: number;
+
+    /**
+     * Whether the text contains the words of Jesus.
+     */
+    wordsOfJesus?: boolean;
 }
 
 export interface FootnoteReference {
