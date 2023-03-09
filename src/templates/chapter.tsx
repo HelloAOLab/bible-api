@@ -55,3 +55,8 @@ function ChapterTemplate({ pageContext }: PageProps<any, { chapter: TranslationB
 }
 
 export default ChapterTemplate;
+
+export const Head = ({ pageContext }: Context) => {
+    const chapter = pageContext.chapter;
+    return <title className={ `lang-${chapter.translation.language}` }>{chapter.book.commonName} {chapter.chapter.number} &#x2022; {chapter.translation.shortName ?? chapter.translation.name}</title>
+}
