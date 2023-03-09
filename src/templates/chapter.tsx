@@ -76,8 +76,6 @@ function NextChapterButton({ context, children }: { context: PageContext, childr
 function ChapterTemplate({ pageContext }: Context): any {
     const chapter: TranslationBookChapter = pageContext.chapter;
     return <Layout language={ chapter.translation.language }>
-        <div>{pageContext.nextChapterUrl}</div>
-        <div>{pageContext.previousChapterUrl}</div>
         <div className="chapter-layout">
             <div className="large chapter-buttons" aria-hidden="true">
                 <PreviousChapterButton context={pageContext}>&lt;</PreviousChapterButton>
