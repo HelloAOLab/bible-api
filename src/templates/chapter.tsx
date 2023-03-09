@@ -7,6 +7,8 @@ import { FormatNumber } from '../components/Language';
 type ArrayElement<ArrayType extends readonly unknown[]> = 
   ArrayType extends readonly (infer ElementType)[] ? ElementType : never;
 
+type Context = PageProps<any, { chapter: TranslationBookChapter }>;
+
 function ChapterContent( {content}: { content: ChapterContent }) {
     if (content.type === 'heading') {
         return <h3>{content.content.join(' ')}</h3>
@@ -24,7 +26,7 @@ function WordsOfJesus({ children }: { children: string | string[] }) {
 }
 
 function Verse({verse}: { verse: ChapterVerse}) {
-    return <span> <em><FormatNumber value={verse.number}/></em> {verse.content.map((c, i) => <VerseContent content={c} key={i}></VerseContent>)}</span>
+    return <span> <sup id={`V${verse.number}`} className="verse-marker"><em><FormatNumber value={verse.number}/></em></sup> {verse.content.map((c, i) => <VerseContent content={c} key={i}></VerseContent>)}</span>
 }
 
 function VerseContent({ content }: { content: ArrayElement<ChapterVerse['content']> }) {
@@ -45,10 +47,10 @@ function VerseContent({ content }: { content: ArrayElement<ChapterVerse['content
     return <></>;
 }
 
-function ChapterTemplate({ pageContext }: PageProps<any, { chapter: TranslationBookChapter }>): any {
+function ChapterTemplate({ pageContext }: Context): any {
     const chapter: TranslationBookChapter = pageContext.chapter;
     return <Layout language={ chapter.translation.language }>
-        <h1>{chapter.book.commonName} <FormatNumber value={chapter.chapter.number} /></h1>
+        <h1>{chapter.book.name} <FormatNumber value={chapter.chapter.number} /></h1>
         <h6>{chapter.translation.shortName ?? chapter.translation.name}</h6>
         {chapter.chapter.content.map((c, i) => <ChapterContent content={c} key={i} />)}
     </Layout>
