@@ -14,8 +14,15 @@ export function generate(files: InputFile[]): OutputFile[] {
     let availableTranslations: AvailableTranslations = {
         translations: []
     };
-
-    let parsedBooks = [] as { file: InputFile, tree: ParseTree, order: number }[];
+    
+    let parsedTranslations = new Map<string, { 
+        file: InputFile,
+        tree: ParseTree,
+        order: number,
+        bookName: {
+            commonName: string
+        }
+    }[]>();
 
     for(let file of files) {
         if (file.fileType !== 'usfm') {
@@ -24,8 +31,6 @@ export function generate(files: InputFile[]): OutputFile[] {
         }
         try {
             const parsed = parser.parse(file.content);
-            
-
             const id = parsed.id;
 
             if (!id) {
@@ -39,102 +44,127 @@ export function generate(files: InputFile[]): OutputFile[] {
                 console.warn('[generate] Book does not have an order!', id);
                 continue;
             }
+            
+            const bookMap = bookIdMap.get(file.metadata.translation.language);
 
-            parsedBooks.push({
+            if (!bookMap) {
+                console.warn('[generate] File does not have a valid language!', file.name, file.metadata.translation.language);
+                continue;
+            }
+
+            const bookName = bookMap.get(id);
+
+            if (!bookName) {
+                console.warn('[generate] Book name not found for ID!', file.name, id);
+                continue;
+            }
+
+            let translation = parsedTranslations.get(file.metadata.translation.id);
+
+            if (!translation) {
+                translation = [];
+                parsedTranslations.set(file.metadata.translation.id, translation);
+            }
+
+            translation.push({
                 file,
                 tree: parsed,
-                order
+                order,
+                bookName
             });
-            
+
         } catch(err) {
             console.error(`[generate] Error occurred while parsing ${file.name}`, err);
         }
     }
 
-    const orderedBooks = sortBy(parsedBooks, b => b.order);
     let translationBooks = new Map<string, TranslationBooks>();
 
-    let previousChapter: TranslationBookChapter | null = null;
-    for (let { file, tree: parsed } of orderedBooks) {
-        const id = parsed.id;
+    for (let parsedBooks of parsedTranslations.values()) {
+        const orderedBooks = sortBy(parsedBooks, b => b.order);
 
-        if (!id) {
-            console.warn('[generate] File does not have a valid book ID!', file.name, id);
-            continue;
-        }
-        
-        const bookMap = bookIdMap.get(file.metadata.translation.language);
+        let previousChapter: TranslationBookChapter | null = null;
+        for (let { file, tree: parsed } of orderedBooks) {
+            const id = parsed.id;
 
-        if (!bookMap) {
-            console.warn('[generate] File does not have a valid language!', file.name, file.metadata.translation.language);
-            continue;
-        }
+            if (!id) {
+                console.warn('[generate] File does not have a valid book ID!', file.name, id);
+                continue;
+            }
+            
+            const bookMap = bookIdMap.get(file.metadata.translation.language);
 
-        const bookName = bookMap.get(id);
+            if (!bookMap) {
+                console.warn('[generate] File does not have a valid language!', file.name, file.metadata.translation.language);
+                continue;
+            }
 
-        if (!bookName) {
-            console.warn('[generate] Book name not found for ID!', file.name, id);
-            continue;
-        }
+            const bookName = bookMap.get(id);
 
-        let translation = availableTranslations.translations.find(t => file.metadata.translation.id === t.id);
+            if (!bookName) {
+                console.warn('[generate] Book name not found for ID!', file.name, id);
+                continue;
+            }
 
-        if (!translation) {
-            translation = {
-                ...file.metadata.translation,
-                availableFormats: [
-                    'json'
-                ],
-                listOfBooksApiLink: listOfBooksApiLink(file.metadata.translation.id)
-            };
-            availableTranslations.translations.push(translation);
-        }
+            let translation = availableTranslations.translations.find(t => file.metadata.translation.id === t.id);
 
-        let currentTanslationBooks = translationBooks.get(translation.id);
-
-        if (!currentTanslationBooks) {
-            currentTanslationBooks = {
-                translation,
-                books: []
-            };
-
-            translationBooks.set(translation.id, currentTanslationBooks);
-        }
-
-        let book: TranslationBook = {
-            id: id,
-            name: parsed.title ?? bookName.commonName,
-            commonName: bookName.commonName,
-            firstChapterApiLink: bookChapterApiLink(translation.id, bookName.commonName, 1, 'json'),
-            lastChapterApiLink: bookChapterApiLink(translation.id, bookName.commonName, 1, 'json'),
-            numberOfChapters: 0
-        };
-
-        currentTanslationBooks.books.push(book);
-
-        for (let content of parsed.content) {
-            if (content.type === 'chapter') {
-                let chapter: TranslationBookChapter = {
-                    translation,
-                    book,
-                    nextChapterApiLink: null,
-                    previousChapterApiLink: previousChapter ? bookChapterApiLink(previousChapter.translation.id, previousChapter.book.commonName, previousChapter.chapter.number, 'json') : null,
-                    chapter: {
-                        number: content.number,
-                        content: content.content,
-                        footnotes: content.footnotes
-                    }
+            if (!translation) {
+                translation = {
+                    ...file.metadata.translation,
+                    availableFormats: [
+                        'json'
+                    ],
+                    listOfBooksApiLink: listOfBooksApiLink(file.metadata.translation.id)
                 };
-                book.numberOfChapters += 1;
+                availableTranslations.translations.push(translation);
+            }
 
-                const link = bookChapterApiLink(translation.id, book.commonName, chapter.chapter.number, 'json');
-                book.lastChapterApiLink = link;
-                output.push(jsonFile(link, chapter));
+            let currentTanslationBooks = translationBooks.get(translation.id);
 
-                if (previousChapter) {
-                    previousChapter.nextChapterApiLink = link;
+            if (!currentTanslationBooks) {
+                currentTanslationBooks = {
+                    translation,
+                    books: []
+                };
+
+                translationBooks.set(translation.id, currentTanslationBooks);
+            }
+
+            let book: TranslationBook = {
+                id: id,
+                name: parsed.title ?? bookName.commonName,
+                commonName: bookName.commonName,
+                firstChapterApiLink: bookChapterApiLink(translation.id, bookName.commonName, 1, 'json'),
+                lastChapterApiLink: bookChapterApiLink(translation.id, bookName.commonName, 1, 'json'),
+                numberOfChapters: 0
+            };
+
+            currentTanslationBooks.books.push(book);
+
+            for (let content of parsed.content) {
+                if (content.type === 'chapter') {
+                    let chapter: TranslationBookChapter = {
+                        translation,
+                        book,
+                        nextChapterApiLink: null,
+                        previousChapterApiLink: previousChapter ? bookChapterApiLink(previousChapter.translation.id, previousChapter.book.commonName, previousChapter.chapter.number, 'json') : null,
+                        chapter: {
+                            number: content.number,
+                            content: content.content,
+                            footnotes: content.footnotes
+                        }
+                    };
+                    book.numberOfChapters += 1;
+
+                    const link = bookChapterApiLink(translation.id, book.commonName, chapter.chapter.number, 'json');
+                    book.lastChapterApiLink = link;
+                    output.push(jsonFile(link, chapter));
+
+                    if (previousChapter) {
+                        previousChapter.nextChapterApiLink = link;
+                    }
+                    previousChapter = chapter;
                 }
-                previousChapter = chapter;
             }
         }
     }
