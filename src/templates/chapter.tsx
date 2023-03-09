@@ -7,7 +7,13 @@ import { FormatNumber } from '../components/Language';
 type ArrayElement<ArrayType extends readonly unknown[]> = 
   ArrayType extends readonly (infer ElementType)[] ? ElementType : never;
 
-type Context = PageProps<any, { chapter: TranslationBookChapter }>;
+interface PageContext {
+    chapter: TranslationBookChapter;
+    nextChapterUrl: string;
+    previousChapterUrl: string;
+}
+
+type Context = PageProps<any, PageContext>;
 
 function ChapterContent( {content}: { content: ChapterContent }) {
     if (content.type === 'heading') {
@@ -47,12 +53,54 @@ function VerseContent({ content }: { content: ArrayElement<ChapterVerse['content
     return <></>;
 }
 
+function PreviousChapterButton({ context, children }: { context: PageContext, children: any }) {
+    if (context.previousChapterUrl) {
+        return (<div className="chapter-button previous">
+            <button title="Previous Chapter" aria-label="Previous Chapter" onClick={() => location.href = context.previousChapterUrl }>{children}</button>
+        </div>);
+    } else {
+        return <></>;
+    }
+}
+
+function NextChapterButton({ context, children }: { context: PageContext, children: any }) {
+    if (context.nextChapterUrl) {
+        return (<div className="chapter-button next">
+            <button title="Next Chapter" aria-label="Next Chapter" onClick={() => location.href = context.nextChapterUrl }>{children}</button>
+        </div>);
+    } else {
+        return <></>;
+    }
+}
+
 function ChapterTemplate({ pageContext }: Context): any {
     const chapter: TranslationBookChapter = pageContext.chapter;
     return <Layout language={ chapter.translation.language }>
-        <h1>{chapter.book.name} <FormatNumber value={chapter.chapter.number} /></h1>
-        <h6>{chapter.translation.shortName ?? chapter.translation.name}</h6>
-        {chapter.chapter.content.map((c, i) => <ChapterContent content={c} key={i} />)}
+        <div>{pageContext.nextChapterUrl}</div>
+        <div>{pageContext.previousChapterUrl}</div>
+        <div className="chapter-layout">
+            <div className="large chapter-buttons" aria-hidden="true">
+                <PreviousChapterButton context={pageContext}>&lt;</PreviousChapterButton>
+            </div>
+            <main className="chapter-container">
+                <h1>{chapter.book.commonName} <FormatNumber value={chapter.chapter.number} /></h1>
+                <h6>{chapter.translation.shortName ?? chapter.translation.name}</h6>
+                <nav className="sr-only-on-large chapter-buttons primary">
+                    <PreviousChapterButton context={pageContext}>Previous</PreviousChapterButton>
+                    <NextChapterButton context={pageContext}>Next</NextChapterButton>
+                </nav>
+                <div className='chapter-content'>
+                    {chapter.chapter.content.map((c, i) => <ChapterContent content={c} key={i} />)}
+                </div>
+                <nav className="sr-only-on-large chapter-buttons second">
+                    <PreviousChapterButton context={pageContext}>Previous</PreviousChapterButton>
+                    <NextChapterButton context={pageContext}>Next</NextChapterButton>
+                </nav>
+            </main>
+            <div className="large chapter-buttons" aria-hidden="true">
+                <NextChapterButton context={pageContext}>&gt;</NextChapterButton>
+            </div>
+        </div>
     </Layout>
 }
 
