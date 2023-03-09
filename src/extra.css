@@ -10,3 +10,14 @@ em {
 .words-of-jesus {
   color: #dc143c;
 }
+
+@media (prefers-color-scheme: dark) {
+  body {
+    color: #eee;
+    background-color: #333;
+  }
+
+  .words-of-jesus {
+    color: #e04161;
+  }
+}
