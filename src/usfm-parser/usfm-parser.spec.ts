@@ -936,6 +936,63 @@ describe('UsfmParser', () => {
             });
         });
 
+        it('should ignore cross references', () => {
+                const tree = parser.parse(`\\c 5  
+                    \\p
+                    \\v 1  \\w Seeing|strong="G3708"\\w* \\w the|strong="G3588"\\w* \\w multitudes|strong="G3793"\\w*, \\w he|strong="G2532"\\w* \\w went|strong="G0305"\\w* \\w up|strong="G0305"\\w* \\w onto|strong="G1519"\\w* \\w the|strong="G3588"\\w* \\w mountain|strong="G3735"\\w*. \\w When|strong="G2532"\\w* \\w he|strong="G2532"\\w* \\w had|strong="G3588"\\w* \\w sat|strong="G2523"\\w* \\w down|strong="G2523"\\w*, \\w his|strong="G0846"\\w* \\w disciples|strong="G3101"\\w* \\w came|strong="G4334"\\w* \\w to|strong="G1519"\\w* \\w him|strong="G0846"\\w*. 
+                    \\v 2  \\w He|strong="G2532"\\w* \\w opened|strong="G0455"\\w* \\w his|strong="G0846"\\w* \\w mouth|strong="G4750"\\w* \\w and|strong="G2532"\\w* \\w taught|strong="G1321"\\w* \\w them|strong="G0846"\\w*, \\w saying|strong="G3004"\\w*, 
+                    \\q1
+                    \\v 3  \\wj “\\+w Blessed|strong="G3107"\\+w* \\+w are|strong="G1510"\\+w* \\+w the|strong="G3588"\\+w* \\+w poor|strong="G4434"\\+w* \\+w in|strong="G4434"\\+w* \\+w spirit|strong="G4151"\\+w*,\\wj* 
+                    \\q2 \\wj  \\+w for|strong="G3754"\\+w* \\+w theirs|strong="G0846"\\+w* \\+w is|strong="G1510"\\+w* \\+w the|strong="G3588"\\+w* \\+w Kingdom|strong="G0932"\\+w* \\+w of|strong="G0932"\\+w* \\+w Heaven|strong="G3772"\\+w*.\\wj*\\x + \\xo 5:3  \\xt Isaiah 57:15; 66:2\\x*
+                `);
+
+                expect(tree).toEqual({
+                    type: 'root',
+                    content: [
+                        {
+                            type: 'chapter',
+                            number: 5,
+                            content: [
+                                {
+                                    type: 'line_break'
+                                },
+                                { 
+                                    type: 'verse', 
+                                    number: 1,
+                                    content: [
+                                        'Seeing the multitudes, he went up onto the mountain. When he had sat down, his disciples came to him.'
+                                    ]
+                                },
+                                { 
+                                    type: 'verse', 
+                                    number: 2,
+                                    content: [
+                                        'He opened his mouth and taught them, saying,',
+                                    ]
+                                },
+                                { 
+                                    type: 'verse', 
+                                    number: 3,
+                                    content: [
+                                        {
+                                            "poem": 1,
+                                            "text": "“Blessed are the poor in spirit,",
+                                            "wordsOfJesus": true,
+                                        },
+                                        {
+                                            "poem": 2,
+                                            "text": "for theirs is the Kingdom of Heaven.",
+                                            "wordsOfJesus": true,
+                                        },
+                                    ]
+                                },
+                            ],
+                            footnotes: [],
+                        },
+                    ]
+                });
+        });
+
         it('should support the Words of Jesus', () => {
             const tree = parser.parse(`\\c 8
                 \\v 10  \\w When|strong="G2532"\\w* \\w Jesus|strong="G2424"\\w* \\w heard|strong="G0191"\\w* \\w it|strong="G0191"\\w*, \\w he|strong="G2532"\\w* \\w marveled|strong="G2296"\\w* \\w and|strong="G2532"\\w* \\w said|strong="G3004"\\w* \\w to|strong="G3004"\\w* \\w those|strong="G3588"\\w* \\w who|strong="G3588"\\w* \\w followed|strong="G0190"\\w*, \\wj “Most \\+w certainly|strong="G2532"\\+w* \\+w I|strong="G0281"\\+w* \\+w tell|strong="G3004"\\+w* \\+w you|strong="G5210"\\+w*, \\+w I|strong="G0281"\\+w* \\+w haven’t|strong="G3761"\\+w* \\+w found|strong="G2147"\\+w* \\+w so|strong="G2532"\\+w* \\+w great|strong="G5118"\\+w* \\+w a|strong="G2147"\\+w* \\+w faith|strong="G4102"\\+w*, \\+w not|strong="G3761"\\+w* \\+w even|strong="G2532"\\+w* \\+w in|strong="G1722"\\+w* \\+w Israel|strong="G2474"\\+w*. \\wj* 

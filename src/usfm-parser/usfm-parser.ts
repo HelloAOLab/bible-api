@@ -195,6 +195,7 @@ export class UsfmParser {
         let expectingNestedWordAttribute = 0;
         let expectingWordsOfJesus = 0;
         let expectingIntroParagraph = 0;
+        let expectingCrossReference = 0;
 
         let canParseFootnotes = true;
         let chapter: Chapter | null = null;
@@ -388,6 +389,12 @@ export class UsfmParser {
                 } else if (token.command === '\\ip') {
                     expectingIntroParagraph = 1;
                     canParseFootnotes = false;
+                } else if (token.command === '\\x') {
+                    if (token.type === 'start') {
+                        expectingCrossReference = 1;
+                    } else {
+                        expectingCrossReference = 0;
+                    }
                 }
             } else if (token.kind === 'word') {
                 if (expectingId > 0) {
@@ -435,6 +442,8 @@ export class UsfmParser {
                     // Skip processing words for references
                     // because references aren't included in the JSON format
                     // (for now)
+                } else if(expectingCrossReference > 0) {
+                    // Skip processing words for cross references
                 } else if (chapter && isNaN(chapter.number)) {
                     chapter.number = parseInt(token.word);
                     if (isNaN(chapter.number)) {
@@ -510,7 +519,7 @@ export class UsfmParser {
                         expectingIntroParagraph = 0;
                         canParseFootnotes = true;
                     }
-                } else if (expectingId > 0 || expectingTitle > 0 || expectingSectionHeading > 0 || expectingFootnote > 0 || expectingFootnoteReference > 0 || expectingFootnoteText > 0 || expectingReferenceText > 0 || expectingWordAttribute > 0 || expectingNestedWordAttribute > 0) {
+                } else if (expectingId > 0 || expectingTitle > 0 || expectingSectionHeading > 0 || expectingFootnote > 0 || expectingFootnoteReference > 0 || expectingFootnoteText > 0 || expectingReferenceText > 0 || expectingCrossReference > 0 || expectingWordAttribute > 0 || expectingNestedWordAttribute > 0) {
                     // Skip
                 } else if (words.length > 0) {
                     let lastWord = words[words.length - 1];
