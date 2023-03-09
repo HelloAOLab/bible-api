@@ -37,6 +37,7 @@
   "dependencies": {
     "highlight.js": "^11.7.0",
     "lodash": "4.17.21",
+    "react-select": "5.7.0",
     "markdown-it": "^13.0.1",
     "vue": "^3.2.45",
     "vue-router": "4"

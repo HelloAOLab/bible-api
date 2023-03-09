@@ -1,5 +1,6 @@
 import * as React from 'react';
-import type { TranslationBookChapter, ChapterData, ChapterContent, ChapterVerse } from '../usfm-parser/generator';
+import Select from 'react-select';
+import type { TranslationBookChapter, ChapterData, ChapterContent, ChapterVerse, TranslationBook, Translation } from '../usfm-parser/generator';
 import type { PageProps } from 'gatsby';
 import Layout from '../components/Layout';
 import { FormatNumber } from '../components/Language';
@@ -9,6 +10,8 @@ type ArrayElement<ArrayType extends readonly unknown[]> =
 
 interface PageContext {
     chapter: TranslationBookChapter;
+    books: TranslationBook[];
+    translations: Translation[];
     nextChapterUrl: string;
     previousChapterUrl: string;
 }
@@ -73,6 +76,42 @@ function NextChapterButton({ context, children }: { context: PageContext, childr
     }
 }
 
+function ChapterHeader( { context }: { context: PageContext }) {
+    const chapter = context.chapter;
+    const bookOptions = context.books.map(b => ({
+        value: b.id,
+        label: b.commonName
+    }));
+    const currentBook = {
+        value: context.chapter.book.id,
+        label: context.chapter.book.commonName
+    };
+
+    let chapterOptions = [] as any;
+    for (let i = 1; i <= context.chapter.book.numberOfChapters; i++) {
+        chapterOptions.push({
+            value: i,
+            label: i
+        });
+    }
+    const currentChapter = {
+        value: context.chapter.chapter.number,
+        label: context.chapter.chapter.number
+    };
+
+    const onSelectBook = (value: any) => {
+        const b = context.books.find(b => b.id === value.value);
+        console.log(b);
+        location.href = (b as any)?.firstChapterLink;
+    };
+
+    return (<>
+        {/* @ts-ignore */}
+        <h1><Select defaultValue={currentBook} options={bookOptions as any} onChange={onSelectBook} /> <Select defaultValue={currentChapter} options={chapterOptions} /> {chapter.book.commonName} <FormatNumber value={chapter.chapter.number} /></h1>
+        <h6>{chapter.translation.shortName ?? chapter.translation.name}</h6>
+    </>);
+}
+
 function ChapterTemplate({ pageContext }: Context): any {
     const chapter: TranslationBookChapter = pageContext.chapter;
     return <Layout language={ chapter.translation.language }>
@@ -81,8 +120,7 @@ function ChapterTemplate({ pageContext }: Context): any {
                 <PreviousChapterButton context={pageContext}>&lt;</PreviousChapterButton>
             </div>
             <main className="chapter-container">
-                <h1>{chapter.book.commonName} <FormatNumber value={chapter.chapter.number} /></h1>
-                <h6>{chapter.translation.shortName ?? chapter.translation.name}</h6>
+                <ChapterHeader context={pageContext}/>
                 <nav className="sr-only-on-large chapter-buttons primary">
                     <PreviousChapterButton context={pageContext}>Previous</PreviousChapterButton>
                     <NextChapterButton context={pageContext}>Next</NextChapterButton>
