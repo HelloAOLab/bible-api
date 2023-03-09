@@ -1,3 +1,4 @@
+import { sortBy } from "lodash";
 import { FootnoteReference, Heading, ParseTree, Text, UsfmParser } from "./usfm-parser";
 
 
@@ -14,15 +15,16 @@ export function generate(files: InputFile[]): OutputFile[] {
         translations: []
     };
 
-    let translationBooks = new Map<string, TranslationBooks>();
+    let parsedBooks = [] as { file: InputFile, tree: ParseTree, order: number }[];
 
-    for (let file of files) {
+    for(let file of files) {
         if (file.fileType !== 'usfm') {
             console.warn('[generate] File does not have the USFM file type!', file.name);
             continue;
         }
         try {
             const parsed = parser.parse(file.content);
+            
 
             const id = parsed.id;
 
@@ -30,84 +32,110 @@ export function generate(files: InputFile[]): OutputFile[] {
                 console.warn('[generate] File does not have a valid book ID!', file.name, id);
                 continue;
             }
+
+            const order = bookOrderMap.get(id);
+
+            if (typeof order !== 'number') {
+                console.warn('[generate] Book does not have an order!', id);
+                continue;
+            }
+
+            parsedBooks.push({
+                file,
+                tree: parsed,
+                order
+            });
             
-            const bookMap = bookIdMap.get(file.metadata.translation.language);
-
-            if (!bookMap) {
-                console.warn('[generate] File does not have a valid language!', file.name, file.metadata.translation.language);
-                continue;
-            }
-
-            const bookName = bookMap.get(id);
-
-            if (!bookName) {
-                console.warn('[generate] Book name not found for ID!', file.name, id);
-                continue;
-            }
-
-            let translation = availableTranslations.translations.find(t => file.metadata.translation.id === t.id);
-
-            if (!translation) {
-                translation = {
-                    ...file.metadata.translation,
-                    availableFormats: [
-                        'json'
-                    ],
-                    listOfBooksApiLink: listOfBooksApiLink(file.metadata.translation.id)
-                };
-                availableTranslations.translations.push(translation);
-            }
-
-            let currentTanslationBooks = translationBooks.get(translation.id);
-
-            if (!currentTanslationBooks) {
-                currentTanslationBooks = {
-                    translation,
-                    books: []
-                };
-
-                translationBooks.set(translation.id, currentTanslationBooks);
-            }
-
-            let book: TranslationBook = {
-                id: id,
-                name: parsed.title ?? bookName.commonName,
-                commonName: bookName.commonName,
-                firstChapterApiLink: bookChapterApiLink(translation.id, bookName.commonName, 1, 'json'),
-                lastChapterApiLink: bookChapterApiLink(translation.id, bookName.commonName, 1, 'json'),
-                numberOfChapters: 0
-            };
-
-            currentTanslationBooks.books.push(book);
-
-            let previousChapter: TranslationBookChapter | null = null;
-            for (let content of parsed.content) {
-                if (content.type === 'chapter') {
-                    let chapter: TranslationBookChapter = {
-                        translation,
-                        book,
-                        nextChapterApiLink: null,
-                        previousChapterApiLink: previousChapter ? bookChapterApiLink(translation.id, book.commonName, previousChapter.chapter.number, 'json') : null,
-                        chapter: {
-                            number: content.number,
-                            content: content.content,
-                            footnotes: content.footnotes
-                        }
-                    };
-                    book.numberOfChapters += 1;
-
-                    const link = bookChapterApiLink(translation.id, book.commonName, chapter.chapter.number, 'json');
-                    book.lastChapterApiLink = link;
-                    output.push(jsonFile(link, chapter));
-
-                    if (previousChapter) {
-                        previousChapter.nextChapterApiLink = link;
-                    }
-                    previousChapter = chapter;
-                }
-            }
         } catch(err) {
             console.error(`[generate] Error occurred while parsing ${file.name}`, err);
+        }
+    }
+
+    const orderedBooks = sortBy(parsedBooks, b => b.order);
+    let translationBooks = new Map<string, TranslationBooks>();
+
+    let previousChapter: TranslationBookChapter | null = null;
+    for (let { file, tree: parsed } of orderedBooks) {
+        const id = parsed.id;
+
+        if (!id) {
+            console.warn('[generate] File does not have a valid book ID!', file.name, id);
+            continue;
+        }
+        
+        const bookMap = bookIdMap.get(file.metadata.translation.language);
+
+        if (!bookMap) {
+            console.warn('[generate] File does not have a valid language!', file.name, file.metadata.translation.language);
+            continue;
+        }
+
+        const bookName = bookMap.get(id);
+
+        if (!bookName) {
+            console.warn('[generate] Book name not found for ID!', file.name, id);
+            continue;
+        }
+
+        let translation = availableTranslations.translations.find(t => file.metadata.translation.id === t.id);
+
+        if (!translation) {
+            translation = {
+                ...file.metadata.translation,
+                availableFormats: [
+                    'json'
+                ],
+                listOfBooksApiLink: listOfBooksApiLink(file.metadata.translation.id)
+            };
+            availableTranslations.translations.push(translation);
+        }
+
+        let currentTanslationBooks = translationBooks.get(translation.id);
+
+        if (!currentTanslationBooks) {
+            currentTanslationBooks = {
+                translation,
+                books: []
+            };
+
+            translationBooks.set(translation.id, currentTanslationBooks);
+        }
+
+        let book: TranslationBook = {
+            id: id,
+            name: parsed.title ?? bookName.commonName,
+            commonName: bookName.commonName,
+            firstChapterApiLink: bookChapterApiLink(translation.id, bookName.commonName, 1, 'json'),
+            lastChapterApiLink: bookChapterApiLink(translation.id, bookName.commonName, 1, 'json'),
+            numberOfChapters: 0
+        };
+
+        currentTanslationBooks.books.push(book);
+
+        for (let content of parsed.content) {
+            if (content.type === 'chapter') {
+                let chapter: TranslationBookChapter = {
+                    translation,
+                    book,
+                    nextChapterApiLink: null,
+                    previousChapterApiLink: previousChapter ? bookChapterApiLink(previousChapter.translation.id, previousChapter.book.commonName, previousChapter.chapter.number, 'json') : null,
+                    chapter: {
+                        number: content.number,
+                        content: content.content,
+                        footnotes: content.footnotes
+                    }
+                };
+                book.numberOfChapters += 1;
+
+                const link = bookChapterApiLink(translation.id, book.commonName, chapter.chapter.number, 'json');
+                book.lastChapterApiLink = link;
+                output.push(jsonFile(link, chapter));
+
+                if (previousChapter) {
+                    previousChapter.nextChapterApiLink = link;
+                }
+                previousChapter = chapter;
+            }
         }
     }
 
@@ -472,6 +500,75 @@ export interface ChapterFootnote {
         verse: number;
     };
 }
+
+const bookOrderMap = new Map([
+    ["GEN", 1]
+    , ["EXO", 2]
+    , ["LEV", 3]
+    , ["NUM", 4]
+    , ["DEU", 5]
+    , ["JOS", 6]
+    , ["JDG", 7]
+    , ["RUT", 8]
+    , ["1SA", 9]
+    , ["2SA", 10]
+    , ["1KI", 11]
+    , ["2KI", 12]
+    , ["1CH", 13]
+    , ["2CH", 14]
+    , ["EZR", 15]
+    , ["NEH", 16]
+    , ["EST", 17]
+    , ["JOB", 18]
+    , ["PSA", 19]
+    , ["PRO", 20]
+    , ["ECC", 21]
+    , ["SNG", 22]
+    , ["ISA", 23]
+    , ["JER", 24]
+    , ["LAM", 25]
+    , ["EZK", 26]
+    , ["DAN", 27]
+    , ["HOS", 28]
+    , ["JOL", 29]
+    , ["AMO", 30]
+    , ["OBA", 31]
+    , ["JON", 32]
+    , ["MIC", 33]
+    , ["NAM", 34]
+    , ["HAB", 35]
+    , ["ZEP", 36]
+    , ["HAG", 37]
+    , ["ZEC", 38]
+    , ["MAL", 39]
+    , ["MAT", 40]
+    , ["MRK", 41]
+    , ["LUK", 42]
+    , ["JHN", 43]
+    , ["ACT", 44]
+    , ["ROM", 45]
+    , ["1CO", 46]
+    , ["2CO", 47]
+    , ["GAL", 48]
+    , ["EPH", 49]
+    , ["PHP", 50]
+    , ["COL", 51]
+    , ["1TH", 52]
+    , ["2TH", 53]
+    , ["1TI", 54]
+    , ["2TI", 55]
+    , ["TIT", 56]
+    , ["PHM", 57]
+    , ["HEB", 58]
+    , ["JAS", 59]
+    , ["1PE", 60]
+    , ["2PE", 61]
+    , ["1JN", 62]
+    , ["2JN", 63]
+    , ["3JN", 64]
+    , ["JUD", 65]
+    , ["REV", 66]
+]);
 
 const englishBookMap = new Map([
     ["GEN", { "commonName": "Genesis" }]

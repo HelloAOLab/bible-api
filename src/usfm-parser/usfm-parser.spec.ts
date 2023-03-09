@@ -1,13 +1,9 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-
-
 import { isDigit,
     isWhitespace,
     loc,
     marker,
     t,
     UsfmParser,
-    usfmParser,
     UsfmTokenizer,
     whitespace,
     word

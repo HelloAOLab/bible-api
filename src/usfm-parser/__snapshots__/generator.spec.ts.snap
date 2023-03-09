@@ -1,6 +1,6 @@
-// Vitest Snapshot v1
+// Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`bookIdMap > should have all the books 1`] = `
+exports[`bookIdMap should have all the books 1`] = `
 Map {
   "en" => Map {
     "GEN" => {

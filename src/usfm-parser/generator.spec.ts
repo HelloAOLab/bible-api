@@ -1,8 +1,7 @@
-import { describe, expect, it } from 'vitest';
 import { bookIdMap, generate, InputFile, InputTranslationMetadata, OutputFile } from './generator';
-import Genesis from '../../bible/bsb/01GENBSB.usfm?raw';
-import Exodus from '../../bible/bsb/02EXOBSB.usfm?raw';
-import _1Chronicles from '../../bible/bsb/131CHBSB.usfm?raw';
+import Genesis from '../../bible/bsb/01GENBSB.usfm';
+import Exodus from '../../bible/bsb/02EXOBSB.usfm';
+import _1Chronicles from '../../bible/bsb/131CHBSB.usfm';
 
 // const genesisBsb = `\id GEN - Berean Study Bible
 // \\h Genesis
@@ -109,7 +108,7 @@ describe('generator()', () => {
                     firstChapterApiLink: '/api/bsb/Genesis/1.json',
                     lastChapterApiLink: '/api/bsb/Genesis/1.json'
                 },
-                nextChapterApiLink: null,
+                nextChapterApiLink: '/api/bsb/Exodus/1.json',
                 previousChapterApiLink: null,
                 chapter: {
                     number: 1,
@@ -155,7 +154,7 @@ describe('generator()', () => {
                     lastChapterApiLink: '/api/bsb/Exodus/1.json'
                 },
                 nextChapterApiLink: null,
-                previousChapterApiLink: null,
+                previousChapterApiLink: '/api/bsb/Genesis/1.json',
                 chapter: {
                     number: 1,
                     content: [
