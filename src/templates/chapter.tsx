@@ -1,6 +1,6 @@
 import * as React from 'react';
-import Select from 'react-select';
-import type { TranslationBookChapter, ChapterData, ChapterContent, ChapterVerse, TranslationBook, Translation } from '../usfm-parser/generator';
+import Select, { StylesConfig, createFilter } from 'react-select';
+import type { TranslationBookChapter, ChapterData, ChapterContent, ChapterVerse, TranslationBook, Translation, TranslationBooks } from '../usfm-parser/generator';
 import type { PageProps } from 'gatsby';
 import Layout from '../components/Layout';
 import { FormatNumber } from '../components/Language';
@@ -14,6 +14,7 @@ interface PageContext {
     translations: Translation[];
     nextChapterUrl: string;
     previousChapterUrl: string;
+    bookUrl: string;
 }
 
 type Context = PageProps<any, PageContext>;
@@ -83,32 +84,149 @@ function ChapterHeader( { context }: { context: PageContext }) {
         label: b.commonName
     }));
     const currentBook = {
-        value: context.chapter.book.id,
-        label: context.chapter.book.commonName
+        value: chapter.book.id,
+        label: chapter.book.commonName
     };
 
     let chapterOptions = [] as any;
-    for (let i = 1; i <= context.chapter.book.numberOfChapters; i++) {
+    for (let i = 1; i <= chapter.book.numberOfChapters; i++) {
         chapterOptions.push({
             value: i,
             label: i
         });
     }
     const currentChapter = {
-        value: context.chapter.chapter.number,
-        label: context.chapter.chapter.number
+        value: chapter.chapter.number,
+        label: chapter.chapter.number
+    };
+
+    function createTranslationOption(t: Translation) {
+        const label = t.shortName ? 
+            (<span>{t.name} (<small>{t.shortName}</small>)</span>) :
+            (<span>{t.name}</span>);
+        return {
+            value: t.id,
+            label: label,
+            data: t
+        };
+    }
+
+    const translationOptions = context.translations.map(createTranslationOption);
+    console.log(translationOptions);
+    const currentTranslation = {
+        value: chapter.translation.id,
+        label: chapter.translation.shortName,
+        data: chapter.translation
+    };
+
+    const createBookUrl = (path: string) => {
+        if (path.startsWith('/api/')) {
+            path = path.slice('/api/'.length);
+        }
+
+        const lastSlash = path.lastIndexOf('/');
+        const url = `/read/${path.slice(0, lastSlash)}`;
+        return url;
     };
 
     const onSelectBook = (value: any) => {
         const b = context.books.find(b => b.id === value.value);
-        console.log(b);
+        // console.log(b);
         location.href = (b as any)?.firstChapterLink;
+    };
+    
+    const onSelectChapter = (value: any) => {
+        location.href = `${context.bookUrl}/${value.value}`;
+    };
+
+    const filterTranslations = createFilter({
+        ignoreCase: true,
+        ignoreAccents: true,
+        stringify: (option) => {
+            const translation = (option.data as any).data as Translation;
+            let language = translation.language;
+            if (Intl && Intl.DisplayNames) {
+                const names = new Intl.DisplayNames([], {
+                    type: 'language',
+                    languageDisplay: 'standard'
+                });
+                language = `${translation.language} ${names.of(translation.language)}`
+            }
+
+            return `${translation.shortName} ${translation.name} ${translation.englishName} ${language}`;
+        }
+    })
+
+    // const filterTranslations = (value: any, search: string) => {
+    //     const translation = value.value as Translation;
+
+    //     return translation.shortName?.includes(search) ||
+    //         translation.name.includes(search) ||
+    //         translation.englishName.includes(search);
+    // }
+
+    const onSelectTranslation = async (value: any) => {
+        const translationId = value.value;
+        const response = await fetch(`/api/${translationId}/books.json`);
+        const translationBooks: TranslationBooks = await response.json();
+
+        const book = translationBooks.books.find(b => b.id === chapter.book.id) ?? translationBooks.books[0];
+        const url = createBookUrl(book.firstChapterApiLink);
+        location.href = `${url}/${chapter.chapter.number}`;
+    };
+
+    const selectStyle: StylesConfig = {
+        container: (baseStyles, state) => ({
+            ...baseStyles,
+            display: 'inline-block',
+        }),
+        control: (baseStyles, state) => ({
+            ...baseStyles,
+            backgroundColor: 'var(--background-color)',
+            color: 'var(--text-color)',
+            border: 'none'
+        }),
+        valueContainer: (baseStyles, state) => ({
+            ...baseStyles,
+            paddingInlineStart: '0'
+        }),
+        singleValue: (baseStyles, state) => ({
+            ...baseStyles,
+            color: 'var(--text-color)',
+            marginInlineStart: '0'
+        }),
+        indicatorSeparator: (baseStyles, state) => ({
+            ...baseStyles,
+            display: 'none'
+        }),
+        menuList: (baseStyles, state) => ({
+            ...baseStyles,
+            backgroundColor: 'var(--inverse-background-color)',
+            color: 'var(--inverse-text-color)',
+            minWidth: '400px'
+        }),
+        input: (baseStyles, state) => ({
+            ...baseStyles,
+            color: 'var(--text-color)'
+        }),
+    };
+
+    const bookSelectStyle: StylesConfig = {
+        ...selectStyle,
+    };
+
+    const chapterSelectStyle: StylesConfig = {
+        ...selectStyle,
+    };
+
+    const translationSelectStyle: StylesConfig = {
+        ...selectStyle
     };
 
     return (<>
         {/* @ts-ignore */}
-        <h1><Select defaultValue={currentBook} options={bookOptions as any} onChange={onSelectBook} /> <Select defaultValue={currentChapter} options={chapterOptions} /> {chapter.book.commonName} <FormatNumber value={chapter.chapter.number} /></h1>
-        <h6>{chapter.translation.shortName ?? chapter.translation.name}</h6>
+        <h1><Select styles={bookSelectStyle} defaultValue={currentBook} options={bookOptions as any} onChange={onSelectBook} /> <Select styles={chapterSelectStyle} defaultValue={currentChapter} options={chapterOptions} onChange={onSelectChapter} /></h1>
+        <h6><Select styles={translationSelectStyle} defaultValue={currentTranslation} options={translationOptions as any} onChange={onSelectTranslation} filterOption={filterTranslations} /></h6>
     </>);
 }
 
@@ -145,4 +263,26 @@ export default ChapterTemplate;
 export const Head = ({ pageContext }: Context) => {
     const chapter = pageContext.chapter;
     return <title className={ `lang-${chapter.translation.language}` }>{chapter.book.commonName} {chapter.chapter.number} &#x2022; {chapter.translation.shortName ?? chapter.translation.name}</title>
+}
+
+/**
+ * Determines if the two given language tags represent the same root language.
+ * That is, en-US and en-UK share the same root language: english.
+ * @param first The first language tag.
+ * @param second The second language tag.
+ */
+function isSameRootLanguage(first: string, second: string): boolean {
+    return getRootLanguage(first) === getRootLanguage(second);
+}
+
+/**
+ * Gets the root language from the given language tag.
+ * @param lang The language tag.
+ */
+function getRootLanguage(lang: string): string | null {
+    let firstDash = lang.indexOf('-');
+    if (firstDash < 0) {
+        return lang;
+    }
+    return lang.substring(0, firstDash);
 }

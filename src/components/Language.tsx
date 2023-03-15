@@ -20,7 +20,6 @@ export const FormatNumber = (props: FormatNumberProps) => {
     // @ts-ignore
     return <LanguageContext.Consumer>
         {(locale: string) => {
-            console.log('format', props.value, locale);
             let n = new Intl.NumberFormat(locale);
             return n.format(props.value);
         }}

@@ -1,6 +1,11 @@
 html {
   --text-color: #4a4a4a;
   --background-color: #f9f9f9;
+  
+  --link-color: #3b48ff;
+  --visted-link-color: #926bfc;
+  --hover-link-color: #7c5bd6;
+
   --words-of-jesus: #dc143c;
 
   --inverse-text-color: #eee;
@@ -11,6 +16,10 @@ html {
   html {
     --text-color: #eee;
     --background-color: #333;
+    --link-color: #8f96fa;
+    --visted-link-color: #aaa;
+    --hover-link-color: #926bfc;
+
     --words-of-jesus: #e04161;
 
     --inverse-text-color: #4a4a4a;
@@ -21,6 +30,10 @@ html {
 html[data-theme="dark"] {
   --text-color: #eee;
   --background-color: #333;
+  --link-color: #8f96fa;
+  --visted-link-color: #aaa;
+  --hover-link-color: #926bfc;
+
   --words-of-jesus: #e04161;
 
   --inverse-text-color: #4a4a4a;
@@ -30,6 +43,18 @@ html[data-theme="dark"] {
 body {
   color: var(--text-color);
   background-color: var(--background-color);
+}
+
+a {
+  color: var(--link-color);
+}
+
+a:visited {
+  color: var(--visted-link-color);
+}
+
+a:hover {
+  color: var(--hover-link-color);
 }
 
 .lang-arb {
@@ -129,3 +154,8 @@ body {
     font-size: 1em;
   }
 } */
+
+.index-container {
+  max-width: 38em;
+  margin: auto;
+}
