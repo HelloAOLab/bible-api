@@ -21,7 +21,7 @@ export function generate(files: InputFile[]): OutputFile[] {
         order: number,
         bookName: {
             commonName: string
-        }
+        } | undefined
     }[]>();
 
     for(let file of files) {
@@ -49,14 +49,12 @@ export function generate(files: InputFile[]): OutputFile[] {
 
             if (!bookMap) {
                 console.warn('[generate] File does not have a valid language!', file.name, file.metadata.translation.language);
-                continue;
             }
 
-            const bookName = bookMap.get(id);
+            const bookName = bookMap?.get(id);
 
-            if (!bookName) {
+            if (!!bookMap && !bookName) {
                 console.warn('[generate] Book name not found for ID!', file.name, id);
-                continue;
             }
 
             let translation = parsedTranslations.get(file.metadata.translation.id);
@@ -96,14 +94,12 @@ export function generate(files: InputFile[]): OutputFile[] {
 
             if (!bookMap) {
                 console.warn('[generate] File does not have a valid language!', file.name, file.metadata.translation.language);
-                continue;
             }
 
-            const bookName = bookMap.get(id);
+            const bookName = bookMap?.get(id);
 
-            if (!bookName) {
-                console.warn('[generate] Book name not found for ID!', file.name, id);
-                continue;
+            if (!!bookMap && !bookName) {
+                console.warn('[generate] Common book name not found for ID!', file.name, id);
             }
 
             let translation = availableTranslations.translations.find(t => file.metadata.translation.id === t.id);
@@ -130,12 +126,20 @@ export function generate(files: InputFile[]): OutputFile[] {
                 translationBooks.set(translation.id, currentTanslationBooks);
             }
 
+            const name = parsed.title ?? bookName?.commonName;
+
+            if (!name) {
+                throw new Error(`Book does not have a name: ${translation.id}/${id}`);
+            }
+
+            const commonName = bookName?.commonName ?? parsed.title ?? id;
+
             let book: TranslationBook = {
                 id: id,
-                name: parsed.title ?? bookName.commonName,
-                commonName: bookName.commonName,
-                firstChapterApiLink: bookChapterApiLink(translation.id, bookName.commonName, 1, 'json'),
-                lastChapterApiLink: bookChapterApiLink(translation.id, bookName.commonName, 1, 'json'),
+                name,
+                commonName,
+                firstChapterApiLink: bookChapterApiLink(translation.id, commonName, 1, 'json'),
+                lastChapterApiLink: bookChapterApiLink(translation.id, commonName, 1, 'json'),
                 numberOfChapters: 0
             };
 
@@ -183,8 +187,8 @@ export function generate(files: InputFile[]): OutputFile[] {
         return `/api/${translationId}/books.json`;
     }
     
-    function bookChapterApiLink(translationId: string, commonBookName: string, chapterNumber: number, extension: string) {
-        return `/api/${translationId}/${replaceSpacesWithUnderscores(commonBookName)}/${chapterNumber}.${extension}`;
+    function bookChapterApiLink(translationId: string, commonName: string, chapterNumber: number, extension: string) {
+        return `/api/${translationId}/${replaceSpacesWithUnderscores(commonName)}/${chapterNumber}.${extension}`;
     }
 }
 
