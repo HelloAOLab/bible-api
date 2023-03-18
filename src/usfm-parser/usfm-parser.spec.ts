@@ -1176,6 +1176,7 @@ describe('UsfmParser', () => {
                 ['hinirv/usfm/gen.usfm', 50] as const,
                 ['hinirv/usfm/mat.usfm', 28] as const,
                 ['grcbre/usfm/gen.usfm', 50] as const,
+                ['grctcg/usfm/mat.usfm', 28] as const,
             ];
 
             it.each(cases)('should consistently parse %s', async (file, expectedChapters) => {

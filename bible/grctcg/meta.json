@@ -1,0 +1,32 @@
+{
+    "id": "GRCTCG",
+    "name": {
+        "local": "Η Καινή Διαθήκη",
+        "abbrev": "TCG",
+        "english": "Text-Critical Greek NT"
+    },
+    "language": "grc",
+    "year": 2022,
+    "direction": "ltr",
+    "copyright": {
+        "licenses": [
+            {
+                "license": "public",
+                "url": "https://ebible.org/Scriptures/details.php?id=grctcgnt"
+            }
+        ],
+        "attribution": "public domain",
+        "attribution_url": "https://ebible.org/Scriptures/details.php?id=grctcgnt"
+    },
+    "audio": [],
+    "video": [],
+    "source": {
+        "service": "ebible",
+        "id": "grctcgnt",
+        "format": "usfm",
+        "url": "https://ebible.org/Scriptures/grctcgnt_usfm.zip",
+        "updated": "2023-02-03"
+    },
+    "recommended": null,
+    "reviewed": false
+}

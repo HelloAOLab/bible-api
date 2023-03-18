@@ -13,6 +13,8 @@ export default function Index() {
                 <li><Link to="/read/ENGWEBP/Genesis/1">ENGWEBP</Link></li>
                 <li><Link to="/read/ARBNAV/التَّكوين/1">ARBNAV</Link></li>
                 <li><Link to="/read/HINIRV/उत्पत्ति/1">HINIRV</Link></li>
+                <li><Link to="/read/GRCBRE/ΓΕΝΕΣΙΣ/1">GRCBRE</Link></li>
+                <li><Link to="/read/GRCTCG/ΚΑΤΑ_ΜΑΤΘΑΙΟΝ/1">GRCTCG</Link></li>
             </ul>
             <h3>API</h3>
             <p>Want to make the Bible accessible in your app/website? Use our <a href="/docs">API</a>!</p>
