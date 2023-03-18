@@ -95,7 +95,7 @@ async function loadTranslationMetadata(translation: string): Promise<InputTransl
         const metadata = JSON.parse(data) as CollectionTranslationMetadata;
 
         return {
-            id: metadata.source.id,
+            id: metadata.id ?? metadata.source.id,
             language: metadata.language,
             name: metadata.name.local,
             englishName: metadata.name.english,
@@ -137,6 +137,7 @@ interface CollectionTranslationMetadata {
         attribution: string;
         attribution_url: string;
     },
+    id: string | null;
     source: {
         id: string;
     }

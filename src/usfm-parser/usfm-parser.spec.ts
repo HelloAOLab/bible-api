@@ -1118,6 +1118,8 @@ describe('UsfmParser', () => {
                 ['engwebp/70-MATengwebp.usfm', 28] as const,
                 ['arbnav/02-GENarbnav.usfm', 50] as const,
                 ['arbnav/70-MATarbnav.usfm', 28] as const,
+                ['hinirv/usfm/gen.usfm', 50] as const,
+                ['hinirv/usfm/mat.usfm', 28] as const,
             ];
 
             it.each(cases)('should consistently parse %s', async (file, expectedChapters) => {

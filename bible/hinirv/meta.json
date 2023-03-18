@@ -1,0 +1,32 @@
+{
+    "id": "HINIRV",
+    "name": {
+        "local": "पवित्र बाइबिल",
+        "abbrev": "IRV",
+        "english": ""
+    },
+    "language": "hin",
+    "year": 2017,
+    "direction": "ltr",
+    "copyright": {
+        "licenses": [
+            {
+                "license": "cc-by-sa",
+                "url": "https://creativecommons.org/licenses/by-sa/4.0/"
+            }
+        ],
+        "attribution": "Copyright © 2017, 2018 Bridge Connectivity Solutions",
+        "attribution_url": "https://ebible.org/Scriptures/details.php?id=hin2017"
+    },
+    "audio": [],
+    "video": [],
+    "source": {
+        "service": "ebible",
+        "id": "hin2017",
+        "format": "usfm",
+        "url": "https://ebible.org/Scriptures/hin2017_usfm.zip",
+        "updated": "2020-04-22"
+    },
+    "recommended": null,
+    "reviewed": false
+}

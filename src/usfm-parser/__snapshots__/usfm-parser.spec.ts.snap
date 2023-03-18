@@ -50,6 +50,10 @@ exports[`UsfmParser parse() Bible should consistently parse engwebp/03-EXOengweb
 
 exports[`UsfmParser parse() Bible should consistently parse engwebp/70-MATengwebp.usfm 1`] = `"8a1d9749fd58fa43f9966833951d4b50b82915f896f786b8b5baaf43a115669b"`;
 
+exports[`UsfmParser parse() Bible should consistently parse hinirv/usfm/gen.usfm 1`] = `"bbefcaaa21de560f0b65d615dfa1e3030dfeecd529c324a5a03f76de910e9b2d"`;
+
+exports[`UsfmParser parse() Bible should consistently parse hinirv/usfm/mat.usfm 1`] = `"51093666a3cfa317d5ee6b0c2e97e999303ef407660ac51c74c14bd48d941ccb"`;
+
 exports[`UsfmParser renderMarkdown() should create basic markdown from a parse tree 1`] = `
 "# Genesis
 ### 1
