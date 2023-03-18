@@ -126,18 +126,19 @@ export function generate(files: InputFile[]): OutputFile[] {
                 translationBooks.set(translation.id, currentTanslationBooks);
             }
 
-            const name = parsed.title ?? bookName?.commonName;
+            const name = parsed.header ?? bookName?.commonName;
 
             if (!name) {
                 throw new Error(`Book does not have a name: ${translation.id}/${id}`);
             }
 
-            const commonName = bookName?.commonName ?? parsed.title ?? id;
+            const commonName = bookName?.commonName ?? parsed.header ?? id;
 
             let book: TranslationBook = {
                 id: id,
                 name,
                 commonName,
+                title: parsed.title ?? null,
                 firstChapterApiLink: bookChapterApiLink(translation.id, commonName, 1, 'json'),
                 lastChapterApiLink: bookChapterApiLink(translation.id, commonName, 1, 'json'),
                 numberOfChapters: 0
@@ -341,6 +342,13 @@ export interface TranslationBook {
      * The common name for the book.
      */
     commonName: string;
+
+    /**
+     * The title of the book.
+     * This is usually a more descriptive version of the book name.
+     * If not available, then one was not provided by the translation.
+     */
+    title: string | null;
 
     /**
      * The number of chapters that the book contains.

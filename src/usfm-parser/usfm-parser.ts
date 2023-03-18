@@ -185,6 +185,7 @@ export class UsfmParser {
         const tokens = this.tokenize(input);
 
         let expectingId = 0;
+        let expectingName = 0;
         let expectingTitle = 0;
         let expectingSectionHeading = 0;
         let expectingFootnote = 0;
@@ -316,8 +317,10 @@ export class UsfmParser {
                 } else if (token.command === '\\id') {
                     expectingId = 1;
                 } else if (token.command === '\\h') {
+                    expectingName = 1;
+                    root.header = undefined;
+                } else if (token.command === '\\mt') {
                     expectingTitle = 1;
-                    root.title = undefined;
                 } else if (token.command === '\\s') {
                     expectingSectionHeading = 1;
                 } else if (token.command === '\\r') {
@@ -402,6 +405,12 @@ export class UsfmParser {
                     if  (expectingId === 1) {
                         root.id = token.word;
                         expectingId = 2;
+                    }
+                } else if (expectingName > 0) {
+                    if (root.header) {
+                        root.header += ' ' + token.word;
+                    } else {
+                        root.header = token.word;
                     }
                 } else if (expectingTitle > 0) {
                     if (root.title) {
@@ -491,6 +500,10 @@ export class UsfmParser {
                     if (token.whitespace.includes('\n')) {
                         expectingId = 0;
                     }
+                } else if (expectingName > 0) {
+                    if (token.whitespace.includes('\n')) {
+                        expectingName = 0;
+                    }
                 } else if (expectingTitle > 0) {
                     if (token.whitespace.includes('\n')) {
                         expectingTitle = 0;
@@ -520,7 +533,7 @@ export class UsfmParser {
                         expectingIntroParagraph = 0;
                         canParseFootnotes = true;
                     }
-                } else if (expectingId > 0 || expectingTitle > 0 || expectingSectionHeading > 0 || expectingFootnote > 0 || expectingFootnoteReference > 0 || expectingFootnoteText > 0 || expectingReferenceText > 0 || expectingCrossReference > 0 || expectingWordAttribute > 0 || expectingNestedWordAttribute > 0) {
+                } else if (expectingId > 0 || expectingName > 0 || expectingTitle > 0 || expectingSectionHeading > 0 || expectingFootnote > 0 || expectingFootnoteReference > 0 || expectingFootnoteText > 0 || expectingReferenceText > 0 || expectingCrossReference > 0 || expectingWordAttribute > 0 || expectingNestedWordAttribute > 0) {
                     // Skip
                 } else if (words.length > 0) {
                     let lastWord = words[words.length - 1];
@@ -539,8 +552,8 @@ export class UsfmParser {
     renderMarkdown(tree: ParseTree): string {
         let md = '';
 
-        if (tree.title) {
-            md += `# ${tree.title}\n`;
+        if (tree.header) {
+            md += `# ${tree.header}\n`;
         }
 
         for (let c of tree.content) {
@@ -795,6 +808,11 @@ export interface ParseTree {
      * The ID of the parse tree.
      */
     id?: string;
+
+    /**
+     * The header that was associated with the tree.
+     */
+    header?: string;
 
     /**
      * The major title that was associated with the tree.

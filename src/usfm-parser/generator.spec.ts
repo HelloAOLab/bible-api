@@ -84,6 +84,7 @@ describe('generator()', () => {
                         id: 'GEN',
                         name: 'Genesis',
                         commonName: 'Genesis',
+                        title: 'Genesis',
                         numberOfChapters: 1,
                         firstChapterApiLink: '/api/bsb/Genesis/1.json',
                         lastChapterApiLink: '/api/bsb/Genesis/1.json',
@@ -92,6 +93,7 @@ describe('generator()', () => {
                         id: 'EXO',
                         name: 'Exodus',
                         commonName: 'Exodus',
+                        title: 'Exodus',
                         numberOfChapters: 1,
                         firstChapterApiLink: '/api/bsb/Exodus/1.json',
                         lastChapterApiLink: '/api/bsb/Exodus/1.json',
@@ -104,6 +106,7 @@ describe('generator()', () => {
                     id: 'GEN',
                     name: 'Genesis',
                     commonName: 'Genesis',
+                    title: 'Genesis',
                     numberOfChapters: 1,
                     firstChapterApiLink: '/api/bsb/Genesis/1.json',
                     lastChapterApiLink: '/api/bsb/Genesis/1.json'
@@ -149,6 +152,7 @@ describe('generator()', () => {
                     id: 'EXO',
                     name: 'Exodus',
                     commonName: 'Exodus',
+                    title: 'Exodus',
                     numberOfChapters: 1,
                     firstChapterApiLink: '/api/bsb/Exodus/1.json',
                     lastChapterApiLink: '/api/bsb/Exodus/1.json'
@@ -243,6 +247,7 @@ describe('generator()', () => {
                         id: '1CH',
                         name: '1 Chronicles',
                         commonName: '1 Chronicles',
+                        title: '1 Chronicles',
                         numberOfChapters: 1,
                         firstChapterApiLink: '/api/bsb/1_Chronicles/1.json',
                         lastChapterApiLink: '/api/bsb/1_Chronicles/1.json',
@@ -255,6 +260,7 @@ describe('generator()', () => {
                     id: '1CH',
                     name: '1 Chronicles',
                     commonName: '1 Chronicles',
+                    title: '1 Chronicles',
                     numberOfChapters: 1,
                     firstChapterApiLink: '/api/bsb/1_Chronicles/1.json',
                     lastChapterApiLink: '/api/bsb/1_Chronicles/1.json'

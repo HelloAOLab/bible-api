@@ -579,10 +579,11 @@ describe('UsfmParser', () => {
             });
         });
 
-        it('should ignore major title headings', () => {
+        it('should support major title headings', () => {
             const tree = parser.parse(`
-                \\mt Wrong
-                \\mt Other Title
+                \\mt1 The
+                \\mt2 Title
+                \\mt3 of the Book
                 \\c 1
                 \\v 1 In the beginning God created the heavens and the earth.
                 \\v 2 Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.
@@ -592,6 +593,7 @@ describe('UsfmParser', () => {
 
             expect(tree).toEqual({
                 type: 'root',
+                title: 'The Title of the Book',
                 content: [
                     {
                         type: 'chapter',
@@ -635,8 +637,6 @@ describe('UsfmParser', () => {
         it('should support header text', () => {
             const tree = parser.parse(`
                 \\h Genesis
-                \\mt Wrong
-                \\mt Other Title
                 \\c 1
                 \\v 1 In the beginning God created the heavens and the earth.
                 \\v 2 Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.
@@ -646,7 +646,7 @@ describe('UsfmParser', () => {
 
             expect(tree).toEqual({
                 type: 'root',
-                title: 'Genesis',
+                header: 'Genesis',
                 content: [
                     {
                         type: 'chapter',
