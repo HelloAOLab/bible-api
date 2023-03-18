@@ -57,6 +57,14 @@ a:hover {
   color: var(--hover-link-color);
 }
 
+.dir-rtl {
+  direction: rtl;
+}
+
+.dir-ltr {
+  direction: ltr;
+}
+
 .lang-arb {
   direction: rtl;
 }
