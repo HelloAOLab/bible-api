@@ -50,6 +50,8 @@ exports[`UsfmParser parse() Bible should consistently parse engwebp/03-EXOengweb
 
 exports[`UsfmParser parse() Bible should consistently parse engwebp/70-MATengwebp.usfm 1`] = `"166651b34eab23e6ab6e7620e05135a6a1a7a66b37101bebf5859fa3fe776c1d"`;
 
+exports[`UsfmParser parse() Bible should consistently parse grcbre/usfm/gen.usfm 1`] = `"fbf398ecad8159bc23d4ee3b9062b5623858acd99a4561e16df47afebe28844b"`;
+
 exports[`UsfmParser parse() Bible should consistently parse hinirv/usfm/gen.usfm 1`] = `"019694a656ecebed687484bffc8a9f495ba943b4a8d65c83ac2afa8322af490e"`;
 
 exports[`UsfmParser parse() Bible should consistently parse hinirv/usfm/mat.usfm 1`] = `"b91695a092283bd71fd4b02a76da1160b4ab5792471992ce34f6414c29e25b21"`;

@@ -1,0 +1,32 @@
+{
+    "id": "GRCBRE",
+    "name": {
+        "local": "μετάφραση των εβδομήκοντα",
+        "abbrev": "BRE",
+        "english": "Brenton Septuagint"
+    },
+    "language": "grc",
+    "year": null,
+    "direction": "ltr",
+    "copyright": {
+        "licenses": [
+            {
+                "license": "public",
+                "url": "https://ebible.org/Scriptures/details.php?id=grcbrent"
+            }
+        ],
+        "attribution": "public domain",
+        "attribution_url": "https://ebible.org/Scriptures/details.php?id=grcbrent"
+    },
+    "audio": [],
+    "video": [],
+    "source": {
+        "service": "ebible",
+        "id": "grcbrent",
+        "format": "usfm",
+        "url": "https://ebible.org/Scriptures/grcbrent_usfm.zip",
+        "updated": "2020-03-31"
+    },
+    "recommended": null,
+    "reviewed": false
+}
