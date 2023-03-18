@@ -315,8 +315,9 @@ export class UsfmParser {
                     this._poem = null;
                 } else if (token.command === '\\id') {
                     expectingId = 1;
-                } else if (token.command === '\\mt') {
+                } else if (token.command === '\\h') {
                     expectingTitle = 1;
+                    root.title = undefined;
                 } else if (token.command === '\\s') {
                     expectingSectionHeading = 1;
                 } else if (token.command === '\\r') {
