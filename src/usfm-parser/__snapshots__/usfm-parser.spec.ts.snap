@@ -54,6 +54,8 @@ exports[`UsfmParser parse() Bible should consistently parse grcbre/usfm/gen.usfm
 
 exports[`UsfmParser parse() Bible should consistently parse grctcg/usfm/mat.usfm 1`] = `"5211831c1001ae19aa1e590e2aed49e3e2c55c7f05fda7b114e74cead083ef6c"`;
 
+exports[`UsfmParser parse() Bible should consistently parse hbomas/usfm/gen.usfm 1`] = `"94bdd3630b41790e1b27ec8b9e76ed2b25ba0eee7cb611ecd120b13c5e08a118"`;
+
 exports[`UsfmParser parse() Bible should consistently parse hinirv/usfm/gen.usfm 1`] = `"019694a656ecebed687484bffc8a9f495ba943b4a8d65c83ac2afa8322af490e"`;
 
 exports[`UsfmParser parse() Bible should consistently parse hinirv/usfm/mat.usfm 1`] = `"b91695a092283bd71fd4b02a76da1160b4ab5792471992ce34f6414c29e25b21"`;

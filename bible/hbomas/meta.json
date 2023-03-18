@@ -1,0 +1,32 @@
+{
+    "id": "HBOMAS",
+    "name": {
+        "local": "כתבי הקודש",
+        "abbrev": "MAS",
+        "english": "Hebrew Masoretic Old Testament"
+    },
+    "language": "hbo",
+    "year": null,
+    "direction": "rtl",
+    "copyright": {
+        "licenses": [
+            {
+                "license": "public",
+                "url": "https://ebible.org/Scriptures/details.php?id=hbo"
+            }
+        ],
+        "attribution": "public domain",
+        "attribution_url": "https://ebible.org/Scriptures/details.php?id=hbo"
+    },
+    "audio": [],
+    "video": [],
+    "source": {
+        "service": "ebible",
+        "id": "hbo",
+        "format": "usfm",
+        "url": "https://ebible.org/Scriptures/hbo_usfm.zip",
+        "updated": "2013-12-11"
+    },
+    "recommended": null,
+    "reviewed": false
+}
