@@ -69,6 +69,10 @@ a:hover {
   direction: rtl;
 }
 
+.lang-hbo {
+  direction: rtl;
+}
+
 .words-of-jesus {
   color: var(--words-of-jesus);
 }

@@ -112,7 +112,6 @@ function ChapterHeader( { context }: { context: PageContext }) {
     }
 
     const translationOptions = context.translations.map(createTranslationOption);
-    console.log(translationOptions);
     const currentTranslation = {
         value: chapter.translation.id,
         label: chapter.translation.shortName,
@@ -131,7 +130,6 @@ function ChapterHeader( { context }: { context: PageContext }) {
 
     const onSelectBook = (value: any) => {
         const b = context.books.find(b => b.id === value.value);
-        // console.log(b);
         location.href = (b as any)?.firstChapterLink;
     };
     
