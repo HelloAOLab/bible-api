@@ -1,6 +1,5 @@
 import { omit, sortBy } from "lodash";
 import { FootnoteReference, Heading, ParseTree, Text, UsfmParser } from "./usfm-parser";
-import '@formatjs/intl-locale/polyfill';
 
 
 /**
