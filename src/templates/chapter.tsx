@@ -51,6 +51,10 @@ function VerseContent({ content }: { content: ArrayElement<ChapterVerse['content
             }
         } else if('noteId' in content) {
             return <></>;
+        } else if ('heading' in content) {
+            return <h3>{ content.heading }</h3>
+        } else if(content.lineBreak) {
+            return <br></br>
         }
     }
 

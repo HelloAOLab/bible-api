@@ -410,6 +410,50 @@ describe('UsfmParser', () => {
             });
         });
 
+        it('should parse the intro to a book correctly', () => {
+            const tree = parser.parse(`\\id GEN - Berean Study Bible
+                \\h Genesis
+                \\toc1 Genesis
+                \\mt1 Genesis
+                \\c 1
+                \\s1 The Creation
+                \\r (John 1:1–5; Hebrews 11:1–3)
+                \\b
+                \\m 
+                \\v 1 In the beginning God created the heavens and the earth. 
+            `);
+
+            expect(tree).toEqual({
+                type: 'root',
+                title: 'Genesis',
+                header: 'Genesis',
+                id: 'GEN',
+                content: [
+                    {
+                        type: 'chapter',
+                        number: 1,
+                        content: [
+                            {
+                                type: 'heading',
+                                content: ['The Creation']
+                            },
+                            {
+                                type: 'line_break',
+                            },
+                            { 
+                                type: 'verse', 
+                                number: 1,
+                                content: [
+                                    'In the beginning God created the heavens and the earth.'
+                                ]
+                            },
+                        ],
+                        footnotes: [],
+                    },
+                ]
+            });
+        });
+
         it('should support line breaks', () => {
             const tree = parser.parse(`\\c 1
                 \\v 1 In the beginning God created the heavens and the earth.
@@ -1141,6 +1185,145 @@ describe('UsfmParser', () => {
                             },
                         ],
                         footnotes: []
+                    },
+                ]
+            });
+        });
+
+        it('should handle verses that are split between headings', () => {
+            const tree = parser.parse(`\\c 1 
+            \\v 1 This is Solomon’s Song of Songs.\\f + \\fr 1:1 \\ft Most translators add subheadings for speaker identifications such as The Bride, The Groom, and The Friends based on the gender and number of the Hebrew words.\\f* 
+            \\s2 The Bride
+            \\b
+            \\q1 
+            \\v 2 Let him kiss me with the kisses of his mouth! 
+            \\q2 For your love is more delightful than wine. 
+            \\q1 
+            \\v 3 The fragrance of your perfume is pleasing; 
+            \\q2 your name is like perfume poured out. 
+            \\q2 No wonder the maidens adore you. 
+            \\b
+            \\q1 
+            \\v 4 Take me away with you—let us hurry! 
+            \\q2 May the king bring me to his chambers. 
+            \\s2 The Friends
+            \\b
+            \\q1 We will rejoice and delight in you; 
+            \\q2 we will praise your love more than wine. 
+            \\s2 The Bride
+            \\b
+            \\q1 It is only right that they adore you.
+            `);
+
+            expect(tree).toEqual({
+                type: 'root',
+                content: [
+                    {
+                        type: 'chapter',
+                        number: 1,
+                        content: [
+                            { 
+                                type: 'verse', 
+                                number: 1,
+                                content: [
+                                    'This is Solomon’s Song of Songs.',
+                                    {
+                                        noteId: 0
+                                    }
+                                ]
+                            },
+                            {
+                                type: 'heading',
+                                content: ['The Bride']
+                            },
+                            {
+                                type: 'line_break'
+                            },
+                            {
+                                type: 'verse',
+                                number: 2,
+                                content: [
+                                    {
+                                        text: 'Let him kiss me with the kisses of his mouth!',
+                                        poem: 1
+                                    },
+                                    {
+                                        text: 'For your love is more delightful than wine.',
+                                        poem: 2
+                                    },
+
+                                ]
+                            },
+                            { 
+                                type: 'verse', 
+                                number: 3,
+                                content: [
+                                    {
+                                        text: 'The fragrance of your perfume is pleasing;',
+                                        poem: 1
+                                    },
+                                    {
+                                        text: 'your name is like perfume poured out.',
+                                        poem: 2
+                                    },
+                                    {
+                                        text: 'No wonder the maidens adore you.',
+                                        poem: 2
+                                    }
+                                ]
+                            },
+                            {
+                                type: 'line_break'
+                            },
+                            {
+                                type: 'verse',
+                                number: 4,
+                                content: [
+                                    {
+                                        text: 'Take me away with you—let us hurry!',
+                                        poem: 1
+                                    },
+                                    {
+                                        text: 'May the king bring me to his chambers.',
+                                        poem: 2
+                                    },
+                                    {
+                                        heading: 'The Friends'
+                                    },
+                                    {
+                                        lineBreak: true
+                                    },
+                                    {
+                                        text: 'We will rejoice and delight in you;',
+                                        poem: 1
+                                    },
+                                    {
+                                        text: 'we will praise your love more than wine.',
+                                        poem: 2
+                                    },
+                                    {
+                                        heading: 'The Bride'
+                                    },
+                                    {
+                                        lineBreak: true
+                                    },
+                                    {
+                                        text: 'It is only right that they adore you.',
+                                        poem: 1
+                                    }
+                                ]
+                            },
+                        ],
+                        footnotes: [
+                            {
+                                noteId: 0,
+                                text: 'Most translators add subheadings for speaker identifications such as The Bride, The Groom, and The Friends based on the gender and number of the Hebrew words.',
+                                reference: {
+                                    chapter: 1,
+                                    verse: 1
+                                }
+                            }
+                        ]
                     },
                 ]
             });

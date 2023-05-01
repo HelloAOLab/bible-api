@@ -200,6 +200,7 @@ export class UsfmParser {
 
         let canParseFootnotes = true;
         let chapter: Chapter | null = null;
+        let lastVerse: Verse | null = null;
         let verse: Verse | null = null;
         let subtitle: HebrewSubtitle | null = null;
         let words: string[] = [];
@@ -233,12 +234,43 @@ export class UsfmParser {
                     this._throwError(input, token, 'Cannot infer first verse after other verses have been added to the chapter!');
                 }
                 // Implicit first verse
-                chapter.content.push({
+                verse = {
                     type: 'verse',
                     number: 1,
                     content: verseContent
-                });
+                };
+                chapter.content.push(verse);
                 verseContent = [];
+            }
+        };
+
+        const cleanupVerse = () => {
+            if (!verse || !chapter) {
+                return;
+            }
+            let chapterContent: Chapter['content'] = [];
+            for (let i = verse.content.length - 1; i >= 0; i--) {
+                let content = verse.content[i];
+                if (typeof content === 'object' && 'heading' in content) {
+                    // move headings that occur at the end of a verse to the chapter
+                    chapterContent.unshift({
+                        type: 'heading',
+                        content: [content.heading]
+                    });
+                    verse.content.splice(i, 1);
+                } else if(typeof content === 'object' && 'lineBreak' in content && content.lineBreak) {
+                    // move line breaks that occur at the end of a verse to the chapter
+                    chapterContent.unshift({
+                        type: 'line_break'
+                    });
+                    verse.content.splice(i, 1);
+                } else {
+                    break;
+                }
+            }
+
+            for(let content of chapterContent) {
+                chapter.content.push(content);
             }
         };
 
@@ -248,6 +280,7 @@ export class UsfmParser {
             }
 
             addVerseContentToChapter(token);
+            cleanupVerse();
         };
 
         const addWordsToFootnote = () => {
@@ -261,6 +294,7 @@ export class UsfmParser {
             if (token.kind === 'marker') {
                 if (token.command === '\\c') {
                     addWordsToVerseOrSubtitle();
+                    cleanupVerse();
 
                     chapter = {
                         type: 'chapter',
@@ -279,6 +313,7 @@ export class UsfmParser {
 
                     completeVerseOrSubtitle(token);
 
+                    lastVerse = verse;
                     verse = {
                         type: 'verse',
                         number: NaN,
@@ -304,10 +339,17 @@ export class UsfmParser {
                         this._throwError(input, token, 'Cannot parse a line break without chapter information!');
                     }
 
-                    completeVerseOrSubtitle(token);
-                    chapter.content.push({
-                        type: 'line_break'
-                    });
+                    if (verse) {
+                        addWordsToVerseOrSubtitle();
+                        verse.content.push({
+                            lineBreak: true
+                        });
+                    } else {
+                        completeVerseOrSubtitle(token);
+                        chapter.content.push({
+                            type: 'line_break'
+                        });
+                    }
                 } else if (token.command === '\\q') {
                     addWordsToVerseOrSubtitle();
                     this._poem = token.number;
@@ -510,7 +552,12 @@ export class UsfmParser {
                     }
                 } else if (expectingSectionHeading > 0) {
                     if (token.whitespace.includes('\n')) {
-                        if (chapter) {
+                        if (verse) {
+                            addWordsToVerseOrSubtitle();
+                            verse.content.push({
+                                heading: sectionContent
+                            });
+                        } else if (chapter) {
                             chapter.content.push({
                                 type: 'heading',
                                 content: [sectionContent]
@@ -871,7 +918,7 @@ export interface Verse {
     /**
      * The contents of the verse.
      */
-    content: (string | Text | FootnoteReference)[];
+    content: (string | Text | InlineHeading | InlineLineBreak | FootnoteReference)[];
 }
 
 /**
@@ -894,6 +941,23 @@ export interface Text {
      * Whether the text contains the words of Jesus.
      */
     wordsOfJesus?: boolean;
+}
+
+/**
+ * Defines an interface that represents a heading that is embedded in a verse.
+ */
+export interface InlineHeading {
+    /**
+     * The text of the heading.
+     */
+    heading: string;
+}
+
+/**
+ * Defines an interface that represents a line break that is embedded in a verse.
+ */
+export interface InlineLineBreak {
+    lineBreak: true;
 }
 
 export interface FootnoteReference {

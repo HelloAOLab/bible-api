@@ -306,7 +306,7 @@ interface ChapterVerse {
      * The list of content for the verse.
      * Each element in the list could be a string, formatted text, or a footnote reference.
      */
-    content: (string | FormattedText | VerseFootnoteReference)[];
+    content: (string | FormattedText | InlineHeading | InlineLineBreak | VerseFootnoteReference)[];
 }
 
 /**
@@ -331,6 +331,24 @@ interface FormattedText {
      */
     wordsOfJesus?: boolean;
 }
+
+/**
+ * Defines an interface that represents a heading that is embedded in a verse.
+ */
+interface InlineHeading {
+    /**
+     * The text of the heading.
+     */
+    heading: string;
+}
+
+/**
+ * Defines an interface that represents a line break that is embedded in a verse.
+ */
+interface InlineLineBreak {
+    lineBreak: true;
+}
+
 
 /**
  * A footnote reference in a verse or a Hebrew Subtitle.

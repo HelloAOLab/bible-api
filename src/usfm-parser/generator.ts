@@ -501,7 +501,7 @@ export interface ChapterVerse {
      * The list of content for the verse.
      * Each element in the list could be a string, formatted text, or a footnote reference.
      */
-    content: (string | FormattedText | VerseFootnoteReference)[];
+    content: (string | FormattedText | InlineHeading | InlineLineBreak | VerseFootnoteReference)[];
 }
 
 /**
@@ -525,6 +525,23 @@ export interface FormattedText {
      * Whether the text represents the Words of Jesus.
      */
     wordsOfJesus?: boolean;
+}
+
+/**
+ * Defines an interface that represents a heading that is embedded in a verse.
+ */
+export interface InlineHeading {
+    /**
+     * The text of the heading.
+     */
+    heading: string;
+}
+
+/**
+ * Defines an interface that represents a line break that is embedded in a verse.
+ */
+export interface InlineLineBreak {
+    lineBreak: true;
 }
 
 /**

@@ -4,55 +4,55 @@ exports[`UsfmParser parse() Bible should consistently parse arbnav/02-GENarbnav.
 
 exports[`UsfmParser parse() Bible should consistently parse arbnav/70-MATarbnav.usfm 1`] = `"1cb557c303cc51c7d0a50ef5f56d9f4abb33431dbd486ae75ef0c7ebcf4302bb"`;
 
-exports[`UsfmParser parse() Bible should consistently parse bsb/01GENBSB.usfm 1`] = `"42d31a41e3e29d7dcef5d2aef1cae806628fefed54930fd9111fca5227d2cada"`;
+exports[`UsfmParser parse() Bible should consistently parse bsb/01GENBSB.usfm 1`] = `"9e995eca8413599ea6d41daf94334f8a6aa3c67ce5cbb1f11f161608ed61c17d"`;
 
-exports[`UsfmParser parse() Bible should consistently parse bsb/02EXOBSB.usfm 1`] = `"310c8536c090719bd4cffea18e07b9ec3a0e44ba3355598faeadd47b7489626f"`;
+exports[`UsfmParser parse() Bible should consistently parse bsb/02EXOBSB.usfm 1`] = `"77ba9ecd8cd739620ef456c908bfbaf3828098569650f1ff4ce1b2af49823f98"`;
 
-exports[`UsfmParser parse() Bible should consistently parse bsb/03LEVBSB.usfm 1`] = `"7381eaeca97b4ac7b38d3fbb6c12a34486524413929e9d2089c662793790f13f"`;
+exports[`UsfmParser parse() Bible should consistently parse bsb/03LEVBSB.usfm 1`] = `"c7a02a57cfe98ecd18e06a8b6b21e6ad6dd061e307ef7c45e0428e5d9d2a5c3b"`;
 
-exports[`UsfmParser parse() Bible should consistently parse bsb/04NUMBSB.usfm 1`] = `"ce88277b7b62b18cfce257ba96b12d36cc18f56948944e7359e3a1264d1fa428"`;
+exports[`UsfmParser parse() Bible should consistently parse bsb/04NUMBSB.usfm 1`] = `"ef00cd913ac108ac47636de18d9871ee703e0f3e176b0737d4cd52a97aa9967f"`;
 
-exports[`UsfmParser parse() Bible should consistently parse bsb/05DEUBSB.usfm 1`] = `"1750e9b878b71670c87b28bb263cccbbc71f9aa8bf0b5c892fdcaddf6b76f643"`;
+exports[`UsfmParser parse() Bible should consistently parse bsb/05DEUBSB.usfm 1`] = `"2f63f90a1abbf234f514500029fe25bfea7c095f0c998065a614dc4718ad9e13"`;
 
-exports[`UsfmParser parse() Bible should consistently parse bsb/06JOSBSB.usfm 1`] = `"71f0ba6394e80f4a3d2c3e3a04c94a4fa20979f3322563fb59e0f271ba07b52d"`;
+exports[`UsfmParser parse() Bible should consistently parse bsb/06JOSBSB.usfm 1`] = `"6087102b430a0b243f57559d38e42d18a804b8c12b02b1f6cbc4eab80b7a42b3"`;
 
-exports[`UsfmParser parse() Bible should consistently parse bsb/07JDGBSB.usfm 1`] = `"9c094b57369d4df1ce5fef70ac9ce6cd3778446ef1c62b227dc4153ad12bf9d8"`;
+exports[`UsfmParser parse() Bible should consistently parse bsb/07JDGBSB.usfm 1`] = `"4ecd3ae44d5062c53f88d0cc759cb3f7cc49d25b591ad5e25f1162a4aa85bb9d"`;
 
-exports[`UsfmParser parse() Bible should consistently parse bsb/08RUTBSB.usfm 1`] = `"2ca5e2fd1b9deb3cec27981be1b6d1c619bc1141a23370eb786576fed80471ad"`;
+exports[`UsfmParser parse() Bible should consistently parse bsb/08RUTBSB.usfm 1`] = `"127d5b0a3d85911e136ec12ae05f2f941fecaa57bab1331f42d1a601f5317736"`;
 
-exports[`UsfmParser parse() Bible should consistently parse bsb/091SABSB.usfm 1`] = `"0339a3d70e59483c11492569563af96d0e52f3af59a983c940cd4be607168923"`;
+exports[`UsfmParser parse() Bible should consistently parse bsb/091SABSB.usfm 1`] = `"49fca11c40f3e820d98f2fcea823ebe6835002100ab3ce3d90bac14881707f25"`;
 
-exports[`UsfmParser parse() Bible should consistently parse bsb/15EZRBSB.usfm 1`] = `"67e4d9668c1110812507d9edf118bc79873ff9dc3e321562f94237d384e1f6d7"`;
+exports[`UsfmParser parse() Bible should consistently parse bsb/15EZRBSB.usfm 1`] = `"568556378f51a9999bbe831db6865dd9740edef4cff56d2d6dbb7300efae57a6"`;
 
-exports[`UsfmParser parse() Bible should consistently parse bsb/16NEHBSB.usfm 1`] = `"e398eafc7954a7bb22bc1e9e792a502504481abcf1812d572459c651e8745d5e"`;
+exports[`UsfmParser parse() Bible should consistently parse bsb/16NEHBSB.usfm 1`] = `"6c11e1816caadc6dfb57e207fff2a8b619228c2975fe6eade47ef09af4239476"`;
 
-exports[`UsfmParser parse() Bible should consistently parse bsb/17ESTBSB.usfm 1`] = `"215a9c574466891b5b81a3038ace641fd276db7ad2bc72a2f614109e59e07ff4"`;
+exports[`UsfmParser parse() Bible should consistently parse bsb/17ESTBSB.usfm 1`] = `"2f1c38a4256229b00e8969891284c6fb242c567edf09ee81b348ab85d9184f5b"`;
 
-exports[`UsfmParser parse() Bible should consistently parse bsb/18JOBBSB.usfm 1`] = `"1b4c5e3a2553ff3789c607cf13e72569974dbd6b3511074b4ecde0c783b55a6a"`;
+exports[`UsfmParser parse() Bible should consistently parse bsb/18JOBBSB.usfm 1`] = `"28fa5c179adbaccbd18b552e60d44f36633cd077dc8099c7a854fd177ea8aa5d"`;
 
-exports[`UsfmParser parse() Bible should consistently parse bsb/19PSABSB.usfm 1`] = `"458c56ff6a8c08afc91f5f8c9238b2f85906e018a79cad2cb366c44514e85f57"`;
+exports[`UsfmParser parse() Bible should consistently parse bsb/19PSABSB.usfm 1`] = `"9f306a4aca9389845fa3f7e9e1bd6a80ac6fd7426a396db7e93119fe4730e383"`;
 
-exports[`UsfmParser parse() Bible should consistently parse bsb/41MATBSB.usfm 1`] = `"915f9e16f4444014e1736cd74861c7d0fd3611bda5fb4e5ff17ccf57cd00678b"`;
+exports[`UsfmParser parse() Bible should consistently parse bsb/41MATBSB.usfm 1`] = `"b133bea447c900fedac8d63bdfdb6b6d2964a567de46ed9e6ae847d895773e53"`;
 
-exports[`UsfmParser parse() Bible should consistently parse bsb/102SABSB.usfm 1`] = `"eec0c40b161040c5469b97a47d52fbdd289c6e01828eb57448ba4ee8999d6b22"`;
+exports[`UsfmParser parse() Bible should consistently parse bsb/102SABSB.usfm 1`] = `"4361e22bc484992ccbe11bef688dad7b333753846bddc9e75cfbf5ce6e90723c"`;
 
-exports[`UsfmParser parse() Bible should consistently parse bsb/111KIBSB.usfm 1`] = `"902a32d3ce450689e112c94f83bbec920da1c7c4c58e79ee260386a557c4fb5e"`;
+exports[`UsfmParser parse() Bible should consistently parse bsb/111KIBSB.usfm 1`] = `"af36b2f43d2ed1861641d84b833af71f3baa94b216ce53e20241bb1a76495959"`;
 
-exports[`UsfmParser parse() Bible should consistently parse bsb/122KIBSB.usfm 1`] = `"62f703ff40e5617853ac1d3fe2045662a168551c7bef94ab1249bed7ac07f32f"`;
+exports[`UsfmParser parse() Bible should consistently parse bsb/122KIBSB.usfm 1`] = `"8a802799a956311763ab8db4a8ece64b3e54d5412322077b5a136f8fb797fb63"`;
 
-exports[`UsfmParser parse() Bible should consistently parse bsb/131CHBSB.usfm 1`] = `"8e1cd798c84661845cabbc8d2f143fe4f98774d93ed07f83140641b049575551"`;
+exports[`UsfmParser parse() Bible should consistently parse bsb/131CHBSB.usfm 1`] = `"6b7be729fb364e3fb3d22a533330e792bba79c31a247f2c1de4dc875a6e8423d"`;
 
-exports[`UsfmParser parse() Bible should consistently parse bsb/142CHBSB.usfm 1`] = `"c8ce793a3d2086f4297ccd5d17f3c8167255f123d1586f5de9a59fde758ad7e0"`;
+exports[`UsfmParser parse() Bible should consistently parse bsb/142CHBSB.usfm 1`] = `"270b4bde000c65390cd57ecdff89ba58aba36bce0d906fb12ef1cefba730b70f"`;
 
-exports[`UsfmParser parse() Bible should consistently parse engwebp/02-GENengwebp.usfm 1`] = `"3e5cb837b3e801cdedd1edea8cbf25a310de1f0416f08a1dac79ab79bdc02afc"`;
+exports[`UsfmParser parse() Bible should consistently parse engwebp/02-GENengwebp.usfm 1`] = `"2bf30f914b82d8660866999731d63035d2d978d74bc885c4103050504f72839e"`;
 
-exports[`UsfmParser parse() Bible should consistently parse engwebp/03-EXOengwebp.usfm 1`] = `"80c78eb2a93460bccbab64a7b3d5066f6b8822496bbf80338fb1dee3f73b25a9"`;
+exports[`UsfmParser parse() Bible should consistently parse engwebp/03-EXOengwebp.usfm 1`] = `"66d2ec1409019d7f092578bea36b7588f8889efe930bdaf81c36faba77d34075"`;
 
-exports[`UsfmParser parse() Bible should consistently parse engwebp/70-MATengwebp.usfm 1`] = `"166651b34eab23e6ab6e7620e05135a6a1a7a66b37101bebf5859fa3fe776c1d"`;
+exports[`UsfmParser parse() Bible should consistently parse engwebp/70-MATengwebp.usfm 1`] = `"25ddc9e4a35888c4c6653cb7472dc92bc8ee6a3c299e30b3a1ff69eb424bbb18"`;
 
-exports[`UsfmParser parse() Bible should consistently parse grcbre/usfm/gen.usfm 1`] = `"fbf398ecad8159bc23d4ee3b9062b5623858acd99a4561e16df47afebe28844b"`;
+exports[`UsfmParser parse() Bible should consistently parse grcbre/usfm/gen.usfm 1`] = `"b5db277987791dff86bf9cb22980989b227cffa9414b762f2eb0c8c8acb55f62"`;
 
-exports[`UsfmParser parse() Bible should consistently parse grctcg/usfm/mat.usfm 1`] = `"5211831c1001ae19aa1e590e2aed49e3e2c55c7f05fda7b114e74cead083ef6c"`;
+exports[`UsfmParser parse() Bible should consistently parse grctcg/usfm/mat.usfm 1`] = `"a90bba22c2ad705f138873ce0a739d06ebcdfeac98b8476050172875369bc3d0"`;
 
 exports[`UsfmParser parse() Bible should consistently parse hbomas/usfm/gen.usfm 1`] = `"94bdd3630b41790e1b27ec8b9e76ed2b25ba0eee7cb611ecd120b13c5e08a118"`;
 
