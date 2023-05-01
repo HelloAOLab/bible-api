@@ -101,7 +101,8 @@ async function loadTranslationMetadata(translation: string): Promise<InputTransl
             englishName: metadata.name.english,
             licenseUrl: metadata.copyright.attribution_url,
             website: metadata.copyright.attribution_url,
-            shortName: metadata.name.abbrev
+            shortName: metadata.name.abbrev,
+            direction: metadata.direction
         };
     }
 }

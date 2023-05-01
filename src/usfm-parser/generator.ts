@@ -1,5 +1,6 @@
-import { sortBy } from "lodash";
+import { omit, sortBy } from "lodash";
 import { FootnoteReference, Heading, ParseTree, Text, UsfmParser } from "./usfm-parser";
+import '@formatjs/intl-locale/polyfill';
 
 
 /**
@@ -106,11 +107,12 @@ export function generate(files: InputFile[]): OutputFile[] {
 
             if (!translation) {
                 translation = {
-                    ...file.metadata.translation,
+                    ...omit(file.metadata.translation, 'direction'),
                     availableFormats: [
                         'json'
                     ],
-                    listOfBooksApiLink: listOfBooksApiLink(file.metadata.translation.id)
+                    listOfBooksApiLink: listOfBooksApiLink(file.metadata.translation.id),
+                    textDirection: getTranslationDirection(file.metadata.translation)
                 };
                 availableTranslations.translations.push(translation);
             }
@@ -201,6 +203,10 @@ function jsonFile(path: string, content: any): OutputFile {
     };
 }
 
+function getTranslationDirection(translation: InputTranslationMetadata): 'ltr' | 'rtl' {
+    return translation.direction;
+}
+
 export interface InputFile {
     name?: string;
 
@@ -259,6 +265,11 @@ export interface InputTranslationMetadata {
      * The RFC 5646 letter language tag that the translation is primarily in.
      */
     language: string;
+
+    /**
+     * The direction that the text is written in.
+     */
+    direction: 'ltr' | 'rtl';
 }
 
 export interface AvailableTranslations {
@@ -303,6 +314,13 @@ export interface Translation {
      * The RFC 5646 letter language tag that the translation is primarily in.
      */
     language: string;
+
+    /**
+     * The direction that the language is written in.
+     * "ltr" indicates that the text is written from the left side of the page to the right.
+     * "rtl" indicates that the text is written from the right side of the page to the left.
+     */
+    textDirection: 'ltr' | 'rtl';
 
     /**
      * The available list of formats.

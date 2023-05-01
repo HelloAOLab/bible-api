@@ -59,6 +59,13 @@ interface Translation {
     language: string;
 
     /**
+     * The direction that the language is written in.
+     * "ltr" indicates that the text is written from the left side of the page to the right.
+     * "rtl" indicates that the text is written from the right side of the page to the left.
+     */
+    textDirection: 'ltr' | 'rtl';
+
+    /**
      * The available list of formats.
      */
     availableFormats: ('json' | 'usfm')[];

@@ -32,6 +32,7 @@ describe('generator()', () => {
             englishName: 'Berean Standard Bible',
             shortName: 'BSB',
             language: 'en-US',
+            direction: 'ltr',
             licenseUrl: 'https://berean.bible/terms.htm',
             website: 'https://berean.bible'
         };
@@ -63,6 +64,7 @@ describe('generator()', () => {
             englishName: 'Berean Standard Bible',
             shortName: 'BSB',
             language: 'en-US',
+            textDirection: 'ltr',
             licenseUrl: 'https://berean.bible/terms.htm',
             website: 'https://berean.bible',
             availableFormats: [
@@ -202,6 +204,7 @@ describe('generator()', () => {
             englishName: 'Berean Standard Bible',
             shortName: 'BSB',
             language: 'en-US',
+            direction: 'ltr',
             licenseUrl: 'https://berean.bible/terms.htm',
             website: 'https://berean.bible'
         };
@@ -226,6 +229,7 @@ describe('generator()', () => {
             englishName: 'Berean Standard Bible',
             shortName: 'BSB',
             language: 'en-US',
+            textDirection: 'ltr',
             licenseUrl: 'https://berean.bible/terms.htm',
             website: 'https://berean.bible',
             availableFormats: [
