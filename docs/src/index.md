@@ -1,6 +1,6 @@
 ---
 home: true
-heroImage: https://v1.vuepress.vuejs.org/hero.png
+heroImage: /ao_lab_logo.png
 tagline: An easy-to-use and fully featured JSON API for accessing the Bible
 actionText: Quick Start →
 actionLink: /guide/
