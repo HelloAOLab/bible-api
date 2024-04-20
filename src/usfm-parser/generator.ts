@@ -48,7 +48,7 @@ export function generate(files: InputFile[]): OutputFile[] {
             const bookMap = bookIdMap.get(file.metadata.translation.language);
 
             if (!bookMap) {
-                console.warn('[generate] File does not have a valid language!', file.name, file.metadata.translation.language);
+                console.warn('[generate] File does not have a known language!', file.name, file.metadata.translation.language);
             }
 
             const bookName = bookMap?.get(id);
@@ -127,13 +127,13 @@ export function generate(files: InputFile[]): OutputFile[] {
                 translationBooks.set(translation.id, currentTanslationBooks);
             }
 
-            const name = parsed.header ?? bookName?.commonName;
+            const name = parsed.header ?? bookName?.commonName ?? parsed.title;
 
             if (!name) {
                 throw new Error(`Book does not have a name: ${translation.id}/${id}`);
             }
 
-            const commonName = bookName?.commonName ?? parsed.header ?? id;
+            const commonName = bookName?.commonName ?? parsed.header ?? parsed.title ?? id;
 
             let book: TranslationBook = {
                 id: id,
