@@ -24,6 +24,7 @@ export function generate(files: InputFile[]): OutputFile[] {
         } | undefined
     }[]>();
 
+    const unknownLanguages = new Set<string>();
     for(let file of files) {
         if (file.fileType !== 'usfm') {
             console.warn('[generate] File does not have the USFM file type!', file.name);
@@ -48,7 +49,10 @@ export function generate(files: InputFile[]): OutputFile[] {
             const bookMap = bookIdMap.get(file.metadata.translation.language);
 
             if (!bookMap) {
-                console.warn('[generate] File does not have a known language!', file.name, file.metadata.translation.language);
+                if (!unknownLanguages.has(file.metadata.translation.language)) {
+                    console.warn('[generate] File does not have a known language!', file.name, file.metadata.translation.language);
+                    unknownLanguages.add(file.metadata.translation.language);
+                }
             }
 
             const bookName = bookMap?.get(id);
@@ -75,7 +79,7 @@ export function generate(files: InputFile[]): OutputFile[] {
             console.error(`[generate] Error occurred while parsing ${file.name}`, err);
         }
     }
-
+    
     let translationBooks = new Map<string, TranslationBooks>();
 
     for (let parsedBooks of parsedTranslations.values()) {
@@ -94,7 +98,10 @@ export function generate(files: InputFile[]): OutputFile[] {
             const bookMap = bookIdMap.get(file.metadata.translation.language);
 
             if (!bookMap) {
-                console.warn('[generate] File does not have a valid language!', file.name, file.metadata.translation.language);
+                if (!unknownLanguages.has(file.metadata.translation.language)) {
+                    console.warn('[generate] File does not have a known language!', file.name, file.metadata.translation.language);
+                    unknownLanguages.add(file.metadata.translation.language);
+                }
             }
 
             const bookName = bookMap?.get(id);
