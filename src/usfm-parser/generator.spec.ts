@@ -1,4 +1,4 @@
-import { bookIdMap, generate, InputFile, InputTranslationMetadata, OutputFile } from './generator';
+import { AvailableTranslations, bookIdMap, generate, InputFile, InputTranslationMetadata, OutputFile } from './generator';
 import Genesis from '../../bible/bsb/01GENBSB.usfm';
 import Exodus from '../../bible/bsb/02EXOBSB.usfm';
 import _1Chronicles from '../../bible/bsb/131CHBSB.usfm';
@@ -54,7 +54,10 @@ describe('generator()', () => {
             }
         ] as InputFile[];
 
-        const generated = generate(inputFiles);
+        let availableTranslations: AvailableTranslations = {
+            translations: []
+        };
+        const generated = generate(inputFiles, availableTranslations);
 
         const tree = fileTree(generated);
 
@@ -74,11 +77,6 @@ describe('generator()', () => {
         }
 
         expect(tree).toEqual({
-            '/api/available_translations.json': {
-                translations: [
-                    expectedTranslation
-                ]
-            },
             '/api/bsb/books.json': {
                 translation: expectedTranslation,
                 books: [
@@ -287,6 +285,12 @@ describe('generator()', () => {
                 }
             }
         });
+
+        expect(availableTranslations).toEqual({
+            translations: [
+                expectedTranslation
+            ]
+        });
     });
 
     it('should use underscores for spaces in the book name', () => {
@@ -311,7 +315,10 @@ describe('generator()', () => {
             },
         ] as InputFile[];
 
-        const generated = generate(inputFiles);
+        let availableTranslations: AvailableTranslations = {
+            translations: []
+        };
+        const generated = generate(inputFiles, availableTranslations);
 
         const tree = fileTree(generated);
 
@@ -331,11 +338,6 @@ describe('generator()', () => {
         }
 
         expect(tree).toEqual({
-            '/api/available_translations.json': {
-                translations: [
-                    expectedTranslation
-                ]
-            },
             '/api/bsb/books.json': {
                 translation: expectedTranslation,
                 books: [
@@ -422,6 +424,12 @@ describe('generator()', () => {
                     footnotes: []
                 }
             },
+        });
+
+        expect(availableTranslations).toEqual({
+            translations: [
+                expectedTranslation
+            ]
         });
     });
 

@@ -6,14 +6,10 @@ import { FootnoteReference, Heading, ParseTree, Text, UsfmParser } from "./usfm-
  * Generates a list of output files from the given list of input files.
  * @param file The list of files.
  */
-export function generate(files: InputFile[]): OutputFile[] {
+export function generate(files: InputFile[], availableTranslations: AvailableTranslations): OutputFile[] {
     let output = [] as OutputFile[];
 
     let parser = new UsfmParser();
-
-    let availableTranslations: AvailableTranslations = {
-        translations: []
-    };
     
     let parsedTranslations = new Map<string, { 
         file: InputFile,
@@ -224,8 +220,6 @@ export function generate(files: InputFile[]): OutputFile[] {
         output.push(jsonFile(link, books));
     }
 
-    output.push(jsonFile('/api/available_translations.json', availableTranslations));
-
     return output;
 
     function listOfBooksApiLink(translationId: string): string {
@@ -238,7 +232,7 @@ export function generate(files: InputFile[]): OutputFile[] {
 }
 
 
-function jsonFile(path: string, content: any): OutputFile {
+export function jsonFile(path: string, content: any): OutputFile {
     return {
         path,
         content

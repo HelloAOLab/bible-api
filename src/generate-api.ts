@@ -2,7 +2,7 @@ import { existsSync, read } from 'fs-extra';
 import { readdir, readFile, mkdir, writeFile } from 'fs-extra';
 import * as path from 'path';
 import { extname } from 'path';
-import { generate, InputFile, InputTranslationMetadata, ParseTreeMetadata } from './usfm-parser/generator';
+import { AvailableTranslations, generate, InputFile, InputTranslationMetadata, jsonFile, OutputFile, ParseTreeMetadata } from './usfm-parser/generator';
 
 const bibleDirectory = path.resolve(__dirname, '..', 'bible');
 const extraDirectory = process.argv[2] ? path.resolve(__dirname, '..', process.argv[2]) : null;
@@ -26,13 +26,19 @@ async function start() {
         batches.push(directories.splice(0, 10));
     }
 
+    const availableTranslations: AvailableTranslations = {
+        translations: []
+    };
     // process each batch
     console.log('Processing', batches.length, 'batches of translations');
     for (let i = 0; i < batches.length; i++) {
         const batch = batches[i];
         console.log(`Processing batch ${i + 1} of ${batches.length}`);
-        await processTranslations(batch);
+        await processTranslations(batch, availableTranslations);
     }
+
+    const availableTranslationsFile = jsonFile('/api/available_translations.json', availableTranslations);
+    await writeOutputFile(outputDirectory, availableTranslationsFile);
 
     console.log('Done!');
 }
@@ -41,7 +47,7 @@ async function start() {
  * Processes a batch of translations
  * @param translations The paths to the translations
  */
-async function processTranslations(translations: TranslationPath[]): Promise<void> {
+async function processTranslations(translations: TranslationPath[], availableTranslations: AvailableTranslations): Promise<void> {
     const promises = [] as Promise<InputFile[]>[];
 
     for(let {translation, directory} of translations) {
@@ -58,7 +64,7 @@ async function processTranslations(translations: TranslationPath[]): Promise<voi
 
     const files = allFiles.flatMap(f => f);
 
-    const output = generate(files);
+    const output = generate(files, availableTranslations);
 
     await mkdir(outputDirectory, {
         recursive: true,
@@ -66,20 +72,22 @@ async function processTranslations(translations: TranslationPath[]): Promise<voi
 
     let writePromises = [] as Promise<void>[];
     for (let file of output) {
-        const finalPath = path.resolve(outputDirectory, file.path[0] === "/" ? file.path.slice(1) : file.path);
-
-        const dir = path.dirname(finalPath);
-
-        let promise = mkdir(dir, {
-            recursive: true
-        }).then(() => {
-            return writeFile(finalPath, JSON.stringify(file.content));
-        });
-
-        writePromises.push(promise);
+        writePromises.push(writeOutputFile(outputDirectory, file));
     }
 
     await Promise.all(writePromises);
+}
+
+export async function writeOutputFile(outputDirectory:string, file: OutputFile): Promise<void> {
+    const finalPath = path.resolve(outputDirectory, file.path[0] === "/" ? file.path.slice(1) : file.path);
+
+    const dir = path.dirname(finalPath);
+
+    await mkdir(dir, {
+        recursive: true
+    })
+
+    await writeFile(finalPath, JSON.stringify(file.content));
 }
 
 /**
