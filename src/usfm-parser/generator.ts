@@ -87,7 +87,7 @@ export function generate(files: InputFile[]): OutputFile[] {
 
         let previousCommonChapter: TranslationBookChapter | null = null;
         let previousIdChapter: TranslationBookChapter | null = null;
-        for (let { file, tree: parsed } of orderedBooks) {
+        books_loop: for (let { file, tree: parsed } of orderedBooks) {
             const id = parsed.id;
 
             if (!id) {
@@ -138,7 +138,8 @@ export function generate(files: InputFile[]): OutputFile[] {
             const name = parsed.header ?? bookName?.commonName ?? parsed.title;
 
             if (!name) {
-                throw new Error(`Book does not have a name: ${translation.id}/${id}`);
+                console.warn('[generate] Book does not have a name!', file.name, id);
+                break books_loop;
             }
 
             const commonName = bookName?.commonName ?? parsed.header ?? parsed.title ?? id;
