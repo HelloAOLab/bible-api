@@ -1,0 +1,99 @@
+datasource db {
+    provider = "sqlite"
+    url      = "file:../build/bible.db"
+}
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+model Translation {
+    id           String @id
+    name         String
+    website String
+    licenseUrl String
+    shortName String?
+    englishName String
+    language String
+    textDirection String
+    
+    books        Book[]
+    chapters     Chapter[]
+    verses       ChapterVerse[]
+    footnotes    ChapterFootnote[]
+}
+
+model Book {
+    id String
+
+    translationId String
+    translation Translation @relation(fields: [translationId], references: [id])
+
+    name String
+    commonName String
+    title String?
+
+    numberOfChapters Int
+
+    chapters Chapter[]
+    verses ChapterVerse[]
+    footnotes ChapterFootnote[]
+
+    @@id([translationId, id])
+}
+
+model Chapter {
+    number Int
+
+    bookId String
+    book Book @relation(fields: [translationId, bookId], references: [translationId, id])
+
+    translationId String
+    translation Translation @relation(fields: [translationId], references: [id])
+
+    apiLink String
+
+    verses ChapterVerse[]
+    footnotes ChapterFootnote[]
+
+    @@id([translationId, bookId, number])
+}
+
+model ChapterVerse {
+    number Int
+
+    chapterNumber Int
+    chapter Chapter @relation(fields: [translationId, bookId, chapterNumber], references: [translationId, bookId, number])
+
+    bookId String
+    book Book @relation(fields: [translationId, bookId], references: [translationId, id])
+
+    translationId String
+    translation Translation @relation(fields: [translationId], references: [id])
+
+    text String // The text of the verse
+
+    footnotes ChapterFootnote[]
+
+    @@id([translationId, bookId, chapterNumber, number])
+}
+
+model ChapterFootnote {
+    id Int
+
+    chapterNumber Int
+    chapter Chapter @relation(fields: [translationId, bookId, chapterNumber], references: [translationId, bookId, number])
+
+    bookId String
+    book Book @relation(fields: [translationId, bookId], references: [translationId, id])
+
+    translationId String
+    translation Translation @relation(fields: [translationId], references: [id])
+
+    text String
+
+    verseNumber Int?
+    verse ChapterVerse? @relation(fields: [translationId, bookId, chapterNumber, verseNumber], references: [translationId, bookId, chapterNumber, number])
+
+    @@id([translationId, bookId, chapterNumber, id])
+}
