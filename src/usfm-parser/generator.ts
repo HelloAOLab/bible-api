@@ -824,6 +824,7 @@ const arabicBookMap = new Map([
 export const bookIdMap = new Map([
     ['en', englishBookMap],
     ['en-US', englishBookMap],
+    ['eng', englishBookMap],
     ['arb', arabicBookMap]
 ]);
 
