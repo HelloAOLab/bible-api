@@ -791,5 +791,5 @@ export const bookIdMap = new Map([
 ]);
 
 function replaceSpacesWithUnderscores(str: string): string {
-    return str.replaceAll(' ', '_');
+    return str.replace(/[\s:]/g, '_');
 }
