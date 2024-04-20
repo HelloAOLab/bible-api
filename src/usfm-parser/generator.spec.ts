@@ -88,8 +88,8 @@ describe('generator()', () => {
                         commonName: 'Genesis',
                         title: 'Genesis',
                         numberOfChapters: 1,
-                        firstChapterApiLink: '/api/bsb/Genesis/1.json',
-                        lastChapterApiLink: '/api/bsb/Genesis/1.json',
+                        firstChapterApiLink: '/api/bsb/GEN/1.json',
+                        lastChapterApiLink: '/api/bsb/GEN/1.json',
                     },
                     {
                         id: 'EXO',
@@ -97,8 +97,8 @@ describe('generator()', () => {
                         commonName: 'Exodus',
                         title: 'Exodus',
                         numberOfChapters: 1,
-                        firstChapterApiLink: '/api/bsb/Exodus/1.json',
-                        lastChapterApiLink: '/api/bsb/Exodus/1.json',
+                        firstChapterApiLink: '/api/bsb/EXO/1.json',
+                        lastChapterApiLink: '/api/bsb/EXO/1.json',
                     }
                 ]
             },
@@ -148,6 +148,52 @@ describe('generator()', () => {
                     footnotes: []
                 }
             },
+            '/api/bsb/GEN/1.json': {
+                translation: expectedTranslation,
+                book: {
+                    id: 'GEN',
+                    name: 'Genesis',
+                    commonName: 'Genesis',
+                    title: 'Genesis',
+                    numberOfChapters: 1,
+                    firstChapterApiLink: '/api/bsb/GEN/1.json',
+                    lastChapterApiLink: '/api/bsb/GEN/1.json'
+                },
+                nextChapterApiLink: '/api/bsb/EXO/1.json',
+                previousChapterApiLink: null,
+                chapter: {
+                    number: 1,
+                    content: [
+                        {
+                            type: 'heading',
+                            content: [
+                                'The Creation'
+                            ]
+                        },
+                        {
+                            type: 'line_break'
+                        },
+                        {
+                            type: 'verse',
+                            number: 1,
+                            content: [
+                                'In the beginning God created the heavens and the earth.'
+                            ],
+                        },
+                        {
+                            type: 'line_break'
+                        },
+                        {
+                            type: 'verse',
+                            number: 2,
+                            content: [
+                                'Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.'
+                            ],
+                        },
+                    ],
+                    footnotes: []
+                }
+            },
             '/api/bsb/Exodus/1.json': {
                 translation: expectedTranslation,
                 book: {
@@ -161,6 +207,52 @@ describe('generator()', () => {
                 },
                 nextChapterApiLink: null,
                 previousChapterApiLink: '/api/bsb/Genesis/1.json',
+                chapter: {
+                    number: 1,
+                    content: [
+                        {
+                            type: 'heading',
+                            content: [
+                                'The Israelites Multiply in Egypt'
+                            ]
+                        },
+                        {
+                            type: 'line_break'
+                        },
+                        {
+                            type: 'verse',
+                            number: 1,
+                            content: [
+                                'These are the names of the sons of Israel who went to Egypt with Jacob, each with his family:'
+                            ],
+                        },
+                        {
+                            type: 'line_break'
+                        },
+                        {
+                            type: 'verse',
+                            number: 2,
+                            content: [
+                                'Reuben, Simeon, Levi, and Judah;'
+                            ],
+                        },
+                    ],
+                    footnotes: []
+                }
+            },
+            '/api/bsb/EXO/1.json': {
+                translation: expectedTranslation,
+                book: {
+                    id: 'EXO',
+                    name: 'Exodus',
+                    commonName: 'Exodus',
+                    title: 'Exodus',
+                    numberOfChapters: 1,
+                    firstChapterApiLink: '/api/bsb/EXO/1.json',
+                    lastChapterApiLink: '/api/bsb/EXO/1.json'
+                },
+                nextChapterApiLink: null,
+                previousChapterApiLink: '/api/bsb/GEN/1.json',
                 chapter: {
                     number: 1,
                     content: [
@@ -253,8 +345,8 @@ describe('generator()', () => {
                         commonName: '1 Chronicles',
                         title: '1 Chronicles',
                         numberOfChapters: 1,
-                        firstChapterApiLink: '/api/bsb/1_Chronicles/1.json',
-                        lastChapterApiLink: '/api/bsb/1_Chronicles/1.json',
+                        firstChapterApiLink: '/api/bsb/1CH/1.json',
+                        lastChapterApiLink: '/api/bsb/1CH/1.json',
                     },
                 ]
             },
@@ -268,6 +360,42 @@ describe('generator()', () => {
                     numberOfChapters: 1,
                     firstChapterApiLink: '/api/bsb/1_Chronicles/1.json',
                     lastChapterApiLink: '/api/bsb/1_Chronicles/1.json'
+                },
+                nextChapterApiLink: null,
+                previousChapterApiLink: null,
+                chapter: {
+                    number: 1,
+                    content: [
+                        {
+                            type: 'heading',
+                            content: [
+                                'From Adam to Abraham'
+                            ]
+                        },
+                        {
+                            type: 'line_break'
+                        },
+                        {
+                            type: 'verse',
+                            number: 1,
+                            content: [
+                                'Adam, Seth, Enosh,'
+                            ],
+                        },
+                    ],
+                    footnotes: []
+                }
+            },
+            '/api/bsb/1CH/1.json': {
+                translation: expectedTranslation,
+                book: {
+                    id: '1CH',
+                    name: '1 Chronicles',
+                    commonName: '1 Chronicles',
+                    title: '1 Chronicles',
+                    numberOfChapters: 1,
+                    firstChapterApiLink: '/api/bsb/1CH/1.json',
+                    lastChapterApiLink: '/api/bsb/1CH/1.json'
                 },
                 nextChapterApiLink: null,
                 previousChapterApiLink: null,

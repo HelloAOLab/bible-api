@@ -81,7 +81,8 @@ export function generate(files: InputFile[]): OutputFile[] {
     for (let parsedBooks of parsedTranslations.values()) {
         const orderedBooks = sortBy(parsedBooks, b => b.order);
 
-        let previousChapter: TranslationBookChapter | null = null;
+        let previousCommonChapter: TranslationBookChapter | null = null;
+        let previousIdChapter: TranslationBookChapter | null = null;
         for (let { file, tree: parsed } of orderedBooks) {
             const id = parsed.id;
 
@@ -135,7 +136,8 @@ export function generate(files: InputFile[]): OutputFile[] {
 
             const commonName = bookName?.commonName ?? parsed.header ?? parsed.title ?? id;
 
-            let book: TranslationBook = {
+            // The book that has links based on the book common name
+            let commonBook: TranslationBook = {
                 id: id,
                 name,
                 commonName,
@@ -144,32 +146,65 @@ export function generate(files: InputFile[]): OutputFile[] {
                 lastChapterApiLink: bookChapterApiLink(translation.id, commonName, 1, 'json'),
                 numberOfChapters: 0
             };
+            // The book that has links based on the book ID.
+            const idBook: TranslationBook = {
+                id: id,
+                name,
+                commonName,
+                title: parsed.title ?? null,
+                firstChapterApiLink: bookChapterApiLink(translation.id, id, 1, 'json'),
+                lastChapterApiLink: bookChapterApiLink(translation.id, id, 1, 'json'),
+                numberOfChapters: 0
+            };
 
-            currentTanslationBooks.books.push(book);
+            currentTanslationBooks.books.push(idBook);
 
             for (let content of parsed.content) {
                 if (content.type === 'chapter') {
-                    let chapter: TranslationBookChapter = {
+                    // The chapter that has links based on the book common name.
+                    let commonChapter: TranslationBookChapter = {
                         translation,
-                        book,
+                        book: commonBook,
                         nextChapterApiLink: null,
-                        previousChapterApiLink: previousChapter ? bookChapterApiLink(previousChapter.translation.id, previousChapter.book.commonName, previousChapter.chapter.number, 'json') : null,
+                        previousChapterApiLink: previousCommonChapter ? bookChapterApiLink(previousCommonChapter.translation.id, previousCommonChapter.book.commonName, previousCommonChapter.chapter.number, 'json') : null,
                         chapter: {
                             number: content.number,
                             content: content.content,
                             footnotes: content.footnotes
                         }
                     };
-                    book.numberOfChapters += 1;
+                    commonBook.numberOfChapters += 1;
+                    idBook.numberOfChapters += 1;
 
-                    const link = bookChapterApiLink(translation.id, book.commonName, chapter.chapter.number, 'json');
-                    book.lastChapterApiLink = link;
-                    output.push(jsonFile(link, chapter));
+                    // The chapter that has links based on the book ID.
+                    let idChapter: TranslationBookChapter = {
+                        translation,
+                        book: idBook,
+                        nextChapterApiLink: null,
+                        previousChapterApiLink: previousIdChapter ? bookChapterApiLink(previousIdChapter.translation.id, previousIdChapter.book.id, previousIdChapter.chapter.number, 'json') : null,
+                        chapter: {
+                            number: content.number,
+                            content: content.content,
+                            footnotes: content.footnotes
+                        }
+                    };
 
-                    if (previousChapter) {
-                        previousChapter.nextChapterApiLink = link;
+                    const commonLink = bookChapterApiLink(translation.id, commonBook.commonName, commonChapter.chapter.number, 'json');
+                    const idLink = bookChapterApiLink(translation.id, idBook.id, idChapter.chapter.number, 'json');
+                    commonBook.lastChapterApiLink = commonLink;
+                    idBook.lastChapterApiLink = idLink;
+
+                    output.push(jsonFile(commonLink, commonChapter));
+                    output.push(jsonFile(idLink, idChapter));
+
+                    if (previousCommonChapter) {
+                        previousCommonChapter.nextChapterApiLink = commonLink;
                     }
-                    previousChapter = chapter;
+                    if (previousIdChapter) {
+                        previousIdChapter.nextChapterApiLink = idLink;
+                    }
+                    previousCommonChapter = commonChapter;
+                    previousIdChapter = idChapter;
                 }
             }
         }
