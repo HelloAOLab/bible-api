@@ -374,7 +374,7 @@ export class UsfmParser {
                 } else if (token.command === '\\h') {
                     expectingName = 1;
                     root.header = undefined;
-                } else if (token.command === '\\mt') {
+                } else if (token.command === '\\mt' || token.command === '\\+mt') {
                     expectingTitle = 1;
                 } else if (token.command === '\\s') {
                     expectingSectionHeading = 1;

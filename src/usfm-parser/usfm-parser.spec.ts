@@ -465,6 +465,50 @@ describe('UsfmParser', () => {
             });
         });
 
+        it('should be able to parse titles that are formatted with a +', () => {
+            const tree = parser.parse(`\\id GEN - Berean Study Bible
+                \\h Genesis
+                \\+toc1 Genesis
+                \\+mt1 Genesis
+                \\c 1
+                \\s1 The Creation
+                \\r (John 1:1–5; Hebrews 11:1–3)
+                \\b
+                \\m 
+                \\v 1 In the beginning God created the heavens and the earth. 
+            `);
+
+            expect(tree).toEqual({
+                type: 'root',
+                title: 'Genesis',
+                header: 'Genesis',
+                id: 'GEN',
+                content: [
+                    {
+                        type: 'chapter',
+                        number: 1,
+                        content: [
+                            {
+                                type: 'heading',
+                                content: ['The Creation']
+                            },
+                            {
+                                type: 'line_break',
+                            },
+                            { 
+                                type: 'verse', 
+                                number: 1,
+                                content: [
+                                    'In the beginning God created the heavens and the earth.'
+                                ]
+                            },
+                        ],
+                        footnotes: [],
+                    },
+                ]
+            });
+        });
+
         it('should support line breaks', () => {
             const tree = parser.parse(`\\c 1
                 \\v 1 In the beginning God created the heavens and the earth.
