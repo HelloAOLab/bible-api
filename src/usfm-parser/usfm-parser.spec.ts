@@ -11,7 +11,7 @@ import { isDigit,
 import hash from 'hash.js';
 
 import { readFile } from 'fs/promises';
-import { resolve } from 'path';
+import path, { resolve } from 'path';
 
 describe('UsfmTokenizer', () => {
     let tokenizer: UsfmTokenizer;
@@ -285,6 +285,17 @@ describe('UsfmParser', () => {
                 marker(loc(0, 4), '\\abc'),
                 whitespace(loc(4, 5), '\n'),
                 word(loc(5, 6), 'z'),
+            ]);
+        });
+
+        it('should be able to parse ending markers that dont have a command', async () => {
+            const tokens = parser.tokenize(`\\w hello\\*`);
+
+            expect(tokens).toEqual([
+                marker(loc(0, 2), '\\w'),
+                whitespace(loc(2, 3), ' '),
+                word(loc(3, 8), 'hello'),
+                marker(loc(8, 10), '\\w', null, 'end'),
             ]);
         });
     });

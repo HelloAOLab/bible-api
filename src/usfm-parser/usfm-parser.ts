@@ -1,3 +1,5 @@
+import { findLast } from 'lodash';
+
 /**
  * Defines a class that can tokenize a stream of characters into tokens.
  */
@@ -158,7 +160,18 @@ export class UsfmParser {
                 }
 
                 if (source.length === 1) {
-                    throw new Error('Markers must have a command!');
+                    if (isEnd) {
+                        // Ending marker does not have a command.
+                        // We should look for a matching start marker.
+                        const startMarker = findLast(tokens, t => t.kind === 'marker' && t.type === 'start') as MarkerToken;
+                        if (startMarker) {
+                            source = startMarker.command;
+                        }
+                    }
+
+                    if (source.length === 1) {
+                        throw new Error(`Markers must have a command! Token: ${t.loc.start}-${t.loc.end}`);
+                    }
                 }
 
                 tokens.push(
