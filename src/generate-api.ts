@@ -1,20 +1,55 @@
-import { existsSync, read } from 'fs';
-import { readdir, readFile, mkdir, writeFile } from 'fs/promises';
+import { existsSync, read } from 'fs-extra';
+import { readdir, readFile, mkdir, writeFile } from 'fs-extra';
 import * as path from 'path';
 import { extname } from 'path';
 import { generate, InputFile, InputTranslationMetadata, ParseTreeMetadata } from './usfm-parser/generator';
 
 const bibleDirectory = path.resolve(__dirname, '..', 'bible');
-
+const extraDirectory = process.argv[2] ? path.resolve(__dirname, '..', process.argv[2]) : null;
 const outputDirectory = path.resolve(__dirname, '..', 'build');
 
 async function start() {
-    const translations = await readdir(bibleDirectory);
 
-    let promises = [] as Promise<InputFile[]>[];
+    const directories = [
+        ...await listTranslations(bibleDirectory),
+        ...(extraDirectory ? await listTranslations(extraDirectory) : [])
+    ];
 
-    for(let translation of translations) {
-        const translationPath = path.resolve(bibleDirectory, translation);
+    if (directories.length <= 0) {
+        console.error('No translations found!');
+        return;
+    }
+
+    let batches = [] as TranslationPath[][];
+    // split directories into batches of 10
+    while (directories.length > 0) {
+        batches.push(directories.splice(0, 10));
+    }
+
+    // process each batch
+    console.log('Processing', batches.length, 'batches of translations');
+    for (let i = 0; i < batches.length; i++) {
+        const batch = batches[i];
+        console.log(`Processing batch ${i + 1} of ${batches.length}`);
+        await processTranslations(batch);
+    }
+
+    console.log('Done!');
+}
+
+/**
+ * Processes a batch of translations
+ * @param translations The paths to the translations
+ */
+async function processTranslations(translations: TranslationPath[]): Promise<void> {
+    const promises = [] as Promise<InputFile[]>[];
+
+    for(let {translation, directory} of translations) {
+        if (translation.startsWith('.')) {
+            // Skip directories that start with a dot
+            continue;
+        }
+        const translationPath = path.resolve(directory, translation);
         console.log('translation', translationPath);
         promises.push(loadTranslation(translationPath));
     }
@@ -47,8 +82,20 @@ async function start() {
     await Promise.all(writePromises);
 }
 
+/**
+ * Gets the list of directories that should be checked for translations
+ * @param directory The directory to check.
+ */
+async function listTranslations(directory: string): Promise<TranslationPath[]> {
+    const paths = await readdir(directory);
+    return paths.map(p => ({
+        directory: directory,
+        translation: p,
+    }));
+}
+
 async function loadTranslation(translation: string): Promise<InputFile[]> {
-    const metadata: InputTranslationMetadata = await loadTranslationMetadata(translation);
+    const metadata: InputTranslationMetadata | null = await loadTranslationMetadata(translation);
 
     if (!metadata) {
         console.error('Could not load metadata for translation!', translation);
@@ -85,26 +132,30 @@ async function loadTranslation(translation: string): Promise<InputFile[]> {
     return await Promise.all(promises);
 }
 
-async function loadTranslationMetadata(translation: string): Promise<InputTranslationMetadata> {
+async function loadTranslationMetadata(translation: string): Promise<InputTranslationMetadata | null> {
     const metadataTs = path.resolve(translation, 'metadata.ts');
     if (existsSync(metadataTs)) {
         return (await import(metadataTs)).default as InputTranslationMetadata;
     } else {
         const metadataJson = path.resolve(translation, 'meta.json');
-        const data = await readFile(metadataJson, { encoding: 'utf-8' });
-        const metadata = JSON.parse(data) as CollectionTranslationMetadata;
+        if (existsSync(metadataJson)) {
+            const data = await readFile(metadataJson, { encoding: 'utf-8' });
+            const metadata = JSON.parse(data) as CollectionTranslationMetadata;
 
-        return {
-            id: metadata.id ?? metadata.source.id,
-            language: metadata.language,
-            name: metadata.name.local,
-            englishName: metadata.name.english,
-            licenseUrl: metadata.copyright.attribution_url,
-            website: metadata.copyright.attribution_url,
-            shortName: metadata.name.abbrev,
-            direction: metadata.direction
-        };
+            return {
+                id: metadata.id ?? metadata.source.id,
+                language: metadata.language,
+                name: metadata.name.local,
+                englishName: metadata.name.english,
+                licenseUrl: metadata.copyright.attribution_url,
+                website: metadata.copyright.attribution_url,
+                shortName: metadata.name.abbrev,
+                direction: metadata.direction
+            };
+        }
     }
+    console.error('Could not find metadata for translation!', translation);
+    return null;
 }
 
 async function loadFile(file: string, metadata: ParseTreeMetadata): Promise<InputFile> {
@@ -148,4 +199,9 @@ interface LoadedTranslation {
     type: 'default' | 'imported';
     usfmDir: string;
     info: InputTranslationMetadata;
+}
+
+interface TranslationPath {
+    translation: string;
+    directory: string;
 }
