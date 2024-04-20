@@ -7,6 +7,11 @@ module.exports = {
   },
   testPathIgnorePatterns: [
     '/node_modules/',
-    '/src/pages/test.tsx'
+    '/src/pages/test.tsx',
+    '/build/',
+  ],
+  roots: [
+    "<rootDir>/src",
+    "<rootDir>/docs"
   ]
 };
