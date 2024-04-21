@@ -288,6 +288,14 @@ export class UsfmParser {
         };
 
         const completeVerseOrSubtitle = (token: Token | null) => {
+            if (verse && isNaN(verse.number)) {
+                // Verse is invalid for some reason.
+                const index = chapter!.content.indexOf(verse);
+                if (index >= 0) {
+                    chapter!.content.splice(index, 1);
+                }
+                verse = null;
+            }
             if (verse || subtitle) {
                 addWordsToVerseOrSubtitle();
             }
