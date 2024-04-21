@@ -199,7 +199,7 @@ export function generate(files: InputFile[], availableTranslations: AvailableTra
                     idBook.lastChapterApiLink = idLink;
 
                     output.push(jsonFile(commonLink, commonChapter));
-                    output.push(jsonFile(idLink, idChapter));
+                    output.push(jsonFile(idLink, idChapter, { chapter: idChapter }));
 
                     if (previousCommonChapter) {
                         previousCommonChapter.nextChapterApiLink = commonLink;
@@ -217,7 +217,7 @@ export function generate(files: InputFile[], availableTranslations: AvailableTra
     for(let [translation, books] of translationBooks) {
         const link = listOfBooksApiLink(translation);
 
-        output.push(jsonFile(link, books));
+        output.push(jsonFile(link, books, { books: books }));
     }
 
     return output;
@@ -232,10 +232,11 @@ export function generate(files: InputFile[], availableTranslations: AvailableTra
 }
 
 
-export function jsonFile(path: string, content: any): OutputFile {
+export function jsonFile(path: string, content: any, extras: Pick<OutputFile, 'book' | 'books' | 'chapter'> = {}): OutputFile {
     return {
         path,
-        content
+        content,
+        ...extras
     };
 }
 
@@ -254,6 +255,10 @@ export interface InputFile {
 export interface OutputFile {
     path: string;
     content: object;
+
+    chapter?: TranslationBookChapter;
+    book?: TranslationBook;
+    books?: TranslationBooks;
 }
 
 /**

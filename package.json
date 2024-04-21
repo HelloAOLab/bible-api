@@ -15,6 +15,7 @@
     "build:read-site": "gatsby build && cp -nr ./public/* ./build/"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^7.6.9",
     "@types/fs-extra": "^11.0.4",
     "@types/jest": "^29.4.0",
     "@types/lodash": "4.14.191",
@@ -37,6 +38,7 @@
   },
   "dependencies": {
     "@prisma/client": "^5.12.1",
+    "better-sqlite3": "^9.5.0",
     "fs-extra": "^11.2.0",
     "highlight.js": "^11.7.0",
     "lodash": "4.17.21",
