@@ -327,11 +327,11 @@ async function processTranslations(translations: TranslationPath[], availableTra
 
     insertChaptersAndVerses();
 
-    // for (let file of output) {
-    //     writePromises.push(writeOutputFile(outputDirectory, file));
-    // }
+    for (let file of output) {
+        writePromises.push(writeOutputFile(outputDirectory, file));
+    }
 
-    // await Promise.all(writePromises);
+    await Promise.all(writePromises);
 }
 
 export async function writeOutputFile(outputDirectory:string, file: OutputFile): Promise<void> {
