@@ -594,7 +594,6 @@ export class UsfmParser {
                         }
                     }
                 } else if (expectingUnknownCommand > 0) {
-
                 } else if (expectingIntroParagraph > 0) {
                     // Skip processing words for intro paragraphs
                 } else {

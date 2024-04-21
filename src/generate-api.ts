@@ -239,6 +239,11 @@ async function processTranslations(translations: TranslationPath[], availableTra
     const insertChaptersAndVerses = db.transaction(() => {
         for (let file of output) {
             if (file.chapter) {
+                if (!file.chapter.chapter.number) {
+                    console.error('Chapter missing number', file.chapter.translation.id, file.chapter.book.id, file.chapter.chapter.number);
+                    continue;
+                }
+
                 let verses: {
                     number: number,
                     text: string,
@@ -267,12 +272,12 @@ async function processTranslations(translations: TranslationPath[], availableTra
                         let text = '';
                         for (let c of verse.content) {
                             if (typeof c === 'string') {
-                                text += c;
+                                text += c + ' ';
                             } else if (typeof c === 'object') {
                                 if ('lineBreak' in c) {
                                     text += '\n';
                                 } else if ('text' in c) {
-                                    text += c.text;
+                                    text += c.text + ' ';
                                 } else if ('noteId' in c) {
                                     const note = footnotes.get(c.noteId);
                                     if (note) {
@@ -284,7 +289,7 @@ async function processTranslations(translations: TranslationPath[], availableTra
     
                         verses.push({
                             number: verse.number,
-                            text: text,
+                            text: text.trimEnd(),
                         });
                     }
                 }
