@@ -1555,6 +1555,40 @@ describe('UsfmParser', () => {
                 ]
             });
         });
+
+        it('should ignore \\zaln-s world-level attributes', () => {
+            const tree = parser.parse(`\\c 1 
+            \\v 1 \\zaln-s | x-strong="H0430" x-lemma="אֱלֹהִים" x-morph="He,Ncmsc" x-tw="rc://*/tw/dict/bible/kt/god"\\*\\w Test|x-occurence="1"\\w* \\zaln-e\\*
+            \\v 2 Hello
+            `);
+
+            expect(tree).toEqual({
+                type: 'root',
+                content: [
+                    {
+                        type: 'chapter',
+                        number: 1,
+                        content: [
+                            { 
+                                type: 'verse', 
+                                number: 1,
+                                content: [
+                                    'Test',
+                                ]
+                            },
+                            {
+                                type: 'verse',
+                                number: 2,
+                                content: [
+                                    'Hello'
+                                ]
+                            },
+                        ],
+                        footnotes: []
+                    },
+                ]
+            });
+        });
         
         describe('Bible', () => {
             const cases = [
@@ -1604,6 +1638,20 @@ describe('UsfmParser', () => {
 
                 const parsedHash = hash.sha256().update(json).digest('hex');
                 expect(parsedHash).toMatchSnapshot();
+            });
+
+            it('should consistently parse matthew in the BSB', async () => {
+                const filePath = resolve(__dirname, '..', '..', 'bible', 'bsb/41MATBSB.usfm');
+                const data = await readFile(filePath, { encoding: 'utf-8' });
+                const parsed = parser.parse(data);
+                const numChapters = parsed.content.filter(c => c.type === 'chapter').length;
+                expect(numChapters).toBe(28);
+
+                const json = JSON.stringify(parsed);
+                const result = JSON.parse(json);
+
+                expect(result).toEqual(parsed);
+                expect(parsed).toMatchSnapshot();
             });
         });
     });

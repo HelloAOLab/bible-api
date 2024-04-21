@@ -210,6 +210,7 @@ export class UsfmParser {
         let expectingWordsOfJesus = 0;
         let expectingIntroParagraph = 0;
         let expectingCrossReference = 0;
+        let expectingUnknownCommand = 0;
 
         let canParseFootnotes = true;
         let chapter: Chapter | null = null;
@@ -488,6 +489,12 @@ export class UsfmParser {
                     } else {
                         expectingCrossReference = 0;
                     }
+                } else if (token.command.indexOf('-') >= 0) {
+                    if (token.type === 'start') {
+                        expectingUnknownCommand = 1;
+                    }
+                } else if (token.type === 'end') {
+                    expectingUnknownCommand = 0;
                 }
             } else if (token.kind === 'word') {
                 if (expectingId > 0) {
@@ -586,6 +593,8 @@ export class UsfmParser {
                             words.push(token.word);
                         }
                     }
+                } else if (expectingUnknownCommand > 0) {
+
                 } else if (expectingIntroParagraph > 0) {
                     // Skip processing words for intro paragraphs
                 } else {
@@ -619,6 +628,10 @@ export class UsfmParser {
                     }
                 } else if (expectingId > 0 || expectingName > 0 || expectingTitle > 0 || expectingSectionHeading > 0 || expectingFootnote > 0 || expectingFootnoteReference > 0 || expectingFootnoteText > 0 || expectingReferenceText > 0 || expectingCrossReference > 0 || expectingWordAttribute > 0 || expectingNestedWordAttribute > 0) {
                     // Skip
+                } else if (expectingUnknownCommand > 0) {
+                    if (token.whitespace.includes('\n')) {
+                        expectingUnknownCommand = 0;
+                    }
                 } else if (words.length > 0) {
                     let lastWord = words[words.length - 1];
                     if (lastWord !== ' ') {
