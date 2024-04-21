@@ -296,6 +296,29 @@ export class UsfmParser {
             cleanupVerse();
         };
 
+        const completeSection = () => {
+            if (expectingSectionHeading > 0) {
+                if (verse) {
+                    addWordsToVerseOrSubtitle();
+                    verse.content.push({
+                        heading: sectionContent
+                    });
+                } else if (chapter) {
+                    chapter.content.push({
+                        type: 'heading',
+                        content: [sectionContent]
+                    });
+                } else {
+                    root.content.push({
+                        type: 'heading',
+                        content: [sectionContent]
+                    });
+                }
+                sectionContent = '';
+                expectingSectionHeading = 0;
+            }
+        };
+
         const addWordsToFootnote = () => {
             if (footnote && words.length > 0) {
                 footnote.text += words.join(' ');
@@ -324,6 +347,7 @@ export class UsfmParser {
                         this._throwError(input, token, 'Cannot parse a verse without chapter information!');
                     }
 
+                    completeSection();
                     completeVerseOrSubtitle(token);
 
                     lastVerse = verse;
@@ -573,24 +597,7 @@ export class UsfmParser {
                     }
                 } else if (expectingSectionHeading > 0) {
                     if (token.whitespace.includes('\n')) {
-                        if (verse) {
-                            addWordsToVerseOrSubtitle();
-                            verse.content.push({
-                                heading: sectionContent
-                            });
-                        } else if (chapter) {
-                            chapter.content.push({
-                                type: 'heading',
-                                content: [sectionContent]
-                            });
-                        } else {
-                            root.content.push({
-                                type: 'heading',
-                                content: [sectionContent]
-                            });
-                        }
-                        sectionContent = '';
-                        expectingSectionHeading = 0;
+                        completeSection();
                     }
                 } else if (expectingReferenceText > 0) {
                     if (token.whitespace.includes('\n')) {
