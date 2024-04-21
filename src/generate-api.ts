@@ -259,6 +259,11 @@ async function processTranslations(translations: TranslationPath[], availableTra
                 for (let c of file.chapter.chapter.content) {
                     if (c.type === 'verse') {
                         const verse: ChapterVerse = c;
+                        if (!verse.number) {
+                            console.error('Verse missing number', file.chapter.translation.id, file.chapter.book.id, file.chapter.chapter.number, verse.number);
+                            continue;
+                        }
+
                         let text = '';
                         for (let c of verse.content) {
                             if (typeof c === 'string') {
@@ -275,10 +280,6 @@ async function processTranslations(translations: TranslationPath[], availableTra
                                     }
                                 }
                             }
-                        }
-
-                        if (!verse.number) {
-                            console.error('Verse missing number', file.chapter.translation.id, file.chapter.book.id, file.chapter.chapter.number, verse.number, text);
                         }
     
                         verses.push({
