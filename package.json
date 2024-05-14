@@ -12,7 +12,8 @@
     "generate": "ts-node src/generate-api.ts",
     "build-api": "yarn install && yarn build && yarn build:docs && yarn build:read-site",
     "dev:g": "gatsby develop",
-    "build:read-site": "gatsby build && cp -nr ./public/* ./build/"
+    "build:read-site": "gatsby build && cp -nr ./public/* ./build/",
+    "deploy:docs:s3": "aws --profile aolabs s3 sync ./ s3://ao-bible-api/docs"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.9",

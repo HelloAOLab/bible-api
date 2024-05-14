@@ -48,9 +48,13 @@ SOFTWARE.
 
 ## Your License to the BSB Text
 
-You are not permitted to alter the text. You are permitted to insert commentary, explanatory information, or digital information in any way so long as it is clearly distinguishable from the Berean Bible text itself.
+The Berean Bible and Majority Bible texts are officially [dedicated to the public domain](https://creativecommons.org/publicdomain/zero/1.0/) as of April 30, 2023.
 
-If the BSB text is updated by the Berean Bible team we will likewise endeavor to update this API so it stays current. Unless written here, your license to the BSB text will include all updates to the text if any are made.
+All uses are freely permitted.
+
+### Attribution Notice (appreciated but not required):
+
+The Holy Bible, Berean Standard Bible, BSB is produced in cooperation with [Bible Hub](https://biblehub.com/), [Discovery Bible](https://discoverybible.com/), [OpenBible.com](https://openbible.com/), and the Berean Bible Translation Committee. This text of God's Word has been [dedicated to the public domain](https://creativecommons.org/publicdomain/zero/1.0/).
 
 ## About Us
 
