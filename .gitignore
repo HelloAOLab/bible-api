@@ -26,3 +26,4 @@ dist-ssr
 build
 public
 .cache
+extra

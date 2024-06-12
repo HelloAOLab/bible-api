@@ -13,7 +13,8 @@
     "build-api": "yarn install && yarn build && yarn build:docs && yarn build:read-site",
     "dev:g": "gatsby develop",
     "build:read-site": "gatsby build && cp -nr ./public/* ./build/",
-    "deploy:docs:s3": "aws --profile aolabs s3 sync ./ s3://ao-bible-api/docs"
+    "deploy:docs:s3": "aws --profile aolabs s3 sync ./ s3://ao-bible-api/docs",
+    "cli": "ts-node ./src/cli.ts"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.9",
@@ -46,7 +47,9 @@
     "markdown-it": "^13.0.1",
     "react-select": "5.7.0",
     "vue": "^3.2.45",
-    "vue-router": "4"
+    "vue-router": "4",
+    "commander": "12.1.0",
+    "conf": "12.0.0"
   },
   "prisma": {
     "schema": "./src/schema.prisma"
