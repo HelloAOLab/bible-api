@@ -86,6 +86,7 @@ describe('generator()', () => {
                         commonName: 'Genesis',
                         title: 'Genesis',
                         numberOfChapters: 1,
+                        order: 1,
                         firstChapterApiLink: '/api/bsb/GEN/1.json',
                         lastChapterApiLink: '/api/bsb/GEN/1.json',
                     },
@@ -94,6 +95,7 @@ describe('generator()', () => {
                         name: 'Exodus',
                         commonName: 'Exodus',
                         title: 'Exodus',
+                        order: 2,
                         numberOfChapters: 1,
                         firstChapterApiLink: '/api/bsb/EXO/1.json',
                         lastChapterApiLink: '/api/bsb/EXO/1.json',
@@ -108,6 +110,7 @@ describe('generator()', () => {
                     commonName: 'Genesis',
                     title: 'Genesis',
                     numberOfChapters: 1,
+                    order: 1,
                     firstChapterApiLink: '/api/bsb/Genesis/1.json',
                     lastChapterApiLink: '/api/bsb/Genesis/1.json'
                 },
@@ -153,6 +156,7 @@ describe('generator()', () => {
                     name: 'Genesis',
                     commonName: 'Genesis',
                     title: 'Genesis',
+                    order: 1,
                     numberOfChapters: 1,
                     firstChapterApiLink: '/api/bsb/GEN/1.json',
                     lastChapterApiLink: '/api/bsb/GEN/1.json'
@@ -200,6 +204,7 @@ describe('generator()', () => {
                     commonName: 'Exodus',
                     title: 'Exodus',
                     numberOfChapters: 1,
+                    order: 2,
                     firstChapterApiLink: '/api/bsb/Exodus/1.json',
                     lastChapterApiLink: '/api/bsb/Exodus/1.json'
                 },
@@ -246,6 +251,7 @@ describe('generator()', () => {
                     commonName: 'Exodus',
                     title: 'Exodus',
                     numberOfChapters: 1,
+                    order: 2,
                     firstChapterApiLink: '/api/bsb/EXO/1.json',
                     lastChapterApiLink: '/api/bsb/EXO/1.json'
                 },
@@ -347,6 +353,7 @@ describe('generator()', () => {
                         commonName: '1 Chronicles',
                         title: '1 Chronicles',
                         numberOfChapters: 1,
+                        order: 13,
                         firstChapterApiLink: '/api/bsb/1CH/1.json',
                         lastChapterApiLink: '/api/bsb/1CH/1.json',
                     },
@@ -360,6 +367,7 @@ describe('generator()', () => {
                     commonName: '1 Chronicles',
                     title: '1 Chronicles',
                     numberOfChapters: 1,
+                    order: 13,
                     firstChapterApiLink: '/api/bsb/1_Chronicles/1.json',
                     lastChapterApiLink: '/api/bsb/1_Chronicles/1.json'
                 },
@@ -396,6 +404,7 @@ describe('generator()', () => {
                     commonName: '1 Chronicles',
                     title: '1 Chronicles',
                     numberOfChapters: 1,
+                    order: 13,
                     firstChapterApiLink: '/api/bsb/1CH/1.json',
                     lastChapterApiLink: '/api/bsb/1CH/1.json'
                 },

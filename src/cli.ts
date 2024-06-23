@@ -41,6 +41,20 @@ async function start() {
                 db.close();
             }
         });
+    
+    program.command('import-translations <dir>')
+        .description('Imports all translations from the given directory into the database.')
+        .action(async (dir: string) => {
+            const db = await getDbFromDir(process.cwd());
+            try {
+                const files = await readdir(dir);
+                const translationDirs = files.map(f => path.resolve(dir, f));
+                console.log(`Importing ${translationDirs.length} translations`);
+                await importTranslations(db, translationDirs);
+            } finally {
+                db.close();
+            }
+        });
 
     await program.parseAsync(process.argv);
 
@@ -144,14 +158,16 @@ function insertTranslationBooks(db: Database, translationBooks: (TranslationBook
         title,
         name,
         commonName,
-        numberOfChapters
+        numberOfChapters,
+        \`order\`
     ) VALUES (
         @id,
         @translationId,
         @title,
         @name,
         @commonName,
-        @numberOfChapters
+        @numberOfChapters,
+        @bookOrder
     ) ON CONFLICT(id,translationId) DO 
         UPDATE SET
             title=excluded.title,
@@ -172,6 +188,7 @@ function insertTranslationBooks(db: Database, translationBooks: (TranslationBook
                     name: book.name,
                     commonName: book.commonName,
                     numberOfChapters: book.numberOfChapters,
+                    bookOrder: book.order ?? 9999
                 });
             }
         });

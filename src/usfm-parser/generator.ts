@@ -83,7 +83,7 @@ export function generate(files: InputFile[], availableTranslations: AvailableTra
 
         let previousCommonChapter: TranslationBookChapter | null = null;
         let previousIdChapter: TranslationBookChapter | null = null;
-        books_loop: for (let { file, tree: parsed } of orderedBooks) {
+        books_loop: for (let { file, tree: parsed, order } of orderedBooks) {
             const id = parsed.id;
 
             if (!id) {
@@ -146,6 +146,7 @@ export function generate(files: InputFile[], availableTranslations: AvailableTra
                 name,
                 commonName,
                 title: parsed.title ?? null,
+                order,
                 firstChapterApiLink: bookChapterApiLink(translation.id, commonName, 1, 'json'),
                 lastChapterApiLink: bookChapterApiLink(translation.id, commonName, 1, 'json'),
                 numberOfChapters: 0
@@ -156,6 +157,7 @@ export function generate(files: InputFile[], availableTranslations: AvailableTra
                 name,
                 commonName,
                 title: parsed.title ?? null,
+                order,
                 firstChapterApiLink: bookChapterApiLink(translation.id, id, 1, 'json'),
                 lastChapterApiLink: bookChapterApiLink(translation.id, id, 1, 'json'),
                 numberOfChapters: 0
@@ -408,6 +410,11 @@ export interface TranslationBook {
      * If not available, then one was not provided by the translation.
      */
     title: string | null;
+
+    /**
+     * The numerical order of the book in the translation.
+     */
+    order: number;
 
     /**
      * The number of chapters that the book contains.
