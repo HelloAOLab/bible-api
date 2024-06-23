@@ -4,7 +4,6 @@ import * as path from "path";
 import { InputFile, InputTranslationMetadata, ParseTreeMetadata } from "./usfm-parser/generator";
 import { existsSync } from "fs-extra";
 
-
 /**
  * Loads the files for the given translation.
  * @param translation The directory that the translation exists in.
