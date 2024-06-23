@@ -27,3 +27,4 @@ build
 public
 .cache
 extra
+bible-api.db
