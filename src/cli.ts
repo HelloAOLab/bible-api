@@ -8,6 +8,7 @@ import { loadTranslationFiles } from './files';
 import { DOMWindow, JSDOM } from 'jsdom';
 import { BibleClient } from '@gracious.tech/fetch-client';
 import { GetTranslationsItem } from '@gracious.tech/fetch-client/dist/esm/collection';
+import { getFirstNonEmpty, getTranslationId, normalizeLanguage } from './utils';
 
 const migrationsPath = path.resolve(__dirname, './migrations');
 
@@ -156,7 +157,19 @@ async function start() {
 
                 console.log(`Discovered ${collectionTranslations.length} translations`);
 
-                const filtered = translations.length < 0 ? collectionTranslations : collectionTranslations.filter(t => translationsSet.has(t.id));
+                const filtered = translations.length <= 0 ? collectionTranslations : collectionTranslations.filter(t => translationsSet.has(t.id));
+
+                let translationIDs = new Map<string, GetTranslationsItem>();
+                for (let t of filtered) {
+                    let id = getTranslationId(t);
+                    if (translationIDs.has(id)) {
+                        const existing = translationIDs.get(id);
+                        console.warn(`Duplicate translation ID: ${id}: ${existing?.id} and ${t.id}`);
+                        throw new Error(`Duplicate translation ID: ${id}: ${existing?.id} and ${t.id}`);
+                    } else {
+                        translationIDs.set(id, t);
+                    }
+                }
 
                 let batches: GetTranslationsItem[][] = [];
                 while (filtered.length > 0) {
@@ -169,14 +182,15 @@ async function start() {
                     const batch = batches[i];
                     console.log(`Downloading batch ${i + 1} of ${batches.length}`);
                     const translations = await Promise.all(batch.map(async t => {
+                        const id = getTranslationId(t);
                         const translation: InputTranslationMetadata = {
-                            id: t.id,
-                            name: t.name_local,
-                            direction: t.direction,
-                            englishName: t.name_english,
-                            language: t.language,
+                            id,
+                            name: getFirstNonEmpty(t.name_local, t.name_english, t.name_abbrev),
+                            direction: getFirstNonEmpty(t.direction, 'ltr'),
+                            englishName: getFirstNonEmpty(t.name_english, t.name_abbrev, t.name_local),
+                            language: normalizeLanguage(t.language),
                             licenseUrl: t.attribution_url,
-                            shortName: t.name_abbrev,
+                            shortName: getFirstNonEmpty(t.name_abbrev, id),
                             website: t.attribution_url,
                         };
 
@@ -210,14 +224,6 @@ async function start() {
         });
 
     await program.parseAsync(process.argv);
-
-    // function getDbPath(db: string) {
-    //     return db || conf.get('db');
-    // }
-    
-    // function setDbPath(db: string) {
-    //     conf.set('db', db);
-    // }
 }
 
 start();
