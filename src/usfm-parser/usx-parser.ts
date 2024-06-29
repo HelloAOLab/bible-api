@@ -1,5 +1,5 @@
 import { DOMWindow } from "jsdom";
-import { Chapter, ChapterContent, Footnote, FootnoteReference, ParseTree, Verse, Text } from "./types";
+import { Chapter, ChapterContent, Footnote, FootnoteReference, ParseTree, Verse, Text, VerseContent, HebrewSubtitle } from "./types";
 import { trim } from "lodash";
 
 enum NodeType {
@@ -128,20 +128,16 @@ export class USXParser {
             yield {
                 type: 'line_break',
             };
+        } else if (style === 'd') {
+            yield this.parseHebrewSubtitle(para, chapter);
         } else if (!style || !ignoredParaStyles.has(style)) {
             yield *this.iterateChapterParaVerseContent(para, chapter);
         }
     }
 
     *iterateChapterParaVerseContent(para: Element, chapter: Chapter): IterableIterator<ChapterContent> {
-        // if (hasProcessedVerses(para)) {
-        //     return;
-        // }
         const elements = iterateChildren(para);
         for(let element of elements) {
-            // if (parent !== para) {
-            //     break;
-            // }
             if (element.nodeName === 'chapter') {
                 break;
             }
@@ -172,36 +168,49 @@ export class USXParser {
                 break;
             }
 
+            // if (parent.nodeName === 'para') {
+            //     const style = parent.getAttribute('style');
+            //     if (style === 'q1' || style === 'q2' || style === 'q3' || style === 'q4') {
+            //         const poem = style === 'q1' ? 1 : style === 'q2' ? 2 : style === 'q3' ? 3 : 4;
+            //         for (let content of this.iterateNodeTextContent(node, chapter, verse)) {
+            //             if(typeof content === 'string') {
+            //                 yield {
+            //                     text: content,
+            //                     poem,
+            //                 };
+            //             } else {
+            //                 yield content;
+            //             }
+            //         }
+            //         continue;
+            //     }
+            // }
+
+            let poem: number | null = null;
+
             if (parent.nodeName === 'para') {
                 const style = parent.getAttribute('style');
                 if (style === 'q1' || style === 'q2' || style === 'q3' || style === 'q4') {
-                    yield {
-                        text: node.textContent || '',
-                        poem: style === 'q1' ? 1 : style === 'q2' ? 2 : style === 'q3' ? 3 : 4
-                    };
+                    poem = style === 'q1' ? 1 : style === 'q2' ? 2 : style === 'q3' ? 3 : 4;
                 }
             }
 
-            if (node.nodeType === NodeType.Text) {
-                yield node.textContent || '';
-            } else if (node instanceof Element && node.nodeName === 'char') {
-                yield *iterateCharContent(node);
-            } else if (node instanceof Element && node.nodeName === 'note') {
-                const note: Footnote = {
-                    noteId: this._noteCounter++,
-                    caller: node.getAttribute('caller') || null,
-                    text: trimText(node.textContent || '').trim(),
-                    reference: {
-                        chapter: chapter.number,
-                        verse: verse.number
+            for(let content of this.iterateNodeTextContent(node, chapter, verse)) {
+                if (poem !== null) {
+                    if (typeof content === 'string') {
+                        yield {
+                            text: content,
+                            poem,
+                        };
+                    } else {
+                        yield {
+                            ...content,
+                            poem,
+                        };
                     }
-                };
-
-                chapter.footnotes.push(note);
-
-                yield {
-                    noteId: note.noteId
-                };
+                } else {
+                    yield content;
+                }
             }
         }
     }
@@ -212,6 +221,53 @@ export class USXParser {
                 break;
             }
             yield node;
+        }
+    }
+
+    parseHebrewSubtitle(para: Element, chapter: Chapter): HebrewSubtitle {
+        const subtitle: HebrewSubtitle = {
+            type: 'hebrew_subtitle',
+            content: []
+        };
+
+        for(let content of this.iterateHebrewSubtitleContent(para, chapter)) {
+            addOrJoin(subtitle.content, content);
+        }
+
+        trimContent(subtitle.content);
+        return subtitle;
+    }
+
+    *iterateHebrewSubtitleContent(element: Element, chapter: Chapter): IterableIterator<string | Text | FootnoteReference> {
+        for (let node of iterateNodes(element)) {
+            yield *this.iterateNodeTextContent(node, chapter);
+        }
+    }
+
+    *iterateNodeTextContent(node: Node, chapter: Chapter, verse?: Verse): IterableIterator<string | Text | FootnoteReference> {
+        if (node.nodeType === NodeType.Text) {
+            yield node.textContent || '';
+        } else if (node instanceof Element && node.nodeName === 'char') {
+            yield *iterateCharContent(node);
+        } else if (node instanceof Element && node.nodeName === 'note') {
+            const style = node.getAttribute('style');
+            if (style === 'f') {
+                const note: Footnote = {
+                    noteId: this._noteCounter++,
+                    caller: node.getAttribute('caller') || null,
+                    text: trimText(node.textContent || '').trim(),
+                    reference: {
+                        chapter: chapter.number,
+                        verse: verse?.number ?? 0
+                    }
+                };
+
+                chapter.footnotes.push(note);
+
+                yield {
+                    noteId: note.noteId
+                };
+            }
         }
     }
 
@@ -318,8 +374,17 @@ const ignoredParaStyles = new Set([
 ]);
 
 
-function *iterateCharContent(char: Element): IterableIterator<string> {
-    yield trimText(char.textContent || '');
+function *iterateCharContent(char: Element): IterableIterator<string | Text> {
+    const style = char.getAttribute('style');
+    const text = trimText(char.textContent || '');
+    if (style === 'wj') {
+        yield {
+            text,
+            wordsOfJesus: true
+        };
+    } else {
+        yield text;
+    }
 }
 
 function trimText(text: string): string {
@@ -328,9 +393,17 @@ function trimText(text: string): string {
 
 function trimContent<T extends string | unknown>(content: T[]): T[] {
     for (let i = 0; i< content.length; i++) {
-        if (typeof content[i] === 'string') {
-            content[i] = trimText(content[i] as string).trim() as T;
+        const value = content[i];
+        if (typeof value === 'string') {
+            content[i] = trimText(value as string).trim() as T;
             if (content[i] === '') {
+                content.splice(i, 1);
+                i--;
+                continue;
+            }
+        } else if (isVerseText(value)) {
+            value.text = trimText(value.text).trim();
+            if (value.text === '') {
                 content.splice(i, 1);
                 i--;
                 continue;
@@ -338,7 +411,6 @@ function trimContent<T extends string | unknown>(content: T[]): T[] {
         }
     }
     return content;
-
 }
 
 function addOrJoin(array: (string | unknown)[], value: string | unknown) {
@@ -348,10 +420,20 @@ function addOrJoin(array: (string | unknown)[], value: string | unknown) {
         const last = array[array.length - 1];
         if (typeof last === 'string' && typeof value === 'string') {
             array[array.length - 1] = last + value;
+        } else if (isVerseText(last) && isVerseText(value) && hasSameFormatting(last, value)) {
+            last.text += value.text;
         } else {
             array.push(value);
         }
     }
+}
+
+function isVerseText(value: unknown): value is Text {
+    return typeof value === 'object' && value !== null && 'text' in value;
+}
+
+function hasSameFormatting(a: Text, b: Text): boolean {
+    return a.poem === b.poem && a.wordsOfJesus === b.wordsOfJesus;
 }
 
 /**

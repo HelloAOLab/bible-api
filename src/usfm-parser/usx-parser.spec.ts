@@ -666,9 +666,6 @@ describe('USXParser', () => {
                                 content: ['Do Not Rebuke Me in Your Anger']
                             },
                             {
-                                type: 'line_break',
-                            },
-                            {
                                 type: 'hebrew_subtitle',
                                 content: [
                                     'For the choirmaster. With stringed instruments, according to Sheminith.',
@@ -691,16 +688,132 @@ describe('USXParser', () => {
                         footnotes: [
                             {
                                 noteId: 0,
-                                text: 'Sheminith is probably a musical term; here and in 1 Chronicles 15:21 and Psalm 12:1.',
+                                text: '6:0 Sheminith is probably a musical term; here and in 1 Chronicles 15:21 and Psalms 12:1.',
                                 caller: '+',
                                 reference: {
                                     chapter: 6,
-                                    verse: 1
+                                    verse: 0
                                 }
                             }
                         ],
                     }
                 ]
+            });
+        });
+
+        it('should ignore cross references', () => {
+            const usx = `
+                <usx version="3.0">
+                    <book code="MAT" style="id">- World English Bible</book>
+                    <chapter number="5" style="c" sid="MAT 5"/>
+                    <para style="q1">
+                        <verse number="3" style="v" sid="MAT 5:3"/>
+                        <char style="wj">
+                            “<char style="w" strong="G3107">Blessed</char>
+                            <char style="w" strong="G1510">are</char>
+                            <char style="w" strong="G3588">the</char>
+                            <char style="w" strong="G4434">poor</char>
+                            <char style="w" strong="G3588">in</char>
+                            <char style="w" strong="G4151">spirit</char>,
+                        </char>
+                    </para>
+                    <para style="q2">
+                        <char style="wj">
+                            <char style="w" strong="G3754">for</char>
+                            <char style="w" strong="G0846">theirs</char>
+                            <char style="w" strong="G1510">is</char>
+                            <char style="w" strong="G3588">the</char>
+                            <char style="w" strong="G0932">Kingdom</char>
+                            <char style="w" strong="G4151">of</char>
+                            <char style="w" strong="G3772">Heaven</char>.
+                        </char>
+                        <note style="x" caller="+">
+                            <char style="xo">5:3 </char>
+                            <char style="xt">Isaiah 57:15; 66:2</char>
+                        </note>
+                        <verse eid="MAT 5:3"/>
+                    </para>
+                </usx>
+            `;
+            const tree = parser.parse(usx);
+            expect(tree).toEqual({
+                type: 'root',
+                id: 'MAT',
+                content: [
+                    {
+                        type: 'chapter',
+                        number: 5,
+                        content: [
+                            { 
+                                type: 'verse', 
+                                number: 3,
+                                content: [
+                                    { text: '“Blessed are the poor in spirit,', poem: 1, wordsOfJesus: true, },
+                                    { text: 'for theirs is the Kingdom of Heaven.', poem: 2, wordsOfJesus: true, },
+                                ]
+                            },
+                        ],
+                        footnotes: [],
+                    }
+                ],
+            });
+        });
+
+        it('should support Words of Jesus', () => {
+            const usx = `
+                <usx version="3.0">
+                    <book code="MAT" style="id">- World English Bible</book>
+                    <chapter number="5" style="c" sid="MAT 5"/>
+                    <para style="q1">
+                        <verse number="3" style="v" sid="MAT 5:3"/>
+                        <char style="wj">
+                            “<char style="w" strong="G3107">Blessed</char>
+                            <char style="w" strong="G1510">are</char>
+                            <char style="w" strong="G3588">the</char>
+                            <char style="w" strong="G4434">poor</char>
+                            <char style="w" strong="G3588">in</char>
+                            <char style="w" strong="G4151">spirit</char>,
+                        </char>
+                    </para>
+                    <para style="q2">
+                        <char style="wj">
+                            <char style="w" strong="G3754">for</char>
+                            <char style="w" strong="G0846">theirs</char>
+                            <char style="w" strong="G1510">is</char>
+                            <char style="w" strong="G3588">the</char>
+                            <char style="w" strong="G0932">Kingdom</char>
+                            <char style="w" strong="G4151">of</char>
+                            <char style="w" strong="G3772">Heaven</char>.
+                        </char>
+                        <note style="x" caller="+">
+                            <char style="xo">5:3 </char>
+                            <char style="xt">Isaiah 57:15; 66:2</char>
+                        </note>
+                        <verse eid="MAT 5:3"/>
+                    </para>
+                </usx>
+            `;
+            const tree = parser.parse(usx);
+            expect(tree).toEqual({
+                type: 'root',
+                id: 'MAT',
+                content: [
+                    {
+                        type: 'chapter',
+                        number: 5,
+                        content: [
+                            { 
+                                type: 'verse', 
+                                number: 3,
+                                content: [
+                                    { text: '“Blessed are the poor in spirit,', poem: 1, wordsOfJesus: true, },
+                                    { text: 'for theirs is the Kingdom of Heaven.', poem: 2, wordsOfJesus: true, },
+                                ]
+                            },
+                        ],
+                        footnotes: [],
+                    }
+                ],
             });
         });
 

@@ -33,6 +33,8 @@ export interface Heading {
 
 export type ChapterContent = (Heading | Verse | HebrewSubtitle | LineBreak);
 
+export type VerseContent = string | FootnoteReference | Text;
+
 /**
  * Defines an interface that represents a chapter.
  */
