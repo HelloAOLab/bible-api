@@ -56,12 +56,12 @@ export class USXParser {
             root.header = header.textContent || '';
         }
 
-        const title1 = usxElement.querySelector('para[style="mt1"]');
-        const title2 = usxElement.querySelector('para[style="mt2"]');
-        const title3 = usxElement.querySelector('para[style="mt3"]');
+        const titles = usxElement.querySelectorAll('para[style="mt1"], para[style="mt2"], para[style="mt3"]');
+        // const title2 = usxElement.querySelector('para[style="mt2"]');
+        // const title3 = usxElement.querySelector('para[style="mt3"]');
 
-        if (title1 || title2 || title3) {
-            root.title = [title1?.textContent, title2?.textContent, title3?.textContent].filter(t => t).join(' ');
+        if (titles.length > 0) {
+            root.title = [...titles].map(t => t.textContent).filter(t => t).join(' ');
         }
 
         for(let content of this.iterateRootContent(usxElement)) {
@@ -168,24 +168,6 @@ export class USXParser {
                 break;
             }
 
-            // if (parent.nodeName === 'para') {
-            //     const style = parent.getAttribute('style');
-            //     if (style === 'q1' || style === 'q2' || style === 'q3' || style === 'q4') {
-            //         const poem = style === 'q1' ? 1 : style === 'q2' ? 2 : style === 'q3' ? 3 : 4;
-            //         for (let content of this.iterateNodeTextContent(node, chapter, verse)) {
-            //             if(typeof content === 'string') {
-            //                 yield {
-            //                     text: content,
-            //                     poem,
-            //                 };
-            //             } else {
-            //                 yield content;
-            //             }
-            //         }
-            //         continue;
-            //     }
-            // }
-
             let poem: number | null = null;
 
             if (parent.nodeName === 'para') {
@@ -216,7 +198,7 @@ export class USXParser {
     }
 
     *iterateUntilEndingVerse(element: Element): IterableIterator<{ node: Node, parent: Element }> {
-        for(let node of iterateSiblingsAndCousins(element.nextSibling)) {
+        for(let node of iterateSiblingsAndCousins(element)) {
             if (node.node.nodeName === 'verse') {
                 break;
             }
@@ -252,10 +234,18 @@ export class USXParser {
         } else if (node instanceof Element && node.nodeName === 'note') {
             const style = node.getAttribute('style');
             if (style === 'f') {
+                const verseReferenceRegex = /^[0-9]{1,3}:[0-9]{1,3}/;
+
+                let text = trimText(node.textContent || '').trim();
+                
+                if (verseReferenceRegex.test(text)) {
+                    text = text.replace(verseReferenceRegex, '').trim();
+                }
+
                 const note: Footnote = {
                     noteId: this._noteCounter++,
                     caller: node.getAttribute('caller') || null,
-                    text: trimText(node.textContent || '').trim(),
+                    text,
                     reference: {
                         chapter: chapter.number,
                         verse: verse?.number ?? 0
@@ -307,6 +297,9 @@ function *iterateNodes(node: Node) {
 * @param para The para element.
 */
 function *iterateSiblingsAndCousins(node: Node | null | undefined): IterableIterator<{ node: Node, parent: Element }> {
+    if (!node) {
+        return;
+    }
     for(let sibling of iterateSiblingNodes(node)) {
         yield {
             node: sibling,
@@ -314,8 +307,29 @@ function *iterateSiblingsAndCousins(node: Node | null | undefined): IterableIter
         };
     }
 
+
     let uncle = node?.parentElement?.nextElementSibling;
-    yield *iterateSiblingsAndCousins(uncle?.firstChild);
+
+    if (uncle) {
+        let siblingNode = node?.parentElement?.nextSibling;
+        while (siblingNode && siblingNode !== uncle) {
+            yield {
+                node: siblingNode,
+                parent: siblingNode.parentElement!
+            };
+            siblingNode = siblingNode.nextSibling;
+        }
+    }
+
+    const child = uncle?.firstChild;
+    if (child) {
+        yield {
+            node: child,
+            parent: uncle!
+        };
+
+        yield *iterateSiblingsAndCousins(child);
+    }
 }
 
 

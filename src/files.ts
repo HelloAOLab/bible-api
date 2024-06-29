@@ -18,7 +18,7 @@ export async function loadTranslationFiles(translation: string): Promise<InputFi
     }
 
     let files = await readdir(translation);
-    let usfmFiles = files.filter(f => extname(f) === '.usfm');
+    let usfmFiles = files.filter(f => extname(f) === '.usfm' || extname(f) === '.usx');
 
     if (usfmFiles.length <= 0) {
         translation = path.resolve(translation, 'usfm');
@@ -84,7 +84,7 @@ async function loadFile(file: string, metadata: ParseTreeMetadata): Promise<Inpu
         content,
         metadata: metadata,
         name: file,
-        fileType: extension.slice(1) as 'usfm',
+        fileType: extension.slice(1) as 'usfm' | 'usx',
     }
 }
 

@@ -442,6 +442,10 @@ describe('generator()', () => {
         });
     });
 
+    it('should support usx', () => {
+        
+    });
+
 });
 
 function firstXLines(content: string, x: number) {

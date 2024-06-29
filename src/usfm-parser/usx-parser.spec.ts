@@ -1,5 +1,10 @@
 import { USXParser } from "./usx-parser";
 import { JSDOM } from 'jsdom';
+import Matthew from '../../bible/webp_usx/mat.usx';
+import MatthewUsfm from '../../bible/engwebp/70-MATengwebp.usfm';
+import John from '../../bible/webp_usx/jhn.usx';
+import Sa from '../../bible/webp_usx/1sa.usx';
+import { UsfmParser } from "./usfm-parser";
 
 describe('USXParser', () => {
     let parser: USXParser;
@@ -181,6 +186,64 @@ describe('USXParser', () => {
                     <para style="mt1">The</para>
                     <para style="mt2">Title</para>
                     <para style="mt3">of the Book</para>
+                    <chapter number="1" style="c" sid="GEN 1"/>
+                    <para style="s1">The Creation</para>
+                    <para style="r">(John 1:1–5; Hebrews 11:1–3)</para>
+                    <para style="m">
+                        <verse number="1" style="v" sid="GEN 1:1"/>
+                        <char style="w" strong="H8064">In</char>
+                        <char style="w" strong="H1254">the</char>
+                        <char style="w" strong="H7225">beginning</char>
+                        <char style="w" strong="H8064">God</char>
+                        <char style="w" strong="H1254">created</char>
+                        <char style="w" strong="H1254">the</char>
+                        <char style="w" strong="H8064">heavens</char>
+                        <char style="w" strong="H8064">and</char>
+                        <char style="w" strong="H1254">the</char>
+                        <char style="w" strong="H8064">earth</char>.
+                        <verse eid="GEN 1:1"/>
+                    </para>
+                </usx>
+            `;
+            const tree = parser.parse(usx);
+            expect(tree).toEqual({
+                type: 'root',
+                id: 'GEN',
+                title: 'The Title of the Book',
+                header: 'Genesis',
+                content: [
+                    {
+                        type: 'chapter',
+                        number: 1,
+                        content: [
+                            {
+                                type: 'heading',
+                                content: ['The Creation']
+                            },
+                            {
+                                type: 'verse',
+                                number: 1,
+                                content: [
+                                    'In the beginning God created the heavens and the earth.'
+                                ]
+                            },
+                        ],
+                        footnotes: [],
+                    }
+                ]
+            });
+        });
+
+        it('should combine major title in the order they appear', () => {
+            const usx = `
+                <usx version="3.0">
+                    <book code="GEN" style="id">- Berean Study Bible</book>
+                    <para style="h">Genesis</para>
+                    <para style="toc2">Genesis</para>
+                    <para style="toc1">Genesis</para>
+                    <para style="mt3">The</para>
+                    <para style="mt2">Title</para>
+                    <para style="mt1">of the Book</para>
                     <chapter number="1" style="c" sid="GEN 1"/>
                     <para style="s1">The Creation</para>
                     <para style="r">(John 1:1–5; Hebrews 11:1–3)</para>
@@ -489,7 +552,7 @@ describe('USXParser', () => {
                             {
                                 noteId: 0,
                                 caller: '+',
-                                text: '2:2 Cited in Hebrews 4:4',
+                                text: 'Cited in Hebrews 4:4',
                                 reference: {
                                     chapter: 2,
                                     verse: 2,
@@ -600,7 +663,7 @@ describe('USXParser', () => {
                             {
                                 noteId: 0,
                                 caller: '+',
-                                text: '2:2 Cited in Hebrews 4:4',
+                                text: 'Cited in Hebrews 4:4',
                                 reference: {
                                     chapter: 2,
                                     verse: 2,
@@ -688,7 +751,7 @@ describe('USXParser', () => {
                         footnotes: [
                             {
                                 noteId: 0,
-                                text: '6:0 Sheminith is probably a musical term; here and in 1 Chronicles 15:21 and Psalms 12:1.',
+                                text: 'Sheminith is probably a musical term; here and in 1 Chronicles 15:21 and Psalms 12:1.',
                                 caller: '+',
                                 reference: {
                                     chapter: 6,
@@ -759,6 +822,78 @@ describe('USXParser', () => {
             });
         });
 
+        it('should not ignore the node of a para element', () => {
+            const usx = `
+                <usx version="3.0">
+                    <book code="JHN" style="id">43-JHN-web.sfm World English Bible (WEB)</book>
+                    <chapter number="1" style="c" sid="JHN 1"/>
+                    <para style="p"><verse number="1" style="v" sid="JHN 1:1"/><char style="w" strong="G1722">In</char> <char style="w" strong="G1722">the</char> <char style="w" strong="G0746">beginning</char> <char style="w" strong="G1510">was</char> <char style="w" strong="G1722">the</char> <char style="w" strong="G3056">Word</char>, <char style="w" strong="G2532">and</char> <char style="w" strong="G1722">the</char> <char style="w" strong="G3056">Word</char> <char style="w" strong="G1510">was</char> <char style="w" strong="G1722">with</char> <char style="w" strong="G2316">God</char>, <char style="w" strong="G2532">and</char> <char style="w" strong="G1722">the</char> <char style="w" strong="G3056">Word</char> <char style="w" strong="G1510">was</char> <char style="w" strong="G2316">God</char>.<verse eid="JHN 1:1"/></para>
+                </usx>
+            `;
+            const tree = parser.parse(usx);
+            expect(tree).toEqual({
+                type: 'root',
+                id: 'JHN',
+                content: [
+                    {
+                        type: 'chapter',
+                        number: 1,
+                        content: [
+                            {
+                                type: 'verse',
+                                number: 1,
+                                content: [
+                                    'In the beginning was the Word, and the Word was with God, and the Word was God.'
+                                ]
+                            },
+                        ],
+                        footnotes: [],
+                    }
+                ]
+            });
+        });
+
+        it('should not ignore newlines between two poem paras', () => {
+            const usx = `
+                <usx version="3.0">
+                    <book code="MAT" style="id">- World English Bible</book>
+                    <chapter number="2" style="c" sid="MAT 2"/>
+                    <para style="q2"><verse number="18" style="v" sid="MAT 2:18"/><char style="w" strong="G2532">she</char> wouldn&#8217;t <char style="w" strong="G1510">be</char> <char style="w" strong="G3870">comforted</char>,</para>
+                    <para style="q2"><char style="w" strong="G3754">because</char> <char style="w" strong="G2532">they</char> <char style="w" strong="G1510">are</char> <char style="w" strong="G3756">no</char> <char style="w" strong="G4183">more</char>.&#8221;<note style="x" caller="+"><char style="xo">2:18 </char><char style="xt">Jeremiah 31:15</char></note><verse eid="MAT 2:18"/></para>
+                </usx>
+            `;
+
+            const tree = parser.parse(usx);
+
+            expect(tree).toEqual({
+                type: 'root',
+                id: 'MAT',
+                content: [
+                    {
+                        type: 'chapter',
+                        number: 2,
+                        content: [
+                            {
+                                type: 'verse',
+                                number: 18,
+                                content: [
+                                    {
+                                        text: 'she wouldn’t be comforted,',
+                                        poem: 2,
+                                    },
+                                    {
+                                        text: 'because they are no more.”',
+                                        poem: 2,
+                                    }
+                                ]
+                            },
+                        ],
+                        footnotes: [],
+                    }
+                ]
+            });
+        });
+
         it('should support Words of Jesus', () => {
             const usx = `
                 <usx version="3.0">
@@ -817,6 +952,77 @@ describe('USXParser', () => {
             });
         });
 
+        it('should be able to parse a whole book', () => {
+            const tree = parser.parse(Matthew);
+            expect(tree).toMatchSnapshot();
+        });
+
+        it('should be able to parse John', () => {
+            const tree = parser.parse(John);
+            expect(tree).toMatchSnapshot();
+        });
+
+        it('should be able to parse 1SA', () => {
+            const tree = parser.parse(Sa);
+            expect(tree).toMatchSnapshot();
+        });
+
+        it('should not ignore the first word of a verse', () => {
+            const usx = firstXLines(John, 38) + '\n</usx>';
+            const tree = parser.parse(usx);
+            expect(tree).toMatchSnapshot();
+        });
+
+        it('should not ignore the first word of continuation on a verse', () => {
+            const usx = `
+            <usx version="3.0">
+                <book code="MAT" style="id">- World English Bible</book>
+                <chapter number="1" style="c" sid="MAT 1"/>
+                <para style="q1"><verse number="23" style="v" sid="MAT 1:23"/>&#8220;<char style="w" strong="G2400">Behold</char>, <char style="w" strong="G1722">the</char> <char style="w" strong="G3933">virgin</char> <char style="w" strong="G2532">shall</char> <char style="w" strong="G1510">be</char> <char style="w" strong="G3326">with</char> <char style="w" strong="G1064">child</char>,</para>
+                <para style="q2"><char style="w" strong="G2532">and</char> <char style="w" strong="G2532">shall</char> <char style="w" strong="G5088">give</char> <char style="w" strong="G5088">birth</char> <char style="w" strong="G2532">to</char> <char style="w" strong="G2192">a</char> <char style="w" strong="G5207">son</char>.</para>
+            </usx>`;
+            const tree = parser.parse(usx);
+            expect(tree).toEqual({
+                type: 'root',
+                id: 'MAT',
+                content: [
+                    {
+                        type: 'chapter',
+                        number: 1,
+                        content: [
+                            { 
+                                type: 'verse', 
+                                number: 23,
+                                content: [
+                                    {
+                                        text: '“Behold, the virgin shall be with child,',
+                                        poem: 1,
+                                    },
+                                    {
+                                        text: 'and shall give birth to a son.',
+                                        poem: 2,
+                                    }
+                                ]
+                            },
+                        ],
+                        footnotes: [],
+                    }
+                ],
+            });
+        });
+
+        // it('should parse the same as the USFM parser', () => {
+        //     const usfmParser = new UsfmParser();
+        //     const tree = parser.parse(Matthew);
+        //     const usfmTree = usfmParser.parse(MatthewUsfm);
+        //     expect(tree).toEqual(usfmTree);
+        // })
+
     });
 
 });
+
+function firstXLines(content: string, x: number) {
+    const lines = content.split('\n');
+    return lines.slice(0, x).join('\n');
+}

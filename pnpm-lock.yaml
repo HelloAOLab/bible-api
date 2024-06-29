@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@gracious.tech/fetch-client':
+        specifier: ^0.7.0
+        version: 0.7.0
       '@prisma/client':
         specifier: ^5.12.1
         version: 5.12.1
@@ -2046,6 +2049,10 @@ packages:
       html-entities: 2.3.3
       strip-ansi: 6.0.1
     dev: true
+
+  /@gracious.tech/fetch-client@0.7.0:
+    resolution: {integrity: sha512-TbxGrJ/kMZZevw12XysjyHJjWWuNhO5FLWwD0Zwrb+/8Y1+6cKAlgP/n3P8dN86mXd9aFUKoI7hgsLbTaI38/w==}
+    dev: false
 
   /@graphql-codegen/add@3.2.3(graphql@15.8.0):
     resolution: {integrity: sha512-sQOnWpMko4JLeykwyjFTxnhqjd/3NOG2OyMuvK76Wnnwh8DRrNf2VEs2kmSvLl7MndMlOj7Kh5U154dVcvhmKQ==}

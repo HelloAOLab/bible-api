@@ -1,15 +1,20 @@
 import { omit, sortBy } from "lodash";
-import { FootnoteReference, Heading, ParseTree, Text, UsfmParser } from "./usfm-parser";
+import { UsfmParser } from "./usfm-parser";
+import { ParseTree } from "./types";
+import { USXParser } from "./usx-parser";
+// import { JSDOM } from 'jsdom';
+import type { DOMWindow } from "jsdom";
 
 
 /**
  * Generates a list of output files from the given list of input files.
  * @param file The list of files.
  */
-export function generate(files: InputFile[], availableTranslations: AvailableTranslations): OutputFile[] {
+export function generate(files: InputFile[], availableTranslations: AvailableTranslations, window: DOMWindow = globalThis as any): OutputFile[] {
     let output = [] as OutputFile[];
 
-    let parser = new UsfmParser();
+    let usfmParser = new UsfmParser();
+    let usxParser = new USXParser(window);
     
     let parsedTranslations = new Map<string, { 
         file: InputFile,
@@ -22,11 +27,17 @@ export function generate(files: InputFile[], availableTranslations: AvailableTra
 
     const unknownLanguages = new Set<string>();
     for(let file of files) {
-        if (file.fileType !== 'usfm') {
-            console.warn('[generate] File does not have the USFM file type!', file.name);
-            continue;
-        }
         try {
+            let parser: UsfmParser | USXParser;
+            if (file.fileType === 'usfm') {
+                parser = usfmParser;
+            } else if (file.fileType === 'usx') {
+                parser = usxParser;
+            } else {
+                console.warn('[generate] File does not have a valid type!', file.name);
+                continue;
+            }
+
             const parsed = parser.parse(file.content);
             const id = parsed.id;
 
@@ -70,7 +81,6 @@ export function generate(files: InputFile[], availableTranslations: AvailableTra
                 order,
                 bookName
             });
-
         } catch(err) {
             console.error(`[generate] Error occurred while parsing ${file.name}`, err);
         }
@@ -233,7 +243,6 @@ export function generate(files: InputFile[], availableTranslations: AvailableTra
     }
 }
 
-
 export function jsonFile(path: string, content: any, extras: Pick<OutputFile, 'book' | 'books' | 'chapter'> = {}): OutputFile {
     return {
         path,
@@ -251,7 +260,7 @@ export interface InputFile {
 
     metadata: ParseTreeMetadata;
     content: string;
-    fileType: 'usfm';
+    fileType: 'usfm' | 'usx';
 }
 
 export interface OutputFile {
