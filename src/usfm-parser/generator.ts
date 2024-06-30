@@ -181,6 +181,7 @@ export function generate(files: InputFile[], availableTranslations: AvailableTra
                     let commonChapter: TranslationBookChapter = {
                         translation,
                         book: commonBook,
+                        previousChapter: previousCommonChapter,
                         nextChapterApiLink: null,
                         previousChapterApiLink: previousCommonChapter ? bookChapterApiLink(previousCommonChapter.translation.id, previousCommonChapter.book.commonName, previousCommonChapter.chapter.number, 'json') : null,
                         chapter: {
@@ -196,6 +197,7 @@ export function generate(files: InputFile[], availableTranslations: AvailableTra
                     let idChapter: TranslationBookChapter = {
                         translation,
                         book: idBook,
+                        previousChapter: previousIdChapter,
                         nextChapterApiLink: null,
                         previousChapterApiLink: previousIdChapter ? bookChapterApiLink(previousIdChapter.translation.id, previousIdChapter.book.id, previousIdChapter.chapter.number, 'json') : null,
                         chapter: {
@@ -451,6 +453,11 @@ export interface TranslationBookChapter {
      * The book information for the book chapter.
      */
     book: TranslationBook;
+
+    /**
+     * The previous chapter in the translation.
+     */
+    previousChapter: TranslationBookChapter | null;
 
     /**
      * The link to the next chapter.

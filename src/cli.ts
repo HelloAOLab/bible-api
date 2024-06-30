@@ -150,7 +150,9 @@ async function start() {
             const db = await getDbFromDir(process.cwd());
             try {
                 const translationsSet = new Set(translations);
-                const client = new BibleClient();
+                const client = new BibleClient({
+                    remember_fetches: false,
+                });
 
                 const collection = await client.fetch_collection();
                 const collectionTranslations = collection.get_translations();
@@ -217,6 +219,8 @@ async function start() {
 
                     console.log(`Importing batch ${i + 1} of ${batches.length}`);
                     await importTranslationFileBatch(db, translations.map(t => t.books).flat(), window);
+
+                    console.log(`Current memory usage: ${process.memoryUsage().heapUsed / 1024 / 1024} MB`);
                 }
             } finally {
                 db.close();
@@ -259,12 +263,18 @@ async function importTranslationFileBatch(db: Database, files: InputFile[], wind
         translations: []
     };
 
+    console.log('Generating output for', files.length, 'files');
+
     const output = generate(files, availableTranslations, window);
+
+    console.log('Generated', output.length, 'files');
 
     insertTranslations(db, availableTranslations.translations);
     const books = output.filter(o => o.books).map(o => o.books);
     insertTranslationBooks(db, books);
     insertTranslationContent(db, output);
+
+    console.log(`Inserted ${output.length} files into DB`);
 }
 
 function insertTranslations(db: Database, translations: Translation[]) {
@@ -365,12 +375,20 @@ function insertTranslationContent(db: Database, output: OutputFile[]) {
         translationId,
         bookId,
         number,
-        apiLink
+        apiLink,
+        json,
+        previousChapterTranslationId,
+        previousChapterBookId,
+        previousChapterNumber
     ) VALUES (
         @translationId,
         @bookId,
         @number,
-        @apiLink
+        @apiLink,
+        @json,
+        @previousChapterTranslationId,
+        @previousChapterBookId,
+        @previousChapterNumber
     ) ON CONFLICT(translationId,bookId,number) DO 
         UPDATE SET
             apiLink=excluded.apiLink;`);
@@ -379,16 +397,19 @@ function insertTranslationContent(db: Database, output: OutputFile[]) {
         bookId,
         chapterNumber,
         number,
-        text
+        text,
+        contentJson
     ) VALUES (
         @translationId,
         @bookId,
         @chapterNumber,
         @number,
-        @text
+        @text,
+        @contentJson
     ) ON CONFLICT(translationId,bookId,chapterNumber,number) DO 
         UPDATE SET
-            text=excluded.text;`);
+            text=excluded.text,
+            contentJson=excluded.contentJson;`);
     const footnoteUpsert = db.prepare(`INSERT INTO ChapterFootnote(
         translationId,
         bookId,
@@ -419,6 +440,7 @@ function insertTranslationContent(db: Database, output: OutputFile[]) {
                     let verses: {
                         number: number,
                         text: string,
+                        contentJson: string,
                     }[] = [];
                     let footnotes: Map<number, {
                         id: number,
@@ -458,10 +480,13 @@ function insertTranslationContent(db: Database, output: OutputFile[]) {
                                     }
                                 }
                             }
+
+                            let contentJson = JSON.stringify(verse.content);
         
                             verses.push({
                                 number: verse.number,
                                 text: text.trimEnd(),
+                                contentJson,
                             });
                         }
                     }
@@ -471,6 +496,10 @@ function insertTranslationContent(db: Database, output: OutputFile[]) {
                         bookId: file.chapter.book.id,
                         number: file.chapter.chapter.number,
                         apiLink: file.path,
+                        json: JSON.stringify(file.chapter.chapter),
+                        previousChapterTranslationId: file.chapter.previousChapter?.translation.id,
+                        previousChapterBookId: file.chapter.previousChapter?.book.id,
+                        previousChapterNumber: file.chapter.previousChapter?.chapter.number,
                     });
         
                     for (let verse of verses) {
@@ -480,6 +509,7 @@ function insertTranslationContent(db: Database, output: OutputFile[]) {
                             chapterNumber: file.chapter.chapter.number,
                             number: verse.number,
                             text: verse.text,
+                            contentJson: verse.contentJson,
                         });
                     }
         
