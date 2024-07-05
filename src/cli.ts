@@ -9,6 +9,7 @@ import { DOMWindow, JSDOM } from 'jsdom';
 import { BibleClient } from '@gracious.tech/fetch-client';
 import { GetTranslationsItem } from '@gracious.tech/fetch-client/dist/esm/collection';
 import { getFirstNonEmpty, getTranslationId, normalizeLanguage } from './utils';
+import { exists } from 'fs-extra';
 
 const migrationsPath = path.resolve(__dirname, './migrations');
 
@@ -67,9 +68,12 @@ async function start() {
 
     program.command('fetch-translations <dir> [translations...]')
         .description('Fetches the specified translations from fetch.bible and places them in the given directory.')
-        .action(async (dir: string, translations: string[] ) => {
+        .option('-a, --all', 'Fetch all translations. If omitted, only undownloaded translations will be fetched.')
+        .action(async (dir: string, translations: string[], options: any) => {
             const translationsSet = new Set(translations);
-            const client = new BibleClient();
+            const client = new BibleClient({
+                remember_fetches: false,
+            });
 
             const collection = await client.fetch_collection();
             const collectionTranslations = collection.get_translations();
@@ -102,6 +106,11 @@ async function start() {
                     };
 
                     const books = await Promise.all(collection.get_books(t.id).map(async b => {
+                        const name = `${b.id}.usx`;
+                        if (!options.all && await exists(path.resolve(dir, translation.id, name))) {
+                            return null;
+                        }
+
                         const content = await collection.fetch_book(t.id, b.id, 'usx');
 
                         const contentString = content.get_whole();
@@ -111,7 +120,7 @@ async function start() {
                             metadata: {
                                 translation
                             },
-                            name: `${b.id}.usx`,
+                            name,
                         };
 
                         return file;
@@ -127,6 +136,9 @@ async function start() {
                 let promises: Promise<void>[] = [];
                 for(let { translation, books } of translations) {
                     for (let book of books) {
+                        if (!book) {
+                            continue;
+                        }
                         if (!book.name) {
                             throw new Error('Book name is required');
                         }
