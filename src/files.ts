@@ -1,8 +1,8 @@
 import { readFile, readdir } from "fs/promises";
 import { extname } from "path";
 import * as path from "path";
-import { InputFile, InputTranslationMetadata, ParseTreeMetadata } from "./usfm-parser/generator";
 import { existsSync } from "fs-extra";
+import { InputFile, InputTranslationMetadata, ParseTreeMetadata } from "./generation/common-types";
 
 /**
  * Loads the files for the given translation.

@@ -52,20 +52,12 @@ model Chapter {
     translationId String
     translation Translation @relation(fields: [translationId], references: [id])
 
-    apiLink String
     json String // The JSON of the chapter
 
     verses ChapterVerse[]
     footnotes ChapterFootnote[]
 
-    previousChapterTranslationId String?
-    previousChapterBookId String?
-    previousChapterNumber Int?
-    previousChapter Chapter? @relation(fields: [previousChapterTranslationId, previousChapterBookId, previousChapterNumber], references: [translationId, bookId, number], name: "fk_previousChapter")
-    nextChapter Chapter? @relation(name: "fk_previousChapter")
-
     @@id([translationId, bookId, number])
-    @@unique([previousChapterTranslationId, previousChapterBookId, previousChapterNumber])
 }
 
 model ChapterVerse {

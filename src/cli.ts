@@ -3,13 +3,14 @@ import path, { extname } from 'path';
 import {mkdir, readdir, readFile, writeFile} from 'fs/promises';
 import Sql, { Database } from 'better-sqlite3';
 import { randomUUID } from 'crypto';
-import { AvailableTranslations, ChapterVerse, generate, InputFile, InputTranslationMetadata, OutputFile, Translation, TranslationBooks } from './usfm-parser/generator';
 import { loadTranslationFiles } from './files';
 import { DOMWindow, JSDOM } from 'jsdom';
 import { BibleClient } from '@gracious.tech/fetch-client';
 import { GetTranslationsItem } from '@gracious.tech/fetch-client/dist/esm/collection';
 import { getFirstNonEmpty, getTranslationId, normalizeLanguage } from './utils';
 import { exists } from 'fs-extra';
+import { ChapterVerse, InputFile, InputTranslationMetadata, TranslationBookChapter } from './generation/common-types';
+import { DatasetTranslation, DatasetTranslationBook, generateDataset } from './generation/dataset';
 
 const migrationsPath = path.resolve(__dirname, './migrations');
 
@@ -41,7 +42,7 @@ async function start() {
             db.close();
         });
 
-    program.command('import-translation-directory <dir> [dirs...]')
+    program.command('import-translation <dir> [dirs...]')
         .description('Imports a translation from the given directory into the database.')
         .action(async (dir: string, dirs: string[]) => {
             const db = await getDbFromDir(process.cwd());
@@ -52,7 +53,7 @@ async function start() {
             }
         });
     
-    program.command('import-translations-directories <dir>')
+    program.command('import-translations <dir>')
         .description('Imports all translations from the given directory into the database.')
         .action(async (dir: string) => {
             const db = await getDbFromDir(process.cwd());
@@ -273,25 +274,18 @@ async function importTranslationBatch(db: Database, dirs: string[], window: DOMW
 }
 
 async function importTranslationFileBatch(db: Database, files: InputFile[], window: DOMWindow) {
-    const availableTranslations: AvailableTranslations = {
-        translations: []
-    };
-
     console.log('Generating output for', files.length, 'files');
 
-    const output = generate(files, availableTranslations, window);
+    const output = generateDataset(files, window);
 
-    console.log('Generated', output.length, 'files');
+    console.log('Generated', output.translations, 'translations');
 
-    insertTranslations(db, availableTranslations.translations);
-    const books = output.filter(o => o.books).map(o => o.books);
-    insertTranslationBooks(db, books);
-    insertTranslationContent(db, output);
+    insertTranslations(db, output.translations);
 
-    console.log(`Inserted ${output.length} files into DB`);
+    console.log(`Inserted ${output.translations} translations into DB`);
 }
 
-function insertTranslations(db: Database, translations: Translation[]) {
+function insertTranslations(db: Database, translations: DatasetTranslation[]) {
     const translationUpsert = db.prepare(`INSERT INTO Translation(
         id,
         name,
@@ -336,9 +330,13 @@ function insertTranslations(db: Database, translations: Translation[]) {
     });
 
     insertManyTranslations(translations);
+
+    for(let translation of translations) {
+        insertTranslationBooks(db, translation, translation.books);
+    }
 }
 
-function insertTranslationBooks(db: Database, translationBooks: (TranslationBooks | undefined)[]) {
+function insertTranslationBooks(db: Database, translation: DatasetTranslation, translationBooks: DatasetTranslationBook[]) {
     const bookUpsert = db.prepare(`INSERT INTO Book(
         id,
         translationId,
@@ -362,50 +360,44 @@ function insertTranslationBooks(db: Database, translationBooks: (TranslationBook
             commonName=excluded.commonName,
             numberOfChapters=excluded.numberOfChapters;`);
 
-    for(let books of translationBooks) {
-        if (!books) {
-            continue;
-        }
-        const insertMany = db.transaction((books: TranslationBooks) => {
-            for(let book of books!.books) {
-                bookUpsert.run({
-                    id: book.id,
-                    translationId: books!.translation.id,
-                    title: book.title,
-                    name: book.name,
-                    commonName: book.commonName,
-                    numberOfChapters: book.numberOfChapters,
-                    bookOrder: book.order ?? 9999
-                });
+    const insertMany = db.transaction((books: DatasetTranslationBook[]) => {
+        for(let book of books) {
+            if (!book) {
+                continue;
             }
-        });
+            bookUpsert.run({
+                id: book.id,
+                translationId: translation.id,
+                title: book.title,
+                name: book.name,
+                commonName: book.commonName,
+                numberOfChapters: book.chapters.length,
+                bookOrder: book.order ?? 9999
+            });
+        }
+    });
 
-        insertMany(books);
+    insertMany(translationBooks);
+
+    for (let book of translationBooks) {
+        insertTranslationContent(db, translation, book, book.chapters);
     }
 }
 
-function insertTranslationContent(db: Database, output: OutputFile[]) {
+function insertTranslationContent(db: Database, translation: DatasetTranslation, book: DatasetTranslationBook, chapters: TranslationBookChapter[]) {
     const chapterUpsert = db.prepare(`INSERT INTO Chapter(
         translationId,
         bookId,
         number,
-        apiLink,
-        json,
-        previousChapterTranslationId,
-        previousChapterBookId,
-        previousChapterNumber
+        json
     ) VALUES (
         @translationId,
         @bookId,
         @number,
-        @apiLink,
-        @json,
-        @previousChapterTranslationId,
-        @previousChapterBookId,
-        @previousChapterNumber
+        @json
     ) ON CONFLICT(translationId,bookId,number) DO 
         UPDATE SET
-            apiLink=excluded.apiLink;`);
+            json=excluded.json;`);
     const verseUpsert = db.prepare(`INSERT INTO ChapterVerse(
         translationId,
         bookId,
@@ -444,13 +436,7 @@ function insertTranslationContent(db: Database, output: OutputFile[]) {
             text=excluded.text;`);
 
         const insertChaptersAndVerses = db.transaction(() => {
-            for (let file of output) {
-                if (file.chapter) {
-                    if (!file.chapter.chapter.number) {
-                        console.error('Chapter missing number', file.chapter.translation.id, file.chapter.book.id, file.chapter.chapter.number);
-                        continue;
-                    }
-    
+            for (let chapter of chapters) {
                     let verses: {
                         number: number,
                         text: string,
@@ -462,18 +448,18 @@ function insertTranslationContent(db: Database, output: OutputFile[]) {
                         verseNumber?: number,
                     }> = new Map();
         
-                    for (let c of file.chapter.chapter.footnotes) {
+                    for (let c of chapter.chapter.footnotes) {
                         footnotes.set(c.noteId, {
                             id: c.noteId,
                             text: c.text,
                         });
                     }
         
-                    for (let c of file.chapter.chapter.content) {
+                    for (let c of chapter.chapter.content) {
                         if (c.type === 'verse') {
                             const verse: ChapterVerse = c;
                             if (!verse.number) {
-                                console.error('Verse missing number', file.chapter.translation.id, file.chapter.book.id, file.chapter.chapter.number, verse.number);
+                                console.error('Verse missing number', translation.id, book.id, chapter.chapter.number, verse.number);
                                 continue;
                             }
     
@@ -506,21 +492,17 @@ function insertTranslationContent(db: Database, output: OutputFile[]) {
                     }
         
                     chapterUpsert.run({
-                        translationId: file.chapter.translation.id as string,
-                        bookId: file.chapter.book.id,
-                        number: file.chapter.chapter.number,
-                        apiLink: file.path,
-                        json: JSON.stringify(file.chapter.chapter),
-                        previousChapterTranslationId: file.chapter.previousChapter?.translation.id,
-                        previousChapterBookId: file.chapter.previousChapter?.book.id,
-                        previousChapterNumber: file.chapter.previousChapter?.chapter.number,
+                        translationId: translation.id as string,
+                        bookId: book.id,
+                        number: chapter.chapter.number,
+                        json: JSON.stringify(chapter.chapter),
                     });
         
                     for (let verse of verses) {
                         verseUpsert.run({
-                            translationId: file.chapter.translation.id as string,
-                            bookId: file.chapter.book.id,
-                            chapterNumber: file.chapter.chapter.number,
+                            translationId: translation.id as string,
+                            bookId: book.id,
+                            chapterNumber: chapter.chapter.number,
                             number: verse.number,
                             text: verse.text,
                             contentJson: verse.contentJson,
@@ -529,16 +511,15 @@ function insertTranslationContent(db: Database, output: OutputFile[]) {
         
                     for(let footnote of footnotes.values()) {
                         footnoteUpsert.run({
-                            translationId: file.chapter.translation.id as string,
-                            bookId: file.chapter.book.id,
-                            chapterNumber: file.chapter.chapter.number,
+                            translationId: translation.id as string,
+                            bookId: book.id,
+                            chapterNumber: chapter.chapter.number,
                             id: footnote.id,
                             verseNumber: footnote.verseNumber,
                             text: footnote.text,
                         });
                     }
                 }
-            }
         });
 
         insertChaptersAndVerses();
