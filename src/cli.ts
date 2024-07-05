@@ -76,7 +76,7 @@ async function start() {
 
             console.log(`Discovered ${collectionTranslations.length} translations`);
 
-            const filtered = translations.length < 0 ? collectionTranslations : collectionTranslations.filter(t => translationsSet.has(t.id));
+            const filtered = translations.length <= 0 ? collectionTranslations : collectionTranslations.filter(t => translationsSet.has(t.id));
 
             let batches: GetTranslationsItem[][] = [];
             while (filtered.length > 0) {
@@ -89,23 +89,25 @@ async function start() {
                 const batch = batches[i];
                 console.log(`Downloading batch ${i + 1} of ${batches.length}`);
                 const translations = await Promise.all(batch.map(async t => {
+                    const id = getTranslationId(t);
                     const translation: InputTranslationMetadata = {
-                        id: t.id,
-                        name: t.name_local,
-                        direction: t.direction,
-                        englishName: t.name_english,
-                        language: t.language,
+                        id,
+                        name: getFirstNonEmpty(t.name_local, t.name_english, t.name_abbrev),
+                        direction: getFirstNonEmpty(t.direction, 'ltr'),
+                        englishName: getFirstNonEmpty(t.name_english, t.name_abbrev, t.name_local),
+                        language: normalizeLanguage(t.language),
                         licenseUrl: t.attribution_url,
-                        shortName: t.name_abbrev,
+                        shortName: getFirstNonEmpty(t.name_abbrev, id),
                         website: t.attribution_url,
                     };
 
                     const books = await Promise.all(collection.get_books(t.id).map(async b => {
                         const content = await collection.fetch_book(t.id, b.id, 'usx');
 
+                        const contentString = content.get_whole();
                         const file: InputFile = {
                             fileType: 'usx',
-                            content: content.get_whole(),
+                            content: contentString,
                             metadata: {
                                 translation
                             },
