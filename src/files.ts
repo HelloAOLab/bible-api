@@ -67,6 +67,12 @@ async function loadTranslationMetadata(translation: string): Promise<InputTransl
                 shortName: metadata.name.abbrev,
                 direction: metadata.direction
             };
+        } else {
+            const metadataJson = path.resolve(translation, 'metadata.json');
+            if (existsSync(metadataJson)) {
+                const data = await readFile(metadataJson, { encoding: 'utf-8' });
+                return JSON.parse(data) as InputTranslationMetadata;
+            }
         }
     }
     console.error('Could not find metadata for translation!', translation);

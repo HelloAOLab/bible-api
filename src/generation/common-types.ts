@@ -117,11 +117,6 @@ export interface Translation {
      * "rtl" indicates that the text is written from the right side of the page to the left.
      */
     textDirection: 'ltr' | 'rtl';
-
-    /**
-     * The available list of formats.
-     */
-    availableFormats: ('json' | 'usfm')[];
 }
 
 /**

@@ -10,7 +10,10 @@ import { GetTranslationsItem } from '@gracious.tech/fetch-client/dist/esm/collec
 import { getFirstNonEmpty, getTranslationId, normalizeLanguage } from './utils';
 import { exists } from 'fs-extra';
 import { ChapterVerse, InputFile, InputTranslationMetadata, TranslationBookChapter } from './generation/common-types';
-import { DatasetTranslation, DatasetTranslationBook, generateDataset } from './generation/dataset';
+import { DatasetOutput, DatasetTranslation, DatasetTranslationBook, generateDataset } from './generation/dataset';
+import { PrismaClient } from '@prisma/client';
+import { generateApiForDataset, generateFilesForApi } from './generation/api';
+import { loadDatasets } from './db';
 
 const migrationsPath = path.resolve(__dirname, './migrations');
 
@@ -64,6 +67,56 @@ async function start() {
                 await importTranslations(db, translationDirs, window);
             } finally {
                 db.close();
+            }
+        });
+
+    program.command('generate-api-files <dir>')
+        .description('Generates API files from the database.')
+        .option('--batch-size <size>', 'The number of translations to generate API files for in each batch.', '50')
+        .option('--overwrite', 'Whether to overwrite existing files.')
+        .option('--use-common-name', 'Whether to use the common name for the book chapter API link. If false, then book IDs are used.')
+        .action(async (dir: string, options: any) => {
+            const db = getPrismaDbFromDir(process.cwd());
+            try {
+                const overwrite = !!options.overwrite;
+                let pageSize = parseInt(options.batchSize);
+
+                console.log('Generating API files in batches of', pageSize);
+
+                let page = 0;
+                for await(let dataset of loadDatasets(db, pageSize)) {
+                    console.log('Processing page', page++);
+                    const api = generateApiForDataset(dataset, !!options.useCommonName);
+                    const files = generateFilesForApi(api);
+
+                    console.log('Generated', files.length, 'files');
+
+                    let writtenFiles = 0;
+                    for (let file of files) {
+                        const filePath = path.resolve(dir, makeRelative(file.path));
+                        await mkdir(path.dirname(filePath), { recursive: true });
+
+                        let content: string;
+                        if (extname(file.path) === '.json') {
+                            content = JSON.stringify(file.content, null, 2);
+                        } else {
+                            console.warn('Unknown file type', file.path);
+                            console.warn('Skipping file');
+                            continue;
+                        }
+
+                        if (overwrite || !await exists(filePath)) {
+                            await writeFile(filePath, content, 'utf-8');
+                            writtenFiles++;
+                        } else {
+                            console.warn('File already exists:', filePath);
+                        }
+                    }
+
+                    console.log('Wrote', writtenFiles, 'files');
+                }
+            } finally {
+                db.$disconnect();
             }
         });
 
@@ -159,93 +212,94 @@ async function start() {
             }
         });
 
-    program.command('import-translations [translations...]')
-        .description('Fetches and imports the specified translations from fetch.bible.')
-        .action(async (translations: string[] ) => {
-            const db = await getDbFromDir(process.cwd());
-            try {
-                const translationsSet = new Set(translations);
-                const client = new BibleClient({
-                    remember_fetches: false,
-                });
+    // program.command('import-translations [translations...]')
+    //     .description('Fetches and imports the specified translations from fetch.bible.')
+    //     .action(async (translations: string[] ) => {
+    //         const db = await getDbFromDir(process.cwd());
+    //         try {
+    //             const translationsSet = new Set(translations);
+    //             const client = new BibleClient({
+    //                 remember_fetches: false,
+    //             });
 
-                const collection = await client.fetch_collection();
-                const collectionTranslations = collection.get_translations();
+    //             const collection = await client.fetch_collection();
+    //             const collectionTranslations = collection.get_translations();
 
-                console.log(`Discovered ${collectionTranslations.length} translations`);
+    //             console.log(`Discovered ${collectionTranslations.length} translations`);
 
-                const filtered = translations.length <= 0 ? collectionTranslations : collectionTranslations.filter(t => translationsSet.has(t.id));
+    //             const filtered = translations.length <= 0 ? collectionTranslations : collectionTranslations.filter(t => translationsSet.has(t.id));
 
-                let translationIDs = new Map<string, GetTranslationsItem>();
-                for (let t of filtered) {
-                    let id = getTranslationId(t);
-                    if (translationIDs.has(id)) {
-                        const existing = translationIDs.get(id);
-                        console.warn(`Duplicate translation ID: ${id}: ${existing?.id} and ${t.id}`);
-                        throw new Error(`Duplicate translation ID: ${id}: ${existing?.id} and ${t.id}`);
-                    } else {
-                        translationIDs.set(id, t);
-                    }
-                }
+    //             let translationIDs = new Map<string, GetTranslationsItem>();
+    //             for (let t of filtered) {
+    //                 let id = getTranslationId(t);
+    //                 if (translationIDs.has(id)) {
+    //                     const existing = translationIDs.get(id);
+    //                     console.warn(`Duplicate translation ID: ${id}: ${existing?.id} and ${t.id}`);
+    //                     throw new Error(`Duplicate translation ID: ${id}: ${existing?.id} and ${t.id}`);
+    //                 } else {
+    //                     translationIDs.set(id, t);
+    //                 }
+    //             }
 
-                let batches: GetTranslationsItem[][] = [];
-                while (filtered.length > 0) {
-                    batches.push(filtered.splice(0, 10));
-                }
+    //             let batches: GetTranslationsItem[][] = [];
+    //             while (filtered.length > 0) {
+    //                 batches.push(filtered.splice(0, 10));
+    //             }
 
-                console.log(`Downloading ${filtered.length} translations in ${batches.length} batches`);
+    //             console.log(`Downloading ${filtered.length} translations in ${batches.length} batches`);
 
-                for (let i = 0; i < batches.length; i++) {
-                    const batch = batches[i];
-                    console.log(`Downloading batch ${i + 1} of ${batches.length}`);
-                    const translations = await Promise.all(batch.map(async t => {
-                        const id = getTranslationId(t);
-                        const translation: InputTranslationMetadata = {
-                            id,
-                            name: getFirstNonEmpty(t.name_local, t.name_english, t.name_abbrev),
-                            direction: getFirstNonEmpty(t.direction, 'ltr'),
-                            englishName: getFirstNonEmpty(t.name_english, t.name_abbrev, t.name_local),
-                            language: normalizeLanguage(t.language),
-                            licenseUrl: t.attribution_url,
-                            shortName: getFirstNonEmpty(t.name_abbrev, id),
-                            website: t.attribution_url,
-                        };
+    //             for (let i = 0; i < batches.length; i++) {
+    //                 const batch = batches[i];
+    //                 console.log(`Downloading batch ${i + 1} of ${batches.length}`);
+    //                 const translations = await Promise.all(batch.map(async t => {
+    //                     const id = getTranslationId(t);
+    //                     const translation: InputTranslationMetadata = {
+    //                         id,
+    //                         name: getFirstNonEmpty(t.name_local, t.name_english, t.name_abbrev),
+    //                         direction: getFirstNonEmpty(t.direction, 'ltr'),
+    //                         englishName: getFirstNonEmpty(t.name_english, t.name_abbrev, t.name_local),
+    //                         language: normalizeLanguage(t.language),
+    //                         licenseUrl: t.attribution_url,
+    //                         shortName: getFirstNonEmpty(t.name_abbrev, id),
+    //                         website: t.attribution_url,
+    //                     };
 
-                        const books = await Promise.all(collection.get_books(t.id).map(async b => {
-                            const content = await collection.fetch_book(t.id, b.id, 'usx');
+    //                     const books = await Promise.all(collection.get_books(t.id).map(async b => {
+    //                         const content = await collection.fetch_book(t.id, b.id, 'usx');
 
-                            const file: InputFile = {
-                                fileType: 'usx',
-                                content: content.get_whole(),
-                                metadata: {
-                                    translation
-                                },
-                                name: `${b.id}.usx`,
-                            };
+    //                         const file: InputFile = {
+    //                             fileType: 'usx',
+    //                             content: content.get_whole(),
+    //                             metadata: {
+    //                                 translation
+    //                             },
+    //                             name: `${b.id}.usx`,
+    //                         };
 
-                            return file;
-                        }));
+    //                         return file;
+    //                     }));
 
-                        return {
-                            translation,
-                            books,
-                        };
-                    }));
+    //                     return {
+    //                         translation,
+    //                         books,
+    //                     };
+    //                 }));
 
-                    console.log(`Importing batch ${i + 1} of ${batches.length}`);
-                    await importTranslationFileBatch(db, translations.map(t => t.books).flat(), window);
+    //                 console.log(`Importing batch ${i + 1} of ${batches.length}`);
+    //                 await importTranslationFileBatch(db, translations.map(t => t.books).flat(), window);
 
-                    console.log(`Current memory usage: ${process.memoryUsage().heapUsed / 1024 / 1024} MB`);
-                }
-            } finally {
-                db.close();
-            }
-        });
+    //                 console.log(`Current memory usage: ${process.memoryUsage().heapUsed / 1024 / 1024} MB`);
+    //             }
+    //         } finally {
+    //             db.close();
+    //         }
+    //     });
 
     await program.parseAsync(process.argv);
 }
 
 start();
+
 
 async function importTranslations(db: Database, dirs: string[], window: DOMWindow) {
     let batches = [] as string[][];
@@ -278,7 +332,7 @@ async function importTranslationFileBatch(db: Database, files: InputFile[], wind
 
     const output = generateDataset(files, window);
 
-    console.log('Generated', output.translations, 'translations');
+    console.log('Generated', output.translations.length, 'translations');
 
     insertTranslations(db, output.translations);
 
@@ -525,9 +579,25 @@ function insertTranslationContent(db: Database, translation: DatasetTranslation,
         insertChaptersAndVerses();
 }
 
-async function getDbFromDir(dir: string) {
+function getDbPath(dir: string) {
     dir = dir || process.cwd();
-    const dbPath = path.resolve(dir, 'bible-api.db');
+    return path.resolve(dir, 'bible-api.db');
+}
+
+function getPrismaDbFromDir(dir: string) {
+    const dbPath = getDbPath(dir);
+    const prisma = new PrismaClient({
+        datasources: {
+            db: {
+                url: `file:${dbPath}`,
+            }
+        }
+    });
+    return prisma;
+}
+
+async function getDbFromDir(dir: string) {
+    const dbPath = getDbPath(dir);
 
     const db = await getDb(dbPath);
     return db;
@@ -577,4 +647,12 @@ interface Migration {
     checksum: string;
     finished_at: Date;
     migration_name: string;
+}
+
+
+function makeRelative(path: string) {
+    if (path.startsWith('/')) {
+        return `.${path}`;
+    }
+    return path;
 }

@@ -45,6 +45,11 @@ export interface ApiTranslation extends Translation {
      * The API link for the list of available books for this translation.
      */
     listOfBooksApiLink: string;
+
+    /**
+     * The available list of formats.
+     */
+    availableFormats: ('json' | 'usfm')[];
 }
 
 /**
@@ -132,6 +137,7 @@ export function generateApiForDataset(dataset: DatasetOutput, useCommonName: boo
 
         const apiTranslation: ApiTranslation = {
             ...translation,
+            availableFormats: ['json'],
             listOfBooksApiLink: listOfBooksApiLink(translation.id),
         };
 

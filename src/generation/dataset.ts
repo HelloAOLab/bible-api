@@ -100,9 +100,6 @@ export function generateDataset(files: InputFile[], window: DOMWindow = globalTh
             if (!translation) {
                 translation = {
                     ...omit(file.metadata.translation, 'direction'),
-                    availableFormats: [
-                        'json'
-                    ],
                     textDirection: file.metadata.translation.direction,
                     books: []
                 };
