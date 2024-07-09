@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import path, { extname } from 'path';
+import path, { dirname, extname, resolve } from 'path';
 import {mkdir, readdir, readFile, writeFile} from 'fs/promises';
 import Sql, { Database } from 'better-sqlite3';
 import { randomUUID } from 'crypto';
@@ -9,11 +9,12 @@ import { BibleClient } from '@gracious.tech/fetch-client';
 import { GetTranslationsItem } from '@gracious.tech/fetch-client/dist/esm/collection';
 import { getFirstNonEmpty, getTranslationId, normalizeLanguage } from './utils';
 import { exists } from 'fs-extra';
-import { ChapterVerse, InputFile, InputTranslationMetadata, TranslationBookChapter } from './generation/common-types';
+import { ChapterVerse, InputFile, InputTranslationMetadata, OutputFile, TranslationBookChapter } from './generation/common-types';
 import { DatasetOutput, DatasetTranslation, DatasetTranslationBook, generateDataset } from './generation/dataset';
 import { PrismaClient } from '@prisma/client';
 import { generateApiForDataset, generateFilesForApi } from './generation/api';
-import { loadDatasets } from './db';
+import { loadDatasets, serializeFilesForDataset } from './db';
+import { merge } from 'lodash';
 
 const migrationsPath = path.resolve(__dirname, './migrations');
 
@@ -79,37 +80,24 @@ async function start() {
             const db = getPrismaDbFromDir(process.cwd());
             try {
                 const overwrite = !!options.overwrite;
+                if (overwrite) {
+                    console.log('Overwriting existing files');
+                }
+                
                 let pageSize = parseInt(options.batchSize);
 
-                console.log('Generating API files in batches of', pageSize);
-
-                let page = 0;
-                for await(let dataset of loadDatasets(db, pageSize)) {
-                    console.log('Processing page', page++);
-                    const api = generateApiForDataset(dataset, !!options.useCommonName);
-                    const files = generateFilesForApi(api);
-
-                    console.log('Generated', files.length, 'files');
-
+                for await(let files of serializeFilesForDataset(db, !!options.useCommonName, pageSize)) {
                     let writtenFiles = 0;
-                    for (let file of files) {
-                        const filePath = path.resolve(dir, makeRelative(file.path));
-                        await mkdir(path.dirname(filePath), { recursive: true });
-
-                        let content: string;
-                        if (extname(file.path) === '.json') {
-                            content = JSON.stringify(file.content, null, 2);
-                        } else {
-                            console.warn('Unknown file type', file.path);
-                            console.warn('Skipping file');
-                            continue;
-                        }
+                    for(let { path, content } of files) {
+                        const filePath = resolve(dir, makeRelative(path));
+                        await mkdir(dirname(filePath), { recursive: true });
 
                         if (overwrite || !await exists(filePath)) {
                             await writeFile(filePath, content, 'utf-8');
                             writtenFiles++;
                         } else {
                             console.warn('File already exists:', filePath);
+                            console.warn('Skipping file');
                         }
                     }
 
@@ -118,6 +106,8 @@ async function start() {
             } finally {
                 db.$disconnect();
             }
+
+            
         });
 
     program.command('fetch-translations <dir> [translations...]')

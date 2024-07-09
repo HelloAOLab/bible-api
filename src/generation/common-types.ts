@@ -15,6 +15,11 @@ export interface InputFile {
 export interface OutputFile {
     path: string;
     content: object;
+
+    /**
+     * Whether the file can be merged with files of the same name but from other datasets.
+     */
+    mergable?: boolean;
 }
 
 /**

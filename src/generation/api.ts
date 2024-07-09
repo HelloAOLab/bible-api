@@ -197,7 +197,7 @@ export function generateApiForDataset(dataset: DatasetOutput, useCommonName: boo
 export function generateFilesForApi(api: ApiOutput): OutputFile[] {
     let files: OutputFile[] = [];
 
-    files.push(jsonFile('/api/available_translations.json', api.availableTranslations));
+    files.push(jsonFile('/api/available_translations.json', api.availableTranslations, true));
     for(let translationBooks of api.translationBooks) {
         files.push(jsonFile(translationBooks.translation.listOfBooksApiLink, translationBooks));
     }
@@ -217,10 +217,11 @@ export function bookChapterApiLink(translationId: string, commonName: string, ch
     return `/api/${translationId}/${replaceSpacesWithUnderscores(commonName)}/${chapterNumber}.${extension}`;
 }
 
-export function jsonFile(path: string, content: any): OutputFile {
+export function jsonFile(path: string, content: any, mergable?: boolean): OutputFile {
     return {
         path,
         content,
+        mergable
     };
 }
 
