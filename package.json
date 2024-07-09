@@ -41,6 +41,8 @@
     "vite": "^4.0.0"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.609.0",
+    "@aws-sdk/credential-providers": "^3.609.0",
     "@gracious.tech/fetch-client": "^0.7.0",
     "@prisma/client": "^5.12.1",
     "better-sqlite3": "^9.5.0",

@@ -22,7 +22,7 @@ export async function *loadDatasets(db: PrismaClient, translationsPerBatch: numb
     console.log('Generating API files in batches of', pageSize);
     const totalTranslations = await db.translation.count();
     const totalBatches = Math.ceil(totalTranslations / pageSize);
-    let batchNumber = 0;
+    let batchNumber = 1;
 
     while(true) {
         console.log('Generating API batch', batchNumber, 'of', totalBatches);
@@ -101,9 +101,7 @@ export async function *loadDatasets(db: PrismaClient, translationsPerBatch: numb
 export async function *serializeFilesForDataset(db: PrismaClient, useCommonName: boolean, translationsPerBatch: number = 50): AsyncGenerator<SerializedFile[]> {
     const mergableFiles = new Map<string, OutputFile[]>();
 
-    let page = 0;
     for await(let dataset of loadDatasets(db, translationsPerBatch)) {
-        console.log('Processing page', page++);
         const api = generateApiForDataset(dataset, useCommonName);
         const files = generateFilesForApi(api);
 
@@ -169,30 +167,14 @@ export async function *serializeFilesForDataset(db: PrismaClient, useCommonName:
         console.warn('Skipping file');
         return null;
     }
+}
 
-    // async function writeOutputFile(path: string, content: object): Promise<number> {
-    //     // const filePath = resolve(dir, makeRelative(path));
-    //     // await mkdir(dirname(filePath), { recursive: true });
-
-    //     if (overwrite || !await exists(filePath)) {
-    //         await writeFile(filePath, fileContent, 'utf-8');
-    //         return 1;
-    //     } else {
-    //         console.warn('File already exists:', filePath);
-    //         console.warn('Skipping file');
-    //     }
-
-    //     return 0;
-
-    //     let fileContent: string;
-    //     if (extname(path) === '.json') {
-    //         fileContent = JSON.stringify(content, null, 2);
-    //     } else {
-    //         console.warn('Unknown file type', path);
-    //         console.warn('Skipping file');
-    //         return 0;
-    //     }
-
-    //     return await writeFile(path, fileContent);
-    // }
+export interface Uploader {
+    /**
+     * Uploads the given file.
+     * @param file The file to upload.
+     * @param overwrite Whether the file should be overwritten if it already exists.
+     * @returns True if the file was uploaded. False if the file was skipped due to already existing.
+     */
+    upload(file: SerializedFile, overwrite: boolean): Promise<boolean>;
 }

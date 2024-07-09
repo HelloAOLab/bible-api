@@ -13,8 +13,10 @@ import { ChapterVerse, InputFile, InputTranslationMetadata, OutputFile, Translat
 import { DatasetOutput, DatasetTranslation, DatasetTranslationBook, generateDataset } from './generation/dataset';
 import { PrismaClient } from '@prisma/client';
 import { generateApiForDataset, generateFilesForApi } from './generation/api';
-import { loadDatasets, serializeFilesForDataset } from './db';
+import { loadDatasets, serializeFilesForDataset, Uploader } from './db';
 import { merge } from 'lodash';
+import { S3Client } from '@aws-sdk/client-s3';
+import { parseS3Url, S3Uploader } from './s3';
 
 const migrationsPath = path.resolve(__dirname, './migrations');
 
@@ -83,7 +85,7 @@ async function start() {
                 if (overwrite) {
                     console.log('Overwriting existing files');
                 }
-                
+
                 let pageSize = parseInt(options.batchSize);
 
                 for await(let files of serializeFilesForDataset(db, !!options.useCommonName, pageSize)) {
@@ -106,8 +108,66 @@ async function start() {
             } finally {
                 db.$disconnect();
             }
+        });
 
-            
+    program.command('upload-api-files')
+        .argument('<dest>', 'The destination to upload the API files to.')
+        .description('Uploads API files to the specified destination. For S3, use the format s3://bucket-name/path/to/folder.')
+        .option('--batch-size <size>', 'The number of translations to generate API files for in each batch.', '50')
+        .option('--overwrite', 'Whether to overwrite existing files.')
+        .option('--use-common-name', 'Whether to use the common name for the book chapter API link. If false, then book IDs are used.')
+        .option('--profile <profile>', 'The AWS profile to use for uploading to S3.')
+        .action(async (dest: string, options: any) => {
+            const db = getPrismaDbFromDir(process.cwd());
+            try {
+                const overwrite = !!options.overwrite;
+                if (overwrite) {
+                    console.log('Overwriting existing files');
+                }
+
+                let uploader: Uploader;
+                if (dest.startsWith('s3://')) {
+                    // Upload to S3
+                    const url = dest;
+                    const s3Url = parseS3Url(url);
+                    if (!s3Url) {
+                        throw new Error(`Invalid S3 URL: ${url}`);
+                    }
+
+                    if (!s3Url.bucketRegion) {
+                        throw new Error(`Invalid S3 URL: ${url}\nUnable to determine bucket region`);
+                    }
+
+                    if (!s3Url.bucketName) {
+                        throw new Error(`Invalid S3 URL: ${url}\nUnable to determine bucket name`);
+                    }
+                    
+                    uploader = new S3Uploader(s3Url.bucketRegion, s3Url.bucketName, s3Url.objectKey, options.profile);
+                } else {
+                    console.error('Unsupported destination:', dest);
+                    process.exit(1);
+                }
+
+                let pageSize = parseInt(options.batchSize);
+
+                for await(let files of serializeFilesForDataset(db, !!options.useCommonName, pageSize)) {
+                    let writtenFiles = 0;
+                    const promises = files.map(async file => {
+                        if (await uploader.upload(file, overwrite)) {
+                            writtenFiles++;
+                        } else {
+                            console.warn('File already exists:', file.path);
+                            console.warn('Skipping file');
+                        }
+                    });
+
+                    await Promise.all(promises);
+
+                    console.log('Wrote', writtenFiles, 'files');
+                }
+            } finally {
+                db.$disconnect();
+            }
         });
 
     program.command('fetch-translations <dir> [translations...]')
