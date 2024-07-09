@@ -36,7 +36,7 @@ export class S3Uploader implements Uploader {
                 await this._client.send(head);
                 return false;
             } catch(err: any) {
-                if (err.name !== 'NotFound') {
+                if (err instanceof NotFound) {
                     // not found, so we can try to write the file.
                 } else {
                     throw err;
