@@ -89,6 +89,7 @@ async function start() {
                 let pageSize = parseInt(options.batchSize);
 
                 for await(let files of serializeFilesForDataset(db, !!options.useCommonName, pageSize)) {
+                    console.log('Writing', files.length, 'files');
                     let writtenFiles = 0;
                     for(let { path, content } of files) {
                         const filePath = resolve(dir, makeRelative(path));
@@ -134,15 +135,11 @@ async function start() {
                         throw new Error(`Invalid S3 URL: ${url}`);
                     }
 
-                    if (!s3Url.bucketRegion) {
-                        throw new Error(`Invalid S3 URL: ${url}\nUnable to determine bucket region`);
-                    }
-
                     if (!s3Url.bucketName) {
                         throw new Error(`Invalid S3 URL: ${url}\nUnable to determine bucket name`);
                     }
                     
-                    uploader = new S3Uploader(s3Url.bucketRegion, s3Url.bucketName, s3Url.objectKey, options.profile);
+                    uploader = new S3Uploader(s3Url.bucketName, s3Url.objectKey, options.profile);
                 } else {
                     console.error('Unsupported destination:', dest);
                     process.exit(1);
@@ -151,6 +148,7 @@ async function start() {
                 let pageSize = parseInt(options.batchSize);
 
                 for await(let files of serializeFilesForDataset(db, !!options.useCommonName, pageSize)) {
+                    console.log('Uploading', files.length, 'files');
                     let writtenFiles = 0;
                     const promises = files.map(async file => {
                         if (await uploader.upload(file, overwrite)) {

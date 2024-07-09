@@ -251,6 +251,11 @@ export interface TranslationBookChapter {
     book: TranslationBook;
 
     /**
+     * The link to the current chapter.
+     */
+    thisChapterApiLink: string;
+
+    /**
      * The link to the next chapter.
      * Null if this is the last chapter in the book.
      */
