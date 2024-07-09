@@ -148,20 +148,50 @@ async function start() {
                 let pageSize = parseInt(options.batchSize);
 
                 for await(let files of serializeFilesForDataset(db, !!options.useCommonName, pageSize)) {
-                    console.log('Uploading', files.length, 'files');
-                    let writtenFiles = 0;
-                    const promises = files.map(async file => {
-                        if (await uploader.upload(file, overwrite)) {
-                            writtenFiles++;
-                        } else {
-                            console.warn('File already exists:', file.path);
-                            console.warn('Skipping file');
-                        }
-                    });
 
-                    await Promise.all(promises);
+                    const batchSize = uploader.idealBatchSize;
+                    const totalBatches = Math.ceil(files.length / batchSize);
+                    console.log('Uploading', files.length, 'total files');
+                    console.log('Uploading in batches of', batchSize);
 
-                    console.log('Wrote', writtenFiles, 'files');
+                    let offset = 0;
+                    let batchNumber = 1;
+                    let batch = files.slice(offset, offset + batchSize);
+
+                    while (batch.length > 0) {
+                        console.log('Uploading batch', batchNumber, 'of', totalBatches);
+                        let writtenFiles = 0;
+                        const promises = batch.map(async file => {
+                            if (await uploader.upload(file, overwrite)) {
+                                writtenFiles++;
+                            } else {
+                                console.warn('File already exists:', file.path);
+                                console.warn('Skipping file');
+                            }
+                        });
+
+                        await Promise.all(promises);
+
+                        console.log('Wrote', writtenFiles, 'files');
+                        batchNumber++;
+                        offset += batchSize;
+                        batch = files.slice(offset, offset + batchSize);
+                    }
+
+                    // console.log('Uploading', files.length, 'files');
+                    // let writtenFiles = 0;
+                    // const promises = files.map(async file => {
+                    //     if (await uploader.upload(file, overwrite)) {
+                    //         writtenFiles++;
+                    //     } else {
+                    //         console.warn('File already exists:', file.path);
+                    //         console.warn('Skipping file');
+                    //     }
+                    // });
+
+                    // await Promise.all(promises);
+
+                    // console.log('Wrote', writtenFiles, 'files');
                 }
             } finally {
                 db.$disconnect();

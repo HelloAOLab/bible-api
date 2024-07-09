@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand, HeadObjectCommand, } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, HeadObjectCommand, NotFound, } from "@aws-sdk/client-s3";
 import { fromNodeProviderChain } from "@aws-sdk/credential-providers"; // ES6 import
 import { SerializedFile, Uploader } from "./db";
 
@@ -7,6 +7,10 @@ export class S3Uploader implements Uploader {
 
     private _bucketName: string;
     private _keyPrefix: string;
+
+    get idealBatchSize() {
+        return 50;
+    }
 
     constructor(bucketName: string, keyPrefix: string, profile: string | null) {
         this._bucketName = bucketName;

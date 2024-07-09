@@ -170,6 +170,12 @@ export async function *serializeFilesForDataset(db: PrismaClient, useCommonName:
 }
 
 export interface Uploader {
+
+    /**
+     * Gets the ideal batch size for the uploader.
+     */
+    idealBatchSize: number;
+
     /**
      * Uploads the given file.
      * @param file The file to upload.
