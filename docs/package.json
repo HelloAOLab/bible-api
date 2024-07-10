@@ -1,6 +1,7 @@
 {
   "name": "@helloao/bible-api-docs",
   "version": "0.0.1",
+  "private": true,
   "description": "An easy-to-use and fully featured JSON API for accessing the Bible",
   "main": "index.js",
   "authors": {

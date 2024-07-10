@@ -118,10 +118,6 @@ importers:
         specifier: ^4.0.0
         version: 4.0.2(@types/node@18.11.17)
 
-  lab/envs/ao-node: {}
-
-  lab/tools/usfm-parser: {}
-
 packages:
 
   /@ampproject/remapping@2.2.0:

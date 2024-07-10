@@ -3,17 +3,10 @@
   "private": true,
   "version": "0.0.0",
   "scripts": {
-    "dev": "vite",
     "test": "jest --watchAll",
     "build": "ts-node ./src/generate-api.ts",
     "build:docs": "cd docs && yarn install && yarn build",
     "dev:docs": "vuepress dev docs/src",
-    "preview": "vite preview",
-    "generate": "ts-node src/generate-api.ts",
-    "build-api": "yarn install && yarn build && yarn build:docs && yarn build:read-site",
-    "dev:g": "gatsby develop",
-    "build:read-site": "gatsby build && cp -nr ./public/* ./build/",
-    "deploy:docs:s3": "aws --profile aolabs s3 sync ./ s3://ao-bible-api/docs",
     "cli": "ts-node ./src/cli.ts"
   },
   "devDependencies": {
@@ -58,5 +51,8 @@
   },
   "prisma": {
     "schema": "./src/schema.prisma"
+  },
+  "engines": {
+    "pnpm": "^8.11.0"
   }
 }
