@@ -14,3 +14,8 @@ declare module "*.usfm" {
     const str: string;
     export default str;
 }
+
+declare module "*.usx" {
+    const str: string;
+    export default str;
+}

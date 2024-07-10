@@ -13,12 +13,14 @@
     "build-api": "yarn install && yarn build && yarn build:docs && yarn build:read-site",
     "dev:g": "gatsby develop",
     "build:read-site": "gatsby build && cp -nr ./public/* ./build/",
-    "deploy:docs:s3": "aws --profile aolabs s3 sync ./ s3://ao-bible-api/docs"
+    "deploy:docs:s3": "aws --profile aolabs s3 sync ./ s3://ao-bible-api/docs",
+    "cli": "ts-node ./src/cli.ts"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.9",
     "@types/fs-extra": "^11.0.4",
     "@types/jest": "^29.4.0",
+    "@types/jsdom": "21.1.7",
     "@types/lodash": "4.14.191",
     "@types/markdown-it": "^12.2.3",
     "@types/node": "^18.11.17",
@@ -30,6 +32,7 @@
     "hash.js": "1.1.7",
     "jest": "29.5.0",
     "jest-raw-loader": "1.0.1",
+    "jsdom": "24.1.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "ts-jest": "29.0.5",
@@ -38,8 +41,13 @@
     "vite": "^4.0.0"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.609.0",
+    "@aws-sdk/credential-providers": "^3.609.0",
+    "@gracious.tech/fetch-client": "^0.7.0",
     "@prisma/client": "^5.12.1",
     "better-sqlite3": "^9.5.0",
+    "commander": "12.1.0",
+    "conf": "12.0.0",
     "fs-extra": "^11.2.0",
     "highlight.js": "^11.7.0",
     "lodash": "4.17.21",

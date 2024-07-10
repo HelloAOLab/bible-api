@@ -32,6 +32,7 @@ model Book {
     name String
     commonName String
     title String?
+    order Int
 
     numberOfChapters Int
 
@@ -51,7 +52,7 @@ model Chapter {
     translationId String
     translation Translation @relation(fields: [translationId], references: [id])
 
-    apiLink String
+    json String // The JSON of the chapter
 
     verses ChapterVerse[]
     footnotes ChapterFootnote[]
@@ -72,6 +73,7 @@ model ChapterVerse {
     translation Translation @relation(fields: [translationId], references: [id])
 
     text String // The text of the verse
+    contentJson String // The JSON of the verse content
 
     footnotes ChapterFootnote[]
 

@@ -13,10 +13,11 @@
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "skipLibCheck": true,
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "typeRoots": ["node_modules/@types", "src/types"],
   },
   // "ts-node": {
   //   "esm": true
   // },
-  "include": ["src"]
+  "include": ["src"],
 }
