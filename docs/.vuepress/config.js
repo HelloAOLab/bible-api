@@ -6,7 +6,7 @@ module.exports = {
   /**
    * Ref：https://v1.vuepress.vuejs.org/config/#title
    */
-  title: 'Bible API',
+  title: 'Free Use Bible API',
   /**
    * Ref：https://v1.vuepress.vuejs.org/config/#description
    */
