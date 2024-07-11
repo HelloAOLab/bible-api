@@ -7,7 +7,8 @@
     "build": "ts-node ./src/generate-api.ts",
     "build:docs": "cd docs && yarn install && yarn build",
     "dev:docs": "vuepress dev docs/src",
-    "cli": "ts-node ./src/cli.ts"
+    "cli": "ts-node ./src/cli.ts",
+    "s3:sync:docs": "aws --profile aolabs s3 sync ./build/docs s3://ao-bible-api/docs --delete"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.9",
