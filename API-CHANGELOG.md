@@ -3,6 +3,16 @@
 This is the log of changes for the Free Use Bible API.
 For information on the API Generator, see [GENERATOR-CHANGELOG.md](./GENERATOR-CHANGELOG.md).
 
+## V1.1.0
+
+#### Date: 2024-07-11
+
+### :rocket: Features
+
+-   Added links for audio versions to the chapter data.
+    -   Currently, this is only available for the BSB translation.
+    -   Thanks to [https://openbible.com/](https://openbible.com/) for making this possible!
+
 ## V1.0.0
 
 #### Date: 2024-07-11

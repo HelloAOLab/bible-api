@@ -3,6 +3,16 @@
 This is the log of changes for the Bible API Generator and associated tools.
 For information on the API itself, see [API-CHANGELOG.md](./API-CHANGELOG.md).
 
+## V1.1.0
+
+#### Date: 2024-07-11
+
+### :rocket: Features
+
+-   Added the ability to generate audio links for a chapter.
+    -   Currently, this is only available for the BSB translation.
+    -   Thanks to [https://openbible.com/](https://openbible.com/) for making this possible!
+
 ## V1.0.0
 
 #### Date: 2024-07-11
