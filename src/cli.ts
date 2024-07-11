@@ -78,6 +78,7 @@ async function start() {
         .option('--batch-size <size>', 'The number of translations to generate API files for in each batch.', '50')
         .option('--translations <translations...>', 'The translations to generate API files for.')
         .option('--overwrite', 'Whether to overwrite existing files.')
+        .option('--overwrite-common-files', 'Whether to overwrite only common files.')
         .option('--use-common-name', 'Whether to use the common name for the book chapter API link. If false, then book IDs are used.')
         .option('--generate-audio-files', 'Whether to replace the audio URLs in the dataset with ones that are hosted locally.')
         .action(async (dir: string, options: any) => {
@@ -86,6 +87,11 @@ async function start() {
                 const overwrite = !!options.overwrite;
                 if (overwrite) {
                     console.log('Overwriting existing files');
+                }
+
+                const overwriteCommonFiles = !!options.overwriteCommonFiles;
+                if (overwriteCommonFiles) {
+                    console.log('Overwriting only common files');
                 }
 
                 if (options.translations) {
@@ -104,7 +110,9 @@ async function start() {
                         const filePath = resolve(dir, makeRelative(path));
                         await mkdir(dirname(filePath), { recursive: true });
 
-                        if (overwrite || !await exists(filePath)) {
+                        const isCommonFile = !path.endsWith('available_translations.json');
+
+                        if (overwrite || (overwriteCommonFiles && isCommonFile) || !await exists(filePath)) {
                             await writeFile(filePath, content, 'utf-8');
                             writtenFiles++;
                         } else {
@@ -130,6 +138,7 @@ async function start() {
         .option('--batch-size <size>', 'The number of translations to generate API files for in each batch.', '50')
         .option('--translations <translations...>', 'The translations to generate API files for.')
         .option('--overwrite', 'Whether to overwrite existing files.')
+        .option('--overwrite-common-files', 'Whether to overwrite only common files.')
         .option('--use-common-name', 'Whether to use the common name for the book chapter API link. If false, then book IDs are used.')
         .option('--generate-audio-files', 'Whether to replace the audio URLs in the dataset with ones that are hosted locally.')
         .option('--profile <profile>', 'The AWS profile to use for uploading to S3.')
@@ -139,6 +148,11 @@ async function start() {
                 const overwrite = !!options.overwrite;
                 if (overwrite) {
                     console.log('Overwriting existing files');
+                }
+
+                const overwriteCommonFiles = !!options.overwriteCommonFiles;
+                if (overwriteCommonFiles) {
+                    console.log('Overwriting only common files');
                 }
 
                 if (options.translations) {
@@ -184,7 +198,8 @@ async function start() {
                         console.log('Uploading batch', batchNumber, 'of', totalBatches);
                         let writtenFiles = 0;
                         const promises = batch.map(async file => {
-                            if (await uploader.upload(file, overwrite)) {
+                            const isCommonFile = !file.path.endsWith('available_translations.json');
+                            if (await uploader.upload(file, overwrite || (overwriteCommonFiles && isCommonFile))) {
                                 writtenFiles++;
                             } else {
                                 console.warn('File already exists:', file.path);
