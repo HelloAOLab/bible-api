@@ -18,6 +18,6 @@ footerLink: https://helloao.org
 <div class="hero-verse">
   <div class="hero-verse-content">
     <p>“Freely you have received; freely give.”
-    <p>- Matthew 10:8 BSB</p>
+    <p>- Matthew 10:8</p>
   </div>
 </div>
