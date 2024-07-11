@@ -9,12 +9,21 @@ export interface InputFile {
     fileType: 'usfm' | 'usx';
 }
 
+export type OutputFileContent = object | ReadableStream;
+
 /**
  * Defines an interface that contains information about a output file.
  */
 export interface OutputFile {
+    /**
+     * The path that the file should be stored at.
+     */
     path: string;
-    content: object;
+
+    /**
+     * The content of the file.
+     */
+    content: OutputFileContent | (() => Promise<OutputFileContent>);
 
     /**
      * Whether the file can be merged with files of the same name but from other datasets.
@@ -164,6 +173,21 @@ export interface TranslationBookChapter {
      * The information for the chapter.
      */
     chapter: ChapterData;
+
+    /**
+     * The links to different audio versions for the chapter.
+     */
+    thisChapterAudioLinks: TranslationBookChapterAudioLinks;
+}
+
+/**
+ * Defines an interface that contains the audio links for a book chapter.
+ */
+export interface TranslationBookChapterAudioLinks {
+    /**
+     * The reader for the chapter and the URL link to the audio file.
+     */
+    [reader: string]: string;
 }
 
 /**

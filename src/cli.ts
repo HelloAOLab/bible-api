@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import path, { dirname, extname, resolve } from 'path';
-import {mkdir, readdir, readFile, writeFile} from 'fs/promises';
+import {mkdir, open, readdir, readFile, writeFile} from 'fs/promises';
 import Sql, { Database } from 'better-sqlite3';
 import { randomUUID } from 'crypto';
 import { loadTranslationFiles } from './files';
@@ -8,7 +8,7 @@ import { DOMWindow, JSDOM } from 'jsdom';
 import { BibleClient } from '@gracious.tech/fetch-client';
 import { GetTranslationsItem } from '@gracious.tech/fetch-client/dist/esm/collection';
 import { getFirstNonEmpty, getTranslationId, normalizeLanguage } from './utils';
-import { exists } from 'fs-extra';
+import { createWriteStream, exists } from 'fs-extra';
 import { ChapterVerse, InputFile, InputTranslationMetadata, OutputFile, TranslationBookChapter } from './generation/common-types';
 import { DatasetOutput, DatasetTranslation, DatasetTranslationBook, generateDataset } from './generation/dataset';
 import { PrismaClient } from '@prisma/client';
@@ -17,6 +17,11 @@ import { loadDatasets, serializeFilesForDataset, Uploader } from './db';
 import { merge } from 'lodash';
 import { S3Client } from '@aws-sdk/client-s3';
 import { parseS3Url, S3Uploader } from './s3';
+import { bookChapterCountMap } from './generation/book-order';
+import { Readable } from 'stream';
+import { finished } from 'stream/promises';
+// import { ReadableStream } from 'stream/web';
+import { KNOWN_AUDIO_TRANSLATIONS } from './generation/audio';
 
 const migrationsPath = path.resolve(__dirname, './migrations');
 
@@ -31,14 +36,9 @@ async function start() {
 
     const program = new Command();
 
-    // const conf = new Conf({
-    //     projectName: 'bible-api-cli'
-    // });
-
     program.name('bible-api')
         .description('A CLI for managing a Bible API.')
         .version('0.0.1');
-        // .option('--db <db>', 'The SQLite database file to use.');
 
     program.command('init [dir]')
         .description('Initialize a new Bible API DB.')
@@ -76,8 +76,10 @@ async function start() {
     program.command('generate-api-files <dir>')
         .description('Generates API files from the database.')
         .option('--batch-size <size>', 'The number of translations to generate API files for in each batch.', '50')
+        .option('--translations <translations...>', 'The translations to generate API files for.')
         .option('--overwrite', 'Whether to overwrite existing files.')
         .option('--use-common-name', 'Whether to use the common name for the book chapter API link. If false, then book IDs are used.')
+        .option('--generate-audio-files', 'Whether to replace the audio URLs in the dataset with ones that are hosted locally.')
         .action(async (dir: string, options: any) => {
             const db = getPrismaDbFromDir(process.cwd());
             try {
@@ -86,9 +88,16 @@ async function start() {
                     console.log('Overwriting existing files');
                 }
 
+                if (options.translations) {
+                    console.log('Generating for specific translations:', options.translations);
+                }
+
                 let pageSize = parseInt(options.batchSize);
 
-                for await(let files of serializeFilesForDataset(db, !!options.useCommonName, pageSize)) {
+                for await(let files of serializeFilesForDataset(db, {
+                    useCommonName: !!options.useCommonName,
+                    generateAudioFiles: !!options.generateAudioFiles
+                }, pageSize, options.translations)) {
                     console.log('Writing', files.length, 'files');
                     let writtenFiles = 0;
                     for(let { path, content } of files) {
@@ -101,6 +110,10 @@ async function start() {
                         } else {
                             console.warn('File already exists:', filePath);
                             console.warn('Skipping file');
+                        }
+
+                        if (content instanceof Readable) {
+                            content.destroy();
                         }
                     }
 
@@ -115,8 +128,10 @@ async function start() {
         .argument('<dest>', 'The destination to upload the API files to.')
         .description('Uploads API files to the specified destination. For S3, use the format s3://bucket-name/path/to/folder.')
         .option('--batch-size <size>', 'The number of translations to generate API files for in each batch.', '50')
+        .option('--translations <translations...>', 'The translations to generate API files for.')
         .option('--overwrite', 'Whether to overwrite existing files.')
         .option('--use-common-name', 'Whether to use the common name for the book chapter API link. If false, then book IDs are used.')
+        .option('--generate-audio-files', 'Whether to replace the audio URLs in the dataset with ones that are hosted locally.')
         .option('--profile <profile>', 'The AWS profile to use for uploading to S3.')
         .action(async (dest: string, options: any) => {
             const db = getPrismaDbFromDir(process.cwd());
@@ -124,6 +139,10 @@ async function start() {
                 const overwrite = !!options.overwrite;
                 if (overwrite) {
                     console.log('Overwriting existing files');
+                }
+
+                if (options.translations) {
+                    console.log('Generating for specific translations:', options.translations);
                 }
 
                 let uploader: Uploader;
@@ -147,7 +166,10 @@ async function start() {
 
                 let pageSize = parseInt(options.batchSize);
 
-                for await(let files of serializeFilesForDataset(db, !!options.useCommonName, pageSize)) {
+                for await(let files of serializeFilesForDataset(db, {
+                    useCommonName: !!options.useCommonName,
+                    generateAudioFiles: !!options.generateAudioFiles
+                }, pageSize, options.translations)) {
 
                     const batchSize = uploader.idealBatchSize;
                     const totalBatches = Math.ceil(files.length / batchSize);
@@ -167,6 +189,10 @@ async function start() {
                             } else {
                                 console.warn('File already exists:', file.path);
                                 console.warn('Skipping file');
+                            }
+
+                            if (file.content instanceof Readable) {
+                                file.content.destroy();
                             }
                         });
 
@@ -287,6 +313,39 @@ async function start() {
                 }
 
                 await Promise.all(promises);
+            }
+        });
+
+    program.command('fetch-audio <dir> [translations...]')
+        .description('Fetches the specified audio translations and places them in the given directory.\nTranslations should be in the format "translationId/audioId". e.g. "BSB/gilbert"')
+        .option('-a, --all', 'Fetch all translations. If omitted, only undownloaded translations will be fetched.')
+        .action(async (dir: string, translations: string[], options: any) => {
+            for (let translation of translations) {
+                const [translationId, reader] = translation.split('/');
+                const generator = KNOWN_AUDIO_TRANSLATIONS.get(translationId)?.get(reader);
+
+                if (!generator) {
+                    console.warn('Unknown translation:', translation);
+                    continue;
+                }
+
+                for (let [bookId, chapters] of bookChapterCountMap) {
+                    for (let chapter = 1; chapter <= chapters; chapter++) {
+                        const url = generator(bookId, chapter);
+                        const ext = extname(url);
+
+                        const [translationId, reader] = translation.split('/');
+
+                        const name = `${chapter}.${reader}${ext}`;
+                        const fullPath = path.resolve(dir, 'audio', translationId, bookId, name);
+
+                        if (!options.all && await exists(fullPath)) {
+                            continue;
+                        }
+
+                        await downloadFile(url, fullPath);
+                    }
+                }
             }
         });
 
@@ -567,6 +626,22 @@ function insertTranslationContent(db: Database, translation: DatasetTranslation,
             verseNumber=excluded.verseNumber,
             text=excluded.text;`);
 
+    const chapterAudioUpsert = db.prepare(`INSERT INTO ChapterAudioUrl(
+        translationId,
+        bookId,
+        number,
+        reader,
+        url
+    ) VALUES (
+        @translationId,
+        @bookId,
+        @number,
+        @reader,
+        @url
+    ) ON CONFLICT(translationId,bookId,number,reader) DO
+        UPDATE SET
+            url=excluded.url;`);
+
         const insertChaptersAndVerses = db.transaction(() => {
             for (let chapter of chapters) {
                     let verses: {
@@ -614,7 +689,6 @@ function insertTranslationContent(db: Database, translation: DatasetTranslation,
                             }
 
                             let contentJson = JSON.stringify(verse.content);
-        
                             verses.push({
                                 number: verse.number,
                                 text: text.trimEnd(),
@@ -624,7 +698,7 @@ function insertTranslationContent(db: Database, translation: DatasetTranslation,
                     }
         
                     chapterUpsert.run({
-                        translationId: translation.id as string,
+                        translationId: translation.id,
                         bookId: book.id,
                         number: chapter.chapter.number,
                         json: JSON.stringify(chapter.chapter),
@@ -632,7 +706,7 @@ function insertTranslationContent(db: Database, translation: DatasetTranslation,
         
                     for (let verse of verses) {
                         verseUpsert.run({
-                            translationId: translation.id as string,
+                            translationId: translation.id,
                             bookId: book.id,
                             chapterNumber: chapter.chapter.number,
                             number: verse.number,
@@ -643,7 +717,7 @@ function insertTranslationContent(db: Database, translation: DatasetTranslation,
         
                     for(let footnote of footnotes.values()) {
                         footnoteUpsert.run({
-                            translationId: translation.id as string,
+                            translationId: translation.id,
                             bookId: book.id,
                             chapterNumber: chapter.chapter.number,
                             id: footnote.id,
@@ -651,10 +725,30 @@ function insertTranslationContent(db: Database, translation: DatasetTranslation,
                             text: footnote.text,
                         });
                     }
+
+                    for (let reader in chapter.thisChapterAudioLinks) {
+                        const url = chapter.thisChapterAudioLinks[reader];
+                        if (url) {
+                            chapterAudioUpsert.run({
+                                translationId: translation.id,
+                                bookId: book.id,
+                                number: chapter.chapter.number,
+                                reader: reader,
+                                url,
+                            });
+                        }
+                    }
                 }
         });
 
         insertChaptersAndVerses();
+}
+
+async function downloadFile(url: string, path: string) {
+    console.log('Downloading', url, 'to', path);
+    const reader = await fetch(url).then(r => r.body!);
+    const writeStream = createWriteStream(path);
+    await finished(Readable.fromWeb(reader as any).pipe(writeStream))
 }
 
 function getDbPath(dir: string) {
@@ -684,13 +778,15 @@ async function getDbFromDir(dir: string) {
 async function getDb(dbPath: string) {
     const db = new Sql(dbPath, {});
 
-    db.exec(`CREATE TABLE IF NOT EXISTS _prisma_migrations (
-        id TEXT PRIMARY KEY,
-        checksum TEXT,
-        started_at TEXT,
-        finished_at TEXT,
-        migration_name TEXT,
-        applied_steps_count INTEGER
+    db.exec(`CREATE TABLE IF NOT EXISTS "_prisma_migrations" (
+        "id"                    TEXT PRIMARY KEY NOT NULL,
+        "checksum"              TEXT NOT NULL,
+        "finished_at"           DATETIME,
+        "migration_name"        TEXT NOT NULL,
+        "logs"                  TEXT,
+        "rolled_back_at"        DATETIME,
+        "started_at"            DATETIME NOT NULL DEFAULT current_timestamp,
+        "applied_steps_count"   INTEGER UNSIGNED NOT NULL DEFAULT 0
     );`);
 
     const migrations = await readdir(migrationsPath);
@@ -707,7 +803,7 @@ async function getDb(dbPath: string) {
         missingMigrations.push(migration);
     }
 
-    const insertMigrationStatement = db.prepare('INSERT INTO _prisma_migrations (id, checksum, started_at, finished_at, migration_name, applied_steps_count) VALUES (?, ?, ?, ?, ?, ?);');
+    const insertMigrationStatement = db.prepare('INSERT INTO _prisma_migrations (id, checksum, started_at, finished_at, migration_name, applied_steps_count, logs, rolled_back_at) VALUES (?, ?, ?, ?, ?, ?, NULL, NULL);');
 
     for(let missingMigration of missingMigrations) {
         console.log(`Applying migration ${missingMigration}...`);

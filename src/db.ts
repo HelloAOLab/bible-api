@@ -1,21 +1,23 @@
-import { PrismaClient } from "@prisma/client";
-import { OutputFile, TranslationBookChapter } from "./generation/common-types";
+import { PrismaClient, Prisma } from "@prisma/client";
+import { OutputFile, OutputFileContent, TranslationBookChapter } from "./generation/common-types";
 import { DatasetOutput, DatasetTranslation, DatasetTranslationBook } from "./generation/dataset";
-import { generateApiForDataset, generateFilesForApi } from "./generation/api";
+import { generateApiForDataset, GenerateApiOptions, generateFilesForApi } from "./generation/api";
 import { merge, mergeWith } from "lodash";
 import { extname } from "path";
+import { Readable } from "stream";
 
 export interface SerializedFile {
     path: string;
-    content: string;
+    content: string | Readable;
 }
 
 /**
  * Loads the datasets from the database in a series of batches.
  * @param db The database.
  * @param translationsPerBatch The number of translations to load per batch.
+ * @param translationsToLoad The list of translations to load. If not provided, all translations will be loaded.
  */
-export async function *loadDatasets(db: PrismaClient, translationsPerBatch: number = 50): AsyncGenerator<DatasetOutput> {
+export async function *loadDatasets(db: PrismaClient, translationsPerBatch: number = 50, translationsToLoad?: string[]): AsyncGenerator<DatasetOutput> {
     let offset = 0;
     let pageSize = translationsPerBatch;
 
@@ -28,10 +30,20 @@ export async function *loadDatasets(db: PrismaClient, translationsPerBatch: numb
         console.log('Generating API batch', batchNumber, 'of', totalBatches);
         batchNumber++;
 
-        const translations = await db.translation.findMany({
+        const query: Prisma.TranslationFindManyArgs  = {
             skip: offset,
             take: pageSize,
-        });
+        };
+
+        if (translationsToLoad && translationsToLoad.length > 0) {
+            query.where = {
+                id: {
+                    in: translationsToLoad,
+                }
+            };
+        }
+
+        const translations = await db.translation.findMany(query);
 
         if (translations.length <= 0) {
             break;
@@ -71,10 +83,27 @@ export async function *loadDatasets(db: PrismaClient, translationsPerBatch: numb
                     },
                 });
 
+                const audioLinks = await db.chapterAudioUrl.findMany({
+                    where: {
+                        translationId: translation.id,
+                        bookId: book.id
+                    },
+                    orderBy: [
+                        {number: 'asc'},
+                        {reader: 'asc'}
+                    ]
+                });
+
                 const bookChapters: TranslationBookChapter[] = chapters.map(chapter => {
                     return {
                         chapter: JSON.parse(chapter.json),
-                    } as TranslationBookChapter;
+                        thisChapterAudioLinks: audioLinks
+                            .filter(link => link.number === chapter.number)
+                            .reduce((acc, link) => {
+                                acc[link.reader] = link.url;
+                                return acc;
+                            }, {} as any)
+                    };
                 });
 
                 const datasetBook: DatasetTranslationBook = {
@@ -95,14 +124,15 @@ export async function *loadDatasets(db: PrismaClient, translationsPerBatch: numb
  * Generates and serializes the API files for the dataset that is stored in the database.
  * Yields each batch of serialized files.
  * @param db The database that the dataset should be loaded from.
- * @param useCommonName Whether links should use the common name for the book chapter API link. If false, then book IDs are used.
+ * @param options The options to use for generating the API.
  * @param translationsPerBatch The number of translations that should be loaded and written per batch.
+ * @param translations The list of translations that should be loaded. If not provided, all translations will be loaded.
  */
-export async function *serializeFilesForDataset(db: PrismaClient, useCommonName: boolean, translationsPerBatch: number = 50): AsyncGenerator<SerializedFile[]> {
+export async function *serializeFilesForDataset(db: PrismaClient, options: GenerateApiOptions, translationsPerBatch: number = 50, translations?: string[]): AsyncGenerator<SerializedFile[]> {
     const mergableFiles = new Map<string, OutputFile[]>();
 
-    for await(let dataset of loadDatasets(db, translationsPerBatch)) {
-        const api = generateApiForDataset(dataset, useCommonName);
+    for await(let dataset of loadDatasets(db, translationsPerBatch, translations)) {
+        const api = generateApiForDataset(dataset, options);
         const files = generateFilesForApi(api);
 
         console.log('Generated', files.length, 'files');
@@ -119,7 +149,7 @@ export async function *serializeFilesForDataset(db: PrismaClient, useCommonName:
                 continue;
             }
 
-            const serialized = transformFile(file.path, file.content);
+            const serialized = await transformFile(file.path, file.content);
             if (serialized) {
                 serializedFiles.push(serialized);
             }
@@ -145,7 +175,7 @@ export async function *serializeFilesForDataset(db: PrismaClient, useCommonName:
         }
 
         if (content) {
-            const serialized = transformFile(path, content);
+            const serialized = await transformFile(path, content);
             if (serialized) {
                 serializedFiles.push(serialized);
             }
@@ -154,13 +184,43 @@ export async function *serializeFilesForDataset(db: PrismaClient, useCommonName:
 
     yield serializedFiles;
 
-    function transformFile(path: string, content: object): SerializedFile | null {
-        if (extname(path) === '.json') {
-            const fileContent = JSON.stringify(content, null, 2);
+    async function transformFile(path: string, content: OutputFile['content']): Promise<SerializedFile | null> {
+        let fileContent: OutputFileContent;
+        if (typeof content === 'function') {
+            fileContent = await content();
+        } else {
+            fileContent = content;
+        }
+
+        const ext = extname(path);
+        if (ext === '.json') {
+            let json: string;
+            if (fileContent instanceof ReadableStream) {
+                json = '';
+                for await (const chunk of Readable.fromWeb(fileContent as any, {
+                    encoding: 'utf-8'
+                })) {
+                    json += chunk;
+                }
+            } else {
+                json = JSON.stringify(content, null, 2);
+            }
+
             return {
                 path,
-                content: fileContent,
+                content: json,
             };
+        } else if (ext === '.mp3') {
+            if (fileContent instanceof ReadableStream) {
+                return {
+                    path,
+                    content: Readable.fromWeb(fileContent as any),
+                };
+            } else {
+                console.warn('Expected content to be a readable stream for', path);
+                console.warn('Skipping file');
+                return null;
+            }
         }
 
         console.warn('Unknown file type', path);

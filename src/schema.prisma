@@ -1,6 +1,6 @@
 datasource db {
     provider = "sqlite"
-    url      = "file:../build/bible.db"
+    url      = "file:../bible-api.db"
 }
 
 generator client {
@@ -21,6 +21,7 @@ model Translation {
     chapters     Chapter[]
     verses       ChapterVerse[]
     footnotes    ChapterFootnote[]
+    audioUrls    ChapterAudioUrl[]
 }
 
 model Book {
@@ -39,6 +40,7 @@ model Book {
     chapters Chapter[]
     verses ChapterVerse[]
     footnotes ChapterFootnote[]
+    audioUrls ChapterAudioUrl[]
 
     @@id([translationId, id])
 }
@@ -56,8 +58,25 @@ model Chapter {
 
     verses ChapterVerse[]
     footnotes ChapterFootnote[]
+    audioUrls ChapterAudioUrl[]
 
     @@id([translationId, bookId, number])
+}
+
+model ChapterAudioUrl {
+    number Int
+    bookId String
+    book Book @relation(fields: [translationId, bookId], references: [translationId, id])
+
+    translationId String
+    translation Translation @relation(fields: [translationId], references: [id])
+
+    chapter Chapter @relation(fields: [translationId, bookId, number], references: [translationId, bookId, number])
+
+    reader String
+    url String
+
+    @@id([translationId, bookId, number, reader])
 }
 
 model ChapterVerse {

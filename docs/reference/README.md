@@ -256,16 +256,33 @@ export interface TranslationBookChapter {
     thisChapterApiLink: string;
 
     /**
+     * The links to different audio versions for the chapter.
+     */
+    thisChapterAudioLinks: TranslationBookChapterAudioLinks;
+
+    /**
      * The link to the next chapter.
-     * Null if this is the last chapter in the book.
+     * Null if this is the last chapter in the translation.
      */
     nextChapterApiLink: string | null;
 
     /**
+     * The links to different audio versions for the next chapter.
+     * Null if this is the last chapter in the translation.
+     */
+    thisChapterAudioLinks: TranslationBookChapterAudioLinks;
+
+    /**
      * The link to the previous chapter.
-     * Null if this is the first chapter in the book.
+     * Null if this is the first chapter in the translation.
      */
     previousChapterApiLink: string | null;
+
+    /**
+     * The links to different audio versions for the previous chapter.
+     * Null if this is the last chapter in the translation.
+     */
+    previousChapterAudioLinks: TranslationBookChapterAudioLinks;
 
     /**
      * The information for the chapter.
@@ -455,6 +472,16 @@ interface ChapterFootnote {
      * If a string, then the caller should be that string.
      */
     caller: '+' | string | null;
+}
+
+/**
+ * The audio links for a book chapter.
+ */
+interface TranslationBookChapterAudioLinks {
+    /**
+     * The reader for the chapter and the URL link to the audio file.
+     */
+    [reader: string]: string;
 }
 ```
 

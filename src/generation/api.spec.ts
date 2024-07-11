@@ -47,9 +47,6 @@ describe('generateApiForDataset()', () => {
             }
         ] as InputFile[];
 
-        // let availableTranslations: AvailableTranslations = {
-        //     translations: []
-        // };
         const dataset = generateDataset(inputFiles);
         const generated = generateApiForDataset(dataset);
         const files = generateFilesForApi(generated);
@@ -115,8 +112,11 @@ describe('generateApiForDataset()', () => {
                     lastChapterApiLink: '/api/bsb/GEN/1.json'
                 },
                 thisChapterLink: '/api/bsb/GEN/1.json',
+                thisChapterAudioLinks: {},
                 nextChapterApiLink: '/api/bsb/EXO/1.json',
+                nextChapterAudioLinks: {},
                 previousChapterApiLink: null,
+                previousChapterAudioLinks: null,
                 chapter: {
                     number: 1,
                     content: [
@@ -163,8 +163,11 @@ describe('generateApiForDataset()', () => {
                     lastChapterApiLink: '/api/bsb/EXO/1.json'
                 },
                 thisChapterLink: '/api/bsb/EXO/1.json',
+                thisChapterAudioLinks: {},
                 nextChapterApiLink: null,
+                nextChapterAudioLinks: null,
                 previousChapterApiLink: '/api/bsb/GEN/1.json',
+                previousChapterAudioLinks: {},
                 chapter: {
                     number: 1,
                     content: [
@@ -230,7 +233,9 @@ describe('generateApiForDataset()', () => {
         ] as InputFile[];
 
         const dataset = generateDataset(inputFiles);
-        const generated = generateApiForDataset(dataset, true);
+        const generated = generateApiForDataset(dataset, {
+            useCommonName: true,
+        });
         const files = generateFilesForApi(generated);
         const tree = fileTree(files);
 
@@ -283,8 +288,11 @@ describe('generateApiForDataset()', () => {
                     lastChapterApiLink: '/api/bsb/1_Chronicles/1.json'
                 },
                 thisChapterLink: "/api/bsb/1_Chronicles/1.json",
+                thisChapterAudioLinks: {},
                 nextChapterApiLink: null,
+                nextChapterAudioLinks: null,
                 previousChapterApiLink: null,
+                previousChapterAudioLinks: null,
                 chapter: {
                     number: 1,
                     content: [

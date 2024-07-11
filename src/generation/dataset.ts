@@ -5,6 +5,7 @@ import { USXParser } from "../usfm-parser/usx-parser";
 import { InputFile, Translation, TranslationBook, TranslationBookChapter } from "./common-types";
 import { bookIdMap, bookOrderMap } from "./book-order";
 import { omit, sortBy, sortedIndex, sortedIndexBy } from "lodash";
+import { getAudioUrlsForChapter } from "./audio";
 
 /**
  * Defines an interface that contains generated dataset info.
@@ -132,7 +133,8 @@ export function generateDataset(files: InputFile[], window: DOMWindow = globalTh
                             number: content.number,
                             content: content.content,
                             footnotes: content.footnotes
-                        }
+                        },
+                        thisChapterAudioLinks: getAudioUrlsForChapter(translation.id, id, content.number)
                     });
                 }
             }
