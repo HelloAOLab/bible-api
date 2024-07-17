@@ -225,6 +225,32 @@ async function start() {
             }
         });
 
+    program.command('fetch-bible-metadata <dir>')
+        .description('Fetches the Theographic bible metadata and places it in the given directory.')
+        .action(async (dir: string) => {
+            let files = [
+                'books.json',
+                'chapters.json',
+                'easton.json',
+                'events.json',
+                'people.json',
+                'peopleGroups.json',
+                'periods.json',
+                'places.json',
+                'verses.json',
+            ];
+
+            await mkdir(dir, { recursive: true });
+
+            let promises = files.map(async file => {
+                const url = `https://raw.githubusercontent.com/robertrouse/theographic-bible-metadata/master/json/${file}`;
+                const fullPath = path.resolve(dir, file);
+                await downloadFile(url, fullPath);
+            });
+
+            await Promise.all(promises);
+        });
+
     await program.parseAsync(process.argv);
 }
 
