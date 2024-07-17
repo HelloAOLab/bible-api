@@ -22,7 +22,7 @@ Thank you!
 
 This API, and [the source code behind it](https://github.com/HelloAOLab/bible-api), is freely available for you to use under the MIT license, a copy of which has been included below for your benefit. 
 
-```
+```:no-line-numbers
 MIT License
 
 Copyright (c) 2024 AO Lab

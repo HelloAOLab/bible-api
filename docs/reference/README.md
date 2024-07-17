@@ -8,7 +8,7 @@ Gets the list of available translations in the API.
 
 ### Code Example
 
-```javascript
+```javascript:no-line-numbers title="fetch-translations.js"
 fetch(`https://bible.helloao.org/api/available_translations.json`)
     .then(request => request.json())
     .then(availableTranslations => {
@@ -18,7 +18,7 @@ fetch(`https://bible.helloao.org/api/available_translations.json`)
 
 #### Structure
 
-```typescript
+```typescript:no-line-numbers title="available-translations.ts"
 export interface AvailableTranslations {
     /**
      * The list of translations.
@@ -84,7 +84,7 @@ interface Translation {
 
 #### Example
 
-```json
+```json:no-line-numbers title="/api/available_translations.json"
 {
     "translations": [
         {
@@ -115,7 +115,7 @@ Gets the list of books that are available for the given translation.
 
 ### Code Example
 
-```javascript
+```javascript:no-line-numbers title="fetch-books.js"
 const translation = 'BSB';
 
 // Get the list of books for the BSB translation
@@ -128,7 +128,7 @@ fetch(`https://bible.helloao.org/api/${translation}/books.json`)
 
 #### Structure
 
-```typescript
+```typescript:no-line-numbers title="books.ts"
 export interface TranslationBooks {
     /**
      * The translation information for the books.
@@ -176,7 +176,7 @@ interface TranslationBook {
 
 #### Example
 
-```json
+```json:no-line-numbers title="/api/BSB/books.json"
 {
     "translation": {
         "id": "BSB",
@@ -218,7 +218,7 @@ Gets the content of a single chapter for a given book and translation.
 
 ### Code Example
 
-```javascript
+```javascript:no-line-numbers title="fetch-chapter.js"
 const translation = 'BSB';
 const book = 'GEN';
 const chapter = 1;
@@ -233,7 +233,7 @@ fetch(`https://bible.helloao.org/api/${translation}/${book}/${chapter}.json`)
 
 #### Structure
 
-```typescript
+```typescript:no-line-numbers title="chapter.ts"
 export interface TranslationBookChapter {
     /**
      * The translation information for the book chapter.
@@ -482,7 +482,7 @@ interface TranslationBookChapterAudioLinks {
 
 #### Example
 
-```json
+```json:no-line-numbers title="/api/BSB/GEN/1.json"
 {
     "translation": {
         "id": "BSB",
