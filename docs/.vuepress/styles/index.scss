@@ -4,17 +4,25 @@
  * ref：https://v1.vuepress.vuejs.org/config/#index-styl
  */
 
-.home .hero img
-  max-width 450px!important
+:root {
+  // --c-text: #2c3e50;
+  // --c-text-accent: #3eaf7c;
+  // --c-
+}
 
-.hero-verse
+.home .hero img {
+  max-width: 450px!important;
+}
+
+.hero-verse {
   display: flex;
   justify-content: center;
   align-items: center;
   margin-bottom: 24px;
   font-size: 1.2rem;
+}
 
-.hero-verse-content
+.hero-verse-content {
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -22,7 +30,9 @@
   background-color: #eee;
   padding: 24px;
   border-radius: 8px;
+}
 
-.hero-verse-content p
+.hero-verse-content p {
   margin: 0;
   font-weight: 500;
+}

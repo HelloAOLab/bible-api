@@ -1,22 +1,17 @@
 const { description } = require('../../package')
+import { defineUserConfig } from 'vuepress';
+import { backToTopPlugin } from '@vuepress/plugin-back-to-top';
+import { mediumZoomPlugin } from '@vuepress/plugin-medium-zoom';
+import { defaultTheme } from '@vuepress/theme-default';
+import { viteBundler} from '@vuepress/bundler-vite';
 
-module.exports = {
+export default defineUserConfig({
   base: '/docs/',
 
-  /**
-   * Ref：https://v1.vuepress.vuejs.org/config/#title
-   */
   title: 'Free Use Bible API',
-  /**
-   * Ref：https://v1.vuepress.vuejs.org/config/#description
-   */
   description: description,
+  bundler: viteBundler(),
 
-  /**
-   * Extra tags to be injected to the page HTML `<head>`
-   *
-   * ref：https://v1.vuepress.vuejs.org/config/#head
-   */
   head: [
     ['link', { rel: 'icon', href: '/favicon.png' }],
     ['meta', { name: 'theme-color', content: '#3eaf7c' }],
@@ -24,18 +19,13 @@ module.exports = {
     ['meta', { name: 'apple-mobile-web-app-status-bar-style', content: 'black' }]
   ],
 
-  /**
-   * Theme configuration, here is the default theme configuration for VuePress.
-   *
-   * ref：https://v1.vuepress.vuejs.org/theme/default-theme-config.html
-   */
-  themeConfig: {
+  theme: defaultTheme({
     repo: '',
-    editLinks: false,
+    editLink: false,
     docsDir: '',
     editLinkText: '',
     lastUpdated: false,
-    nav: [
+    navbar: [
       {
         text: 'Guide',
         link: '/guide/',
@@ -52,8 +42,8 @@ module.exports = {
     sidebar: {
       '/guide/': [
         {
-          title: 'Guide',
-          collapsable: false,
+          text: 'Guide',
+          collapsible: false,
           children: [
             '',
             'making-requests',
@@ -61,14 +51,21 @@ module.exports = {
           ]
         }
       ],
-    }
-  },
+      '/reference/': [
+        {
+          text: 'Reference',
+          collapsible: false,
+          children: [
+            ''
+          ]
+        }
+      ]
+    },
 
-  /**
-   * Apply plugins，ref：https://v1.vuepress.vuejs.org/zh/plugin/
-   */
+  }),
+
   plugins: [
-    '@vuepress/plugin-back-to-top',
-    '@vuepress/plugin-medium-zoom',
+    backToTopPlugin(),
+    mediumZoomPlugin(),
   ]
-}
+});

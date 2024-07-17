@@ -1,9 +1,4 @@
----
-sidebar: auto
----
-
-# Reference
-
+# API
 
 ## Available Translations
 
