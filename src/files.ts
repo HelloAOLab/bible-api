@@ -1,8 +1,12 @@
-import { readFile, readdir } from "fs/promises";
+import { FileHandle, mkdir, open, readFile, readdir, writeFile } from "fs/promises";
 import { extname } from "path";
 import * as path from "path";
 import { existsSync } from "fs-extra";
 import { InputFile, InputTranslationMetadata, ParseTreeMetadata } from "./generation/common-types";
+import { SerializedFile, Uploader } from "./db";
+import { ZipWriter, Writer, TextReader, Reader } from '@zip.js/zip.js';
+import { Readable, Writable } from "stream";
+// import { ReadableStream, WritableStream } from 'node:stream/web';
 
 /**
  * Loads the files for the given translation.
@@ -112,4 +116,96 @@ export interface CollectionTranslationMetadata {
     source: {
         id: string;
     }
+}
+
+/**
+ * Defines an uploader that is able to upload files to a directory.
+ */
+export class FilesUploader implements Uploader {
+    
+    private _dir: string;
+
+    constructor(dir: string) {
+        this._dir = dir;
+    }
+
+    get idealBatchSize(): number | null {
+        return null;
+    }
+
+    async upload(file: SerializedFile, overwrite: boolean): Promise<boolean> {
+        const filePath = path.resolve(this._dir, file.path);
+        await mkdir(path.dirname(filePath), { recursive: true });
+
+        if (overwrite || !existsSync(filePath)) {
+            await writeFile(filePath, file.content, 'utf-8');
+            return true;
+        }
+
+        return false;
+    }
+
+}
+
+/**
+ * Defines an uploader that is able to upload files into a zip file.
+ */
+export class ZipUploader implements Uploader {
+    private _path: string;
+    private _initPromise: Promise<ZipWriter<unknown>>;
+    private _fileHandle: FileHandle | null = null;
+    private _zip: ZipWriter<unknown> | null = null;
+
+    constructor(filePath: string) {
+        this._path = filePath;
+        this._initPromise = this._init();
+    }
+
+    private async _init(): Promise<ZipWriter<unknown>> {
+        this._fileHandle = await open(path.resolve(this._path), 'w');
+        const writableStream = this._fileHandle.createWriteStream();
+        this._zip = new ZipWriter(Writable.toWeb(writableStream));
+        return this._zip;
+    }
+
+    get idealBatchSize(): number | null {
+        return 50;
+    }
+
+    async upload(file: SerializedFile, _overwrite: boolean): Promise<boolean> {
+        const zip = await this._initPromise;
+
+        let reader: Reader<any> | ReadableStream;
+        if (file.content instanceof Readable) {
+            reader = Readable.toWeb(file.content) as any;
+        } else if (typeof file.content === 'string') {
+            reader = new TextReader(file.content);
+        } else {
+            throw new Error('Unknown file content type');
+        }
+
+        await zip.add(trimRelativePath(file.path), reader);
+        return true;
+    }
+
+    async dispose(): Promise<void> {
+        if (this._zip) {
+            await this._zip.close();
+        }
+        if (this._fileHandle) {
+            await this._fileHandle.close();
+        }
+    }
+}
+
+function trimRelativePath(path: string): string {
+    if (path.startsWith('./')) {
+        return path.substring(2);
+    } else if (path.startsWith('../')) {
+        return path.substring(3);
+    } else if (path.startsWith('/')) {
+        return path.substring(1);
+    }
+
+    return path;
 }

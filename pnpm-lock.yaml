@@ -20,6 +20,9 @@ importers:
       '@prisma/client':
         specifier: ^5.12.1
         version: 5.12.1
+      '@zip.js/zip.js':
+        specifier: ^2.6.40
+        version: 2.7.46
       better-sqlite3:
         specifier: ^9.5.0
         version: 9.5.0
@@ -4339,6 +4342,11 @@ packages:
   /@xtuc/long@4.2.2:
     resolution: {integrity: sha512-NuHqBY1PB/D8xU6s/thBgOAiAP7HOYDQ32+BFZILJ8ivkUkAHQnWfn6WhL79Owj1qmUnoN/YPhktdIoucipkAQ==}
     dev: true
+
+  /@zip.js/zip.js@2.7.46:
+    resolution: {integrity: sha512-TIFUzqSAeL+i2vBtDnmjXakZvYVUhPNxbFO3vrtQH94yXzgjefK7v3UzJdJRP1mFO8EoPVp/R+SDYG2fr22edg==}
+    engines: {bun: '>=0.7.0', deno: '>=1.0.0', node: '>=16.5.0'}
+    dev: false
 
   /abbrev@1.1.1:
     resolution: {integrity: sha512-nne9/IiQ/hzIhY6pdDnbBtz7DjPTKrY00P/zvPSm5pOFkl6xuGrGnXn/VtTNNfNtAfZ9/1RtehkszU9qcTii0Q==}

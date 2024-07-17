@@ -3,7 +3,7 @@ import path, { dirname, extname, resolve } from 'path';
 import {mkdir, open, readdir, readFile, writeFile} from 'fs/promises';
 import Sql, { Database } from 'better-sqlite3';
 import { randomUUID } from 'crypto';
-import { loadTranslationFiles } from './files';
+import { FilesUploader, loadTranslationFiles, ZipUploader } from './files';
 import { DOMWindow, JSDOM } from 'jsdom';
 import { BibleClient } from '@gracious.tech/fetch-client';
 import { GetTranslationsItem } from '@gracious.tech/fetch-client/dist/esm/collection';
@@ -81,55 +81,9 @@ async function start() {
         .option('--overwrite-common-files', 'Whether to overwrite only common files.')
         .option('--use-common-name', 'Whether to use the common name for the book chapter API link. If false, then book IDs are used.')
         .option('--generate-audio-files', 'Whether to replace the audio URLs in the dataset with ones that are hosted locally.')
+        .option('--profile <profile>', 'The AWS profile to use for uploading to S3.')
         .action(async (dir: string, options: any) => {
-            const db = getPrismaDbFromDir(process.cwd());
-            try {
-                const overwrite = !!options.overwrite;
-                if (overwrite) {
-                    console.log('Overwriting existing files');
-                }
-
-                const overwriteCommonFiles = !!options.overwriteCommonFiles;
-                if (overwriteCommonFiles) {
-                    console.log('Overwriting only common files');
-                }
-
-                if (options.translations) {
-                    console.log('Generating for specific translations:', options.translations);
-                }
-
-                let pageSize = parseInt(options.batchSize);
-
-                for await(let files of serializeFilesForDataset(db, {
-                    useCommonName: !!options.useCommonName,
-                    generateAudioFiles: !!options.generateAudioFiles
-                }, pageSize, options.translations)) {
-                    console.log('Writing', files.length, 'files');
-                    let writtenFiles = 0;
-                    for(let { path, content } of files) {
-                        const filePath = resolve(dir, makeRelative(path));
-                        await mkdir(dirname(filePath), { recursive: true });
-
-                        const isCommonFile = !path.endsWith('available_translations.json');
-
-                        if (overwrite || (overwriteCommonFiles && isCommonFile) || !await exists(filePath)) {
-                            await writeFile(filePath, content, 'utf-8');
-                            writtenFiles++;
-                        } else {
-                            console.warn('File already exists:', filePath);
-                            console.warn('Skipping file');
-                        }
-
-                        if (content instanceof Readable) {
-                            content.destroy();
-                        }
-                    }
-
-                    console.log('Wrote', writtenFiles, 'files');
-                }
-            } finally {
-                db.$disconnect();
-            }
+            await uploadApiFiles(dir, options);
         });
 
     program.command('upload-api-files')
@@ -143,100 +97,7 @@ async function start() {
         .option('--generate-audio-files', 'Whether to replace the audio URLs in the dataset with ones that are hosted locally.')
         .option('--profile <profile>', 'The AWS profile to use for uploading to S3.')
         .action(async (dest: string, options: any) => {
-            const db = getPrismaDbFromDir(process.cwd());
-            try {
-                const overwrite = !!options.overwrite;
-                if (overwrite) {
-                    console.log('Overwriting existing files');
-                }
-
-                const overwriteCommonFiles = !!options.overwriteCommonFiles;
-                if (overwriteCommonFiles) {
-                    console.log('Overwriting only common files');
-                }
-
-                if (options.translations) {
-                    console.log('Generating for specific translations:', options.translations);
-                }
-
-                let uploader: Uploader;
-                if (dest.startsWith('s3://')) {
-                    // Upload to S3
-                    const url = dest;
-                    const s3Url = parseS3Url(url);
-                    if (!s3Url) {
-                        throw new Error(`Invalid S3 URL: ${url}`);
-                    }
-
-                    if (!s3Url.bucketName) {
-                        throw new Error(`Invalid S3 URL: ${url}\nUnable to determine bucket name`);
-                    }
-                    
-                    uploader = new S3Uploader(s3Url.bucketName, s3Url.objectKey, options.profile);
-                } else {
-                    console.error('Unsupported destination:', dest);
-                    process.exit(1);
-                }
-
-                let pageSize = parseInt(options.batchSize);
-
-                for await(let files of serializeFilesForDataset(db, {
-                    useCommonName: !!options.useCommonName,
-                    generateAudioFiles: !!options.generateAudioFiles
-                }, pageSize, options.translations)) {
-
-                    const batchSize = uploader.idealBatchSize;
-                    const totalBatches = Math.ceil(files.length / batchSize);
-                    console.log('Uploading', files.length, 'total files');
-                    console.log('Uploading in batches of', batchSize);
-
-                    let offset = 0;
-                    let batchNumber = 1;
-                    let batch = files.slice(offset, offset + batchSize);
-
-                    while (batch.length > 0) {
-                        console.log('Uploading batch', batchNumber, 'of', totalBatches);
-                        let writtenFiles = 0;
-                        const promises = batch.map(async file => {
-                            const isCommonFile = !file.path.endsWith('available_translations.json');
-                            if (await uploader.upload(file, overwrite || (overwriteCommonFiles && isCommonFile))) {
-                                writtenFiles++;
-                            } else {
-                                console.warn('File already exists:', file.path);
-                                console.warn('Skipping file');
-                            }
-
-                            if (file.content instanceof Readable) {
-                                file.content.destroy();
-                            }
-                        });
-
-                        await Promise.all(promises);
-
-                        console.log('Wrote', writtenFiles, 'files');
-                        batchNumber++;
-                        offset += batchSize;
-                        batch = files.slice(offset, offset + batchSize);
-                    }
-
-                    // console.log('Uploading', files.length, 'files');
-                    // let writtenFiles = 0;
-                    // const promises = files.map(async file => {
-                    //     if (await uploader.upload(file, overwrite)) {
-                    //         writtenFiles++;
-                    //     } else {
-                    //         console.warn('File already exists:', file.path);
-                    //         console.warn('Skipping file');
-                    //     }
-                    // });
-
-                    // await Promise.all(promises);
-
-                    // console.log('Wrote', writtenFiles, 'files');
-                }
-            } finally {
-                db.$disconnect();
-            }
+            await uploadApiFiles(dest, options);
         });
 
     program.command('fetch-translations <dir> [translations...]')
@@ -364,94 +225,118 @@ async function start() {
             }
         });
 
-    // program.command('import-translations [translations...]')
-    //     .description('Fetches and imports the specified translations from fetch.bible.')
-    //     .action(async (translations: string[] ) => {
-    //         const db = await getDbFromDir(process.cwd());
-    //         try {
-    //             const translationsSet = new Set(translations);
-    //             const client = new BibleClient({
-    //                 remember_fetches: false,
-    //             });
-
-    //             const collection = await client.fetch_collection();
-    //             const collectionTranslations = collection.get_translations();
-
-    //             console.log(`Discovered ${collectionTranslations.length} translations`);
-
-    //             const filtered = translations.length <= 0 ? collectionTranslations : collectionTranslations.filter(t => translationsSet.has(t.id));
-
-    //             let translationIDs = new Map<string, GetTranslationsItem>();
-    //             for (let t of filtered) {
-    //                 let id = getTranslationId(t);
-    //                 if (translationIDs.has(id)) {
-    //                     const existing = translationIDs.get(id);
-    //                     console.warn(`Duplicate translation ID: ${id}: ${existing?.id} and ${t.id}`);
-    //                     throw new Error(`Duplicate translation ID: ${id}: ${existing?.id} and ${t.id}`);
-    //                 } else {
-    //                     translationIDs.set(id, t);
-    //                 }
-    //             }
-
-    //             let batches: GetTranslationsItem[][] = [];
-    //             while (filtered.length > 0) {
-    //                 batches.push(filtered.splice(0, 10));
-    //             }
-
-    //             console.log(`Downloading ${filtered.length} translations in ${batches.length} batches`);
-
-    //             for (let i = 0; i < batches.length; i++) {
-    //                 const batch = batches[i];
-    //                 console.log(`Downloading batch ${i + 1} of ${batches.length}`);
-    //                 const translations = await Promise.all(batch.map(async t => {
-    //                     const id = getTranslationId(t);
-    //                     const translation: InputTranslationMetadata = {
-    //                         id,
-    //                         name: getFirstNonEmpty(t.name_local, t.name_english, t.name_abbrev),
-    //                         direction: getFirstNonEmpty(t.direction, 'ltr'),
-    //                         englishName: getFirstNonEmpty(t.name_english, t.name_abbrev, t.name_local),
-    //                         language: normalizeLanguage(t.language),
-    //                         licenseUrl: t.attribution_url,
-    //                         shortName: getFirstNonEmpty(t.name_abbrev, id),
-    //                         website: t.attribution_url,
-    //                     };
-
-    //                     const books = await Promise.all(collection.get_books(t.id).map(async b => {
-    //                         const content = await collection.fetch_book(t.id, b.id, 'usx');
-
-    //                         const file: InputFile = {
-    //                             fileType: 'usx',
-    //                             content: content.get_whole(),
-    //                             metadata: {
-    //                                 translation
-    //                             },
-    //                             name: `${b.id}.usx`,
-    //                         };
-
-    //                         return file;
-    //                     }));
-
-    //                     return {
-    //                         translation,
-    //                         books,
-    //                     };
-    //                 }));
-
-    //                 console.log(`Importing batch ${i + 1} of ${batches.length}`);
-    //                 await importTranslationFileBatch(db, translations.map(t => t.books).flat(), window);
-
-    //                 console.log(`Current memory usage: ${process.memoryUsage().heapUsed / 1024 / 1024} MB`);
-    //             }
-    //         } finally {
-    //             db.close();
-    //         }
-    //     });
-
     await program.parseAsync(process.argv);
 }
 
 start();
 
+
+interface UploadApiOptions {
+    batchSize: string;
+    overwrite?: boolean;
+    overwriteCommonFiles?: boolean;
+    translations?: string[];
+    profile?: string;
+    useCommonName?: boolean;
+    generateAudioFiles?: boolean;
+}
+
+async function uploadApiFiles(dest: string, options: UploadApiOptions) {
+    const db = getPrismaDbFromDir(process.cwd());
+    try {
+        const overwrite = !!options.overwrite;
+        if (overwrite) {
+            console.log('Overwriting existing files');
+        }
+
+        const overwriteCommonFiles = !!options.overwriteCommonFiles;
+        if (overwriteCommonFiles) {
+            console.log('Overwriting only common files');
+        }
+
+        if (options.translations) {
+            console.log('Generating for specific translations:', options.translations);
+        } else {
+            console.log('Generating for all translations');
+        }
+
+        let uploader: Uploader;
+        if (dest.startsWith('s3://')) {
+            console.log('Uploading to S3');
+            // Upload to S3
+            const url = dest;
+            const s3Url = parseS3Url(url);
+            if (!s3Url) {
+                throw new Error(`Invalid S3 URL: ${url}`);
+            }
+
+            if (!s3Url.bucketName) {
+                throw new Error(`Invalid S3 URL: ${url}\nUnable to determine bucket name`);
+            }
+            
+            uploader = new S3Uploader(s3Url.bucketName, s3Url.objectKey, options.profile ?? null);
+        } else if (extname(dest) === '.zip') {
+            console.log('Writing to zip file:', dest);
+            uploader = new ZipUploader(dest);
+        } else if (dest) {
+            console.log('Writing to local directory:', dest);
+            uploader = new FilesUploader(dest);
+        } else {
+            console.error('Unsupported destination:', dest);
+            process.exit(1);
+        }
+
+        try {
+            let pageSize = parseInt(options.batchSize);
+
+            for await(let files of serializeFilesForDataset(db, {
+                useCommonName: !!options.useCommonName,
+                generateAudioFiles: !!options.generateAudioFiles
+            }, pageSize, options.translations)) {
+
+                const batchSize = uploader.idealBatchSize ?? files.length;
+                const totalBatches = Math.ceil(files.length / batchSize);
+                console.log('Uploading', files.length, 'total files');
+                console.log('Uploading in batches of', batchSize);
+
+                let offset = 0;
+                let batchNumber = 1;
+                let batch = files.slice(offset, offset + batchSize);
+
+                while (batch.length > 0) {
+                    console.log('Uploading batch', batchNumber, 'of', totalBatches);
+                    let writtenFiles = 0;
+                    const promises = batch.map(async file => {
+                        const isCommonFile = !file.path.endsWith('available_translations.json');
+                        if (await uploader.upload(file, overwrite || (overwriteCommonFiles && isCommonFile))) {
+                            writtenFiles++;
+                        } else {
+                            console.warn('File already exists:', file.path);
+                            console.warn('Skipping file');
+                        }
+
+                        if (file.content instanceof Readable) {
+                            file.content.destroy();
+                        }
+                    });
+
+                    await Promise.all(promises);
+
+                    console.log('Wrote', writtenFiles, 'files');
+                    batchNumber++;
+                    offset += batchSize;
+                    batch = files.slice(offset, offset + batchSize);
+                }
+            }
+        } finally {
+            if (uploader && uploader.dispose) {
+                await uploader.dispose();
+            }
+        }
+    } finally {
+        db.$disconnect();
+    }
+}
 
 async function importTranslations(db: Database, dirs: string[], window: DOMWindow) {
     let batches = [] as string[][];

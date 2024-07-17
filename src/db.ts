@@ -233,8 +233,9 @@ export interface Uploader {
 
     /**
      * Gets the ideal batch size for the uploader.
+     * Null if the uploader does not need batching.
      */
-    idealBatchSize: number;
+    idealBatchSize: number | null;
 
     /**
      * Uploads the given file.
@@ -243,4 +244,9 @@ export interface Uploader {
      * @returns True if the file was uploaded. False if the file was skipped due to already existing.
      */
     upload(file: SerializedFile, overwrite: boolean): Promise<boolean>;
+
+    /**
+     * Disposes resources that the uploader uses.
+     */
+    dispose?(): Promise<void>;
 }
