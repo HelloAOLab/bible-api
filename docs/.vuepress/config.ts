@@ -4,6 +4,8 @@ import { backToTopPlugin } from '@vuepress/plugin-back-to-top';
 import { mediumZoomPlugin } from '@vuepress/plugin-medium-zoom';
 import { defaultTheme } from '@vuepress/theme-default';
 import { viteBundler} from '@vuepress/bundler-vite';
+import { searchPlugin } from '@vuepress/plugin-search';
+import { shikiPlugin } from '@vuepress/plugin-shiki';
 
 export default defineUserConfig({
   base: '/docs/',
@@ -65,6 +67,12 @@ export default defineUserConfig({
   }),
 
   plugins: [
+    searchPlugin(),
+    shikiPlugin({
+      // options
+      langs: ['ts', 'json'],
+      theme: 'dark-plus',
+    }),
     backToTopPlugin(),
     mediumZoomPlugin(),
   ]

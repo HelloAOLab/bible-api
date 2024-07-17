@@ -8,7 +8,7 @@ Gets the list of available translations in the API.
 
 ### Code Example
 
-```javascript:no-line-numbers title="fetch-translations.js"
+```ts:no-line-numbers title="fetch-translations.js"
 fetch(`https://bible.helloao.org/api/available_translations.json`)
     .then(request => request.json())
     .then(availableTranslations => {
@@ -115,7 +115,7 @@ Gets the list of books that are available for the given translation.
 
 ### Code Example
 
-```javascript:no-line-numbers title="fetch-books.js"
+```ts:no-line-numbers title="fetch-books.js"
 const translation = 'BSB';
 
 // Get the list of books for the BSB translation
@@ -218,7 +218,7 @@ Gets the content of a single chapter for a given book and translation.
 
 ### Code Example
 
-```javascript:no-line-numbers title="fetch-chapter.js"
+```ts:no-line-numbers title="fetch-chapter.js"
 const translation = 'BSB';
 const book = 'GEN';
 const chapter = 1;

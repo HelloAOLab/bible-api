@@ -4,7 +4,7 @@ To access the API, all you need to do is make an HTTP GET Request to the right e
 
 For example, to access the `available_translations.json` endpoint, you can use the following JavaScript:
 
-```javascript:no-line-numbers
+```ts:no-line-numbers
 fetch(`https://bible.helloao.org/api/available_translations.json`)
     .then(request => request.json())
     .then(availableTranslations => {
@@ -20,7 +20,7 @@ Below, you can find a list of examples. For more complete documentation, see the
 
 `GET https://bible.helloao.org/api/available_translations.json`
 
-```javascript:no-line-numbers
+```ts:no-line-numbers
 fetch(`https://bible.helloao.org/api/available_translations.json`)
     .then(request => request.json())
     .then(availableTranslations => {
@@ -32,7 +32,7 @@ fetch(`https://bible.helloao.org/api/available_translations.json`)
 
 `GET https://bible.helloao.org/api/{translation}/books.json`
 
-```javascript:no-line-numbers
+```ts:no-line-numbers
 // Get the list of books for the BSB translation
 fetch(`https://bible.helloao.org/api/BSB/books.json`)
     .then(request => request.json())
@@ -45,7 +45,7 @@ fetch(`https://bible.helloao.org/api/BSB/books.json`)
 
 `GET https://bible.helloao.org/api/{translation}/{book}/{chapter}.json`
 
-```javascript:no-line-numbers
+```ts:no-line-numbers
 // Get Genesis 1 from the BSB translation
 fetch(`https://bible.helloao.org/api/BSB/Genesis/1.json`)
     .then(request => request.json())

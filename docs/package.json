@@ -21,6 +21,8 @@
     "@vuepress/bundler-vite": "2.0.0-rc.14",
     "@vuepress/plugin-back-to-top": "2.0.0-rc.38",
     "@vuepress/plugin-medium-zoom": "2.0.0-rc.38",
+    "@vuepress/plugin-search": "2.0.0-rc.38",
+    "@vuepress/plugin-shiki": "2.0.0-rc.38",
     "@vuepress/theme-default": "2.0.0-rc.38",
     "vue": "^3.4.32"
   }
