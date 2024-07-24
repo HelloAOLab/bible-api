@@ -792,6 +792,7 @@ function updateTranslationHashes(db: Database, translations: DatasetTranslation[
             name: string;
             commonName: string;
             numberOfChapters: number;
+            sha256: string;
         }[];
 
         for (let book of books) {
@@ -803,6 +804,7 @@ function updateTranslationHashes(db: Database, translations: DatasetTranslation[
                 bookId: string;
                 translationId: string;
                 json: string;
+                sha256: string;
             }[];
 
             const bookSha = sha256()
@@ -821,32 +823,51 @@ function updateTranslationHashes(db: Database, translations: DatasetTranslation[
                     .update(chapter.number)
                     .update(chapter.json)
                     .digest('hex');
-                bookSha.update(hash);
 
-                updateChapterHash.run({
-                    sha256: hash,
-                    translationId: chapter.translationId,
-                    bookId: chapter.bookId,
-                    chapterNumber: chapter.number,
-                });
+                chapter.sha256 = hash;
+
+                bookSha.update(hash);
             }
 
-            const bookHash = bookSha.digest('hex');
-            updateBookHash.run({
-                sha256: bookHash,
-                translationId: book.translationId,
-                bookId: book.id
+            db.transaction(() => {
+                for(let chapter of chapters) {
+                    updateChapterHash.run({
+                        sha256: chapter.sha256,
+                        translationId: chapter.translationId,
+                        bookId: chapter.bookId,
+                        chapterNumber: chapter.number
+                    });
+                }
             });
+
+            const bookHash = bookSha.digest('hex');
+            book.sha256 = bookHash;
 
             translationSha.update(bookHash);
         }
 
-        const hash = translationSha.digest('hex');
-        updateTranslationHash.run({
-            sha256: hash,
-            translationId: translation.id
+        db.transaction(() => {
+            for(let book of books) {
+                updateBookHash.run({
+                    sha256: book.sha256,
+                    translationId: book.translationId,
+                    bookId: book.id
+                });
+            }
         });
+
+        const hash = translationSha.digest('hex');
+        (translation as any).sha256 = hash;
     }
+
+    db.transaction(() => {
+        for(let translation of translations) {
+            updateTranslationHash.run({
+                sha256: (translation as any).sha256,
+                translationId: translation.id
+            });
+        }
+    });
 
     console.log(`Updated.`);
 }
