@@ -43,13 +43,13 @@ export interface DatasetTranslationBook extends TranslationBook {
  * Generates a list of output files from the given list of input files.
  * @param file The list of files.
  */
-export function generateDataset(files: InputFile[], window: DOMWindow = globalThis as any): DatasetOutput {
+export function generateDataset(files: InputFile[], parser: DOMParser = new globalThis.DOMParser()): DatasetOutput {
     let output: DatasetOutput = {
         translations: [],
     };
 
     let usfmParser = new UsfmParser();
-    let usxParser = new USXParser(window);
+    let usxParser = new USXParser(parser);
     
     let parsedTranslations = new Map<string, DatasetTranslation>();
 

@@ -8,7 +8,7 @@
     "build:docs": "cd docs && pnpm build",
     "dev:docs": "vuepress dev docs/src",
     "cli": "ts-node ./src/cli.ts",
-    "build:cli": "esbuild ./src/cli.ts --bundle --platform=node --external:jsdom --external:better-sqlite3 --external:commander --external:@zip.js/zip.js --outfile=./src/cli.js",
+    "build:cli": "esbuild ./src/cli.ts --bundle --platform=node --external:jsdom --external:linkedom --external:better-sqlite3 --external:commander --external:@zip.js/zip.js --outfile=./src/cli.js",
     "s3:sync:docs": "aws --profile aolabs s3 sync ./build/docs s3://ao-bible-api/docs --delete",
     "s3:sync:api": "npm run cli upload-api-files s3://ao-bible-api -- --profile aolabs --overwrite-common-files",
     "postinstall": "prisma generate"
@@ -42,7 +42,8 @@
     "highlight.js": "^11.7.0",
     "lodash": "4.17.21",
     "markdown-it": "^13.0.1",
-    "@zip.js/zip.js": "^2.6.40"
+    "@zip.js/zip.js": "^2.6.40",
+    "linkedom": "0.18.4"
   },
   "prisma": {
     "schema": "./src/schema.prisma"

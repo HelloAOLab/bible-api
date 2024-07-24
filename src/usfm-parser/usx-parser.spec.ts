@@ -1,5 +1,6 @@
 import { USXParser } from "./usx-parser";
 import { JSDOM } from 'jsdom';
+import { DOMParser, Element, Node } from 'linkedom';
 import Matthew from '../../bible/webp_usx/mat.usx';
 import MatthewUsfm from '../../bible/engwebp/70-MATengwebp.usfm';
 import John from '../../bible/webp_usx/jhn.usx';
@@ -10,12 +11,12 @@ describe('USXParser', () => {
     let parser: USXParser;
 
     beforeEach(() => {
-        const { window } = new JSDOM();
-        globalThis.DOMParser = window.DOMParser as any;
-        globalThis.Element = window.Element;
-        globalThis.Node = window.Node;
+        // const { window } = new JSDOM();
+        globalThis.DOMParser = DOMParser as any;// window.DOMParser as any;
+        globalThis.Element = Element as any; // window.Element;
+        globalThis.Node = Node as any;// window.Node;
 
-        parser = new USXParser(window);
+        parser = new USXParser(new DOMParser() as any);
     });
 
     describe('parse()', () => {

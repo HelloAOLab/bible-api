@@ -20,6 +20,7 @@ import { parseS3Url, S3Uploader } from './s3';
 import { bookChapterCountMap } from './generation/book-order';
 import { Readable } from 'stream';
 import { finished } from 'stream/promises';
+import { DOMParser, Element, Node } from 'linkedom';
 // import { ReadableStream } from 'stream/web';
 import { KNOWN_AUDIO_TRANSLATIONS } from './generation/audio';
 
@@ -29,10 +30,10 @@ async function start() {
     // @ts-ignore
     // const Conf = await import('conf');
 
-    const { window } = new JSDOM();
-    globalThis.DOMParser = window.DOMParser as any;
-    globalThis.Element = window.Element;
-    globalThis.Node = window.Node;
+    const parser = new DOMParser();
+    globalThis.DOMParser = DOMParser as any;
+    globalThis.Element = Element as any;
+    globalThis.Node = Node as any;
 
     const program = new Command();
 
@@ -53,7 +54,7 @@ async function start() {
         .action(async (dir: string, dirs: string[]) => {
             const db = await getDbFromDir(process.cwd());
             try {
-                await importTranslations(db, [dir, ...dirs], window);
+                await importTranslations(db, [dir, ...dirs], parser);
             } finally {
                 db.close();
             }
@@ -67,7 +68,7 @@ async function start() {
                 const files = await readdir(dir);
                 const translationDirs = files.map(f => path.resolve(dir, f));
                 console.log(`Importing ${translationDirs.length} translations`);
-                await importTranslations(db, translationDirs, window);
+                await importTranslations(db, translationDirs, parser);
             } finally {
                 db.close();
             }
@@ -364,7 +365,7 @@ async function uploadApiFiles(dest: string, options: UploadApiOptions) {
     }
 }
 
-async function importTranslations(db: Database, dirs: string[], window: DOMWindow) {
+async function importTranslations(db: Database, dirs: string[], parser: DOMParser) {
     let batches = [] as string[][];
     while (dirs.length > 0) {
         batches.push(dirs.splice(0, 10));
@@ -374,11 +375,11 @@ async function importTranslations(db: Database, dirs: string[], window: DOMWindo
     for (let i = 0; i < batches.length; i++) {
         const batch = batches[i];
         console.log(`Processing batch ${i + 1} of ${batches.length}`);
-        await importTranslationBatch(db, batch, window);
+        await importTranslationBatch(db, batch, parser);
     }
 }
 
-async function importTranslationBatch(db: Database, dirs: string[], window: DOMWindow) {
+async function importTranslationBatch(db: Database, dirs: string[], parser: DOMParser) {
     const promises = [] as Promise<InputFile[]>[];
     for(let dir of dirs) {
         const fullPath = path.resolve(dir);
@@ -387,13 +388,13 @@ async function importTranslationBatch(db: Database, dirs: string[], window: DOMW
 
     const allFiles = await Promise.all(promises);
     const files = allFiles.flat();
-    await importTranslationFileBatch(db, files, window);
+    await importTranslationFileBatch(db, files, parser);
 }
 
-async function importTranslationFileBatch(db: Database, files: InputFile[], window: DOMWindow) {
+async function importTranslationFileBatch(db: Database, files: InputFile[], parser: DOMParser) {
     console.log('Generating output for', files.length, 'files');
 
-    const output = generateDataset(files, window);
+    const output = generateDataset(files, parser as globalThis.DOMParser);
 
     console.log('Generated', output.translations.length, 'translations');
 

@@ -11,13 +11,11 @@ enum NodeType {
  * Defines a class that is able to parse USX content.
  */
 export class USXParser {
-
-    private window: DOMWindow;
-
+    private _domParser: DOMParser;
     private _noteCounter: number = 0;
 
-    constructor(window: DOMWindow) {
-        this.window = window;
+    constructor(domParser: DOMParser) {
+        this._domParser = domParser;
     }
 
     /**
@@ -27,7 +25,7 @@ export class USXParser {
      * @returns The parse tree that was generated.
      */
     public parse(usx: string): ParseTree {
-        const parser = new this.window.DOMParser();
+        const parser = this._domParser;
         const doc = parser.parseFromString(usx, 'application/xml');
         const usxElement = doc.documentElement;
 
