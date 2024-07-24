@@ -59,7 +59,7 @@ interface Translation {
     shortName?: string;
 
     /**
-     * The RFC 5646 letter language tag that the translation is primarily in.
+     * The ISO 639  3-letter language tag that the translation is primarily in.
      */
     language: string;
 
