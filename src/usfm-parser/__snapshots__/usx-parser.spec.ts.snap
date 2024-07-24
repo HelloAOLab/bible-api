@@ -463,12 +463,24 @@ exports[`USXParser parse() should be able to parse 1SA 1`] = `
               "poem": 2,
               "text": "He will thunder against them in the sky.",
             },
+            {
+              "lineBreak": true,
+            },
+            {
+              "poem": 1,
+              "text": "“Yahweh will judge the ends of the earth.",
+            },
+            {
+              "poem": 2,
+              "text": "He will give strength to his king,",
+            },
+            {
+              "poem": 2,
+              "text": "and exalt the horn of his anointed.”",
+            },
           ],
           "number": 10,
           "type": "verse",
-        },
-        {
-          "type": "line_break",
         },
         {
           "content": [

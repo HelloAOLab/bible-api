@@ -385,7 +385,7 @@ describe('USXParser', () => {
                     <para style="s1">The Seventh Day</para>
                     <para style="r">(Exodus 16:22–30; Hebrews 4:1–11)</para>
                     <para style="m">
-                    <verse number="1" style="v" sid="GEN 2:1"/>
+                        <verse number="1" style="v" sid="GEN 2:1"/>
                         <char style="w" strong="H3541">Thus</char>
                         <char style="w" strong="H3605">the</char>
                         <char style="w" strong="H8064">heavens</char>
@@ -952,6 +952,116 @@ describe('USXParser', () => {
             });
         });
 
+        it('should support verses that span multiple paragraphs', () => {
+            const usx = `
+                <usx version="3.0">
+                    <book code="GET" style="id">- BSB</book>
+                    <chapter number="26" style="c" sid="GEN 26"/>
+                    <para style="m"><verse number="8" style="v" sid="GEN 26:8"/><char style="w" strong="H3588">When</char> <char style="w" strong="H3327">Isaac</char> <char style="w" strong="H1961">had</char> <char style="w" strong="H1961">been</char> <char style="w" strong="H8033">there</char> <char style="w" strong="H1961">a</char> <char style="w" strong="H3117">long</char> <char style="w" strong="H3117">time</char>, <char style="w" strong="H0040">Abimelech</char> <char style="w" strong="H4428">king</char> <char style="w" strong="H4428">of</char> <char style="w" strong="H7200">the</char> <char style="w" strong="H6430">Philistines</char> <char style="w" strong="H7200">looked</char> <char style="w" strong="H8259">down</char> <char style="w" strong="H3117">from</char> <char style="w" strong="H7200">the</char> <char style="w" strong="H2474">window</char> <char style="w" strong="H4428">and</char> <char style="w" strong="H1961">was</char> <char style="w" strong="H8610">surprised</char> <char style="w" strong="H1961">to</char> <char style="w" strong="H7200">see</char> <char style="w" strong="H3327">Isaac</char> <char style="w" strong="H6711">caressing</char> <char style="w" strong="H7200">his</char> <char style="w" strong="H0802">wife</char> <char style="w" strong="H7259">Rebekah</char>.<verse eid="GEN 26:8"/> <verse number="9" style="v" sid="GEN 26:9"/><char style="w" strong="H0040">Abimelech</char> <char style="w" strong="H3327">sent</char> <char style="w" strong="H3588">for</char> <char style="w" strong="H3327">Isaac</char> <char style="w" strong="H3327">and</char> <char style="w" strong="H7121">said</char>, &#8220;<char style="w" strong="H6435">So</char> <char style="w" strong="H1931">she</char> <char style="w" strong="H1931">is</char> <char style="w" strong="H2088">really</char> <char style="w" strong="H5921">your</char> <char style="w" strong="H0802">wife</char>! <char style="w" strong="H3588">How</char> <char style="w" strong="H3201">could</char> <char style="w" strong="H3588">you</char> <char style="w" strong="H0559">say</char>, &#8216;<char style="w" strong="H1931">She</char> <char style="w" strong="H1931">is</char> <char style="w" strong="H5921">my</char> sister&#8217;?&#8221;</para>
+                    <para style="b"/>
+                    <para style="m"><char style="w" strong="H3327">Isaac</char> <char style="w" strong="H0559">replied</char>, &#8220;<char style="w" strong="H3588">Because</char> <char style="w" strong="H3588">I</char> <char style="w" strong="H0559">thought</char> <char style="w" strong="H3588">I</char> <char style="w" strong="H6435">might</char> <char style="w" strong="H4191">die</char> <char style="w" strong="H5921">on</char> <char style="w" strong="H5921">account</char> <char style="w" strong="H5921">of</char> <char style="w" strong="H5921">her</char>.&#8221;<verse eid="GEN 26:9"/></para>
+                </usx>
+            `;
+
+            const tree = parser.parse(usx);
+            expect(tree).toEqual({
+                type: 'root',
+                id: 'GET',
+                content: [
+                    {
+                        type: 'chapter',
+                        number: 26,
+                        content: [
+                            { 
+                                type: 'verse', 
+                                number: 8,
+                                content: [
+                                    'When Isaac had been there a long time, Abimelech king of the Philistines looked down from the window and was surprised to see Isaac caressing his wife Rebekah.'
+                                ]
+                            },
+                            {
+                                type: 'verse',
+                                number: 9,
+                                content: [
+                                    'Abimelech sent for Isaac and said, “So she is really your wife! How could you say, ‘She is my sister’?”',
+                                    {
+                                        lineBreak: true,
+                                    },
+                                    'Isaac replied, “Because I thought I might die on account of her.”'
+                                ]
+                            }
+                        ],
+                        footnotes: [],
+                    }
+                ],
+            });
+        });
+
+        it('should support verses that are contained in the words of Jesus', () => { 
+            const usx = `
+                <usx version="3.0">
+                    <book code="MAT" style="id">- BSB</book>
+                    <chapter number="17" style="c" sid="MAT 17"/>
+                    <para style="p"><verse number="26" style="v" sid="MAT 17:26"/><char style="w" strong="G4074">Peter</char> <char style="w" strong="G3004">said</char> <char style="w" strong="G3004">to</char> <char style="w" strong="G3588">him</char>, &#8220;<char style="w" strong="G3588">From</char> <char style="w" strong="G3581">strangers</char>.&#8221;</para>
+                    <para style="p"><char style="w" strong="G2424">Jesus</char> <char style="w" strong="G3004">said</char> <char style="w" strong="G3004">to</char> <char style="w" strong="G3588">him</char>, <char style="wj">&#8220;<char style="w" strong="G1161">Therefore</char> <char style="w" strong="G1161">the</char> <char style="w" strong="G5207">children</char> <char style="w" strong="G1510">are</char> <char style="w" strong="G1658">exempt</char>. </char><verse eid="MAT 17:26"/> <verse number="27" style="v" sid="MAT 17:27"/><char style="wj"><char style="w" strong="G1161">But</char>, <char style="w" strong="G3361">lest</char> <char style="w" strong="G2532">we</char> <char style="w" strong="G4624">cause</char> <char style="w" strong="G3588">them</char> <char style="w" strong="G1519">to</char> <char style="w" strong="G4624">stumble</char>, <char style="w" strong="G4198">go</char> <char style="w" strong="G1519">to</char> <char style="w" strong="G2532">the</char> <char style="w" strong="G2281">sea</char>, <char style="w" strong="G2532">cast</char> <char style="w" strong="G2532">a</char> <char style="w" strong="G0044">hook</char>, <char style="w" strong="G2532">and</char> <char style="w" strong="G2983">take</char> <char style="w" strong="G1519">up</char> <char style="w" strong="G2532">the</char> <char style="w" strong="G4413">first</char> <char style="w" strong="G2486">fish</char> <char style="w" strong="G2443">that</char> <char style="w" strong="G2532">comes</char> <char style="w" strong="G1519">up</char>. <char style="w" strong="G1161">When</char> <char style="w" strong="G4771">you</char> <char style="w" strong="G2532">have</char> <char style="w" strong="G0455">opened</char> <char style="w" strong="G1325">its</char> <char style="w" strong="G4750">mouth</char>, <char style="w" strong="G4771">you</char> <char style="w" strong="G2532">will</char> <char style="w" strong="G2147">find</char> <char style="w" strong="G2532">a</char> stater <char style="w" strong="G1406">coin</char>.</char><note style="f" caller="+"><char style="fr">17:27 </char><char style="ft">A stater is a silver coin equivalent to four Attic or two Alexandrian drachmas, or a Jewish shekel: just exactly enough to cover the half-shekel temple tax for two people. A shekel is about 10 grams or about 0.35 ounces, usually in the form of a silver coin.</char></note> <char style="wj"><char style="w" strong="G2983">Take</char> <char style="w" strong="G2443">that</char>, <char style="w" strong="G2532">and</char> <char style="w" strong="G1325">give</char> <char style="w" strong="G2532">it</char> <char style="w" strong="G1519">to</char> <char style="w" strong="G3588">them</char> <char style="w" strong="G1519">for</char> <char style="w" strong="G1325">me</char> <char style="w" strong="G2532">and</char> <char style="w" strong="G4771">you</char>.&#8221;</char><verse eid="MAT 17:27"/></para>
+                    <chapter eid="MAT 17"/>
+                </usx>
+            `;
+
+            const tree = parser.parse(usx);
+            expect(tree).toEqual({
+                type: 'root',
+                id: 'MAT',
+                content: [
+                    {
+                        type: 'chapter',
+                        number: 17,
+                        content: [
+                            {
+                                type: 'verse',
+                                number: 26,
+                                content: [
+                                    'Peter said to him, “From strangers.” Jesus said to him,',
+                                    {
+                                        wordsOfJesus: true,
+                                        text: '“Therefore the children are exempt.',
+                                    }
+                                ]
+                            },
+                            {
+                                type: 'verse',
+                                number: 27,
+                                content: [
+                                    {
+                                        wordsOfJesus: true,
+                                        text: 'But, lest we cause them to stumble, go to the sea, cast a hook, and take up the first fish that comes up. When you have opened its mouth, you will find a stater coin.'
+                                    },
+                                    {
+                                        noteId: 0,
+                                    },
+                                    {
+                                        wordsOfJesus: true,
+                                        text: 'Take that, and give it to them for me and you.”'
+                                    }
+                                ]
+                            }
+                        ],
+                        footnotes: [
+                            {
+                                noteId: 0,
+                                caller: '+',
+                                reference: {
+                                    chapter: 17,
+                                    verse: 27,
+                                },
+                                text: 'A stater is a silver coin equivalent to four Attic or two Alexandrian drachmas, or a Jewish shekel: just exactly enough to cover the half-shekel temple tax for two people. A shekel is about 10 grams or about 0.35 ounces, usually in the form of a silver coin.'
+                            }
+                        ],
+                    }
+                ]
+            });
+        });
+
         it('should be able to parse a whole book', () => {
             const tree = parser.parse(Matthew);
             expect(tree).toMatchSnapshot();
@@ -1021,6 +1131,7 @@ describe('USXParser', () => {
     });
 
 });
+
 
 function firstXLines(content: string, x: number) {
     const lines = content.split('\n');
