@@ -739,8 +739,8 @@ describe('USXParser', () => {
                             {
                                 type: 'line_break',
                             },
-                            { 
-                                type: 'verse', 
+                            {
+                                type: 'verse',
                                 number: 1,
                                 content: [
                                     { text: 'O LORD, do not rebuke me in Your anger', poem: 1 },
@@ -759,6 +759,51 @@ describe('USXParser', () => {
                                 }
                             }
                         ],
+                    }
+                ]
+            });
+        });
+
+        it('should suppport verses in descriptive titles', () => {
+            const usx = `
+                <usx version="3.0">
+                    <book code="ZEC" style="id">- Berean Study Bible</book>
+                    <chapter number="12" style="c" sid="ZEC 12"/>
+                    <para style="s1">The Coming Deliverance of Jerusalem</para>
+                    <para style="d"><verse number="1" style="v" sid="ZEC 12:1"/><char style="w" strong="H1697">This</char> <char style="w" strong="H3068">is</char> <char style="w" strong="H5002">the</char> <char style="w" strong="H4853">burden</char> <char style="w" strong="H3068">of</char> <char style="w" strong="H5002">the</char> <char style="w" strong="H1697">word</char> <char style="w" strong="H3068">of</char> <char style="w" strong="H5002">the</char> <char style="w" strong="H3068">LORD</char> <char style="w" strong="H5921">concerning</char> <char style="w" strong="H3478">Israel</char>.</para>
+                    <para style="b"/>
+                    <para style="m"><char style="w" strong="H1697">Thus</char> <char style="w" strong="H5002">declares</char> <char style="w" strong="H5002">the</char> <char style="w" strong="H3068">LORD</char>, <char style="w" strong="H3068">who</char> <char style="w" strong="H5186">stretches</char> <char style="w" strong="H5186">out</char> <char style="w" strong="H5002">the</char> <char style="w" strong="H8064">heavens</char> <char style="w" strong="H3478">and</char> <char style="w" strong="H3245">lays</char> <char style="w" strong="H5002">the</char> <char style="w" strong="H3245">foundation</char> <char style="w" strong="H3068">of</char> <char style="w" strong="H5002">the</char> <char style="w" strong="H8064">earth</char>, <char style="w" strong="H3068">who</char> <char style="w" strong="H3335">forms</char> <char style="w" strong="H5002">the</char> <char style="w" strong="H7307">spirit</char> <char style="w" strong="H3068">of</char> <char style="w" strong="H0376">man</char> <char style="w" strong="H7130">within</char> <char style="w" strong="H5921">him</char>:<verse eid="ZEC 12:1"/></para>
+                </usx>
+            `;
+            const tree = parser.parse(usx);
+            expect(tree).toEqual({
+                type: 'root',
+                id: 'ZEC',
+                content: [
+                    {
+                        type: 'chapter',
+                        number: 12,
+                        content: [
+                            {
+                                type: 'heading',
+                                content: ['The Coming Deliverance of Jerusalem']
+                            },
+                            {
+                                type: 'verse',
+                                number: 1,
+                                content: [
+                                    {
+                                        text: 'This is the burden of the word of the LORD concerning Israel.',
+                                        descriptive: true,
+                                    },
+                                    {
+                                        lineBreak: true
+                                    },
+                                    'Thus declares the LORD, who stretches out the heavens and lays the foundation of the earth, who forms the spirit of man within him:'
+                                ]
+                            },
+                        ],
+                        footnotes: [],
                     }
                 ]
             });
@@ -807,8 +852,8 @@ describe('USXParser', () => {
                         type: 'chapter',
                         number: 5,
                         content: [
-                            { 
-                                type: 'verse', 
+                            {
+                                type: 'verse',
                                 number: 3,
                                 content: [
                                     { text: '“Blessed are the poor in spirit,', poem: 1, wordsOfJesus: true, },
@@ -937,8 +982,8 @@ describe('USXParser', () => {
                         type: 'chapter',
                         number: 5,
                         content: [
-                            { 
-                                type: 'verse', 
+                            {
+                                type: 'verse',
                                 number: 3,
                                 content: [
                                     { text: '“Blessed are the poor in spirit,', poem: 1, wordsOfJesus: true, },
@@ -972,8 +1017,8 @@ describe('USXParser', () => {
                         type: 'chapter',
                         number: 26,
                         content: [
-                            { 
-                                type: 'verse', 
+                            {
+                                type: 'verse',
                                 number: 8,
                                 content: [
                                     'When Isaac had been there a long time, Abimelech king of the Philistines looked down from the window and was surprised to see Isaac caressing his wife Rebekah.'
@@ -997,7 +1042,7 @@ describe('USXParser', () => {
             });
         });
 
-        it('should support verses that are contained in the words of Jesus', () => { 
+        it('should support verses that are contained in the words of Jesus', () => {
             const usx = `
                 <usx version="3.0">
                     <book code="MAT" style="id">- BSB</book>
@@ -1062,6 +1107,116 @@ describe('USXParser', () => {
             });
         });
 
+        it('should support multiple verses within a paragraph', () => {
+            const usx = `
+                <usx>
+                    <book code="ZEC" style="id">- BSB</book>
+                    <chapter number="12" style="c" sid="ZEC 17"/>
+                    <para style="b"/>
+                    <para style="m"><verse number="10" style="v" sid="ZEC 12:10"/><char style="w" strong="H1732">Then</char> <char style="w" strong="H5921">I</char> <char style="w" strong="H1004">will</char> <char style="w" strong="H8210">pour</char> <char style="w" strong="H8210">out</char> <char style="w" strong="H5921">on</char> <char style="w" strong="H5921">the</char> <char style="w" strong="H1004">house</char> <char style="w" strong="H1004">of</char> <char style="w" strong="H1732">David</char> <char style="w" strong="H1004">and</char> <char style="w" strong="H5921">on</char> <char style="w" strong="H5921">the</char> <char style="w" strong="H3427">people</char> <char style="w" strong="H1004">of</char> <char style="w" strong="H3389">Jerusalem</char> <char style="w" strong="H5921">a</char> <char style="w" strong="H7307">spirit</char> <note style="f" caller="+"><char style="fr"/><char style="ft">12:10 </char><char style="ft">Or the Spirit</char></note> <char style="w" strong="H1004">of</char> <char style="w" strong="H2580">grace</char> <char style="w" strong="H1004">and</char> <char style="w" strong="H8605">prayer</char>, <char style="w" strong="H1004">and</char> <char style="w" strong="H5921">they</char> <char style="w" strong="H1004">will</char> <char style="w" strong="H5027">look</char> <char style="w" strong="H5921">on</char> <char style="w" strong="H5921">Me</char>,<note style="f" caller="+"><char style="fr"/><char style="ft">12:10 </char><char style="ft">Or to Me</char></note> <char style="w" strong="H5921">the</char> <char style="w" strong="H3173">One</char> <char style="w" strong="H5921">they</char> <char style="w" strong="H1004">have</char> <char style="w" strong="H1856">pierced</char>.<note style="f" caller="+"><char style="fr"/><char style="ft">12:10 </char><char style="ft">Cited in John 19:37</char></note> <char style="w" strong="H5921">They</char> <char style="w" strong="H1004">will</char> <char style="w" strong="H5594">mourn</char> <char style="w" strong="H5921">for</char> <char style="w" strong="H5921">Him</char> <char style="w" strong="H3389">as</char> <char style="w" strong="H3173">one</char> <char style="w" strong="H5594">mourns</char> <char style="w" strong="H5921">for</char> <char style="w" strong="H7307">an</char> <char style="w" strong="H3173">only</char> <char style="w" strong="H3173">child</char>, <char style="w" strong="H1004">and</char> <char style="w" strong="H6087">grieve</char> <char style="w" strong="H4843">bitterly</char> <char style="w" strong="H5921">for</char> <char style="w" strong="H5921">Him</char> <char style="w" strong="H3389">as</char> <char style="w" strong="H3173">one</char> grieves <char style="w" strong="H5921">for</char> <char style="w" strong="H5921">a</char> <char style="w" strong="H1060">firstborn</char> <char style="w" strong="H3173">son</char>.<verse eid="ZEC 12:10"/></para>
+                    <para style="b"/>
+                    <para style="m"><verse number="11" style="v" sid="ZEC 12:11"/><char style="w" strong="H3117">On</char> <char style="w" strong="H3117">that</char> <char style="w" strong="H3117">day</char> <char style="w" strong="H3117">the</char> <char style="w" strong="H4553">wailing</char> <char style="w" strong="H3117">in</char> <char style="w" strong="H3389">Jerusalem</char> <char style="w" strong="H3389">will</char> <char style="w" strong="H3117">be</char> <char style="w" strong="H3117">as</char> <char style="w" strong="H1431">great</char> <char style="w" strong="H3117">as</char> <char style="w" strong="H3117">the</char> <char style="w" strong="H4553">wailing</char> <char style="w" strong="H3117">of</char> Hadad-rimmon <char style="w" strong="H3117">in</char> <char style="w" strong="H3117">the</char> <char style="w" strong="H1237">plain</char> <char style="w" strong="H3117">of</char> <char style="w" strong="H4023">Megiddo</char>.<verse eid="ZEC 12:11"/> <verse number="12" style="v" sid="ZEC 12:12"/><char style="w" strong="H1732">The</char> <char style="w" strong="H4940">land</char> <char style="w" strong="H1004">will</char> <char style="w" strong="H5594">mourn</char>, <char style="w" strong="H0376">each</char> <char style="w" strong="H4940">clan</char> <char style="w" strong="H1004">on</char> <char style="w" strong="H3605">its</char> <char style="w" strong="H1961">own</char>: <char style="w" strong="H1732">the</char> <char style="w" strong="H4940">clan</char> <char style="w" strong="H1004">of</char> <char style="w" strong="H1732">the</char> <char style="w" strong="H1004">house</char> <char style="w" strong="H1004">of</char> <char style="w" strong="H1732">David</char> <char style="w" strong="H1004">and</char> <char style="w" strong="H1732">their</char> <char style="w" strong="H0802">wives</char>, <char style="w" strong="H1732">the</char> <char style="w" strong="H4940">clan</char> <char style="w" strong="H1004">of</char> <char style="w" strong="H1732">the</char> <char style="w" strong="H1004">house</char> <char style="w" strong="H1004">of</char> <char style="w" strong="H5416">Nathan</char> <char style="w" strong="H1004">and</char> <char style="w" strong="H1732">their</char> <char style="w" strong="H0802">wives</char>,<verse eid="ZEC 12:12"/> <verse number="13" style="v" sid="ZEC 12:13"/><char style="w" strong="H1004">the</char> <char style="w" strong="H4940">clan</char> <char style="w" strong="H1004">of</char> <char style="w" strong="H1004">the</char> <char style="w" strong="H1004">house</char> <char style="w" strong="H1004">of</char> <char style="w" strong="H3878">Levi</char> <char style="w" strong="H1004">and</char> <char style="w" strong="H3605">their</char> <char style="w" strong="H0802">wives</char>, <char style="w" strong="H1004">the</char> <char style="w" strong="H4940">clan</char> <char style="w" strong="H1004">of</char> <char style="w" strong="H8097">Shimei</char> <char style="w" strong="H1004">and</char> <char style="w" strong="H3605">their</char> <char style="w" strong="H0802">wives</char>,<verse eid="ZEC 12:13"/> <verse number="14" style="v" sid="ZEC 12:14"/><char style="w" strong="H3605">and</char> <char style="w" strong="H3605">all</char> <char style="w" strong="H3605">the</char> <char style="w" strong="H7604">remaining</char> <char style="w" strong="H4940">clans</char> <char style="w" strong="H3605">and</char> <char style="w" strong="H3605">their</char> <char style="w" strong="H0802">wives</char>.<verse eid="ZEC 12:14"/></para>
+                    <chapter eid="ZEC 12"/>
+                </usx>
+            `;
+
+            const tree = parser.parse(usx);
+            expect(tree).toEqual({
+                type: 'root',
+                id: 'ZEC',
+                content: [
+                    {
+                        type: 'chapter',
+                        number: 12,
+                        content: [
+                            {
+                                type: 'line_break'
+                            },
+                            {
+                                type: 'verse',
+                                number: 10,
+                                content: [
+                                    'Then I will pour out on the house of David and on the people of Jerusalem a spirit',
+                                    {
+                                        noteId: 0
+                                    },
+                                    'of grace and prayer, and they will look on Me,',
+                                    {
+                                        noteId: 1,
+                                    },
+                                    'the One they have pierced.',
+                                    {
+                                        noteId: 2
+                                    },
+                                    'They will mourn for Him as one mourns for an only child, and grieve bitterly for Him as one grieves for a firstborn son.'
+                                ]
+                            },
+                            {
+                                type: 'line_break'
+                            },
+                            {
+                                type: 'verse',
+                                number: 11,
+                                content: [
+                                    'On that day the wailing in Jerusalem will be as great as the wailing of Hadad-rimmon in the plain of Megiddo.',
+                                ]
+                            },
+                            {
+                                type: 'verse',
+                                number: 12,
+                                content: [
+                                    'The land will mourn, each clan on its own: the clan of the house of David and their wives, the clan of the house of Nathan and their wives,',
+                                ]
+                            },
+                            {
+                                type: 'verse',
+                                number: 13,
+                                content: [
+                                    'the clan of the house of Levi and their wives, the clan of Shimei and their wives,',
+                                ]
+                            },
+                            {
+                                type: 'verse',
+                                number: 14,
+                                content: [
+                                    'and all the remaining clans and their wives.'
+                                ]
+                            }
+                        ],
+                        "footnotes": [
+                            {
+                                "caller": "+",
+                                "noteId": 0,
+                                "reference": {
+                                    "chapter": 12,
+                                    "verse": 10,
+                                },
+                                "text": "Or the Spirit",
+                            },
+                            {
+                                "caller": "+",
+                                "noteId": 1,
+                                "reference": {
+                                    "chapter": 12,
+                                    "verse": 10,
+                                },
+                                "text": "Or to Me",
+                            },
+                            {
+                                "caller": "+",
+                                "noteId": 2,
+                                "reference": {
+                                    "chapter": 12,
+                                    "verse": 10,
+                                },
+                                "text": "Cited in John 19:37",
+                            },
+                        ]
+                    }
+                ]
+            });
+        });
+
         it('should be able to parse a whole book', () => {
             const tree = parser.parse(Matthew);
             expect(tree).toMatchSnapshot();
@@ -1100,8 +1255,8 @@ describe('USXParser', () => {
                         type: 'chapter',
                         number: 1,
                         content: [
-                            { 
-                                type: 'verse', 
+                            {
+                                type: 'verse',
                                 number: 23,
                                 content: [
                                     {

@@ -381,7 +381,6 @@ exports[`USXParser parse() should be able to parse 1SA 1`] = `
             },
             {
               "noteId": 4,
-              "poem": 2,
             },
             {
               "poem": 2,
@@ -15925,7 +15924,6 @@ exports[`USXParser parse() should be able to parse a whole book 1`] = `
             },
             {
               "noteId": 10,
-              "poem": 2,
             },
           ],
           "number": 5,
@@ -16736,7 +16734,6 @@ exports[`USXParser parse() should be able to parse a whole book 1`] = `
             },
             {
               "noteId": 23,
-              "poem": 1,
             },
           ],
           "number": 13,

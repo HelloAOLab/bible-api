@@ -1,5 +1,5 @@
 import { DOMWindow } from "jsdom";
-import { Chapter, ChapterContent, Footnote, FootnoteReference, ParseTree, Verse, Text, VerseContent, HebrewSubtitle, InlineLineBreak } from "./types";
+import { Chapter, ChapterContent, Footnote, FootnoteReference, ParseTree, Verse, Text, VerseContent, HebrewSubtitle, InlineLineBreak, InlineHeading } from "./types";
 import { trim } from "lodash";
 import { uncompletable, iterateAll, elements, children, parentChar, parentNote, RewindableIterator, debug, isParent } from "./iterators";
 
@@ -94,7 +94,7 @@ export class USXParser {
                     footnotes: [],
                 };
 
-                for(let content of this.iterateChapterContent(chapter, iterator)) {
+                for (let content of this.iterateChapterContent(chapter, iterator)) {
                     chapter.content.push(content);
                 }
 
@@ -136,25 +136,14 @@ export class USXParser {
                         type: 'line_break',
                     };
                 } else if (style === 'd') {
-                    yield this.parseHebrewSubtitle(element, chapter, nodes);
+                    yield *this.parseHebrewSubtitle(element, chapter, nodes);
                 }
             } else if (element.nodeName === 'verse') {
                 if (element.hasAttribute('eid')) {
                     continue;
                 }
 
-                const verse: Verse = {
-                    type: 'verse',
-                    number: parseInt(element.getAttribute('number') || '0', 10),
-                    content: []
-                };
-
-                for(let content of this.iterateVerseContent(chapter, verse, nodes)) {
-                    addOrJoin(verse.content, content);
-                }
-
-                trimContent(verse.content);
-                yield verse;
+                yield this.parseVerse(element, chapter, nodes);
             }
         }
     }
@@ -172,26 +161,48 @@ export class USXParser {
 
             const parent = node.parentElement!;
             let poem: number | null = null;
+            let descriptive: boolean | null = null;
 
             if (parent.nodeName === 'para') {
                 const style = parent.getAttribute('style');
                 if (style === 'q1' || style === 'q2' || style === 'q3' || style === 'q4') {
                     poem = style === 'q1' ? 1 : style === 'q2' ? 2 : style === 'q3' ? 3 : 4;
+                } else if(style === 'd') {
+                    descriptive = true;
                 }
             }
 
             for(let content of this.iterateNodeTextContent(node, chapter, verse)) {
-                if (poem !== null) {
+                if (poem !== null || descriptive !== null) {
                     if (typeof content === 'string') {
-                        yield {
-                            text: content,
-                            poem,
+                        let text: Text = {
+                            text: content
                         };
+
+                        if(poem !== null) {
+                            text.poem = poem;
+                        }
+
+                        if (descriptive !== null) {
+                            text.descriptive = true;
+                        }
+
+                        yield text;
                     } else {
-                        yield {
-                            ...content,
-                            poem,
+                        let text: InlineLineBreak | InlineHeading | FootnoteReference | Text = {
+                            ...content
                         };
+
+                        if ('text' in text) {
+                            if (poem !== null) {
+                                text.poem = poem;
+                            }
+
+                            if (descriptive !== null) {
+                                text.descriptive = true;
+                            }
+                        }
+                        yield text;
                     }
                 } else {
                     yield content;
@@ -200,23 +211,58 @@ export class USXParser {
         }
     }
 
-    parseHebrewSubtitle(para: Element, chapter: Chapter, nodes: RewindableIterator<Node>): HebrewSubtitle {
+    parseVerse(element: Element, chapter: Chapter, nodes: RewindableIterator<Node>): Verse {
+        const verse: Verse = {
+            type: 'verse',
+            number: parseInt(element.getAttribute('number') || '0', 10),
+            content: []
+        };
+
+        for(let content of this.iterateVerseContent(chapter, verse, nodes)) {
+            addOrJoin(verse.content, content);
+        }
+
+        trimContent(verse.content);
+        return verse;
+    }
+
+    *parseHebrewSubtitle(para: Element, chapter: Chapter, nodes: RewindableIterator<Node>): IterableIterator<HebrewSubtitle | Verse> {
         const subtitle: HebrewSubtitle = {
             type: 'hebrew_subtitle',
             content: []
         };
 
         for(let content of this.iterateHebrewSubtitleContent(para, chapter, nodes)) {
+            if (typeof content === 'object' && 'number' in content) {
+                yield content;
+                continue;
+            }
             addOrJoin(subtitle.content, content);
         }
 
         trimContent(subtitle.content);
-        return subtitle;
+        if (subtitle.content.length > 0) {
+            yield subtitle;
+        }
     }
 
-    *iterateHebrewSubtitleContent(element: Element, chapter: Chapter, nodes: RewindableIterator<Node>): IterableIterator<string | Text | FootnoteReference | InlineLineBreak> {
-        for (let node of children(nodes, element)) {
-            yield *this.iterateNodeTextContent(node, chapter);
+    *iterateHebrewSubtitleContent(element: Element, chapter: Chapter, nodes: RewindableIterator<Node>): IterableIterator<Verse | string | Text | FootnoteReference | InlineLineBreak> {
+        while(true) {
+            const { done, value: node } = nodes.next();
+            if (done) {
+                break;
+            }
+
+            if (!isParent(node, element)) {
+                nodes.rewind(1);
+                break;
+            }
+
+            if (node instanceof Element && node.nodeName === 'verse') {
+                yield this.parseVerse(node, chapter, nodes);
+            } else {
+                yield *this.iterateNodeTextContent(node, chapter);
+            }
         }
     }
 

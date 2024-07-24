@@ -99,6 +99,13 @@ export interface Text {
      * Whether the text contains the words of Jesus.
      */
     wordsOfJesus?: boolean;
+
+    /**
+     * Whether the text is descriptive.
+     * 
+     * This is only used for "hebrew subtitles" that are included inside the verse markers.
+     */
+    descriptive?: boolean;
 }
 
 /**
