@@ -8,6 +8,7 @@
     "build:docs": "cd docs && pnpm build",
     "dev:docs": "vuepress dev docs/src",
     "cli": "ts-node ./src/cli.ts",
+    "build:cli": "esbuild ./src/cli.ts --bundle --platform=node --external:jsdom --external:better-sqlite3 --external:commander --external:@zip.js/zip.js --outfile=./src/cli.js",
     "s3:sync:docs": "aws --profile aolabs s3 sync ./build/docs s3://ao-bible-api/docs --delete",
     "s3:sync:api": "npm run cli upload-api-files s3://ao-bible-api -- --profile aolabs --overwrite-common-files",
     "postinstall": "prisma generate"
@@ -26,7 +27,8 @@
     "jsdom": "24.1.0",
     "ts-jest": "29.0.5",
     "ts-node": "^10.9.1",
-    "typescript": "^5.5.3"
+    "typescript": "^5.5.3",
+    "esbuild": "0.23.0"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.609.0",

@@ -162,7 +162,7 @@ export function *iterateUntil<T>(iterator: IterableIterator<T>, predicate: (valu
 }
 
 function *_iterateAll(node: Node): IterableIterator<Node> {
-    for(let child of iterateNodes(node)) {
+    for(let child of node.childNodes) {
         yield child;
         yield *iterateAll(child);
     }
