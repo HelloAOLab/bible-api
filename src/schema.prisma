@@ -1,6 +1,6 @@
 datasource db {
     provider = "sqlite"
-    url      = "file:../bible-api.db"
+    url      = "file:../bible-api.dev.db"
 }
 
 generator client {
@@ -8,20 +8,41 @@ generator client {
 }
 
 model Translation {
-    id           String @id
-    name         String
-    website String
-    licenseUrl String
-    shortName String?
-    englishName String
-    language String
+    id            String @id
+    name          String
+    website       String
+    licenseUrl    String
+    shortName     String?
+    englishName   String
+    language      String
     textDirection String
+
+    // The SHA-256 hash of the translation
+    // includes everything about the translation, including the books, chapters, verses, footnotes, etc.
+    sha256         String?
     
     books        Book[]
     chapters     Chapter[]
     verses       ChapterVerse[]
     footnotes    ChapterFootnote[]
     audioUrls    ChapterAudioUrl[]
+}
+
+model InputFile {
+    // The ID of the translation that the file is for
+    translationId String
+
+    // The name of the file
+    name String
+
+    format String
+
+    // The SHA-256 hash of the file
+    sha256 String
+    
+    sizeInBytes Int
+
+    @@id([translationId, name])
 }
 
 model Book {
@@ -36,6 +57,9 @@ model Book {
     order Int
 
     numberOfChapters Int
+
+    // The SHA-256 hash of the book
+    sha256 String?
 
     chapters Chapter[]
     verses ChapterVerse[]
@@ -55,6 +79,9 @@ model Chapter {
     translation Translation @relation(fields: [translationId], references: [id])
 
     json String // The JSON of the chapter
+
+    // The SHA-256 hash of the chapter
+    sha256 String?
 
     verses ChapterVerse[]
     footnotes ChapterFootnote[]
@@ -94,6 +121,9 @@ model ChapterVerse {
     text String // The text of the verse
     contentJson String // The JSON of the verse content
 
+    // The SHA-256 hash of the verse
+    sha256 String?
+
     footnotes ChapterFootnote[]
 
     @@id([translationId, bookId, chapterNumber, number])
@@ -112,6 +142,9 @@ model ChapterFootnote {
     translation Translation @relation(fields: [translationId], references: [id])
 
     text String
+
+    // The SHA-256 hash of the footnote
+    sha256 String?
 
     verseNumber Int?
     verse ChapterVerse? @relation(fields: [translationId, bookId, chapterNumber, verseNumber], references: [translationId, bookId, chapterNumber, number])

@@ -3,9 +3,9 @@
  */
 export interface InputFile {
     name?: string;
-
     metadata: ParseTreeMetadata;
     content: string;
+    sha256?: string;
     fileType: 'usfm' | 'usx';
 }
 

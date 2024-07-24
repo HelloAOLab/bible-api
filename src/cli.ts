@@ -23,6 +23,7 @@ import { finished } from 'stream/promises';
 import { DOMParser, Element, Node } from 'linkedom';
 // import { ReadableStream } from 'stream/web';
 import { KNOWN_AUDIO_TRANSLATIONS } from './generation/audio';
+import { sha256 } from 'hash.js';
 
 const migrationsPath = path.resolve(__dirname, './migrations');
 
@@ -51,10 +52,11 @@ async function start() {
 
     program.command('import-translation <dir> [dirs...]')
         .description('Imports a translation from the given directory into the database.')
-        .action(async (dir: string, dirs: string[]) => {
+        .option('--overwrite', 'Whether to overwrite existing files.')
+        .action(async (dir: string, dirs: string[], options: any) => {
             const db = await getDbFromDir(process.cwd());
             try {
-                await importTranslations(db, [dir, ...dirs], parser);
+                await importTranslations(db, [dir, ...dirs], parser, !!options.overwrite);
             } finally {
                 db.close();
             }
@@ -62,13 +64,14 @@ async function start() {
     
     program.command('import-translations <dir>')
         .description('Imports all translations from the given directory into the database.')
-        .action(async (dir: string) => {
+        .option('--overwrite', 'Whether to overwrite existing files.')
+        .action(async (dir: string, options: any) => {
             const db = await getDbFromDir(process.cwd());
             try {
                 const files = await readdir(dir);
                 const translationDirs = files.map(f => path.resolve(dir, f));
                 console.log(`Importing ${translationDirs.length} translations`);
-                await importTranslations(db, translationDirs, parser);
+                await importTranslations(db, translationDirs, parser, !!options.overwrite);
             } finally {
                 db.close();
             }
@@ -365,7 +368,14 @@ async function uploadApiFiles(dest: string, options: UploadApiOptions) {
     }
 }
 
-async function importTranslations(db: Database, dirs: string[], parser: DOMParser) {
+/**
+ * Imports the translations from the given directories into the database.
+ * @param db The database to import the translations into.
+ * @param dirs The directories to import the translations from.
+ * @param parser The DOM parser that should be used for USX files.
+ * @param overwrite Whether to force a reload of the translations.
+ */
+async function importTranslations(db: Database, dirs: string[], parser: DOMParser, overwrite: boolean) {
     let batches = [] as string[][];
     while (dirs.length > 0) {
         batches.push(dirs.splice(0, 10));
@@ -375,11 +385,18 @@ async function importTranslations(db: Database, dirs: string[], parser: DOMParse
     for (let i = 0; i < batches.length; i++) {
         const batch = batches[i];
         console.log(`Processing batch ${i + 1} of ${batches.length}`);
-        await importTranslationBatch(db, batch, parser);
+        await importTranslationBatch(db, batch, parser, overwrite);
     }
 }
 
-async function importTranslationBatch(db: Database, dirs: string[], parser: DOMParser) {
+/**
+ * Imports a batch of translations from the given directories into the database.
+ * @param db The database to import the translations into.
+ * @param dirs The directories that contain the translations.
+ * @param parser The DOM parser that should be used for USX files.
+ * @param overwrite Whether to force a reload of the translations.
+ */
+async function importTranslationBatch(db: Database, dirs: string[], parser: DOMParser, overwrite: boolean) {
     const promises = [] as Promise<InputFile[]>[];
     for(let dir of dirs) {
         const fullPath = path.resolve(dir);
@@ -388,19 +405,89 @@ async function importTranslationBatch(db: Database, dirs: string[], parser: DOMP
 
     const allFiles = await Promise.all(promises);
     const files = allFiles.flat();
-    await importTranslationFileBatch(db, files, parser);
+    await importTranslationFileBatch(db, files, parser, overwrite);
 }
 
-async function importTranslationFileBatch(db: Database, files: InputFile[], parser: DOMParser) {
-    console.log('Generating output for', files.length, 'files');
+/**
+ * Parses and imports the given files into the database.
+ * @param db The database to import the files into.
+ * @param files The files that should be parsed.
+ * @param parser The DOM parser that should be used for USX files.
+ * @param overwrite Whether to force a reload of the translations.
+ */
+async function importTranslationFileBatch(db: Database, files: InputFile[], parser: DOMParser, overwrite: boolean) {
 
-    const output = generateDataset(files, parser as globalThis.DOMParser);
+    console.log('Importing', files.length, 'files');
+    if (overwrite) {
+        console.log('Overwriting existing translations.');
+    }
+    const changedFiles = overwrite ? files : getChangedOrNewInputFiles(db, files);
+
+    console.log('Processing', changedFiles.length, 'changed files');
+    console.log('Skipping', files.length - changedFiles.length, 'unchanged files');
+
+    const output = generateDataset(changedFiles, parser as globalThis.DOMParser);
 
     console.log('Generated', output.translations.length, 'translations');
 
     insertTranslations(db, output.translations);
+    updateTranslationHashes(db, output.translations);
+    insertFileMetadata(db, changedFiles);
 
     console.log(`Inserted ${output.translations} translations into DB`);
+}
+
+/**
+ * Filters the given input files to only include those that have changed.
+ * @param db The database to check for changes.
+ * @param files The files to filter.
+ */
+function getChangedOrNewInputFiles(db: Database, files: InputFile[]): InputFile[] {
+    const fileExists = db.prepare('SELECT COUNT(*) as c FROM InputFile WHERE translationId = @translationId AND name = @name AND sha256 = @sha256;');
+
+    return files.filter(f => {
+        const count = fileExists.get({
+            translationId: f.metadata.translation.id,
+            name: path.basename(f.name!),
+            sha256: f.sha256,
+        }) as { c: number };
+
+        return count.c <= 0;
+    });
+}
+
+function insertFileMetadata(db: Database, files: InputFile[]) {
+    const fileUpsert = db.prepare(`INSERT INTO InputFile(
+        translationId,
+        name,
+        format,
+        sha256,
+        sizeInBytes
+    ) VALUES (
+        @translationId,
+        @name,
+        @format,
+        @sha256,
+        @sizeInBytes
+    ) ON CONFLICT(translationId, name) DO 
+        UPDATE SET
+            format=excluded.format,
+            sha256=excluded.sha256,
+            sizeInBytes=excluded.sizeInBytes;`);
+
+    const insertManyFiles = db.transaction((files) => {
+        for(let file of files) {
+            fileUpsert.run({
+                translationId: file.metadata.translation.id,
+                name: path.basename(file.name),
+                format: file.fileType,
+                sha256: file.sha256,
+                sizeInBytes: file.content.length,
+            });
+        }
+    });
+
+    insertManyFiles(files);
 }
 
 function insertTranslations(db: Database, translations: DatasetTranslation[]) {
@@ -669,6 +756,99 @@ function insertTranslationContent(db: Database, translation: DatasetTranslation,
         });
 
         insertChaptersAndVerses();
+}
+
+/**
+ * Updates the hashes for the translations in the database.
+ * @param db The database to update the hashes in.
+ * @param translations The translations to update the hashes for.
+ */
+function updateTranslationHashes(db: Database, translations: DatasetTranslation[]) {
+    console.log(`Updating hashes for ${translations.length} translations.`);
+
+    const updateTranslationHash = db.prepare(`UPDATE Translation SET sha256 = @sha256 WHERE id = @translationId;`);
+    const updateBookHash = db.prepare(`UPDATE Book SET sha256 = @sha256 WHERE translationId = @translationId AND id = @bookId;`);
+    const updateChapterHash = db.prepare(`UPDATE Chapter SET sha256 = @sha256 WHERE translationId = @translationId AND bookId = @bookId AND number = @chapterNumber;`);
+
+    const getBooks = db.prepare('SELECT * FROM Book WHERE translationId = ?;');
+    const getChapters = db.prepare('SELECT * FROM Chapter WHERE translationId = @translationId AND bookId = @bookId;');
+
+    for (let translation of translations) {
+        const translationSha = sha256()
+            .update(translation.id)
+            .update(translation.name)
+            .update(translation.language)
+            .update(translation.licenseUrl)
+            .update(translation.textDirection)
+            .update(translation.website)
+            .update(translation.englishName)
+            .update(translation.shortName);
+
+        const books = getBooks.all(translation.id) as {
+            id: string;
+            order: number;
+            title: string;
+            translationId: string;
+            name: string;
+            commonName: string;
+            numberOfChapters: number;
+        }[];
+
+        for (let book of books) {
+            const chapters = getChapters.all({
+                translationId: translation.id,
+                bookId: book.id
+            }) as {
+                number: string;
+                bookId: string;
+                translationId: string;
+                json: string;
+            }[];
+
+            const bookSha = sha256()
+                .update(book.translationId)
+                .update(book.id)
+                .update(book.numberOfChapters)
+                .update(book.order)
+                .update(book.name)
+                .update(book.title)
+                .update(book.commonName);
+
+            for(let chapter of chapters) {
+                const hash = sha256()
+                    .update(chapter.translationId)
+                    .update(chapter.bookId)
+                    .update(chapter.number)
+                    .update(chapter.json)
+                    .digest('hex');
+                bookSha.update(hash);
+
+                updateChapterHash.run({
+                    sha256: hash,
+                    translationId: chapter.translationId,
+                    bookId: chapter.bookId,
+                    chapterNumber: chapter.number,
+                });
+            }
+
+            const bookHash = bookSha.digest('hex');
+            updateBookHash.run({
+                sha256: bookHash,
+                translationId: book.translationId,
+                bookId: book.id
+            });
+
+            translationSha.update(bookHash);
+        }
+
+        const hash = translationSha.digest('hex');
+        updateTranslationHash.run({
+            sha256: hash,
+            translationId: translation.id
+        });
+    }
+
+    console.log(`Updated.`);
 }
 
 async function downloadFile(url: string, path: string) {

@@ -6,6 +6,8 @@ import { InputFile, InputTranslationMetadata, ParseTreeMetadata } from "./genera
 import { SerializedFile, Uploader } from "./db";
 import { ZipWriter, Writer, TextReader, Reader } from '@zip.js/zip.js';
 import { Readable, Writable } from "stream";
+import { sha256 } from "hash.js";
+import { PARSER_VERSION } from "./usfm-parser/usx-parser";
 // import { ReadableStream, WritableStream } from 'node:stream/web';
 
 /**
@@ -90,10 +92,18 @@ async function loadFile(file: string, metadata: ParseTreeMetadata): Promise<Inpu
         encoding: 'utf-8'
     });
 
+    const hash = sha256()
+        .update(content)
+
+        // Hack to ensure that file hashes are different for different versions of the parser.
+        .update(PARSER_VERSION)
+        .digest('hex');
+
     return {
         content,
         metadata: metadata,
         name: file,
+        sha256: hash,
         fileType: extension.slice(1) as 'usfm' | 'usx',
     }
 }

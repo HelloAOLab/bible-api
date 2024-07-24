@@ -8,6 +8,12 @@ enum NodeType {
 }
 
 /**
+ * The version of the parser.
+ * Used to determine whether input files need to be re-parsed.
+ */
+export const PARSER_VERSION = '1';
+
+/**
  * Defines a class that is able to parse USX content.
  */
 export class USXParser {
