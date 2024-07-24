@@ -57,6 +57,27 @@ export interface ApiTranslation extends Translation {
      * The available list of formats.
      */
     availableFormats: ('json' | 'usfm')[];
+
+    /**
+     * The number of books that are contained in this translation.
+     * 
+     * Complete translations should have the same number of books as the Bible (66).
+     */
+    numberOfBooks: number;
+
+    /**
+     * The total number of chapters that are contained in this translation.
+     * 
+     * Complete translations should have the same number of chapters as the Bible (1,189).
+     */
+    totalNumberOfChapters: number;
+
+    /**
+     * The total number of verses that are contained in this translation.
+     * 
+     * Complete translations should have the same number of verses as the Bible.
+     */
+    totalNumberOfVerses: number;
 }
 
 /**
@@ -92,6 +113,11 @@ export interface ApiTranslationBook extends TranslationBook {
      * The number of chapters that the book contains.
      */
     numberOfChapters: number;
+
+    /**
+     * The number of verses that the book contains.
+     */
+    totalNumberOfVerses: number;
 }
 
 /**
@@ -136,6 +162,11 @@ export interface ApiTranslationBookChapter extends TranslationBookChapter {
      * Null if this is the first chapter in the translation.
      */
     previousChapterAudioLinks: TranslationBookChapterAudioLinks | null;
+
+    /**
+     * The number of verses that the chapter contains.
+     */
+    numberOfVerses: number;
 }
 
 export interface ApiTranslationBookChapterAudio {
@@ -194,6 +225,9 @@ export function generateApiForDataset(dataset: DatasetOutput, options : Generate
             ...translation,
             availableFormats: ['json'],
             listOfBooksApiLink: listOfBooksApiLink(translation.id),
+            numberOfBooks: books.length,
+            totalNumberOfChapters: 0,
+            totalNumberOfVerses: 0,
         };
 
         const translationBooks: ApiTranslationBooks = {
@@ -209,6 +243,7 @@ export function generateApiForDataset(dataset: DatasetOutput, options : Generate
                 firstChapterApiLink: bookChapterApiLink(translation.id, getBookLink(book), 1, 'json'),
                 lastChapterApiLink: bookChapterApiLink(translation.id, getBookLink(book), chapters.length, 'json'),
                 numberOfChapters: chapters.length,
+                totalNumberOfVerses: 0,
             };
 
             for(let { chapter, thisChapterAudioLinks } of chapters) {
@@ -223,6 +258,7 @@ export function generateApiForDataset(dataset: DatasetOutput, options : Generate
                     nextChapterAudioLinks: null,
                     previousChapterApiLink: null,
                     previousChapterAudioLinks: null,
+                    numberOfVerses: 0,
                 };
 
                 for (let reader in thisChapterAudioLinks) {
@@ -239,11 +275,22 @@ export function generateApiForDataset(dataset: DatasetOutput, options : Generate
                     }
                 }
 
+                for(let c of chapter.content) {
+                    if (c.type === 'verse') {
+                        apiBookChapter.numberOfVerses++;
+                    }
+                }
+
+                apiBook.totalNumberOfVerses += apiBookChapter.numberOfVerses;
+
                 translationChapters.push(apiBookChapter);
                 api.translationBookChapters.push(apiBookChapter);
             }
 
             translationBooks.books.push(apiBook);
+
+            apiTranslation.totalNumberOfChapters += apiBook.numberOfChapters;
+            apiTranslation.totalNumberOfVerses += apiBook.totalNumberOfVerses;
         }
 
         for (let i = 0; i < translationChapters.length; i++) {

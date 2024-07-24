@@ -66,6 +66,9 @@ describe('generateApiForDataset()', () => {
                 'json'
             ],
             listOfBooksApiLink: '/api/bsb/books.json',
+            numberOfBooks: 2,
+            totalNumberOfChapters: 2,
+            totalNumberOfVerses: 4,
         }
 
         expect(tree).toEqual({
@@ -82,8 +85,9 @@ describe('generateApiForDataset()', () => {
                         name: 'Genesis',
                         commonName: 'Genesis',
                         title: 'Genesis',
-                        numberOfChapters: 1,
                         order: 1,
+                        numberOfChapters: 1,
+                        totalNumberOfVerses: 2,
                         firstChapterApiLink: '/api/bsb/GEN/1.json',
                         lastChapterApiLink: '/api/bsb/GEN/1.json',
                     },
@@ -94,6 +98,7 @@ describe('generateApiForDataset()', () => {
                         title: 'Exodus',
                         order: 2,
                         numberOfChapters: 1,
+                        totalNumberOfVerses: 2,
                         firstChapterApiLink: '/api/bsb/EXO/1.json',
                         lastChapterApiLink: '/api/bsb/EXO/1.json',
                     }
@@ -108,6 +113,7 @@ describe('generateApiForDataset()', () => {
                     title: 'Genesis',
                     order: 1,
                     numberOfChapters: 1,
+                    totalNumberOfVerses: 2,
                     firstChapterApiLink: '/api/bsb/GEN/1.json',
                     lastChapterApiLink: '/api/bsb/GEN/1.json'
                 },
@@ -117,6 +123,7 @@ describe('generateApiForDataset()', () => {
                 nextChapterAudioLinks: {},
                 previousChapterApiLink: null,
                 previousChapterAudioLinks: null,
+                numberOfVerses: 2,
                 chapter: {
                     number: 1,
                     content: [
@@ -157,8 +164,9 @@ describe('generateApiForDataset()', () => {
                     name: 'Exodus',
                     commonName: 'Exodus',
                     title: 'Exodus',
-                    numberOfChapters: 1,
                     order: 2,
+                    numberOfChapters: 1,
+                    totalNumberOfVerses: 2,
                     firstChapterApiLink: '/api/bsb/EXO/1.json',
                     lastChapterApiLink: '/api/bsb/EXO/1.json'
                 },
@@ -168,6 +176,7 @@ describe('generateApiForDataset()', () => {
                 nextChapterAudioLinks: null,
                 previousChapterApiLink: '/api/bsb/GEN/1.json',
                 previousChapterAudioLinks: {},
+                numberOfVerses: 2,
                 chapter: {
                     number: 1,
                     content: [
@@ -252,6 +261,9 @@ describe('generateApiForDataset()', () => {
                 'json'
             ],
             listOfBooksApiLink: '/api/bsb/books.json',
+            numberOfBooks: 1,
+            totalNumberOfChapters: 1,
+            totalNumberOfVerses: 1,
         }
 
         expect(tree).toEqual({
@@ -269,6 +281,7 @@ describe('generateApiForDataset()', () => {
                         commonName: '1 Chronicles',
                         title: '1 Chronicles',
                         numberOfChapters: 1,
+                        totalNumberOfVerses: 1,
                         order: 13,
                         firstChapterApiLink: '/api/bsb/1_Chronicles/1.json',
                         lastChapterApiLink: '/api/bsb/1_Chronicles/1.json',
@@ -283,6 +296,7 @@ describe('generateApiForDataset()', () => {
                     commonName: '1 Chronicles',
                     title: '1 Chronicles',
                     numberOfChapters: 1,
+                    totalNumberOfVerses: 1,
                     order: 13,
                     firstChapterApiLink: '/api/bsb/1_Chronicles/1.json',
                     lastChapterApiLink: '/api/bsb/1_Chronicles/1.json'
@@ -293,6 +307,7 @@ describe('generateApiForDataset()', () => {
                 nextChapterAudioLinks: null,
                 previousChapterApiLink: null,
                 previousChapterAudioLinks: null,
+                numberOfVerses: 1,
                 chapter: {
                     number: 1,
                     content: [
