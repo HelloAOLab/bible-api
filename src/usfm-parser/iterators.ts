@@ -187,13 +187,9 @@ export function *elements(iterator: IterableIterator<Node>): IterableIterator<El
  */
 export function *children(iterator: RewindableIterator<Node>, parent: Node): IterableIterator<Node> {
     for (let node of uncompletable(iterator)) {
-        let parentNode = node.parentNode;
-        while(parentNode !== parent) {
-            if (!parentNode) {
-                iterator.rewind(1);
-                return;
-            }
-            parentNode = parentNode.parentNode;
+        if (!isParent(node, parent)) {
+            iterator.rewind(1);
+            return;
         }
 
         yield node;

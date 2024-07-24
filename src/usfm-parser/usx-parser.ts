@@ -1,7 +1,7 @@
 import { DOMWindow } from "jsdom";
 import { Chapter, ChapterContent, Footnote, FootnoteReference, ParseTree, Verse, Text, VerseContent, HebrewSubtitle, InlineLineBreak, InlineHeading } from "./types";
 import { trim } from "lodash";
-import { uncompletable, iterateAll, elements, children, parentChar, parentNote, RewindableIterator, debug, isParent } from "./iterators";
+import { uncompletable, iterateAll, elements, children, parentChar, parentNote, RewindableIterator, debug, isParent, Rewindable } from "./iterators";
 
 enum NodeType {
     Text = 3,
@@ -148,7 +148,7 @@ export class USXParser {
         }
     }
 
-    *iterateVerseContent(chapter: Chapter, verse: Verse, nodes: IterableIterator<Node>): IterableIterator<string | FootnoteReference | Text | InlineLineBreak> {
+    *iterateVerseContent(chapter: Chapter, verse: Verse, nodes: RewindableIterator<Node>): IterableIterator<string | FootnoteReference | Text | InlineLineBreak> {
         while(true) {
             const { done, value: node } = nodes.next();
             if (done) {
@@ -172,7 +172,7 @@ export class USXParser {
                 }
             }
 
-            for(let content of this.iterateNodeTextContent(node, chapter, verse)) {
+            for(let content of this.iterateNodeTextContent(nodes, node, chapter, verse)) {
                 if (poem !== null || descriptive !== null) {
                     if (typeof content === 'string') {
                         let text: Text = {
@@ -261,52 +261,103 @@ export class USXParser {
             if (node instanceof Element && node.nodeName === 'verse') {
                 yield this.parseVerse(node, chapter, nodes);
             } else {
-                yield *this.iterateNodeTextContent(node, chapter);
+                yield *this.iterateNodeTextContent(nodes, node, chapter);
             }
         }
     }
 
-    *iterateNodeTextContent(node: Node, chapter: Chapter, verse?: Verse): IterableIterator<string | Text | FootnoteReference | InlineLineBreak> {
-        if (node.nodeType === NodeType.Text) {
-            if (!parentChar(node) && !parentNote(node)) {
-                yield node.textContent || '';
-            }
+    *iterateNodeTextContent(nodes: RewindableIterator<Node>, node: Node, chapter: Chapter, verse?: Verse): IterableIterator<string | Text | FootnoteReference | InlineLineBreak> {
+        if (node instanceof Element && node.nodeName === 'note') {
+            yield *this.iterateNote(nodes, node, chapter, verse);
         } else if (node instanceof Element && node.nodeName === 'char') {
-            if (!parentChar(node) && !parentNote(node)) {
-                yield *iterateCharContent(node);
-            }
-        } else if (node instanceof Element && node.nodeName === 'note') {
-            const style = node.getAttribute('style');
-            if (style === 'f') {
-                const verseReferenceRegex = /^[0-9]{1,3}:[0-9]{1,3}/;
-
-                let text = trimText(node.textContent || '').trim();
-                
-                if (verseReferenceRegex.test(text)) {
-                    text = text.replace(verseReferenceRegex, '').trim();
-                }
-
-                const note: Footnote = {
-                    noteId: this._noteCounter++,
-                    caller: node.getAttribute('caller') || null,
-                    text,
-                    reference: {
-                        chapter: chapter.number,
-                        verse: verse?.number ?? 0
-                    }
-                };
-
-                chapter.footnotes.push(note);
-
-                yield {
-                    noteId: note.noteId
-                };
-            }
+            yield *this.iterateChar(nodes, node);
         } else if (node instanceof Element && node.nodeName === 'para' && node.getAttribute('style') === 'b') {
+            for (let _ of children(nodes, node)) {
+                // iterate through all the children to prevent iterating over them multiple times
+            }
             yield {
                 lineBreak: true
             };
+        } else if(node.nodeType === NodeType.Text) {
+            yield node.textContent || '';
+        } 
+    }
+
+    *iterateCharContent(char: Element): IterableIterator<string | Text> {
+        const style = char.getAttribute('style');
+        const text = trimText(char.textContent || '');
+        if (style === 'wj') {
+            yield {
+                text,
+                wordsOfJesus: true
+            };
+        } else {
+            yield text;
         }
+    }
+
+    *iterateNote(nodes: RewindableIterator<Node>, node: Element, chapter: Chapter, verse?: Verse): IterableIterator<FootnoteReference> {
+        const style = node.getAttribute('style');
+        if (style === 'f') {
+            const verseReferenceRegex = /^[0-9]{1,3}:[0-9]{1,3}/;
+
+            let text = '';
+            for (let child of children(nodes, node)) {
+                if (child.nodeType === NodeType.Text) {
+                    text += child.textContent || '';
+                }
+            }
+
+            text = text.trim();
+            if (verseReferenceRegex.test(text)) {
+                text = text.replace(verseReferenceRegex, '').trim();
+            }
+
+            const note: Footnote = {
+                noteId: this._noteCounter++,
+                caller: node.getAttribute('caller') || null,
+                text,
+                reference: {
+                    chapter: chapter.number,
+                    verse: verse?.number ?? 0
+                }
+            };
+
+            chapter.footnotes.push(note);
+
+            yield {
+                noteId: note.noteId
+            };
+        } else {
+            for (let _ of children(nodes, node)) {
+                // iterate through all the children
+                // so that we don't end up with duplicates
+            }
+        }
+    }
+
+    *iterateChar(nodes: RewindableIterator<Node>, node: Element): IterableIterator<string | Text> {
+        const style = node.getAttribute('style');
+        let text = '';
+
+        for (let char of children(nodes, node)) {
+            if (char.nodeType === NodeType.Text) {
+                text += char.textContent || '';
+            }
+        }
+
+        if (style === 'wj') {
+            yield {
+                text,
+                wordsOfJesus: true
+            };
+        } else {
+            yield text;
+        }
+
+        // if (!parentChar(node) && !parentNote(node)) {
+        //     yield *iterateCharContent(node);
+        // }
     }
 }
 
