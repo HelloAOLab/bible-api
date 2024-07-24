@@ -75,7 +75,7 @@ export interface ApiTranslation extends Translation {
     /**
      * The total number of verses that are contained in this translation.
      * 
-     * Complete translations should have the same number of verses as the Bible.
+     * Complete translations should have the same number of verses as the Bible (around 31,102 - some translations exclude verses based on the aparent likelyhood of existing in the original source texts).
      */
     totalNumberOfVerses: number;
 }

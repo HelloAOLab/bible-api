@@ -79,6 +79,27 @@ interface Translation {
      * The API link for the list of available books for this translation.
      */
     listOfBooksApiLink: string;
+
+    /**
+     * The number of books that are contained in this translation.
+     * 
+     * Complete translations should have the same number of books as the Bible (66).
+     */
+    numberOfBooks: number;
+
+    /**
+     * The total number of chapters that are contained in this translation.
+     * 
+     * Complete translations should have the same number of chapters as the Bible (1,189).
+     */
+    totalNumberOfChapters: number;
+
+    /**
+     * The total number of verses that are contained in this translation.
+     * 
+     * Complete translations should have the same number of verses as the Bible (around 31,102 - some translations exclude verses based on the aparent likelyhood of existing in the original source texts).
+     */
+    totalNumberOfVerses: number;
 }
 ```
 
@@ -171,6 +192,16 @@ interface TranslationBook {
      * The link to the last chapter of the book.
      */
     lastChapterApiLink: string;
+
+    /**
+     * The number of chapters that the book contains.
+     */
+    numberOfChapters: number;
+
+    /**
+     * The number of verses that the book contains.
+     */
+    totalNumberOfVerses: number;
 }
 ```
 
@@ -278,6 +309,11 @@ export interface TranslationBookChapter {
      * Null if this is the last chapter in the translation.
      */
     previousChapterAudioLinks: TranslationBookChapterAudioLinks;
+
+    /**
+     * The number of verses that the chapter contains.
+     */
+    numberOfVerses: number;
 
     /**
      * The information for the chapter.
