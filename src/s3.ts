@@ -26,15 +26,24 @@ export class S3Uploader implements Uploader {
         const path = file.path.startsWith('/') ? file.path.substring(1) : file.path;
         const key = this._keyPrefix ? `${this._keyPrefix}/${path}` : path;
 
-        if (!overwrite) {
-            const head =new HeadObjectCommand({
-                Bucket: this._bucketName,
-                Key: key
-            });
+        const hash = file.sha256?.();
+        const head =new HeadObjectCommand({
+            Bucket: this._bucketName,
+            Key: key,
+        });
 
+        if (hash || !overwrite) {
             try {
-                await this._client.send(head);
-                return false;
+                const existingFile = await this._client.send(head);
+                if (hash && hash.localeCompare(existingFile?.ChecksumSHA256 ?? "", undefined, { sensitivity: 'base' }) === 0) {
+                    // File is already uploaded and matches the checksum.
+                    console.log(`[s3] Matches checksum: ${key}`);
+                    return false;
+                }
+
+                if (!overwrite) {
+                    return false;
+                }
             } catch(err: any) {
                 if (err instanceof NotFound) {
                     // not found, so we can try to write the file.
@@ -48,7 +57,8 @@ export class S3Uploader implements Uploader {
             Bucket: this._bucketName,
             Key: key,
             Body: file.content,
-            ContentType: 'application/json'
+            ContentType: 'application/json',
+            ChecksumSHA256: hash,
         });
 
         await this._client.send(command);

@@ -5,10 +5,17 @@ import { generateApiForDataset, GenerateApiOptions, generateFilesForApi } from "
 import { merge, mergeWith } from "lodash";
 import { extname } from "path";
 import { Readable } from "stream";
+import { sha256 } from "hash.js";
+import { fromByteArray } from "base64-js";
 
 export interface SerializedFile {
     path: string;
     content: string | Readable;
+
+    /**
+     * Gets the base64-encoded SHA256 hash of the content of the file.
+     */
+    sha256?(): string;
 }
 
 /**
@@ -209,6 +216,7 @@ export async function *serializeFilesForDataset(db: PrismaClient, options: Gener
             return {
                 path,
                 content: json,
+                sha256: () => fromByteArray(new Uint8Array(sha256().update(json).digest()))
             };
         } else if (ext === '.mp3') {
             if (fileContent instanceof ReadableStream) {
