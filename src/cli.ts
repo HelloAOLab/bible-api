@@ -83,6 +83,7 @@ async function start() {
         .option('--translations <translations...>', 'The translations to generate API files for.')
         .option('--overwrite', 'Whether to overwrite existing files.')
         .option('--overwrite-common-files', 'Whether to overwrite only common files.')
+        .option('--file-pattern <pattern>', 'The file pattern regex that should be used to filter the files that are uploaded.')
         .option('--use-common-name', 'Whether to use the common name for the book chapter API link. If false, then book IDs are used.')
         .option('--generate-audio-files', 'Whether to replace the audio URLs in the dataset with ones that are hosted locally.')
         .option('--profile <profile>', 'The AWS profile to use for uploading to S3.')
@@ -97,6 +98,7 @@ async function start() {
         .option('--translations <translations...>', 'The translations to generate API files for.')
         .option('--overwrite', 'Whether to overwrite existing files.')
         .option('--overwrite-common-files', 'Whether to overwrite only common files.')
+        .option('--file-pattern <pattern>', 'The file pattern regex that should be used to filter the files that are uploaded.')
         .option('--use-common-name', 'Whether to use the common name for the book chapter API link. If false, then book IDs are used.')
         .option('--generate-audio-files', 'Whether to replace the audio URLs in the dataset with ones that are hosted locally.')
         .option('--profile <profile>', 'The AWS profile to use for uploading to S3.')
@@ -262,15 +264,53 @@ start();
 
 
 interface UploadApiOptions {
+    /**
+     * The number of files to upload in each batch.
+     */
     batchSize: string;
+
+    /**
+     * Whether to overwrite existing files.
+     */
     overwrite?: boolean;
+
+    /**
+     * Whether to only overwrite common files.
+     * "Common files" are files that are similar between translations, like the books.json endpoint, or individual chapter endpoints.
+     */
     overwriteCommonFiles?: boolean;
+
+    /**
+     * The file pattern regex that should be used to filter the files that are uploaded.
+     */
+    filePattern?: string;
+
+    /**
+     * The translations to generate API files for.
+     */
     translations?: string[];
+
+    /**
+     * The AWS profile to use for uploading to S3.
+     */
     profile?: string;
+
+    /**
+     * Whether to generate API files that use the common name instead of book IDs.
+     */
     useCommonName?: boolean;
+
+    /**
+     * Whether to generate audio files for the API.
+     */
     generateAudioFiles?: boolean;
 }
 
+/**
+ * Loads and generates the API files and uploads them to the specified destination.
+ * @param dest The destination to upload the API files to. Supported destinations are S3, zip files, and local directories.
+ * @param options The options to use for the upload.
+ */
 async function uploadApiFiles(dest: string, options: UploadApiOptions) {
     const db = getPrismaDbFromDir(process.cwd());
     try {
@@ -282,6 +322,12 @@ async function uploadApiFiles(dest: string, options: UploadApiOptions) {
         const overwriteCommonFiles = !!options.overwriteCommonFiles;
         if (overwriteCommonFiles) {
             console.log('Overwriting only common files');
+        }
+
+        let filePattern: RegExp | undefined;
+        if (!!options.filePattern) {
+            filePattern = new RegExp(options.filePattern, 'g');
+            console.log('Using file pattern:', filePattern);
         }
 
         if (options.translations) {
@@ -337,7 +383,15 @@ async function uploadApiFiles(dest: string, options: UploadApiOptions) {
                     console.log('Uploading batch', batchNumber, 'of', totalBatches);
                     let writtenFiles = 0;
                     const promises = batch.map(async file => {
-                        const isCommonFile = !file.path.endsWith('available_translations.json');
+                        if (filePattern) {
+                            if (!filePattern.test(file.path)) {
+                                console.log('Skipping file:', file.path);
+                                return;
+                            }
+                        }
+
+                        const isAvailableTranslations = file.path.endsWith('available_translations.json');
+                        const isCommonFile = !isAvailableTranslations;
                         if (await uploader.upload(file, overwrite || (overwriteCommonFiles && isCommonFile))) {
                             writtenFiles++;
                         } else {
