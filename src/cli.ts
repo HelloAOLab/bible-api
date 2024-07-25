@@ -42,12 +42,74 @@ async function start() {
         .description('A CLI for managing a Bible API.')
         .version('0.0.1');
 
-    program.command('init [dir]')
+    program.command('init [path]')
         .description('Initialize a new Bible API DB.')
-        .action(async (dir: string) => {
+        .option('--source <path>', 'The source database to copy from.')
+        .option('--language <languages...>', 'The language(s) that the database should be initialized with.')
+        .action(async (dbPath: string, options: any) => {
             console.log('Initializing new Bible API DB...');
-            const db = await getDbFromDir(dir);
-            db.close();
+            
+            if (options.source) {
+                const db = new Sql(getDbPath(dbPath), {});
+                const sourcePath = path.resolve(options.source);
+
+                try {
+                    console.log('Copying schema from source DB...');
+
+                    if (options.language) {
+                        console.log('Copying only the following languages:', options.language);
+
+                        const languages = `(${options.language.map((l: string) => `'${l}'`).join(', ')})`;
+                        db.exec(`
+                            ATTACH DATABASE "${sourcePath}" AS source;
+
+                            CREATE TABLE "_prisma_migrations" AS SELECT * FROM source._prisma_migrations;
+                            
+                            CREATE TABLE "Translation" AS SELECT * FROM source.Translation
+                            WHERE language IN ${languages};
+
+                            CREATE TABLE "Book" AS SELECT * FROM source.Book
+                            INNER JOIN source.Translation ON source.Translation.id = source.Book.translationId
+                            WHERE source.Translation.language IN ${languages};
+
+                            CREATE TABLE "Chapter" AS SELECT * FROM source.Chapter
+                            INNER JOIN source.Translation ON source.Translation.id = source.Chapter.translationId
+                            WHERE source.Translation.language IN ${languages};
+
+                            CREATE TABLE "ChapterVerse" AS SELECT * FROM source.ChapterVerse
+                            INNER JOIN source.Translation ON source.Translation.id = source.ChapterVerse.translationId
+                            WHERE source.Translation.language IN ${languages};
+
+                            CREATE TABLE "ChapterFootnote" AS SELECT * FROM source.ChapterFootnote
+                            INNER JOIN source.Translation ON source.Translation.id = source.ChapterFootnote.translationId
+                            WHERE source.Translation.language IN ${languages};
+
+                            CREATE TABLE "ChapterAudioUrl" AS SELECT * FROM source.ChapterAudioUrl
+                            INNER JOIN source.Translation ON source.Translation.id = source.ChapterAudioUrl.translationId
+                            WHERE source.Translation.language IN ${languages};
+                        `);
+                    } else {
+                        db.exec(`
+                            ATTACH DATABASE "${sourcePath}" AS source;
+
+                            CREATE TABLE "_prisma_migrations" AS SELECT * FROM source._prisma_migrations;
+                            CREATE TABLE "Translation" AS SELECT * FROM source.Translation;
+                            CREATE TABLE "Book" AS SELECT * FROM source.Book;
+                            CREATE TABLE "Chapter" AS SELECT * FROM source.Chapter;
+                            CREATE TABLE "ChapterVerse" AS SELECT * FROM source.ChapterVerse;
+                            CREATE TABLE "ChapterFootnote" AS SELECT * FROM source.ChapterFootnote;
+                            CREATE TABLE "ChapterAudioUrl" AS SELECT * FROM source.ChapterAudioUrl;
+                        `);
+                    }
+
+                    console.log('Done.');
+                } finally {
+                    db.close();
+                }
+            } else {
+                const db = await getDb(getDbPath(dbPath));
+                db.close();
+            }
         });
 
     program.command('import-translation <dir> [dirs...]')
@@ -939,13 +1001,20 @@ async function downloadFile(url: string, path: string) {
     await finished(Readable.fromWeb(reader as any).pipe(writeStream))
 }
 
-function getDbPath(dir: string) {
+function getDbPathFromDir(dir: string) {
     dir = dir || process.cwd();
     return path.resolve(dir, 'bible-api.db');
 }
 
+function getDbPath(p: string) {
+    if (p) {
+        return path.resolve(p);
+    }
+    return getDbPathFromDir(process.cwd());
+}
+
 function getPrismaDbFromDir(dir: string) {
-    const dbPath = getDbPath(dir);
+    const dbPath = getDbPathFromDir(dir);
     const prisma = new PrismaClient({
         datasources: {
             db: {
@@ -957,14 +1026,15 @@ function getPrismaDbFromDir(dir: string) {
 }
 
 async function getDbFromDir(dir: string) {
-    const dbPath = getDbPath(dir);
+    const dbPath = getDbPathFromDir(dir);
 
     const db = await getDb(dbPath);
     return db;
 }
 
 async function getDb(dbPath: string) {
-    const db = new Sql(dbPath, {});
+    const db = new Sql(dbPath, {
+    });
 
     db.exec(`CREATE TABLE IF NOT EXISTS "_prisma_migrations" (
         "id"                    TEXT PRIMARY KEY NOT NULL,
