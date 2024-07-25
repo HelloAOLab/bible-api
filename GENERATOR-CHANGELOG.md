@@ -3,6 +3,22 @@
 This is the log of changes for the Bible API Generator and associated tools.
 For information on the API itself, see [API-CHANGELOG.md](./API-CHANGELOG.md).
 
+## V1.2.0
+
+#### Date: 2024-07-24
+
+### :rocket: Features
+
+-   Added the ability to track input files and if their content changes to make API updates quicker.
+-   Added the ability to generate the total number of books, chapters, and verses that are in a translation to make it easier to determine if a translation is complete or not.
+-   Added the native and english names of the language that translations are in.
+-   Added the ability to check SHA-256 checksums before uploading to S3.
+
+### :bug: Bug Fixes
+
+-   Fixed an issue where some verses would not get parsed correctly and would be left out of the API.
+-   Note that `Translation.language` actually contains a 3-letter ISO-639 language tag and not a RFC 5646 language tag.
+
 ## V1.1.0
 
 #### Date: 2024-07-11
@@ -12,7 +28,7 @@ For information on the API itself, see [API-CHANGELOG.md](./API-CHANGELOG.md).
 -   Added the ability to generate audio links for a chapter.
     -   Currently, this is only available for the BSB translation.
     -   Thanks to [https://openbible.com/](https://openbible.com/) for making this possible!
-
+`
 ## V1.0.0
 
 #### Date: 2024-07-11
