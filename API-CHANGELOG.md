@@ -3,6 +3,20 @@
 This is the log of changes for the Free Use Bible API.
 For information on the API Generator, see [GENERATOR-CHANGELOG.md](./GENERATOR-CHANGELOG.md).
 
+## V1.2.0
+
+#### Date: 2024-07-25
+
+### :rocket: Features
+
+-   Added the total number of books, chapters, and verses that each translation, book, and chapter contains.
+-   Added `languageName` and `languageEnglishName` for translations so that it is easy to display a name for the language that the translation is in.
+
+### :bug: Bug Fixes
+
+-   Fixed an issue where parts of some verses were missing.
+-   Fixed the documentation to note that the language of a translation is in ISO 639 format.
+
 ## V1.1.0
 
 #### Date: 2024-07-11
