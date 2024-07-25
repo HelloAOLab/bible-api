@@ -123,17 +123,22 @@ interface Translation {
         {
             "id": "BSB",
             "name": "Berean Standard Bible",
-            "englishName": "Berean Standard Bible",
+            "website": "https://berean.bible/",
+            "licenseUrl": "https://berean.bible/",
             "shortName": "BSB",
-            "language": "en-US",
-            "licenseUrl": "https://berean.bible/terms.htm",
-            "website": "https://berean.bible",
+            "englishName": "Berean Standard Bible",
+            "language": "eng",
+            "textDirection": "ltr",
             "availableFormats": [
                 "json"
             ],
             "listOfBooksApiLink": "/api/BSB/books.json",
-            "textDirection": "ltr"
-        },
+            "numberOfBooks": 66,
+            "totalNumberOfChapters": 1189,
+            "totalNumberOfVerses": 31086,
+            "languageName": "English",
+            "languageEnglishName": "English"
+        }
     ]
 }
 ```
@@ -224,26 +229,34 @@ interface TranslationBook {
     "translation": {
         "id": "BSB",
         "name": "Berean Standard Bible",
-        "englishName": "Berean Standard Bible",
+        "website": "https://berean.bible/",
+        "licenseUrl": "https://berean.bible/",
         "shortName": "BSB",
-        "language": "en-US",
-        "licenseUrl": "https://berean.bible/terms.htm",
-        "website": "https://berean.bible",
+        "englishName": "Berean Standard Bible",
+        "language": "eng",
+        "textDirection": "ltr",
         "availableFormats": [
             "json"
         ],
         "listOfBooksApiLink": "/api/BSB/books.json",
-        "textDirection": "ltr"
+        "numberOfBooks": 66,
+        "totalNumberOfChapters": 1189,
+        "totalNumberOfVerses": 31086,
+        "languageName": "English",
+        "languageEnglishName": "English"
     },
     "books": [
         {
             "id": "GEN",
+            "translationId": "BSB",
             "name": "Genesis",
             "commonName": "Genesis",
             "title": "Genesis",
+            "order": 1,
+            "numberOfChapters": 50,
             "firstChapterApiLink": "/api/BSB/GEN/1.json",
             "lastChapterApiLink": "/api/BSB/GEN/50.json",
-            "numberOfChapters": 50
+            "totalNumberOfVerses": 1533
         },
     ]
 }
@@ -535,28 +548,49 @@ interface TranslationBookChapterAudioLinks {
     "translation": {
         "id": "BSB",
         "name": "Berean Standard Bible",
-        "englishName": "Berean Standard Bible",
+        "website": "https://berean.bible/",
+        "licenseUrl": "https://berean.bible/",
         "shortName": "BSB",
-        "language": "en-US",
-        "licenseUrl": "https://berean.bible/terms.htm",
-        "website": "https://berean.bible",
+        "englishName": "Berean Standard Bible",
+        "language": "eng",
+        "textDirection": "ltr",
         "availableFormats": [
             "json"
         ],
         "listOfBooksApiLink": "/api/BSB/books.json",
-        "textDirection": "ltr"
+        "numberOfBooks": 66,
+        "totalNumberOfChapters": 1189,
+        "totalNumberOfVerses": 31086,
+        "languageName": "English",
+        "languageEnglishName": "English"
     },
     "book": {
         "id": "GEN",
+        "translationId": "BSB",
         "name": "Genesis",
         "commonName": "Genesis",
         "title": "Genesis",
+        "order": 1,
+        "numberOfChapters": 50,
         "firstChapterApiLink": "/api/BSB/GEN/1.json",
         "lastChapterApiLink": "/api/BSB/GEN/50.json",
-        "numberOfChapters": 50
+        "totalNumberOfVerses": 1533
+    },
+    "thisChapterLink": "/api/BSB/GEN/1.json",
+    "thisChapterAudioLinks": {
+        "gilbert": "https://openbible.com/audio/gilbert/BSB_01_Gen_001_G.mp3",
+        "hays": "https://openbible.com/audio/hays/BSB_01_Gen_001_H.mp3",
+        "souer": "https://openbible.com/audio/souer/BSB_01_Gen_001.mp3"
     },
     "nextChapterApiLink": "/api/BSB/GEN/2.json",
+    "nextChapterAudioLinks": {
+        "gilbert": "https://openbible.com/audio/gilbert/BSB_01_Gen_002_G.mp3",
+        "hays": "https://openbible.com/audio/hays/BSB_01_Gen_002_H.mp3",
+        "souer": "https://openbible.com/audio/souer/BSB_01_Gen_002.mp3"
+    },
     "previousChapterApiLink": null,
+    "previousChapterAudioLinks": null,
+    "numberOfVerses": 31,
     "chapter": {
         "number": 1,
         "content": [
