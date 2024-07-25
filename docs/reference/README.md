@@ -64,6 +64,18 @@ interface Translation {
     language: string;
 
     /**
+     * Gets the name of the language that the translation is in.
+     * Null or undefined if the name of the language is not known.
+     */
+    languageName?: string;
+
+    /**
+     * Gets the name of the language in English.
+     * Null or undefined if the language doesn't have an english name.
+     */
+    languageEnglishName?: string;
+
+    /**
      * The direction that the language is written in.
      * "ltr" indicates that the text is written from the left side of the page to the right.
      * "rtl" indicates that the text is written from the right side of the page to the left.

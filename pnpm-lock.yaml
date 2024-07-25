@@ -23,6 +23,12 @@ importers:
       '@zip.js/zip.js':
         specifier: ^2.6.40
         version: 2.7.46
+      all-iso-language-codes:
+        specifier: 1.0.17
+        version: 1.0.17
+      base64-js:
+        specifier: 1.5.1
+        version: 1.5.1
       better-sqlite3:
         specifier: ^9.5.0
         version: 9.5.0
@@ -35,6 +41,9 @@ importers:
       fs-extra:
         specifier: ^11.2.0
         version: 11.2.0
+      hash.js:
+        specifier: 1.1.7
+        version: 1.1.7
       highlight.js:
         specifier: ^11.7.0
         version: 11.7.0
@@ -72,9 +81,6 @@ importers:
       esbuild:
         specifier: 0.23.0
         version: 0.23.0
-      hash.js:
-        specifier: 1.1.7
-        version: 1.1.7
       jest:
         specifier: 29.5.0
         version: 29.5.0(@types/node@18.11.17)(ts-node@10.9.1)
@@ -3496,6 +3502,10 @@ packages:
       uri-js: 4.4.1
     dev: false
 
+  /all-iso-language-codes@1.0.17:
+    resolution: {integrity: sha512-mZuA7btyR5OaqHCiyNleIm5vlhD6UZkn1xxWJPoojl0w+D5B2IiJcJDixFCczmdeQMKmtGBicAnut1oyXFypZQ==}
+    dev: false
+
   /ansi-escapes@4.3.2:
     resolution: {integrity: sha512-gKXj5ALrKWQLsYG9jlTRmR/xKluxHV+Z9QEwNIgCfM1/uwPMCuzVVnh5mwTd+OuBZcwSIMbqssNWRm1lE51QaQ==}
     engines: {node: '>=8'}
@@ -4547,7 +4557,7 @@ packages:
     dependencies:
       inherits: 2.0.4
       minimalistic-assert: 1.0.1
-    dev: true
+    dev: false
 
   /highlight.js@11.7.0:
     resolution: {integrity: sha512-1rRqesRFhMO/PRF+G86evnyJkCgaZFOI+Z6kdj15TA18funfoqJXvgPCLSf0SWq3SRfg1j3HlDs8o4s3EGq1oQ==}
@@ -5486,7 +5496,7 @@ packages:
 
   /minimalistic-assert@1.0.1:
     resolution: {integrity: sha512-UtJcAD4yEaGtjPezWuO9wC4nwUnVH/8/Im3yEHQP4b67cXlD/Qr9hdITCU1xDbSEXg2XKNaP8jsReV7vQd00/A==}
-    dev: true
+    dev: false
 
   /minimatch@3.1.2:
     resolution: {integrity: sha512-J7p63hRiAjw1NDEww1W7i37+ByIrOWO5XQQAzZ3VOcL0PNybwpfmV/N05zFAzwQ9USyEcX6t3UO+K5aqBQOIHw==}

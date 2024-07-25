@@ -1,5 +1,6 @@
 import { OutputFile, Translation, TranslationBook, TranslationBookChapter, TranslationBookChapterAudioLinks } from "./common-types";
 import { DatasetOutput } from "./dataset";
+import { getEnglishName, getNativeName } from 'all-iso-language-codes';
 
 /**
  * Defines the output of the API generation.
@@ -78,6 +79,18 @@ export interface ApiTranslation extends Translation {
      * Complete translations should have the same number of verses as the Bible (around 31,102 - some translations exclude verses based on the aparent likelyhood of existing in the original source texts).
      */
     totalNumberOfVerses: number;
+
+    /**
+     * Gets the name of the language that the translation is in.
+     * Null or undefined if the name of the language is not known.
+     */
+    languageName?: string;
+
+    /**
+     * Gets the name of the language in English.
+     * Null or undefined if the language doesn't have an english name.
+     */
+    languageEnglishName?: string;
 }
 
 /**
@@ -228,6 +241,8 @@ export function generateApiForDataset(dataset: DatasetOutput, options : Generate
             numberOfBooks: books.length,
             totalNumberOfChapters: 0,
             totalNumberOfVerses: 0,
+            languageName: getNativeName(translation.language) ?? undefined,
+            languageEnglishName: getEnglishName(translation.language) ?? undefined,
         };
 
         const translationBooks: ApiTranslationBooks = {

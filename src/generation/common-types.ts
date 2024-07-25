@@ -76,7 +76,7 @@ export interface InputTranslationMetadata {
     shortName?: string;
 
     /**
-     * The RFC 5646 letter language tag that the translation is primarily in.
+     * The ISO 639 letter language tag that the translation is primarily in.
      */
     language: string;
 

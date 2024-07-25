@@ -4,6 +4,7 @@ import Exodus from '../../bible/bsb/02EXOBSB.usfm';
 import _1Chronicles from '../../bible/bsb/131CHBSB.usfm';
 import { generateDataset } from './dataset';
 import { InputFile, InputTranslationMetadata, OutputFile } from './common-types';
+import { DOMParser, Element, Node } from 'linkedom';
 
 describe('replaceSpacesWithUnderscores()', () => {
     const cases = [
@@ -24,7 +25,7 @@ describe('generateApiForDataset()', () => {
             name: 'Berean Standard Bible',
             englishName: 'Berean Standard Bible',
             shortName: 'BSB',
-            language: 'en-US',
+            language: 'eng',
             direction: 'ltr',
             licenseUrl: 'https://berean.bible/terms.htm',
             website: 'https://berean.bible'
@@ -47,7 +48,7 @@ describe('generateApiForDataset()', () => {
             }
         ] as InputFile[];
 
-        const dataset = generateDataset(inputFiles);
+        const dataset = generateDataset(inputFiles, new DOMParser() as any);
         const generated = generateApiForDataset(dataset);
         const files = generateFilesForApi(generated);
 
@@ -58,7 +59,7 @@ describe('generateApiForDataset()', () => {
             name: 'Berean Standard Bible',
             englishName: 'Berean Standard Bible',
             shortName: 'BSB',
-            language: 'en-US',
+            language: 'eng',
             textDirection: 'ltr',
             licenseUrl: 'https://berean.bible/terms.htm',
             website: 'https://berean.bible',
@@ -69,6 +70,8 @@ describe('generateApiForDataset()', () => {
             numberOfBooks: 2,
             totalNumberOfChapters: 2,
             totalNumberOfVerses: 4,
+            languageName: 'English',
+            languageEnglishName: 'English',
         }
 
         expect(tree).toEqual({
@@ -225,7 +228,7 @@ describe('generateApiForDataset()', () => {
             name: 'Berean Standard Bible',
             englishName: 'Berean Standard Bible',
             shortName: 'BSB',
-            language: 'en-US',
+            language: 'eng',
             direction: 'ltr',
             licenseUrl: 'https://berean.bible/terms.htm',
             website: 'https://berean.bible'
@@ -241,7 +244,7 @@ describe('generateApiForDataset()', () => {
             },
         ] as InputFile[];
 
-        const dataset = generateDataset(inputFiles);
+        const dataset = generateDataset(inputFiles, new DOMParser() as any);
         const generated = generateApiForDataset(dataset, {
             useCommonName: true,
         });
@@ -253,7 +256,7 @@ describe('generateApiForDataset()', () => {
             name: 'Berean Standard Bible',
             englishName: 'Berean Standard Bible',
             shortName: 'BSB',
-            language: 'en-US',
+            language: 'eng',
             textDirection: 'ltr',
             licenseUrl: 'https://berean.bible/terms.htm',
             website: 'https://berean.bible',
@@ -264,6 +267,131 @@ describe('generateApiForDataset()', () => {
             numberOfBooks: 1,
             totalNumberOfChapters: 1,
             totalNumberOfVerses: 1,
+            languageName: 'English',
+            languageEnglishName: 'English',
+        }
+
+        expect(tree).toEqual({
+            '/api/available_translations.json': {
+                translations: [
+                    expectedTranslation
+                ]
+            },
+            '/api/bsb/books.json': {
+                translation: expectedTranslation,
+                books: [
+                    {
+                        id: '1CH',
+                        name: '1 Chronicles',
+                        commonName: '1 Chronicles',
+                        title: '1 Chronicles',
+                        numberOfChapters: 1,
+                        totalNumberOfVerses: 1,
+                        order: 13,
+                        firstChapterApiLink: '/api/bsb/1_Chronicles/1.json',
+                        lastChapterApiLink: '/api/bsb/1_Chronicles/1.json',
+                    },
+                ]
+            },
+            '/api/bsb/1_Chronicles/1.json': {
+                translation: expectedTranslation,
+                book: {
+                    id: '1CH',
+                    name: '1 Chronicles',
+                    commonName: '1 Chronicles',
+                    title: '1 Chronicles',
+                    numberOfChapters: 1,
+                    totalNumberOfVerses: 1,
+                    order: 13,
+                    firstChapterApiLink: '/api/bsb/1_Chronicles/1.json',
+                    lastChapterApiLink: '/api/bsb/1_Chronicles/1.json'
+                },
+                thisChapterLink: "/api/bsb/1_Chronicles/1.json",
+                thisChapterAudioLinks: {},
+                nextChapterApiLink: null,
+                nextChapterAudioLinks: null,
+                previousChapterApiLink: null,
+                previousChapterAudioLinks: null,
+                numberOfVerses: 1,
+                chapter: {
+                    number: 1,
+                    content: [
+                        {
+                            type: 'heading',
+                            content: [
+                                'From Adam to Abraham'
+                            ]
+                        },
+                        {
+                            type: 'line_break'
+                        },
+                        {
+                            type: 'verse',
+                            number: 1,
+                            content: [
+                                'Adam, Seth, Enosh,'
+                            ],
+                        },
+                    ],
+                    footnotes: []
+                }
+            },
+        });
+
+        // expect(availableTranslations).toEqual({
+        //     translations: [
+        //         expectedTranslation
+        //     ]
+        // });
+    });
+
+    it('produce the correct names for languages', () => {
+        let translation1: InputTranslationMetadata = {
+            id: 'bsb',
+            name: 'Berean Standard Bible',
+            englishName: 'Berean Standard Bible',
+            shortName: 'BSB',
+            language: 'spa',
+            direction: 'ltr',
+            licenseUrl: 'https://berean.bible/terms.htm',
+            website: 'https://berean.bible'
+        };
+
+        let inputFiles = [
+            {
+                fileType: 'usfm',
+                metadata: {
+                    translation: translation1
+                },
+                content: firstXLines(_1Chronicles, 11)
+            },
+        ] as InputFile[];
+
+        const dataset = generateDataset(inputFiles, new DOMParser() as any);
+        const generated = generateApiForDataset(dataset, {
+            useCommonName: true,
+        });
+        const files = generateFilesForApi(generated);
+        const tree = fileTree(files);
+
+        const expectedTranslation = {
+            id: 'bsb',
+            name: 'Berean Standard Bible',
+            englishName: 'Berean Standard Bible',
+            shortName: 'BSB',
+            language: 'spa',
+            textDirection: 'ltr',
+            licenseUrl: 'https://berean.bible/terms.htm',
+            website: 'https://berean.bible',
+            availableFormats: [
+                'json'
+            ],
+            listOfBooksApiLink: '/api/bsb/books.json',
+            numberOfBooks: 1,
+            totalNumberOfChapters: 1,
+            totalNumberOfVerses: 1,
+            languageName: 'español',
+            languageEnglishName: 'Spanish',
         }
 
         expect(tree).toEqual({
