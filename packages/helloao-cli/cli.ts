@@ -1,32 +1,29 @@
 import { Command } from 'commander';
 import path, { dirname, extname, resolve } from 'path';
-import {mkdir, open, readdir, readFile, writeFile} from 'fs/promises';
+import {mkdir, readdir, readFile, writeFile} from 'fs/promises';
 import Sql, { Database } from 'better-sqlite3';
 import { randomUUID } from 'crypto';
-import { FilesUploader, loadTranslationFiles, ZipUploader } from './files';
+import { FilesUploader, loadTranslationFiles, ZipUploader } from '@helloao/tools/files';
 import { BibleClient } from '@gracious.tech/fetch-client';
 import { GetTranslationsItem } from '@gracious.tech/fetch-client/dist/esm/collection';
-import { getFirstNonEmpty, getTranslationId, normalizeLanguage } from './utils';
+import { getFirstNonEmpty, getTranslationId, normalizeLanguage } from '@helloao/tools/utils';
 import { createWriteStream, exists } from 'fs-extra';
-import { ChapterVerse, InputFile, InputTranslationMetadata, OutputFile, TranslationBookChapter } from './generation/common-types';
-import { DatasetOutput, DatasetTranslation, DatasetTranslationBook, generateDataset } from './generation/dataset';
+import { ChapterVerse, InputFile, InputTranslationMetadata, OutputFile, TranslationBookChapter } from '@helloao/tools/generation/common-types';
+import { DatasetOutput, DatasetTranslation, DatasetTranslationBook, generateDataset } from '@helloao/tools/generation/dataset';
 import { PrismaClient } from '@prisma/client';
-import { loadDatasets, serializeFilesForDataset, Uploader } from './db';
-import { parseS3Url, S3Uploader } from './s3';
-import { bookChapterCountMap } from './generation/book-order';
+import { loadDatasets, serializeFilesForDataset, Uploader } from '@helloao/tools/db';
+import { parseS3Url, S3Uploader } from '@helloao/tools/s3';
+import { bookChapterCountMap } from '@helloao/tools/generation/book-order';
 import { Readable } from 'stream';
 import { finished } from 'stream/promises';
 import { DOMParser, Element, Node } from 'linkedom';
-// import { ReadableStream } from 'stream/web';
-import { KNOWN_AUDIO_TRANSLATIONS } from './generation/audio';
+import { KNOWN_AUDIO_TRANSLATIONS } from '@helloao/tools/generation/audio';
 import { sha256 } from 'hash.js';
 
-const migrationsPath = path.resolve(__dirname, './migrations');
+const toolsPath = require.resolve('@helloao/tools/index.ts');
+const migrationsPath = path.resolve(dirname(toolsPath), 'migrations');
 
 async function start() {
-    // @ts-ignore
-    // const Conf = await import('conf');
-
     const parser = new DOMParser();
     globalThis.DOMParser = DOMParser as any;
     globalThis.Element = Element as any;
@@ -319,7 +316,6 @@ async function start() {
 }
 
 start();
-
 
 interface UploadApiOptions {
     /**

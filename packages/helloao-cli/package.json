@@ -9,6 +9,15 @@
   "author": "Kallyn Gowdy <kal@helloao.org>",
   "license": "MIT",
   "dependencies": {
-    "@helloao/tools": "^1.0.0"
+    "@helloao/tools": "^1.0.0",
+    "commander": "12.1.0",
+    "@gracious.tech/fetch-client": "^0.7.0",
+    "@prisma/client": "^5.12.1",
+    "better-sqlite3": "^9.5.0",
+    "fs-extra": "^11.2.0",
+    "lodash": "4.17.21",
+    "linkedom": "0.18.4",
+    "base64-js": "1.5.1",
+    "hash.js": "1.1.7"
   }
 }

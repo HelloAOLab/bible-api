@@ -1,6 +1,4 @@
-import { DOMWindow } from "jsdom";
 import { Chapter, ChapterContent, Footnote, FootnoteReference, ParseTree, Verse, Text, VerseContent, HebrewSubtitle, InlineLineBreak, InlineHeading } from "./types";
-import { trim } from "lodash";
 import { uncompletable, iterateAll, elements, children, parentChar, parentNote, RewindableIterator, debug, isParent, Rewindable } from "./iterators";
 
 enum NodeType {
