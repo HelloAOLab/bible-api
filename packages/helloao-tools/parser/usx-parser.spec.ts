@@ -8,7 +8,6 @@ describe('USXParser', () => {
     let parser: USXParser;
 
     beforeEach(() => {
-        // const { window } = new JSDOM();
         globalThis.DOMParser = DOMParser as any;// window.DOMParser as any;
         globalThis.Element = Element as any; // window.Element;
         globalThis.Node = Node as any;// window.Node;
