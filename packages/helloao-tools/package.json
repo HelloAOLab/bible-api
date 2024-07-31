@@ -2,7 +2,7 @@
   "name": "@helloao/tools",
   "version": "1.0.0",
   "description": "A set of tools for managing HelloAO's Free Bible API",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {},
   "author": "Kallyn Gowdy <kal@helloao.org>",
   "license": "MIT",
