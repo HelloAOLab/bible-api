@@ -4,9 +4,10 @@
   "description": "A CLI for managing HelloAO's Free Bible API",
   "module": "index.js",
   "types": "index.d.ts",
-  "scripts": {
-
+  "bin": {
+      "helloao": "./cli.js"
   },
+  "scripts": {},
   "author": "Kallyn Gowdy <kal@helloao.org>",
   "license": "MIT",
   "dependencies": {
