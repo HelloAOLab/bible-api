@@ -1,5 +1,6 @@
 *.js
 *.js.map
 *.d.ts
-!types.d.ts
+*.d.ts.map
+*.tsbuildinfo
 !typings/**/*.d.ts
