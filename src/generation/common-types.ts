@@ -375,3 +375,128 @@ export interface ChapterFootnote {
      */
     caller: '+' | string | null;
 }
+
+/**
+ * Defines an interface that contains information about a study.
+ * That is, a collection of notes on the Bible that are used to help understand the text.
+ */
+export interface Study {
+    /**
+     * The ID of the study.
+     */
+    id: string;
+
+    /**
+     * The name of the study.
+     */
+    name: string;
+
+    /**
+     * The website for the study.
+     */
+    website: string;
+
+    /**
+     * The URL that the license for the study can be found.
+     */
+    licenseUrl: string;
+
+    /**
+     * The text of the license for the study.
+     */
+    licenseText: string;
+
+    /**
+     * The ISO 639 3-letter language tag that the study is primarily in.
+     */
+    language: string;
+
+    /**
+     * The direction that the language is written in.
+     * "ltr" indicates that the text is written from the left side of the page to the right.
+     * "rtl" indicates that the text is written from the right side of the page to the left.
+     */
+    textDirection: 'ltr' | 'rtl';
+}
+
+export interface StudyBook {
+    /**
+     * The ID of the book.
+     */
+    id: string;
+
+    /**
+     * The name that the study provided for the book.
+     */
+    name: string;
+
+    /**
+     * The numerical order of the book.
+     */
+    order: number;
+
+    /**
+     * The summary of the book.
+     */
+    summary: string;
+}
+
+export interface StudyBookChapter {
+
+    /**
+     * The number of the chapter.
+     */
+    number: number;
+
+    /**
+     * The notes that are contained in the chapter.
+     */
+    notes: StudyBookChapterNote[];
+}
+
+/**
+ * A note that is contained in a chapter.
+ */
+export interface StudyBookChapterNote {
+    /**
+     * The ID of the note.
+     */
+    id: string;
+
+    /**
+     * The number of the verse that the note is associated with.
+     */
+    verse: number;
+
+    /**
+     * The number of the verse that the note ends at.
+     */
+    endingVerse: number;
+
+    /**
+     * The content of the note.
+     */
+    content: HtmlTag;
+}
+
+/**
+ * Defines an interface that represents a simplified version of an HTML tag.
+ * 
+ * HTML-in-JSON is used so that users don't have to have an HTML parser in order to utilize the data and obtain formatting information.
+ */
+export interface HtmlTag {
+    /**
+     * The name of the tag.
+     */
+    tagName: string;
+
+    /**
+     * The attributes that are associated with the tag.
+     */
+    attributes: Record<string, string>;
+
+    /**
+     * The children of the tag.
+     */
+    children: (string | HtmlTag)[];
+}
