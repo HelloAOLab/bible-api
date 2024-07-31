@@ -2,7 +2,8 @@
   "name": "@helloao/tools",
   "version": "1.0.0",
   "description": "A set of tools for managing HelloAO's Free Bible API",
-  "main": "dist/index.js",
+  "module": "index.js",
+  "types": "index.d.ts",
   "scripts": {},
   "author": "Kallyn Gowdy <kal@helloao.org>",
   "license": "MIT",
@@ -20,5 +21,13 @@
     "base64-js": "1.5.1",
     "hash.js": "1.1.7",
     "all-iso-language-codes": "1.0.17"
-  }
+  },
+  "files": [
+      "/README.md",
+      "/LICENSE.txt",
+      "/migrations/**/*.sql",
+      "**/*.js",
+      "**/*.js.map",
+      "**/*.d.ts"
+  ]
 }

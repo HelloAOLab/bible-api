@@ -2,7 +2,8 @@
   "name": "@helloao/cli",
   "version": "1.0.0",
   "description": "A CLI for managing HelloAO's Free Bible API",
-  "main": "index.js",
+  "module": "index.js",
+  "types": "index.d.ts",
   "scripts": {
 
   },
@@ -19,5 +20,12 @@
     "linkedom": "0.18.4",
     "base64-js": "1.5.1",
     "hash.js": "1.1.7"
-  }
+  },
+  "files": [
+      "/README.md",
+      "/LICENSE.txt",
+      "**/*.js",
+      "**/*.js.map",
+      "**/*.d.ts"
+  ]
 }
