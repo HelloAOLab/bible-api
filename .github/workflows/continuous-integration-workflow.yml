@@ -1,0 +1,28 @@
+name: Continuous Integration
+
+on:
+    push:
+
+jobs:
+    test:
+        name: Test and Build
+        strategy:
+            matrix:
+                os: [ubuntu-latest, macOS-latest, windows-latest]
+                node-version: [18.x]
+        runs-on: ${{ matrix.os }}
+        steps:
+            - uses: actions/checkout@v1
+            - name: Use Node.js ${{ matrix.node-version }}
+              uses: actions/setup-node@v1
+              with:
+                  node-version: ${{ matrix.node-version }}
+            - name: npm install and test
+              run: |
+                  corepack enable
+                  pnpm install
+                  npx --node-options="--max_old_space_size=4096" jest --detectOpenHandles --forceExit --no-cache
+                  npm run build
+                  npm run build:docs
+              env:
+                  CI: true
