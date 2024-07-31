@@ -1,0 +1,16 @@
+{
+    "extends": "./tsconfig.base.json",
+    "compilerOptions": {
+        "typeRoots": [
+            "node_modules/@types",
+            "./packages/helloao-tools/typings"
+        ],
+    },
+    "files": [
+        "./packages/helloao-tools/typings/types.d.ts"
+    ],
+    "references": [
+      { "path": "./packages/helloao-cli" },
+      { "path": "./packages/helloao-tools" }
+    ]
+}

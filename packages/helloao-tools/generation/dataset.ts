@@ -1,7 +1,6 @@
-import { DOMWindow } from "jsdom";
-import { UsfmParser } from "../usfm-parser";
-import { ParseTree } from "../usfm-parser/types";
-import { USXParser } from "../usfm-parser/usx-parser";
+import { UsfmParser } from "../parser";
+import { ParseTree } from "../parser/types";
+import { USXParser } from "../parser/usx-parser";
 import { InputFile, Translation, TranslationBook, TranslationBookChapter } from "./common-types";
 import { bookIdMap, bookOrderMap } from "./book-order";
 import { omit, sortBy, sortedIndex, sortedIndexBy } from "lodash";

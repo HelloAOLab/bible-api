@@ -1,0 +1,26 @@
+{
+  "name": "@helloao/tools",
+  "version": "1.0.0",
+  "description": "A set of tools for managing HelloAO's Free Bible API",
+  "main": "index.js",
+  "scripts": {},
+  "author": "Kallyn Gowdy <kal@helloao.org>",
+  "license": "MIT",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.609.0",
+    "@aws-sdk/credential-providers": "^3.609.0",
+    "@gracious.tech/fetch-client": "^0.7.0",
+    "@prisma/client": "^5.12.1",
+    "better-sqlite3": "^9.5.0",
+    "conf": "12.0.0",
+    "fs-extra": "^11.2.0",
+    "highlight.js": "^11.7.0",
+    "lodash": "4.17.21",
+    "markdown-it": "^13.0.1",
+    "@zip.js/zip.js": "^2.6.40",
+    "linkedom": "0.18.4",
+    "base64-js": "1.5.1",
+    "hash.js": "1.1.7",
+    "all-iso-language-codes": "1.0.17"
+  }
+}

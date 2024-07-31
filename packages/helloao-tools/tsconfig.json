@@ -1,0 +1,18 @@
+{
+    "extends": "../../tsconfig.base.json",
+    "compilerOptions": {
+        "baseUrl": ".",
+        "outDir": ".",
+        "declaration": true,
+        "declarationMap": true,
+        "composite": true,
+        "incremental": true,
+        "skipLibCheck": true
+    },
+    "exclude": ["node_modules"],
+    "include": [
+        "./**/*.ts",
+        "./typings/**/*"
+    ],
+    "references": [],
+}

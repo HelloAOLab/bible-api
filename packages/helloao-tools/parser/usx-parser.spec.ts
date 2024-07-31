@@ -1,11 +1,8 @@
 import { USXParser } from "./usx-parser";
-import { JSDOM } from 'jsdom';
 import { DOMParser, Element, Node } from 'linkedom';
-import Matthew from '../../bible/webp_usx/mat.usx';
-import MatthewUsfm from '../../bible/engwebp/70-MATengwebp.usfm';
-import John from '../../bible/webp_usx/jhn.usx';
-import Sa from '../../bible/webp_usx/1sa.usx';
-import { UsfmParser } from "./usfm-parser";
+import Matthew from '../../../bible/webp_usx/mat.usx';
+import John from '../../../bible/webp_usx/jhn.usx';
+import Sa from '../../../bible/webp_usx/1sa.usx';
 
 describe('USXParser', () => {
     let parser: USXParser;

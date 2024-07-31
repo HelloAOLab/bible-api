@@ -237,6 +237,9 @@ export async function *serializeFilesForDataset(db: PrismaClient, options: Gener
     }
 }
 
+/**
+ * Defines an interface that contains information about a serialized file.
+ */
 export interface Uploader {
 
     /**

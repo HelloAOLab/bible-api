@@ -7,7 +7,7 @@ import { SerializedFile, Uploader } from "./db";
 import { ZipWriter, Writer, TextReader, Reader } from '@zip.js/zip.js';
 import { Readable, Writable } from "stream";
 import { sha256 } from "hash.js";
-import { PARSER_VERSION } from "./usfm-parser/usx-parser";
+import { PARSER_VERSION } from "./parser/usx-parser";
 // import { ReadableStream, WritableStream } from 'node:stream/web';
 
 /**
@@ -53,6 +53,11 @@ export async function loadTranslationFiles(translation: string): Promise<InputFi
     return await Promise.all(promises);
 }
 
+/**
+ * Loads the metadata for the given translation.
+ * @param translation The translation that the metadata should be loaded for.
+ * @returns 
+ */
 async function loadTranslationMetadata(translation: string): Promise<InputTranslationMetadata | null> {
     const metadataTs = path.resolve(translation, 'metadata.ts');
     if (existsSync(metadataTs)) {
@@ -85,6 +90,11 @@ async function loadTranslationMetadata(translation: string): Promise<InputTransl
     return null;
 }
 
+/**
+ * Loads the file from the given path using the given metadata.
+ * @param file The file that should be loaded.
+ * @param metadata The metadata.
+ */
 async function loadFile(file: string, metadata: ParseTreeMetadata): Promise<InputFile> {
     const extension = path.extname(file);
 

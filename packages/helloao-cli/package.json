@@ -1,0 +1,14 @@
+{
+  "name": "@helloao/cli",
+  "version": "1.0.0",
+  "description": "A CLI for managing HelloAO's Free Bible API",
+  "main": "index.js",
+  "scripts": {
+
+  },
+  "author": "Kallyn Gowdy <kal@helloao.org>",
+  "license": "MIT",
+  "dependencies": {
+    "@helloao/tools": "^1.0.0"
+  }
+}

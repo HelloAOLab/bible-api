@@ -1625,7 +1625,7 @@ describe('UsfmParser', () => {
             ];
 
             it.each(cases)('should consistently parse %s', async (file, expectedChapters) => {
-                const filePath = resolve(__dirname, '..', '..', 'bible', file);
+                const filePath = resolve(__dirname, '..', '..', '..', 'bible', file);
                 const data = await readFile(filePath, { encoding: 'utf-8' });
                 const parsed = parser.parse(data);
                 const numChapters = parsed.content.filter(c => c.type === 'chapter').length;
@@ -1641,7 +1641,7 @@ describe('UsfmParser', () => {
             });
 
             it('should consistently parse matthew in the BSB', async () => {
-                const filePath = resolve(__dirname, '..', '..', 'bible', 'bsb/41MATBSB.usfm');
+                const filePath = resolve(__dirname, '..', '..', '..', 'bible', 'bsb/41MATBSB.usfm');
                 const data = await readFile(filePath, { encoding: 'utf-8' });
                 const parsed = parser.parse(data);
                 const numChapters = parsed.content.filter(c => c.type === 'chapter').length;

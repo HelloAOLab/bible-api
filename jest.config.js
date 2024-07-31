@@ -5,14 +5,19 @@ module.exports = {
   "transform": {
     "\\.usfm": "<rootDir>/tools/fileTransformer.js",
     "\\.usx": "<rootDir>/tools/fileTransformer.js",
+    '^.+\\.tsx?$': [
+      'ts-jest',
+      {
+        tsconfig: 'tsconfig.test.json',
+      },
+    ],
   },
   testPathIgnorePatterns: [
     '/node_modules/',
-    '/src/pages/test.tsx',
     '/build/',
   ],
   roots: [
-    "<rootDir>/src",
+    "<rootDir>/packages",
     "<rootDir>/docs"
-  ]
+  ],
 };

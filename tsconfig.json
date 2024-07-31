@@ -1,23 +1,8 @@
 {
-  "compilerOptions": {
-    "target": "ESNext",
-    "useDefineForClassFields": true,
-    "module": "CommonJS",
-    "lib": ["ESNext", "DOM", "DOM.AsyncIterable", "DOM.Iterable"],
-    "moduleResolution": "node",
-    "strict": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "esModuleInterop": true,
-    "noEmit": true,
-    "noUnusedParameters": true,
-    "noImplicitReturns": true,
-    "skipLibCheck": true,
-    "jsx": "react-jsx",
-    "typeRoots": ["node_modules/@types", "src/types"],
-  },
-  // "ts-node": {
-  //   "esm": true
-  // },
-  "include": ["src"],
+  "extends": "./tsconfig.base.json",
+  "files": [],
+  "references": [
+      { "path": "./packages/helloao-cli" },
+      { "path": "./packages/helloao-tools" }
+  ]
 }
