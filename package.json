@@ -31,5 +31,8 @@
   "engines": {
     "pnpm": "^8.11.0"
   },
-  "packageManager": "pnpm@8.11.0"
+  "packageManager": "pnpm@8.11.0",
+  "prisma": {
+    "schema": "./packages/helloao-cli/schema.prisma"
+  }
 }

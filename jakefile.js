@@ -20,7 +20,7 @@ let patterns = [
     `/*.tsbuildinfo`,
 ];
 
-let negativePatterns = [`/typings/**/*`, `/node_modules/**/*`];
+let negativePatterns = [`/typings/**/*`, `/node_modules/**/*`, `**/prisma-gen/**/*`];
 
 let globs = [];
 folders.forEach((f) => {

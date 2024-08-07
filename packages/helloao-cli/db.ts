@@ -1,4 +1,4 @@
-import { PrismaClient, Prisma } from "@prisma/client";
+import { PrismaClient, Prisma } from "./prisma-gen";
 import path, { dirname } from "path";
 import Sql, { Database } from 'better-sqlite3';
 import { readdir, readFile } from "fs-extra";

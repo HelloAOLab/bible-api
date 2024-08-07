@@ -3,3 +3,4 @@
 *.d.ts
 *.d.ts.map
 *.tsbuildinfo
+prisma-gen/
