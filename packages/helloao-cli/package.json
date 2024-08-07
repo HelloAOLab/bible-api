@@ -1,7 +1,7 @@
 {
   "name": "@helloao/cli",
   "version": "1.0.0",
-  "description": "A CLI for managing HelloAO's Free Bible API",
+  "description": "A CLI and related tools for managing HelloAO's Free Bible API",
   "module": "index.js",
   "types": "index.d.ts",
   "bin": {
