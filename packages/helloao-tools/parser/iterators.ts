@@ -209,3 +209,36 @@ export function *uncompletable<T>(iterable: IterableIterator<T>): IterableIterat
         yield value;
     }
 }
+
+/**
+ * Converts the given iterable into an async iterable.
+ * @param input The input iterable.
+ */
+export async function *toAsyncIterable<T>(input: Iterable<T>): AsyncIterable<T> {
+    for (let item of input) {
+        yield item;
+    }
+}
+
+/**
+ * Batches items from the given iterator.
+ * @param input The input iterator.
+ * @param batchSize The size of each batch.
+ */
+export function* batch<T>(input: Iterable<T>, batchSize: number): Iterable<T[]> {
+    while(true) {
+        let batch = [] as T[];
+        for (let item of input) {
+            batch.push(item);
+            if (batch.length >= batchSize) {
+                break;
+            }
+        }
+
+        if (batch.length === 0) {
+            return;
+        }
+
+        yield batch;
+    }
+}

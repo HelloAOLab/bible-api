@@ -10,6 +10,22 @@ import { sha256 } from "hash.js";
 import { PARSER_VERSION } from "@helloao/tools/parser/usx-parser";
 
 /**
+ * Loads the files for the given translations.
+ * @param dir The directory that the translations exist in.
+ */
+export async function loadTranslationsFiles(dirs: string[]): Promise<InputFile[]> {
+    const promises = [] as Promise<InputFile[]>[];
+    for (let dir of dirs) {
+        const fullPath = path.resolve(dir);
+        promises.push(loadTranslationFiles(fullPath));
+    }
+
+    const allFiles = await Promise.all(promises);
+    const files = allFiles.flat();
+    return files;
+}
+
+/**
  * Loads the files for the given translation.
  * @param translation The directory that the translation exists in.
  * @returns 

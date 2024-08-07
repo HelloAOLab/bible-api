@@ -730,6 +730,13 @@ export async function* loadDatasets(db: PrismaClient, translationsPerBatch: numb
     }
 }
 
+export interface SerializeApiOptions extends GenerateApiOptions {
+    /**
+     * Whether the output should be pretty-printed.
+     */
+    pretty?: boolean;
+}
+
 /**
  * Generates and serializes the API files for the dataset that is stored in the database.
  * Yields each batch of serialized files.
@@ -738,10 +745,19 @@ export async function* loadDatasets(db: PrismaClient, translationsPerBatch: numb
  * @param translationsPerBatch The number of translations that should be loaded and written per batch.
  * @param translations The list of translations that should be loaded. If not provided, all translations will be loaded.
  */
-export async function* serializeFilesForDataset(db: PrismaClient, options: GenerateApiOptions, translationsPerBatch: number = 50, translations?: string[]): AsyncGenerator<SerializedFile[]> {
+export async function* serializeFilesForDataset(db: PrismaClient, options: SerializeApiOptions, translationsPerBatch: number = 50, translations?: string[]): AsyncGenerator<SerializedFile[]> {
+    yield* serializeFiles(loadDatasets(db, translationsPerBatch, translations), options);
+}
+
+/**
+ * Serializes the API files for the given datasets.
+ * @param datasets The dataasets to serialize.
+ * @param options The options to use for serializing the files.
+ */
+export async function* serializeFiles(datasets: AsyncIterable<DatasetOutput>, options: SerializeApiOptions): AsyncGenerator<SerializedFile[]> {
     const mergableFiles = new Map<string, OutputFile[]>();
 
-    for await (let dataset of loadDatasets(db, translationsPerBatch, translations)) {
+    for await (let dataset of datasets) {
         const api = generateApiForDataset(dataset, options);
         const files = generateFilesForApi(api);
 
@@ -813,7 +829,7 @@ export async function* serializeFilesForDataset(db: PrismaClient, options: Gener
                     json += chunk;
                 }
             } else {
-                json = JSON.stringify(content, null, 2);
+                json = JSON.stringify(content, undefined, options.pretty ? 2 : undefined);
             }
 
             return {

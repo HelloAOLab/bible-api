@@ -331,6 +331,10 @@ export function generateApiForDataset(dataset: DatasetOutput, options : Generate
     }
 }
 
+/**
+ * Generates the output files for the given API.
+ * @param api The API that the files should be generated for.
+ */
 export function generateFilesForApi(api: ApiOutput): OutputFile[] {
     let files: OutputFile[] = [];
 

@@ -11,8 +11,11 @@ import { bookChapterCountMap } from '@helloao/tools/generation/book-order';
 import { DOMParser, Element, Node } from 'linkedom';
 import { KNOWN_AUDIO_TRANSLATIONS } from '@helloao/tools/generation/audio';
 import { downloadFile } from './downloads';
-import { uploadApiFiles } from './uploads';
+import { uploadApiFiles, uploadApiFilesFromDatabase } from './uploads';
 import { fetchAudio, fetchTranslations, importTranslation, importTranslations, initDb } from './actions';
+import { loadTranslationFiles, loadTranslationsFiles } from 'files';
+import { generateDataset } from '@helloao/tools/generation/dataset';
+import { batch, toAsyncIterable } from '@helloao/tools/parser/iterators';
 
 async function start() {
     const parser = new DOMParser();
@@ -48,8 +51,30 @@ async function start() {
             await importTranslations(dir, options);
         });
 
-    program.command('generate-api-files <dir>')
-        .description('Generates API files from the database.')
+    program.command('generate-translation-files <input> <dir>')
+        .description('Generates API files from the given input translation.')
+        .option('--batch-size <size>', 'The number of translations to generate API files for in each batch.', '50')
+        .option('--translations <translations...>', 'The translations to generate API files for.')
+        .option('--overwrite', 'Whether to overwrite existing files.')
+        .option('--overwrite-common-files', 'Whether to overwrite only common files.')
+        .option('--file-pattern <pattern>', 'The file pattern regex that should be used to filter the files that are generated.')
+        .option('--use-common-name', 'Whether to use the common name for the book chapter API link. If false, then book IDs are used.')
+        .option('--generate-audio-files', 'Whether to replace the audio URLs in the dataset with ones that are hosted locally.')
+        .option('--profile <profile>', 'The AWS profile to use for uploading to S3.')
+        .option('--pretty', 'Whether to generate pretty-printed JSON files.')
+        .action(async (input: string, dest: string, options: any) => {
+            const parser = new DOMParser();
+            globalThis.DOMParser = DOMParser as any;
+            globalThis.Element = Element as any;
+            globalThis.Node = Node as any;
+
+            const files = await loadTranslationFiles(path.resolve(input));
+            const dataset = generateDataset(files, parser as any);
+            await uploadApiFiles(dest, options, toAsyncIterable([dataset]));
+        });
+
+    program.command('generate-translations-files <input> <dir>')
+        .description('Generates API files from the given input translations.')
         .option('--batch-size <size>', 'The number of translations to generate API files for in each batch.', '50')
         .option('--translations <translations...>', 'The translations to generate API files for.')
         .option('--overwrite', 'Whether to overwrite existing files.')
@@ -58,8 +83,20 @@ async function start() {
         .option('--use-common-name', 'Whether to use the common name for the book chapter API link. If false, then book IDs are used.')
         .option('--generate-audio-files', 'Whether to replace the audio URLs in the dataset with ones that are hosted locally.')
         .option('--profile <profile>', 'The AWS profile to use for uploading to S3.')
-        .action(async (dir: string, options: any) => {
-            await uploadApiFiles(dir, options);
+        .option('--pretty', 'Whether to generate pretty-printed JSON files.')
+        .action(async (input: string, dest: string, options: any) => {
+            const parser = new DOMParser();
+            globalThis.DOMParser = DOMParser as any;
+            globalThis.Element = Element as any;
+            globalThis.Node = Node as any;
+
+            const dirs = await readdir(path.resolve(input));
+            const batchSize = parseInt(options.batchSize);
+            for (let b of batch(dirs, batchSize)) {
+                const files = await loadTranslationsFiles(b);
+                const dataset = generateDataset(files, parser as any);
+                await uploadApiFiles(dest, options, toAsyncIterable([dataset]));
+            }
         });
 
     program.command('upload-api-files')
@@ -73,8 +110,9 @@ async function start() {
         .option('--use-common-name', 'Whether to use the common name for the book chapter API link. If false, then book IDs are used.')
         .option('--generate-audio-files', 'Whether to replace the audio URLs in the dataset with ones that are hosted locally.')
         .option('--profile <profile>', 'The AWS profile to use for uploading to S3.')
+        .option('--pretty', 'Whether to generate pretty-printed JSON files.')
         .action(async (dest: string, options: any) => {
-            await uploadApiFiles(dest, options);
+            await uploadApiFilesFromDatabase(dest, options);
         });
 
     program.command('fetch-translations <dir> [translations...]')
