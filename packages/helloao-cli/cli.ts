@@ -25,8 +25,8 @@ async function start() {
 
     const program = new Command();
 
-    program.name('bible-api')
-        .description('A CLI for managing a Bible API.')
+    program.name('helloao')
+        .description('A CLI for managing a Free Use Bible API.')
         .version('0.0.1');
 
     program.command('init [path]')
