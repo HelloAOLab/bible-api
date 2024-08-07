@@ -1,6 +1,6 @@
 {
   "name": "@helloao/cli",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "A CLI and related tools for managing HelloAO's Free Bible API",
   "module": "index.js",
   "types": "index.d.ts",
@@ -34,7 +34,8 @@
       "**/*.js",
       "**/*.js.map",
       "**/*.d.ts",
-      "/migrations/**/*.sql"
+      "/migrations/**/*.sql",
+      "./schema.prisma"
   ],
   "prisma": {
     "schema": "./schema.prisma"
