@@ -42,3 +42,52 @@ export function getFirstNonEmpty<T extends string>(...values: T[]): T {
 
     throw new Error('All values are empty or whitespace!');
 }
+
+export interface VerseRef {
+    book: string;
+    chapter: number;
+    verse: number;
+
+    /**
+     * The rest of the content of the verse.
+     */
+    content?: string;
+}
+
+/**
+ * Parses the given verse reference.
+ * Formatted like "GEN 1:1".
+ * 
+ * @param text The reference to parse.
+ */
+export function parseVerseReference(text: string): VerseRef | null {
+    const match = text.match(/^\s*([A-Z]+)\s+(\d+):(\d+)/);
+
+    if (!match) {
+        return null;
+    }
+
+    const [reference, book, chapterStr, verseStr] = match;
+
+    const chapter = parseInt(chapterStr);
+    const verse = parseInt(verseStr);
+
+    if (isNaN(chapter) || isNaN(verse)) {
+        return null;
+    }
+
+    if (reference.length !== text.length) {
+        return {
+            book,
+            chapter,
+            verse,
+            content: text.substring(reference.length).trim(),
+        };
+    }
+
+    return {
+        book,
+        chapter,
+        verse,
+    };
+}
