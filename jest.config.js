@@ -5,6 +5,7 @@ module.exports = {
   "transform": {
     "\\.usfm": "<rootDir>/tools/fileTransformer.js",
     "\\.usx": "<rootDir>/tools/fileTransformer.js",
+    "\\.codex": "<rootDir>/tools/fileTransformer.js",
     '^.+\\.tsx?$': [
       'ts-jest',
       {

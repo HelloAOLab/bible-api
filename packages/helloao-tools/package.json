@@ -20,7 +20,8 @@
     "linkedom": "0.18.4",
     "base64-js": "1.5.1",
     "hash.js": "1.1.7",
-    "all-iso-language-codes": "1.0.17"
+    "all-iso-language-codes": "1.0.17",
+    "zod": "^3.23.8"
   },
   "files": [
       "/README.md",
