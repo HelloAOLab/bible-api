@@ -2,13 +2,12 @@ import { FileHandle, mkdir, open, readFile, readdir, writeFile } from "fs/promis
 import { extname } from "path";
 import * as path from "path";
 import { existsSync } from "fs-extra";
-import { InputFile, InputTranslationMetadata, ParseTreeMetadata } from "./generation/common-types";
+import { InputFile, InputTranslationMetadata, ParseTreeMetadata } from "@helloao/tools/generation/common-types";
 import { SerializedFile, Uploader } from "./db";
 import { ZipWriter, Writer, TextReader, Reader } from '@zip.js/zip.js';
 import { Readable, Writable } from "stream";
 import { sha256 } from "hash.js";
-import { PARSER_VERSION } from "./parser/usx-parser";
-// import { ReadableStream, WritableStream } from 'node:stream/web';
+import { PARSER_VERSION } from "@helloao/tools/parser/usx-parser";
 
 /**
  * Loads the files for the given translation.

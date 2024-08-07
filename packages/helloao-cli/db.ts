@@ -1,13 +1,21 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Prisma } from "@prisma/client";
 import path, { dirname } from "path";
 import Sql, { Database } from 'better-sqlite3';
 import { readdir, readFile } from "fs-extra";
 import { randomUUID } from "node:crypto";
-import { DatasetTranslation, DatasetTranslationBook, generateDataset } from "@helloao/tools/generation/dataset";
-import { ChapterVerse, InputFile, TranslationBookChapter } from "@helloao/tools/generation";
-import { loadTranslationFiles } from "@helloao/tools/files";
+import { DatasetOutput, DatasetTranslation, DatasetTranslationBook, generateDataset, } from "@helloao/tools/generation/dataset";
+import {
+    ChapterVerse, InputFile, TranslationBookChapter, OutputFile, OutputFileContent
+
+} from "@helloao/tools/generation";
+import { generateApiForDataset, GenerateApiOptions, generateFilesForApi } from "@helloao/tools/generation/api";
+import { loadTranslationFiles } from "./files";
 import { sha256 } from "hash.js";
 import { DOMParser } from "linkedom";
+import { merge, mergeWith } from "lodash";
+import { extname } from "path";
+import { Readable } from "stream";
+import { fromByteArray } from "base64-js";
 
 const toolsPath = require.resolve('@helloao/tools/index.ts');
 const migrationsPath = path.resolve(dirname(toolsPath), 'migrations');
@@ -42,7 +50,7 @@ export async function importTranslations(db: Database, dirs: string[], parser: D
  */
 export async function importTranslationBatch(db: Database, dirs: string[], parser: DOMParser, overwrite: boolean) {
     const promises = [] as Promise<InputFile[]>[];
-    for(let dir of dirs) {
+    for (let dir of dirs) {
         const fullPath = path.resolve(dir);
         promises.push(loadTranslationFiles(fullPath));
     }
@@ -120,7 +128,7 @@ export function insertFileMetadata(db: Database, files: InputFile[]) {
             sizeInBytes=excluded.sizeInBytes;`);
 
     const insertManyFiles = db.transaction((files) => {
-        for(let file of files) {
+        for (let file of files) {
             fileUpsert.run({
                 translationId: file.metadata.translation.id,
                 name: path.basename(file.name),
@@ -164,7 +172,7 @@ export function insertTranslations(db: Database, translations: DatasetTranslatio
             englishName=excluded.englishName;`);
 
     const insertManyTranslations = db.transaction((translations) => {
-        for(let translation of translations) {
+        for (let translation of translations) {
             translationUpsert.run({
                 id: translation.id,
                 name: translation.name,
@@ -180,7 +188,7 @@ export function insertTranslations(db: Database, translations: DatasetTranslatio
 
     insertManyTranslations(translations);
 
-    for(let translation of translations) {
+    for (let translation of translations) {
         insertTranslationBooks(db, translation, translation.books);
     }
 }
@@ -210,7 +218,7 @@ export function insertTranslationBooks(db: Database, translation: DatasetTransla
             numberOfChapters=excluded.numberOfChapters;`);
 
     const insertMany = db.transaction((books: DatasetTranslationBook[]) => {
-        for(let book of books) {
+        for (let book of books) {
             if (!book) {
                 continue;
             }
@@ -300,106 +308,106 @@ export function insertTranslationContent(db: Database, translation: DatasetTrans
         UPDATE SET
             url=excluded.url;`);
 
-        const insertChaptersAndVerses = db.transaction(() => {
-            for (let chapter of chapters) {
-                    let verses: {
-                        number: number,
-                        text: string,
-                        contentJson: string,
-                    }[] = [];
-                    let footnotes: Map<number, {
-                        id: number,
-                        text: string,
-                        verseNumber?: number,
-                    }> = new Map();
-        
-                    for (let c of chapter.chapter.footnotes) {
-                        footnotes.set(c.noteId, {
-                            id: c.noteId,
-                            text: c.text,
-                        });
+    const insertChaptersAndVerses = db.transaction(() => {
+        for (let chapter of chapters) {
+            let verses: {
+                number: number,
+                text: string,
+                contentJson: string,
+            }[] = [];
+            let footnotes: Map<number, {
+                id: number,
+                text: string,
+                verseNumber?: number,
+            }> = new Map();
+
+            for (let c of chapter.chapter.footnotes) {
+                footnotes.set(c.noteId, {
+                    id: c.noteId,
+                    text: c.text,
+                });
+            }
+
+            for (let c of chapter.chapter.content) {
+                if (c.type === 'verse') {
+                    const verse: ChapterVerse = c;
+                    if (!verse.number) {
+                        console.error('Verse missing number', translation.id, book.id, chapter.chapter.number, verse.number);
+                        continue;
                     }
-        
-                    for (let c of chapter.chapter.content) {
-                        if (c.type === 'verse') {
-                            const verse: ChapterVerse = c;
-                            if (!verse.number) {
-                                console.error('Verse missing number', translation.id, book.id, chapter.chapter.number, verse.number);
-                                continue;
-                            }
-    
-                            let text = '';
-                            for (let c of verse.content) {
-                                if (typeof c === 'string') {
-                                    text += c + ' ';
-                                } else if (typeof c === 'object') {
-                                    if ('lineBreak' in c) {
-                                        text += '\n';
-                                    } else if ('text' in c) {
-                                        text += c.text + ' ';
-                                    } else if ('noteId' in c) {
-                                        const note = footnotes.get(c.noteId);
-                                        if (note) {
-                                            note.verseNumber = verse.number;
-                                        }
-                                    }
+
+                    let text = '';
+                    for (let c of verse.content) {
+                        if (typeof c === 'string') {
+                            text += c + ' ';
+                        } else if (typeof c === 'object') {
+                            if ('lineBreak' in c) {
+                                text += '\n';
+                            } else if ('text' in c) {
+                                text += c.text + ' ';
+                            } else if ('noteId' in c) {
+                                const note = footnotes.get(c.noteId);
+                                if (note) {
+                                    note.verseNumber = verse.number;
                                 }
                             }
-
-                            let contentJson = JSON.stringify(verse.content);
-                            verses.push({
-                                number: verse.number,
-                                text: text.trimEnd(),
-                                contentJson,
-                            });
                         }
                     }
-        
-                    chapterUpsert.run({
+
+                    let contentJson = JSON.stringify(verse.content);
+                    verses.push({
+                        number: verse.number,
+                        text: text.trimEnd(),
+                        contentJson,
+                    });
+                }
+            }
+
+            chapterUpsert.run({
+                translationId: translation.id,
+                bookId: book.id,
+                number: chapter.chapter.number,
+                json: JSON.stringify(chapter.chapter),
+            });
+
+            for (let verse of verses) {
+                verseUpsert.run({
+                    translationId: translation.id,
+                    bookId: book.id,
+                    chapterNumber: chapter.chapter.number,
+                    number: verse.number,
+                    text: verse.text,
+                    contentJson: verse.contentJson,
+                });
+            }
+
+            for (let footnote of footnotes.values()) {
+                footnoteUpsert.run({
+                    translationId: translation.id,
+                    bookId: book.id,
+                    chapterNumber: chapter.chapter.number,
+                    id: footnote.id,
+                    verseNumber: footnote.verseNumber,
+                    text: footnote.text,
+                });
+            }
+
+            for (let reader in chapter.thisChapterAudioLinks) {
+                const url = chapter.thisChapterAudioLinks[reader];
+                if (url) {
+                    chapterAudioUpsert.run({
                         translationId: translation.id,
                         bookId: book.id,
                         number: chapter.chapter.number,
-                        json: JSON.stringify(chapter.chapter),
+                        reader: reader,
+                        url,
                     });
-        
-                    for (let verse of verses) {
-                        verseUpsert.run({
-                            translationId: translation.id,
-                            bookId: book.id,
-                            chapterNumber: chapter.chapter.number,
-                            number: verse.number,
-                            text: verse.text,
-                            contentJson: verse.contentJson,
-                        });
-                    }
-        
-                    for(let footnote of footnotes.values()) {
-                        footnoteUpsert.run({
-                            translationId: translation.id,
-                            bookId: book.id,
-                            chapterNumber: chapter.chapter.number,
-                            id: footnote.id,
-                            verseNumber: footnote.verseNumber,
-                            text: footnote.text,
-                        });
-                    }
-
-                    for (let reader in chapter.thisChapterAudioLinks) {
-                        const url = chapter.thisChapterAudioLinks[reader];
-                        if (url) {
-                            chapterAudioUpsert.run({
-                                translationId: translation.id,
-                                bookId: book.id,
-                                number: chapter.chapter.number,
-                                reader: reader,
-                                url,
-                            });
-                        }
-                    }
                 }
-        });
+            }
+        }
+    });
 
-        insertChaptersAndVerses();
+    insertChaptersAndVerses();
 }
 
 /**
@@ -460,7 +468,7 @@ function updateTranslationHashes(db: Database, translations: DatasetTranslation[
                 .update(book.title)
                 .update(book.commonName);
 
-            for(let chapter of chapters) {
+            for (let chapter of chapters) {
                 const hash = sha256()
                     .update(chapter.translationId)
                     .update(chapter.bookId)
@@ -474,7 +482,7 @@ function updateTranslationHashes(db: Database, translations: DatasetTranslation[
             }
 
             const updateChapters = db.transaction(() => {
-                for(let chapter of chapters) {
+                for (let chapter of chapters) {
                     updateChapterHash.run({
                         sha256: chapter.sha256,
                         translationId: chapter.translationId,
@@ -493,7 +501,7 @@ function updateTranslationHashes(db: Database, translations: DatasetTranslation[
         }
 
         const updateBooks = db.transaction(() => {
-            for(let book of books) {
+            for (let book of books) {
                 updateBookHash.run({
                     sha256: book.sha256,
                     translationId: book.translationId,
@@ -509,7 +517,7 @@ function updateTranslationHashes(db: Database, translations: DatasetTranslation[
     }
 
     const updateTranslations = db.transaction(() => {
-        for(let translation of translations) {
+        for (let translation of translations) {
             updateTranslationHash.run({
                 sha256: (translation as any).sha256,
                 translationId: translation.id
@@ -573,7 +581,7 @@ export async function getDb(dbPath: string): Promise<Database> {
 
     let missingMigrations = [];
     for (let migration of migrations) {
-        if(appliedMigrations.some(m => m.migration_name === migration)) {
+        if (appliedMigrations.some(m => m.migration_name === migration)) {
             continue;
         }
         if (path.extname(migration) !== '') {
@@ -584,7 +592,7 @@ export async function getDb(dbPath: string): Promise<Database> {
 
     const insertMigrationStatement = db.prepare('INSERT INTO _prisma_migrations (id, checksum, started_at, finished_at, migration_name, applied_steps_count, logs, rolled_back_at) VALUES (?, ?, ?, ?, ?, ?, NULL, NULL);');
 
-    for(let missingMigration of missingMigrations) {
+    for (let missingMigration of missingMigrations) {
         console.log(`Applying migration ${missingMigration}...`);
         const migration = path.resolve(migrationsPath, missingMigration, 'migration.sql');
         const migrationFile = await readFile(migration, 'utf8');
@@ -600,4 +608,259 @@ interface Migration {
     checksum: string;
     finished_at: Date;
     migration_name: string;
+}
+
+
+export interface SerializedFile {
+    path: string;
+    content: string | Readable;
+
+    /**
+     * Gets the base64-encoded SHA256 hash of the content of the file.
+     */
+    sha256?(): string;
+}
+
+/**
+ * Loads the datasets from the database in a series of batches.
+ * @param db The database.
+ * @param translationsPerBatch The number of translations to load per batch.
+ * @param translationsToLoad The list of translations to load. If not provided, all translations will be loaded.
+ */
+export async function* loadDatasets(db: PrismaClient, translationsPerBatch: number = 50, translationsToLoad?: string[]): AsyncGenerator<DatasetOutput> {
+    let offset = 0;
+    let pageSize = translationsPerBatch;
+
+    console.log('Generating API files in batches of', pageSize);
+    const totalTranslations = await db.translation.count();
+    const totalBatches = Math.ceil(totalTranslations / pageSize);
+    let batchNumber = 1;
+
+    while (true) {
+        console.log('Generating API batch', batchNumber, 'of', totalBatches);
+        batchNumber++;
+
+        const query: Prisma.TranslationFindManyArgs = {
+            skip: offset,
+            take: pageSize,
+        };
+
+        if (translationsToLoad && translationsToLoad.length > 0) {
+            query.where = {
+                id: {
+                    in: translationsToLoad,
+                }
+            };
+        }
+
+        const translations = await db.translation.findMany(query);
+
+        if (translations.length <= 0) {
+            break;
+        }
+
+        const dataset: DatasetOutput = {
+            translations: []
+        };
+
+        for (let translation of translations) {
+            const datasetTranslation: DatasetTranslation = {
+                ...translation,
+                shortName: translation.shortName!,
+                textDirection: translation.textDirection! as any,
+                books: [],
+            };
+            dataset.translations.push(datasetTranslation);
+
+            const books = await db.book.findMany({
+                where: {
+                    translationId: translation.id,
+                },
+                orderBy: {
+                    order: 'asc',
+                },
+            });
+
+            for (let book of books) {
+
+                const chapters = await db.chapter.findMany({
+                    where: {
+                        translationId: translation.id,
+                        bookId: book.id,
+                    },
+                    orderBy: {
+                        number: 'asc',
+                    },
+                });
+
+                const audioLinks = await db.chapterAudioUrl.findMany({
+                    where: {
+                        translationId: translation.id,
+                        bookId: book.id
+                    },
+                    orderBy: [
+                        { number: 'asc' },
+                        { reader: 'asc' }
+                    ]
+                });
+
+                const bookChapters: TranslationBookChapter[] = chapters.map(chapter => {
+                    return {
+                        chapter: JSON.parse(chapter.json),
+                        thisChapterAudioLinks: audioLinks
+                            .filter(link => link.number === chapter.number)
+                            .reduce((acc, link) => {
+                                acc[link.reader] = link.url;
+                                return acc;
+                            }, {} as any)
+                    };
+                });
+
+                const datasetBook: DatasetTranslationBook = {
+                    ...book,
+                    chapters: bookChapters,
+                };
+                datasetTranslation.books.push(datasetBook);
+            }
+        }
+
+        yield dataset;
+
+        offset += pageSize;
+    }
+}
+
+/**
+ * Generates and serializes the API files for the dataset that is stored in the database.
+ * Yields each batch of serialized files.
+ * @param db The database that the dataset should be loaded from.
+ * @param options The options to use for generating the API.
+ * @param translationsPerBatch The number of translations that should be loaded and written per batch.
+ * @param translations The list of translations that should be loaded. If not provided, all translations will be loaded.
+ */
+export async function* serializeFilesForDataset(db: PrismaClient, options: GenerateApiOptions, translationsPerBatch: number = 50, translations?: string[]): AsyncGenerator<SerializedFile[]> {
+    const mergableFiles = new Map<string, OutputFile[]>();
+
+    for await (let dataset of loadDatasets(db, translationsPerBatch, translations)) {
+        const api = generateApiForDataset(dataset, options);
+        const files = generateFilesForApi(api);
+
+        console.log('Generated', files.length, 'files');
+
+        let serializedFiles: SerializedFile[] = [];
+        for (let file of files) {
+            if (file.mergable) {
+                let arr = mergableFiles.get(file.path);
+                if (!arr) {
+                    arr = [];
+                    mergableFiles.set(file.path, arr);
+                }
+                arr.push(file);
+                continue;
+            }
+
+            const serialized = await transformFile(file.path, file.content);
+            if (serialized) {
+                serializedFiles.push(serialized);
+            }
+        }
+
+        yield serializedFiles;
+    }
+
+    let serializedFiles: SerializedFile[] = [];
+    for (let [path, files] of mergableFiles) {
+        let content: object = {};
+        for (let file of files) {
+            if (!content) {
+                content = file.content;
+            } else {
+                content = mergeWith(content, file.content, (objValue, srcValue) => {
+                    if (Array.isArray(objValue)) {
+                        return objValue.concat(srcValue);
+                    }
+                    return undefined;
+                });
+            }
+        }
+
+        if (content) {
+            const serialized = await transformFile(path, content);
+            if (serialized) {
+                serializedFiles.push(serialized);
+            }
+        }
+    }
+
+    yield serializedFiles;
+
+    async function transformFile(path: string, content: OutputFile['content']): Promise<SerializedFile | null> {
+        let fileContent: OutputFileContent;
+        if (typeof content === 'function') {
+            fileContent = await content();
+        } else {
+            fileContent = content;
+        }
+
+        const ext = extname(path);
+        if (ext === '.json') {
+            let json: string;
+            if (fileContent instanceof ReadableStream) {
+                json = '';
+                for await (const chunk of Readable.fromWeb(fileContent as any, {
+                    encoding: 'utf-8'
+                })) {
+                    json += chunk;
+                }
+            } else {
+                json = JSON.stringify(content, null, 2);
+            }
+
+            return {
+                path,
+                content: json,
+                sha256: () => fromByteArray(new Uint8Array(sha256().update(json).digest()))
+            };
+        } else if (ext === '.mp3') {
+            if (fileContent instanceof ReadableStream) {
+                return {
+                    path,
+                    content: Readable.fromWeb(fileContent as any),
+                };
+            } else {
+                console.warn('Expected content to be a readable stream for', path);
+                console.warn('Skipping file');
+                return null;
+            }
+        }
+
+        console.warn('Unknown file type', path);
+        console.warn('Skipping file');
+        return null;
+    }
+}
+
+/**
+ * Defines an interface that contains information about a serialized file.
+ */
+export interface Uploader {
+
+    /**
+     * Gets the ideal batch size for the uploader.
+     * Null if the uploader does not need batching.
+     */
+    idealBatchSize: number | null;
+
+    /**
+     * Uploads the given file.
+     * @param file The file to upload.
+     * @param overwrite Whether the file should be overwritten if it already exists.
+     * @returns True if the file was uploaded. False if the file was skipped due to already existing.
+     */
+    upload(file: SerializedFile, overwrite: boolean): Promise<boolean>;
+
+    /**
+     * Disposes resources that the uploader uses.
+     */
+    dispose?(): Promise<void>;
 }

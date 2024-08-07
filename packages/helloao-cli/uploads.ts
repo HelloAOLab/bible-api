@@ -1,8 +1,8 @@
-import { serializeFilesForDataset, Uploader } from "@helloao/tools/db";
+import { serializeFilesForDataset, Uploader } from "./db";
 import { getPrismaDbFromDir } from "./db";
-import { parseS3Url, S3Uploader } from "@helloao/tools/s3";
+import { parseS3Url, S3Uploader } from "./s3";
 import { extname } from "path";
-import { FilesUploader, ZipUploader } from "@helloao/tools/files";
+import { FilesUploader, ZipUploader } from "./files";
 import { Readable } from "node:stream";
 
 export interface UploadApiOptions {
