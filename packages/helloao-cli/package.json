@@ -16,6 +16,7 @@
     "@helloao/tools": "^1.0.0",
     "commander": "12.1.0",
     "@gracious.tech/fetch-client": "^0.7.0",
+    "prisma": "^5.12.1",
     "@prisma/client": "^5.12.1",
     "better-sqlite3": "^9.5.0",
     "fs-extra": "^11.2.0",
