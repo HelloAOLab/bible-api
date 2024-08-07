@@ -98,6 +98,10 @@ export async function uploadApiFiles(dest: string, options: UploadApiOptions, da
         console.log('Generating for all translations');
     }
 
+    if (options.pretty) {
+        console.log('Generating pretty-printed JSON files');
+    }
+
     let uploader: Uploader;
     if (dest.startsWith('s3://')) {
         console.log('Uploading to S3');
@@ -138,6 +142,7 @@ export async function uploadApiFiles(dest: string, options: UploadApiOptions, da
         for await(let files of serializeFiles(datasets, {
             useCommonName: !!options.useCommonName,
             generateAudioFiles: !!options.generateAudioFiles,
+            pretty: !!options.pretty,
         })) {
 
             const batchSize = uploader.idealBatchSize ?? files.length;

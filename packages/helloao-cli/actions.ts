@@ -181,7 +181,7 @@ export async function fetchTranslations(dir: string, translations?: string[], op
         const batch = batches[i];
         console.log(`Downloading batch ${i + 1} of ${batches.length}`);
         const translations = await Promise.all(batch.map(async t => {
-            const id = getTranslationId(t);
+            const id = getTranslationId(t.id);
             const translation: InputTranslationMetadata = {
                 id,
                 name: getFirstNonEmpty(t.name_local, t.name_english, t.name_abbrev),

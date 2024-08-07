@@ -6,7 +6,7 @@ export interface InputFile {
     metadata: ParseTreeMetadata;
     content: string;
     sha256?: string;
-    fileType: 'usfm' | 'usx';
+    fileType: 'usfm' | 'usx' | 'json';
 }
 
 export type OutputFileContent = object | ReadableStream;

@@ -1,6 +1,3 @@
-import { GetTranslationsItem } from "@gracious.tech/fetch-client/dist/esm/collection";
-import { bookOrderMap } from "./generation/book-order";
-import { padStart } from "lodash";
 
 /**
  * Normalizes the given language code into a ISO 639 code.
@@ -25,8 +22,8 @@ const TRANSLATION_ID_MAP: Map<string, string> = new Map([
  * Gets the ID of the translation.
  * @param translation The translation to get the ID for.
  */
-export function getTranslationId(translation: GetTranslationsItem): string {
-    return TRANSLATION_ID_MAP.get(translation.id) ?? translation.id;
+export function getTranslationId(translationId: string): string {
+    return TRANSLATION_ID_MAP.get(translationId) ?? translationId;
 }
 
 export function isEmptyOrWhitespace(str: string | null | undefined): boolean {

@@ -5,6 +5,7 @@ import { InputFile, Translation, TranslationBook, TranslationBookChapter } from 
 import { bookIdMap, bookOrderMap } from "./book-order";
 import { omit, sortBy, sortedIndex, sortedIndexBy } from "lodash";
 import { getAudioUrlsForChapter } from "./audio";
+import { CodexParser } from "../parser/codex-parser";
 
 /**
  * Defines an interface that contains generated dataset info.
@@ -49,17 +50,20 @@ export function generateDataset(files: InputFile[], parser: DOMParser = new glob
 
     let usfmParser = new UsfmParser();
     let usxParser = new USXParser(parser);
+    let codexParser = new CodexParser();
     
     let parsedTranslations = new Map<string, DatasetTranslation>();
 
     const unknownLanguages = new Set<string>();
     for(let file of files) {
         try {
-            let parser: UsfmParser | USXParser;
+            let parser: UsfmParser | USXParser | CodexParser;
             if (file.fileType === 'usfm') {
                 parser = usfmParser;
             } else if (file.fileType === 'usx') {
                 parser = usxParser;
+            } else if (file.fileType === 'json') {
+                parser = codexParser;
             } else {
                 console.warn('[generate] File does not have a valid type!', file.name);
                 continue;

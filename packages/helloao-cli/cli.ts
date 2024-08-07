@@ -13,7 +13,7 @@ import { KNOWN_AUDIO_TRANSLATIONS } from '@helloao/tools/generation/audio';
 import { downloadFile } from './downloads';
 import { uploadApiFiles, uploadApiFilesFromDatabase } from './uploads';
 import { fetchAudio, fetchTranslations, importTranslation, importTranslations, initDb } from './actions';
-import { loadTranslationFiles, loadTranslationsFiles } from 'files';
+import { loadTranslationFiles, loadTranslationsFiles } from './files';
 import { generateDataset } from '@helloao/tools/generation/dataset';
 import { batch, toAsyncIterable } from '@helloao/tools/parser/iterators';
 
@@ -70,7 +70,7 @@ async function start() {
 
             const files = await loadTranslationFiles(path.resolve(input));
             const dataset = generateDataset(files, parser as any);
-            await uploadApiFiles(dest, options, toAsyncIterable([dataset]));
+            await uploadApiFiles(path.resolve(dest), options, toAsyncIterable([dataset]));
         });
 
     program.command('generate-translations-files <input> <dir>')

@@ -17,8 +17,8 @@ import { extname } from "path";
 import { Readable } from "stream";
 import { fromByteArray } from "base64-js";
 
-const toolsPath = require.resolve('@helloao/tools/index.ts');
-const migrationsPath = path.resolve(dirname(toolsPath), 'migrations');
+const cliPath = require.resolve('./index');
+const migrationsPath = path.resolve(dirname(cliPath), 'migrations');
 
 /**
  * Imports the translations from the given directories into the database.

@@ -39,7 +39,7 @@ export async function loadTranslationFiles(translation: string): Promise<InputFi
     }
 
     let files = await readdir(translation);
-    let usfmFiles = files.filter(f => extname(f) === '.usfm' || extname(f) === '.usx');
+    let usfmFiles = files.filter(f => extname(f) === '.usfm' || extname(f) === '.usx' || extname(f) === '.json');
 
     if (usfmFiles.length <= 0) {
         translation = path.resolve(translation, 'usfm');
@@ -56,7 +56,7 @@ export async function loadTranslationFiles(translation: string): Promise<InputFi
 
     let promises = [] as Promise<InputFile>[];
     for (let file of usfmFiles) {
-        if (file === 'metadata.ts') {
+        if (path.parse(file).name === 'metadata') {
             continue;
         }
         const filePath = path.resolve(translation, file);
@@ -129,7 +129,7 @@ async function loadFile(file: string, metadata: ParseTreeMetadata): Promise<Inpu
         metadata: metadata,
         name: file,
         sha256: hash,
-        fileType: extension.slice(1) as 'usfm' | 'usx',
+        fileType: extension.slice(1) as 'usfm' | 'usx' | 'json',
     }
 }
 
@@ -169,7 +169,7 @@ export class FilesUploader implements Uploader {
     }
 
     async upload(file: SerializedFile, overwrite: boolean): Promise<boolean> {
-        const filePath = path.resolve(this._dir, file.path);
+        const filePath = path.resolve(this._dir, makeRelativePath(file.path));
         await mkdir(path.dirname(filePath), { recursive: true });
 
         if (overwrite || !existsSync(filePath)) {
@@ -242,5 +242,12 @@ function trimRelativePath(path: string): string {
         return path.substring(1);
     }
 
+    return path;
+}
+
+function makeRelativePath(path: string): string {
+    if (path.startsWith('/')) {
+        return '.' + path;
+    }
     return path;
 }

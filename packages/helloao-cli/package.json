@@ -32,7 +32,8 @@
       "/LICENSE.txt",
       "**/*.js",
       "**/*.js.map",
-      "**/*.d.ts"
+      "**/*.d.ts",
+      "/migrations/**/*.sql"
   ],
   "prisma": {
     "schema": "./schema.prisma"
