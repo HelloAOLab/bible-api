@@ -1,11 +1,11 @@
 {
   "name": "@helloao/cli",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A CLI and related tools for managing HelloAO's Free Bible API",
   "module": "index.js",
   "types": "index.d.ts",
   "bin": {
-      "helloao": "./cli.js"
+    "helloao": "./cli.js"
   },
   "scripts": {
     "postinstall": "prisma generate"
@@ -13,7 +13,7 @@
   "author": "Kallyn Gowdy <kal@helloao.org>",
   "license": "MIT",
   "dependencies": {
-    "@helloao/tools": "^0.0.3",
+    "@helloao/tools": "^0.0.4",
     "commander": "12.1.0",
     "@gracious.tech/fetch-client": "^0.7.0",
     "prisma": "^5.12.1",
@@ -29,13 +29,13 @@
     "@aws-sdk/credential-providers": "^3.609.0"
   },
   "files": [
-      "/README.md",
-      "/LICENSE.txt",
-      "**/*.js",
-      "**/*.js.map",
-      "**/*.d.ts",
-      "/migrations/**/*.sql",
-      "./schema.prisma"
+    "/README.md",
+    "/LICENSE.txt",
+    "**/*.js",
+    "**/*.js.map",
+    "**/*.d.ts",
+    "/migrations/**/*.sql",
+    "./schema.prisma"
   ],
   "prisma": {
     "schema": "./schema.prisma"

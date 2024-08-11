@@ -1,6 +1,6 @@
 {
   "name": "@helloao/tools",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A set of tools for managing HelloAO's Free Bible API",
   "module": "index.js",
   "types": "index.d.ts",
@@ -17,11 +17,11 @@
     "hash.js": "1.1.7"
   },
   "files": [
-      "/README.md",
-      "/LICENSE.txt",
-      "/migrations/**/*.sql",
-      "**/*.js",
-      "**/*.js.map",
-      "**/*.d.ts"
+    "/README.md",
+    "/LICENSE.txt",
+    "/migrations/**/*.sql",
+    "**/*.js",
+    "**/*.js.map",
+    "**/*.d.ts"
   ]
 }
