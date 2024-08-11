@@ -1,38 +1,40 @@
 {
-  "name": "bible-api",
-  "private": true,
-  "version": "0.0.0",
-  "scripts": {
-    "test": "jest --watchAll",
-    "build": "npm run clean && tsc --build",
-    "clean": "jake clean",
-    "build:docs": "cd docs && pnpm build",
-    "dev:docs": "vuepress dev docs/src",
-    "cli": "ts-node ./packages/helloao-cli/cli.ts",
-    "s3:sync:docs": "aws --profile aolabs s3 sync ./build/docs s3://ao-bible-api/docs --delete",
-    "s3:sync:api": "npm run cli upload-api-files s3://ao-bible-api -- --profile aolabs --overwrite-common-files"
-  },
-  "devDependencies": {
-    "@types/better-sqlite3": "^7.6.9",
-    "@types/fs-extra": "^11.0.4",
-    "@types/jest": "^29.4.0",
-    "@types/lodash": "4.14.191",
-    "@types/markdown-it": "^12.2.3",
-    "@types/node": "^18.11.17",
-    "jest": "29.5.0",
-    "jest-raw-loader": "1.0.1",
-    "ts-jest": "29.0.5",
-    "ts-node": "^10.9.1",
-    "typescript": "^5.5.3",
-    "jake": "10.8.5",
-    "del": "7.0.0"
-  },
-  "dependencies": {},
-  "engines": {
-    "pnpm": "^8.11.0"
-  },
-  "packageManager": "pnpm@8.11.0",
-  "prisma": {
-    "schema": "./packages/helloao-cli/schema.prisma"
-  }
+    "name": "bible-api",
+    "private": true,
+    "version": "0.0.0",
+    "scripts": {
+        "test": "jest --watchAll",
+        "build": "npm run clean && tsc --build",
+        "clean": "jake clean",
+        "build:docs": "cd docs && pnpm build",
+        "dev:docs": "vuepress dev docs/src",
+        "cli": "ts-node ./packages/helloao-cli/cli.ts",
+        "s3:sync:docs": "aws --profile aolabs s3 sync ./build/docs s3://ao-bible-api/docs --delete",
+        "s3:sync:api": "npm run cli upload-api-files s3://ao-bible-api -- --profile aolabs --overwrite-common-files"
+    },
+    "devDependencies": {
+        "@types/better-sqlite3": "^7.6.9",
+        "@types/fs-extra": "^11.0.4",
+        "@types/jest": "^29.4.0",
+        "@types/lodash": "4.14.191",
+        "@types/markdown-it": "^12.2.3",
+        "@types/node": "^18.11.17",
+        "jest": "29.5.0",
+        "jest-raw-loader": "1.0.1",
+        "ts-jest": "29.0.5",
+        "ts-node": "^10.9.1",
+        "typescript": "^5.5.3",
+        "jake": "10.8.5",
+        "del": "7.0.0",
+        "pretty-quick": "^3.0.2",
+        "husky": "^7.0.4"
+    },
+    "dependencies": {},
+    "engines": {
+        "pnpm": "^8.11.0"
+    },
+    "packageManager": "pnpm@8.11.0",
+    "prisma": {
+        "schema": "./packages/helloao-cli/schema.prisma"
+    }
 }
