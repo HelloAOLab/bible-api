@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { Command } from 'commander';
 import path, { extname } from 'path';
 import {mkdir, readdir, writeFile} from 'fs/promises';
