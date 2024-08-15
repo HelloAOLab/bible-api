@@ -10,7 +10,8 @@
         "dev:docs": "vuepress dev docs/src",
         "cli": "ts-node ./packages/helloao-cli/cli.ts",
         "s3:sync:docs": "aws --profile aolabs s3 sync ./build/docs s3://ao-bible-api/docs --delete",
-        "s3:sync:api": "npm run cli upload-api-files s3://ao-bible-api -- --profile aolabs --overwrite-common-files"
+        "s3:sync:api": "npm run cli upload-api-files s3://ao-bible-api -- --profile aolabs --overwrite-common-files",
+        "postinstall": "prisma generate"
     },
     "devDependencies": {
         "@types/better-sqlite3": "^7.6.9",
@@ -27,7 +28,8 @@
         "jake": "10.8.5",
         "del": "7.0.0",
         "pretty-quick": "^3.0.2",
-        "husky": "^7.0.4"
+        "husky": "^7.0.4",
+        "prisma": "^5.12.1"
     },
     "dependencies": {},
     "engines": {

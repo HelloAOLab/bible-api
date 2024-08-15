@@ -7,9 +7,7 @@
   "bin": {
     "helloao": "./cli.js"
   },
-  "scripts": {
-    "postinstall": "prisma generate"
-  },
+  "scripts": {},
   "author": "Kallyn Gowdy <kal@helloao.org>",
   "license": "MIT",
   "dependencies": {
