@@ -32,6 +32,11 @@ export interface ApiOutput {
      * - /api/:translationId/:bookId/:chapterNumber.:reader.mp3
      */
     translationBookChapterAudio: ApiTranslationBookChapterAudio[];
+
+    /**
+     * The path prefix that the API should use.
+     */
+    pathPrefix: string;
 }
 
 /**
@@ -217,6 +222,11 @@ export interface GenerateApiOptions {
      * Defaults to false.
      */
     generateAudioFiles?: boolean;
+
+    /**
+     * The prefix that should be added to paths that are generated.
+     */
+    pathPrefix?: string;
 }
 
 /**
@@ -225,7 +235,8 @@ export interface GenerateApiOptions {
  * @param options The options for generating the API.
  */
 export function generateApiForDataset(dataset: DatasetOutput, options : GenerateApiOptions = {}): ApiOutput {
-    const { useCommonName } = options;
+    const { useCommonName, pathPrefix } = options;
+    const apiPathPrefix = pathPrefix ? pathPrefix : '';
     let api: ApiOutput = {
         availableTranslations: {
             translations: [],
@@ -233,6 +244,7 @@ export function generateApiForDataset(dataset: DatasetOutput, options : Generate
         translationBooks: [],
         translationBookChapters: [],
         translationBookChapterAudio: [],
+        pathPrefix: apiPathPrefix
     };
 
     for (let { books, ...translation } of dataset.translations) {
@@ -240,7 +252,7 @@ export function generateApiForDataset(dataset: DatasetOutput, options : Generate
         const apiTranslation: ApiTranslation = {
             ...translation,
             availableFormats: ['json'],
-            listOfBooksApiLink: listOfBooksApiLink(translation.id),
+            listOfBooksApiLink: listOfBooksApiLink(translation.id, apiPathPrefix),
             numberOfBooks: books.length,
             totalNumberOfChapters: 0,
             totalNumberOfVerses: 0,
@@ -258,8 +270,8 @@ export function generateApiForDataset(dataset: DatasetOutput, options : Generate
         for(let { chapters, ...book } of books) {
             const apiBook: ApiTranslationBook = {
                 ...book,
-                firstChapterApiLink: bookChapterApiLink(translation.id, getBookLink(book), 1, 'json'),
-                lastChapterApiLink: bookChapterApiLink(translation.id, getBookLink(book), chapters.length, 'json'),
+                firstChapterApiLink: bookChapterApiLink(translation.id, getBookLink(book), 1, 'json', apiPathPrefix),
+                lastChapterApiLink: bookChapterApiLink(translation.id, getBookLink(book), chapters.length, 'json', apiPathPrefix),
                 numberOfChapters: chapters.length,
                 totalNumberOfVerses: 0,
             };
@@ -270,7 +282,7 @@ export function generateApiForDataset(dataset: DatasetOutput, options : Generate
                     translation: apiTranslation,
                     book: apiBook,
                     chapter: chapter,
-                    thisChapterLink: bookChapterApiLink(translation.id, getBookLink(book), chapter.number, 'json'),
+                    thisChapterLink: bookChapterApiLink(translation.id, getBookLink(book), chapter.number, 'json', apiPathPrefix),
                     thisChapterAudioLinks: audio,
                     nextChapterApiLink: null,
                     nextChapterAudioLinks: null,
@@ -283,7 +295,7 @@ export function generateApiForDataset(dataset: DatasetOutput, options : Generate
                     if (options.generateAudioFiles) {
                         const apiAudio: ApiTranslationBookChapterAudio = {
                             chapter: apiBookChapter,
-                            link: bookChapterAudioApiLink(translation.id, getBookLink(book), chapter.number, reader),
+                            link: bookChapterAudioApiLink(translation.id, getBookLink(book), chapter.number, reader, apiPathPrefix),
                             originalUrl: thisChapterAudioLinks[reader],
                         };
                         audio[reader] = apiAudio.link;
@@ -313,12 +325,12 @@ export function generateApiForDataset(dataset: DatasetOutput, options : Generate
 
         for (let i = 0; i < translationChapters.length; i++) {
             if (i > 0) {
-                translationChapters[i].previousChapterApiLink = bookChapterApiLink(translation.id, getBookLink(translationChapters[i - 1].book), translationChapters[i - 1].chapter.number, 'json');
+                translationChapters[i].previousChapterApiLink = bookChapterApiLink(translation.id, getBookLink(translationChapters[i - 1].book), translationChapters[i - 1].chapter.number, 'json', apiPathPrefix);
                 translationChapters[i].previousChapterAudioLinks = translationChapters[i - 1].thisChapterAudioLinks;
             }
 
             if (i < translationChapters.length - 1) {
-                translationChapters[i].nextChapterApiLink = bookChapterApiLink(translation.id, getBookLink(translationChapters[i + 1].book), translationChapters[i + 1].chapter.number, 'json');
+                translationChapters[i].nextChapterApiLink = bookChapterApiLink(translation.id, getBookLink(translationChapters[i + 1].book), translationChapters[i + 1].chapter.number, 'json', apiPathPrefix);
                 translationChapters[i].nextChapterAudioLinks = translationChapters[i + 1].thisChapterAudioLinks;
             }
         }
@@ -341,7 +353,7 @@ export function generateApiForDataset(dataset: DatasetOutput, options : Generate
 export function generateFilesForApi(api: ApiOutput): OutputFile[] {
     let files: OutputFile[] = [];
 
-    files.push(jsonFile('/api/available_translations.json', api.availableTranslations, true));
+    files.push(jsonFile(`${api.pathPrefix}/api/available_translations.json`, api.availableTranslations, true));
     for (let translationBooks of api.translationBooks) {
         files.push(jsonFile(translationBooks.translation.listOfBooksApiLink, translationBooks));
     }
@@ -376,8 +388,8 @@ export async function* generateOutputFilesFromDatasets(datasets: AsyncIterable<D
  * @param translationId The ID of the translation.
  * @returns 
  */
-export function listOfBooksApiLink(translationId: string): string {
-    return `/api/${translationId}/books.json`;
+export function listOfBooksApiLink(translationId: string, prefix: string = ''): string {
+    return `${prefix}/api/${translationId}/books.json`;
 }
 
 /**
@@ -387,12 +399,12 @@ export function listOfBooksApiLink(translationId: string): string {
  * @param chapterNumber The number of the book.
  * @param extension The extension of the file.
  */
-export function bookChapterApiLink(translationId: string, commonName: string, chapterNumber: number, extension: string) {
-    return `/api/${translationId}/${replaceSpacesWithUnderscores(commonName)}/${chapterNumber}.${extension}`;
+export function bookChapterApiLink(translationId: string, commonName: string, chapterNumber: number, extension: string, prefix: string = '') {
+    return `${prefix}/api/${translationId}/${replaceSpacesWithUnderscores(commonName)}/${chapterNumber}.${extension}`;
 }
 
-export function bookChapterAudioApiLink(translationId: string, bookId: string, chapterNumber: number, reader: string) {
-    return `/api/${translationId}/${replaceSpacesWithUnderscores(bookId)}/${chapterNumber}.${reader}.mp3`;
+export function bookChapterAudioApiLink(translationId: string, bookId: string, chapterNumber: number, reader: string, prefix: string = '') {
+    return `${prefix}/api/${translationId}/${replaceSpacesWithUnderscores(bookId)}/${chapterNumber}.${reader}.mp3`;
 }
 
 export function jsonFile(path: string, content: any, mergable?: boolean): OutputFile {
