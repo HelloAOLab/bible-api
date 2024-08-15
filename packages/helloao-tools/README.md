@@ -81,7 +81,7 @@ const files: generation.InputFile[] = [
 // Generate a dataset from the files
 // Datasets organize all the files and their content
 // by translation, book, chapter, and verse
-const dataset = generation.dataset.generateDataset(files, parser);
+const dataset = generation.dataset.generateDataset(files, domParser);
 
 // Generate an API representation from the files
 // This adds links between chapters and additional metadata.
