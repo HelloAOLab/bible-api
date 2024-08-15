@@ -5,17 +5,12 @@ import { readdir, readFile } from "fs-extra";
 import { randomUUID } from "node:crypto";
 import { DatasetOutput, DatasetTranslation, DatasetTranslationBook, generateDataset, } from "@helloao/tools/generation/dataset";
 import {
-    ChapterVerse, InputFile, TranslationBookChapter, OutputFile, OutputFileContent
-
+    ChapterVerse, InputFile, OutputFile, TranslationBookChapter
 } from "@helloao/tools/generation";
-import { generateApiForDataset, GenerateApiOptions, generateFilesForApi } from "@helloao/tools/generation/api";
-import { loadTranslationFiles } from "./files";
+import { SerializeApiOptions, SerializedFile, loadTranslationFiles, serializeOutputFiles } from "./files";
 import { sha256 } from "hash.js";
 import { DOMParser } from "linkedom";
-import { merge, mergeWith } from "lodash";
-import { extname } from "path";
-import { Readable } from "stream";
-import { fromByteArray } from "base64-js";
+import { GenerateApiOptions, generateApiForDataset, generateFilesForApi, generateOutputFilesFromDatasets } from "@helloao/tools/generation/api";
 
 const cliPath = require.resolve('./index');
 const migrationsPath = path.resolve(dirname(cliPath), 'migrations');
@@ -68,7 +63,6 @@ export async function importTranslationBatch(db: Database, dirs: string[], parse
  * @param overwrite Whether to force a reload of the translations.
  */
 export async function importTranslationFileBatch(db: Database, files: InputFile[], parser: DOMParser, overwrite: boolean) {
-
     console.log('Importing', files.length, 'files');
     if (overwrite) {
         console.log('Overwriting existing translations.');
@@ -611,16 +605,6 @@ interface Migration {
 }
 
 
-export interface SerializedFile {
-    path: string;
-    content: string | Readable;
-
-    /**
-     * Gets the base64-encoded SHA256 hash of the content of the file.
-     */
-    sha256?(): string;
-}
-
 /**
  * Loads the datasets from the database in a series of batches.
  * @param db The database.
@@ -730,153 +714,28 @@ export async function* loadDatasets(db: PrismaClient, translationsPerBatch: numb
     }
 }
 
-export interface SerializeApiOptions extends GenerateApiOptions {
-    /**
-     * Whether the output should be pretty-printed.
-     */
-    pretty?: boolean;
-}
+export type SerializeDatasetOptions = SerializeApiOptions & GenerateApiOptions;
 
 /**
- * Generates and serializes the API files for the dataset that is stored in the database.
+ * Generates and serializes the API files for the datasets that are stored in the database.
  * Yields each batch of serialized files.
  * @param db The database that the dataset should be loaded from.
- * @param options The options to use for generating the API.
+ * @param options The options to use for serializing the files.
+ * @param apiOptions The options to use for generating the API files.
  * @param translationsPerBatch The number of translations that should be loaded and written per batch.
  * @param translations The list of translations that should be loaded. If not provided, all translations will be loaded.
  */
-export async function* serializeFilesForDataset(db: PrismaClient, options: SerializeApiOptions, translationsPerBatch: number = 50, translations?: string[]): AsyncGenerator<SerializedFile[]> {
-    yield* serializeFiles(loadDatasets(db, translationsPerBatch, translations), options);
+export function serializeFilesFromDatabase(db: PrismaClient, options: SerializeDatasetOptions = {}, translationsPerBatch: number = 50, translations?: string[]): AsyncGenerator<SerializedFile[]> {
+    return serializeDatasets(loadDatasets(db, translationsPerBatch, translations), options);
 }
 
 /**
- * Serializes the API files for the given datasets.
- * @param datasets The dataasets to serialize.
- * @param options The options to use for serializing the files.
+ * Generates and serializes the API files for the given datasets.
+ * Yields each batch of serialized files.
+ * 
+ * @param datasets The datasets to serialize.
+ * @param options The options to use for generating and serializing the files.
  */
-export async function* serializeFiles(datasets: AsyncIterable<DatasetOutput>, options: SerializeApiOptions): AsyncGenerator<SerializedFile[]> {
-    const mergableFiles = new Map<string, OutputFile[]>();
-
-    for await (let dataset of datasets) {
-        const api = generateApiForDataset(dataset, options);
-        const files = generateFilesForApi(api);
-
-        console.log('Generated', files.length, 'files');
-
-        let serializedFiles: SerializedFile[] = [];
-        for (let file of files) {
-            if (file.mergable) {
-                let arr = mergableFiles.get(file.path);
-                if (!arr) {
-                    arr = [];
-                    mergableFiles.set(file.path, arr);
-                }
-                arr.push(file);
-                continue;
-            }
-
-            const serialized = await transformFile(file.path, file.content);
-            if (serialized) {
-                serializedFiles.push(serialized);
-            }
-        }
-
-        yield serializedFiles;
-    }
-
-    let serializedFiles: SerializedFile[] = [];
-    for (let [path, files] of mergableFiles) {
-        let content: object = {};
-        for (let file of files) {
-            if (!content) {
-                content = file.content;
-            } else {
-                content = mergeWith(content, file.content, (objValue, srcValue) => {
-                    if (Array.isArray(objValue)) {
-                        return objValue.concat(srcValue);
-                    }
-                    return undefined;
-                });
-            }
-        }
-
-        if (content) {
-            const serialized = await transformFile(path, content);
-            if (serialized) {
-                serializedFiles.push(serialized);
-            }
-        }
-    }
-
-    yield serializedFiles;
-
-    async function transformFile(path: string, content: OutputFile['content']): Promise<SerializedFile | null> {
-        let fileContent: OutputFileContent;
-        if (typeof content === 'function') {
-            fileContent = await content();
-        } else {
-            fileContent = content;
-        }
-
-        const ext = extname(path);
-        if (ext === '.json') {
-            let json: string;
-            if (fileContent instanceof ReadableStream) {
-                json = '';
-                for await (const chunk of Readable.fromWeb(fileContent as any, {
-                    encoding: 'utf-8'
-                })) {
-                    json += chunk;
-                }
-            } else {
-                json = JSON.stringify(content, undefined, options.pretty ? 2 : undefined);
-            }
-
-            return {
-                path,
-                content: json,
-                sha256: () => fromByteArray(new Uint8Array(sha256().update(json).digest()))
-            };
-        } else if (ext === '.mp3') {
-            if (fileContent instanceof ReadableStream) {
-                return {
-                    path,
-                    content: Readable.fromWeb(fileContent as any),
-                };
-            } else {
-                console.warn('Expected content to be a readable stream for', path);
-                console.warn('Skipping file');
-                return null;
-            }
-        }
-
-        console.warn('Unknown file type', path);
-        console.warn('Skipping file');
-        return null;
-    }
-}
-
-/**
- * Defines an interface that contains information about a serialized file.
- */
-export interface Uploader {
-
-    /**
-     * Gets the ideal batch size for the uploader.
-     * Null if the uploader does not need batching.
-     */
-    idealBatchSize: number | null;
-
-    /**
-     * Uploads the given file.
-     * @param file The file to upload.
-     * @param overwrite Whether the file should be overwritten if it already exists.
-     * @returns True if the file was uploaded. False if the file was skipped due to already existing.
-     */
-    upload(file: SerializedFile, overwrite: boolean): Promise<boolean>;
-
-    /**
-     * Disposes resources that the uploader uses.
-     */
-    dispose?(): Promise<void>;
+export function serializeDatasets(datasets: AsyncIterable<DatasetOutput>, options: SerializeDatasetOptions = {}): AsyncGenerator<SerializedFile[]> {
+    return serializeOutputFiles(generateOutputFilesFromDatasets(datasets, options), options);
 }

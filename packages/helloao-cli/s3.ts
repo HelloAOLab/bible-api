@@ -1,6 +1,6 @@
 import { S3Client, PutObjectCommand, HeadObjectCommand, NotFound, } from "@aws-sdk/client-s3";
 import { fromNodeProviderChain } from "@aws-sdk/credential-providers"; // ES6 import
-import { SerializedFile, Uploader } from "./db";
+import { SerializedFile, Uploader } from "./files";
 
 export class S3Uploader implements Uploader {
     private _client: S3Client;

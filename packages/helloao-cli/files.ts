@@ -2,12 +2,174 @@ import { FileHandle, mkdir, open, readFile, readdir, writeFile } from "fs/promis
 import { extname } from "path";
 import * as path from "path";
 import { existsSync } from "fs-extra";
-import { InputFile, InputTranslationMetadata, ParseTreeMetadata } from "@helloao/tools/generation/common-types";
-import { SerializedFile, Uploader } from "./db";
+import { InputFile, InputTranslationMetadata, OutputFile, OutputFileContent, ParseTreeMetadata } from "@helloao/tools/generation/common-types";
 import { ZipWriter, Writer, TextReader, Reader } from '@zip.js/zip.js';
 import { Readable, Writable } from "stream";
 import { sha256 } from "hash.js";
 import { PARSER_VERSION } from "@helloao/tools/parser/usx-parser";
+import { mergeWith } from "lodash";
+import { GenerateApiOptions, generateApiForDataset, generateFilesForApi } from "@helloao/tools/generation/api";
+import { DatasetOutput } from "@helloao/tools/generation/dataset";
+import { fromByteArray } from "base64-js";
+
+/**
+ * Defines an interface that contains information about a serialized file.
+ */
+export interface Uploader {
+
+    /**
+     * Gets the ideal batch size for the uploader.
+     * Null if the uploader does not need batching.
+     */
+    idealBatchSize: number | null;
+
+    /**
+     * Uploads the given file.
+     * @param file The file to upload.
+     * @param overwrite Whether the file should be overwritten if it already exists.
+     * @returns True if the file was uploaded. False if the file was skipped due to already existing.
+     */
+    upload(file: SerializedFile, overwrite: boolean): Promise<boolean>;
+
+    /**
+     * Disposes resources that the uploader uses.
+     */
+    dispose?(): Promise<void>;
+}
+
+/**
+ * Defines an interface for a file that has been serialized.
+ */
+export interface SerializedFile {
+    path: string;
+    content: string | Readable;
+
+    /**
+     * Gets the base64-encoded SHA256 hash of the content of the file.
+     */
+    sha256?(): string;
+}
+
+
+/**
+ * The options for serializing API files.
+ */
+export interface SerializeApiOptions {
+    /**
+     * Whether the output should be pretty-printed.
+     */
+    pretty?: boolean;
+}
+
+/**
+ * Serializes the given output files into serialized files using the given options.
+ * 
+ * Each iteration of the given files will be processed as a batch, and any mergable files will automatically be merged together and serialized in the final batch.
+ * 
+ * @param files The files that should be serialized.
+ * @param options The options for serialization.
+ */
+export async function* serializeOutputFiles(files: AsyncIterable<OutputFile[]>, options: SerializeApiOptions): AsyncGenerator<SerializedFile[]> {
+    const mergableFiles = new Map<string, OutputFile[]>();
+    for await(let batch of files) {
+        let serializedFiles: SerializedFile[] = [];
+        for (let file of batch) {
+            if (file.mergable) {
+                let arr = mergableFiles.get(file.path);
+                if (!arr) {
+                    arr = [];
+                    mergableFiles.set(file.path, arr);
+                }
+                arr.push(file);
+                continue;
+            }
+
+            const serialized = await serializeFile(file.path, file.content, options);
+            if (serialized) {
+                serializedFiles.push(serialized);
+            }
+        }
+
+        yield serializedFiles;
+    }
+
+    let serializedFiles: SerializedFile[] = [];
+    for (let [path, files] of mergableFiles) {
+        let content: object = {};
+        for (let file of files) {
+            if (!content) {
+                content = file.content;
+            } else {
+                content = mergeWith(content, file.content, (objValue, srcValue) => {
+                    if (Array.isArray(objValue)) {
+                        return objValue.concat(srcValue);
+                    }
+                    return undefined;
+                });
+            }
+        }
+
+        if (content) {
+            const serialized = await serializeFile(path, content, options);
+            if (serialized) {
+                serializedFiles.push(serialized);
+            }
+        }
+    }
+
+    yield serializedFiles;
+}
+
+/**
+ * Serializes the given output file content into a serialized file.
+ * @param path The path that the file should be saved to.
+ * @param content The content of the file.
+ * @param options The options for serialization.
+ */
+export async function serializeFile(path: string, content: OutputFile['content'], options: SerializeApiOptions): Promise<SerializedFile | null> {
+    let fileContent: OutputFileContent;
+    if (typeof content === 'function') {
+        fileContent = await content();
+    } else {
+        fileContent = content;
+    }
+
+    const ext = extname(path);
+    if (ext === '.json') {
+        let json: string;
+        if (fileContent instanceof ReadableStream) {
+            json = '';
+            for await (const chunk of Readable.fromWeb(fileContent as any, {
+                encoding: 'utf-8'
+            })) {
+                json += chunk;
+            }
+        } else {
+            json = JSON.stringify(content, undefined, options.pretty ? 2 : undefined);
+        }
+
+        return {
+            path,
+            content: json,
+            sha256: () => fromByteArray(new Uint8Array(sha256().update(json).digest()))
+        };
+    } else if (ext === '.mp3') {
+        if (fileContent instanceof ReadableStream) {
+            return {
+                path,
+                content: Readable.fromWeb(fileContent as any),
+            };
+        } else {
+            console.warn('Expected content to be a readable stream for', path);
+            console.warn('Skipping file');
+            return null;
+        }
+    }
+
+    console.warn('Unknown file type', path);
+    console.warn('Skipping file');
+    return null;
+}
 
 /**
  * Loads the files for the given translations.

@@ -13,11 +13,12 @@ import { bookChapterCountMap } from '@helloao/tools/generation/book-order';
 import { DOMParser, Element, Node } from 'linkedom';
 import { KNOWN_AUDIO_TRANSLATIONS } from '@helloao/tools/generation/audio';
 import { downloadFile } from './downloads';
-import { uploadApiFiles, uploadApiFilesFromDatabase } from './uploads';
+import { serializeAndUploadDatasets, uploadApiFilesFromDatabase } from './uploads';
 import { fetchAudio, fetchTranslations, importTranslation, importTranslations, initDb } from './actions';
 import { loadTranslationFiles, loadTranslationsFiles } from './files';
 import { generateDataset } from '@helloao/tools/generation/dataset';
 import { batch, toAsyncIterable } from '@helloao/tools/parser/iterators';
+import { getPrismaDbFromDir } from './db';
 
 async function start() {
     const parser = new DOMParser();
@@ -72,7 +73,7 @@ async function start() {
 
             const files = await loadTranslationFiles(path.resolve(input));
             const dataset = generateDataset(files, parser as any);
-            await uploadApiFiles(path.resolve(dest), options, toAsyncIterable([dataset]));
+            await serializeAndUploadDatasets(path.resolve(dest), options, toAsyncIterable([dataset]));
         });
 
     program.command('generate-translations-files <input> <dir>')
@@ -97,7 +98,7 @@ async function start() {
             for (let b of batch(dirs, batchSize)) {
                 const files = await loadTranslationsFiles(b);
                 const dataset = generateDataset(files, parser as any);
-                await uploadApiFiles(dest, options, toAsyncIterable([dataset]));
+                await serializeAndUploadDatasets(dest, options, toAsyncIterable([dataset]));
             }
         });
 
@@ -114,7 +115,12 @@ async function start() {
         .option('--profile <profile>', 'The AWS profile to use for uploading to S3.')
         .option('--pretty', 'Whether to generate pretty-printed JSON files.')
         .action(async (dest: string, options: any) => {
-            await uploadApiFilesFromDatabase(dest, options);
+            const db = getPrismaDbFromDir(process.cwd());
+            try {
+                await uploadApiFilesFromDatabase(db, dest, options);
+            } finally {
+                db.$disconnect();
+            }
         });
 
     program.command('fetch-translations <dir> [translations...]')

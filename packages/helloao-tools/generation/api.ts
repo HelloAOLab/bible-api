@@ -199,6 +199,9 @@ export interface ApiTranslationBookChapterAudio {
     originalUrl: string;
 }
 
+/**
+ * The options for generating the API.
+ */
 export interface GenerateApiOptions {
     /**
      * Whether to use the common name for the book chapter API link. If false, then book IDs are used.
@@ -352,12 +355,38 @@ export function generateFilesForApi(api: ApiOutput): OutputFile[] {
     }
 
     return files;
-};
+}
 
+/**
+ * Generates the output files for the given datasets.
+ * @param datasets The datasets to generate the output files for.
+ * @param options The options for generating the API files.
+ */
+export async function* generateOutputFilesFromDatasets(datasets: AsyncIterable<DatasetOutput>, options?: GenerateApiOptions): AsyncGenerator<OutputFile[]> {
+    for await (let dataset of datasets) {
+        const api = generateApiForDataset(dataset, options);
+        const files = generateFilesForApi(api);
+
+        yield files;
+    }
+}
+
+/**
+ * Gets the API Link for the list of books endpoint for a translation.
+ * @param translationId The ID of the translation.
+ * @returns 
+ */
 export function listOfBooksApiLink(translationId: string): string {
     return `/api/${translationId}/books.json`;
 }
 
+/**
+ * Getes the API link for a book chapter.
+ * @param translationId The ID of the translation.
+ * @param commonName The name of the book.
+ * @param chapterNumber The number of the book.
+ * @param extension The extension of the file.
+ */
 export function bookChapterApiLink(translationId: string, commonName: string, chapterNumber: number, extension: string) {
     return `/api/${translationId}/${replaceSpacesWithUnderscores(commonName)}/${chapterNumber}.${extension}`;
 }
