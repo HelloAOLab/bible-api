@@ -1,6 +1,6 @@
 {
   "name": "@helloao/tools",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "A set of tools for managing HelloAO's Free Bible API",
   "module": "index.js",
   "types": "index.d.ts",
