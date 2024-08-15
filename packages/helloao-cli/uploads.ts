@@ -1,5 +1,4 @@
 import { loadDatasets, serializeDatasets } from "./db";
-import { getPrismaDbFromDir } from "./db";
 import { parseS3Url, S3Uploader } from "./s3";
 import { extname } from "path";
 import { FilesUploader, SerializedFile, Uploader, ZipUploader } from "./files";

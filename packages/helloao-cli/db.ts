@@ -10,7 +10,7 @@ import {
 import { SerializeApiOptions, SerializedFile, loadTranslationFiles, serializeOutputFiles } from "./files";
 import { sha256 } from "hash.js";
 import { DOMParser } from "linkedom";
-import { GenerateApiOptions, generateApiForDataset, generateFilesForApi, generateOutputFilesFromDatasets } from "@helloao/tools/generation/api";
+import { GenerateApiOptions, generateFilesForApi, generateOutputFilesFromDatasets } from "@helloao/tools/generation/api";
 
 const cliPath = require.resolve('./index');
 const migrationsPath = path.resolve(dirname(cliPath), 'migrations');

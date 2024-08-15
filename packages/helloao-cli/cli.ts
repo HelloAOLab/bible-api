@@ -1,17 +1,9 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
-import path, { extname } from 'path';
-import {mkdir, readdir, writeFile} from 'fs/promises';
-import Sql from 'better-sqlite3';
-import { BibleClient } from '@gracious.tech/fetch-client';
-import { GetTranslationsItem } from '@gracious.tech/fetch-client/dist/esm/collection';
-import { getFirstNonEmpty, getTranslationId, normalizeLanguage } from '@helloao/tools/utils';
-import { exists } from 'fs-extra';
-import { InputFile, InputTranslationMetadata } from '@helloao/tools/generation/common-types';
-import { bookChapterCountMap } from '@helloao/tools/generation/book-order';
+import path from 'path';
+import {mkdir, readdir} from 'fs/promises';
 import { DOMParser, Element, Node } from 'linkedom';
-import { KNOWN_AUDIO_TRANSLATIONS } from '@helloao/tools/generation/audio';
 import { downloadFile } from './downloads';
 import { serializeAndUploadDatasets, uploadApiFilesFromDatabase } from './uploads';
 import { fetchAudio, fetchTranslations, importTranslation, importTranslations, initDb } from './actions';

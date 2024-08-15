@@ -1,9 +1,8 @@
 import { UsfmParser } from "../parser";
-import { ParseTree } from "../parser/types";
 import { USXParser } from "../parser/usx-parser";
 import { InputFile, Translation, TranslationBook, TranslationBookChapter } from "./common-types";
 import { bookIdMap, bookOrderMap } from "./book-order";
-import { omit, sortBy, sortedIndex, sortedIndexBy } from "lodash";
+import { omit, sortBy, sortedIndexBy } from "lodash";
 import { getAudioUrlsForChapter } from "./audio";
 import { CodexParser } from "../parser/codex-parser";
 

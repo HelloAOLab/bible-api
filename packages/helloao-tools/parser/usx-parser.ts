@@ -1,5 +1,5 @@
-import { Chapter, ChapterContent, Footnote, FootnoteReference, ParseTree, Verse, Text, VerseContent, HebrewSubtitle, InlineLineBreak, InlineHeading } from "./types";
-import { uncompletable, iterateAll, elements, children, parentChar, parentNote, RewindableIterator, debug, isParent, Rewindable } from "./iterators";
+import { Chapter, ChapterContent, Footnote, FootnoteReference, ParseTree, Verse, Text, HebrewSubtitle, InlineLineBreak, InlineHeading } from "./types";
+import { iterateAll, children, RewindableIterator, isParent } from "./iterators";
 
 enum NodeType {
     Text = 3,
