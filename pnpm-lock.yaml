@@ -97,7 +97,7 @@ importers:
         specifier: ^0.7.0
         version: 0.7.0
       '@helloao/tools':
-        specifier: ^0.0.4
+        specifier: ^0.0.5
         version: link:../helloao-tools
       '@prisma/client':
         specifier: ^5.12.1
