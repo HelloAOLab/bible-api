@@ -7,11 +7,15 @@ import { Readable } from "node:stream";
 import { DatasetOutput } from "@helloao/tools/generation/dataset";
 import { PrismaClient } from "@prisma/client";
 
-export interface UploadApiOptions {
+export interface UploadApiFromDatabaseOptions extends UploadApiOptions {
     /**
      * The number of files to upload in each batch.
      */
-    batchSize: string;
+    batchSize: string | number;
+}
+
+export interface UploadApiOptions {
+    
 
     /**
      * Whether to overwrite existing files.
@@ -61,7 +65,7 @@ export interface UploadApiOptions {
  * @param dest The destination to upload the API files to. Supported destinations are S3, zip files, and local directories.
  * @param options The options to use for the upload.
  */
-export async function uploadApiFilesFromDatabase(db: PrismaClient, dest: string, options: UploadApiOptions) {
+export async function uploadApiFilesFromDatabase(db: PrismaClient, dest: string, options: UploadApiFromDatabaseOptions) {
     if (options.overwrite) {
         console.log('Overwriting existing files');
     }
@@ -84,8 +88,8 @@ export async function uploadApiFilesFromDatabase(db: PrismaClient, dest: string,
         console.log('Generating pretty-printed JSON files');
     }
     
-    const pageSize = parseInt(options.batchSize);
-    await serializeAndUploadDatasets(dest, options, loadDatasets(db, pageSize, options.translations));
+    const pageSize = typeof options.batchSize === 'number' ? options.batchSize : parseInt(options.batchSize);
+    await serializeAndUploadDatasets(dest, loadDatasets(db, pageSize, options.translations), options);
 }
 
 /**
@@ -94,7 +98,7 @@ export async function uploadApiFilesFromDatabase(db: PrismaClient, dest: string,
  * @param options The options to use for the upload.
  * @param datasets The datasets to generate the API files from.
  */
-export async function serializeAndUploadDatasets(dest: string, options: UploadApiOptions, datasets: AsyncIterable<DatasetOutput>): Promise<void> {
+export async function serializeAndUploadDatasets(dest: string, datasets: AsyncIterable<DatasetOutput>, options: UploadApiOptions = {}): Promise<void> {
     const overwrite = !!options.overwrite;
     if (overwrite) {
         console.log('Overwriting existing files');

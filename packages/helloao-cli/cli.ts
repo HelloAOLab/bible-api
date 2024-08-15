@@ -73,7 +73,7 @@ async function start() {
 
             const files = await loadTranslationFiles(path.resolve(input));
             const dataset = generateDataset(files, parser as any);
-            await serializeAndUploadDatasets(path.resolve(dest), options, toAsyncIterable([dataset]));
+            await serializeAndUploadDatasets(path.resolve(dest), toAsyncIterable([dataset]), options);
         });
 
     program.command('generate-translations-files <input> <dir>')
@@ -98,7 +98,7 @@ async function start() {
             for (let b of batch(dirs, batchSize)) {
                 const files = await loadTranslationsFiles(b);
                 const dataset = generateDataset(files, parser as any);
-                await serializeAndUploadDatasets(dest, options, toAsyncIterable([dataset]));
+                await serializeAndUploadDatasets(dest, toAsyncIterable([dataset]), options);
             }
         });
 
