@@ -481,15 +481,19 @@ export async function uploadTestTranslations(
     const hash = hashInputFiles(files);
 
     const dataset = generateDataset(files, parser as any);
-
     const url = options.s3Url || 's3://ao-bible-api-public-uploads';
-    const dest = `${url}/${hash}`;
 
-    await serializeAndUploadDatasets(dest, toAsyncIterable([dataset]), options);
+    await serializeAndUploadDatasets(url, toAsyncIterable([dataset]), {
+        ...options,
+        pathPrefix: `/${hash}`,
+    });
+
+    const urls = getUrls(url);
 
     return {
-        ...getUrls(dest),
+        ...urls,
         version: hash,
+        availableTranslationsUrl: `${urls.url}/${hash}/api/available_translations.json`,
     };
 }
 
@@ -514,15 +518,19 @@ export async function uploadTestTranslation(
     const files = await loadTranslationFiles(path.resolve(input));
     const hash = hashInputFiles(files);
     const dataset = generateDataset(files, parser as any);
-
     const url = options.s3Url || 's3://ao-bible-api-public-uploads';
-    const dest = `${url}/${hash}`;
 
-    await serializeAndUploadDatasets(dest, toAsyncIterable([dataset]), options);
+    await serializeAndUploadDatasets(url, toAsyncIterable([dataset]), {
+        ...options,
+        pathPrefix: `/${hash}`,
+    });
+
+    const urls = getUrls(url);
 
     return {
-        ...getUrls(dest),
+        ...urls,
         version: hash,
+        availableTranslationsUrl: `${urls.url}/${hash}/api/available_translations.json`,
     };
 }
 
@@ -532,6 +540,5 @@ function getUrls(dest: string) {
     return {
         uploadS3Url: dest,
         url: url as string,
-        availableTranslationsUrl: `${url}/api/available_translations.json`,
     };
 }

@@ -126,9 +126,10 @@ async function start() {
 
             const result = await uploadTestTranslation(input, options);
 
-            console.log('\nVersion:', result.version);
-            console.log('Uploaded to:', result.uploadS3Url);
-            console.log('URL:', result.url);
+            console.log('\n');
+            console.log('Version:               ', result.version);
+            console.log('Uploaded to:           ', result.uploadS3Url);
+            console.log('URL:                   ', result.url);
             console.log(
                 'Available Translations:',
                 result.availableTranslationsUrl
@@ -197,9 +198,9 @@ async function start() {
 
             const result = await uploadTestTranslations(input, options);
 
-            console.log('\nVersion:', result.version);
-            console.log('Uploaded to:', result.uploadS3Url);
-            console.log('URL:', result.url);
+            console.log('\nVersion:             ', result.version);
+            console.log('Uploaded to:          ', result.uploadS3Url);
+            console.log('URL:                  ', result.url);
             console.log(
                 'Available Translations:',
                 result.availableTranslationsUrl

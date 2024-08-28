@@ -5,8 +5,11 @@ import { FilesUploader, Uploader, ZipUploader } from './files';
 import { Readable } from 'node:stream';
 import { DatasetOutput } from '@helloao/tools/generation/dataset';
 import { PrismaClient } from './prisma-gen';
+import { GenerateApiOptions } from '@helloao/tools/generation/api';
 
-export interface UploadApiFromDatabaseOptions extends UploadApiOptions {
+export interface UploadApiFromDatabaseOptions
+    extends UploadApiOptions,
+        GenerateApiOptions {
     /**
      * The number of files to upload in each batch.
      */
@@ -122,7 +125,7 @@ export async function uploadApiFilesFromDatabase(
 export async function serializeAndUploadDatasets(
     dest: string,
     datasets: AsyncIterable<DatasetOutput>,
-    options: UploadApiOptions = {}
+    options: UploadApiOptions & GenerateApiOptions = {}
 ): Promise<void> {
     const overwrite = !!options.overwrite;
     if (overwrite) {
@@ -153,111 +156,11 @@ export async function serializeAndUploadDatasets(
         console.log('Generating pretty-printed JSON files');
     }
 
-    let uploader: Uploader;
-    if (dest.startsWith('s3://')) {
-        console.log('Uploading to S3');
-        // Upload to S3
-        const url = dest;
-        const s3Url = parseS3Url(url);
-        if (!s3Url) {
-            throw new Error(`Invalid S3 URL: ${url}`);
-        }
+    const files = serializeDatasets(datasets, {
+        ...options,
+    });
 
-        if (!s3Url.bucketName) {
-            throw new Error(
-                `Invalid S3 URL: ${url}\nUnable to determine bucket name`
-            );
-        }
-
-        uploader = new S3Uploader(
-            s3Url.bucketName,
-            s3Url.objectKey,
-            defaultProviderForOptions(options)
-        );
-    } else if (dest.startsWith('console://')) {
-        console.log('Uploading to console');
-        uploader = {
-            idealBatchSize: 50,
-            async upload(
-                file: SerializedFile,
-                _overwrite: boolean
-            ): Promise<boolean> {
-                console.log(file.path);
-                console.log(file.content);
-                return true;
-            },
-        };
-    } else if (extname(dest) === '.zip') {
-        console.log('Writing to zip file:', dest);
-        uploader = new ZipUploader(dest);
-    } else if (dest) {
-        console.log('Writing to local directory:', dest);
-        uploader = new FilesUploader(dest);
-    } else {
-        console.error('Unsupported destination:', dest);
-        process.exit(1);
-    }
-
-    try {
-        for await (let files of serializeDatasets(datasets, {
-            useCommonName: !!options.useCommonName,
-            generateAudioFiles: !!options.generateAudioFiles,
-            pretty: !!options.pretty,
-        })) {
-            const batchSize = uploader.idealBatchSize ?? files.length;
-            const totalBatches = Math.ceil(files.length / batchSize);
-            console.log('Uploading', files.length, 'total files');
-            console.log('Uploading in batches of', batchSize);
-
-            let offset = 0;
-            let batchNumber = 1;
-            let batch = files.slice(offset, offset + batchSize);
-
-            while (batch.length > 0) {
-                console.log('Uploading batch', batchNumber, 'of', totalBatches);
-                let writtenFiles = 0;
-                const promises = batch.map(async (file) => {
-                    if (filePattern) {
-                        if (!filePattern.test(file.path)) {
-                            console.log('Skipping file:', file.path);
-                            return;
-                        }
-                    }
-
-                    const isAvailableTranslations = file.path.endsWith(
-                        'available_translations.json'
-                    );
-                    const isCommonFile = !isAvailableTranslations;
-                    if (
-                        await uploader.upload(
-                            file,
-                            overwrite || (overwriteCommonFiles && isCommonFile)
-                        )
-                    ) {
-                        writtenFiles++;
-                    } else {
-                        console.warn('File already exists:', file.path);
-                        console.warn('Skipping file');
-                    }
-
-                    if (file.content instanceof Readable) {
-                        file.content.destroy();
-                    }
-                });
-
-                await Promise.all(promises);
-
-                console.log('Wrote', writtenFiles, 'files');
-                batchNumber++;
-                offset += batchSize;
-                batch = files.slice(offset, offset + batchSize);
-            }
-        }
-    } finally {
-        if (uploader && uploader.dispose) {
-            await uploader.dispose();
-        }
-    }
+    await uploadFiles(dest, options, files);
 }
 
 /**
@@ -290,7 +193,7 @@ export async function uploadFiles(
         uploader = new S3Uploader(
             s3Url.bucketName,
             s3Url.objectKey,
-            options.profile ?? null
+            defaultProviderForOptions(options)
         );
     } else if (dest.startsWith('console://')) {
         console.log('Uploading to console');
