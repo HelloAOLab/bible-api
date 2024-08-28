@@ -67,14 +67,18 @@ export class S3Uploader implements Uploader {
 }
 
 export function parseS3Url(url: string) {
-    const regex = /^s3:\/\/([a-z0-9.\-]+)(\/[^${}]*)?$/;
-    const matched = url.match(regex);
-    if (matched) {
-        const arr = [...matched];
-        return {
-            bucketName: arr[1],
-            objectKey: arr[2] ?? "",
-        };
+  const regex = /^s3:\/\/([a-z0-9.\-]+)(\/[^${}]*)?$/;
+  const matched = url.match(regex);
+  if (matched) {
+    const arr = [...matched];
+    let key = arr[2] ?? '';
+    if (key.startsWith('/')) {
+      key = key.substring(1);
     }
-    return undefined;
-};
+    return {
+      bucketName: arr[1],
+      objectKey: key,
+    };
+  }
+  return undefined;
+}
