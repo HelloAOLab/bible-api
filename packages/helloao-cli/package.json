@@ -26,7 +26,9 @@
     "hash.js": "1.1.7",
     "@zip.js/zip.js": "^2.6.40",
     "@aws-sdk/client-s3": "^3.609.0",
-    "@aws-sdk/credential-providers": "^3.609.0"
+    "@aws-sdk/credential-providers": "^3.609.0",
+    "@smithy/types": "^3.3.0",
+    "@inquirer/prompts": "5.3.8"
   },
   "files": [
     "/README.md",
