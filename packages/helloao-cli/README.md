@@ -24,8 +24,15 @@ Options:
 
 Commands:
   init [options] [path]                                 Initialize a new Bible API DB.
+  generate-translation-metadata                         Generates a metadata file for a translation.
   import-translation [options] <dir> [dirs...]          Imports a translation from the given directory into the database.
   import-translations [options] <dir>                   Imports all translations from the given directory into the database.
+  upload-test-translation [options] <input>             Uploads a translation to the HelloAO Free Bible API test S3 bucket.
+                                                        Requires access to the HelloAO Free Bible API test S3 bucket.
+                                                        For inquiries, please contact hello@helloao.org.
+  upload-test-translations [options] <input>            Uploads all the translations in the given input directory to the HelloAO Free Bible API test S3 bucket.
+                                                        Requires access to the HelloAO Free Bible API test S3 bucket.
+                                                        For inquiries, please contact hello@helloao.org.
   generate-translation-files [options] <input> <dir>    Generates API files from the given input translation.
   generate-translations-files [options] <input> <dir>   Generates API files from the given input translations.
   upload-api-files [options] <dest>                     Uploads API files to the specified destination. For S3, use the format s3://bucket-name/path/to/folder.
