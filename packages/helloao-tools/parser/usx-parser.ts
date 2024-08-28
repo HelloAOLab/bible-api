@@ -1,5 +1,21 @@
-import { Chapter, ChapterContent, Footnote, FootnoteReference, ParseTree, Verse, Text, VerseContent, HebrewSubtitle, InlineLineBreak, InlineHeading } from "./types";
-import { uncompletable, iterateAll, elements, children, parentChar, parentNote, RewindableIterator, debug, isParent, Rewindable } from "./iterators";
+import {
+    Chapter,
+    ChapterContent,
+    Footnote,
+    FootnoteReference,
+    ParseTree,
+    Verse,
+    Text,
+    HebrewSubtitle,
+    InlineLineBreak,
+    InlineHeading,
+} from './types';
+import {
+    iterateAll,
+    children,
+    RewindableIterator,
+    isParent,
+} from './iterators';
 
 enum NodeType {
     Text = 3,
@@ -35,7 +51,7 @@ export class USXParser {
 
         let root: ParseTree = {
             type: 'root',
-            content: []
+            content: [],
         };
 
         const bookElement = usxElement.querySelector('book[code]');
@@ -47,7 +63,9 @@ export class USXParser {
         const bookCode = bookElement.getAttribute('code') || '';
 
         if (!bookCode) {
-            throw new Error('The book element does not contain a code attribute.');
+            throw new Error(
+                'The book element does not contain a code attribute.'
+            );
         }
 
         root.id = bookCode;
@@ -57,24 +75,31 @@ export class USXParser {
             root.header = header.textContent || '';
         }
 
-        const titles = usxElement.querySelectorAll('para[style="mt1"], para[style="mt2"], para[style="mt3"]');
+        const titles = usxElement.querySelectorAll(
+            'para[style="mt1"], para[style="mt2"], para[style="mt3"]'
+        );
         // const title2 = usxElement.querySelector('para[style="mt2"]');
         // const title3 = usxElement.querySelector('para[style="mt3"]');
 
         if (titles.length > 0) {
-            root.title = [...titles].map(t => t.textContent).filter(t => t).join(' ');
+            root.title = [...titles]
+                .map((t) => t.textContent)
+                .filter((t) => t)
+                .join(' ');
         }
 
-        for(let content of this.iterateRootContent(usxElement)) {
+        for (let content of this.iterateRootContent(usxElement)) {
             root.content.push(content);
         }
 
         return root;
     }
 
-    *iterateRootContent(usxElement: Element): Generator<ParseTree['content'][0]> {
+    *iterateRootContent(
+        usxElement: Element
+    ): Generator<ParseTree['content'][0]> {
         const iterator = iterateAll(usxElement);
-        while(true) {
+        while (true) {
             const { done, value: child } = iterator.next();
             if (done) {
                 break;
@@ -96,25 +121,36 @@ export class USXParser {
                     footnotes: [],
                 };
 
-                for (let content of this.iterateChapterContent(chapter, iterator)) {
+                for (let content of this.iterateChapterContent(
+                    chapter,
+                    iterator
+                )) {
                     chapter.content.push(content);
                 }
 
                 yield chapter;
             } else if (child.nodeName === 'para') {
                 const style = child.getAttribute('style');
-                if (style === 's1' || style === 's2' || style === 's3' || style === 's4') {
+                if (
+                    style === 's1' ||
+                    style === 's2' ||
+                    style === 's3' ||
+                    style === 's4'
+                ) {
                     yield {
                         type: 'heading',
-                        content: child.textContent ? [ child.textContent ] : []
+                        content: child.textContent ? [child.textContent] : [],
                     };
                 }
             }
         }
     }
 
-    *iterateChapterContent(chapter: Chapter, nodes: RewindableIterator<Node>): IterableIterator<ChapterContent> {
-        while(true) {
+    *iterateChapterContent(
+        chapter: Chapter,
+        nodes: RewindableIterator<Node>
+    ): IterableIterator<ChapterContent> {
+        while (true) {
             const { done, value: element } = nodes.next();
             if (done) {
                 break;
@@ -128,17 +164,24 @@ export class USXParser {
                 break;
             } else if (element.nodeName === 'para') {
                 const style = element.getAttribute('style');
-                if (style === 's1' || style === 's2' || style === 's3' || style === 's4') {
+                if (
+                    style === 's1' ||
+                    style === 's2' ||
+                    style === 's3' ||
+                    style === 's4'
+                ) {
                     yield {
                         type: 'heading',
-                        content: element.textContent ? [ element.textContent ] : []
+                        content: element.textContent
+                            ? [element.textContent]
+                            : [],
                     };
                 } else if (style === 'b') {
                     yield {
                         type: 'line_break',
                     };
                 } else if (style === 'd') {
-                    yield *this.parseHebrewSubtitle(element, chapter, nodes);
+                    yield* this.parseHebrewSubtitle(element, chapter, nodes);
                 }
             } else if (element.nodeName === 'verse') {
                 if (element.hasAttribute('eid')) {
@@ -150,8 +193,12 @@ export class USXParser {
         }
     }
 
-    *iterateVerseContent(chapter: Chapter, verse: Verse, nodes: RewindableIterator<Node>): IterableIterator<string | FootnoteReference | Text | InlineLineBreak> {
-        while(true) {
+    *iterateVerseContent(
+        chapter: Chapter,
+        verse: Verse,
+        nodes: RewindableIterator<Node>
+    ): IterableIterator<string | FootnoteReference | Text | InlineLineBreak> {
+        while (true) {
             const { done, value: node } = nodes.next();
             if (done) {
                 break;
@@ -167,21 +214,38 @@ export class USXParser {
 
             if (parent.nodeName === 'para') {
                 const style = parent.getAttribute('style');
-                if (style === 'q1' || style === 'q2' || style === 'q3' || style === 'q4') {
-                    poem = style === 'q1' ? 1 : style === 'q2' ? 2 : style === 'q3' ? 3 : 4;
-                } else if(style === 'd') {
+                if (
+                    style === 'q1' ||
+                    style === 'q2' ||
+                    style === 'q3' ||
+                    style === 'q4'
+                ) {
+                    poem =
+                        style === 'q1'
+                            ? 1
+                            : style === 'q2'
+                            ? 2
+                            : style === 'q3'
+                            ? 3
+                            : 4;
+                } else if (style === 'd') {
                     descriptive = true;
                 }
             }
 
-            for(let content of this.iterateNodeTextContent(nodes, node, chapter, verse)) {
+            for (let content of this.iterateNodeTextContent(
+                nodes,
+                node,
+                chapter,
+                verse
+            )) {
                 if (poem !== null || descriptive !== null) {
                     if (typeof content === 'string') {
                         let text: Text = {
-                            text: content
+                            text: content,
                         };
 
-                        if(poem !== null) {
+                        if (poem !== null) {
                             text.poem = poem;
                         }
 
@@ -191,8 +255,12 @@ export class USXParser {
 
                         yield text;
                     } else {
-                        let text: InlineLineBreak | InlineHeading | FootnoteReference | Text = {
-                            ...content
+                        let text:
+                            | InlineLineBreak
+                            | InlineHeading
+                            | FootnoteReference
+                            | Text = {
+                            ...content,
                         };
 
                         if ('text' in text) {
@@ -213,14 +281,18 @@ export class USXParser {
         }
     }
 
-    parseVerse(element: Element, chapter: Chapter, nodes: RewindableIterator<Node>): Verse {
+    parseVerse(
+        element: Element,
+        chapter: Chapter,
+        nodes: RewindableIterator<Node>
+    ): Verse {
         const verse: Verse = {
             type: 'verse',
             number: parseInt(element.getAttribute('number') || '0', 10),
-            content: []
+            content: [],
         };
 
-        for(let content of this.iterateVerseContent(chapter, verse, nodes)) {
+        for (let content of this.iterateVerseContent(chapter, verse, nodes)) {
             addOrJoin(verse.content, content);
         }
 
@@ -228,13 +300,21 @@ export class USXParser {
         return verse;
     }
 
-    *parseHebrewSubtitle(para: Element, chapter: Chapter, nodes: RewindableIterator<Node>): IterableIterator<HebrewSubtitle | Verse> {
+    *parseHebrewSubtitle(
+        para: Element,
+        chapter: Chapter,
+        nodes: RewindableIterator<Node>
+    ): IterableIterator<HebrewSubtitle | Verse> {
         const subtitle: HebrewSubtitle = {
             type: 'hebrew_subtitle',
-            content: []
+            content: [],
         };
 
-        for(let content of this.iterateHebrewSubtitleContent(para, chapter, nodes)) {
+        for (let content of this.iterateHebrewSubtitleContent(
+            para,
+            chapter,
+            nodes
+        )) {
             if (typeof content === 'object' && 'number' in content) {
                 yield content;
                 continue;
@@ -248,8 +328,14 @@ export class USXParser {
         }
     }
 
-    *iterateHebrewSubtitleContent(element: Element, chapter: Chapter, nodes: RewindableIterator<Node>): IterableIterator<Verse | string | Text | FootnoteReference | InlineLineBreak> {
-        while(true) {
+    *iterateHebrewSubtitleContent(
+        element: Element,
+        chapter: Chapter,
+        nodes: RewindableIterator<Node>
+    ): IterableIterator<
+        Verse | string | Text | FootnoteReference | InlineLineBreak
+    > {
+        while (true) {
             const { done, value: node } = nodes.next();
             if (done) {
                 break;
@@ -263,26 +349,35 @@ export class USXParser {
             if (node instanceof Element && node.nodeName === 'verse') {
                 yield this.parseVerse(node, chapter, nodes);
             } else {
-                yield *this.iterateNodeTextContent(nodes, node, chapter);
+                yield* this.iterateNodeTextContent(nodes, node, chapter);
             }
         }
     }
 
-    *iterateNodeTextContent(nodes: RewindableIterator<Node>, node: Node, chapter: Chapter, verse?: Verse): IterableIterator<string | Text | FootnoteReference | InlineLineBreak> {
+    *iterateNodeTextContent(
+        nodes: RewindableIterator<Node>,
+        node: Node,
+        chapter: Chapter,
+        verse?: Verse
+    ): IterableIterator<string | Text | FootnoteReference | InlineLineBreak> {
         if (node instanceof Element && node.nodeName === 'note') {
-            yield *this.iterateNote(nodes, node, chapter, verse);
+            yield* this.iterateNote(nodes, node, chapter, verse);
         } else if (node instanceof Element && node.nodeName === 'char') {
-            yield *this.iterateChar(nodes, node);
-        } else if (node instanceof Element && node.nodeName === 'para' && node.getAttribute('style') === 'b') {
+            yield* this.iterateChar(nodes, node);
+        } else if (
+            node instanceof Element &&
+            node.nodeName === 'para' &&
+            node.getAttribute('style') === 'b'
+        ) {
             for (let _ of children(nodes, node)) {
                 // iterate through all the children to prevent iterating over them multiple times
             }
             yield {
-                lineBreak: true
+                lineBreak: true,
             };
-        } else if(node.nodeType === NodeType.Text) {
+        } else if (node.nodeType === NodeType.Text) {
             yield node.textContent || '';
-        } 
+        }
     }
 
     *iterateCharContent(char: Element): IterableIterator<string | Text> {
@@ -291,14 +386,19 @@ export class USXParser {
         if (style === 'wj') {
             yield {
                 text,
-                wordsOfJesus: true
+                wordsOfJesus: true,
             };
         } else {
             yield text;
         }
     }
 
-    *iterateNote(nodes: RewindableIterator<Node>, node: Element, chapter: Chapter, verse?: Verse): IterableIterator<FootnoteReference> {
+    *iterateNote(
+        nodes: RewindableIterator<Node>,
+        node: Element,
+        chapter: Chapter,
+        verse?: Verse
+    ): IterableIterator<FootnoteReference> {
         const style = node.getAttribute('style');
         if (style === 'f') {
             const verseReferenceRegex = /^[0-9]{1,3}:[0-9]{1,3}/;
@@ -321,14 +421,14 @@ export class USXParser {
                 text,
                 reference: {
                     chapter: chapter.number,
-                    verse: verse?.number ?? 0
-                }
+                    verse: verse?.number ?? 0,
+                },
             };
 
             chapter.footnotes.push(note);
 
             yield {
-                noteId: note.noteId
+                noteId: note.noteId,
             };
         } else {
             for (let _ of children(nodes, node)) {
@@ -338,7 +438,10 @@ export class USXParser {
         }
     }
 
-    *iterateChar(nodes: RewindableIterator<Node>, node: Element): IterableIterator<string | Text> {
+    *iterateChar(
+        nodes: RewindableIterator<Node>,
+        node: Element
+    ): IterableIterator<string | Text> {
         const style = node.getAttribute('style');
         let text = '';
 
@@ -351,7 +454,7 @@ export class USXParser {
         if (style === 'wj') {
             yield {
                 text,
-                wordsOfJesus: true
+                wordsOfJesus: true,
             };
         } else {
             yield text;
@@ -366,18 +469,34 @@ export class USXParser {
 // Taken from https://github.com/gracious-tech/fetch/blob/1576cc4eafb32bf347a09332094cf17c2231c90c/converters/usx-to-json/src/elements.ts#L16
 const ignoredParaStyles = new Set([
     // <para> Identification [exclude all] - Running headings & table of contents
-    'ide',  // See https://github.com/schierlm/BibleMultiConverter/issues/67
-    'rem',  // Remarks (valid in schema though missed in docs)
-    'h', 'h1', 'h2', 'h3', 'h4',
-    'toc1', 'toc2', 'toc3',
-    'toca1', 'toca2', 'toca3',
+    'ide', // See https://github.com/schierlm/BibleMultiConverter/issues/67
+    'rem', // Remarks (valid in schema though missed in docs)
+    'h',
+    'h1',
+    'h2',
+    'h3',
+    'h4',
+    'toc1',
+    'toc2',
+    'toc3',
+    'toca1',
+    'toca2',
+    'toca3',
 
     /* <para> Introductions [exclude all] - Introductionary (non-biblical) content
         Which might be helpful in a printed book, but intro material in apps is usually bad UX,
         and users that really care can research a translations methodology themselves
     */
-    'imt', 'imt1', 'imt2', 'imt3', 'imt4',
-    'is', 'is1', 'is2', 'is3', 'is4',
+    'imt',
+    'imt1',
+    'imt2',
+    'imt3',
+    'imt4',
+    'is',
+    'is1',
+    'is2',
+    'is3',
+    'is4',
     'ip',
     'ipi',
     'im',
@@ -385,11 +504,23 @@ const ignoredParaStyles = new Set([
     'ipq',
     'imq',
     'ipr',
-    'iq', 'iq1', 'iq2', 'iq3', 'iq4',
+    'iq',
+    'iq1',
+    'iq2',
+    'iq3',
+    'iq4',
     'ib',
-    'ili', 'ili1', 'ili2', 'ili3', 'ili4',
+    'ili',
+    'ili1',
+    'ili2',
+    'ili3',
+    'ili4',
     'iot',
-    'io', 'io1', 'io2', 'io3', 'io4',
+    'io',
+    'io1',
+    'io2',
+    'io3',
+    'io4',
     'iex',
     'imte',
     'ie',
@@ -397,20 +528,28 @@ const ignoredParaStyles = new Set([
     /* <para> Headings [exclude some] - Exclude book & chapter headings but keep section headings
         Not excluded: ms# | mr | s# | sr | d | sp | sd#
     */
-    'mt', 'mt1', 'mt2', 'mt3', 'mt4',
-    'mte', 'mte1', 'mte2', 'mte3', 'mte4',
+    'mt',
+    'mt1',
+    'mt2',
+    'mt3',
+    'mt4',
+    'mte',
+    'mte1',
+    'mte2',
+    'mte3',
+    'mte4',
     'cl',
-    'cd',  // Non-biblical chapter summary, more than heading
-    'r',  // Parallels to be provided by external data
+    'cd', // Non-biblical chapter summary, more than heading
+    'r', // Parallels to be provided by external data
 ]);
 
-function *iterateCharContent(char: Element): IterableIterator<string | Text> {
+function* iterateCharContent(char: Element): IterableIterator<string | Text> {
     const style = char.getAttribute('style');
     const text = trimText(char.textContent || '');
     if (style === 'wj') {
         yield {
             text,
-            wordsOfJesus: true
+            wordsOfJesus: true,
         };
     } else {
         yield text;
@@ -422,7 +561,7 @@ function trimText(text: string): string {
 }
 
 function trimContent<T extends string | unknown>(content: T[]): T[] {
-    for (let i = 0; i< content.length; i++) {
+    for (let i = 0; i < content.length; i++) {
         const value = content[i];
         if (typeof value === 'string') {
             content[i] = trimText(value as string).trim() as T;
@@ -450,7 +589,11 @@ function addOrJoin(array: (string | unknown)[], value: string | unknown) {
         const last = array[array.length - 1];
         if (typeof last === 'string' && typeof value === 'string') {
             array[array.length - 1] = last + value;
-        } else if (isVerseText(last) && isVerseText(value) && hasSameFormatting(last, value)) {
+        } else if (
+            isVerseText(last) &&
+            isVerseText(value) &&
+            hasSameFormatting(last, value)
+        ) {
             last.text += value.text;
         } else {
             array.push(value);

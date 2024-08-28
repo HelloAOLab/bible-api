@@ -4,31 +4,29 @@ import Sql, { Database } from 'better-sqlite3';
 import { readdir, readFile } from 'fs-extra';
 import { randomUUID } from 'node:crypto';
 import {
-  DatasetOutput,
-  DatasetTranslation,
-  DatasetTranslationBook,
-  generateDataset,
+    DatasetOutput,
+    DatasetTranslation,
+    DatasetTranslationBook,
+    generateDataset,
 } from '@helloao/tools/generation/dataset';
 import {
-  ChapterVerse,
-  InputFile,
-  TranslationBookChapter,
-  OutputFile,
-  OutputFileContent,
+    ChapterVerse,
+    InputFile,
+    TranslationBookChapter,
+    OutputFile,
+    OutputFileContent,
 } from '@helloao/tools/generation';
 import {
-  generateApiForDataset,
-  GenerateApiOptions,
-  generateFilesForApi,
+    generateApiForDataset,
+    GenerateApiOptions,
+    generateFilesForApi,
+    generateOutputFilesFromDatasets,
 } from '@helloao/tools/generation/api';
 import { getEnglishName, getNativeName } from 'all-iso-language-codes';
-import { loadTranslationFiles } from './files';
+import { loadTranslationFiles, serializeOutputFiles } from './files';
 import { sha256 } from 'hash.js';
 import { DOMParser } from 'linkedom';
-import { merge, mergeWith } from 'lodash';
-import { extname } from 'path';
 import { Readable } from 'stream';
-import { fromByteArray } from 'base64-js';
 
 const cliPath = require.resolve('./index');
 const migrationsPath = path.resolve(dirname(cliPath), 'migrations');
@@ -41,22 +39,22 @@ const migrationsPath = path.resolve(dirname(cliPath), 'migrations');
  * @param overwrite Whether to force a reload of the translations.
  */
 export async function importTranslations(
-  db: Database,
-  dirs: string[],
-  parser: DOMParser,
-  overwrite: boolean
+    db: Database,
+    dirs: string[],
+    parser: DOMParser,
+    overwrite: boolean
 ) {
-  let batches = [] as string[][];
-  while (dirs.length > 0) {
-    batches.push(dirs.splice(0, 10));
-  }
+    let batches = [] as string[][];
+    while (dirs.length > 0) {
+        batches.push(dirs.splice(0, 10));
+    }
 
-  console.log('Processing', batches.length, 'batches of translations');
-  for (let i = 0; i < batches.length; i++) {
-    const batch = batches[i];
-    console.log(`Processing batch ${i + 1} of ${batches.length}`);
-    await importTranslationBatch(db, batch, parser, overwrite);
-  }
+    console.log('Processing', batches.length, 'batches of translations');
+    for (let i = 0; i < batches.length; i++) {
+        const batch = batches[i];
+        console.log(`Processing batch ${i + 1} of ${batches.length}`);
+        await importTranslationBatch(db, batch, parser, overwrite);
+    }
 }
 
 /**
@@ -67,20 +65,20 @@ export async function importTranslations(
  * @param overwrite Whether to force a reload of the translations.
  */
 export async function importTranslationBatch(
-  db: Database,
-  dirs: string[],
-  parser: DOMParser,
-  overwrite: boolean
+    db: Database,
+    dirs: string[],
+    parser: DOMParser,
+    overwrite: boolean
 ) {
-  const promises = [] as Promise<InputFile[]>[];
-  for (let dir of dirs) {
-    const fullPath = path.resolve(dir);
-    promises.push(loadTranslationFiles(fullPath));
-  }
+    const promises = [] as Promise<InputFile[]>[];
+    for (let dir of dirs) {
+        const fullPath = path.resolve(dir);
+        promises.push(loadTranslationFiles(fullPath));
+    }
 
-  const allFiles = await Promise.all(promises);
-  const files = allFiles.flat();
-  await importTranslationFileBatch(db, files, parser, overwrite);
+    const allFiles = await Promise.all(promises);
+    const files = allFiles.flat();
+    await importTranslationFileBatch(db, files, parser, overwrite);
 }
 
 /**
@@ -91,33 +89,38 @@ export async function importTranslationBatch(
  * @param overwrite Whether to force a reload of the translations.
  */
 export async function importTranslationFileBatch(
-  db: Database,
-  files: InputFile[],
-  parser: DOMParser,
-  overwrite: boolean
+    db: Database,
+    files: InputFile[],
+    parser: DOMParser,
+    overwrite: boolean
 ) {
-  console.log('Importing', files.length, 'files');
-  if (overwrite) {
-    console.log('Overwriting existing translations.');
-  }
-  const changedFiles = overwrite ? files : getChangedOrNewInputFiles(db, files);
+    console.log('Importing', files.length, 'files');
+    if (overwrite) {
+        console.log('Overwriting existing translations.');
+    }
+    const changedFiles = overwrite
+        ? files
+        : getChangedOrNewInputFiles(db, files);
 
-  console.log('Processing', changedFiles.length, 'changed files');
-  console.log(
-    'Skipping',
-    files.length - changedFiles.length,
-    'unchanged files'
-  );
+    console.log('Processing', changedFiles.length, 'changed files');
+    console.log(
+        'Skipping',
+        files.length - changedFiles.length,
+        'unchanged files'
+    );
 
-  const output = generateDataset(changedFiles, parser as globalThis.DOMParser);
+    const output = generateDataset(
+        changedFiles,
+        parser as globalThis.DOMParser
+    );
 
-  console.log('Generated', output.translations.length, 'translations');
+    console.log('Generated', output.translations.length, 'translations');
 
-  insertTranslations(db, output.translations);
-  updateTranslationHashes(db, output.translations);
-  insertFileMetadata(db, changedFiles);
+    insertTranslations(db, output.translations);
+    updateTranslationHashes(db, output.translations);
+    insertFileMetadata(db, changedFiles);
 
-  console.log(`Inserted ${output.translations} translations into DB`);
+    console.log(`Inserted ${output.translations} translations into DB`);
 }
 
 /**
@@ -126,26 +129,26 @@ export async function importTranslationFileBatch(
  * @param files The files to filter.
  */
 export function getChangedOrNewInputFiles(
-  db: Database,
-  files: InputFile[]
+    db: Database,
+    files: InputFile[]
 ): InputFile[] {
-  const fileExists = db.prepare(
-    'SELECT COUNT(*) as c FROM InputFile WHERE translationId = @translationId AND name = @name AND sha256 = @sha256;'
-  );
+    const fileExists = db.prepare(
+        'SELECT COUNT(*) as c FROM InputFile WHERE translationId = @translationId AND name = @name AND sha256 = @sha256;'
+    );
 
-  return files.filter((f) => {
-    const count = fileExists.get({
-      translationId: f.metadata.translation.id,
-      name: path.basename(f.name!),
-      sha256: f.sha256,
-    }) as { c: number };
+    return files.filter((f) => {
+        const count = fileExists.get({
+            translationId: f.metadata.translation.id,
+            name: path.basename(f.name!),
+            sha256: f.sha256,
+        }) as { c: number };
 
-    return count.c <= 0;
-  });
+        return count.c <= 0;
+    });
 }
 
 export function insertFileMetadata(db: Database, files: InputFile[]) {
-  const fileUpsert = db.prepare(`INSERT INTO InputFile(
+    const fileUpsert = db.prepare(`INSERT INTO InputFile(
         translationId,
         name,
         format,
@@ -163,26 +166,26 @@ export function insertFileMetadata(db: Database, files: InputFile[]) {
             sha256=excluded.sha256,
             sizeInBytes=excluded.sizeInBytes;`);
 
-  const insertManyFiles = db.transaction((files) => {
-    for (let file of files) {
-      fileUpsert.run({
-        translationId: file.metadata.translation.id,
-        name: path.basename(file.name),
-        format: file.fileType,
-        sha256: file.sha256,
-        sizeInBytes: file.content.length,
-      });
-    }
-  });
+    const insertManyFiles = db.transaction((files) => {
+        for (let file of files) {
+            fileUpsert.run({
+                translationId: file.metadata.translation.id,
+                name: path.basename(file.name),
+                format: file.fileType,
+                sha256: file.sha256,
+                sizeInBytes: file.content.length,
+            });
+        }
+    });
 
-  insertManyFiles(files);
+    insertManyFiles(files);
 }
 
 export function insertTranslations(
-  db: Database,
-  translations: DatasetTranslation[]
+    db: Database,
+    translations: DatasetTranslation[]
 ) {
-  const translationUpsert = db.prepare(`INSERT INTO Translation(
+    const translationUpsert = db.prepare(`INSERT INTO Translation(
         id,
         name,
         language,
@@ -210,34 +213,34 @@ export function insertTranslations(
             website=excluded.website,
             englishName=excluded.englishName;`);
 
-  const insertManyTranslations = db.transaction((translations) => {
+    const insertManyTranslations = db.transaction((translations) => {
+        for (let translation of translations) {
+            translationUpsert.run({
+                id: translation.id,
+                name: translation.name,
+                language: translation.language,
+                shortName: translation.shortName,
+                textDirection: translation.textDirection,
+                licenseUrl: translation.licenseUrl,
+                website: translation.website,
+                englishName: translation.englishName,
+            });
+        }
+    });
+
+    insertManyTranslations(translations);
+
     for (let translation of translations) {
-      translationUpsert.run({
-        id: translation.id,
-        name: translation.name,
-        language: translation.language,
-        shortName: translation.shortName,
-        textDirection: translation.textDirection,
-        licenseUrl: translation.licenseUrl,
-        website: translation.website,
-        englishName: translation.englishName,
-      });
+        insertTranslationBooks(db, translation, translation.books);
     }
-  });
-
-  insertManyTranslations(translations);
-
-  for (let translation of translations) {
-    insertTranslationBooks(db, translation, translation.books);
-  }
 }
 
 export function insertTranslationBooks(
-  db: Database,
-  translation: DatasetTranslation,
-  translationBooks: DatasetTranslationBook[]
+    db: Database,
+    translation: DatasetTranslation,
+    translationBooks: DatasetTranslationBook[]
 ) {
-  const bookUpsert = db.prepare(`INSERT INTO Book(
+    const bookUpsert = db.prepare(`INSERT INTO Book(
         id,
         translationId,
         title,
@@ -260,37 +263,37 @@ export function insertTranslationBooks(
             commonName=excluded.commonName,
             numberOfChapters=excluded.numberOfChapters;`);
 
-  const insertMany = db.transaction((books: DatasetTranslationBook[]) => {
-    for (let book of books) {
-      if (!book) {
-        continue;
-      }
-      bookUpsert.run({
-        id: book.id,
-        translationId: translation.id,
-        title: book.title,
-        name: book.name,
-        commonName: book.commonName,
-        numberOfChapters: book.chapters.length,
-        bookOrder: book.order ?? 9999,
-      });
+    const insertMany = db.transaction((books: DatasetTranslationBook[]) => {
+        for (let book of books) {
+            if (!book) {
+                continue;
+            }
+            bookUpsert.run({
+                id: book.id,
+                translationId: translation.id,
+                title: book.title,
+                name: book.name,
+                commonName: book.commonName,
+                numberOfChapters: book.chapters.length,
+                bookOrder: book.order ?? 9999,
+            });
+        }
+    });
+
+    insertMany(translationBooks);
+
+    for (let book of translationBooks) {
+        insertTranslationContent(db, translation, book, book.chapters);
     }
-  });
-
-  insertMany(translationBooks);
-
-  for (let book of translationBooks) {
-    insertTranslationContent(db, translation, book, book.chapters);
-  }
 }
 
 export function insertTranslationContent(
-  db: Database,
-  translation: DatasetTranslation,
-  book: DatasetTranslationBook,
-  chapters: TranslationBookChapter[]
+    db: Database,
+    translation: DatasetTranslation,
+    book: DatasetTranslationBook,
+    chapters: TranslationBookChapter[]
 ) {
-  const chapterUpsert = db.prepare(`INSERT INTO Chapter(
+    const chapterUpsert = db.prepare(`INSERT INTO Chapter(
         translationId,
         bookId,
         number,
@@ -303,7 +306,7 @@ export function insertTranslationContent(
     ) ON CONFLICT(translationId,bookId,number) DO 
         UPDATE SET
             json=excluded.json;`);
-  const verseUpsert = db.prepare(`INSERT INTO ChapterVerse(
+    const verseUpsert = db.prepare(`INSERT INTO ChapterVerse(
         translationId,
         bookId,
         chapterNumber,
@@ -321,7 +324,7 @@ export function insertTranslationContent(
         UPDATE SET
             text=excluded.text,
             contentJson=excluded.contentJson;`);
-  const footnoteUpsert = db.prepare(`INSERT INTO ChapterFootnote(
+    const footnoteUpsert = db.prepare(`INSERT INTO ChapterFootnote(
         translationId,
         bookId,
         chapterNumber,
@@ -340,7 +343,7 @@ export function insertTranslationContent(
             verseNumber=excluded.verseNumber,
             text=excluded.text;`);
 
-  const chapterAudioUpsert = db.prepare(`INSERT INTO ChapterAudioUrl(
+    const chapterAudioUpsert = db.prepare(`INSERT INTO ChapterAudioUrl(
         translationId,
         bookId,
         number,
@@ -356,115 +359,115 @@ export function insertTranslationContent(
         UPDATE SET
             url=excluded.url;`);
 
-  const insertChaptersAndVerses = db.transaction(() => {
-    for (let chapter of chapters) {
-      let verses: {
-        number: number;
-        text: string;
-        contentJson: string;
-      }[] = [];
-      let footnotes: Map<
-        number,
-        {
-          id: number;
-          text: string;
-          verseNumber?: number;
-        }
-      > = new Map();
-
-      for (let c of chapter.chapter.footnotes) {
-        footnotes.set(c.noteId, {
-          id: c.noteId,
-          text: c.text,
-        });
-      }
-
-      for (let c of chapter.chapter.content) {
-        if (c.type === 'verse') {
-          const verse: ChapterVerse = c;
-          if (!verse.number) {
-            console.error(
-              'Verse missing number',
-              translation.id,
-              book.id,
-              chapter.chapter.number,
-              verse.number
-            );
-            continue;
-          }
-
-          let text = '';
-          for (let c of verse.content) {
-            if (typeof c === 'string') {
-              text += c + ' ';
-            } else if (typeof c === 'object') {
-              if ('lineBreak' in c) {
-                text += '\n';
-              } else if ('text' in c) {
-                text += c.text + ' ';
-              } else if ('noteId' in c) {
-                const note = footnotes.get(c.noteId);
-                if (note) {
-                  note.verseNumber = verse.number;
+    const insertChaptersAndVerses = db.transaction(() => {
+        for (let chapter of chapters) {
+            let verses: {
+                number: number;
+                text: string;
+                contentJson: string;
+            }[] = [];
+            let footnotes: Map<
+                number,
+                {
+                    id: number;
+                    text: string;
+                    verseNumber?: number;
                 }
-              }
+            > = new Map();
+
+            for (let c of chapter.chapter.footnotes) {
+                footnotes.set(c.noteId, {
+                    id: c.noteId,
+                    text: c.text,
+                });
             }
-          }
 
-          let contentJson = JSON.stringify(verse.content);
-          verses.push({
-            number: verse.number,
-            text: text.trimEnd(),
-            contentJson,
-          });
+            for (let c of chapter.chapter.content) {
+                if (c.type === 'verse') {
+                    const verse: ChapterVerse = c;
+                    if (!verse.number) {
+                        console.error(
+                            'Verse missing number',
+                            translation.id,
+                            book.id,
+                            chapter.chapter.number,
+                            verse.number
+                        );
+                        continue;
+                    }
+
+                    let text = '';
+                    for (let c of verse.content) {
+                        if (typeof c === 'string') {
+                            text += c + ' ';
+                        } else if (typeof c === 'object') {
+                            if ('lineBreak' in c) {
+                                text += '\n';
+                            } else if ('text' in c) {
+                                text += c.text + ' ';
+                            } else if ('noteId' in c) {
+                                const note = footnotes.get(c.noteId);
+                                if (note) {
+                                    note.verseNumber = verse.number;
+                                }
+                            }
+                        }
+                    }
+
+                    let contentJson = JSON.stringify(verse.content);
+                    verses.push({
+                        number: verse.number,
+                        text: text.trimEnd(),
+                        contentJson,
+                    });
+                }
+            }
+
+            chapterUpsert.run({
+                translationId: translation.id,
+                bookId: book.id,
+                number: chapter.chapter.number,
+                json: JSON.stringify(chapter.chapter),
+            });
+
+            for (let verse of verses) {
+                verseUpsert.run({
+                    translationId: translation.id,
+                    bookId: book.id,
+                    chapterNumber: chapter.chapter.number,
+                    number: verse.number,
+                    text: verse.text,
+                    contentJson: verse.contentJson,
+                });
+            }
+
+            for (let footnote of footnotes.values()) {
+                footnoteUpsert.run({
+                    translationId: translation.id,
+                    bookId: book.id,
+                    chapterNumber: chapter.chapter.number,
+                    id: footnote.id,
+                    verseNumber: footnote.verseNumber,
+                    text: footnote.text,
+                });
+            }
+
+            for (let reader in chapter.thisChapterAudioLinks) {
+                const url = chapter.thisChapterAudioLinks[reader];
+                if (url) {
+                    chapterAudioUpsert.run({
+                        translationId: translation.id,
+                        bookId: book.id,
+                        number: chapter.chapter.number,
+                        reader: reader,
+                        url,
+                    });
+                }
+            }
         }
-      }
+    });
 
-      chapterUpsert.run({
-        translationId: translation.id,
-        bookId: book.id,
-        number: chapter.chapter.number,
-        json: JSON.stringify(chapter.chapter),
-      });
-
-      for (let verse of verses) {
-        verseUpsert.run({
-          translationId: translation.id,
-          bookId: book.id,
-          chapterNumber: chapter.chapter.number,
-          number: verse.number,
-          text: verse.text,
-          contentJson: verse.contentJson,
-        });
-      }
-
-      for (let footnote of footnotes.values()) {
-        footnoteUpsert.run({
-          translationId: translation.id,
-          bookId: book.id,
-          chapterNumber: chapter.chapter.number,
-          id: footnote.id,
-          verseNumber: footnote.verseNumber,
-          text: footnote.text,
-        });
-      }
-
-      for (let reader in chapter.thisChapterAudioLinks) {
-        const url = chapter.thisChapterAudioLinks[reader];
-        if (url) {
-          chapterAudioUpsert.run({
-            translationId: translation.id,
-            bookId: book.id,
-            number: chapter.chapter.number,
-            reader: reader,
-            url,
-          });
-        }
-      }
-    }
-  });
-
-  insertChaptersAndVerses();
+    insertChaptersAndVerses();
 }
 
 /**
@@ -473,166 +476,166 @@ export function insertTranslationContent(
  * @param translations The translations to update the hashes for.
  */
 function updateTranslationHashes(
-  db: Database,
-  translations: DatasetTranslation[]
+    db: Database,
+    translations: DatasetTranslation[]
 ) {
-  console.log(`Updating hashes for ${translations.length} translations.`);
+    console.log(`Updating hashes for ${translations.length} translations.`);
 
-  const updateTranslationHash = db.prepare(
-    `UPDATE Translation SET sha256 = @sha256 WHERE id = @translationId;`
-  );
-  const updateBookHash = db.prepare(
-    `UPDATE Book SET sha256 = @sha256 WHERE translationId = @translationId AND id = @bookId;`
-  );
-  const updateChapterHash = db.prepare(
-    `UPDATE Chapter SET sha256 = @sha256 WHERE translationId = @translationId AND bookId = @bookId AND number = @chapterNumber;`
-  );
+    const updateTranslationHash = db.prepare(
+        `UPDATE Translation SET sha256 = @sha256 WHERE id = @translationId;`
+    );
+    const updateBookHash = db.prepare(
+        `UPDATE Book SET sha256 = @sha256 WHERE translationId = @translationId AND id = @bookId;`
+    );
+    const updateChapterHash = db.prepare(
+        `UPDATE Chapter SET sha256 = @sha256 WHERE translationId = @translationId AND bookId = @bookId AND number = @chapterNumber;`
+    );
 
-  const getBooks = db.prepare('SELECT * FROM Book WHERE translationId = ?;');
-  const getChapters = db.prepare(
-    'SELECT * FROM Chapter WHERE translationId = @translationId AND bookId = @bookId;'
-  );
+    const getBooks = db.prepare('SELECT * FROM Book WHERE translationId = ?;');
+    const getChapters = db.prepare(
+        'SELECT * FROM Chapter WHERE translationId = @translationId AND bookId = @bookId;'
+    );
 
-  for (let translation of translations) {
-    const translationSha = sha256()
-      .update(translation.id)
-      .update(translation.name)
-      .update(translation.language)
-      .update(translation.licenseUrl)
-      .update(translation.textDirection)
-      .update(translation.website)
-      .update(translation.englishName)
-      .update(translation.shortName);
+    for (let translation of translations) {
+        const translationSha = sha256()
+            .update(translation.id)
+            .update(translation.name)
+            .update(translation.language)
+            .update(translation.licenseUrl)
+            .update(translation.textDirection)
+            .update(translation.website)
+            .update(translation.englishName)
+            .update(translation.shortName);
 
-    const books = getBooks.all(translation.id) as {
-      id: string;
-      order: number;
-      title: string;
-      translationId: string;
-      name: string;
-      commonName: string;
-      numberOfChapters: number;
-      sha256: string;
-    }[];
+        const books = getBooks.all(translation.id) as {
+            id: string;
+            order: number;
+            title: string;
+            translationId: string;
+            name: string;
+            commonName: string;
+            numberOfChapters: number;
+            sha256: string;
+        }[];
 
-    for (let book of books) {
-      const chapters = getChapters.all({
-        translationId: translation.id,
-        bookId: book.id,
-      }) as {
-        number: string;
-        bookId: string;
-        translationId: string;
-        json: string;
-        sha256: string;
-      }[];
+        for (let book of books) {
+            const chapters = getChapters.all({
+                translationId: translation.id,
+                bookId: book.id,
+            }) as {
+                number: string;
+                bookId: string;
+                translationId: string;
+                json: string;
+                sha256: string;
+            }[];
 
-      const bookSha = sha256()
-        .update(book.translationId)
-        .update(book.id)
-        .update(book.numberOfChapters)
-        .update(book.order)
-        .update(book.name)
-        .update(book.title)
-        .update(book.commonName);
+            const bookSha = sha256()
+                .update(book.translationId)
+                .update(book.id)
+                .update(book.numberOfChapters)
+                .update(book.order)
+                .update(book.name)
+                .update(book.title)
+                .update(book.commonName);
 
-      for (let chapter of chapters) {
-        const hash = sha256()
-          .update(chapter.translationId)
-          .update(chapter.bookId)
-          .update(chapter.number)
-          .update(chapter.json)
-          .digest('hex');
+            for (let chapter of chapters) {
+                const hash = sha256()
+                    .update(chapter.translationId)
+                    .update(chapter.bookId)
+                    .update(chapter.number)
+                    .update(chapter.json)
+                    .digest('hex');
 
-        chapter.sha256 = hash;
+                chapter.sha256 = hash;
 
-        bookSha.update(hash);
-      }
+                bookSha.update(hash);
+            }
 
-      const updateChapters = db.transaction(() => {
-        for (let chapter of chapters) {
-          updateChapterHash.run({
-            sha256: chapter.sha256,
-            translationId: chapter.translationId,
-            bookId: chapter.bookId,
-            chapterNumber: chapter.number,
-          });
+            const updateChapters = db.transaction(() => {
+                for (let chapter of chapters) {
+                    updateChapterHash.run({
+                        sha256: chapter.sha256,
+                        translationId: chapter.translationId,
+                        bookId: chapter.bookId,
+                        chapterNumber: chapter.number,
+                    });
+                }
+            });
+
+            updateChapters();
+
+            const bookHash = bookSha.digest('hex');
+            book.sha256 = bookHash;
+
+            translationSha.update(bookHash);
         }
-      });
 
-      updateChapters();
+        const updateBooks = db.transaction(() => {
+            for (let book of books) {
+                updateBookHash.run({
+                    sha256: book.sha256,
+                    translationId: book.translationId,
+                    bookId: book.id,
+                });
+            }
+        });
 
-      const bookHash = bookSha.digest('hex');
-      book.sha256 = bookHash;
+        updateBooks();
 
-      translationSha.update(bookHash);
+        const hash = translationSha.digest('hex');
+        (translation as any).sha256 = hash;
     }
 
-    const updateBooks = db.transaction(() => {
-      for (let book of books) {
-        updateBookHash.run({
-          sha256: book.sha256,
-          translationId: book.translationId,
-          bookId: book.id,
-        });
-      }
+    const updateTranslations = db.transaction(() => {
+        for (let translation of translations) {
+            updateTranslationHash.run({
+                sha256: (translation as any).sha256,
+                translationId: translation.id,
+            });
+        }
     });
 
-    updateBooks();
+    updateTranslations();
 
-    const hash = translationSha.digest('hex');
-    (translation as any).sha256 = hash;
-  }
-
-  const updateTranslations = db.transaction(() => {
-    for (let translation of translations) {
-      updateTranslationHash.run({
-        sha256: (translation as any).sha256,
-        translationId: translation.id,
-      });
-    }
-  });
-
-  updateTranslations();
-
-  console.log(`Updated.`);
+    console.log(`Updated.`);
 }
 
 export function getDbPathFromDir(dir: string) {
-  dir = dir || process.cwd();
-  return path.resolve(dir, 'bible-api.db');
+    dir = dir || process.cwd();
+    return path.resolve(dir, 'bible-api.db');
 }
 
 export function getDbPath(p: string | null) {
-  if (p) {
-    return path.resolve(p);
-  }
-  return getDbPathFromDir(process.cwd());
+    if (p) {
+        return path.resolve(p);
+    }
+    return getDbPathFromDir(process.cwd());
 }
 
 export function getPrismaDbFromDir(dir: string) {
-  const dbPath = getDbPathFromDir(dir);
-  const prisma = new PrismaClient({
-    datasources: {
-      db: {
-        url: `file:${dbPath}`,
-      },
-    },
-  });
-  return prisma;
+    const dbPath = getDbPathFromDir(dir);
+    const prisma = new PrismaClient({
+        datasources: {
+            db: {
+                url: `file:${dbPath}`,
+            },
+        },
+    });
+    return prisma;
 }
 
 export async function getDbFromDir(dir: string): Promise<Database> {
-  const dbPath = getDbPathFromDir(dir);
+    const dbPath = getDbPathFromDir(dir);
 
-  const db = await getDb(dbPath);
-  return db;
+    const db = await getDb(dbPath);
+    return db;
 }
 
 export async function getDb(dbPath: string): Promise<Database> {
-  const db = new Sql(dbPath, {});
+    const db = new Sql(dbPath, {});
 
-  db.exec(`CREATE TABLE IF NOT EXISTS "_prisma_migrations" (
+    db.exec(`CREATE TABLE IF NOT EXISTS "_prisma_migrations" (
         "id"                    TEXT PRIMARY KEY NOT NULL,
         "checksum"              TEXT NOT NULL,
         "finished_at"           DATETIME,
@@ -643,63 +646,63 @@ export async function getDb(dbPath: string): Promise<Database> {
         "applied_steps_count"   INTEGER UNSIGNED NOT NULL DEFAULT 0
     );`);
 
-  const migrations = await readdir(migrationsPath);
-  const appliedMigrations = db
-    .prepare('SELECT * FROM _prisma_migrations;')
-    .all() as Migration[];
+    const migrations = await readdir(migrationsPath);
+    const appliedMigrations = db
+        .prepare('SELECT * FROM _prisma_migrations;')
+        .all() as Migration[];
 
-  let missingMigrations = [];
-  for (let migration of migrations) {
-    if (appliedMigrations.some((m) => m.migration_name === migration)) {
-      continue;
+    let missingMigrations = [];
+    for (let migration of migrations) {
+        if (appliedMigrations.some((m) => m.migration_name === migration)) {
+            continue;
+        }
+        if (path.extname(migration) !== '') {
+            continue;
+        }
+        missingMigrations.push(migration);
     }
-    if (path.extname(migration) !== '') {
-      continue;
+
+    const insertMigrationStatement = db.prepare(
+        'INSERT INTO _prisma_migrations (id, checksum, started_at, finished_at, migration_name, applied_steps_count, logs, rolled_back_at) VALUES (?, ?, ?, ?, ?, ?, NULL, NULL);'
+    );
+
+    for (let missingMigration of missingMigrations) {
+        console.log(`Applying migration ${missingMigration}...`);
+        const migration = path.resolve(
+            migrationsPath,
+            missingMigration,
+            'migration.sql'
+        );
+        const migrationFile = await readFile(migration, 'utf8');
+        db.exec(migrationFile);
+        insertMigrationStatement.run(
+            randomUUID(),
+            '',
+            new Date().toISOString(),
+            new Date().toISOString(),
+            missingMigration,
+            1
+        );
     }
-    missingMigrations.push(migration);
-  }
 
-  const insertMigrationStatement = db.prepare(
-    'INSERT INTO _prisma_migrations (id, checksum, started_at, finished_at, migration_name, applied_steps_count, logs, rolled_back_at) VALUES (?, ?, ?, ?, ?, ?, NULL, NULL);'
-  );
-
-  for (let missingMigration of missingMigrations) {
-    console.log(`Applying migration ${missingMigration}...`);
-    const migration = path.resolve(
-      migrationsPath,
-      missingMigration,
-      'migration.sql'
-    );
-    const migrationFile = await readFile(migration, 'utf8');
-    db.exec(migrationFile);
-    insertMigrationStatement.run(
-      randomUUID(),
-      '',
-      new Date().toISOString(),
-      new Date().toISOString(),
-      missingMigration,
-      1
-    );
-  }
-
-  return db;
+    return db;
 }
 
 interface Migration {
-  id: string;
-  checksum: string;
-  finished_at: Date;
-  migration_name: string;
+    id: string;
+    checksum: string;
+    finished_at: Date;
+    migration_name: string;
 }
 
 export interface SerializedFile {
-  path: string;
-  content: string | Readable;
+    path: string;
+    content: string | Readable;
 
-  /**
-   * Gets the base64-encoded SHA256 hash of the content of the file.
-   */
-  sha256?(): string;
+    /**
+     * Gets the base64-encoded SHA256 hash of the content of the file.
+     */
+    sha256?(): string;
 }
 
 /**
@@ -709,279 +712,153 @@ export interface SerializedFile {
  * @param translationsToLoad The list of translations to load. If not provided, all translations will be loaded.
  */
 export async function* loadDatasets(
-  db: PrismaClient,
-  translationsPerBatch: number = 50,
-  translationsToLoad?: string[]
+    db: PrismaClient,
+    translationsPerBatch: number = 50,
+    translationsToLoad?: string[]
 ): AsyncGenerator<DatasetOutput> {
-  let offset = 0;
-  let pageSize = translationsPerBatch;
+    let offset = 0;
+    let pageSize = translationsPerBatch;
 
-  console.log('Generating API files in batches of', pageSize);
-  const totalTranslations = await db.translation.count();
-  const totalBatches = Math.ceil(totalTranslations / pageSize);
-  let batchNumber = 1;
+    console.log('Generating API files in batches of', pageSize);
+    const totalTranslations = await db.translation.count();
+    const totalBatches = Math.ceil(totalTranslations / pageSize);
+    let batchNumber = 1;
 
-  while (true) {
-    console.log('Generating API batch', batchNumber, 'of', totalBatches);
-    batchNumber++;
+    while (true) {
+        console.log('Generating API batch', batchNumber, 'of', totalBatches);
+        batchNumber++;
 
-    const query: Prisma.TranslationFindManyArgs = {
-      skip: offset,
-      take: pageSize,
-    };
-
-    if (translationsToLoad && translationsToLoad.length > 0) {
-      query.where = {
-        id: {
-          in: translationsToLoad,
-        },
-      };
-    }
-
-    const translations = await db.translation.findMany(query);
-
-    if (translations.length <= 0) {
-      break;
-    }
-
-    const dataset: DatasetOutput = {
-      translations: [],
-    };
-
-    for (let translation of translations) {
-      const datasetTranslation: DatasetTranslation = {
-        ...translation,
-        shortName: translation.shortName!,
-        textDirection: translation.textDirection! as any,
-        books: [],
-      };
-      dataset.translations.push(datasetTranslation);
-
-      const books = await db.book.findMany({
-        where: {
-          translationId: translation.id,
-        },
-        orderBy: {
-          order: 'asc',
-        },
-      });
-
-      for (let book of books) {
-        const chapters = await db.chapter.findMany({
-          where: {
-            translationId: translation.id,
-            bookId: book.id,
-          },
-          orderBy: {
-            number: 'asc',
-          },
-        });
-
-        const audioLinks = await db.chapterAudioUrl.findMany({
-          where: {
-            translationId: translation.id,
-            bookId: book.id,
-          },
-          orderBy: [{ number: 'asc' }, { reader: 'asc' }],
-        });
-
-        const bookChapters: TranslationBookChapter[] = chapters.map(
-          (chapter) => {
-            return {
-              chapter: JSON.parse(chapter.json),
-              thisChapterAudioLinks: audioLinks
-                .filter((link) => link.number === chapter.number)
-                .reduce((acc, link) => {
-                  acc[link.reader] = link.url;
-                  return acc;
-                }, {} as any),
-            };
-          }
-        );
-
-        const datasetBook: DatasetTranslationBook = {
-          ...book,
-          chapters: bookChapters,
+        const query: Prisma.TranslationFindManyArgs = {
+            skip: offset,
+            take: pageSize,
         };
-        datasetTranslation.books.push(datasetBook);
-      }
+
+        if (translationsToLoad && translationsToLoad.length > 0) {
+            query.where = {
+                id: {
+                    in: translationsToLoad,
+                },
+            };
+        }
+
+        const translations = await db.translation.findMany(query);
+
+        if (translations.length <= 0) {
+            break;
+        }
+
+        const dataset: DatasetOutput = {
+            translations: [],
+        };
+
+        for (let translation of translations) {
+            const datasetTranslation: DatasetTranslation = {
+                ...translation,
+                shortName: translation.shortName!,
+                textDirection: translation.textDirection! as any,
+                books: [],
+            };
+            dataset.translations.push(datasetTranslation);
+
+            const books = await db.book.findMany({
+                where: {
+                    translationId: translation.id,
+                },
+                orderBy: {
+                    order: 'asc',
+                },
+            });
+
+            for (let book of books) {
+                const chapters = await db.chapter.findMany({
+                    where: {
+                        translationId: translation.id,
+                        bookId: book.id,
+                    },
+                    orderBy: {
+                        number: 'asc',
+                    },
+                });
+
+                const audioLinks = await db.chapterAudioUrl.findMany({
+                    where: {
+                        translationId: translation.id,
+                        bookId: book.id,
+                    },
+                    orderBy: [{ number: 'asc' }, { reader: 'asc' }],
+                });
+
+                const bookChapters: TranslationBookChapter[] = chapters.map(
+                    (chapter) => {
+                        return {
+                            chapter: JSON.parse(chapter.json),
+                            thisChapterAudioLinks: audioLinks
+                                .filter(
+                                    (link) => link.number === chapter.number
+                                )
+                                .reduce((acc, link) => {
+                                    acc[link.reader] = link.url;
+                                    return acc;
+                                }, {} as any),
+                        };
+                    }
+                );
+
+                const datasetBook: DatasetTranslationBook = {
+                    ...book,
+                    chapters: bookChapters,
+                };
+                datasetTranslation.books.push(datasetBook);
+            }
+        }
+
+        yield dataset;
+
+        offset += pageSize;
     }
-
-    yield dataset;
-
-    offset += pageSize;
-  }
 }
 
 export interface SerializeApiOptions extends GenerateApiOptions {
-  /**
-   * Whether the output should be pretty-printed.
-   */
-  pretty?: boolean;
+    /**
+     * Whether the output should be pretty-printed.
+     */
+    pretty?: boolean;
 }
 
 /**
- * Generates and serializes the API files for the dataset that is stored in the database.
+ * Generates and serializes the API files for the datasets that are stored in the database.
  * Yields each batch of serialized files.
  * @param db The database that the dataset should be loaded from.
- * @param options The options to use for generating the API.
+ * @param options The options to use for serializing the files.
+ * @param apiOptions The options to use for generating the API files.
  * @param translationsPerBatch The number of translations that should be loaded and written per batch.
  * @param translations The list of translations that should be loaded. If not provided, all translations will be loaded.
  */
-export async function* serializeFilesForDataset(
-  db: PrismaClient,
-  options: SerializeApiOptions,
-  translationsPerBatch: number = 50,
-  translations?: string[]
+export function serializeFilesFromDatabase(
+    db: PrismaClient,
+    options: SerializeApiOptions = {},
+    translationsPerBatch: number = 50,
+    translations?: string[]
 ): AsyncGenerator<SerializedFile[]> {
-  yield* serializeFiles(
-    loadDatasets(db, translationsPerBatch, translations),
-    options
-  );
+    return serializeDatasets(
+        loadDatasets(db, translationsPerBatch, translations),
+        options
+    );
 }
 
 /**
- * Serializes the API files for the given datasets.
- * @param datasets The dataasets to serialize.
- * @param options The options to use for serializing the files.
+ * Generates and serializes the API files for the given datasets.
+ * Yields each batch of serialized files.
+ *
+ * @param datasets The datasets to serialize.
+ * @param options The options to use for generating and serializing the files.
  */
-export async function* serializeFiles(
-  datasets: AsyncIterable<DatasetOutput>,
-  options: SerializeApiOptions
+export function serializeDatasets(
+    datasets: AsyncIterable<DatasetOutput>,
+    options: SerializeApiOptions = {}
 ): AsyncGenerator<SerializedFile[]> {
-  const mergableFiles = new Map<string, OutputFile[]>();
-
-  for await (let dataset of datasets) {
-    const api = generateApiForDataset(dataset, {
-      ...options,
-      getNativeName,
-      getEnglishName,
-    });
-    const files = generateFilesForApi(api);
-
-    console.log('Generated', files.length, 'files');
-
-    let serializedFiles: SerializedFile[] = [];
-    for (let file of files) {
-      if (file.mergable) {
-        let arr = mergableFiles.get(file.path);
-        if (!arr) {
-          arr = [];
-          mergableFiles.set(file.path, arr);
-        }
-        arr.push(file);
-        continue;
-      }
-
-      const serialized = await transformFile(file.path, file.content);
-      if (serialized) {
-        serializedFiles.push(serialized);
-      }
-    }
-
-    yield serializedFiles;
-  }
-
-  let serializedFiles: SerializedFile[] = [];
-  for (let [path, files] of mergableFiles) {
-    let content: object = {};
-    for (let file of files) {
-      if (!content) {
-        content = file.content;
-      } else {
-        content = mergeWith(content, file.content, (objValue, srcValue) => {
-          if (Array.isArray(objValue)) {
-            return objValue.concat(srcValue);
-          }
-          return undefined;
-        });
-      }
-    }
-
-    if (content) {
-      const serialized = await transformFile(path, content);
-      if (serialized) {
-        serializedFiles.push(serialized);
-      }
-    }
-  }
-
-  yield serializedFiles;
-
-  async function transformFile(
-    path: string,
-    content: OutputFile['content']
-  ): Promise<SerializedFile | null> {
-    let fileContent: OutputFileContent;
-    if (typeof content === 'function') {
-      fileContent = await content();
-    } else {
-      fileContent = content;
-    }
-
-    const ext = extname(path);
-    if (ext === '.json') {
-      let json: string;
-      if (fileContent instanceof ReadableStream) {
-        json = '';
-        for await (const chunk of Readable.fromWeb(fileContent as any, {
-          encoding: 'utf-8',
-        })) {
-          json += chunk;
-        }
-      } else {
-        json = JSON.stringify(
-          content,
-          undefined,
-          options.pretty ? 2 : undefined
-        );
-      }
-
-      return {
-        path,
-        content: json,
-        sha256: () =>
-          fromByteArray(new Uint8Array(sha256().update(json).digest())),
-      };
-    } else if (ext === '.mp3') {
-      if (fileContent instanceof ReadableStream) {
-        return {
-          path,
-          content: Readable.fromWeb(fileContent as any),
-        };
-      } else {
-        console.warn('Expected content to be a readable stream for', path);
-        console.warn('Skipping file');
-        return null;
-      }
-    }
-
-    console.warn('Unknown file type', path);
-    console.warn('Skipping file');
-    return null;
-  }
-}
-
-/**
- * Defines an interface that contains information about a serialized file.
- */
-export interface Uploader {
-  /**
-   * Gets the ideal batch size for the uploader.
-   * Null if the uploader does not need batching.
-   */
-  idealBatchSize: number | null;
-
-  /**
-   * Uploads the given file.
-   * @param file The file to upload.
-   * @param overwrite Whether the file should be overwritten if it already exists.
-   * @returns True if the file was uploaded. False if the file was skipped due to already existing.
-   */
-  upload(file: SerializedFile, overwrite: boolean): Promise<boolean>;
-
-  /**
-   * Disposes resources that the uploader uses.
-   */
-  dispose?(): Promise<void>;
+    return serializeOutputFiles(
+        generateOutputFilesFromDatasets(datasets, options),
+        options
+    );
 }

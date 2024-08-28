@@ -16,6 +16,7 @@ $ npm install @helloao/tools
 ### Usage
 
 #### Parse a USX File
+
 ```typescript
 import { parser } from '@helloao/tools';
 // Used to parse XML
@@ -36,7 +37,6 @@ const domParser = new DOMParser();
 // Each input file needs some metadata about the translation that it is associated with
 const translation: generation.ParseTreeMetadata = {
     translation: {
-
         // The ID of the translation
         // this should be unique for the translation
         id: 'my translation id',
@@ -60,7 +60,7 @@ const translation: generation.ParseTreeMetadata = {
         // The direction that the text is written in.
         // "ltr" means "left to right" and "rtl" means "right to left"
         direction: 'ltr',
-    }
+    },
 };
 
 // The list of files that should be processed.
@@ -74,14 +74,14 @@ const files: generation.InputFile[] = [
 
         // The type of the file.
         // One of "usx", "usfm", and "json"
-        fileType: 'usx'
-    }
+        fileType: 'usx',
+    },
 ];
 
 // Generate a dataset from the files
 // Datasets organize all the files and their content
 // by translation, book, chapter, and verse
-const dataset = generation.dataset.generateDataset(files, parser);
+const dataset = generation.dataset.generateDataset(files, domParser);
 
 // Generate an API representation from the files
 // This adds links between chapters and additional metadata.

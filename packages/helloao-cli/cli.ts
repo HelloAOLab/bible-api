@@ -1,26 +1,11 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
-import path, { extname } from 'path';
-import { mkdir, readdir, writeFile } from 'fs/promises';
-import Sql from 'better-sqlite3';
-import { BibleClient } from '@gracious.tech/fetch-client';
-import { GetTranslationsItem } from '@gracious.tech/fetch-client/dist/esm/collection';
-import {
-    getFirstNonEmpty,
-    getTranslationId,
-    normalizeLanguage,
-} from '@helloao/tools/utils';
-import { exists } from 'fs-extra';
-import {
-    InputFile,
-    InputTranslationMetadata,
-} from '@helloao/tools/generation/common-types';
-import { bookChapterCountMap } from '@helloao/tools/generation/book-order';
+import path from 'path';
+import { mkdir } from 'fs/promises';
 import { DOMParser, Element, Node } from 'linkedom';
-import { KNOWN_AUDIO_TRANSLATIONS } from '@helloao/tools/generation/audio';
 import { downloadFile } from './downloads';
-import { uploadApiFiles, uploadApiFilesFromDatabase } from './uploads';
+import { uploadApiFilesFromDatabase } from './uploads';
 import {
     fetchAudio,
     fetchTranslations,
@@ -32,10 +17,7 @@ import {
     uploadTestTranslation,
     uploadTestTranslations,
 } from './actions';
-import { loadTranslationFiles, loadTranslationsFiles } from './files';
-import { generateDataset } from '@helloao/tools/generation/dataset';
-import { batch, toAsyncIterable } from '@helloao/tools/parser/iterators';
-import { sha256 } from 'hash.js';
+import { getPrismaDbFromDir } from './db';
 import { confirm } from '@inquirer/prompts';
 
 async function start() {
@@ -138,7 +120,6 @@ async function start() {
                     'Uploaded files will be publicly accessible. Continue?',
                 default: false,
             });
-
             if (!good) {
                 return;
             }
@@ -363,7 +344,12 @@ async function start() {
         )
         .option('--pretty', 'Whether to generate pretty-printed JSON files.')
         .action(async (dest: string, options: any) => {
-            await uploadApiFilesFromDatabase(dest, options);
+            const db = getPrismaDbFromDir(process.cwd());
+            try {
+                await uploadApiFilesFromDatabase(db, dest, options);
+            } finally {
+                db.$disconnect();
+            }
         });
 
     program

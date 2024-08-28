@@ -22,7 +22,12 @@ import {
     loadTranslationsFiles,
 } from './files';
 import { generateDataset } from '@helloao/tools/generation/dataset';
-import { uploadApiFiles, UploadApiOptions } from './uploads';
+import {
+    serializeAndUploadDatasets,
+    uploadApiFilesFromDatabase,
+    UploadApiFromDatabaseOptions,
+    UploadApiOptions,
+} from './uploads';
 import { getHttpUrl, parseS3Url } from './s3';
 
 export interface InitDbOptions {
@@ -375,7 +380,7 @@ export async function fetchAudio(
 export async function generateTranslationsFiles(
     input: string,
     dest: string,
-    options: UploadApiOptions
+    options: UploadApiFromDatabaseOptions
 ): Promise<void> {
     const parser = new DOMParser();
     globalThis.DOMParser = DOMParser as any;
@@ -383,11 +388,18 @@ export async function generateTranslationsFiles(
     globalThis.Node = Node as any;
 
     const dirs = await readdir(path.resolve(input));
-    const batchSize = parseInt(options.batchSize);
+    const batchSize =
+        typeof options.batchSize === 'number'
+            ? options.batchSize
+            : parseInt(options.batchSize);
     for (let b of batch(dirs, batchSize)) {
         const files = await loadTranslationsFiles(b);
         const dataset = generateDataset(files, parser as any);
-        await uploadApiFiles(dest, options, toAsyncIterable([dataset]));
+        await serializeAndUploadDatasets(
+            dest,
+            toAsyncIterable([dataset]),
+            options
+        );
     }
 }
 
@@ -409,7 +421,7 @@ export async function generateTranslationFiles(
 
     const files = await loadTranslationFiles(path.resolve(input));
     const dataset = generateDataset(files, parser as any);
-    await uploadApiFiles(dest, options, toAsyncIterable([dataset]));
+    await serializeAndUploadDatasets(dest, toAsyncIterable([dataset]), options);
 }
 
 /**
@@ -473,7 +485,7 @@ export async function uploadTestTranslations(
     const url = options.s3Url || 's3://ao-bible-api-public-uploads';
     const dest = `${url}/${hash}`;
 
-    await uploadApiFiles(dest, options, toAsyncIterable([dataset]));
+    await serializeAndUploadDatasets(dest, toAsyncIterable([dataset]), options);
 
     return {
         ...getUrls(dest),
@@ -506,7 +518,7 @@ export async function uploadTestTranslation(
     const url = options.s3Url || 's3://ao-bible-api-public-uploads';
     const dest = `${url}/${hash}`;
 
-    await uploadApiFiles(dest, options, toAsyncIterable([dataset]));
+    await serializeAndUploadDatasets(dest, toAsyncIterable([dataset]), options);
 
     return {
         ...getUrls(dest),
