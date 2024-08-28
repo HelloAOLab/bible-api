@@ -48,27 +48,35 @@ export class S3Uploader implements Uploader {
         const head = new HeadObjectCommand({
             Bucket: this._bucketName,
             Key: key,
+            ChecksumMode: 'ENABLED',
         });
 
         if (hash || !overwrite) {
             try {
                 const existingFile = await this._client.send(head);
-                if (
-                    hash &&
-                    hash.localeCompare(
-                        existingFile?.ChecksumSHA256 ?? '',
-                        undefined,
-                        {
-                            sensitivity: 'base',
-                        }
-                    ) === 0
-                ) {
-                    // File is already uploaded and matches the checksum.
-                    console.log(`[s3] Matches checksum: ${key}`);
-                    return false;
+                let matches = true;
+                if (hash && existingFile.ChecksumSHA256) {
+                    if (
+                        hash.localeCompare(
+                            existingFile?.ChecksumSHA256 ?? '',
+                            undefined,
+                            {
+                                sensitivity: 'base',
+                            }
+                        ) === 0
+                    ) {
+                        // File is already uploaded and matches the checksum.
+                        return false;
+                    } else {
+                        // File is already uploaded but the checksums don't match.
+                        matches = false;
+                    }
+                } else {
+                    // File is already uploaded but the checksum is not available.
+                    console.log(`[s3] Checksum not available: ${key}`);
                 }
 
-                if (!overwrite) {
+                if (matches && !overwrite) {
                     return false;
                 }
             } catch (err: any) {
@@ -86,6 +94,7 @@ export class S3Uploader implements Uploader {
             Body: file.content,
             ContentType: 'application/json',
             ChecksumSHA256: hash,
+            ChecksumAlgorithm: 'SHA256',
         });
 
         await this._client.send(command);
