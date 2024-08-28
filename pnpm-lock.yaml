@@ -97,7 +97,7 @@ importers:
                 version: 0.7.0
             '@helloao/tools':
                 specifier: ^0.0.5
-                version: link:../helloao-tools
+                version: 0.0.5
             '@inquirer/prompts':
                 specifier: 5.3.8
                 version: 5.3.8
@@ -2004,6 +2004,17 @@ packages:
             {
                 integrity: sha512-TbxGrJ/kMZZevw12XysjyHJjWWuNhO5FLWwD0Zwrb+/8Y1+6cKAlgP/n3P8dN86mXd9aFUKoI7hgsLbTaI38/w==,
             }
+        dev: false
+
+    /@helloao/tools@0.0.5:
+        resolution:
+            {
+                integrity: sha512-UIkmAJO9Qhy64ts9YdtfBCaFANEtYyEt4FugwdvInViJCAOePMH4gH4WAuRaAbyd2rp9ujh/9dZ0enlMUYpR2A==,
+            }
+        dependencies:
+            all-iso-language-codes: 1.0.17
+            lodash: 4.17.21
+            zod: 3.23.8
         dev: false
 
     /@inquirer/checkbox@2.4.7:
