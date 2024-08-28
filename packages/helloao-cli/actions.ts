@@ -1,4 +1,4 @@
-import path, { extname } from 'node:path';
+import path, { basename, dirname, extname } from 'node:path';
 import * as database from './db';
 import Sql from 'better-sqlite3';
 import { DOMParser, Element, Node } from 'linkedom';
@@ -29,6 +29,8 @@ import {
     UploadApiOptions,
 } from './uploads';
 import { getHttpUrl, parseS3Url } from './s3';
+import { input, select, confirm } from '@inquirer/prompts';
+import { getNativeName, isValid } from 'all-iso-language-codes';
 
 export interface InitDbOptions {
     /**
@@ -419,7 +421,14 @@ export async function generateTranslationFiles(
     globalThis.Element = Element as any;
     globalThis.Node = Node as any;
 
-    const files = await loadTranslationFiles(path.resolve(input));
+    const files = await loadTranslationFilesOrAskForMetadata(
+        path.resolve(input)
+    );
+    if (!files) {
+        console.log('No translation files found.');
+        return;
+    }
+
     const dataset = generateDataset(files, parser as any);
     await serializeAndUploadDatasets(dest, toAsyncIterable([dataset]), options);
 }
@@ -509,13 +518,20 @@ export async function uploadTestTranslations(
 export async function uploadTestTranslation(
     input: string,
     options: UploadTestTranslationOptions
-): Promise<UploadTestTranslationResult> {
+): Promise<UploadTestTranslationResult | undefined> {
     const parser = new DOMParser();
     globalThis.DOMParser = DOMParser as any;
     globalThis.Element = Element as any;
     globalThis.Node = Node as any;
 
-    const files = await loadTranslationFiles(path.resolve(input));
+    const inputPath = path.resolve(input);
+    const files = await loadTranslationFilesOrAskForMetadata(inputPath);
+
+    if (!files || files.length <= 0) {
+        console.log('No translation files found.');
+        return;
+    }
+
     const hash = hashInputFiles(files);
     const dataset = generateDataset(files, parser as any);
     const url = options.s3Url || 's3://ao-bible-api-public-uploads';
@@ -540,5 +556,99 @@ function getUrls(dest: string) {
     return {
         uploadS3Url: dest,
         url: url as string,
+    };
+}
+
+async function loadTranslationFilesOrAskForMetadata(dir: string) {
+    let files = await loadTranslationFiles(dir);
+
+    if (!files) {
+        console.log(`No metadata found for the translation in ${dir}`);
+
+        const enterMetadata = await confirm({
+            message: 'Do you want to enter the metadata for the translation?',
+        });
+
+        if (!enterMetadata) {
+            return null;
+        }
+
+        const defaultId = basename(dir);
+        const metadata = await askForMetadata(defaultId);
+
+        const saveMetadata = await confirm({
+            message: 'Do you want to save this metadata?',
+        });
+
+        if (saveMetadata) {
+            await writeFile(
+                path.resolve(dir, 'metadata.json'),
+                JSON.stringify(metadata, null, 2)
+            );
+        }
+
+        files = await loadTranslationFiles(dir);
+    }
+
+    return files;
+}
+
+/**
+ * Asks the user for the metadata for the translation.
+ */
+export async function askForMetadata(
+    defaultId?: string
+): Promise<InputTranslationMetadata> {
+    const id = await input({
+        message: 'Enter the translation ID',
+        default: defaultId,
+    });
+    const language = await input({
+        message: 'Enter the ISO 639 translation language',
+        validate: (input: string) => {
+            return isValid(input) ? true : 'Invalid language code.';
+        },
+        required: true,
+    });
+    const direction = await select({
+        message: 'Enter the text direction of the language',
+        choices: [
+            { name: 'Left-to-right', value: 'ltr' },
+            { name: 'Right-to-left', value: 'rtl' },
+        ],
+        default: 'ltr',
+    });
+    const shortName = await input({
+        message: 'Enter the short name of the translation',
+        default: id,
+        required: false,
+    });
+    const name = await input({
+        message: 'Enter the name of the translation',
+        required: true,
+    });
+    const englishName = await input({
+        message: 'Enter the English name of the translation',
+        default: name,
+    });
+    const licenseUrl = await input({
+        message: 'Enter the license URL for the translation',
+        required: true,
+    });
+    const website = await input({
+        message: 'Enter the website URL for the translation',
+        required: true,
+        default: licenseUrl,
+    });
+
+    return {
+        id,
+        language,
+        direction: direction as InputTranslationMetadata['direction'],
+        shortName,
+        name,
+        englishName,
+        licenseUrl,
+        website,
     };
 }

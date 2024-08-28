@@ -210,7 +210,9 @@ export async function loadTranslationsFiles(
     const promises = [] as Promise<InputFile[]>[];
     for (let dir of dirs) {
         const fullPath = path.resolve(dir);
-        promises.push(loadTranslationFiles(fullPath));
+        promises.push(
+            loadTranslationFiles(fullPath).then((files) => files ?? [])
+        );
     }
 
     const allFiles = await Promise.all(promises);
@@ -221,17 +223,17 @@ export async function loadTranslationsFiles(
 /**
  * Loads the files for the given translation.
  * @param translation The directory that the translation exists in.
- * @returns
+ * @returns The list of files that were loaded, or null if the translation has no metadata.
  */
 export async function loadTranslationFiles(
     translation: string
-): Promise<InputFile[]> {
+): Promise<InputFile[] | null> {
     const metadata: InputTranslationMetadata | null =
         await loadTranslationMetadata(translation);
 
     if (!metadata) {
         console.error('Could not load metadata for translation!', translation);
-        return [];
+        return null;
     }
 
     let files = await readdir(translation);

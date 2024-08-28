@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
-import path from 'path';
-import { mkdir } from 'fs/promises';
+import path, { extname } from 'path';
+import { mkdir, stat, writeFile } from 'fs/promises';
 import { DOMParser, Element, Node } from 'linkedom';
 import { downloadFile } from './downloads';
 import { uploadApiFilesFromDatabase } from './uploads';
 import {
+    askForMetadata,
     fetchAudio,
     fetchTranslations,
     generateTranslationFiles,
@@ -18,7 +19,7 @@ import {
     uploadTestTranslations,
 } from './actions';
 import { getPrismaDbFromDir } from './db';
-import { confirm } from '@inquirer/prompts';
+import { confirm, input } from '@inquirer/prompts';
 
 async function start() {
     const parser = new DOMParser();
@@ -43,6 +44,40 @@ async function start() {
         )
         .action(async (dbPath: string, options: any) => {
             await initDb(dbPath, options);
+        });
+
+    program
+        .command('generate-translation-metadata')
+        .description('Generates a metadata file for a translation.')
+        .action(async () => {
+            const meta = await askForMetadata();
+
+            console.log('Your metadata:', meta);
+
+            const save = await confirm({
+                message: 'Do you want to save this metadata?',
+            });
+
+            if (save) {
+                let location = await input({
+                    message: 'Where would you like to save the metadata?',
+                });
+
+                const ext = extname(location);
+
+                if (!ext) {
+                    if (!location.endsWith('/')) {
+                        location += '/';
+                    }
+                    location += 'metadata.json';
+                }
+
+                console.log('Saving metadata to:', location);
+
+                const dir = path.dirname(location);
+                await mkdir(dir, { recursive: true });
+                await writeFile(location, JSON.stringify(meta, null, 2));
+            }
         });
 
     program
@@ -126,14 +161,16 @@ async function start() {
 
             const result = await uploadTestTranslation(input, options);
 
-            console.log('\n');
-            console.log('Version:               ', result.version);
-            console.log('Uploaded to:           ', result.uploadS3Url);
-            console.log('URL:                   ', result.url);
-            console.log(
-                'Available Translations:',
-                result.availableTranslationsUrl
-            );
+            if (result) {
+                console.log('\n');
+                console.log('Version:               ', result.version);
+                console.log('Uploaded to:           ', result.uploadS3Url);
+                console.log('URL:                   ', result.url);
+                console.log(
+                    'Available Translations:',
+                    result.availableTranslationsUrl
+                );
+            }
         });
 
     program

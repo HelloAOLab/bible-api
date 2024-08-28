@@ -73,7 +73,9 @@ export async function importTranslationBatch(
     const promises = [] as Promise<InputFile[]>[];
     for (let dir of dirs) {
         const fullPath = path.resolve(dir);
-        promises.push(loadTranslationFiles(fullPath));
+        promises.push(
+            loadTranslationFiles(fullPath).then((files) => files ?? [])
+        );
     }
 
     const allFiles = await Promise.all(promises);
