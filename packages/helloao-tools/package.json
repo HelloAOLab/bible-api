@@ -1,27 +1,26 @@
 {
-  "name": "@helloao/tools",
-  "version": "0.0.4",
-  "description": "A set of tools for managing HelloAO's Free Bible API",
-  "module": "index.js",
-  "types": "index.d.ts",
-  "scripts": {},
-  "author": "Kallyn Gowdy <kal@helloao.org>",
-  "license": "MIT",
-  "dependencies": {
-    "lodash": "4.17.21",
-    "all-iso-language-codes": "1.0.17",
-    "zod": "^3.23.8"
-  },
-  "devDependencies": {
-    "linkedom": "0.18.4",
-    "hash.js": "1.1.7"
-  },
-  "files": [
-    "/README.md",
-    "/LICENSE.txt",
-    "/migrations/**/*.sql",
-    "**/*.js",
-    "**/*.js.map",
-    "**/*.d.ts"
-  ]
+    "name": "@helloao/tools",
+    "version": "0.0.4",
+    "description": "A set of tools for managing HelloAO's Free Bible API",
+    "module": "index.js",
+    "types": "index.d.ts",
+    "scripts": {},
+    "author": "Kallyn Gowdy <kal@helloao.org>",
+    "license": "MIT",
+    "dependencies": {
+        "lodash": "4.17.21",
+        "zod": "^3.23.8"
+    },
+    "devDependencies": {
+        "linkedom": "0.18.4",
+        "hash.js": "1.1.7"
+    },
+    "files": [
+        "/README.md",
+        "/LICENSE.txt",
+        "/migrations/**/*.sql",
+        "**/*.js",
+        "**/*.js.map",
+        "**/*.d.ts"
+    ]
 }

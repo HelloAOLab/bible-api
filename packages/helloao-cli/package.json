@@ -1,45 +1,46 @@
 {
-  "name": "@helloao/cli",
-  "version": "0.0.4",
-  "description": "A CLI and related tools for managing HelloAO's Free Bible API",
-  "module": "index.js",
-  "types": "index.d.ts",
-  "bin": {
-    "helloao": "./cli.js"
-  },
-  "scripts": {
-    "postinstall": "prisma generate"
-  },
-  "author": "Kallyn Gowdy <kal@helloao.org>",
-  "license": "MIT",
-  "dependencies": {
-    "@helloao/tools": "^0.0.4",
-    "commander": "12.1.0",
-    "@gracious.tech/fetch-client": "^0.7.0",
-    "prisma": "^5.12.1",
-    "@prisma/client": "^5.12.1",
-    "better-sqlite3": "^9.5.0",
-    "fs-extra": "^11.2.0",
-    "lodash": "4.17.21",
-    "linkedom": "0.18.4",
-    "base64-js": "1.5.1",
-    "hash.js": "1.1.7",
-    "@zip.js/zip.js": "^2.6.40",
-    "@aws-sdk/client-s3": "^3.609.0",
-    "@aws-sdk/credential-providers": "^3.609.0",
-    "@smithy/types": "^3.3.0",
-    "@inquirer/prompts": "5.3.8"
-  },
-  "files": [
-    "/README.md",
-    "/LICENSE.txt",
-    "**/*.js",
-    "**/*.js.map",
-    "**/*.d.ts",
-    "/migrations/**/*.sql",
-    "./schema.prisma"
-  ],
-  "prisma": {
-    "schema": "./schema.prisma"
-  }
+    "name": "@helloao/cli",
+    "version": "0.0.4",
+    "description": "A CLI and related tools for managing HelloAO's Free Bible API",
+    "module": "index.js",
+    "types": "index.d.ts",
+    "bin": {
+        "helloao": "./cli.js"
+    },
+    "scripts": {
+        "postinstall": "prisma generate"
+    },
+    "author": "Kallyn Gowdy <kal@helloao.org>",
+    "license": "MIT",
+    "dependencies": {
+        "@helloao/tools": "^0.0.4",
+        "commander": "12.1.0",
+        "@gracious.tech/fetch-client": "^0.7.0",
+        "prisma": "^5.12.1",
+        "@prisma/client": "^5.12.1",
+        "better-sqlite3": "^9.5.0",
+        "fs-extra": "^11.2.0",
+        "lodash": "4.17.21",
+        "linkedom": "0.18.4",
+        "base64-js": "1.5.1",
+        "hash.js": "1.1.7",
+        "@zip.js/zip.js": "^2.6.40",
+        "@aws-sdk/client-s3": "^3.609.0",
+        "@aws-sdk/credential-providers": "^3.609.0",
+        "@smithy/types": "^3.3.0",
+        "@inquirer/prompts": "5.3.8",
+        "all-iso-language-codes": "1.0.17"
+    },
+    "files": [
+        "/README.md",
+        "/LICENSE.txt",
+        "**/*.js",
+        "**/*.js.map",
+        "**/*.d.ts",
+        "/migrations/**/*.sql",
+        "./schema.prisma"
+    ],
+    "prisma": {
+        "schema": "./schema.prisma"
+    }
 }

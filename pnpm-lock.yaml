@@ -107,6 +107,9 @@ importers:
       '@zip.js/zip.js':
         specifier: ^2.6.40
         version: 2.7.46
+      all-iso-language-codes:
+        specifier: 1.0.17
+        version: 1.0.17
       base64-js:
         specifier: 1.5.1
         version: 1.5.1
@@ -134,9 +137,6 @@ importers:
 
   packages/helloao-tools:
     dependencies:
-      all-iso-language-codes:
-        specifier: 1.0.17
-        version: 1.0.17
       lodash:
         specifier: 4.17.21
         version: 4.17.21
