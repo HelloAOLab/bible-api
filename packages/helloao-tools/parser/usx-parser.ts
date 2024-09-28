@@ -9,13 +9,13 @@ import {
     HebrewSubtitle,
     InlineLineBreak,
     InlineHeading,
-} from './types.js';
+} from './types';
 import {
     iterateAll,
     children,
     RewindableIterator,
     isParent,
-} from './iterators.js';
+} from './iterators';
 
 enum NodeType {
     Text = 3,

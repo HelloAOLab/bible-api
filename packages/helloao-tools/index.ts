@@ -1,5 +1,9 @@
-import * as utils from './utils.js';
-import * as generation from './generation/index.js';
-import * as parser from './parser/index.js';
+import * as utils from './utils';
+import * as generation from './generation';
+import * as parser from './parser';
 
-export { utils, generation, parser };
+export {
+    utils,
+    generation,
+    parser,
+};

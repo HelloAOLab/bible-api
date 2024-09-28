@@ -1,15 +1,15 @@
-import { UsfmParser } from '../parser/usfm-parser.js';
-import { USXParser } from '../parser/usx-parser.js';
+import { UsfmParser } from '../parser';
+import { USXParser } from '../parser/usx-parser';
 import {
     InputFile,
     Translation,
     TranslationBook,
     TranslationBookChapter,
-} from './common-types.js';
-import { bookIdMap, bookOrderMap } from './book-order.js';
+} from './common-types';
+import { bookIdMap, bookOrderMap } from './book-order';
 import { omit, sortBy, sortedIndexBy } from 'lodash';
-import { getAudioUrlsForChapter } from './audio.js';
-import { CodexParser } from '../parser/codex-parser.js';
+import { getAudioUrlsForChapter } from './audio';
+import { CodexParser } from '../parser/codex-parser';
 
 /**
  * Defines an interface that contains generated dataset info.

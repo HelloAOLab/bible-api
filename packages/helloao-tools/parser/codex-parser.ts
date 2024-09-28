@@ -1,12 +1,6 @@
 import { z } from 'zod';
-import {
-    Chapter,
-    ChapterContent,
-    ParseTree,
-    Verse,
-    VerseContent,
-} from './types.js';
-import { parseVerseReference, VerseRef } from '../utils.js';
+import { Chapter, ChapterContent, ParseTree, Verse, VerseContent } from './types';
+import { parseVerseReference, VerseRef } from '../utils';
 
 export const chapterHeadingSchema = z.object({
     type: z.literal('chapter-heading'),
@@ -16,30 +10,25 @@ export const chapterHeadingSchema = z.object({
 });
 
 export const metadataSchema = z.discriminatedUnion('type', [
-    chapterHeadingSchema,
+    chapterHeadingSchema
 ]);
 
 export const codexSchema = z.object({
-    cells: z.array(
-        z.object({
-            // kind: z.number().int(),
-            language: z.string(),
-            value: z.string(),
-            metadata: z
-                .object({
-                    type: z.string(),
-                })
-                .passthrough()
-                .nullable()
-                .optional(),
-        })
-    ),
+    cells: z.array(z.object({
+        // kind: z.number().int(),
+        language: z.string(),
+        value: z.string(),
+        metadata: z.object({
+            type: z.string()
+        }).passthrough().nullable().optional()
+    })),
 });
 
 /**
  * Defines a parser for codex files.
  */
 export class CodexParser {
+
     // TODO:
     // /**
     //  * Whether to preserve markdown in the parsed content.
@@ -60,23 +49,20 @@ export class CodexParser {
 
         let root: ParseTree = {
             type: 'root',
-            content: [],
+            content: []
         };
 
         let chapters: Map<number, Chapter> = new Map();
         let lastChapter: Chapter | null = null;
 
-        function addChapterContent(
-            chapterNumber: number,
-            content: ChapterContent[]
-        ) {
+        function addChapterContent(chapterNumber: number, content: ChapterContent[]) {
             let chapter = chapters.get(chapterNumber);
             if (!chapter) {
                 chapter = {
                     type: 'chapter',
                     number: chapterNumber,
                     content: [],
-                    footnotes: [],
+                    footnotes: []
                 };
                 lastChapter = chapter;
                 chapters.set(chapterNumber, chapter);
@@ -90,20 +76,18 @@ export class CodexParser {
                 {
                     type: 'verse',
                     number: ref.verse,
-                    content: content,
-                },
+                    content: content
+                }
             ]);
         }
 
         for (let cell of data.cells) {
             if (cell.language === 'scripture') {
                 const lines = cell.value.split('\n');
-                const references = lines.map(
-                    (l) => parseVerseReference(l) ?? l
-                );
+                const references = lines.map(l => parseVerseReference(l) ?? l);
                 let currentRef: VerseRef | null = null;
                 let content: Verse['content'] = [];
-                for (let i = 0; i < references.length; i++) {
+                for(let i = 0; i < references.length; i++) {
                     const ref = references[i];
                     const nextRef = references[i + 1];
 
@@ -117,29 +101,30 @@ export class CodexParser {
                             if (typeof nextRef === 'object') {
                                 // between verses
 
-                                if (
-                                    currentRef &&
-                                    currentRef.chapter === nextRef.chapter
-                                ) {
+                                if (currentRef && currentRef.chapter === nextRef.chapter) {
                                     // in same chapter
                                     addChapterContent(currentRef.chapter, [
                                         {
                                             type: 'line_break',
-                                        },
+                                        }
                                     ]);
                                 } else {
                                     // do nothing since line breaks between chapters are ignored
                                 }
                             } else {
                                 // inside verse
-                                content.push({
-                                    lineBreak: true,
-                                });
+                                content.push(
+                                    {
+                                        lineBreak: true
+                                    }
+                                );
                             }
                         } else if (ref) {
                             content.push(ref);
                         }
+
                     } else {
+
                         if (!root.id) {
                             root.id = ref.book;
                         }
@@ -169,8 +154,8 @@ export class CodexParser {
                         addChapterContent(chapter, [
                             {
                                 type: 'heading',
-                                content: [cell.value],
-                            },
+                                content: [cell.value]
+                            }
                         ]);
                     }
                 } else {
@@ -185,10 +170,11 @@ export class CodexParser {
             }
         }
 
-        for (let chapter of chapters.values()) {
+        for(let chapter of chapters.values()) {
             root.content.push(chapter);
         }
 
         return root;
     }
+
 }

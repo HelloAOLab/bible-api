@@ -2,16 +2,16 @@ import {
     generateApiForDataset,
     generateFilesForApi,
     replaceSpacesWithUnderscores,
-} from './api.js';
+} from './api';
 import Genesis from '../../../bible/bsb/01GENBSB.usfm';
 import Exodus from '../../../bible/bsb/02EXOBSB.usfm';
 import _1Chronicles from '../../../bible/bsb/131CHBSB.usfm';
-import { generateDataset } from './dataset.js';
+import { generateDataset } from './dataset';
 import {
     InputFile,
     InputTranslationMetadata,
     OutputFile,
-} from './common-types.js';
+} from './common-types';
 import { DOMParser, Element, Node } from 'linkedom';
 
 describe('replaceSpacesWithUnderscores()', () => {

@@ -1,4 +1,4 @@
-import { PrismaClient, Prisma } from './prisma-gen/index.js';
+import { PrismaClient, Prisma } from './prisma-gen';
 import path, { dirname } from 'path';
 import Sql, { Database } from 'better-sqlite3';
 import { readdir, readFile } from 'fs-extra';
@@ -8,7 +8,7 @@ import {
     DatasetTranslation,
     DatasetTranslationBook,
     generateDataset,
-} from '@helloao/tools/generation/dataset.js';
+} from '@helloao/tools/generation/dataset';
 import {
     ChapterVerse,
     InputFile,
@@ -21,13 +21,14 @@ import {
     GenerateApiOptions,
     generateFilesForApi,
     generateOutputFilesFromDatasets,
-} from '@helloao/tools/generation/api.js';
-import { loadTranslationFiles, serializeOutputFiles } from './files.js';
+} from '@helloao/tools/generation/api';
+import { getEnglishName, getNativeName } from 'all-iso-language-codes';
+import { loadTranslationFiles, serializeOutputFiles } from './files';
 import { sha256 } from 'hash.js';
 import { DOMParser } from 'linkedom';
 import { Readable } from 'stream';
 
-const cliPath = require.resolve('@helloao/cli');
+const cliPath = require.resolve('./index');
 const migrationsPath = path.resolve(dirname(cliPath), 'migrations');
 
 /**

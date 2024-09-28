@@ -2,12 +2,7 @@
     "name": "@helloao/tools",
     "version": "0.0.6",
     "description": "A set of tools for managing HelloAO's Free Bible API",
-    "main": "index.js",
-    "type": "module",
-    "exports": {
-        "import": "./index.js",
-        "require": "./dist.index.cjs"
-    },
+    "module": "index.js",
     "types": "index.d.ts",
     "scripts": {},
     "author": "Kallyn Gowdy <kal@helloao.org>",
@@ -26,9 +21,6 @@
         "/migrations/**/*.sql",
         "**/*.js",
         "**/*.js.map",
-        "**/*.cjs",
-        "**/*.cjs.map",
-        "**/*.d.ts",
-        "dist"
+        "**/*.d.ts"
     ]
 }
