@@ -4,8 +4,8 @@ import {
     TranslationBook,
     TranslationBookChapter,
     TranslationBookChapterAudioLinks,
-} from './common-types';
-import { DatasetOutput } from './dataset';
+} from './common-types.js';
+import { DatasetOutput } from './dataset.js';
 
 /**
  * Defines the output of the API generation.

@@ -4,8 +4,8 @@ import { Command } from 'commander';
 import path, { extname } from 'path';
 import { mkdir, stat, writeFile } from 'fs/promises';
 import { DOMParser, Element, Node } from 'linkedom';
-import { downloadFile } from './downloads';
-import { uploadApiFilesFromDatabase } from './uploads';
+import { downloadFile } from './downloads.js';
+import { uploadApiFilesFromDatabase } from './uploads.js';
 import {
     askForMetadata,
     fetchAudio,
@@ -17,8 +17,8 @@ import {
     initDb,
     uploadTestTranslation,
     uploadTestTranslations,
-} from './actions';
-import { getPrismaDbFromDir } from './db';
+} from './actions.js';
+import { getPrismaDbFromDir } from './db.js';
 import { confirm, input } from '@inquirer/prompts';
 
 async function start() {
