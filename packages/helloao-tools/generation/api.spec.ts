@@ -78,8 +78,6 @@ describe('generateApiForDataset()', () => {
             numberOfBooks: 2,
             totalNumberOfChapters: 2,
             totalNumberOfVerses: 4,
-            languageName: 'English',
-            languageEnglishName: 'English',
         };
 
         expect(tree).toEqual({
@@ -273,8 +271,6 @@ describe('generateApiForDataset()', () => {
             numberOfBooks: 2,
             totalNumberOfChapters: 2,
             totalNumberOfVerses: 4,
-            languageName: 'English',
-            languageEnglishName: 'English',
         };
 
         expect(tree).toEqual({
@@ -454,8 +450,6 @@ describe('generateApiForDataset()', () => {
             numberOfBooks: 1,
             totalNumberOfChapters: 1,
             totalNumberOfVerses: 1,
-            languageName: 'English',
-            languageEnglishName: 'English',
         };
 
         expect(tree).toEqual({
@@ -569,8 +563,6 @@ describe('generateApiForDataset()', () => {
             numberOfBooks: 1,
             totalNumberOfChapters: 1,
             totalNumberOfVerses: 1,
-            languageName: 'español',
-            languageEnglishName: 'Spanish',
         };
 
         expect(tree).toEqual({

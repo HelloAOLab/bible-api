@@ -15,12 +15,18 @@ let folders = [
 let patterns = [
     `/**/*.js`,
     `/**/*.js.map`,
+    `/**/*.cjs`,
+    `/**/*.cjs.map`,
     `/**/*.ts.map`,
     `/**/*.d.ts`,
     `/*.tsbuildinfo`,
 ];
 
-let negativePatterns = [`/typings/**/*`, `/node_modules/**/*`, `**/prisma-gen/**/*`];
+let negativePatterns = [
+    `/typings/**/*`,
+    `/node_modules/**/*`,
+    `**/prisma-gen/**/*`,
+];
 
 let globs = [];
 folders.forEach((f) => {

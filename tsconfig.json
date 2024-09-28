@@ -1,8 +1,11 @@
 {
-  "extends": "./tsconfig.base.json",
-  "files": [],
-  "references": [
-      { "path": "./packages/helloao-cli" },
-      { "path": "./packages/helloao-tools" }
-  ]
+    "extends": "./tsconfig.base.json",
+    "compilerOptions": {
+        "esModuleInterop": true
+    },
+    "files": [],
+    "references": [
+        { "path": "./packages/helloao-cli" },
+        { "path": "./packages/helloao-tools" }
+    ]
 }

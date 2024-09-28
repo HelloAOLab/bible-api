@@ -9,10 +9,7 @@
         "incremental": true,
         "skipLibCheck": true
     },
-    "exclude": ["node_modules"],
-    "include": [
-        "./**/*.ts",
-        "./typings/**/*"
-    ],
-    "references": [],
+    "exclude": ["node_modules", "./**/*.spec.ts"],
+    "include": ["./**/*.ts", "./typings/**/*"],
+    "references": []
 }

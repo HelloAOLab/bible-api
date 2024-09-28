@@ -860,7 +860,11 @@ export function serializeDatasets(
     options: SerializeApiOptions = {}
 ): AsyncGenerator<SerializedFile[]> {
     return serializeOutputFiles(
-        generateOutputFilesFromDatasets(datasets, options),
+        generateOutputFilesFromDatasets(datasets, {
+            getEnglishName: getEnglishName,
+            getNativeName: getNativeName,
+            ...options,
+        }),
         options
     );
 }

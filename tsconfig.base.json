@@ -2,13 +2,8 @@
     "compilerOptions": {
         "target": "ESNext",
         "useDefineForClassFields": true,
-        "module": "CommonJS",
-        "lib": [
-            "ESNext",
-            "DOM",
-            "DOM.AsyncIterable",
-            "DOM.Iterable"
-        ],
+        "module": "ESNext",
+        "lib": ["ESNext", "DOM", "DOM.AsyncIterable", "DOM.Iterable"],
         "moduleResolution": "node",
         "strict": true,
         "resolveJsonModule": true,
@@ -18,9 +13,6 @@
         "noImplicitReturns": true,
         "skipLibCheck": true,
         "jsx": "react-jsx",
-        "typeRoots": [
-            "node_modules/@types",
-            "packages/helloao-tools/typings"
-        ],
+        "typeRoots": ["node_modules/@types", "packages/helloao-tools/typings"]
     }
 }
