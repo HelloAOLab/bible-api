@@ -1,6 +1,6 @@
 {
     "name": "@helloao/cli",
-    "version": "0.0.8",
+    "version": "0.0.8-alpha",
     "description": "A CLI and related tools for managing HelloAO's Free Bible API",
     "type": "module",
     "exports": {
@@ -16,7 +16,7 @@
     "author": "Kallyn Gowdy <kal@helloao.org>",
     "license": "MIT",
     "dependencies": {
-        "@helloao/tools": "^0.0.6",
+        "@helloao/tools": "^0.0.6-alpha",
         "commander": "12.1.0",
         "@gracious.tech/fetch-client": "^0.7.0",
         "prisma": "^5.12.1",
