@@ -15,11 +15,11 @@ import {
     OutputFile,
     OutputFileContent,
     ParseTreeMetadata,
-} from '@helloao/tools/generation/common-types';
+} from '@helloao/tools/generation/common-types.js';
 import { ZipWriter, Writer, TextReader, Reader } from '@zip.js/zip.js';
 import { Readable, Writable } from 'stream';
 import { sha256 } from 'hash.js';
-import { PARSER_VERSION } from '@helloao/tools/parser/usx-parser';
+import { PARSER_VERSION } from '@helloao/tools/parser/usx-parser.js';
 import { mergeWith } from 'lodash';
 import { fromByteArray } from 'base64-js';
 

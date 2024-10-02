@@ -5,7 +5,7 @@ import {
     NotFound,
 } from '@aws-sdk/client-s3';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers'; // ES6 import
-import { SerializedFile, Uploader } from './files';
+import { SerializedFile, Uploader } from './files.js';
 import { AwsCredentialIdentity, Provider } from '@smithy/types';
 import { input, password } from '@inquirer/prompts';
 

@@ -1,7 +1,7 @@
-import * as api from './api';
-import * as audio from './audio';
-import * as dataset from './dataset';
-import * as bookOrder from './book-order';
-export * from './common-types';
+import * as api from './api.js';
+import * as audio from './audio.js';
+import * as dataset from './dataset.js';
+import * as bookOrder from './book-order.js';
+export * from './common-types.js';
 
 export { api, audio, dataset, bookOrder };

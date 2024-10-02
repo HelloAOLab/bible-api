@@ -1,4 +1,4 @@
-import { PrismaClient, Prisma } from './prisma-gen';
+import { PrismaClient, Prisma } from './prisma-gen/index.js';
 import path from 'path';
 import Sql, { Database } from 'better-sqlite3';
 import { exists, readdir, readFile } from 'fs-extra';
@@ -8,7 +8,7 @@ import {
     DatasetTranslation,
     DatasetTranslationBook,
     generateDataset,
-} from '@helloao/tools/generation/dataset';
+} from '@helloao/tools/generation/dataset.js';
 import {
     ChapterVerse,
     InputFile,
@@ -21,12 +21,12 @@ import {
     GenerateApiOptions,
     generateFilesForApi,
     generateOutputFilesFromDatasets,
-} from '@helloao/tools/generation/api';
-import { getEnglishName, getNativeName } from 'all-iso-language-codes';
-import { loadTranslationFiles, serializeOutputFiles } from './files';
+} from '@helloao/tools/generation/api.js';
+import { loadTranslationFiles, serializeOutputFiles } from './files.js';
 import { sha256 } from 'hash.js';
 import { DOMParser } from 'linkedom';
 import { Readable } from 'stream';
+import { getEnglishName, getNativeName } from 'all-iso-language-codes';
 
 let dirname = __dirname;
 if (!dirname) {

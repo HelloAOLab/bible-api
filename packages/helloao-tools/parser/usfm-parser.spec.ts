@@ -1,4 +1,5 @@
-import { isDigit,
+import {
+    isDigit,
     isWhitespace,
     loc,
     marker,
@@ -6,8 +7,8 @@ import { isDigit,
     UsfmParser,
     UsfmTokenizer,
     whitespace,
-    word
-} from './usfm-parser';
+    word,
+} from './usfm-parser.js';
 import hash from 'hash.js';
 
 import { readFile } from 'fs/promises';
@@ -25,56 +26,42 @@ describe('UsfmTokenizer', () => {
             it('should be able to parse single character markers', () => {
                 const tokens = tokenizer.tokenize(`\\a`);
 
-                expect(tokens).toEqual([
-                    t(loc(0, 2), 'marker'),
-                ]);
+                expect(tokens).toEqual([t(loc(0, 2), 'marker')]);
             });
 
             it('should be able to parse multiple character markers', () => {
                 const tokens = tokenizer.tokenize(`\\abc`);
 
-                expect(tokens).toEqual([
-                    t(loc(0, 4), 'marker'),
-                ]);
+                expect(tokens).toEqual([t(loc(0, 4), 'marker')]);
             });
 
             it('should be able to parse markers with numbers', () => {
                 const tokens = tokenizer.tokenize(`\\abc123`);
 
-                expect(tokens).toEqual([
-                    t(loc(0, 7), 'marker'),
-                ]);
+                expect(tokens).toEqual([t(loc(0, 7), 'marker')]);
             });
 
             it('should be able to parse end markers', () => {
                 const tokens = tokenizer.tokenize(`\\abc*`);
 
-                expect(tokens).toEqual([
-                    t(loc(0, 5), 'marker'),
-                ]);
+                expect(tokens).toEqual([t(loc(0, 5), 'marker')]);
             });
 
             it('should be able to parse end markers with numbers', () => {
                 const tokens = tokenizer.tokenize(`\\abc123*`);
 
-                expect(tokens).toEqual([
-                    t(loc(0, 8), 'marker'),
-                ]);
+                expect(tokens).toEqual([t(loc(0, 8), 'marker')]);
             });
 
             it('should not throw an error if the marker does not have a command', () => {
                 const tokens = tokenizer.tokenize(`\\`);
 
-                expect(tokens).toEqual([
-                    t(loc(0, 1), 'marker')
-                ]);
+                expect(tokens).toEqual([t(loc(0, 1), 'marker')]);
             });
 
             it('should not throw an error if the marker has a number but not a command', () => {
                 const tokens = tokenizer.tokenize(`\\1`);
-                expect(tokens).toEqual([
-                    t(loc(0, 2), 'marker')
-                ]);
+                expect(tokens).toEqual([t(loc(0, 2), 'marker')]);
             });
 
             it('should be able to parse end markers that have text after them', () => {
@@ -130,9 +117,7 @@ describe('UsfmTokenizer', () => {
             it('should be able to parse characters into words', () => {
                 const tokens = tokenizer.tokenize(`abc`);
 
-                expect(tokens).toEqual([
-                    t(loc(0, 3), 'word'),
-                ]);
+                expect(tokens).toEqual([t(loc(0, 3), 'word')]);
             });
         });
 
@@ -140,41 +125,31 @@ describe('UsfmTokenizer', () => {
             it('should be able to parse space into whitespace', () => {
                 const tokens = tokenizer.tokenize(` `);
 
-                expect(tokens).toEqual([
-                    t(loc(0, 1), 'whitespace'),
-                ]);
+                expect(tokens).toEqual([t(loc(0, 1), 'whitespace')]);
             });
 
             it('should be able to parse newlines into whitespace', () => {
                 const tokens = tokenizer.tokenize(`\n`);
 
-                expect(tokens).toEqual([
-                    t(loc(0, 1), 'whitespace'),
-                ]);
+                expect(tokens).toEqual([t(loc(0, 1), 'whitespace')]);
             });
-            
+
             it('should be able to parse carriage returns into whitespace', () => {
                 const tokens = tokenizer.tokenize(`\r`);
 
-                expect(tokens).toEqual([
-                    t(loc(0, 1), 'whitespace'),
-                ]);
+                expect(tokens).toEqual([t(loc(0, 1), 'whitespace')]);
             });
 
             it('should be able to parse tabs into whitespace', () => {
                 const tokens = tokenizer.tokenize(`\t`);
 
-                expect(tokens).toEqual([
-                    t(loc(0, 1), 'whitespace'),
-                ]);
+                expect(tokens).toEqual([t(loc(0, 1), 'whitespace')]);
             });
 
             it('should be able to parse multiple whitespace into whitespace', () => {
                 const tokens = tokenizer.tokenize(`\t \r\n`);
 
-                expect(tokens).toEqual([
-                    t(loc(0, 4), 'whitespace'),
-                ]);
+                expect(tokens).toEqual([t(loc(0, 4), 'whitespace')]);
             });
         });
     });
@@ -191,41 +166,31 @@ describe('UsfmParser', () => {
         it('should be able to tokenize single character markers', () => {
             const tokens = parser.tokenize(`\\a`);
 
-            expect(tokens).toEqual([
-                marker(loc(0, 2), '\\a', null, 'start')
-            ]);
+            expect(tokens).toEqual([marker(loc(0, 2), '\\a', null, 'start')]);
         });
 
         it('should be able to tokenize multiple character markers', () => {
             const tokens = parser.tokenize(`\\abc`);
 
-            expect(tokens).toEqual([
-                marker(loc(0, 4), '\\abc', null, 'start')
-            ]);
+            expect(tokens).toEqual([marker(loc(0, 4), '\\abc', null, 'start')]);
         });
 
         it('should be able to parse markers with numbers', () => {
             const tokens = parser.tokenize(`\\abc123`);
 
-            expect(tokens).toEqual([
-                marker(loc(0, 7), '\\abc', 123, 'start'),
-            ]);
+            expect(tokens).toEqual([marker(loc(0, 7), '\\abc', 123, 'start')]);
         });
 
         it('should be able to parse end markers', () => {
             const tokens = parser.tokenize(`\\abc*`);
 
-            expect(tokens).toEqual([
-                marker(loc(0, 5), '\\abc', null, 'end'),
-            ]);
+            expect(tokens).toEqual([marker(loc(0, 5), '\\abc', null, 'end')]);
         });
 
         it('should be able to parse end markers with numbers', () => {
             const tokens = parser.tokenize(`\\abc123*`);
 
-            expect(tokens).toEqual([
-                marker(loc(0, 8), '\\abc', 123, 'end'),
-            ]);
+            expect(tokens).toEqual([marker(loc(0, 8), '\\abc', 123, 'end')]);
         });
 
         it('should throw an error if the marker does not have a command', () => {
@@ -316,20 +281,20 @@ describe('UsfmParser', () => {
                         type: 'chapter',
                         number: 1,
                         content: [
-                            { 
-                                type: 'verse', 
+                            {
+                                type: 'verse',
                                 number: 1,
                                 content: [
-                                    'In the beginning God created the heavens and the earth.'
-                                ]
+                                    'In the beginning God created the heavens and the earth.',
+                                ],
                             },
-                            { 
-                                type: 'verse', 
+                            {
+                                type: 'verse',
                                 number: 2,
                                 content: [
-                                    'Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.'
-                                ]
-                            }
+                                    'Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.',
+                                ],
+                            },
                         ],
                         footnotes: [],
                     },
@@ -337,17 +302,17 @@ describe('UsfmParser', () => {
                         type: 'chapter',
                         number: 2,
                         content: [
-                            { 
-                                type: 'verse', 
+                            {
+                                type: 'verse',
                                 number: 1,
                                 content: [
-                                    'Thus the heavens and the earth were completed in all their vast array.'
-                                ]
+                                    'Thus the heavens and the earth were completed in all their vast array.',
+                                ],
                             },
                         ],
                         footnotes: [],
-                    }
-                ]
+                    },
+                ],
             });
         });
 
@@ -377,28 +342,41 @@ describe('UsfmParser', () => {
                         content: [
                             {
                                 type: 'heading',
-                                content: [
-                                    'The Two Paths'
-                                ]
+                                content: ['The Two Paths'],
                             },
-                            { 
-                                type: 'verse', 
+                            {
+                                type: 'verse',
                                 number: 1,
                                 content: [
                                     { text: 'Blessed is the man', poem: 1 },
-                                    { text: 'who does not walk in the counsel of the wicked,', poem: 2 },
-                                    { text: 'or set foot on the path of sinners,', poem: 1 },
-                                    { text: 'or sit in the seat of mockers.', poem: 2 }
-                                ]
+                                    {
+                                        text: 'who does not walk in the counsel of the wicked,',
+                                        poem: 2,
+                                    },
+                                    {
+                                        text: 'or set foot on the path of sinners,',
+                                        poem: 1,
+                                    },
+                                    {
+                                        text: 'or sit in the seat of mockers.',
+                                        poem: 2,
+                                    },
+                                ],
                             },
-                            { 
+                            {
                                 type: 'verse',
                                 number: 2,
                                 content: [
-                                    { text: 'But his delight is in the Law of the LORD,', poem: 1 },
-                                    { text: 'and on His law he meditates day and night.', poem: 2 }
-                                ]
-                            }
+                                    {
+                                        text: 'But his delight is in the Law of the LORD,',
+                                        poem: 1,
+                                    },
+                                    {
+                                        text: 'and on His law he meditates day and night.',
+                                        poem: 2,
+                                    },
+                                ],
+                            },
                         ],
                         footnotes: [],
                     },
@@ -406,18 +384,24 @@ describe('UsfmParser', () => {
                         type: 'chapter',
                         number: 2,
                         content: [
-                            { 
-                                type: 'verse', 
+                            {
+                                type: 'verse',
                                 number: 1,
                                 content: [
-                                    { text: 'Why do the nations rage', poem: 1 },
-                                    { text: 'and the peoples plot in vain?', poem: 2 }
-                                ]
+                                    {
+                                        text: 'Why do the nations rage',
+                                        poem: 1,
+                                    },
+                                    {
+                                        text: 'and the peoples plot in vain?',
+                                        poem: 2,
+                                    },
+                                ],
                             },
                         ],
                         footnotes: [],
-                    }
-                ]
+                    },
+                ],
             });
         });
 
@@ -446,22 +430,22 @@ describe('UsfmParser', () => {
                         content: [
                             {
                                 type: 'heading',
-                                content: ['The Creation']
+                                content: ['The Creation'],
                             },
                             {
                                 type: 'line_break',
                             },
-                            { 
-                                type: 'verse', 
+                            {
+                                type: 'verse',
                                 number: 1,
                                 content: [
-                                    'In the beginning God created the heavens and the earth.'
-                                ]
+                                    'In the beginning God created the heavens and the earth.',
+                                ],
                             },
                         ],
                         footnotes: [],
                     },
-                ]
+                ],
             });
         });
 
@@ -490,22 +474,22 @@ describe('UsfmParser', () => {
                         content: [
                             {
                                 type: 'heading',
-                                content: ['The Creation']
+                                content: ['The Creation'],
                             },
                             {
                                 type: 'line_break',
                             },
-                            { 
-                                type: 'verse', 
+                            {
+                                type: 'verse',
                                 number: 1,
                                 content: [
-                                    'In the beginning God created the heavens and the earth.'
-                                ]
+                                    'In the beginning God created the heavens and the earth.',
+                                ],
                             },
                         ],
                         footnotes: [],
                     },
-                ]
+                ],
             });
         });
 
@@ -526,25 +510,25 @@ describe('UsfmParser', () => {
                         type: 'chapter',
                         number: 1,
                         content: [
-                            { 
-                                type: 'verse', 
+                            {
+                                type: 'verse',
                                 number: 1,
                                 content: [
-                                    'In the beginning God created the heavens and the earth.'
-                                ]
+                                    'In the beginning God created the heavens and the earth.',
+                                ],
                             },
                             {
-                                type: 'line_break'
+                                type: 'line_break',
                             },
-                            { 
-                                type: 'verse', 
+                            {
+                                type: 'verse',
                                 number: 2,
                                 content: [
-                                    'Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.'
-                                ]
+                                    'Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.',
+                                ],
                             },
                             {
-                                type: 'line_break'
+                                type: 'line_break',
                             },
                         ],
                         footnotes: [],
@@ -553,17 +537,17 @@ describe('UsfmParser', () => {
                         type: 'chapter',
                         number: 2,
                         content: [
-                            { 
-                                type: 'verse', 
+                            {
+                                type: 'verse',
                                 number: 1,
                                 content: [
-                                    'Thus the heavens and the earth were completed in all their vast array.'
-                                ]
+                                    'Thus the heavens and the earth were completed in all their vast array.',
+                                ],
                             },
                         ],
                         footnotes: [],
-                    }
-                ]
+                    },
+                ],
             });
         });
 
@@ -582,50 +566,48 @@ describe('UsfmParser', () => {
                         type: 'chapter',
                         number: 24,
                         content: [
-                            { 
-                                type: 'verse', 
+                            {
+                                type: 'verse',
                                 number: 18,
                                 content: [
-                                    'وَالثَّالِثَةُ وَالْعِشْرُونَ لِدَلايَا، وَالرَّابِعَةُ وَالْعِشْرُونَ لِمَعَزْيَا.'
-                                ]
+                                    'وَالثَّالِثَةُ وَالْعِشْرُونَ لِدَلايَا، وَالرَّابِعَةُ وَالْعِشْرُونَ لِمَعَزْيَا.',
+                                ],
                             },
-                            { 
+                            {
                                 type: 'verse',
                                 number: 19,
                                 content: [
-                                    'هَذَا كَانَ تَرْتِيبَ خَدَمَاتِهِمِ الَّتِي كُلِّفُوا بِها عِنْدَ دُخُولِهِمْ إِلَى بَيْتِ الرَّبِّ بِمُقْتَضَى الْمَرَاسِيمِ الَّتِي حَدَّدَهَا لَهُمْ جَدُّهُمُ الأَكْبَرُ هرُونُ، تَمَاماً كَمَا أَمَرَهُ الرَّبُّ إِلَهُ إِسْرَائِيلَ.'
-                                ]
+                                    'هَذَا كَانَ تَرْتِيبَ خَدَمَاتِهِمِ الَّتِي كُلِّفُوا بِها عِنْدَ دُخُولِهِمْ إِلَى بَيْتِ الرَّبِّ بِمُقْتَضَى الْمَرَاسِيمِ الَّتِي حَدَّدَهَا لَهُمْ جَدُّهُمُ الأَكْبَرُ هرُونُ، تَمَاماً كَمَا أَمَرَهُ الرَّبُّ إِلَهُ إِسْرَائِيلَ.',
+                                ],
                             },
                             {
                                 type: 'line_break',
                             },
                             {
                                 type: 'heading',
-                                content: [
-                                    'بقية اللاويين'
-                                ]
+                                content: ['بقية اللاويين'],
                             },
                             {
                                 type: 'verse',
                                 number: 20,
                                 content: [
-                                    'أَمَّا بَقِيَّةُ أَبْنَاءِ لاوِي فَهُمْ: مِنْ ذُرِّيَّةِ عَمْرَامَ: شُوبَائِيلُ، وَمِنْ أَبْنَاءِ شُوبَائِيلَ يَحَدْيَا.'
-                                ]
+                                    'أَمَّا بَقِيَّةُ أَبْنَاءِ لاوِي فَهُمْ: مِنْ ذُرِّيَّةِ عَمْرَامَ: شُوبَائِيلُ، وَمِنْ أَبْنَاءِ شُوبَائِيلَ يَحَدْيَا.',
+                                ],
                             },
                             {
-                                type: 'line_break'
+                                type: 'line_break',
                             },
                             {
                                 type: 'verse',
                                 number: 21,
                                 content: [
-                                    'وَمِنْ ذُرِّيَّةِ رَحَبْيَا: الْبِكْرُ يَشِّيَّا.'
-                                ]
-                            }
+                                    'وَمِنْ ذُرِّيَّةِ رَحَبْيَا: الْبِكْرُ يَشِّيَّا.',
+                                ],
+                            },
                         ],
                         footnotes: [],
                     },
-                ]
+                ],
             });
         });
 
@@ -643,24 +625,24 @@ describe('UsfmParser', () => {
                         type: 'chapter',
                         number: 1,
                         content: [
-                            { 
-                                type: 'verse', 
+                            {
+                                type: 'verse',
                                 number: 1,
                                 content: [
-                                    'In the beginning God created the heavens and the earth.'
-                                ]
+                                    'In the beginning God created the heavens and the earth.',
+                                ],
                             },
-                            { 
+                            {
                                 type: 'verse',
                                 number: 2,
                                 content: [
-                                    'Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.'
-                                ]
+                                    'Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.',
+                                ],
                             },
                         ],
                         footnotes: [],
                     },
-                ]
+                ],
             });
         });
 
@@ -681,25 +663,25 @@ describe('UsfmParser', () => {
                         type: 'chapter',
                         number: 1,
                         content: [
-                            { 
-                                type: 'verse', 
+                            {
+                                type: 'verse',
                                 number: 1,
                                 content: [
-                                    'In the beginning God created the heavens and the earth.'
-                                ]
+                                    'In the beginning God created the heavens and the earth.',
+                                ],
                             },
                             {
-                                type: 'line_break'
+                                type: 'line_break',
                             },
-                            { 
-                                type: 'verse', 
+                            {
+                                type: 'verse',
                                 number: 2,
                                 content: [
-                                    'Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.'
-                                ]
+                                    'Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.',
+                                ],
                             },
                             {
-                                type: 'line_break'
+                                type: 'line_break',
                             },
                         ],
                         footnotes: [],
@@ -708,17 +690,17 @@ describe('UsfmParser', () => {
                         type: 'chapter',
                         number: 2,
                         content: [
-                            { 
-                                type: 'verse', 
+                            {
+                                type: 'verse',
                                 number: 1,
                                 content: [
-                                    'Thus the heavens and the earth were completed in all their vast array.'
-                                ]
+                                    'Thus the heavens and the earth were completed in all their vast array.',
+                                ],
                             },
                         ],
                         footnotes: [],
-                    }
-                ]
+                    },
+                ],
             });
         });
 
@@ -740,20 +722,20 @@ describe('UsfmParser', () => {
                         type: 'chapter',
                         number: 1,
                         content: [
-                            { 
-                                type: 'verse', 
+                            {
+                                type: 'verse',
                                 number: 1,
                                 content: [
-                                    'In the beginning God created the heavens and the earth.'
-                                ]
+                                    'In the beginning God created the heavens and the earth.',
+                                ],
                             },
-                            { 
-                                type: 'verse', 
+                            {
+                                type: 'verse',
                                 number: 2,
                                 content: [
-                                    'Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.'
-                                ]
-                            }
+                                    'Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.',
+                                ],
+                            },
                         ],
                         footnotes: [],
                     },
@@ -761,17 +743,17 @@ describe('UsfmParser', () => {
                         type: 'chapter',
                         number: 2,
                         content: [
-                            { 
-                                type: 'verse', 
+                            {
+                                type: 'verse',
                                 number: 1,
                                 content: [
-                                    'Thus the heavens and the earth were completed in all their vast array.'
-                                ]
+                                    'Thus the heavens and the earth were completed in all their vast array.',
+                                ],
                             },
                         ],
                         footnotes: [],
-                    }
-                ]
+                    },
+                ],
             });
         });
 
@@ -795,20 +777,20 @@ describe('UsfmParser', () => {
                         type: 'chapter',
                         number: 1,
                         content: [
-                            { 
-                                type: 'verse', 
+                            {
+                                type: 'verse',
                                 number: 1,
                                 content: [
-                                    'In the beginning God created the heavens and the earth.'
-                                ]
+                                    'In the beginning God created the heavens and the earth.',
+                                ],
                             },
-                            { 
-                                type: 'verse', 
+                            {
+                                type: 'verse',
                                 number: 2,
                                 content: [
-                                    'Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.'
-                                ]
-                            }
+                                    'Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.',
+                                ],
+                            },
                         ],
                         footnotes: [],
                     },
@@ -816,17 +798,17 @@ describe('UsfmParser', () => {
                         type: 'chapter',
                         number: 2,
                         content: [
-                            { 
-                                type: 'verse', 
+                            {
+                                type: 'verse',
                                 number: 1,
                                 content: [
-                                    'Thus the heavens and the earth were completed in all their vast array.'
-                                ]
+                                    'Thus the heavens and the earth were completed in all their vast array.',
+                                ],
                             },
                         ],
                         footnotes: [],
-                    }
-                ]
+                    },
+                ],
             });
         });
 
@@ -848,20 +830,20 @@ describe('UsfmParser', () => {
                         type: 'chapter',
                         number: 1,
                         content: [
-                            { 
-                                type: 'verse', 
+                            {
+                                type: 'verse',
                                 number: 1,
                                 content: [
-                                    'In the beginning God created the heavens and the earth.'
-                                ]
+                                    'In the beginning God created the heavens and the earth.',
+                                ],
                             },
-                            { 
-                                type: 'verse', 
+                            {
+                                type: 'verse',
                                 number: 2,
                                 content: [
-                                    'Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.'
-                                ]
-                            }
+                                    'Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.',
+                                ],
+                            },
                         ],
                         footnotes: [],
                     },
@@ -869,17 +851,17 @@ describe('UsfmParser', () => {
                         type: 'chapter',
                         number: 2,
                         content: [
-                            { 
-                                type: 'verse', 
+                            {
+                                type: 'verse',
                                 number: 1,
                                 content: [
-                                    'Thus the heavens and the earth were completed in all their vast array.'
-                                ]
+                                    'Thus the heavens and the earth were completed in all their vast array.',
+                                ],
                             },
                         ],
                         footnotes: [],
-                    }
-                ]
+                    },
+                ],
             });
         });
 
@@ -901,24 +883,22 @@ describe('UsfmParser', () => {
                         content: [
                             {
                                 type: 'heading',
-                                content: [
-                                    'The Creation'
-                                ]
+                                content: ['The Creation'],
                             },
-                            { 
-                                type: 'verse', 
+                            {
+                                type: 'verse',
                                 number: 1,
                                 content: [
-                                    'In the beginning God created the heavens and the earth.'
-                                ]
+                                    'In the beginning God created the heavens and the earth.',
+                                ],
                             },
-                            { 
-                                type: 'verse', 
+                            {
+                                type: 'verse',
                                 number: 2,
                                 content: [
-                                    'Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.'
-                                ]
-                            }
+                                    'Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.',
+                                ],
+                            },
                         ],
                         footnotes: [],
                     },
@@ -926,17 +906,17 @@ describe('UsfmParser', () => {
                         type: 'chapter',
                         number: 2,
                         content: [
-                            { 
-                                type: 'verse', 
+                            {
+                                type: 'verse',
                                 number: 1,
                                 content: [
-                                    'Thus the heavens and the earth were completed in all their vast array.'
-                                ]
+                                    'Thus the heavens and the earth were completed in all their vast array.',
+                                ],
                             },
                         ],
                         footnotes: [],
-                    }
-                ]
+                    },
+                ],
             });
         });
 
@@ -949,11 +929,9 @@ describe('UsfmParser', () => {
                 content: [
                     {
                         type: 'heading',
-                        content: [
-                            'The Creation'
-                        ],
-                    }
-                ]
+                        content: ['The Creation'],
+                    },
+                ],
             });
         });
 
@@ -973,19 +951,19 @@ describe('UsfmParser', () => {
                         type: 'chapter',
                         number: 1,
                         content: [
-                            { 
-                                type: 'verse', 
+                            {
+                                type: 'verse',
                                 number: 1,
                                 content: [
-                                    'In the beginning God created the heavens and the earth.'
-                                ]
+                                    'In the beginning God created the heavens and the earth.',
+                                ],
                             },
-                            { 
-                                type: 'verse', 
+                            {
+                                type: 'verse',
                                 number: 2,
                                 content: [
-                                    'Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.'
-                                ]
+                                    'Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.',
+                                ],
                             },
                             {
                                 type: 'verse',
@@ -993,11 +971,11 @@ describe('UsfmParser', () => {
                                 content: [
                                     'And God said, “Let there be light,”',
                                     {
-                                        noteId: 0
+                                        noteId: 0,
                                     },
-                                    'and there was light.'
-                                ]
-                            }
+                                    'and there was light.',
+                                ],
+                            },
                         ],
                         footnotes: [
                             {
@@ -1006,26 +984,26 @@ describe('UsfmParser', () => {
                                 caller: '+',
                                 reference: {
                                     chapter: 1,
-                                    verse: 3
-                                }
-                            }
-                        ]
+                                    verse: 3,
+                                },
+                            },
+                        ],
                     },
                     {
                         type: 'chapter',
                         number: 2,
                         content: [
-                            { 
-                                type: 'verse', 
+                            {
+                                type: 'verse',
                                 number: 1,
                                 content: [
-                                    'Thus the heavens and the earth were completed in all their vast array.'
-                                ]
+                                    'Thus the heavens and the earth were completed in all their vast array.',
+                                ],
                             },
                         ],
-                        footnotes: []
-                    }
-                ]
+                        footnotes: [],
+                    },
+                ],
             });
         });
 
@@ -1045,19 +1023,19 @@ describe('UsfmParser', () => {
                         type: 'chapter',
                         number: 1,
                         content: [
-                            { 
-                                type: 'verse', 
+                            {
+                                type: 'verse',
                                 number: 1,
                                 content: [
-                                    'In the beginning God created the heavens and the earth.'
-                                ]
+                                    'In the beginning God created the heavens and the earth.',
+                                ],
                             },
-                            { 
-                                type: 'verse', 
+                            {
+                                type: 'verse',
                                 number: 2,
                                 content: [
-                                    'Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.'
-                                ]
+                                    'Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.',
+                                ],
                             },
                             {
                                 type: 'verse',
@@ -1065,11 +1043,11 @@ describe('UsfmParser', () => {
                                 content: [
                                     'And God said, “Let there be light,”',
                                     {
-                                        noteId: 0
+                                        noteId: 0,
                                     },
-                                    'and there was light.'
-                                ]
-                            }
+                                    'and there was light.',
+                                ],
+                            },
                         ],
                         footnotes: [
                             {
@@ -1078,26 +1056,26 @@ describe('UsfmParser', () => {
                                 caller: 'a',
                                 reference: {
                                     chapter: 1,
-                                    verse: 3
-                                }
-                            }
-                        ]
+                                    verse: 3,
+                                },
+                            },
+                        ],
                     },
                     {
                         type: 'chapter',
                         number: 2,
                         content: [
-                            { 
-                                type: 'verse', 
+                            {
+                                type: 'verse',
                                 number: 1,
                                 content: [
-                                    'Thus the heavens and the earth were completed in all their vast array.'
-                                ]
+                                    'Thus the heavens and the earth were completed in all their vast array.',
+                                ],
                             },
                         ],
-                        footnotes: []
-                    }
-                ]
+                        footnotes: [],
+                    },
+                ],
             });
         });
 
@@ -1115,7 +1093,7 @@ describe('UsfmParser', () => {
                     //         'The Holy Bible is translated into many languages, and being translated into many more, so that everyone may have an opportunity to hear the Good News about Jesus Christ.'
                     //     ]
                     // }
-                ]
+                ],
             });
         });
 
@@ -1135,20 +1113,20 @@ describe('UsfmParser', () => {
                         type: 'chapter',
                         number: 1,
                         content: [
-                            { 
-                                type: 'verse', 
+                            {
+                                type: 'verse',
                                 number: 1,
                                 content: [
-                                    'In the beginning God created the heavens and the earth.'
-                                ]
+                                    'In the beginning God created the heavens and the earth.',
+                                ],
                             },
-                            { 
-                                type: 'verse', 
+                            {
+                                type: 'verse',
                                 number: 2,
                                 content: [
-                                    'Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.'
-                                ]
-                            }
+                                    'Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.',
+                                ],
+                            },
                         ],
                         footnotes: [],
                     },
@@ -1156,17 +1134,17 @@ describe('UsfmParser', () => {
                         type: 'chapter',
                         number: 2,
                         content: [
-                            { 
-                                type: 'verse', 
+                            {
+                                type: 'verse',
                                 number: 1,
                                 content: [
-                                    'Thus the heavens and the earth were completed in all their vast array.'
-                                ]
+                                    'Thus the heavens and the earth were completed in all their vast array.',
+                                ],
                             },
                         ],
                         footnotes: [],
-                    }
-                ]
+                    },
+                ],
             });
         });
 
@@ -1192,9 +1170,7 @@ describe('UsfmParser', () => {
                         content: [
                             {
                                 type: 'heading',
-                                content: [
-                                    'Do Not Rebuke Me in Your Anger'
-                                ]
+                                content: ['Do Not Rebuke Me in Your Anger'],
                             },
                             {
                                 type: 'line_break',
@@ -1204,19 +1180,25 @@ describe('UsfmParser', () => {
                                 content: [
                                     'For the choirmaster. With stringed instruments, according to Sheminith.',
                                     { noteId: 0 },
-                                    'A Psalm of David.'
-                                ]
+                                    'A Psalm of David.',
+                                ],
                             },
                             {
                                 type: 'line_break',
                             },
-                            { 
-                                type: 'verse', 
+                            {
+                                type: 'verse',
                                 number: 1,
                                 content: [
-                                    { text: 'O LORD, do not rebuke me in Your anger', poem: 1 },
-                                    { text: 'or discipline me in Your wrath.', poem: 2 },
-                                ]
+                                    {
+                                        text: 'O LORD, do not rebuke me in Your anger',
+                                        poem: 1,
+                                    },
+                                    {
+                                        text: 'or discipline me in Your wrath.',
+                                        poem: 2,
+                                    },
+                                ],
                             },
                         ],
                         footnotes: [
@@ -1226,12 +1208,12 @@ describe('UsfmParser', () => {
                                 caller: '+',
                                 reference: {
                                     chapter: 6,
-                                    verse: 1
-                                }
-                            }
+                                    verse: 1,
+                                },
+                            },
                         ],
                     },
-                ]
+                ],
             });
         });
 
@@ -1247,22 +1229,22 @@ describe('UsfmParser', () => {
                         type: 'chapter',
                         number: 1,
                         content: [
-                            { 
-                                type: 'verse', 
+                            {
+                                type: 'verse',
                                 number: 1,
                                 content: [
-                                    'In the beginning, God created the heavens and the earth.'
-                                ]
+                                    'In the beginning, God created the heavens and the earth.',
+                                ],
                             },
                         ],
                         footnotes: [],
                     },
-                ]
+                ],
             });
         });
 
         it('should ignore cross references', () => {
-                const tree = parser.parse(`\\c 5  
+            const tree = parser.parse(`\\c 5  
                     \\p
                     \\v 1  \\w Seeing|strong="G3708"\\w* \\w the|strong="G3588"\\w* \\w multitudes|strong="G3793"\\w*, \\w he|strong="G2532"\\w* \\w went|strong="G0305"\\w* \\w up|strong="G0305"\\w* \\w onto|strong="G1519"\\w* \\w the|strong="G3588"\\w* \\w mountain|strong="G3735"\\w*. \\w When|strong="G2532"\\w* \\w he|strong="G2532"\\w* \\w had|strong="G3588"\\w* \\w sat|strong="G2523"\\w* \\w down|strong="G2523"\\w*, \\w his|strong="G0846"\\w* \\w disciples|strong="G3101"\\w* \\w came|strong="G4334"\\w* \\w to|strong="G1519"\\w* \\w him|strong="G0846"\\w*. 
                     \\v 2  \\w He|strong="G2532"\\w* \\w opened|strong="G0455"\\w* \\w his|strong="G0846"\\w* \\w mouth|strong="G4750"\\w* \\w and|strong="G2532"\\w* \\w taught|strong="G1321"\\w* \\w them|strong="G0846"\\w*, \\w saying|strong="G3004"\\w*, 
@@ -1271,51 +1253,51 @@ describe('UsfmParser', () => {
                     \\q2 \\wj  \\+w for|strong="G3754"\\+w* \\+w theirs|strong="G0846"\\+w* \\+w is|strong="G1510"\\+w* \\+w the|strong="G3588"\\+w* \\+w Kingdom|strong="G0932"\\+w* \\+w of|strong="G0932"\\+w* \\+w Heaven|strong="G3772"\\+w*.\\wj*\\x + \\xo 5:3  \\xt Isaiah 57:15; 66:2\\x*
                 `);
 
-                expect(tree).toEqual({
-                    type: 'root',
-                    content: [
-                        {
-                            type: 'chapter',
-                            number: 5,
-                            content: [
-                                {
-                                    type: 'line_break'
-                                },
-                                { 
-                                    type: 'verse', 
-                                    number: 1,
-                                    content: [
-                                        'Seeing the multitudes, he went up onto the mountain. When he had sat down, his disciples came to him.'
-                                    ]
-                                },
-                                { 
-                                    type: 'verse', 
-                                    number: 2,
-                                    content: [
-                                        'He opened his mouth and taught them, saying,',
-                                    ]
-                                },
-                                { 
-                                    type: 'verse', 
-                                    number: 3,
-                                    content: [
-                                        {
-                                            "poem": 1,
-                                            "text": "“Blessed are the poor in spirit,",
-                                            "wordsOfJesus": true,
-                                        },
-                                        {
-                                            "poem": 2,
-                                            "text": "for theirs is the Kingdom of Heaven.",
-                                            "wordsOfJesus": true,
-                                        },
-                                    ]
-                                },
-                            ],
-                            footnotes: [],
-                        },
-                    ]
-                });
+            expect(tree).toEqual({
+                type: 'root',
+                content: [
+                    {
+                        type: 'chapter',
+                        number: 5,
+                        content: [
+                            {
+                                type: 'line_break',
+                            },
+                            {
+                                type: 'verse',
+                                number: 1,
+                                content: [
+                                    'Seeing the multitudes, he went up onto the mountain. When he had sat down, his disciples came to him.',
+                                ],
+                            },
+                            {
+                                type: 'verse',
+                                number: 2,
+                                content: [
+                                    'He opened his mouth and taught them, saying,',
+                                ],
+                            },
+                            {
+                                type: 'verse',
+                                number: 3,
+                                content: [
+                                    {
+                                        poem: 1,
+                                        text: '“Blessed are the poor in spirit,',
+                                        wordsOfJesus: true,
+                                    },
+                                    {
+                                        poem: 2,
+                                        text: 'for theirs is the Kingdom of Heaven.',
+                                        wordsOfJesus: true,
+                                    },
+                                ],
+                            },
+                        ],
+                        footnotes: [],
+                    },
+                ],
+            });
         });
 
         it('should support the Words of Jesus', () => {
@@ -1333,26 +1315,26 @@ describe('UsfmParser', () => {
                         type: 'chapter',
                         number: 8,
                         content: [
-                            { 
-                                type: 'verse', 
+                            {
+                                type: 'verse',
                                 number: 10,
                                 content: [
                                     'When Jesus heard it, he marveled and said to those who followed,',
                                     {
                                         text: '“Most certainly I tell you, I haven’t found so great a faith, not even in Israel.',
-                                        wordsOfJesus: true
-                                    }
-                                ]
+                                        wordsOfJesus: true,
+                                    },
+                                ],
                             },
-                            { 
-                                type: 'verse', 
+                            {
+                                type: 'verse',
                                 number: 11,
                                 content: [
                                     {
                                         text: 'I tell you that many will come from the east and the west, and will sit down with Abraham, Isaac, and Jacob in the Kingdom of Heaven,',
-                                        wordsOfJesus: true
-                                    }
-                                ]
+                                        wordsOfJesus: true,
+                                    },
+                                ],
                             },
                             {
                                 type: 'verse',
@@ -1360,9 +1342,9 @@ describe('UsfmParser', () => {
                                 content: [
                                     {
                                         text: 'but the children of the Kingdom will be thrown out into the outer darkness. There will be weeping and gnashing of teeth.”',
-                                        wordsOfJesus: true
-                                    }
-                                ]
+                                        wordsOfJesus: true,
+                                    },
+                                ],
                             },
                             {
                                 type: 'verse',
@@ -1371,15 +1353,15 @@ describe('UsfmParser', () => {
                                     'Jesus said to the centurion,',
                                     {
                                         text: '“Go your way. Let it be done for you as you have believed.”',
-                                        wordsOfJesus: true
+                                        wordsOfJesus: true,
                                     },
-                                    "His servant was healed in that hour.",
-                                ]
-                            }
+                                    'His servant was healed in that hour.',
+                                ],
+                            },
                         ],
-                        footnotes: []
+                        footnotes: [],
                     },
-                ]
+                ],
             });
         });
 
@@ -1395,24 +1377,24 @@ describe('UsfmParser', () => {
                         type: 'chapter',
                         number: 8,
                         content: [
-                            { 
-                                type: 'verse', 
+                            {
+                                type: 'verse',
                                 number: 11,
                                 content: [
                                     {
                                         text: 'I tell you that many will come',
-                                        wordsOfJesus: true
+                                        wordsOfJesus: true,
                                     },
                                     {
                                         text: 'from the east and the west, and will sit down with Abraham, Isaac, and Jacob in the Kingdom of Heaven,',
-                                        wordsOfJesus: true
-                                    }
-                                ]
+                                        wordsOfJesus: true,
+                                    },
+                                ],
                             },
                         ],
-                        footnotes: []
+                        footnotes: [],
                     },
-                ]
+                ],
             });
         });
 
@@ -1448,22 +1430,22 @@ describe('UsfmParser', () => {
                         type: 'chapter',
                         number: 1,
                         content: [
-                            { 
-                                type: 'verse', 
+                            {
+                                type: 'verse',
                                 number: 1,
                                 content: [
                                     'This is Solomon’s Song of Songs.',
                                     {
-                                        noteId: 0
-                                    }
-                                ]
+                                        noteId: 0,
+                                    },
+                                ],
                             },
                             {
                                 type: 'heading',
-                                content: ['The Bride']
+                                content: ['The Bride'],
                             },
                             {
-                                type: 'line_break'
+                                type: 'line_break',
                             },
                             {
                                 type: 'verse',
@@ -1471,35 +1453,34 @@ describe('UsfmParser', () => {
                                 content: [
                                     {
                                         text: 'Let him kiss me with the kisses of his mouth!',
-                                        poem: 1
+                                        poem: 1,
                                     },
                                     {
                                         text: 'For your love is more delightful than wine.',
-                                        poem: 2
+                                        poem: 2,
                                     },
-
-                                ]
+                                ],
                             },
-                            { 
-                                type: 'verse', 
+                            {
+                                type: 'verse',
                                 number: 3,
                                 content: [
                                     {
                                         text: 'The fragrance of your perfume is pleasing;',
-                                        poem: 1
+                                        poem: 1,
                                     },
                                     {
                                         text: 'your name is like perfume poured out.',
-                                        poem: 2
+                                        poem: 2,
                                     },
                                     {
                                         text: 'No wonder the maidens adore you.',
-                                        poem: 2
-                                    }
-                                ]
+                                        poem: 2,
+                                    },
+                                ],
                             },
                             {
-                                type: 'line_break'
+                                type: 'line_break',
                             },
                             {
                                 type: 'verse',
@@ -1507,37 +1488,37 @@ describe('UsfmParser', () => {
                                 content: [
                                     {
                                         text: 'Take me away with you—let us hurry!',
-                                        poem: 1
+                                        poem: 1,
                                     },
                                     {
                                         text: 'May the king bring me to his chambers.',
-                                        poem: 2
+                                        poem: 2,
                                     },
                                     {
-                                        heading: 'The Friends'
+                                        heading: 'The Friends',
                                     },
                                     {
-                                        lineBreak: true
+                                        lineBreak: true,
                                     },
                                     {
                                         text: 'We will rejoice and delight in you;',
-                                        poem: 1
+                                        poem: 1,
                                     },
                                     {
                                         text: 'we will praise your love more than wine.',
-                                        poem: 2
+                                        poem: 2,
                                     },
                                     {
-                                        heading: 'The Bride'
+                                        heading: 'The Bride',
                                     },
                                     {
-                                        lineBreak: true
+                                        lineBreak: true,
                                     },
                                     {
                                         text: 'It is only right that they adore you.',
-                                        poem: 1
-                                    }
-                                ]
+                                        poem: 1,
+                                    },
+                                ],
                             },
                         ],
                         footnotes: [
@@ -1547,12 +1528,12 @@ describe('UsfmParser', () => {
                                 caller: '+',
                                 reference: {
                                     chapter: 1,
-                                    verse: 1
-                                }
-                            }
-                        ]
+                                    verse: 1,
+                                },
+                            },
+                        ],
                     },
-                ]
+                ],
             });
         });
 
@@ -1569,27 +1550,23 @@ describe('UsfmParser', () => {
                         type: 'chapter',
                         number: 1,
                         content: [
-                            { 
-                                type: 'verse', 
+                            {
+                                type: 'verse',
                                 number: 1,
-                                content: [
-                                    'Test',
-                                ]
+                                content: ['Test'],
                             },
                             {
                                 type: 'verse',
                                 number: 2,
-                                content: [
-                                    'Hello'
-                                ]
+                                content: ['Hello'],
                             },
                         ],
-                        footnotes: []
+                        footnotes: [],
                     },
-                ]
+                ],
             });
         });
-        
+
         describe('Bible', () => {
             const cases = [
                 ['bsb/01GENBSB.usfm', 50] as const,
@@ -1624,27 +1601,50 @@ describe('UsfmParser', () => {
                 ['hbomas/usfm/gen.usfm', 50] as const,
             ];
 
-            it.each(cases)('should consistently parse %s', async (file, expectedChapters) => {
-                const filePath = resolve(__dirname, '..', '..', '..', 'bible', file);
-                const data = await readFile(filePath, { encoding: 'utf-8' });
-                const parsed = parser.parse(data);
-                const numChapters = parsed.content.filter(c => c.type === 'chapter').length;
-                expect(numChapters).toBe(expectedChapters);
+            it.each(cases)(
+                'should consistently parse %s',
+                async (file, expectedChapters) => {
+                    const filePath = resolve(
+                        __dirname,
+                        '..',
+                        '..',
+                        '..',
+                        'bible',
+                        file
+                    );
+                    const data = await readFile(filePath, {
+                        encoding: 'utf-8',
+                    });
+                    const parsed = parser.parse(data);
+                    const numChapters = parsed.content.filter(
+                        (c) => c.type === 'chapter'
+                    ).length;
+                    expect(numChapters).toBe(expectedChapters);
 
-                const json = JSON.stringify(parsed);
-                const result = JSON.parse(json);
+                    const json = JSON.stringify(parsed);
+                    const result = JSON.parse(json);
 
-                expect(result).toEqual(parsed);
+                    expect(result).toEqual(parsed);
 
-                const parsedHash = hash.sha256().update(json).digest('hex');
-                expect(parsedHash).toMatchSnapshot();
-            });
+                    const parsedHash = hash.sha256().update(json).digest('hex');
+                    expect(parsedHash).toMatchSnapshot();
+                }
+            );
 
             it('should consistently parse matthew in the BSB', async () => {
-                const filePath = resolve(__dirname, '..', '..', '..', 'bible', 'bsb/41MATBSB.usfm');
+                const filePath = resolve(
+                    __dirname,
+                    '..',
+                    '..',
+                    '..',
+                    'bible',
+                    'bsb/41MATBSB.usfm'
+                );
                 const data = await readFile(filePath, { encoding: 'utf-8' });
                 const parsed = parser.parse(data);
-                const numChapters = parsed.content.filter(c => c.type === 'chapter').length;
+                const numChapters = parsed.content.filter(
+                    (c) => c.type === 'chapter'
+                ).length;
                 expect(numChapters).toBe(28);
 
                 const json = JSON.stringify(parsed);
@@ -1676,7 +1676,7 @@ describe('UsfmParser', () => {
 
 describe('isDigit()', () => {
     it('should retrun true for all the ascii digits', () => {
-        for(let d = 0; d < 10; d++) {
+        for (let d = 0; d < 10; d++) {
             let digit = d.toString();
 
             expect(isDigit(digit)).toBe(true);
@@ -1700,12 +1700,7 @@ describe('isDigit()', () => {
     });
 
     it('should return false for strings longer than length 1', () => {
-        let strings = [
-            '0a',
-            '0b',
-            '9a',
-            '9b',
-        ];
+        let strings = ['0a', '0b', '9a', '9b'];
 
         for (let str of strings) {
             expect(isDigit(str)).toBe(false);
@@ -1716,7 +1711,7 @@ describe('isDigit()', () => {
 describe('isWhitespace()', () => {
     it('should return true for common whitespace characters', () => {
         let chars = [' ', '\n', '\t', '\r'];
-        for(let char of chars) {
+        for (let char of chars) {
             expect(isWhitespace(char)).toBe(true);
         }
     });

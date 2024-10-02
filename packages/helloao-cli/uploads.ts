@@ -1,11 +1,11 @@
-import { loadDatasets, serializeDatasets, SerializedFile } from './db';
-import { defaultProviderForOptions, parseS3Url, S3Uploader } from './s3';
+import { loadDatasets, serializeDatasets, SerializedFile } from './db.js';
+import { defaultProviderForOptions, parseS3Url, S3Uploader } from './s3.js';
 import { extname } from 'path';
-import { FilesUploader, Uploader, ZipUploader } from './files';
+import { FilesUploader, Uploader, ZipUploader } from './files.js';
 import { Readable } from 'node:stream';
-import { DatasetOutput } from '@helloao/tools/generation/dataset';
-import { PrismaClient } from './prisma-gen';
-import { GenerateApiOptions } from '@helloao/tools/generation/api';
+import { DatasetOutput } from '@helloao/tools/generation/dataset.js';
+import { PrismaClient } from './prisma-gen/index.js';
+import { GenerateApiOptions } from '@helloao/tools/generation/api.js';
 
 export interface UploadApiFromDatabaseOptions
     extends UploadApiOptions,
