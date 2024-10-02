@@ -97,6 +97,7 @@ async function buildTools() {
         esbuild.build({
             ...cjsOptions,
             ...options,
+            bundle: false,
             outdir: path.resolve(toolsDist, 'cjs'),
         }),
     ]);
