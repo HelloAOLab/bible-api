@@ -5,7 +5,7 @@
     },
     "files": [],
     "references": [
-        { "path": "./packages/helloao-cli" },
-        { "path": "./packages/helloao-tools" }
+        { "path": "./packages/helloao-tools" },
+        { "path": "./packages/helloao-cli" }
     ]
 }

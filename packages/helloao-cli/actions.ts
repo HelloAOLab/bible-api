@@ -9,7 +9,10 @@ import {
     getTranslationId,
     normalizeLanguage,
 } from '@helloao/tools/utils.js';
-import { InputFile, InputTranslationMetadata } from '@helloao/tools/generation';
+import {
+    InputFile,
+    InputTranslationMetadata,
+} from '@helloao/tools/generation/index.js';
 import { exists } from 'fs-extra';
 import { KNOWN_AUDIO_TRANSLATIONS } from '@helloao/tools/generation/audio.js';
 import { bookChapterCountMap } from '@helloao/tools/generation/book-order.js';

@@ -15,7 +15,7 @@ import {
     TranslationBookChapter,
     OutputFile,
     OutputFileContent,
-} from '@helloao/tools/generation';
+} from '@helloao/tools/generation/index.js';
 import {
     generateApiForDataset,
     GenerateApiOptions,
@@ -24,17 +24,18 @@ import {
 } from '@helloao/tools/generation/api.js';
 import { loadTranslationFiles, serializeOutputFiles } from './files.js';
 import { sha256 } from 'hash.js';
-import { DOMParser } from 'linkedom';
+import type { DOMParser } from 'linkedom';
 import { Readable } from 'stream';
 import { getEnglishName, getNativeName } from 'all-iso-language-codes';
 
 let dirname = __dirname;
 if (!dirname) {
+    // @ts-ignore
     dirname = import.meta.dirname;
 }
 
 export async function getMigrationsPath() {
-    const migrationsPaths = ['./migrations', '../migrations'];
+    const migrationsPaths = ['../../migrations'];
 
     for (let migrationsPath of migrationsPaths) {
         const fullPath = path.resolve(dirname, migrationsPath);
