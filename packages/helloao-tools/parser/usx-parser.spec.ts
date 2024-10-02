@@ -1,4 +1,4 @@
-import { USXParser } from "./usx-parser";
+import { USXParser } from './usx-parser.js';
 import { DOMParser, Element, Node } from 'linkedom';
 import Matthew from '../../../bible/webp_usx/mat.usx';
 import John from '../../../bible/webp_usx/jhn.usx';
@@ -8,15 +8,14 @@ describe('USXParser', () => {
     let parser: USXParser;
 
     beforeEach(() => {
-        globalThis.DOMParser = DOMParser as any;// window.DOMParser as any;
+        globalThis.DOMParser = DOMParser as any; // window.DOMParser as any;
         globalThis.Element = Element as any; // window.Element;
-        globalThis.Node = Node as any;// window.Node;
+        globalThis.Node = Node as any; // window.Node;
 
         parser = new USXParser(new DOMParser() as any);
     });
 
     describe('parse()', () => {
-
         it('should parse a simple USX file', () => {
             const usx = `
                 <usx version="3.0">
@@ -57,19 +56,19 @@ describe('USXParser', () => {
                         content: [
                             {
                                 type: 'heading',
-                                content: ['The Creation']
+                                content: ['The Creation'],
                             },
                             {
                                 type: 'verse',
                                 number: 1,
                                 content: [
-                                    'In the beginning God created the heavens and the earth.'
-                                ]
+                                    'In the beginning God created the heavens and the earth.',
+                                ],
                             },
                         ],
                         footnotes: [],
-                    }
-                ]
+                    },
+                ],
             });
         });
 
@@ -147,14 +146,14 @@ describe('USXParser', () => {
                         content: [
                             {
                                 type: 'heading',
-                                content: ['The Creation']
+                                content: ['The Creation'],
                             },
                             {
                                 type: 'verse',
                                 number: 1,
                                 content: [
-                                    'In the beginning God created the heavens and the earth.'
-                                ]
+                                    'In the beginning God created the heavens and the earth.',
+                                ],
                             },
                             {
                                 type: 'line_break',
@@ -163,13 +162,13 @@ describe('USXParser', () => {
                                 type: 'verse',
                                 number: 2,
                                 content: [
-                                    'Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.'
-                                ]
-                            }
+                                    'Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.',
+                                ],
+                            },
                         ],
                         footnotes: [],
-                    }
-                ]
+                    },
+                ],
             });
         });
 
@@ -215,19 +214,19 @@ describe('USXParser', () => {
                         content: [
                             {
                                 type: 'heading',
-                                content: ['The Creation']
+                                content: ['The Creation'],
                             },
                             {
                                 type: 'verse',
                                 number: 1,
                                 content: [
-                                    'In the beginning God created the heavens and the earth.'
-                                ]
+                                    'In the beginning God created the heavens and the earth.',
+                                ],
                             },
                         ],
                         footnotes: [],
-                    }
-                ]
+                    },
+                ],
             });
         });
 
@@ -273,19 +272,19 @@ describe('USXParser', () => {
                         content: [
                             {
                                 type: 'heading',
-                                content: ['The Creation']
+                                content: ['The Creation'],
                             },
                             {
                                 type: 'verse',
                                 number: 1,
                                 content: [
-                                    'In the beginning God created the heavens and the earth.'
-                                ]
+                                    'In the beginning God created the heavens and the earth.',
+                                ],
                             },
                         ],
                         footnotes: [],
-                    }
-                ]
+                    },
+                ],
             });
         });
 
@@ -331,23 +330,23 @@ describe('USXParser', () => {
                         content: [
                             {
                                 type: 'heading',
-                                content: ['The Creation']
+                                content: ['The Creation'],
                             },
                             {
                                 type: 'verse',
                                 number: 1,
                                 content: [
-                                    'In the beginning God created the heavens and the earth.'
-                                ]
+                                    'In the beginning God created the heavens and the earth.',
+                                ],
                             },
                         ],
                         footnotes: [],
                     },
                     {
                         type: 'heading',
-                        content: ['The Second Section']
-                    }
-                ]
+                        content: ['The Second Section'],
+                    },
+                ],
             });
         });
 
@@ -413,21 +412,21 @@ describe('USXParser', () => {
                         content: [
                             {
                                 type: 'heading',
-                                content: ['The Creation']
+                                content: ['The Creation'],
                             },
                             {
                                 type: 'verse',
                                 number: 1,
                                 content: [
-                                    'In the beginning God created the heavens and the earth.'
-                                ]
+                                    'In the beginning God created the heavens and the earth.',
+                                ],
                             },
                         ],
                         footnotes: [],
                     },
                     {
                         type: 'heading',
-                        content: ['The Second Section']
+                        content: ['The Second Section'],
                     },
                     {
                         type: 'chapter',
@@ -435,19 +434,19 @@ describe('USXParser', () => {
                         content: [
                             {
                                 type: 'heading',
-                                content: ['The Seventh Day']
+                                content: ['The Seventh Day'],
                             },
                             {
                                 type: 'verse',
                                 number: 1,
                                 content: [
-                                    'Thus the heavens and the earth were completed in all their vast array.'
-                                ]
+                                    'Thus the heavens and the earth were completed in all their vast array.',
+                                ],
                             },
                         ],
                         footnotes: [],
                     },
-                ]
+                ],
             });
         });
 
@@ -525,14 +524,14 @@ describe('USXParser', () => {
                         content: [
                             {
                                 type: 'heading',
-                                content: ['The Seventh Day']
+                                content: ['The Seventh Day'],
                             },
                             {
                                 type: 'verse',
                                 number: 1,
                                 content: [
-                                    'Thus the heavens and the earth were completed in all their vast array.'
-                                ]
+                                    'Thus the heavens and the earth were completed in all their vast array.',
+                                ],
                             },
                             {
                                 type: 'verse',
@@ -541,8 +540,8 @@ describe('USXParser', () => {
                                     'And by the seventh day God had finished the work He had been doing; so on that day He rested from all His work.',
                                     {
                                         noteId: 0,
-                                    }
-                                ]
+                                    },
+                                ],
                             },
                         ],
                         footnotes: [
@@ -553,11 +552,11 @@ describe('USXParser', () => {
                                 reference: {
                                     chapter: 2,
                                     verse: 2,
-                                }
-                            }
+                                },
+                            },
                         ],
-                    }
-                ]
+                    },
+                ],
             });
         });
 
@@ -636,14 +635,14 @@ describe('USXParser', () => {
                         content: [
                             {
                                 type: 'heading',
-                                content: ['The Seventh Day']
+                                content: ['The Seventh Day'],
                             },
                             {
                                 type: 'verse',
                                 number: 1,
                                 content: [
-                                    'Thus the heavens and the earth were completed in all their vast array.'
-                                ]
+                                    'Thus the heavens and the earth were completed in all their vast array.',
+                                ],
                             },
                             {
                                 type: 'verse',
@@ -652,8 +651,8 @@ describe('USXParser', () => {
                                     'And by the seventh day God had finished the work He had been doing; so on that day He rested from all His work.',
                                     {
                                         noteId: 0,
-                                    }
-                                ]
+                                    },
+                                ],
                             },
                         ],
                         footnotes: [
@@ -664,11 +663,11 @@ describe('USXParser', () => {
                                 reference: {
                                     chapter: 2,
                                     verse: 2,
-                                }
-                            }
+                                },
+                            },
                         ],
-                    }
-                ]
+                    },
+                ],
             });
         });
 
@@ -723,15 +722,15 @@ describe('USXParser', () => {
                         content: [
                             {
                                 type: 'heading',
-                                content: ['Do Not Rebuke Me in Your Anger']
+                                content: ['Do Not Rebuke Me in Your Anger'],
                             },
                             {
                                 type: 'hebrew_subtitle',
                                 content: [
                                     'For the choirmaster. With stringed instruments, according to Sheminith.',
                                     { noteId: 0 },
-                                    'A Psalm of David.'
-                                ]
+                                    'A Psalm of David.',
+                                ],
                             },
                             {
                                 type: 'line_break',
@@ -740,9 +739,15 @@ describe('USXParser', () => {
                                 type: 'verse',
                                 number: 1,
                                 content: [
-                                    { text: 'O LORD, do not rebuke me in Your anger', poem: 1 },
-                                    { text: 'or discipline me in Your wrath.', poem: 2 },
-                                ]
+                                    {
+                                        text: 'O LORD, do not rebuke me in Your anger',
+                                        poem: 1,
+                                    },
+                                    {
+                                        text: 'or discipline me in Your wrath.',
+                                        poem: 2,
+                                    },
+                                ],
                             },
                         ],
                         footnotes: [
@@ -752,12 +757,12 @@ describe('USXParser', () => {
                                 caller: '+',
                                 reference: {
                                     chapter: 6,
-                                    verse: 0
-                                }
-                            }
+                                    verse: 0,
+                                },
+                            },
                         ],
-                    }
-                ]
+                    },
+                ],
             });
         });
 
@@ -783,7 +788,9 @@ describe('USXParser', () => {
                         content: [
                             {
                                 type: 'heading',
-                                content: ['The Coming Deliverance of Jerusalem']
+                                content: [
+                                    'The Coming Deliverance of Jerusalem',
+                                ],
                             },
                             {
                                 type: 'verse',
@@ -794,15 +801,15 @@ describe('USXParser', () => {
                                         descriptive: true,
                                     },
                                     {
-                                        lineBreak: true
+                                        lineBreak: true,
                                     },
-                                    'Thus declares the LORD, who stretches out the heavens and lays the foundation of the earth, who forms the spirit of man within him:'
-                                ]
+                                    'Thus declares the LORD, who stretches out the heavens and lays the foundation of the earth, who forms the spirit of man within him:',
+                                ],
                             },
                         ],
                         footnotes: [],
-                    }
-                ]
+                    },
+                ],
             });
         });
 
@@ -853,13 +860,21 @@ describe('USXParser', () => {
                                 type: 'verse',
                                 number: 3,
                                 content: [
-                                    { text: '“Blessed are the poor in spirit,', poem: 1, wordsOfJesus: true, },
-                                    { text: 'for theirs is the Kingdom of Heaven.', poem: 2, wordsOfJesus: true, },
-                                ]
+                                    {
+                                        text: '“Blessed are the poor in spirit,',
+                                        poem: 1,
+                                        wordsOfJesus: true,
+                                    },
+                                    {
+                                        text: 'for theirs is the Kingdom of Heaven.',
+                                        poem: 2,
+                                        wordsOfJesus: true,
+                                    },
+                                ],
                             },
                         ],
                         footnotes: [],
-                    }
+                    },
                 ],
             });
         });
@@ -885,13 +900,13 @@ describe('USXParser', () => {
                                 type: 'verse',
                                 number: 1,
                                 content: [
-                                    'In the beginning was the Word, and the Word was with God, and the Word was God.'
-                                ]
+                                    'In the beginning was the Word, and the Word was with God, and the Word was God.',
+                                ],
                             },
                         ],
                         footnotes: [],
-                    }
-                ]
+                    },
+                ],
             });
         });
 
@@ -926,13 +941,13 @@ describe('USXParser', () => {
                                     {
                                         text: 'because they are no more.”',
                                         poem: 2,
-                                    }
-                                ]
+                                    },
+                                ],
                             },
                         ],
                         footnotes: [],
-                    }
-                ]
+                    },
+                ],
             });
         });
 
@@ -983,13 +998,21 @@ describe('USXParser', () => {
                                 type: 'verse',
                                 number: 3,
                                 content: [
-                                    { text: '“Blessed are the poor in spirit,', poem: 1, wordsOfJesus: true, },
-                                    { text: 'for theirs is the Kingdom of Heaven.', poem: 2, wordsOfJesus: true, },
-                                ]
+                                    {
+                                        text: '“Blessed are the poor in spirit,',
+                                        poem: 1,
+                                        wordsOfJesus: true,
+                                    },
+                                    {
+                                        text: 'for theirs is the Kingdom of Heaven.',
+                                        poem: 2,
+                                        wordsOfJesus: true,
+                                    },
+                                ],
                             },
                         ],
                         footnotes: [],
-                    }
+                    },
                 ],
             });
         });
@@ -1018,8 +1041,8 @@ describe('USXParser', () => {
                                 type: 'verse',
                                 number: 8,
                                 content: [
-                                    'When Isaac had been there a long time, Abimelech king of the Philistines looked down from the window and was surprised to see Isaac caressing his wife Rebekah.'
-                                ]
+                                    'When Isaac had been there a long time, Abimelech king of the Philistines looked down from the window and was surprised to see Isaac caressing his wife Rebekah.',
+                                ],
                             },
                             {
                                 type: 'verse',
@@ -1029,12 +1052,12 @@ describe('USXParser', () => {
                                     {
                                         lineBreak: true,
                                     },
-                                    'Isaac replied, “Because I thought I might die on account of her.”'
-                                ]
-                            }
+                                    'Isaac replied, “Because I thought I might die on account of her.”',
+                                ],
+                            },
                         ],
                         footnotes: [],
-                    }
+                    },
                 ],
             });
         });
@@ -1067,8 +1090,8 @@ describe('USXParser', () => {
                                     {
                                         wordsOfJesus: true,
                                         text: '“Therefore the children are exempt.',
-                                    }
-                                ]
+                                    },
+                                ],
                             },
                             {
                                 type: 'verse',
@@ -1076,17 +1099,17 @@ describe('USXParser', () => {
                                 content: [
                                     {
                                         wordsOfJesus: true,
-                                        text: 'But, lest we cause them to stumble, go to the sea, cast a hook, and take up the first fish that comes up. When you have opened its mouth, you will find a stater coin.'
+                                        text: 'But, lest we cause them to stumble, go to the sea, cast a hook, and take up the first fish that comes up. When you have opened its mouth, you will find a stater coin.',
                                     },
                                     {
                                         noteId: 0,
                                     },
                                     {
                                         wordsOfJesus: true,
-                                        text: 'Take that, and give it to them for me and you.”'
-                                    }
-                                ]
-                            }
+                                        text: 'Take that, and give it to them for me and you.”',
+                                    },
+                                ],
+                            },
                         ],
                         footnotes: [
                             {
@@ -1096,11 +1119,11 @@ describe('USXParser', () => {
                                     chapter: 17,
                                     verse: 27,
                                 },
-                                text: 'A stater is a silver coin equivalent to four Attic or two Alexandrian drachmas, or a Jewish shekel: just exactly enough to cover the half-shekel temple tax for two people. A shekel is about 10 grams or about 0.35 ounces, usually in the form of a silver coin.'
-                            }
+                                text: 'A stater is a silver coin equivalent to four Attic or two Alexandrian drachmas, or a Jewish shekel: just exactly enough to cover the half-shekel temple tax for two people. A shekel is about 10 grams or about 0.35 ounces, usually in the form of a silver coin.',
+                            },
                         ],
-                    }
-                ]
+                    },
+                ],
             });
         });
 
@@ -1127,7 +1150,7 @@ describe('USXParser', () => {
                         number: 12,
                         content: [
                             {
-                                type: 'line_break'
+                                type: 'line_break',
                             },
                             {
                                 type: 'verse',
@@ -1135,7 +1158,7 @@ describe('USXParser', () => {
                                 content: [
                                     'Then I will pour out on the house of David and on the people of Jerusalem a spirit',
                                     {
-                                        noteId: 0
+                                        noteId: 0,
                                     },
                                     'of grace and prayer, and they will look on Me,',
                                     {
@@ -1143,74 +1166,74 @@ describe('USXParser', () => {
                                     },
                                     'the One they have pierced.',
                                     {
-                                        noteId: 2
+                                        noteId: 2,
                                     },
-                                    'They will mourn for Him as one mourns for an only child, and grieve bitterly for Him as one grieves for a firstborn son.'
-                                ]
+                                    'They will mourn for Him as one mourns for an only child, and grieve bitterly for Him as one grieves for a firstborn son.',
+                                ],
                             },
                             {
-                                type: 'line_break'
+                                type: 'line_break',
                             },
                             {
                                 type: 'verse',
                                 number: 11,
                                 content: [
                                     'On that day the wailing in Jerusalem will be as great as the wailing of Hadad-rimmon in the plain of Megiddo.',
-                                ]
+                                ],
                             },
                             {
                                 type: 'verse',
                                 number: 12,
                                 content: [
                                     'The land will mourn, each clan on its own: the clan of the house of David and their wives, the clan of the house of Nathan and their wives,',
-                                ]
+                                ],
                             },
                             {
                                 type: 'verse',
                                 number: 13,
                                 content: [
                                     'the clan of the house of Levi and their wives, the clan of Shimei and their wives,',
-                                ]
+                                ],
                             },
                             {
                                 type: 'verse',
                                 number: 14,
                                 content: [
-                                    'and all the remaining clans and their wives.'
-                                ]
-                            }
+                                    'and all the remaining clans and their wives.',
+                                ],
+                            },
                         ],
-                        "footnotes": [
+                        footnotes: [
                             {
-                                "caller": "+",
-                                "noteId": 0,
-                                "reference": {
-                                    "chapter": 12,
-                                    "verse": 10,
+                                caller: '+',
+                                noteId: 0,
+                                reference: {
+                                    chapter: 12,
+                                    verse: 10,
                                 },
-                                "text": "Or the Spirit",
+                                text: 'Or the Spirit',
                             },
                             {
-                                "caller": "+",
-                                "noteId": 1,
-                                "reference": {
-                                    "chapter": 12,
-                                    "verse": 10,
+                                caller: '+',
+                                noteId: 1,
+                                reference: {
+                                    chapter: 12,
+                                    verse: 10,
                                 },
-                                "text": "Or to Me",
+                                text: 'Or to Me',
                             },
                             {
-                                "caller": "+",
-                                "noteId": 2,
-                                "reference": {
-                                    "chapter": 12,
-                                    "verse": 10,
+                                caller: '+',
+                                noteId: 2,
+                                reference: {
+                                    chapter: 12,
+                                    verse: 10,
                                 },
-                                "text": "Cited in John 19:37",
+                                text: 'Cited in John 19:37',
                             },
-                        ]
-                    }
-                ]
+                        ],
+                    },
+                ],
             });
         });
 
@@ -1263,12 +1286,12 @@ describe('USXParser', () => {
                                     {
                                         text: 'and shall give birth to a son.',
                                         poem: 2,
-                                    }
-                                ]
+                                    },
+                                ],
                             },
                         ],
                         footnotes: [],
-                    }
+                    },
                 ],
             });
         });
@@ -1279,11 +1302,8 @@ describe('USXParser', () => {
         //     const usfmTree = usfmParser.parse(MatthewUsfm);
         //     expect(tree).toEqual(usfmTree);
         // })
-
     });
-
 });
-
 
 function firstXLines(content: string, x: number) {
     const lines = content.split('\n');

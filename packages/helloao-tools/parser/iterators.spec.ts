@@ -1,5 +1,11 @@
 import { DOMParser, Element, Node } from 'linkedom';
-import { iterateAll, children, uncompletable, Rewindable, rewindable } from './iterators';
+import {
+    iterateAll,
+    children,
+    uncompletable,
+    Rewindable,
+    rewindable,
+} from './iterators.js';
 
 describe('iterators', () => {
     let dom: DOMParser;
@@ -26,47 +32,48 @@ describe('iterators', () => {
                 </div>
             `;
 
-            const tree = dom.parseFromString(html, 'text/html') as unknown as globalThis.Document;
-    
+            const tree = dom.parseFromString(
+                html,
+                'text/html'
+            ) as unknown as globalThis.Document;
+
             const node = tree.getElementById('0');
-    
+
             const iterator = iterateAll(node!);
 
             expect(iterator).toBeInstanceOf(Rewindable);
 
-            const nodes = [
-                ...iterator
-            ];
+            const nodes = [...iterator];
 
             expect(mapNodes(nodes)).toEqual([
-                "#space",
-                "1",
-                "#space",
-                "2",
-                "abc",
-                "#space",
-                "3",
-                "def",
-                "#space",
-                "#space",
-                "4",
-                "#space",
-                "5",
-                "ghi",
-                "#space",
-                "6",
-                "jfk",
-                "#space",
-                "#space",
-                "7",
-                "#space",
-                "8",
-                "lmn",
-                "#space",
-                "9",
-                "opq",
-                "#space",
-                "#space",
+                '#space',
+                '1',
+                '#space',
+                '2',
+                'abc',
+                '#space',
+                '3',
+                'def',
+                '#space',
+                '#space',
+                '4',
+                '#space',
+                '5',
+                'ghi',
+                '#space',
+                '6',
+                'jfk',
+                '#space',
+                '#space',
+                '7',
+                '#space',
+                '8',
+                'lmn',
+                '#space',
+                '9',
+                'opq',
+                '#space',
+                '#space',
             ]);
         });
     });
@@ -90,24 +97,33 @@ describe('iterators', () => {
                 </div>
             `;
 
-            const tree = dom.parseFromString(html, 'text/html') as unknown as globalThis.Document;
+            const tree = dom.parseFromString(
+                html,
+                'text/html'
+            ) as unknown as globalThis.Document;
 
             const root = tree.getElementById('0');
             const node = tree.getElementById('1');
 
             const iterator = iterateAll(root!);
 
-            for(let node of uncompletable(iterator)) {
+            for (let node of uncompletable(iterator)) {
                 if (node instanceof Element && (node as Element).id === '1') {
                     break;
                 }
             }
 
-            const nodes = [
-                ...children(iterator, node!)
-            ];
+            const nodes = [...children(iterator, node!)];
 
-            expect(mapNodes(nodes)).toEqual(['#space', '2', 'abc', '#space', '3', 'def', '#space']);
+            expect(mapNodes(nodes)).toEqual([
+                '#space',
+                '2',
+                'abc',
+                '#space',
+                '3',
+                'def',
+                '#space',
+            ]);
         });
 
         it('should not exhaust the iterator', () => {
@@ -128,36 +144,63 @@ describe('iterators', () => {
                 </div>
             `;
 
-            const tree = dom.parseFromString(html, 'text/html') as unknown as globalThis.Document;
+            const tree = dom.parseFromString(
+                html,
+                'text/html'
+            ) as unknown as globalThis.Document;
 
             const root = tree.getElementById('0');
             const node = tree.getElementById('1');
 
-            let iterator =  iterateAll(root!);
+            let iterator = iterateAll(root!);
 
-            for(let node of uncompletable(iterator)) {
+            for (let node of uncompletable(iterator)) {
                 if (node instanceof Element && (node as Element).id === '1') {
                     break;
                 }
             }
 
-            const nodes = [
-                ...children(iterator, node!)
-            ];
+            const nodes = [...children(iterator, node!)];
 
-            expect(mapNodes(nodes)).toEqual(['#space', '2', 'abc', '#space', '3', 'def', '#space']);
+            expect(mapNodes(nodes)).toEqual([
+                '#space',
+                '2',
+                'abc',
+                '#space',
+                '3',
+                'def',
+                '#space',
+            ]);
 
-            const remaining = [
-                ...iterator
-            ];
-            
-            expect(mapNodes(remaining)).toEqual(['#space', '4', '#space', '5', 'ghi', '#space', '6', 'jfk', '#space', '#space', '7', '#space', '8', 'lmn', '#space', '9', 'opq', '#space' ,'#space']);
+            const remaining = [...iterator];
+
+            expect(mapNodes(remaining)).toEqual([
+                '#space',
+                '4',
+                '#space',
+                '5',
+                'ghi',
+                '#space',
+                '6',
+                'jfk',
+                '#space',
+                '#space',
+                '7',
+                '#space',
+                '8',
+                'lmn',
+                '#space',
+                '9',
+                'opq',
+                '#space',
+                '#space',
+            ]);
         });
     });
 
     describe('rewindable()', () => {
         it('should be able to rewind the iterator', () => {
-            function *gen() {
+            function* gen() {
                 yield 1;
                 yield 2;
                 yield 3;
@@ -183,7 +226,7 @@ describe('iterators', () => {
     });
 
     function mapNodes(nodes: Node[]): string[] {
-        return nodes.map(node => {
+        return nodes.map((node) => {
             if (node.nodeType === (Node as any).TEXT_NODE) {
                 if (/\s/.test(node.textContent as string)) {
                     return '#space';

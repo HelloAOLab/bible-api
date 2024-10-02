@@ -19,7 +19,7 @@ let patterns = [
     `/**/*.cjs.map`,
     `/**/*.ts.map`,
     `/**/*.d.ts`,
-    `/*.tsbuildinfo`,
+    `/**/*.tsbuildinfo`,
 ];
 
 let negativePatterns = [

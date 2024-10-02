@@ -1,36 +1,68 @@
 import path, { basename, dirname, extname } from 'node:path';
-import * as database from './db';
+import * as database from './db.js';
 import Sql from 'better-sqlite3';
 import { DOMParser, Element, Node } from 'linkedom';
 import { mkdir, readdir, writeFile } from 'node:fs/promises';
 import { BibleClient } from '@gracious.tech/fetch-client';
-import { GetTranslationsItem } from '@gracious.tech/fetch-client/dist/esm/collection';
 import {
     getFirstNonEmpty,
     getTranslationId,
     normalizeLanguage,
-} from '@helloao/tools/utils';
-import { InputFile, InputTranslationMetadata } from '@helloao/tools/generation';
+} from '@helloao/tools/utils.js';
+import {
+    InputFile,
+    InputTranslationMetadata,
+} from '@helloao/tools/generation/index.js';
 import { exists } from 'fs-extra';
-import { KNOWN_AUDIO_TRANSLATIONS } from '@helloao/tools/generation/audio';
-import { bookChapterCountMap } from '@helloao/tools/generation/book-order';
-import { downloadFile } from './downloads';
-import { batch, toAsyncIterable } from '@helloao/tools/parser/iterators';
+import { KNOWN_AUDIO_TRANSLATIONS } from '@helloao/tools/generation/audio.js';
+import { bookChapterCountMap } from '@helloao/tools/generation/book-order.js';
+import { downloadFile } from './downloads.js';
+import { batch, toAsyncIterable } from '@helloao/tools/parser/iterators.js';
 import {
     hashInputFiles,
     loadTranslationFiles,
     loadTranslationsFiles,
-} from './files';
-import { generateDataset } from '@helloao/tools/generation/dataset';
+} from './files.js';
+import { generateDataset } from '@helloao/tools/generation/dataset.js';
 import {
     serializeAndUploadDatasets,
     uploadApiFilesFromDatabase,
     UploadApiFromDatabaseOptions,
     UploadApiOptions,
-} from './uploads';
-import { getHttpUrl, parseS3Url } from './s3';
+} from './uploads.js';
+import { getHttpUrl, parseS3Url } from './s3.js';
 import { input, select, confirm } from '@inquirer/prompts';
 import { getNativeName, isValid } from 'all-iso-language-codes';
+
+export interface GetTranslationsItem {
+    id: string;
+    language: string;
+    direction: 'ltr' | 'rtl';
+    year: number;
+    name_local: string;
+    name_english: string;
+    name_abbrev: string;
+    attribution: string;
+    attribution_url: string;
+    licenses: RuntimeLicense[];
+}
+
+export interface RuntimeLicense {
+    id: string | null;
+    name: string;
+    restrictions: MetaRestrictions;
+    url: string;
+}
+
+export interface MetaRestrictions {
+    limit_verses: number | null;
+    limit_book_ratio: number | null;
+    limit_content_ratio: number | null;
+    forbid_commercial: boolean;
+    forbid_derivatives: boolean | 'same-license';
+    forbid_attributionless: boolean;
+    forbid_other: boolean;
+}
 
 export interface InitDbOptions {
     /**

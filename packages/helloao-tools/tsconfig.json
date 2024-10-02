@@ -2,14 +2,15 @@
     "extends": "../../tsconfig.base.json",
     "compilerOptions": {
         "baseUrl": ".",
-        "outDir": ".",
+        "outDir": "./dist/types",
         "declaration": true,
         "declarationMap": true,
         "composite": true,
         "incremental": true,
-        "skipLibCheck": true
+        "skipLibCheck": true,
+        "emitDeclarationOnly": true
     },
-    "exclude": ["node_modules", "./**/*.spec.ts"],
+    "exclude": ["node_modules", "./**/*.spec.ts", "dist"],
     "include": ["./**/*.ts", "./typings/**/*"],
     "references": []
 }

@@ -1,9 +1,29 @@
 {
     "name": "@helloao/tools",
-    "version": "0.0.6",
+    "version": "0.0.6-alpha",
     "description": "A set of tools for managing HelloAO's Free Bible API",
-    "module": "index.js",
-    "types": "index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/types/index.d.ts",
+            "import": "./dist/esm/index.js",
+            "require": "./dist/cjs/index.cjs"
+        },
+        "./*.js": {
+            "types": "./dist/types/*.d.ts",
+            "import": "./dist/esm/*.js",
+            "require": "./dist/cjs/*.cjs"
+        },
+        "./parser/*.js": {
+            "types": "./dist/types/parser/*.d.ts",
+            "import": "./dist/esm/parser/*.js",
+            "require": "./dist/cjs/parser/*.cjs"
+        },
+        "./generation/*.js": {
+            "types": "./dist/types/generation/*.d.ts",
+            "import": "./dist/esm/generation/*.js",
+            "require": "./dist/cjs/generation/*.cjs"
+        }
+    },
     "scripts": {},
     "author": "Kallyn Gowdy <kal@helloao.org>",
     "license": "MIT",
@@ -21,6 +41,8 @@
         "/migrations/**/*.sql",
         "**/*.js",
         "**/*.js.map",
+        "**/*.cjs",
+        "**/*.cjs.map",
         "**/*.d.ts"
     ]
 }

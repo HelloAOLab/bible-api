@@ -1,5 +1,13 @@
 import { findLast } from 'lodash';
-import { ParseTree, Chapter, Verse, HebrewSubtitle, FootnoteReference, Footnote, Text } from './types';
+import {
+    ParseTree,
+    Chapter,
+    Verse,
+    HebrewSubtitle,
+    FootnoteReference,
+    Footnote,
+    Text,
+} from './types.js';
 
 /**
  * Defines a class that can tokenize a stream of characters into tokens.
@@ -27,7 +35,7 @@ export class UsfmTokenizer {
     private _parseTokens() {
         let tokens: SimpleToken[] = [];
         let token = this._parseToken();
-        while(token) {
+        while (token) {
             tokens.push(token);
             token = this._parseToken();
         }
@@ -36,11 +44,16 @@ export class UsfmTokenizer {
     }
 
     private _parseToken(): SimpleToken | null {
-        let state: 'none' | 'marker_start' | 'marker_number' | 'whitespace' | 'word' = 'none';
+        let state:
+            | 'none'
+            | 'marker_start'
+            | 'marker_number'
+            | 'whitespace'
+            | 'word' = 'none';
         let kind: T | null = null;
         this._start = this._index;
-        
-        while(this._index < this._input.length) {
+
+        while (this._index < this._input.length) {
             const codePointNumber = this._input.codePointAt(this._index);
 
             if (typeof codePointNumber === 'undefined') {
@@ -60,7 +73,9 @@ export class UsfmTokenizer {
             } else if (state === 'marker_start') {
                 if (isDigit(codePoint)) {
                     if (this._tokenLength === 0) {
-                        throw new Error('Invalid Marker: Markers must not contain only digits.');
+                        throw new Error(
+                            'Invalid Marker: Markers must not contain only digits.'
+                        );
                     }
                     state = 'marker_number';
                 } else if (codePoint === '*') {
@@ -71,7 +86,7 @@ export class UsfmTokenizer {
                     kind = 'marker';
                     break;
                 }
-            } else if(state === 'marker_number') {
+            } else if (state === 'marker_number') {
                 if (codePoint === '*') {
                     this._index += codePoint.length;
                     kind = 'marker';
@@ -100,7 +115,7 @@ export class UsfmTokenizer {
                 if (state == 'marker_start' || state === 'marker_number') {
                     kind = 'marker';
                 } else if (state === 'word') {
-                    kind = 'word'
+                    kind = 'word';
                 } else if (state === 'whitespace') {
                     kind = 'whitespace';
                 }
@@ -108,10 +123,7 @@ export class UsfmTokenizer {
         }
 
         if (kind) {
-            return t(
-                loc(this._start, this._index),
-                kind
-            );
+            return t(loc(this._start, this._index), kind);
         }
 
         return null;
@@ -126,15 +138,14 @@ export interface UsfmParseOptions {
  * Defines a USFM Parser.
  */
 export class UsfmParser {
-
     private _poem: number | null = null;
     private _wordsOfJesus: boolean = false;
-    
+
     tokenize(input: string): Token[] {
         const simpleTokens = new UsfmTokenizer().tokenize(input);
         let tokens: Token[] = [];
 
-        for(let t of simpleTokens) {
+        for (let t of simpleTokens) {
             if (t.kind === 'marker') {
                 let source = input.substring(t.loc.start, t.loc.end);
                 const isEnd = source.endsWith('*');
@@ -142,9 +153,9 @@ export class UsfmParser {
                 if (isEnd) {
                     source = source.substring(0, source.length - 1);
                 }
-                
+
                 let numberIndex = -1;
-                for(let i = 0; i < source.length; i++) {
+                for (let i = 0; i < source.length; i++) {
                     if (isDigit(source[i])) {
                         numberIndex = i;
                         break;
@@ -153,7 +164,9 @@ export class UsfmParser {
 
                 let number: number | null = null;
                 if (numberIndex === 1) {
-                    throw new Error('Markers must not be made only of numbers!');
+                    throw new Error(
+                        'Markers must not be made only of numbers!'
+                    );
                 }
                 if (numberIndex > 0) {
                     number = parseInt(source.substring(numberIndex));
@@ -164,14 +177,19 @@ export class UsfmParser {
                     if (isEnd) {
                         // Ending marker does not have a command.
                         // We should look for a matching start marker.
-                        const startMarker = findLast(tokens, t => t.kind === 'marker' && t.type === 'start') as MarkerToken;
+                        const startMarker = findLast(
+                            tokens,
+                            (t) => t.kind === 'marker' && t.type === 'start'
+                        ) as MarkerToken;
                         if (startMarker) {
                             source = startMarker.command;
                         }
                     }
 
                     if (source.length === 1) {
-                        throw new Error(`Markers must have a command! Token: ${t.loc.start}-${t.loc.end}`);
+                        throw new Error(
+                            `Markers must have a command! Token: ${t.loc.start}-${t.loc.end}`
+                        );
                     }
                 }
 
@@ -193,7 +211,7 @@ export class UsfmParser {
     parse(input: string): ParseTree {
         let root: ParseTree = {
             type: 'root',
-            content: []
+            content: [],
         };
 
         const tokens = this.tokenize(input);
@@ -223,9 +241,9 @@ export class UsfmParser {
         let sectionContent: string = '';
         let currentFootnoteId = 0;
         let footnote: Footnote | null = null;
-        
+
         this._poem = null;
-        
+
         const addWordsToVerseOrSubtitle = () => {
             if (words.length > 0) {
                 const text = this._text(words.join('').trimEnd());
@@ -245,14 +263,18 @@ export class UsfmParser {
                 return;
             }
             if (verseContent.length > 0) {
-                if (chapter.content.some(c => c.type === 'verse')) {
-                    this._throwError(input, token, 'Cannot infer first verse after other verses have been added to the chapter!');
+                if (chapter.content.some((c) => c.type === 'verse')) {
+                    this._throwError(
+                        input,
+                        token,
+                        'Cannot infer first verse after other verses have been added to the chapter!'
+                    );
                 }
                 // Implicit first verse
                 verse = {
                     type: 'verse',
                     number: 1,
-                    content: verseContent
+                    content: verseContent,
                 };
                 chapter.content.push(verse);
                 verseContent = [];
@@ -270,13 +292,17 @@ export class UsfmParser {
                     // move headings that occur at the end of a verse to the chapter
                     chapterContent.unshift({
                         type: 'heading',
-                        content: [content.heading]
+                        content: [content.heading],
                     });
                     verse.content.splice(i, 1);
-                } else if(typeof content === 'object' && 'lineBreak' in content && content.lineBreak) {
+                } else if (
+                    typeof content === 'object' &&
+                    'lineBreak' in content &&
+                    content.lineBreak
+                ) {
                     // move line breaks that occur at the end of a verse to the chapter
                     chapterContent.unshift({
-                        type: 'line_break'
+                        type: 'line_break',
                     });
                     verse.content.splice(i, 1);
                 } else {
@@ -284,7 +310,7 @@ export class UsfmParser {
                 }
             }
 
-            for(let content of chapterContent) {
+            for (let content of chapterContent) {
                 chapter.content.push(content);
             }
         };
@@ -311,17 +337,17 @@ export class UsfmParser {
                 if (verse) {
                     addWordsToVerseOrSubtitle();
                     verse.content.push({
-                        heading: sectionContent
+                        heading: sectionContent,
                     });
                 } else if (chapter) {
                     chapter.content.push({
                         type: 'heading',
-                        content: [sectionContent]
+                        content: [sectionContent],
                     });
                 } else {
                     root.content.push({
                         type: 'heading',
-                        content: [sectionContent]
+                        content: [sectionContent],
                     });
                 }
                 sectionContent = '';
@@ -336,7 +362,7 @@ export class UsfmParser {
             }
         };
 
-        for(let token of tokens) {
+        for (let token of tokens) {
             if (token.kind === 'marker') {
                 if (token.command === '\\c') {
                     addWordsToVerseOrSubtitle();
@@ -354,7 +380,11 @@ export class UsfmParser {
                     root.content.push(chapter);
                 } else if (token.command === '\\v') {
                     if (!chapter) {
-                        this._throwError(input, token, 'Cannot parse a verse without chapter information!');
+                        this._throwError(
+                            input,
+                            token,
+                            'Cannot parse a verse without chapter information!'
+                        );
                     } else {
                         completeSection();
                         completeVerseOrSubtitle(token);
@@ -363,37 +393,45 @@ export class UsfmParser {
                         verse = {
                             type: 'verse',
                             number: NaN,
-                            content: []
+                            content: [],
                         };
-                        
+
                         chapter.content.push(verse);
                     }
                 } else if (token.command === '\\d') {
                     if (!chapter) {
-                        this._throwError(input, token, 'Cannot parse a hebrew subtitle without chapter information!');
+                        this._throwError(
+                            input,
+                            token,
+                            'Cannot parse a hebrew subtitle without chapter information!'
+                        );
                     } else {
                         completeVerseOrSubtitle(token);
 
                         subtitle = {
                             type: 'hebrew_subtitle',
-                            content: []
+                            content: [],
                         };
 
                         chapter.content.push(subtitle);
                     }
-                } else if(token.command === '\\b' || token.command === '\\p') {
+                } else if (token.command === '\\b' || token.command === '\\p') {
                     if (!chapter) {
-                        this._throwError(input, token, 'Cannot parse a line break without chapter information!');
+                        this._throwError(
+                            input,
+                            token,
+                            'Cannot parse a line break without chapter information!'
+                        );
                     } else {
                         if (verse) {
                             addWordsToVerseOrSubtitle();
                             verse.content.push({
-                                lineBreak: true
+                                lineBreak: true,
                             });
                         } else {
                             completeVerseOrSubtitle(token);
                             chapter.content.push({
-                                type: 'line_break'
+                                type: 'line_break',
                             });
                         }
                     }
@@ -408,7 +446,10 @@ export class UsfmParser {
                 } else if (token.command === '\\h') {
                     expectingName = 1;
                     root.header = undefined;
-                } else if (token.command === '\\mt' || token.command === '\\+mt') {
+                } else if (
+                    token.command === '\\mt' ||
+                    token.command === '\\+mt'
+                ) {
                     expectingTitle = 1;
                 } else if (token.command === '\\s') {
                     expectingSectionHeading = 1;
@@ -417,16 +458,21 @@ export class UsfmParser {
                 } else if (token.command === '\\f' && canParseFootnotes) {
                     if (token.type === 'start') {
                         if (!chapter) {
-                            this._throwError(input, token, 'Cannot start a footnote outside of a chapter!', true);
+                            this._throwError(
+                                input,
+                                token,
+                                'Cannot start a footnote outside of a chapter!',
+                                true
+                            );
                         } else {
                             addWordsToVerseOrSubtitle();
                             footnote = {
                                 noteId: currentFootnoteId,
                                 text: '',
-                                caller: null
+                                caller: null,
                             };
                             const ref: FootnoteReference = {
-                                noteId: footnote.noteId
+                                noteId: footnote.noteId,
                             };
                             expectingFootnote = 1;
 
@@ -451,13 +497,23 @@ export class UsfmParser {
                     }
                 } else if (token.command === '\\fr' && canParseFootnotes) {
                     if (!footnote) {
-                        this._throwError(input, token, 'Cannot start a footnote reference outside of a footnote!', true);
+                        this._throwError(
+                            input,
+                            token,
+                            'Cannot start a footnote reference outside of a footnote!',
+                            true
+                        );
                     } else {
                         expectingFootnoteReference = 1;
                     }
                 } else if (token.command === '\\ft' && canParseFootnotes) {
                     if (!footnote) {
-                        this._throwError(input, token, 'Cannot start footnote text outside of a footnote!', true);
+                        this._throwError(
+                            input,
+                            token,
+                            'Cannot start footnote text outside of a footnote!',
+                            true
+                        );
                     } else {
                         expectingFootnoteText = 1;
                     }
@@ -467,13 +523,16 @@ export class UsfmParser {
                     } else {
                         expectingWordAttribute = 0;
                     }
-                } else if(token.command === '\\+w') {
+                } else if (token.command === '\\+w') {
                     if (token.type === 'start') {
                         expectingNestedWordAttribute = 1;
                     } else {
                         expectingNestedWordAttribute = 0;
                     }
-                } else if (token.command === '\\wj' || token.command === '\\+wj') {
+                } else if (
+                    token.command === '\\wj' ||
+                    token.command === '\\+wj'
+                ) {
                     if (token.type === 'start') {
                         addWordsToVerseOrSubtitle();
                         this._wordsOfJesus = true;
@@ -499,7 +558,7 @@ export class UsfmParser {
                 }
             } else if (token.kind === 'word') {
                 if (expectingId > 0) {
-                    if  (expectingId === 1) {
+                    if (expectingId === 1) {
                         root.id = token.word;
                         expectingId = 2;
                     }
@@ -515,20 +574,20 @@ export class UsfmParser {
                     } else {
                         root.title = token.word;
                     }
-                } else if(expectingSectionHeading > 0) {
+                } else if (expectingSectionHeading > 0) {
                     if (sectionContent) {
                         sectionContent += ' ' + token.word;
                     } else {
                         sectionContent = token.word;
                     }
                 } else if (expectingFootnoteReference > 0) {
-                    if (expectingFootnoteReference = 1) {
+                    if ((expectingFootnoteReference = 1)) {
                         const [chapter, verse] = token.word.split(/[\.\:]/);
 
                         if (footnote) {
                             footnote.reference = {
                                 chapter: parseInt(chapter),
-                                verse: parseInt(verse)
+                                verse: parseInt(verse),
                             };
                         }
 
@@ -556,24 +615,35 @@ export class UsfmParser {
                     // Skip processing words for references
                     // because references aren't included in the JSON format
                     // (for now)
-                } else if(expectingCrossReference > 0) {
+                } else if (expectingCrossReference > 0) {
                     // Skip processing words for cross references
                 } else if (chapter && isNaN(chapter.number)) {
                     chapter.number = parseInt(token.word);
                     if (isNaN(chapter.number)) {
-                        this._throwError(input, token, 'The first word token after a chapter marker must be parsable to an integer!');
+                        this._throwError(
+                            input,
+                            token,
+                            'The first word token after a chapter marker must be parsable to an integer!'
+                        );
                     }
                 } else if (verse && isNaN(verse.number)) {
                     verse.number = parseInt(token.word);
                     if (isNaN(verse.number)) {
-                        this._throwError(input, token, 'The first word token after a verse marker must be parsable to an integer!');
+                        this._throwError(
+                            input,
+                            token,
+                            'The first word token after a verse marker must be parsable to an integer!'
+                        );
                     }
                 } else if (expectingWordAttribute > 0) {
                     if (expectingWordAttribute === 1) {
                         const firstVerticalBarIndex = token.word.indexOf('|');
 
                         if (firstVerticalBarIndex >= 0) {
-                            const name = token.word.slice(0, firstVerticalBarIndex);
+                            const name = token.word.slice(
+                                0,
+                                firstVerticalBarIndex
+                            );
                             // const rest = token.word.slice(firstVerticalBarIndex + '|'.length);
                             words.push(name);
                             expectingWordAttribute = 2;
@@ -586,7 +656,10 @@ export class UsfmParser {
                         const firstVerticalBarIndex = token.word.indexOf('|');
 
                         if (firstVerticalBarIndex >= 0) {
-                            const name = token.word.slice(0, firstVerticalBarIndex);
+                            const name = token.word.slice(
+                                0,
+                                firstVerticalBarIndex
+                            );
                             // const rest = token.word.slice(firstVerticalBarIndex + '|'.length);
                             words.push(name);
                             expectingNestedWordAttribute = 2;
@@ -626,7 +699,19 @@ export class UsfmParser {
                         expectingIntroParagraph = 0;
                         canParseFootnotes = true;
                     }
-                } else if (expectingId > 0 || expectingName > 0 || expectingTitle > 0 || expectingSectionHeading > 0 || expectingFootnote > 0 || expectingFootnoteReference > 0 || expectingFootnoteText > 0 || expectingReferenceText > 0 || expectingCrossReference > 0 || expectingWordAttribute > 0 || expectingNestedWordAttribute > 0) {
+                } else if (
+                    expectingId > 0 ||
+                    expectingName > 0 ||
+                    expectingTitle > 0 ||
+                    expectingSectionHeading > 0 ||
+                    expectingFootnote > 0 ||
+                    expectingFootnoteReference > 0 ||
+                    expectingFootnoteText > 0 ||
+                    expectingReferenceText > 0 ||
+                    expectingCrossReference > 0 ||
+                    expectingWordAttribute > 0 ||
+                    expectingNestedWordAttribute > 0
+                ) {
                     // Skip
                 } else if (expectingUnknownCommand > 0) {
                     if (token.whitespace.includes('\n')) {
@@ -656,15 +741,15 @@ export class UsfmParser {
         for (let c of tree.content) {
             if (c.type === 'heading') {
                 md += `## ${c.content.join(' ')}\n`;
-            } else if(c.type === 'chapter') {
+            } else if (c.type === 'chapter') {
                 md += `### ${c.number}\n`;
 
-                for(let content of c.content) {
+                for (let content of c.content) {
                     if (content.type === 'heading') {
                         md += `#### ${content.content.join(' ')}\n`;
-                    } else if(content.type === 'line_break') {
+                    } else if (content.type === 'line_break') {
                         md += '\n\n';
-                    } else if(content.type === 'verse') {
+                    } else if (content.type === 'verse') {
                         md += `<em>${content.number}</em>`;
                         for (let v of content.content) {
                             if (typeof v === 'string') {
@@ -687,11 +772,11 @@ export class UsfmParser {
     }
 
     private _text(text: string): Text | string {
-        if(!this._hasAttribute()) {
+        if (!this._hasAttribute()) {
             return text;
         }
         const t: Text = {
-            text
+            text,
         };
 
         if (this._poem !== null) {
@@ -705,7 +790,12 @@ export class UsfmParser {
         return t;
     }
 
-    private _throwError(source: string, token: Token | null, message: string, warn: boolean = false): void {
+    private _throwError(
+        source: string,
+        token: Token | null,
+        message: string,
+        warn: boolean = false
+    ): void {
         if (token) {
             let line = 1;
             let column = 1;
@@ -725,10 +815,10 @@ export class UsfmParser {
             let tokenDebug = '';
             if (token.kind === 'word') {
                 tokenDebug = ', word';
-            } else if(token.kind === 'marker') {
+            } else if (token.kind === 'marker') {
                 tokenDebug = ', ' + token.command;
             } else {
-                tokenDebug = ''
+                tokenDebug = '';
             }
 
             if (warn) {
@@ -765,7 +855,7 @@ export function isWhitespace(char: string): boolean {
 export function t(loc: SourceLocation, kind: T): SimpleToken {
     return {
         loc,
-        kind
+        kind,
     };
 }
 
@@ -777,7 +867,7 @@ export function t(loc: SourceLocation, kind: T): SimpleToken {
 export function loc(start: number, end: number): SourceLocation {
     return {
         start,
-        end
+        end,
     };
 }
 
@@ -788,13 +878,18 @@ export function loc(start: number, end: number): SourceLocation {
  * @param number The number that the marker contains.
  * @param type The type of the marker.
  */
-export function marker(loc: SourceLocation, command: string, number: number | null = null, type: MarkerToken['type'] = 'start'): MarkerToken {
+export function marker(
+    loc: SourceLocation,
+    command: string,
+    number: number | null = null,
+    type: MarkerToken['type'] = 'start'
+): MarkerToken {
     return {
         kind: 'marker',
         loc,
         command,
         number,
-        type
+        type,
     };
 }
 
@@ -807,15 +902,18 @@ export function word(loc: SourceLocation, word: string): WordToken {
     return {
         kind: 'word',
         loc,
-        word
+        word,
     };
 }
 
-export function whitespace(loc: SourceLocation, whitespace: string): WhitespaceToken {
+export function whitespace(
+    loc: SourceLocation,
+    whitespace: string
+): WhitespaceToken {
     return {
         kind: 'whitespace',
         loc,
-        whitespace
+        whitespace,
     };
 }
 
