@@ -14,6 +14,9 @@ module.exports = {
             },
         ],
     },
+    moduleNameMapper: {
+        '^(\\.{1,2}/.*)\\.js$': '$1',
+    },
     testPathIgnorePatterns: ['/node_modules/', '/build/'],
     roots: ['<rootDir>/packages', '<rootDir>/docs'],
 };
