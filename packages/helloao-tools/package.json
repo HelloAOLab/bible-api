@@ -1,6 +1,6 @@
 {
     "name": "@helloao/tools",
-    "version": "0.0.6-alpha",
+    "version": "0.0.9",
     "description": "A set of tools for managing HelloAO's Free Bible API",
     "exports": {
         ".": {
