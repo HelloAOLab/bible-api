@@ -1,5 +1,5 @@
 import * as esbuild from 'esbuild';
-import { BuildOptions } from 'esbuild';
+import type { BuildOptions } from 'esbuild';
 import { readFileSync } from 'fs';
 import path from 'path';
 

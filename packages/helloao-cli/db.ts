@@ -1,7 +1,7 @@
 import { PrismaClient, Prisma } from './prisma-gen';
-import path, { dirname } from 'path';
+import path from 'path';
 import Sql, { Database } from 'better-sqlite3';
-import { readdir, readFile } from 'fs-extra';
+import { exists, readdir, readFile } from 'fs-extra';
 import { randomUUID } from 'node:crypto';
 import {
     DatasetOutput,
@@ -28,8 +28,23 @@ import { sha256 } from 'hash.js';
 import { DOMParser } from 'linkedom';
 import { Readable } from 'stream';
 
-const cliPath = require.resolve('./index');
-const migrationsPath = path.resolve(dirname(cliPath), 'migrations');
+let dirname = __dirname;
+if (!dirname) {
+    dirname = import.meta.dirname;
+}
+
+export async function getMigrationsPath() {
+    const migrationsPaths = ['./migrations', '../migrations'];
+
+    for (let migrationsPath of migrationsPaths) {
+        const fullPath = path.resolve(dirname, migrationsPath);
+        if (await exists(fullPath)) {
+            return fullPath;
+        }
+    }
+
+    return null;
+}
 
 /**
  * Imports the translations from the given directories into the database.
@@ -635,6 +650,11 @@ export async function getDbFromDir(dir: string): Promise<Database> {
 }
 
 export async function getDb(dbPath: string): Promise<Database> {
+    const migrationsPath = await getMigrationsPath();
+    if (!migrationsPath) {
+        throw new Error('Could not find migrations path');
+    }
+
     const db = new Sql(dbPath, {});
 
     db.exec(`CREATE TABLE IF NOT EXISTS "_prisma_migrations" (
