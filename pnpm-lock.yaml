@@ -105,7 +105,7 @@ importers:
                 specifier: ^0.7.0
                 version: 0.7.0
             '@helloao/tools':
-                specifier: ^0.0.6
+                specifier: ^0.0.9
                 version: link:../helloao-tools
             '@inquirer/prompts':
                 specifier: 5.3.8
