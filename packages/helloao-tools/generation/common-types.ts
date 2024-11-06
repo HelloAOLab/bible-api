@@ -1,12 +1,22 @@
 /**
  * Defines an interface that contains information about a input file.
  */
-export interface InputFile {
+export type InputFile = InputTranslationFile | InputCommentaryFile;
+
+export interface InputFileBase {
     name?: string;
-    metadata: ParseTreeMetadata;
     content: string;
     sha256?: string;
+}
+
+export interface InputTranslationFile extends InputFileBase {
     fileType: 'usfm' | 'usx' | 'json';
+    metadata: ParseTreeMetadata;
+}
+
+export interface InputCommentaryFile extends InputFileBase {
+    fileType: 'commentary/csv';
+    metadata: InputCommentaryMetadata;
 }
 
 export type OutputFileContent = object | ReadableStream;
@@ -39,17 +49,10 @@ export interface ParseTreeMetadata {
      * Information about the translation.
      */
     translation: InputTranslationMetadata;
+    commentary?: InputCommentaryMetadata;
 }
 
-/**
- * The metadata for a translation that is input into the generator.
- */
-export interface InputTranslationMetadata {
-    /**
-     * The ID of the translation.
-     */
-    id: string;
-
+export interface MetadataBase {
     /**
      * The name of the translation.
      */
@@ -71,11 +74,6 @@ export interface InputTranslationMetadata {
     licenseUrl: string;
 
     /**
-     * The short name for the translation.
-     */
-    shortName?: string;
-
-    /**
      * The ISO 639 letter language tag that the translation is primarily in.
      */
     language: string;
@@ -84,6 +82,31 @@ export interface InputTranslationMetadata {
      * The direction that the text is written in.
      */
     direction: 'ltr' | 'rtl';
+}
+
+/**
+ * The metadata for a translation that is input into the generator.
+ */
+export interface InputTranslationMetadata extends MetadataBase {
+    /**
+     * The ID of the translation.
+     */
+    id: string;
+
+    /**
+     * The short name for the translation.
+     */
+    shortName?: string;
+}
+
+/**
+ * The metadata for a translation that is input into the generator.
+ */
+export interface InputCommentaryMetadata extends MetadataBase {
+    /**
+     * The ID of the commentary.
+     */
+    id: string;
 }
 
 /**
@@ -146,6 +169,16 @@ export interface Commentary {
      * The name of the commentary.
      */
     name: string;
+
+    /**
+     * The website for the commentary.
+     */
+    website: string;
+
+    /**
+     * The URL that the license for the commentary can be found.
+     */
+    licenseUrl: string;
 
     /**
      * The english name for the commentary.

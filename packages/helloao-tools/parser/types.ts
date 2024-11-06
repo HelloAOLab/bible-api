@@ -179,12 +179,7 @@ export interface LineBreak {
  * The parse tree that is gathered.
  */
 export interface CommentaryParseTree {
-    type: 'root';
-
-    /**
-     * The ID of the parse tree.
-     */
-    id?: string;
+    type: 'commentary/root';
 
     /**
      * The books that are contained in the commentary.

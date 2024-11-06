@@ -1,3 +1,4 @@
+import { unparse } from 'papaparse';
 import { CommentaryCsvParser } from './commentary-csv-parser';
 
 describe('CommentaryCsvParser', () => {
@@ -8,8 +9,42 @@ describe('CommentaryCsvParser', () => {
     });
 
     describe('parse()', () => {
+        it('should be able to parse CSV data', () => {
+            const result = parser.parse(
+                unparse(
+                    [
+                        {
+                            Book: 'Genesis',
+                            Chapter: '',
+                            'VERSE / INTRODUCTION': 'Book Introduction',
+                            COMMENTARIES:
+                                'This is the introduction to the book of Genesis.',
+                        },
+                    ],
+                    {
+                        header: true,
+                    }
+                )
+            );
+
+            expect(result).toEqual({
+                type: 'commentary/root',
+                books: [
+                    {
+                        type: 'book',
+                        book: 'GEN',
+                        introduction:
+                            'This is the introduction to the book of Genesis.',
+                        chapters: [],
+                    },
+                ],
+            });
+        });
+    });
+
+    describe('parseLines()', () => {
         it('should be able to parse book introductions', () => {
-            const result = parser.parse([
+            const result = parser.parseLines([
                 {
                     book: 'Genesis',
                     chapter: '',
@@ -20,7 +55,7 @@ describe('CommentaryCsvParser', () => {
             ]);
 
             expect(result).toEqual({
-                type: 'root',
+                type: 'commentary/root',
                 books: [
                     {
                         type: 'book',
@@ -34,7 +69,7 @@ describe('CommentaryCsvParser', () => {
         });
 
         it('should be able to parse book and chapter introductions', () => {
-            const result = parser.parse([
+            const result = parser.parseLines([
                 {
                     book: 'Genesis',
                     chapter: '',
@@ -52,7 +87,7 @@ describe('CommentaryCsvParser', () => {
             ]);
 
             expect(result).toEqual({
-                type: 'root',
+                type: 'commentary/root',
                 books: [
                     {
                         type: 'book',
@@ -74,7 +109,7 @@ describe('CommentaryCsvParser', () => {
         });
 
         it('should be able to parse verses', () => {
-            const result = parser.parse([
+            const result = parser.parseLines([
                 {
                     book: 'Genesis',
                     chapter: '',
@@ -110,7 +145,7 @@ describe('CommentaryCsvParser', () => {
             ]);
 
             expect(result).toEqual({
-                type: 'root',
+                type: 'commentary/root',
                 books: [
                     {
                         type: 'book',
@@ -154,7 +189,7 @@ describe('CommentaryCsvParser', () => {
         });
 
         it('should be able to infer chapers', () => {
-            const result = parser.parse([
+            const result = parser.parseLines([
                 {
                     book: 'Genesis',
                     chapter: '',
@@ -196,7 +231,7 @@ describe('CommentaryCsvParser', () => {
             ]);
 
             expect(result).toEqual({
-                type: 'root',
+                type: 'commentary/root',
                 books: [
                     {
                         type: 'book',

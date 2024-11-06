@@ -4,6 +4,7 @@ import {
     CommentaryParseTree,
 } from './types';
 import { getBookId, parseVerseReference } from '../utils';
+import { parse } from 'papaparse';
 
 export interface CsvLine {
     book: string;
@@ -13,9 +14,28 @@ export interface CsvLine {
 }
 
 export class CommentaryCsvParser {
-    parse(data: CsvLine[]): CommentaryParseTree {
+    parse(data: string): CommentaryParseTree {
+        const lines = parse(data, {
+            header: true,
+            transformHeader: (header) => {
+                if (/^book$/i.test(header)) {
+                    return 'book';
+                } else if (/^chapter$/i.test(header)) {
+                    return 'chapter';
+                } else if (/^verse/i.test(header)) {
+                    return 'verse';
+                } else if (/^COMMENTARIES$/i.test(header)) {
+                    return 'commentaries';
+                }
+                return header;
+            },
+        });
+        return this.parseLines(lines.data as any);
+    }
+
+    parseLines(data: CsvLine[]): CommentaryParseTree {
         let tree: CommentaryParseTree = {
-            type: 'root',
+            type: 'commentary/root',
             books: [],
         };
 

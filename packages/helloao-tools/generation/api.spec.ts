@@ -8,11 +8,13 @@ import Exodus from '../../../bible/bsb/02EXOBSB.usfm';
 import _1Chronicles from '../../../bible/bsb/131CHBSB.usfm';
 import { generateDataset } from './dataset.js';
 import {
+    InputCommentaryMetadata,
     InputFile,
     InputTranslationMetadata,
     OutputFile,
 } from './common-types.js';
 import { DOMParser, Element, Node } from 'linkedom';
+import { unparse } from 'papaparse';
 
 describe('replaceSpacesWithUnderscores()', () => {
     const cases = [
@@ -83,6 +85,9 @@ describe('generateApiForDataset()', () => {
         expect(tree).toEqual({
             '/api/available_translations.json': {
                 translations: [expectedTranslation],
+            },
+            '/api/available_commentaries.json': {
+                commentaries: [],
             },
             '/api/bsb/books.json': {
                 translation: expectedTranslation,
@@ -277,6 +282,9 @@ describe('generateApiForDataset()', () => {
             '/hello/api/available_translations.json': {
                 translations: [expectedTranslation],
             },
+            '/hello/api/available_commentaries.json': {
+                commentaries: [],
+            },
             '/hello/api/bsb/books.json': {
                 translation: expectedTranslation,
                 books: [
@@ -456,6 +464,9 @@ describe('generateApiForDataset()', () => {
             '/api/available_translations.json': {
                 translations: [expectedTranslation],
             },
+            '/api/available_commentaries.json': {
+                commentaries: [],
+            },
             '/api/bsb/books.json': {
                 translation: expectedTranslation,
                 books: [
@@ -569,6 +580,9 @@ describe('generateApiForDataset()', () => {
             '/api/available_translations.json': {
                 translations: [expectedTranslation],
             },
+            '/api/available_commentaries.json': {
+                commentaries: [],
+            },
             '/api/bsb/books.json': {
                 translation: expectedTranslation,
                 books: [
@@ -622,6 +636,129 @@ describe('generateApiForDataset()', () => {
                         },
                     ],
                     footnotes: [],
+                },
+            },
+        });
+
+        // expect(availableTranslations).toEqual({
+        //     translations: [
+        //         expectedTranslation
+        //     ]
+        // });
+    });
+
+    it('should support commentary files', () => {
+        let comment1: InputCommentaryMetadata = {
+            id: 'comment',
+            name: 'Commentary',
+            englishName: 'Commentary',
+            language: 'eng',
+            direction: 'ltr',
+            licenseUrl: 'https://example.com/terms.htm',
+            website: 'https://example.com',
+        };
+
+        let inputFiles = [
+            {
+                fileType: 'commentary/csv',
+                content: unparse([
+                    {
+                        book: 'Genesis',
+                        chapter: '',
+                        verse: 'Book Introduction',
+                        commentaries: 'Genesis Book Intro',
+                    },
+                    {
+                        book: '',
+                        chapter: '1',
+                        verse: 'Chapter Introduction',
+                        commentaries: 'Chapter introduction',
+                    },
+                    {
+                        book: '',
+                        chapter: '',
+                        verse: 'Genesis 1:1',
+                        commentaries: 'This is the commentary for Genesis 1:1.',
+                    },
+                ]),
+                metadata: comment1,
+            },
+        ] as InputFile[];
+
+        const dataset = generateDataset(inputFiles, new DOMParser() as any);
+        const generated = generateApiForDataset(dataset);
+        const files = generateFilesForApi(generated);
+
+        const tree = fileTree(files);
+
+        const expectedCommentary = {
+            id: 'comment',
+            name: 'Commentary',
+            englishName: 'Commentary',
+            language: 'eng',
+            textDirection: 'ltr',
+            licenseUrl: 'https://example.com/terms.htm',
+            website: 'https://example.com',
+            availableFormats: ['json'],
+            listOfBooksApiLink: '/api/c/comment/books.json',
+            numberOfBooks: 1,
+            totalNumberOfChapters: 1,
+            totalNumberOfVerses: 1,
+        };
+
+        expect(tree).toEqual({
+            '/api/available_translations.json': {
+                translations: [],
+            },
+            '/api/available_commentaries.json': {
+                commentaries: [expectedCommentary],
+            },
+            '/api/c/comment/books.json': {
+                commentary: expectedCommentary,
+                books: [
+                    {
+                        id: 'GEN',
+                        order: 1,
+                        name: 'Genesis',
+                        commonName: 'Genesis',
+                        introduction: 'Genesis Book Intro',
+                        numberOfChapters: 1,
+                        totalNumberOfVerses: 1,
+                        firstChapterApiLink: '/api/c/comment/GEN/1.json',
+                        lastChapterApiLink: '/api/c/comment/GEN/1.json',
+                    },
+                ],
+            },
+            '/api/c/comment/GEN/1.json': {
+                commentary: expectedCommentary,
+                book: {
+                    id: 'GEN',
+                    order: 1,
+                    name: 'Genesis',
+                    commonName: 'Genesis',
+                    introduction: 'Genesis Book Intro',
+                    numberOfChapters: 1,
+                    totalNumberOfVerses: 1,
+                    firstChapterApiLink: '/api/c/comment/GEN/1.json',
+                    lastChapterApiLink: '/api/c/comment/GEN/1.json',
+                },
+                thisChapterLink: '/api/c/comment/GEN/1.json',
+                // thisChapterAudioLinks: {},
+                nextChapterApiLink: null,
+                previousChapterApiLink: null,
+                numberOfVerses: 1,
+                chapter: {
+                    number: 1,
+                    introduction: 'Chapter introduction',
+                    content: [
+                        {
+                            type: 'verse',
+                            number: 1,
+                            content: [
+                                'This is the commentary for Genesis 1:1.',
+                            ],
+                        },
+                    ],
                 },
             },
         });

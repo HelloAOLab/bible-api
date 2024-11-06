@@ -1,4 +1,7 @@
 import {
+    Commentary,
+    CommentaryBook,
+    CommentaryBookChapter,
     OutputFile,
     Translation,
     TranslationBook,
@@ -39,6 +42,25 @@ export interface ApiOutput {
     translationBookChapterAudio: ApiTranslationBookChapterAudio[];
 
     /**
+     * The list of available commentaries.
+     * This maps to the /api/available-commentaries.json endpoint.
+     */
+    availableCommentaries: ApiAvailableCommentaries;
+
+    /**
+     * The list of books for each commentary.
+     * This maps to the /api/c/:commentaryId/books.json endpoint.
+     */
+    commentaryBooks: ApiCommentaryBooks[];
+
+    /**
+     * The list of chapters for each commentary book.
+     * This maps to the following endpoint:
+     * - /api/c/:commentaryId/:bookId/:chapterNumber.json
+     */
+    commentaryBookChapters: ApiCommentaryBookChapter[];
+
+    /**
      * The path prefix that the API should use.
      */
     pathPrefix: string;
@@ -53,6 +75,17 @@ export interface ApiAvailableTranslations {
      * The list of translations.
      */
     translations: ApiTranslation[];
+}
+
+/**
+ * The list of available commentaries.
+ * Maps to the /api/available-commentaries.json endpoint.
+ */
+export interface ApiAvailableCommentaries {
+    /**
+     * The list of commentaries.
+     */
+    commentaries: ApiCommentary[];
 }
 
 /**
@@ -104,6 +137,54 @@ export interface ApiTranslation extends Translation {
 }
 
 /**
+ * Defines a commentary that is used in the API.
+ */
+export interface ApiCommentary extends Commentary {
+    /**
+     * The API link for the list of available books for this translation.
+     */
+    listOfBooksApiLink: string;
+
+    /**
+     * The available list of formats.
+     */
+    availableFormats: ('json' | 'usfm')[];
+
+    /**
+     * The number of books that are contained in this commentary.
+     *
+     * Complete commentaries should have the same number of books as the Bible (66).
+     */
+    numberOfBooks: number;
+
+    /**
+     * The total number of chapters that are contained in this translation.
+     *
+     * Complete commentaries should have the same number of chapters as the Bible (1,189).
+     */
+    totalNumberOfChapters: number;
+
+    /**
+     * The total number of verses that are contained in this commentary.
+     *
+     * Complete commentaries should have the same number of verses as the Bible (around 31,102 - some commentaries exclude verses based on the aparent likelyhood of existing in the original source texts).
+     */
+    totalNumberOfVerses: number;
+
+    /**
+     * Gets the name of the language that the commentary is in.
+     * Null or undefined if the name of the language is not known.
+     */
+    languageName?: string;
+
+    /**
+     * Gets the name of the language in English.
+     * Null or undefined if the language doesn't have an english name.
+     */
+    languageEnglishName?: string;
+}
+
+/**
  * Defines an interface that contains information about the books that are available for a translation.
  */
 export interface ApiTranslationBooks {
@@ -119,9 +200,49 @@ export interface ApiTranslationBooks {
 }
 
 /**
+ * Defines an interface that contains information about the books that are available for a commentary.
+ */
+export interface ApiCommentaryBooks {
+    /**
+     * The commentary information for the books.
+     */
+    commentary: ApiCommentary;
+
+    /**
+     * The list of books that are available for the commentary.
+     */
+    books: ApiCommentaryBook[];
+}
+
+/**
  * Defines a translation book that is used in the API.
  */
 export interface ApiTranslationBook extends TranslationBook {
+    /**
+     * The link to the first chapter of the book.
+     */
+    firstChapterApiLink: string;
+
+    /**
+     * The link to the last chapter of the book.
+     */
+    lastChapterApiLink: string;
+
+    /**
+     * The number of chapters that the book contains.
+     */
+    numberOfChapters: number;
+
+    /**
+     * The number of verses that the book contains.
+     */
+    totalNumberOfVerses: number;
+}
+
+/**
+ * Defines a commentary book that is used in the API.
+ */
+export interface ApiCommentaryBook extends CommentaryBook {
     /**
      * The link to the first chapter of the book.
      */
@@ -185,6 +306,43 @@ export interface ApiTranslationBookChapter extends TranslationBookChapter {
      * Null if this is the first chapter in the translation.
      */
     previousChapterAudioLinks: TranslationBookChapterAudioLinks | null;
+
+    /**
+     * The number of verses that the chapter contains.
+     */
+    numberOfVerses: number;
+}
+
+/**
+ * Defines an interface that contains information about a book chapter.
+ */
+export interface ApiCommentaryBookChapter extends CommentaryBookChapter {
+    /**
+     * The commentary information for the book chapter.
+     */
+    commentary: ApiCommentary;
+
+    /**
+     * The book information for the book chapter.
+     */
+    book: ApiCommentaryBook;
+
+    /**
+     * The link to this chapter.
+     */
+    thisChapterLink: string;
+
+    /**
+     * The link to the next chapter.
+     * Null if this is the last chapter in the translation.
+     */
+    nextChapterApiLink: string | null;
+
+    /**
+     * The link to the previous chapter.
+     * Null if this is the first chapter in the translation.
+     */
+    previousChapterApiLink: string | null;
 
     /**
      * The number of verses that the chapter contains.
@@ -266,6 +424,11 @@ export function generateApiForDataset(
         translationBooks: [],
         translationBookChapters: [],
         translationBookChapterAudio: [],
+        availableCommentaries: {
+            commentaries: [],
+        },
+        commentaryBookChapters: [],
+        commentaryBooks: [],
         pathPrefix: apiPathPrefix,
     };
 
@@ -409,9 +572,123 @@ export function generateApiForDataset(
         api.translationBooks.push(translationBooks);
     }
 
+    for (let { books, ...commentary } of dataset.commentaries) {
+        const apiCommentary: ApiCommentary = {
+            ...commentary,
+            availableFormats: ['json'],
+            listOfBooksApiLink: listOfCommentaryBooksApiLink(
+                commentary.id,
+                apiPathPrefix
+            ),
+            numberOfBooks: books.length,
+            totalNumberOfChapters: 0,
+            totalNumberOfVerses: 0,
+            languageName: getNativeName
+                ? getNativeName(commentary.language) ?? undefined
+                : undefined,
+            languageEnglishName: getEnglishName
+                ? getEnglishName(commentary.language) ?? undefined
+                : undefined,
+        };
+
+        const commentaryBooks: ApiCommentaryBooks = {
+            commentary: apiCommentary,
+            books: [],
+        };
+
+        let commentaryChapters: ApiCommentaryBookChapter[] = [];
+
+        for (let { chapters, ...book } of books) {
+            const apiBook: ApiCommentaryBook = {
+                ...book,
+                firstChapterApiLink: bookCommentaryChapterApiLink(
+                    commentary.id,
+                    getBookLink(book),
+                    1,
+                    'json',
+                    apiPathPrefix
+                ),
+                lastChapterApiLink: bookCommentaryChapterApiLink(
+                    commentary.id,
+                    getBookLink(book),
+                    chapters.length,
+                    'json',
+                    apiPathPrefix
+                ),
+                numberOfChapters: chapters.length,
+                totalNumberOfVerses: 0,
+            };
+
+            for (let { chapter } of chapters) {
+                const apiBookChapter: ApiCommentaryBookChapter = {
+                    commentary: apiCommentary,
+                    book: apiBook,
+                    chapter: chapter,
+                    thisChapterLink: bookCommentaryChapterApiLink(
+                        commentary.id,
+                        getBookLink(book),
+                        chapter.number,
+                        'json',
+                        apiPathPrefix
+                    ),
+                    nextChapterApiLink: null,
+                    previousChapterApiLink: null,
+                    numberOfVerses: 0,
+                };
+
+                for (let c of chapter.content) {
+                    if (c.type === 'verse') {
+                        apiBookChapter.numberOfVerses++;
+                    }
+                }
+
+                apiBook.totalNumberOfVerses += apiBookChapter.numberOfVerses;
+
+                commentaryChapters.push(apiBookChapter);
+                api.commentaryBookChapters.push(apiBookChapter);
+            }
+
+            commentaryBooks.books.push(apiBook);
+
+            apiCommentary.totalNumberOfChapters += apiBook.numberOfChapters;
+            apiCommentary.totalNumberOfVerses += apiBook.totalNumberOfVerses;
+        }
+
+        for (let i = 0; i < commentaryChapters.length; i++) {
+            if (i > 0) {
+                commentaryChapters[i].previousChapterApiLink =
+                    bookCommentaryChapterApiLink(
+                        commentary.id,
+                        getBookLink(commentaryChapters[i - 1].book),
+                        commentaryChapters[i - 1].chapter.number,
+                        'json',
+                        apiPathPrefix
+                    );
+                // commentaryChapters[i].previousChapterAudioLinks =
+                //     commentaryChapters[i - 1].thisChapterAudioLinks;
+            }
+
+            if (i < commentaryChapters.length - 1) {
+                commentaryChapters[i].nextChapterApiLink =
+                    bookCommentaryChapterApiLink(
+                        commentary.id,
+                        getBookLink(commentaryChapters[i + 1].book),
+                        commentaryChapters[i + 1].chapter.number,
+                        'json',
+                        apiPathPrefix
+                    );
+                // commentaryChapters[i].nextChapterAudioLinks =
+                //     commentaryChapters[i + 1].thisChapterAudioLinks;
+            }
+        }
+
+        api.availableCommentaries.commentaries.push(apiCommentary);
+        api.commentaryBooks.push(commentaryBooks);
+    }
+
     return api;
 
-    function getBookLink(book: TranslationBook): string {
+    function getBookLink(book: TranslationBook | CommentaryBook): string {
         return useCommonName ? book.commonName : book.id;
     }
 }
@@ -447,6 +724,30 @@ export function generateFilesForApi(api: ApiOutput): OutputFile[] {
         files.push(downloadedFile(audio.link, audio.originalUrl));
     }
 
+    files.push(
+        jsonFile(
+            `${api.pathPrefix}/api/available_commentaries.json`,
+            api.availableCommentaries,
+            true
+        )
+    );
+    for (let commentaryBooks of api.commentaryBooks) {
+        files.push(
+            jsonFile(
+                commentaryBooks.commentary.listOfBooksApiLink,
+                commentaryBooks
+            )
+        );
+    }
+
+    for (let bookChapter of api.commentaryBookChapters) {
+        files.push(jsonFile(bookChapter.thisChapterLink, bookChapter));
+    }
+
+    // for (let audio of api.translationBookChapterAudio) {
+    //     files.push(downloadedFile(audio.link, audio.originalUrl));
+    // }
+
     return files;
 }
 
@@ -480,6 +781,18 @@ export function listOfBooksApiLink(
 }
 
 /**
+ * Gets the API Link for the list of books endpoint for a commentary.
+ * @param commentaryId The ID of the commentary.
+ * @returns
+ */
+export function listOfCommentaryBooksApiLink(
+    commentaryId: string,
+    prefix: string = ''
+): string {
+    return `${prefix}/api/c/${commentaryId}/books.json`;
+}
+
+/**
  * Getes the API link for a book chapter.
  * @param translationId The ID of the translation.
  * @param commonName The name of the book.
@@ -494,6 +807,25 @@ export function bookChapterApiLink(
     prefix: string = ''
 ) {
     return `${prefix}/api/${translationId}/${replaceSpacesWithUnderscores(
+        commonName
+    )}/${chapterNumber}.${extension}`;
+}
+
+/**
+ * Getes the API link for a book chapter.
+ * @param translationId The ID of the translation.
+ * @param commonName The name of the book.
+ * @param chapterNumber The number of the book.
+ * @param extension The extension of the file.
+ */
+export function bookCommentaryChapterApiLink(
+    translationId: string,
+    commonName: string,
+    chapterNumber: number,
+    extension: string,
+    prefix: string = ''
+) {
+    return `${prefix}/api/c/${translationId}/${replaceSpacesWithUnderscores(
         commonName
     )}/${chapterNumber}.${extension}`;
 }
