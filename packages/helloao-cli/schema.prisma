@@ -29,6 +29,24 @@ model Translation {
     audioUrls    ChapterAudioUrl[]
 }
 
+model Commentary {
+    id            String @id
+    name          String
+    website       String
+    licenseUrl    String
+    englishName   String
+    language      String
+    textDirection String
+
+    // The SHA-256 hash of the translation
+    // includes everything about the translation, including the books, chapters, verses, footnotes, etc.
+    sha256         String?
+    
+    books        CommentaryBook[]
+    chapters     CommentaryChapter[]
+    verses       CommentaryChapterVerse[]
+}
+
 model InputFile {
     // The ID of the translation that the file is for
     translationId String
@@ -70,6 +88,28 @@ model Book {
     @@id([translationId, id])
 }
 
+model CommentaryBook {
+    id String
+
+    commentaryId String
+    commentary Commentary @relation(fields: [commentaryId], references: [id])
+
+    name String
+    commonName String
+    introduction String?
+    order Int
+
+    numberOfChapters Int
+
+    // The SHA-256 hash of the book
+    sha256 String?
+
+    chapters CommentaryChapter[]
+    verses CommentaryChapterVerse[]
+
+    @@id([commentaryId, id])
+}
+
 model Chapter {
     number Int
 
@@ -89,6 +129,26 @@ model Chapter {
     audioUrls ChapterAudioUrl[]
 
     @@id([translationId, bookId, number])
+}
+
+model CommentaryChapter {
+    number Int
+
+    bookId String
+    book CommentaryBook @relation(fields: [commentaryId, bookId], references: [commentaryId, id])
+
+    commentaryId String
+    commentary Commentary @relation(fields: [commentaryId], references: [id])
+
+    introduction String?
+    json String // The JSON of the chapter
+
+    // The SHA-256 hash of the chapter
+    sha256 String?
+
+    verses CommentaryChapterVerse[]
+
+    @@id([commentaryId, bookId, number])
 }
 
 model ChapterAudioUrl {
@@ -128,6 +188,27 @@ model ChapterVerse {
     footnotes ChapterFootnote[]
 
     @@id([translationId, bookId, chapterNumber, number])
+}
+
+model CommentaryChapterVerse {
+    number Int
+
+    chapterNumber Int
+    chapter CommentaryChapter @relation(fields: [commentaryId, bookId, chapterNumber], references: [commentaryId, bookId, number])
+
+    bookId String
+    book CommentaryBook @relation(fields: [commentaryId, bookId], references: [commentaryId, id])
+
+    commentaryId String
+    commentary Commentary @relation(fields: [commentaryId], references: [id])
+
+    text String // The text of the verse
+    contentJson String // The JSON of the verse content
+
+    // The SHA-256 hash of the verse
+    sha256 String?
+
+    @@id([commentaryId, bookId, chapterNumber, number])
 }
 
 model ChapterFootnote {

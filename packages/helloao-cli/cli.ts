@@ -12,6 +12,8 @@ import {
     fetchTranslations,
     generateTranslationFiles,
     generateTranslationsFiles,
+    importCommentaries,
+    importCommentary,
     importTranslation,
     importTranslations,
     initDb,
@@ -98,6 +100,27 @@ async function start() {
         .option('--overwrite', 'Whether to overwrite existing files.')
         .action(async (dir: string, options: any) => {
             await importTranslations(dir, options);
+        });
+
+    program
+        .command('import-commentary <dir> [dirs...]')
+        .description(
+            'Imports a commentary from the given directory into the database.'
+        )
+        .option('--overwrite', 'Whether to overwrite existing files.')
+        .action(async (dir: string, dirs: string[], options: any) => {
+            console.log('options', options);
+            await importCommentary(dir, dirs, options);
+        });
+
+    program
+        .command('import-commentaries <dir>')
+        .description(
+            'Imports all commentaries from the given directory into the database.'
+        )
+        .option('--overwrite', 'Whether to overwrite existing files.')
+        .action(async (dir: string, options: any) => {
+            await importCommentaries(dir, options);
         });
 
     program
@@ -349,7 +372,7 @@ async function start() {
         )
         .option(
             '--translations <translations...>',
-            'The translations to generate API files for.'
+            'The translations or commentaries to generate API files for.'
         )
         .option('--overwrite', 'Whether to overwrite existing files.')
         .option(

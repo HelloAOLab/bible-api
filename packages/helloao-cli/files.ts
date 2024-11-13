@@ -14,7 +14,9 @@ import {
     InputTranslationMetadata,
     OutputFile,
     OutputFileContent,
-    ParseTreeMetadata,
+    InputCommentaryMetadata,
+    InputFileMetadata,
+    InputTranslationFile,
 } from '@helloao/tools/generation/common-types.js';
 import { ZipWriter, Writer, TextReader, Reader } from '@zip.js/zip.js';
 import { Readable, Writable } from 'stream';
@@ -200,6 +202,26 @@ export async function serializeFile(
     return null;
 }
 
+// /**
+//  * Loads the files for the given translations.
+//  * @param dir The directory that the translations exist in.
+//  */
+// export async function loadTranslationsFiles(
+//     dirs: string[]
+// ): Promise<InputFile[]> {
+//     const promises = [] as Promise<InputFile[]>[];
+//     for (let dir of dirs) {
+//         const fullPath = path.resolve(dir);
+//         promises.push(
+//             loadTranslationFiles(fullPath).then((files) => files ?? [])
+//         );
+//     }
+
+//     const allFiles = await Promise.all(promises);
+//     const files = allFiles.flat();
+//     return files;
+// }
+
 /**
  * Loads the files for the given translations.
  * @param dir The directory that the translations exist in.
@@ -267,10 +289,78 @@ export async function loadTranslationFiles(
         }
         const filePath = path.resolve(translation, file);
         promises.push(
-            loadFile(filePath, {
-                translation: metadata,
-            })
+            loadFile(
+                path
+                    .extname(filePath)
+                    .slice(1) as InputTranslationFile['fileType'],
+                filePath,
+                metadata
+            )
         );
+    }
+
+    return await Promise.all(promises);
+}
+
+/**
+ * Loads the files for the given commentaries.
+ * @param dir The directory that the commentaries exist in.
+ */
+export async function loadCommentariesFiles(
+    dirs: string[]
+): Promise<InputFile[]> {
+    const promises = [] as Promise<InputFile[]>[];
+    for (let dir of dirs) {
+        const fullPath = path.resolve(dir);
+        promises.push(
+            loadCommentaryFiles(fullPath).then((files) => files ?? [])
+        );
+    }
+
+    const allFiles = await Promise.all(promises);
+    const files = allFiles.flat();
+    return files;
+}
+
+/**
+ * Loads the files for the given commentary.
+ * @param commentary The directory that the commentary exists in.
+ * @returns The list of files that were loaded, or null if the commentary has no metadata.
+ */
+export async function loadCommentaryFiles(
+    commentary: string
+): Promise<InputFile[] | null> {
+    const metadata: InputCommentaryMetadata | null =
+        await loadCommentaryMetadata(commentary);
+
+    if (!metadata) {
+        console.error('Could not load metadata for commentary!', commentary);
+        return null;
+    }
+
+    let files = await readdir(commentary);
+    let csvFiles = files.filter((f) => extname(f) === '.csv');
+
+    if (csvFiles.length <= 0) {
+        commentary = path.resolve(commentary, 'usfm');
+        if (existsSync(commentary)) {
+            files = await readdir(commentary);
+            csvFiles = files.filter((f) => extname(f) === '.usfm');
+        }
+    }
+
+    if (csvFiles.length <= 0) {
+        console.error('Could not find USFM files for translation!', commentary);
+        return [];
+    }
+
+    let promises = [] as Promise<InputFile>[];
+    for (let file of csvFiles) {
+        if (path.parse(file).name === 'metadata') {
+            continue;
+        }
+        const filePath = path.resolve(commentary, file);
+        promises.push(loadFile('commentary/csv', filePath, metadata));
     }
 
     return await Promise.all(promises);
@@ -318,16 +408,40 @@ async function loadTranslationMetadata(
 }
 
 /**
+ * Loads the metadata for the given commentary.
+ * @param commentary The path to the directory that the commentary is stored in.
+ * @returns
+ */
+async function loadCommentaryMetadata(
+    commentary: string
+): Promise<InputCommentaryMetadata | null> {
+    const metadataTs = path.resolve(commentary, 'metadata.ts');
+    if (existsSync(metadataTs)) {
+        return (await import(metadataTs)).default as InputCommentaryMetadata;
+    } else {
+        const metadataJson = path.resolve(commentary, 'metadata.json');
+        if (existsSync(metadataJson)) {
+            const data = await readFile(metadataJson, {
+                encoding: 'utf-8',
+            });
+            return JSON.parse(data) as InputCommentaryMetadata;
+        }
+    }
+    console.error('Could not find metadata for commentary!', commentary);
+    return null;
+}
+
+/**
  * Loads the file from the given path using the given metadata.
+ * @param fileType The type of the file.
  * @param file The file that should be loaded.
  * @param metadata The metadata.
  */
 async function loadFile(
+    fileType: InputFile['fileType'],
     file: string,
-    metadata: ParseTreeMetadata
+    metadata: InputFileMetadata
 ): Promise<InputFile> {
-    const extension = path.extname(file);
-
     const content = await readFile(file, {
         encoding: 'utf-8',
     });
@@ -344,7 +458,7 @@ async function loadFile(
         metadata: metadata,
         name: file,
         sha256: hash,
-        fileType: extension.slice(1) as 'usfm' | 'usx' | 'json',
+        fileType,
     };
 }
 

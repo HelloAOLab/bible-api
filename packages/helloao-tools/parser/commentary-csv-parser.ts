@@ -15,22 +15,32 @@ export interface CsvLine {
 
 export class CommentaryCsvParser {
     parse(data: string): CommentaryParseTree {
-        const lines = parse(data, {
-            header: true,
-            transformHeader: (header) => {
-                if (/^book$/i.test(header)) {
-                    return 'book';
-                } else if (/^chapter$/i.test(header)) {
-                    return 'chapter';
-                } else if (/^verse/i.test(header)) {
-                    return 'verse';
-                } else if (/^COMMENTARIES$/i.test(header)) {
-                    return 'commentaries';
-                }
-                return header;
-            },
+        // remove header automatically
+        const firstLine = data.indexOf('\n');
+        data = data.substring(firstLine + 1);
+
+        const lines = parse<string[]>(data, {
+            header: false,
+            // transformHeader: (_, index) => {
+            //     const headers = ['book', 'chapter', 'verse', 'commentaries'];
+            //     if (index < headers.length) {
+            //         return headers[index];
+            //     } else {
+            //         return '';
+            //     }
+            // },
+            delimiter: ',',
+            escapeChar: '"',
+            quoteChar: '"',
         });
-        return this.parseLines(lines.data as any);
+        return this.parseLines(
+            lines.data.map((line: string[]) => ({
+                book: line[0],
+                chapter: line[1],
+                verse: line[2],
+                commentaries: line[3],
+            }))
+        );
     }
 
     parseLines(data: CsvLine[]): CommentaryParseTree {
@@ -48,15 +58,22 @@ export class CommentaryCsvParser {
                     throw new Error('Invalid book: ' + line.book);
                 }
 
-                book = {
-                    type: 'book',
-                    book: id,
-                    introduction: hasValue(line.commentaries)
+                book = tree.books.find((b) => b.book === id) ?? null;
+                if (!book) {
+                    book = {
+                        type: 'book',
+                        book: id,
+                        introduction: null,
+                        chapters: [],
+                    };
+                    tree.books.push(book);
+                }
+
+                if (!book.introduction) {
+                    book.introduction = hasValue(line.commentaries)
                         ? line.commentaries
-                        : null,
-                    chapters: [],
-                };
-                tree.books.push(book);
+                        : null;
+                }
             } else if (hasValue(line.chapter)) {
                 const number = parseInt(line.chapter);
                 if (isNaN(number)) {
@@ -64,6 +81,7 @@ export class CommentaryCsvParser {
                 }
 
                 if (!book) {
+                    // console.log(line);
                     throw new Error('Chapter without book');
                 }
 
@@ -113,5 +131,10 @@ export class CommentaryCsvParser {
 }
 
 function hasValue(value: string | null): boolean {
-    return value !== null && value !== '' && value.trim() !== '';
+    return (
+        value !== null &&
+        value !== undefined &&
+        value !== '' &&
+        value.trim() !== ''
+    );
 }

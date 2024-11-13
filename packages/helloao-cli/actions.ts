@@ -221,6 +221,65 @@ export async function importTranslations(
     }
 }
 
+/**
+ * Imports a commentary from the given directory into the database in the current working directory.
+ * @param dir The directory that the commentary is located in.
+ * @param dirs Any extra directories that should be imported.
+ * @param options The options for the import.
+ */
+export async function importCommentary(
+    dir: string,
+    dirs: string[],
+    options: ImportTranslationOptions
+): Promise<void> {
+    const parser = new DOMParser();
+    globalThis.DOMParser = DOMParser as any;
+    globalThis.Element = Element as any;
+    globalThis.Node = Node as any;
+
+    const db = await database.getDbFromDir(process.cwd());
+    try {
+        await database.importCommentaries(
+            db,
+            [dir, ...dirs],
+            parser,
+            !!options.overwrite
+        );
+    } finally {
+        db.close();
+    }
+}
+
+/**
+ * Imports all the commentaries from the given directory into the database in the current working directory.
+ * @param dir The directory that the commentaries are located in.
+ * @param options The options.
+ */
+export async function importCommentaries(
+    dir: string,
+    options: ImportTranslationOptions
+): Promise<void> {
+    const parser = new DOMParser();
+    globalThis.DOMParser = DOMParser as any;
+    globalThis.Element = Element as any;
+    globalThis.Node = Node as any;
+
+    const db = await database.getDbFromDir(process.cwd());
+    try {
+        const files = await readdir(dir);
+        const commentaryDirs = files.map((f) => path.resolve(dir, f));
+        console.log(`Importing ${commentaryDirs.length} commentaries`);
+        await database.importCommentaries(
+            db,
+            commentaryDirs,
+            parser,
+            !!options.overwrite
+        );
+    } finally {
+        db.close();
+    }
+}
+
 export interface FetchTranslationsOptions {
     /**
      * Fetch all translations. If omitted, only undownloaded translations will be fetched.
@@ -310,9 +369,7 @@ export async function fetchTranslations(
                         const file: InputFile = {
                             fileType: 'usx',
                             content: contentString,
-                            metadata: {
-                                translation,
-                            },
+                            metadata: translation,
                             name,
                         };
 

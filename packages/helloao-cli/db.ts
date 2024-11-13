@@ -4,6 +4,8 @@ import Sql, { Database } from 'better-sqlite3';
 import { exists, readdir, readFile } from 'fs-extra';
 import { randomUUID } from 'node:crypto';
 import {
+    DatasetCommentary,
+    DatasetCommentaryBook,
     DatasetOutput,
     DatasetTranslation,
     DatasetTranslationBook,
@@ -15,6 +17,7 @@ import {
     TranslationBookChapter,
     OutputFile,
     OutputFileContent,
+    CommentaryBookChapter,
 } from '@helloao/tools/generation/index.js';
 import {
     generateApiForDataset,
@@ -22,7 +25,11 @@ import {
     generateFilesForApi,
     generateOutputFilesFromDatasets,
 } from '@helloao/tools/generation/api.js';
-import { loadTranslationFiles, serializeOutputFiles } from './files.js';
+import {
+    loadCommentaryFiles,
+    loadTranslationFiles,
+    serializeOutputFiles,
+} from './files.js';
 import { sha256 } from 'hash.js';
 import type { DOMParser } from 'linkedom';
 import { Readable } from 'stream';
@@ -54,7 +61,37 @@ export async function getMigrationsPath() {
  * @param parser The DOM parser that should be used for USX files.
  * @param overwrite Whether to force a reload of the translations.
  */
-export async function importTranslations(
+export const importTranslations = (
+    db: Database,
+    dirs: string[],
+    parser: DOMParser,
+    overwrite: boolean
+) => importFiles(loadTranslationFiles, db, dirs, parser, overwrite);
+
+/**
+ * Imports the commentaries from the given directories into the database.
+ * @param db The database to import the commentaries into.
+ * @param dirs The directories to import the commentaries from.
+ * @param parser The DOM parser that should be used for USX files.
+ * @param overwrite Whether to force a reload of the commentaries.
+ */
+export const importCommentaries = (
+    db: Database,
+    dirs: string[],
+    parser: DOMParser,
+    overwrite: boolean
+) => importFiles(loadCommentaryFiles, db, dirs, parser, overwrite);
+
+/**
+ * Imports the files from the given directories into the database.
+ * @param loadFilesFromDir The function that should be used to load the files from the given directory.
+ * @param db The database to import the files into.
+ * @param dirs The directories to import the files from.
+ * @param parser The DOM parser that should be used for USX files.
+ * @param overwrite Whether to force a reload of the files.
+ */
+export async function importFiles(
+    loadFilesFromDir: (path: string) => Promise<InputFile[] | null>,
     db: Database,
     dirs: string[],
     parser: DOMParser,
@@ -65,11 +102,17 @@ export async function importTranslations(
         batches.push(dirs.splice(0, 10));
     }
 
-    console.log('Processing', batches.length, 'batches of translations');
+    console.log('Processing', batches.length, 'batches of directories');
     for (let i = 0; i < batches.length; i++) {
         const batch = batches[i];
         console.log(`Processing batch ${i + 1} of ${batches.length}`);
-        await importTranslationBatch(db, batch, parser, overwrite);
+        await loadAndImportBatch(
+            loadFilesFromDir,
+            db,
+            batch,
+            parser,
+            overwrite
+        );
     }
 }
 
@@ -80,7 +123,23 @@ export async function importTranslations(
  * @param parser The DOM parser that should be used for USX files.
  * @param overwrite Whether to force a reload of the translations.
  */
-export async function importTranslationBatch(
+export const importTranslationBatch = (
+    db: Database,
+    dirs: string[],
+    parser: DOMParser,
+    overwrite: boolean
+) => loadAndImportBatch(loadTranslationFiles, db, dirs, parser, overwrite);
+
+/**
+ * Imports a batch of files from the given directories into the database.
+ * @param loadFilesFromDir The function that should be used to load the files from the given directory.
+ * @param db The database to import the files into.
+ * @param dirs The directories that contain the files.
+ * @param parser The DOM parser that should be used for USX files.
+ * @param overwrite Whether to force a reload of the files.
+ */
+export async function loadAndImportBatch(
+    loadFilesFromDir: (path: string) => Promise<InputFile[] | null>,
     db: Database,
     dirs: string[],
     parser: DOMParser,
@@ -89,14 +148,12 @@ export async function importTranslationBatch(
     const promises = [] as Promise<InputFile[]>[];
     for (let dir of dirs) {
         const fullPath = path.resolve(dir);
-        promises.push(
-            loadTranslationFiles(fullPath).then((files) => files ?? [])
-        );
+        promises.push(loadFilesFromDir(fullPath).then((files) => files ?? []));
     }
 
     const allFiles = await Promise.all(promises);
     const files = allFiles.flat();
-    await importTranslationFileBatch(db, files, parser, overwrite);
+    await importFileBatch(db, files, parser, overwrite);
 }
 
 /**
@@ -106,7 +163,7 @@ export async function importTranslationBatch(
  * @param parser The DOM parser that should be used for USX files.
  * @param overwrite Whether to force a reload of the translations.
  */
-export async function importTranslationFileBatch(
+export async function importFileBatch(
     db: Database,
     files: InputFile[],
     parser: DOMParser,
@@ -133,12 +190,16 @@ export async function importTranslationFileBatch(
     );
 
     console.log('Generated', output.translations.length, 'translations');
+    console.log('Generated', output.commentaries.length, 'commentaries');
 
     insertTranslations(db, output.translations);
     updateTranslationHashes(db, output.translations);
+    insertCommentaries(db, output.commentaries);
+    updateCommentaryHashes(db, output.commentaries);
     insertFileMetadata(db, changedFiles);
 
-    console.log(`Inserted ${output.translations} translations into DB`);
+    console.log(`Inserted ${output.translations.length} translations into DB`);
+    console.log(`Inserted ${output.commentaries.length} commentaries into DB`);
 }
 
 /**
@@ -156,7 +217,7 @@ export function getChangedOrNewInputFiles(
 
     return files.filter((f) => {
         const count = fileExists.get({
-            translationId: f.metadata.translation.id,
+            translationId: f.metadata.id,
             name: path.basename(f.name!),
             sha256: f.sha256,
         }) as { c: number };
@@ -184,11 +245,11 @@ export function insertFileMetadata(db: Database, files: InputFile[]) {
             sha256=excluded.sha256,
             sizeInBytes=excluded.sizeInBytes;`);
 
-    const insertManyFiles = db.transaction((files) => {
+    const insertManyFiles = db.transaction((files: InputFile[]) => {
         for (let file of files) {
             fileUpsert.run({
-                translationId: file.metadata.translation.id,
-                name: path.basename(file.name),
+                translationId: file.metadata.id,
+                name: path.basename(file.name!),
                 format: file.fileType,
                 sha256: file.sha256,
                 sizeInBytes: file.content.length,
@@ -619,6 +680,355 @@ function updateTranslationHashes(
     console.log(`Updated.`);
 }
 
+export function insertCommentaries(
+    db: Database,
+    commentaries: DatasetCommentary[]
+) {
+    const translationUpsert = db.prepare(`INSERT INTO Commentary(
+        id,
+        name,
+        language,
+        textDirection,
+        licenseUrl,
+        website,
+        englishName
+    ) VALUES (
+        @id,
+        @name,
+        @language,
+        @textDirection,
+        @licenseUrl,
+        @website,
+        @englishName
+    ) ON CONFLICT(id) DO 
+        UPDATE SET
+            name=excluded.name,
+            language=excluded.language,
+            textDirection=excluded.textDirection,
+            licenseUrl=excluded.licenseUrl,
+            website=excluded.website,
+            englishName=excluded.englishName;`);
+
+    const insertManyTranslations = db.transaction(
+        (commentaries: DatasetCommentary[]) => {
+            for (let commentary of commentaries) {
+                translationUpsert.run({
+                    id: commentary.id,
+                    name: commentary.name,
+                    language: commentary.language,
+                    textDirection: commentary.textDirection,
+                    licenseUrl: commentary.licenseUrl,
+                    website: commentary.website,
+                    englishName: commentary.englishName,
+                });
+            }
+        }
+    );
+
+    insertManyTranslations(commentaries);
+
+    for (let commentary of commentaries) {
+        insertCommentaryBooks(db, commentary, commentary.books);
+    }
+}
+
+export function insertCommentaryBooks(
+    db: Database,
+    commentary: DatasetCommentary,
+    commentaryBooks: DatasetCommentaryBook[]
+) {
+    const bookUpsert = db.prepare(`INSERT INTO CommentaryBook(
+        id,
+        commentaryId,
+        introduction,
+        name,
+        commonName,
+        numberOfChapters,
+        \`order\`
+    ) VALUES (
+        @id,
+        @commentaryId,
+        @introduction,
+        @name,
+        @commonName,
+        @numberOfChapters,
+        @bookOrder
+    ) ON CONFLICT(id,commentaryId) DO 
+        UPDATE SET
+            introduction=excluded.introduction,
+            name=excluded.name,
+            commonName=excluded.commonName,
+            numberOfChapters=excluded.numberOfChapters;`);
+
+    const insertMany = db.transaction((books: DatasetCommentaryBook[]) => {
+        for (let book of books) {
+            if (!book) {
+                continue;
+            }
+            bookUpsert.run({
+                id: book.id,
+                commentaryId: commentary.id,
+                introduction: book.introduction ?? null,
+                name: book.name,
+                commonName: book.commonName,
+                numberOfChapters: book.chapters.length,
+                bookOrder: book.order ?? 9999,
+            });
+        }
+    });
+
+    insertMany(commentaryBooks);
+
+    for (let book of commentaryBooks) {
+        insertCommentaryContent(db, commentary, book, book.chapters);
+    }
+}
+
+export function insertCommentaryContent(
+    db: Database,
+    commentary: DatasetCommentary,
+    book: DatasetCommentaryBook,
+    chapters: CommentaryBookChapter[]
+) {
+    const chapterUpsert = db.prepare(`INSERT INTO CommentaryChapter(
+        commentaryId,
+        bookId,
+        number,
+        introduction,
+        json
+    ) VALUES (
+        @commentaryId,
+        @bookId,
+        @number,
+        @introduction,
+        @json
+    ) ON CONFLICT(commentaryId,bookId,number) DO 
+        UPDATE SET
+            introduction=excluded.introduction,
+            json=excluded.json;`);
+    const verseUpsert = db.prepare(`INSERT INTO CommentaryChapterVerse(
+        commentaryId,
+        bookId,
+        chapterNumber,
+        number,
+        text,
+        contentJson
+    ) VALUES (
+        @commentaryId,
+        @bookId,
+        @chapterNumber,
+        @number,
+        @text,
+        @contentJson
+    ) ON CONFLICT(commentaryId,bookId,chapterNumber,number) DO 
+        UPDATE SET
+            text=excluded.text,
+            contentJson=excluded.contentJson;`);
+
+    const insertChaptersAndVerses = db.transaction(() => {
+        for (let chapter of chapters) {
+            let verses: {
+                number: number;
+                text: string;
+                contentJson: string;
+            }[] = [];
+
+            for (let c of chapter.chapter.content) {
+                if (c.type === 'verse') {
+                    const verse: ChapterVerse = c;
+                    if (!verse.number) {
+                        console.error(
+                            'Verse missing number',
+                            commentary.id,
+                            book.id,
+                            chapter.chapter.number,
+                            verse.number
+                        );
+                        continue;
+                    }
+
+                    let text = '';
+                    for (let c of verse.content) {
+                        if (typeof c === 'string') {
+                            text += c + ' ';
+                        } else if (typeof c === 'object') {
+                            if ('lineBreak' in c) {
+                                text += '\n';
+                            } else if ('text' in c) {
+                                text += c.text + ' ';
+                            }
+                        }
+                    }
+
+                    let contentJson = JSON.stringify(verse.content);
+                    verses.push({
+                        number: verse.number,
+                        text: text.trimEnd(),
+                        contentJson,
+                    });
+                }
+            }
+
+            chapterUpsert.run({
+                commentaryId: commentary.id,
+                bookId: book.id,
+                number: chapter.chapter.number,
+                introduction: chapter.chapter.introduction ?? null,
+                json: JSON.stringify(chapter.chapter),
+            });
+
+            for (let verse of verses) {
+                verseUpsert.run({
+                    commentaryId: commentary.id,
+                    bookId: book.id,
+                    chapterNumber: chapter.chapter.number,
+                    number: verse.number,
+                    text: verse.text,
+                    contentJson: verse.contentJson,
+                });
+            }
+        }
+    });
+
+    insertChaptersAndVerses();
+}
+
+/**
+ * Updates the hashes for the commentaries in the database.
+ * @param db The database to update the hashes in.
+ * @param commentaries The commentaries to update the hashes for.
+ */
+function updateCommentaryHashes(
+    db: Database,
+    commentaries: DatasetCommentary[]
+) {
+    console.log(`Updating hashes for ${commentaries.length} commentaries.`);
+
+    const updateTranslationHash = db.prepare(
+        `UPDATE Commentary SET sha256 = @sha256 WHERE id = @commentaryId;`
+    );
+    const updateBookHash = db.prepare(
+        `UPDATE CommentaryBook SET sha256 = @sha256 WHERE commentaryId = @commentaryId AND id = @bookId;`
+    );
+    const updateChapterHash = db.prepare(
+        `UPDATE CommentaryChapter SET sha256 = @sha256 WHERE commentaryId = @commentaryId AND bookId = @bookId AND number = @chapterNumber;`
+    );
+
+    const getBooks = db.prepare(
+        'SELECT * FROM CommentaryBook WHERE commentaryId = ?;'
+    );
+    const getChapters = db.prepare(
+        'SELECT * FROM CommentaryChapter WHERE commentaryId = @commentaryId AND bookId = @bookId;'
+    );
+
+    for (let commentary of commentaries) {
+        const commentarySha = sha256()
+            .update(commentary.id)
+            .update(commentary.name)
+            .update(commentary.language)
+            .update(commentary.licenseUrl)
+            .update(commentary.textDirection)
+            .update(commentary.website)
+            .update(commentary.englishName);
+
+        const books = getBooks.all(commentary.id) as {
+            id: string;
+            order: number;
+            title: string;
+            commentaryId: string;
+            name: string;
+            commonName: string;
+            numberOfChapters: number;
+            sha256: string;
+            introduction: string;
+        }[];
+
+        for (let book of books) {
+            const chapters = getChapters.all({
+                commentaryId: commentary.id,
+                bookId: book.id,
+            }) as {
+                number: string;
+                bookId: string;
+                commentaryId: string;
+                introduction: string;
+                json: string;
+                sha256: string;
+            }[];
+
+            const bookSha = sha256()
+                .update(book.commentaryId)
+                .update(book.id)
+                .update(book.numberOfChapters)
+                .update(book.order)
+                .update(book.name)
+                .update(book.title)
+                .update(book.commonName)
+                .update(book.introduction);
+
+            for (let chapter of chapters) {
+                const hash = sha256()
+                    .update(chapter.commentaryId)
+                    .update(chapter.bookId)
+                    .update(chapter.number)
+                    .update(chapter.introduction)
+                    .update(chapter.json)
+                    .digest('hex');
+
+                chapter.sha256 = hash;
+
+                bookSha.update(hash);
+            }
+
+            const updateChapters = db.transaction(() => {
+                for (let chapter of chapters) {
+                    updateChapterHash.run({
+                        sha256: chapter.sha256,
+                        commentaryId: chapter.commentaryId,
+                        bookId: chapter.bookId,
+                        chapterNumber: chapter.number,
+                    });
+                }
+            });
+
+            updateChapters();
+
+            const bookHash = bookSha.digest('hex');
+            book.sha256 = bookHash;
+
+            commentarySha.update(bookHash);
+        }
+
+        const updateBooks = db.transaction(() => {
+            for (let book of books) {
+                updateBookHash.run({
+                    sha256: book.sha256,
+                    commentaryId: book.commentaryId,
+                    bookId: book.id,
+                });
+            }
+        });
+
+        updateBooks();
+
+        const hash = commentarySha.digest('hex');
+        (commentary as any).sha256 = hash;
+    }
+
+    const updateCommentaries = db.transaction(() => {
+        for (let commentary of commentaries) {
+            updateTranslationHash.run({
+                sha256: (commentary as any).sha256,
+                commentaryId: commentary.id,
+            });
+        }
+    });
+
+    updateCommentaries();
+
+    console.log(`Updated.`);
+}
+
 export function getDbPathFromDir(dir: string) {
     dir = dir || process.cwd();
     return path.resolve(dir, 'bible-api.db');
@@ -731,40 +1141,70 @@ export interface SerializedFile {
 /**
  * Loads the datasets from the database in a series of batches.
  * @param db The database.
- * @param translationsPerBatch The number of translations to load per batch.
- * @param translationsToLoad The list of translations to load. If not provided, all translations will be loaded.
+ * @param perBatch The number of translations to load per batch.
+ * @param translationsToLoad The list of translations/commentaries to load. If not provided, all translations will be loaded.
  */
 export async function* loadDatasets(
     db: PrismaClient,
-    translationsPerBatch: number = 50,
+    perBatch: number = 50,
     translationsToLoad?: string[]
 ): AsyncGenerator<DatasetOutput> {
+    yield* loadTranslationDatasets(db, perBatch, translationsToLoad);
+    yield* loadCommentaryDatasets(db, perBatch, translationsToLoad);
+}
+
+/**
+ * Loads the translations from the database as a dataset.
+ * @param db The database.
+ * @param translationsPerBatch The number of translations to load per batch.
+ * @param translationsToLoad The list of translations to load. If not provided, all translations will be loaded.
+ */
+export async function* loadTranslationDatasets(
+    db: PrismaClient,
+    translationsPerBatch: number = 50,
+    translationsToLoad?: string[]
+) {
     let offset = 0;
     let pageSize = translationsPerBatch;
 
-    console.log('Generating API files in batches of', pageSize);
+    console.log('Generating translation datasets in batches of', pageSize);
     const totalTranslations = await db.translation.count();
     const totalBatches = Math.ceil(totalTranslations / pageSize);
     let batchNumber = 1;
 
     while (true) {
-        console.log('Generating API batch', batchNumber, 'of', totalBatches);
+        console.log(
+            'Generating translation batch',
+            batchNumber,
+            'of',
+            totalBatches
+        );
         batchNumber++;
 
-        const query: Prisma.TranslationFindManyArgs = {
+        const translationQuery: Prisma.TranslationFindManyArgs = {
+            skip: offset,
+            take: pageSize,
+        };
+        const commentaryQuery: Prisma.CommentaryFindManyArgs = {
             skip: offset,
             take: pageSize,
         };
 
         if (translationsToLoad && translationsToLoad.length > 0) {
-            query.where = {
+            translationQuery.where = {
+                id: {
+                    in: translationsToLoad,
+                },
+            };
+            commentaryQuery.where = {
                 id: {
                     in: translationsToLoad,
                 },
             };
         }
 
-        const translations = await db.translation.findMany(query);
+        const translations = await db.translation.findMany(translationQuery);
+        const commentaries = await db.commentary.findMany(commentaryQuery);
 
         if (translations.length <= 0) {
             break;
@@ -772,6 +1212,7 @@ export async function* loadDatasets(
 
         const dataset: DatasetOutput = {
             translations: [],
+            commentaries: [],
         };
 
         for (let translation of translations) {
@@ -832,6 +1273,109 @@ export async function* loadDatasets(
                     chapters: bookChapters,
                 };
                 datasetTranslation.books.push(datasetBook);
+            }
+        }
+
+        yield dataset;
+
+        offset += pageSize;
+    }
+}
+
+/**
+ * Loads the commentaries from the database as a dataset.
+ * @param db The database.
+ * @param perBatch The number of translations to load per batch.
+ * @param commentariesToLoad The list of commentaries to load. If not provided, all commentaries will be loaded.
+ */
+export async function* loadCommentaryDatasets(
+    db: PrismaClient,
+    perBatch: number = 50,
+    commentariesToLoad?: string[]
+) {
+    let offset = 0;
+    let pageSize = perBatch;
+
+    console.log('Generating commentaries datasets in batches of', pageSize);
+    const totalCommentaries = await db.commentary.count();
+    const totalBatches = Math.ceil(totalCommentaries / pageSize);
+    let batchNumber = 1;
+
+    while (true) {
+        console.log(
+            'Generating commentary batch',
+            batchNumber,
+            'of',
+            totalBatches
+        );
+        batchNumber++;
+
+        const commentaryQuery: Prisma.CommentaryFindManyArgs = {
+            skip: offset,
+            take: pageSize,
+        };
+
+        if (commentariesToLoad && commentariesToLoad.length > 0) {
+            commentaryQuery.where = {
+                id: {
+                    in: commentariesToLoad,
+                },
+            };
+        }
+
+        const commentaries = await db.commentary.findMany(commentaryQuery);
+
+        if (commentaries.length <= 0) {
+            break;
+        }
+
+        const dataset: DatasetOutput = {
+            translations: [],
+            commentaries: [],
+        };
+
+        for (let commentary of commentaries) {
+            const datasetCommentary: DatasetCommentary = {
+                ...commentary,
+                textDirection: commentary.textDirection! as any,
+                books: [],
+            };
+            dataset.commentaries.push(datasetCommentary);
+
+            const books = await db.commentaryBook.findMany({
+                where: {
+                    commentaryId: commentary.id,
+                },
+                orderBy: {
+                    order: 'asc',
+                },
+            });
+
+            for (let book of books) {
+                const chapters = await db.commentaryChapter.findMany({
+                    where: {
+                        commentaryId: commentary.id,
+                        bookId: book.id,
+                    },
+                    orderBy: {
+                        number: 'asc',
+                    },
+                });
+
+                const bookChapters: CommentaryBookChapter[] = chapters.map(
+                    (chapter) => {
+                        return {
+                            chapter: JSON.parse(chapter.json),
+                        };
+                    }
+                );
+
+                const datasetBook: DatasetCommentaryBook = {
+                    ...book,
+                    introduction: book.introduction ?? undefined,
+                    chapters: bookChapters,
+                };
+                datasetCommentary.books.push(datasetBook);
             }
         }
 
