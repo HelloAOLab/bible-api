@@ -43,7 +43,7 @@ describe('generateApiForDataset()', () => {
             website: 'https://berean.bible',
         };
 
-        let inputFiles = [
+        let inputFiles: InputFile[] = [
             {
                 fileType: 'usfm',
                 metadata: translation1,
@@ -51,12 +51,10 @@ describe('generateApiForDataset()', () => {
             },
             {
                 fileType: 'usfm',
-                metadata: {
-                    translation: translation1,
-                },
+                metadata: translation1,
                 content: firstXLines(Exodus, 14),
             },
-        ] as InputFile[];
+        ];
 
         const dataset = generateDataset(inputFiles, new DOMParser() as any);
         const generated = generateApiForDataset(dataset);
@@ -235,7 +233,7 @@ describe('generateApiForDataset()', () => {
             website: 'https://berean.bible',
         };
 
-        let inputFiles = [
+        let inputFiles: InputFile[] = [
             {
                 fileType: 'usfm',
                 metadata: translation1,
@@ -243,12 +241,10 @@ describe('generateApiForDataset()', () => {
             },
             {
                 fileType: 'usfm',
-                metadata: {
-                    translation: translation1,
-                },
+                metadata: translation1,
                 content: firstXLines(Exodus, 14),
             },
-        ] as InputFile[];
+        ];
 
         const dataset = generateDataset(inputFiles, new DOMParser() as any);
         const generated = generateApiForDataset(dataset, {
@@ -423,13 +419,13 @@ describe('generateApiForDataset()', () => {
             website: 'https://berean.bible',
         };
 
-        let inputFiles = [
+        let inputFiles: InputFile[] = [
             {
                 fileType: 'usfm',
                 metadata: translation1,
                 content: firstXLines(_1Chronicles, 11),
             },
-        ] as InputFile[];
+        ];
 
         const dataset = generateDataset(inputFiles, new DOMParser() as any);
         const generated = generateApiForDataset(dataset, {
@@ -537,13 +533,13 @@ describe('generateApiForDataset()', () => {
             website: 'https://berean.bible',
         };
 
-        let inputFiles = [
+        let inputFiles: InputFile[] = [
             {
                 fileType: 'usfm',
                 metadata: translation1,
                 content: firstXLines(_1Chronicles, 11),
             },
-        ] as InputFile[];
+        ];
 
         const dataset = generateDataset(inputFiles, new DOMParser() as any);
         const generated = generateApiForDataset(dataset, {
@@ -650,7 +646,7 @@ describe('generateApiForDataset()', () => {
             website: 'https://example.com',
         };
 
-        let inputFiles = [
+        let inputFiles: InputFile[] = [
             {
                 fileType: 'commentary/csv',
                 content: unparse([
@@ -675,7 +671,7 @@ describe('generateApiForDataset()', () => {
                 ]),
                 metadata: comment1,
             },
-        ] as InputFile[];
+        ];
 
         const dataset = generateDataset(inputFiles, new DOMParser() as any);
         const generated = generateApiForDataset(dataset);
@@ -773,7 +769,7 @@ describe('generateApiForDataset()', () => {
             website: 'https://example.com',
         };
 
-        let inputFiles = [
+        let inputFiles: InputFile[] = [
             {
                 fileType: 'commentary/csv',
                 content: unparse([
@@ -822,7 +818,7 @@ describe('generateApiForDataset()', () => {
                 ]),
                 metadata: comment1,
             },
-        ] as InputFile[];
+        ];
 
         const dataset = generateDataset(inputFiles, new DOMParser() as any);
         const generated = generateApiForDataset(dataset);
