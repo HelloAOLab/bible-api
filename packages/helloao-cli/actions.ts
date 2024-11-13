@@ -130,6 +130,21 @@ export async function initDb(
                     CREATE TABLE "ChapterAudioUrl" AS SELECT * FROM source.ChapterAudioUrl
                     INNER JOIN source.Translation ON source.Translation.id = source.ChapterAudioUrl.translationId
                     WHERE source.Translation.language IN ${languages};
+
+                    CREATE TABLE "Commentary" AS SELECT * FROM source.Commentary
+                    WHERE language IN ${languages};
+
+                    CREATE TABLE "CommentaryBook" AS SELECT * FROM source.CommentaryBook
+                    INNER JOIN source.Commentary ON source.Commentary.id = source.CommentaryBook.commentaryId
+                    WHERE source.Commentary.language IN ${languages};
+
+                    CREATE TABLE "CommentaryChapter" AS SELECT * FROM source.CommentaryChapter
+                    INNER JOIN source.Commentary ON source.Commentary.id = source.CommentaryChapter.commentaryId
+                    WHERE source.Commentary.language IN ${languages};
+
+                    CREATE TABLE "CommentaryChapterVerse" AS SELECT * FROM source.CommentaryChapterVerse
+                    INNER JOIN source.Commentary ON source.Commentary.id = source.CommentaryChapterVerse.commentaryId
+                    WHERE source.Commentary.language IN ${languages};
                 `);
             } else {
                 db.exec(`
@@ -142,6 +157,10 @@ export async function initDb(
                     CREATE TABLE "ChapterVerse" AS SELECT * FROM source.ChapterVerse;
                     CREATE TABLE "ChapterFootnote" AS SELECT * FROM source.ChapterFootnote;
                     CREATE TABLE "ChapterAudioUrl" AS SELECT * FROM source.ChapterAudioUrl;
+                    CREATE TABLE "Commentary" AS SELECT * FROM source.Commentary;
+                    CREATE TABLE "CommentaryBook" AS SELECT * FROM source.CommentaryBook;
+                    CREATE TABLE "CommentaryChapter" AS SELECT * FROM source.CommentaryChapter;
+                    CREATE TABLE "CommentaryChapterVerse" AS SELECT * FROM source.CommentaryChapterVerse;
                 `);
             }
 
