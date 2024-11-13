@@ -59,7 +59,9 @@ export default defineUserConfig({
                     collapsible: false,
                     children: [
                         '',
+                        'getting-started',
                         'making-requests',
+                        'downloads',
                         'a-biblical-model-for-licensing-the-bible',
                     ],
                 },
