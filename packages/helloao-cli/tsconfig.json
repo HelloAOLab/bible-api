@@ -12,5 +12,5 @@
     },
     "exclude": ["node_modules", "lib", "**/*.spec.ts", "dist"],
     "include": ["./**/*.ts", "./typings/**/*"],
-    "references": []
+    "references": [{ "path": "../helloao-tools" }]
 }
