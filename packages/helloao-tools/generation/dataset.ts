@@ -95,6 +95,7 @@ export function generateDataset(
     let csvCommentaryParser = new CommentaryCsvParser();
 
     let parsedTranslations = new Map<string, DatasetTranslation>();
+    let parsedCommentaries = new Map<string, DatasetCommentary>();
 
     const unknownLanguages = new Set<string>();
     for (let file of files) {
@@ -154,16 +155,16 @@ export function generateDataset(
             return;
         }
 
-        const bookMap = bookIdMap.get(file.metadata.translation.language);
+        const bookMap = bookIdMap.get(file.metadata.language);
 
         if (!bookMap) {
-            if (!unknownLanguages.has(file.metadata.translation.language)) {
+            if (!unknownLanguages.has(file.metadata.language)) {
                 console.warn(
                     '[generate] File does not have a known language!',
                     file.name,
-                    file.metadata.translation.language
+                    file.metadata.language
                 );
-                unknownLanguages.add(file.metadata.translation.language);
+                unknownLanguages.add(file.metadata.language);
             }
         }
 
@@ -177,16 +178,16 @@ export function generateDataset(
             );
         }
 
-        let translation = parsedTranslations.get(file.metadata.translation.id);
+        let translation = parsedTranslations.get(file.metadata.id);
 
         if (!translation) {
             translation = {
-                ...omit(file.metadata.translation, 'direction'),
-                textDirection: file.metadata.translation.direction,
+                ...omit(file.metadata, 'direction'),
+                textDirection: file.metadata.direction,
                 books: [],
             };
             output.translations.push(translation);
-            parsedTranslations.set(file.metadata.translation.id, translation);
+            parsedTranslations.set(file.metadata.id, translation);
         }
 
         const name = parsed.header ?? bookName?.commonName ?? parsed.title;
@@ -239,42 +240,64 @@ export function generateDataset(
         file: InputCommentaryFile,
         parsed: CommentaryParseTree
     ) {
-        const commentary: DatasetCommentary = {
-            ...omit(file.metadata, 'direction'),
-            textDirection: file.metadata.direction,
-            books: parsed.books.map((b) => {
-                const name = getBookNames(file, file.metadata, b.book);
+        let commentary = parsedCommentaries.get(file.metadata.id);
 
-                let book: DatasetCommentaryBook = {
-                    id: b.book,
-                    order: bookOrderMap.get(b.book) ?? -1,
-                    commonName: name?.bookName?.commonName ?? b.book,
-                    name: name?.bookName?.commonName ?? b.book,
-                    chapters: b.chapters.map((c) => {
-                        let data: CommentaryChapterData = {
-                            number: c.number,
-                            content: c.verses,
-                        };
+        if (!commentary) {
+            commentary = {
+                ...omit(file.metadata, 'direction'),
+                textDirection: file.metadata.direction,
+                books: [],
+            };
+            output.commentaries.push(commentary);
+            parsedCommentaries.set(file.metadata.id, commentary);
+        }
 
-                        if (c.introduction) {
-                            data.introduction = c.introduction;
-                        }
+        for (let parsedBook of parsed.books) {
+            let book = commentary.books.find((b) => b.id === parsedBook.book);
+            if (book && book.introduction) {
+                console.warn(
+                    '[generate] Book already exists in commentary!',
+                    file.name,
+                    parsedBook.book
+                );
+                continue;
+            }
 
-                        return {
-                            chapter: data,
-                        };
-                    }),
+            if (!book) {
+                const name = getBookNames(file, file.metadata, parsedBook.book);
+                book = {
+                    id: parsedBook.book,
+                    order: bookOrderMap.get(parsedBook.book) ?? -1,
+                    commonName: name?.bookName?.commonName ?? parsedBook.book,
+                    name: name?.bookName?.commonName ?? parsedBook.book,
+                    chapters: [],
+                };
+            }
+
+            if (parsedBook.introduction) {
+                book.introduction = parsedBook.introduction;
+            }
+
+            for (let chapter of parsedBook.chapters) {
+                let data: CommentaryChapterData = {
+                    number: chapter.number,
+                    content: chapter.verses,
                 };
 
-                if (b.introduction) {
-                    book.introduction = b.introduction;
+                if (chapter.introduction) {
+                    data.introduction = chapter.introduction;
                 }
 
-                return book;
-            }),
-        };
+                book.chapters.push({
+                    chapter: data,
+                });
+            }
 
-        output.commentaries.push(commentary);
+            book.chapters = sortBy(book.chapters, (c) => c.chapter.number);
+            commentary.books.push(book);
+        }
+
+        commentary.books = sortBy(commentary.books, (b) => b.order);
     }
 
     function getBookNames(

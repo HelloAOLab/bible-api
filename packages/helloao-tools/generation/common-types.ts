@@ -9,9 +9,13 @@ export interface InputFileBase {
     sha256?: string;
 }
 
+export type InputFileMetadata =
+    | InputTranslationMetadata
+    | InputCommentaryMetadata;
+
 export interface InputTranslationFile extends InputFileBase {
     fileType: 'usfm' | 'usx' | 'json';
-    metadata: ParseTreeMetadata;
+    metadata: InputTranslationMetadata;
 }
 
 export interface InputCommentaryFile extends InputFileBase {
@@ -39,17 +43,6 @@ export interface OutputFile {
      * Whether the file can be merged with files of the same name but from other datasets.
      */
     mergable?: boolean;
-}
-
-/**
- * Defines an interface that contains metadata for a parse tree.
- */
-export interface ParseTreeMetadata {
-    /**
-     * Information about the translation.
-     */
-    translation: InputTranslationMetadata;
-    commentary?: InputCommentaryMetadata;
 }
 
 export interface MetadataBase {

@@ -68,6 +68,45 @@ describe('CommentaryCsvParser', () => {
             });
         });
 
+        it('should be able to parse multiple books', () => {
+            const result = parser.parseLines([
+                {
+                    book: 'Genesis',
+                    chapter: '',
+                    verse: 'Book Introduction',
+                    commentaries:
+                        'This is the introduction to the book of Genesis.',
+                },
+                {
+                    book: 'Exodus',
+                    chapter: '',
+                    verse: 'Book Introduction',
+                    commentaries:
+                        'This is the introduction to the book of Exodus.',
+                },
+            ]);
+
+            expect(result).toEqual({
+                type: 'commentary/root',
+                books: [
+                    {
+                        type: 'book',
+                        book: 'GEN',
+                        introduction:
+                            'This is the introduction to the book of Genesis.',
+                        chapters: [],
+                    },
+                    {
+                        type: 'book',
+                        book: 'EXO',
+                        introduction:
+                            'This is the introduction to the book of Exodus.',
+                        chapters: [],
+                    },
+                ],
+            });
+        });
+
         it('should be able to parse book and chapter introductions', () => {
             const result = parser.parseLines([
                 {
