@@ -16,7 +16,7 @@ export class S3Uploader implements Uploader {
     private _keyPrefix: string;
 
     get idealBatchSize() {
-        return 50;
+        return 75;
     }
 
     constructor(
@@ -36,6 +36,12 @@ export class S3Uploader implements Uploader {
                     ? fromNodeProviderChain({ profile: profile ?? undefined })
                     : profile,
         });
+
+        if (!process.env.AWS_REGION || !process.env.AWS_PROFILE) {
+            console.warn(
+                'No AWS_REGION or AWS_PROFILE environment variable set. This may cause issues with the S3 client.'
+            );
+        }
     }
 
     async upload(file: SerializedFile, overwrite: boolean): Promise<boolean> {
@@ -74,6 +80,9 @@ export class S3Uploader implements Uploader {
                 } else {
                     // File is already uploaded but the checksum is not available.
                     console.log(`[s3] Checksum not available: ${key}`);
+
+                    // Assume the file has changed and needs to be uploaded again.
+                    matches = false;
                 }
 
                 if (matches && !overwrite) {

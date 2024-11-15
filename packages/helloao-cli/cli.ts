@@ -12,6 +12,8 @@ import {
     fetchTranslations,
     generateTranslationFiles,
     generateTranslationsFiles,
+    importCommentaries,
+    importCommentary,
     importTranslation,
     importTranslations,
     initDb,
@@ -37,7 +39,11 @@ async function start() {
     program
         .command('init [path]')
         .description('Initialize a new Bible API DB.')
-        .option('--source <path>', 'The source database to copy from.')
+        .option(
+            '--source <path>',
+            'The source database to copy from. If given a HTTPS URL, then the database will be downloaded from the given URL.'
+        )
+        .option('--overwrite', 'Whether to overwrite the existing database.')
         .option(
             '--language <languages...>',
             'The language(s) that the database should be initialized with.'
@@ -98,6 +104,27 @@ async function start() {
         .option('--overwrite', 'Whether to overwrite existing files.')
         .action(async (dir: string, options: any) => {
             await importTranslations(dir, options);
+        });
+
+    program
+        .command('import-commentary <dir> [dirs...]')
+        .description(
+            'Imports a commentary from the given directory into the database.'
+        )
+        .option('--overwrite', 'Whether to overwrite existing files.')
+        .action(async (dir: string, dirs: string[], options: any) => {
+            console.log('options', options);
+            await importCommentary(dir, dirs, options);
+        });
+
+    program
+        .command('import-commentaries <dir>')
+        .description(
+            'Imports all commentaries from the given directory into the database.'
+        )
+        .option('--overwrite', 'Whether to overwrite existing files.')
+        .action(async (dir: string, options: any) => {
+            await importCommentaries(dir, options);
         });
 
     program
@@ -349,12 +376,16 @@ async function start() {
         )
         .option(
             '--translations <translations...>',
-            'The translations to generate API files for.'
+            'The translations or commentaries to generate API files for.'
         )
         .option('--overwrite', 'Whether to overwrite existing files.')
         .option(
             '--overwrite-common-files',
             'Whether to overwrite only common files.'
+        )
+        .option(
+            '--overwrite-merged-files',
+            'Whether to overwrite only merged files.'
         )
         .option(
             '--file-pattern <pattern>',
@@ -381,6 +412,10 @@ async function start() {
             'The AWS Secret Access Key to use for uploading to S3.'
         )
         .option('--pretty', 'Whether to generate pretty-printed JSON files.')
+        .option(
+            '--verbose',
+            'Whether to output verbose information during the upload.'
+        )
         .action(async (dest: string, options: any) => {
             const db = getPrismaDbFromDir(process.cwd());
             try {

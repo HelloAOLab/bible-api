@@ -2,7 +2,7 @@ import path, { basename, dirname, extname } from 'node:path';
 import * as database from './db.js';
 import Sql from 'better-sqlite3';
 import { DOMParser, Element, Node } from 'linkedom';
-import { mkdir, readdir, writeFile } from 'node:fs/promises';
+import { mkdir, readdir, rm, writeFile } from 'node:fs/promises';
 import { BibleClient } from '@gracious.tech/fetch-client';
 import {
     getFirstNonEmpty,
@@ -71,6 +71,11 @@ export interface InitDbOptions {
     source?: string;
 
     /**
+     * Whether to overwrite the existing database.
+     */
+    overwrite?: boolean;
+
+    /**
      * The languages to copy from the source database. If not specified, then all languages will be copied.
      */
     language?: string[];
@@ -88,66 +93,109 @@ export async function initDb(
     console.log('Initializing new Bible API DB...');
 
     if (options.source) {
-        const db = new Sql(database.getDbPath(dbPath), {});
-        const sourcePath = path.resolve(options.source);
-
-        try {
-            console.log('Copying schema from source DB...');
-
-            if (options.language) {
-                console.log(
-                    'Copying only the following languages:',
-                    options.language
-                );
-
-                const languages = `(${options.language
-                    .map((l: string) => `'${l}'`)
-                    .join(', ')})`;
-                db.exec(`
-                    ATTACH DATABASE "${sourcePath}" AS source;
-
-                    CREATE TABLE "_prisma_migrations" AS SELECT * FROM source._prisma_migrations;
-                    
-                    CREATE TABLE "Translation" AS SELECT * FROM source.Translation
-                    WHERE language IN ${languages};
-
-                    CREATE TABLE "Book" AS SELECT * FROM source.Book
-                    INNER JOIN source.Translation ON source.Translation.id = source.Book.translationId
-                    WHERE source.Translation.language IN ${languages};
-
-                    CREATE TABLE "Chapter" AS SELECT * FROM source.Chapter
-                    INNER JOIN source.Translation ON source.Translation.id = source.Chapter.translationId
-                    WHERE source.Translation.language IN ${languages};
-
-                    CREATE TABLE "ChapterVerse" AS SELECT * FROM source.ChapterVerse
-                    INNER JOIN source.Translation ON source.Translation.id = source.ChapterVerse.translationId
-                    WHERE source.Translation.language IN ${languages};
-
-                    CREATE TABLE "ChapterFootnote" AS SELECT * FROM source.ChapterFootnote
-                    INNER JOIN source.Translation ON source.Translation.id = source.ChapterFootnote.translationId
-                    WHERE source.Translation.language IN ${languages};
-
-                    CREATE TABLE "ChapterAudioUrl" AS SELECT * FROM source.ChapterAudioUrl
-                    INNER JOIN source.Translation ON source.Translation.id = source.ChapterAudioUrl.translationId
-                    WHERE source.Translation.language IN ${languages};
-                `);
-            } else {
-                db.exec(`
-                    ATTACH DATABASE "${sourcePath}" AS source;
-
-                    CREATE TABLE "_prisma_migrations" AS SELECT * FROM source._prisma_migrations;
-                    CREATE TABLE "Translation" AS SELECT * FROM source.Translation;
-                    CREATE TABLE "Book" AS SELECT * FROM source.Book;
-                    CREATE TABLE "Chapter" AS SELECT * FROM source.Chapter;
-                    CREATE TABLE "ChapterVerse" AS SELECT * FROM source.ChapterVerse;
-                    CREATE TABLE "ChapterFootnote" AS SELECT * FROM source.ChapterFootnote;
-                    CREATE TABLE "ChapterAudioUrl" AS SELECT * FROM source.ChapterAudioUrl;
-                `);
+        if (options.source.startsWith('https://')) {
+            console.log('Downloading source database...');
+            const databasePath = database.getDbPath(dbPath);
+            let progressIncrement = 0.01;
+            await downloadFile(options.source, databasePath, (progress) => {
+                if (progress >= progressIncrement) {
+                    console.log(
+                        `Downloading... ${Math.round(progress * 100)}%`
+                    );
+                    progressIncrement += 0.01;
+                }
+            });
+        } else {
+            const databasePath = database.getDbPath(dbPath);
+            if (await exists(databasePath)) {
+                if (!options.overwrite) {
+                    console.log('Database already exists.');
+                    return;
+                } else {
+                    console.log('Overwriting existing database...');
+                    await rm(databasePath);
+                }
             }
+            const db = new Sql(databasePath, {});
+            const sourcePath = path.resolve(options.source);
 
-            console.log('Done.');
-        } finally {
-            db.close();
+            try {
+                console.log('Copying schema from source DB...');
+
+                if (options.language) {
+                    console.log(
+                        'Copying only the following languages:',
+                        options.language
+                    );
+
+                    const languages = `(${options.language
+                        .map((l: string) => `'${l}'`)
+                        .join(', ')})`;
+                    db.exec(`
+                        ATTACH DATABASE "${sourcePath}" AS source;
+
+                        CREATE TABLE "_prisma_migrations" AS SELECT * FROM source._prisma_migrations;
+                        
+                        CREATE TABLE "Translation" AS SELECT * FROM source.Translation
+                        WHERE language IN ${languages};
+
+                        CREATE TABLE "Book" AS SELECT * FROM source.Book
+                        INNER JOIN source.Translation ON source.Translation.id = source.Book.translationId
+                        WHERE source.Translation.language IN ${languages};
+
+                        CREATE TABLE "Chapter" AS SELECT * FROM source.Chapter
+                        INNER JOIN source.Translation ON source.Translation.id = source.Chapter.translationId
+                        WHERE source.Translation.language IN ${languages};
+
+                        CREATE TABLE "ChapterVerse" AS SELECT * FROM source.ChapterVerse
+                        INNER JOIN source.Translation ON source.Translation.id = source.ChapterVerse.translationId
+                        WHERE source.Translation.language IN ${languages};
+
+                        CREATE TABLE "ChapterFootnote" AS SELECT * FROM source.ChapterFootnote
+                        INNER JOIN source.Translation ON source.Translation.id = source.ChapterFootnote.translationId
+                        WHERE source.Translation.language IN ${languages};
+
+                        CREATE TABLE "ChapterAudioUrl" AS SELECT * FROM source.ChapterAudioUrl
+                        INNER JOIN source.Translation ON source.Translation.id = source.ChapterAudioUrl.translationId
+                        WHERE source.Translation.language IN ${languages};
+
+                        CREATE TABLE "Commentary" AS SELECT * FROM source.Commentary
+                        WHERE language IN ${languages};
+
+                        CREATE TABLE "CommentaryBook" AS SELECT * FROM source.CommentaryBook
+                        INNER JOIN source.Commentary ON source.Commentary.id = source.CommentaryBook.commentaryId
+                        WHERE source.Commentary.language IN ${languages};
+
+                        CREATE TABLE "CommentaryChapter" AS SELECT * FROM source.CommentaryChapter
+                        INNER JOIN source.Commentary ON source.Commentary.id = source.CommentaryChapter.commentaryId
+                        WHERE source.Commentary.language IN ${languages};
+
+                        CREATE TABLE "CommentaryChapterVerse" AS SELECT * FROM source.CommentaryChapterVerse
+                        INNER JOIN source.Commentary ON source.Commentary.id = source.CommentaryChapterVerse.commentaryId
+                        WHERE source.Commentary.language IN ${languages};
+                    `);
+                } else {
+                    db.exec(`
+                        ATTACH DATABASE "${sourcePath}" AS source;
+
+                        CREATE TABLE "_prisma_migrations" AS SELECT * FROM source._prisma_migrations;
+                        CREATE TABLE "Translation" AS SELECT * FROM source.Translation;
+                        CREATE TABLE "Book" AS SELECT * FROM source.Book;
+                        CREATE TABLE "Chapter" AS SELECT * FROM source.Chapter;
+                        CREATE TABLE "ChapterVerse" AS SELECT * FROM source.ChapterVerse;
+                        CREATE TABLE "ChapterFootnote" AS SELECT * FROM source.ChapterFootnote;
+                        CREATE TABLE "ChapterAudioUrl" AS SELECT * FROM source.ChapterAudioUrl;
+                        CREATE TABLE "Commentary" AS SELECT * FROM source.Commentary;
+                        CREATE TABLE "CommentaryBook" AS SELECT * FROM source.CommentaryBook;
+                        CREATE TABLE "CommentaryChapter" AS SELECT * FROM source.CommentaryChapter;
+                        CREATE TABLE "CommentaryChapterVerse" AS SELECT * FROM source.CommentaryChapterVerse;
+                    `);
+                }
+
+                console.log('Done.');
+            } finally {
+                db.close();
+            }
         }
     } else {
         const db = await database.getDb(database.getDbPath(dbPath));
@@ -213,6 +261,65 @@ export async function importTranslations(
         await database.importTranslations(
             db,
             translationDirs,
+            parser,
+            !!options.overwrite
+        );
+    } finally {
+        db.close();
+    }
+}
+
+/**
+ * Imports a commentary from the given directory into the database in the current working directory.
+ * @param dir The directory that the commentary is located in.
+ * @param dirs Any extra directories that should be imported.
+ * @param options The options for the import.
+ */
+export async function importCommentary(
+    dir: string,
+    dirs: string[],
+    options: ImportTranslationOptions
+): Promise<void> {
+    const parser = new DOMParser();
+    globalThis.DOMParser = DOMParser as any;
+    globalThis.Element = Element as any;
+    globalThis.Node = Node as any;
+
+    const db = await database.getDbFromDir(process.cwd());
+    try {
+        await database.importCommentaries(
+            db,
+            [dir, ...dirs],
+            parser,
+            !!options.overwrite
+        );
+    } finally {
+        db.close();
+    }
+}
+
+/**
+ * Imports all the commentaries from the given directory into the database in the current working directory.
+ * @param dir The directory that the commentaries are located in.
+ * @param options The options.
+ */
+export async function importCommentaries(
+    dir: string,
+    options: ImportTranslationOptions
+): Promise<void> {
+    const parser = new DOMParser();
+    globalThis.DOMParser = DOMParser as any;
+    globalThis.Element = Element as any;
+    globalThis.Node = Node as any;
+
+    const db = await database.getDbFromDir(process.cwd());
+    try {
+        const files = await readdir(dir);
+        const commentaryDirs = files.map((f) => path.resolve(dir, f));
+        console.log(`Importing ${commentaryDirs.length} commentaries`);
+        await database.importCommentaries(
+            db,
+            commentaryDirs,
             parser,
             !!options.overwrite
         );
@@ -310,9 +417,7 @@ export async function fetchTranslations(
                         const file: InputFile = {
                             fileType: 'usx',
                             content: contentString,
-                            metadata: {
-                                translation,
-                            },
+                            metadata: translation,
                             name,
                         };
 

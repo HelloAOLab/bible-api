@@ -29,6 +29,12 @@ export interface UploadApiOptions {
     overwriteCommonFiles?: boolean;
 
     /**
+     * Whether to only overwrite merged files.
+     * "Merged files" are files that are generated from multiple translations, like the available_translations.json endpoint.
+     */
+    overwriteMergedFiles?: boolean;
+
+    /**
      * The file pattern regex that should be used to filter the files that are uploaded.
      */
     filePattern?: string;
@@ -67,6 +73,11 @@ export interface UploadApiOptions {
      * Whether to generate pretty-printed JSON files.
      */
     pretty?: boolean;
+
+    /**
+     * Whether to output verbose log information.
+     */
+    verbose?: boolean;
 }
 
 /**
@@ -135,6 +146,11 @@ export async function serializeAndUploadDatasets(
     const overwriteCommonFiles = !!options.overwriteCommonFiles;
     if (overwriteCommonFiles) {
         console.log('Overwriting only common files');
+    }
+
+    const overwriteMergedFiles = !!options.overwriteMergedFiles;
+    if (overwriteMergedFiles) {
+        console.log('Overwriting only merged files');
     }
 
     let filePattern: RegExp | undefined;
@@ -241,6 +257,7 @@ export async function uploadFilesUsingUploader(
 ): Promise<void> {
     const overwrite = !!options.overwrite;
     const overwriteCommonFiles = !!options.overwriteCommonFiles;
+    const overwriteMergedFiles = !!options.overwriteMergedFiles;
 
     let filePattern: RegExp | undefined;
     if (!!options.filePattern) {
@@ -271,15 +288,27 @@ export async function uploadFilesUsingUploader(
                 const isAvailableTranslations = file.path.endsWith(
                     'available_translations.json'
                 );
-                const isCommonFile = !isAvailableTranslations;
+                const isAvailableCommentaries = file.path.endsWith(
+                    'available_commentaries.json'
+                );
+                // "Common" files are files that are similar between translations, like the books.json endpoint, or individual chapter endpoints.
+                const isCommonFile =
+                    !isAvailableTranslations && !isAvailableCommentaries;
+                const isMergedFile =
+                    isAvailableCommentaries || isAvailableTranslations;
                 if (
                     await uploader.upload(
                         file,
-                        overwrite || (overwriteCommonFiles && isCommonFile)
+                        overwrite ||
+                            (overwriteCommonFiles && isCommonFile) ||
+                            (isMergedFile && overwriteMergedFiles)
                     )
                 ) {
+                    if (options.verbose) {
+                        console.log('Uploaded file:', file.path);
+                    }
                     writtenFiles++;
-                } else {
+                } else if (options.verbose) {
                     console.warn('File already exists:', file.path);
                     console.warn('Skipping file');
                 }
@@ -292,6 +321,7 @@ export async function uploadFilesUsingUploader(
             await Promise.all(promises);
 
             console.log('Wrote', writtenFiles, 'files');
+            console.log('Skipped', batch.length - writtenFiles, 'files');
             batchNumber++;
             offset += batchSize;
             batch = files.slice(offset, offset + batchSize);

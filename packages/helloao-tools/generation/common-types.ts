@@ -1,12 +1,26 @@
 /**
  * Defines an interface that contains information about a input file.
  */
-export interface InputFile {
+export type InputFile = InputTranslationFile | InputCommentaryFile;
+
+export interface InputFileBase {
     name?: string;
-    metadata: ParseTreeMetadata;
     content: string;
     sha256?: string;
+}
+
+export type InputFileMetadata =
+    | InputTranslationMetadata
+    | InputCommentaryMetadata;
+
+export interface InputTranslationFile extends InputFileBase {
     fileType: 'usfm' | 'usx' | 'json';
+    metadata: InputTranslationMetadata;
+}
+
+export interface InputCommentaryFile extends InputFileBase {
+    fileType: 'commentary/csv';
+    metadata: InputCommentaryMetadata;
 }
 
 export type OutputFileContent = object | ReadableStream;
@@ -31,25 +45,7 @@ export interface OutputFile {
     mergable?: boolean;
 }
 
-/**
- * Defines an interface that contains metadata for a parse tree.
- */
-export interface ParseTreeMetadata {
-    /**
-     * Information about the translation.
-     */
-    translation: InputTranslationMetadata;
-}
-
-/**
- * The metadata for a translation that is input into the generator.
- */
-export interface InputTranslationMetadata {
-    /**
-     * The ID of the translation.
-     */
-    id: string;
-
+export interface MetadataBase {
     /**
      * The name of the translation.
      */
@@ -71,11 +67,6 @@ export interface InputTranslationMetadata {
     licenseUrl: string;
 
     /**
-     * The short name for the translation.
-     */
-    shortName?: string;
-
-    /**
      * The ISO 639 letter language tag that the translation is primarily in.
      */
     language: string;
@@ -84,6 +75,31 @@ export interface InputTranslationMetadata {
      * The direction that the text is written in.
      */
     direction: 'ltr' | 'rtl';
+}
+
+/**
+ * The metadata for a translation that is input into the generator.
+ */
+export interface InputTranslationMetadata extends MetadataBase {
+    /**
+     * The ID of the translation.
+     */
+    id: string;
+
+    /**
+     * The short name for the translation.
+     */
+    shortName?: string;
+}
+
+/**
+ * The metadata for a translation that is input into the generator.
+ */
+export interface InputCommentaryMetadata extends MetadataBase {
+    /**
+     * The ID of the commentary.
+     */
+    id: string;
 }
 
 /**
@@ -134,11 +150,53 @@ export interface Translation {
 }
 
 /**
+ * Defines an interface that contains information about a commentary.
+ */
+export interface Commentary {
+    /**
+     * The ID of the commentary.
+     */
+    id: string;
+
+    /**
+     * The name of the commentary.
+     */
+    name: string;
+
+    /**
+     * The website for the commentary.
+     */
+    website: string;
+
+    /**
+     * The URL that the license for the commentary can be found.
+     */
+    licenseUrl: string;
+
+    /**
+     * The english name for the commentary.
+     */
+    englishName: string;
+
+    /**
+     * The ISO 639 3-letter language tag that the translation is primarily in.
+     */
+    language: string;
+
+    /**
+     * The direction that the language is written in.
+     * "ltr" indicates that the text is written from the left side of the page to the right.
+     * "rtl" indicates that the text is written from the right side of the page to the left.
+     */
+    textDirection: 'ltr' | 'rtl';
+}
+
+/**
  * Defines an interface that contains information about a book.
  */
 export interface TranslationBook {
     /**
-     * The ID of the book.
+     * The ID of the book. Should match the USFM book ID.
      */
     id: string;
 
@@ -166,6 +224,36 @@ export interface TranslationBook {
 }
 
 /**
+ * Defines an interface that contains information about a book in a commentary.
+ */
+export interface CommentaryBook {
+    /**
+     * The ID of the book. Should match the USFM book ID.
+     */
+    id: string;
+
+    /**
+     * The name that the commentary provided for the book.
+     */
+    name: string;
+
+    /**
+     * The common name for the book.
+     */
+    commonName: string;
+
+    /**
+     * The commentary's introduction for the book.
+     */
+    introduction?: string;
+
+    /**
+     * The order of the book in the Bible.
+     */
+    order: number;
+}
+
+/**
  * Defines an interface that contains information about a book chapter.
  */
 export interface TranslationBookChapter {
@@ -178,6 +266,16 @@ export interface TranslationBookChapter {
      * The links to different audio versions for the chapter.
      */
     thisChapterAudioLinks: TranslationBookChapterAudioLinks;
+}
+
+/**
+ * Defines an interface that contains information about a book chapter in a commentary.
+ */
+export interface CommentaryBookChapter {
+    /**
+     * The information for the chapter.
+     */
+    chapter: CommentaryChapterData;
 }
 
 /**
@@ -211,6 +309,27 @@ export interface ChapterData {
 }
 
 /**
+ * Defines an interface that represents data in a chapter in a commentary.
+ */
+export interface CommentaryChapterData {
+    /**
+     * The number of the chapter.
+     */
+    number: number;
+
+    /**
+     * The introduction that the commentary provided to the chapter.
+     * Not all commentaries provide an introduction to a chapter.
+     */
+    introduction?: string;
+
+    /**
+     * The content of the chapter.
+     */
+    content: ChapterVerse[];
+}
+
+/**
  * A union type that represents a single piece of chapter content.
  * A piece of chapter content can be one of the following things:
  * - A heading.
@@ -218,7 +337,11 @@ export interface ChapterData {
  * - A verse.
  * - A Hebrew Subtitle.
  */
-export type ChapterContent = ChapterHeading | ChapterLineBreak | ChapterVerse | ChapterHebrewSubtitle;
+export type ChapterContent =
+    | ChapterHeading
+    | ChapterLineBreak
+    | ChapterVerse
+    | ChapterHebrewSubtitle;
 
 /**
  * A heading in a chapter.
@@ -277,12 +400,18 @@ export interface ChapterVerse {
      * The number of the verse.
      */
     number: number;
-    
+
     /**
      * The list of content for the verse.
      * Each element in the list could be a string, formatted text, or a footnote reference.
      */
-    content: (string | FormattedText | InlineHeading | InlineLineBreak | VerseFootnoteReference)[];
+    content: (
+        | string
+        | FormattedText
+        | InlineHeading
+        | InlineLineBreak
+        | VerseFootnoteReference
+    )[];
 }
 
 /**
@@ -297,7 +426,7 @@ export interface FormattedText {
     /**
      * Whether the text represents a poem.
      * The number indicates the level of indent.
-     * 
+     *
      * Common in Psalms.
      */
     poem?: number;
@@ -360,15 +489,15 @@ export interface ChapterFootnote {
     /**
      * The caller that should be used for the footnote.
      * For footnotes, a "caller" is the character that is used in the text to reference to footnote.
-     * 
+     *
      * For example, in the text:
      * Hello (a) World
-     * 
+     *
      * ----
      * (a) This is a footnote.
-     * 
+     *
      * The "(a)" is the caller.
-     * 
+     *
      * If "+", then the caller should be autogenerated.
      * If null, then the caller should be empty.
      * If a string, then the caller should be that string.

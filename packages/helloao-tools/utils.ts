@@ -1,4 +1,3 @@
-
 /**
  * Normalizes the given language code into a ISO 639 code.
  * @param language The language code to normalize.
@@ -54,11 +53,11 @@ export interface VerseRef {
 /**
  * Parses the given verse reference.
  * Formatted like "GEN 1:1".
- * 
+ *
  * @param text The reference to parse.
  */
 export function parseVerseReference(text: string): VerseRef | null {
-    const match = text.match(/^\s*([A-Z]+)\s+(\d+):(\d+)/);
+    const match = text.match(/^\s*([0-9A-Za-z\s]+)\s+(\d+):(\d+)/);
 
     if (!match) {
         return null;
@@ -75,7 +74,7 @@ export function parseVerseReference(text: string): VerseRef | null {
 
     if (reference.length !== text.length) {
         return {
-            book,
+            book: getBookId(book) ?? book,
             chapter,
             verse,
             content: text.substring(reference.length).trim(),
@@ -83,8 +82,171 @@ export function parseVerseReference(text: string): VerseRef | null {
     }
 
     return {
-        book,
+        book: getBookId(book) ?? book,
         chapter,
         verse,
     };
+}
+
+/**
+ * Defines a map that maps the book ID to the numerical order of the book.
+ */
+const BOOK_ID_MAP: Map<string, string> = new Map([
+    ['gen', 'GEN'],
+    ['genesis', 'GEN'],
+    ['exo', 'EXO'],
+    ['exodus', 'EXO'],
+    ['lev', 'LEV'],
+    ['lev', 'LEV'],
+    ['laviticus', 'LEV'],
+    ['num', 'NUM'],
+    ['numbers', 'NUM'],
+    ['deu', 'DEU'],
+    ['deuteronomy', 'DEU'],
+    ['jos', 'JOS'],
+    ['joshua', 'JOS'],
+    ['jdg', 'JDG'],
+    ['judges', 'JDG'],
+    ['rut', 'RUT'],
+    ['ruth', 'RUT'],
+    ['1sa', '1SA'],
+    ['1samuel', '1SA'],
+    ['2sa', '2SA'],
+    ['2samuel', '2SA'],
+    ['1ki', '1KI'],
+    ['1kings', '1KI'],
+    ['2ki', '2KI'],
+    ['2kings', '2KI'],
+    ['1ch', '1CH'],
+    ['1chronicles', '1CH'],
+    ['chronicles1', '1CH'],
+    ['2ch', '2CH'],
+    ['2chronicles', '2CH'],
+    ['chronicles2', '2CH'],
+    ['ezr', 'EZR'],
+    ['ezra', 'EZR'],
+    ['neh', 'NEH'],
+    ['nehemiah', 'NEH'],
+    ['est', 'EST'],
+    ['ester', 'EST'],
+    ['job', 'JOB'],
+    ['psa', 'PSA'],
+    ['psalms', 'PSA'],
+    ['psalm', 'PSA'],
+    ['pro', 'PRO'],
+    ['proverbs', 'PRO'],
+    ['ecc', 'ECC'],
+    ['ecclesiastes', 'ECC'],
+    ['sng', 'SNG'],
+    ['songofsolomon', 'SNG'],
+    ['isa', 'ISA'],
+    ['isaiah', 'ISA'],
+    ['jer', 'JER'],
+    ['jeremiah', 'JER'],
+    ['lam', 'LAM'],
+    ['lamentations', 'LAM'],
+    ['ezk', 'EZK'],
+    ['ezekiel', 'EZK'],
+    ['dan', 'DAN'],
+    ['daniel', 'DAN'],
+    ['hos', 'HOS'],
+    ['hosea', 'HOS'],
+    ['jol', 'JOL'],
+    ['joel', 'JOL'],
+    ['amo', 'AMO'],
+    ['amos', 'AMO'],
+    ['oba', 'OBA'],
+    ['obadiah', 'OBA'],
+    ['jon', 'JON'],
+    ['jonah', 'JON'],
+    ['mic', 'MIC'],
+    ['micah', 'MIC'],
+    ['nam', 'NAM'],
+    ['nahum', 'NAM'],
+    ['hab', 'HAB'],
+    ['habakkuk', 'HAB'],
+    ['zep', 'ZEP'],
+    ['zepaniah', 'ZEP'],
+    ['hag', 'HAG'],
+    ['haggai', 'HAG'],
+    ['zec', 'ZEC'],
+    ['zechariah', 'ZEC'],
+    ['mal', 'MAL'],
+    ['malachi', 'MAL'],
+    ['mat', 'MAT'],
+    ['matthew', 'MAT'],
+    ['mrk', 'MRK'],
+    ['mark', 'MRK'],
+    ['luk', 'LUK'],
+    ['luke', 'LUK'],
+    ['jhn', 'JHN'],
+    ['john', 'JHN'],
+    ['act', 'ACT'],
+    ['acts', 'ACT'],
+    ['rom', 'ROM'],
+    ['romans', 'ROM'],
+    ['1co', '1CO'],
+    ['1corinthians', '1CO'],
+    ['2co', '2CO'],
+    ['2corinthians', '2CO'],
+    ['gal', 'GAL'],
+    ['galatians', 'GAL'],
+    ['eph', 'EPH'],
+    ['ephesians', 'EPH'],
+    ['php', 'PHP'],
+    ['philippians', 'PHP'],
+    ['col', 'COL'],
+    ['colossians', 'COL'],
+    ['1th', '1TH'],
+    ['1thessalonians', '1TH'],
+    ['2th', '2TH'],
+    ['2thessalonians', '2TH'],
+    ['1ti', '1TI'],
+    ['1timothy', '1TI'],
+    ['2ti', '2TI'],
+    ['2timothy', '2TI'],
+    ['tit', 'TIT'],
+    ['titus', 'TIT'],
+    ['phm', 'PHM'],
+    ['philemon', 'PHM'],
+    ['heb', 'HEB'],
+    ['hebrews', 'HEB'],
+    ['jas', 'JAS'],
+    ['james', 'JAS'],
+    ['1pe', '1PE'],
+    ['1peter', '1PE'],
+    ['2pe', '2PE'],
+    ['2peter', '2PE'],
+    ['1jn', '1JN'],
+    ['1john', '1JN'],
+    ['2jn', '2JN'],
+    ['2john', '2JN'],
+    ['3jn', '3JN'],
+    ['3john', '3JN'],
+    ['jud', 'JUD'],
+    ['jude', 'JUD'],
+    ['rev', 'REV'],
+    ['revelation', 'REV'],
+]);
+
+/**
+ * Gets the ID of the given book.
+ * Returns null if the ID could not be found.
+ * @param book The name/ID of the book.
+ */
+export function getBookId(book: string): string | null {
+    const bookLower = book.toLowerCase().replaceAll(/\s+/g, '');
+
+    const id = BOOK_ID_MAP.get(bookLower);
+    if (id) {
+        return id;
+    }
+
+    for (let [key, id] of BOOK_ID_MAP) {
+        if (bookLower.startsWith(key)) {
+            return id;
+        }
+    }
+
+    return null;
 }
