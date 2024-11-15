@@ -39,7 +39,11 @@ async function start() {
     program
         .command('init [path]')
         .description('Initialize a new Bible API DB.')
-        .option('--source <path>', 'The source database to copy from.')
+        .option(
+            '--source <path>',
+            'The source database to copy from. If given a HTTPS URL, then the database will be downloaded from the given URL.'
+        )
+        .option('--overwrite', 'Whether to overwrite the existing database.')
         .option(
             '--language <languages...>',
             'The language(s) that the database should be initialized with.'
@@ -380,6 +384,10 @@ async function start() {
             'Whether to overwrite only common files.'
         )
         .option(
+            '--overwrite-merged-files',
+            'Whether to overwrite only merged files.'
+        )
+        .option(
             '--file-pattern <pattern>',
             'The file pattern regex that should be used to filter the files that are uploaded.'
         )
@@ -404,6 +412,10 @@ async function start() {
             'The AWS Secret Access Key to use for uploading to S3.'
         )
         .option('--pretty', 'Whether to generate pretty-printed JSON files.')
+        .option(
+            '--verbose',
+            'Whether to output verbose information during the upload.'
+        )
         .action(async (dest: string, options: any) => {
             const db = getPrismaDbFromDir(process.cwd());
             try {

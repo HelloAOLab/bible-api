@@ -376,7 +376,8 @@ async function loadTranslationMetadata(
 ): Promise<InputTranslationMetadata | null> {
     const metadataTs = path.resolve(translation, 'metadata.ts');
     if (existsSync(metadataTs)) {
-        return (await import(metadataTs)).default as InputTranslationMetadata;
+        const importPath = new URL('file://' + metadataTs).href;
+        return (await import(importPath)).default as InputTranslationMetadata;
     } else {
         const metadataJson = path.resolve(translation, 'meta.json');
         if (existsSync(metadataJson)) {
