@@ -3,6 +3,15 @@
 This is the log of changes for the Free Use Bible API.
 For information on the API Generator, see [GENERATOR-CHANGELOG.md](./GENERATOR-CHANGELOG.md).
 
+## V1.3.0
+
+#### Date: 2024-11-15
+
+### :rocket: Features
+
+-   Added support for Bible commentaries.
+    -   See the the [API Reference](https://bible.helloao.org/docs/reference/#available-commentaries) for more info.
+
 ## V1.2.0
 
 #### Date: 2024-07-25
