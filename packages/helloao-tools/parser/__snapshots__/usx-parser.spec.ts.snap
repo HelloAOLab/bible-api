@@ -295,6 +295,9 @@ exports[`USXParser parse() should be able to parse 1SA 1`] = `
               "text": "for there is no one besides you,",
             },
             {
+              "lineBreak": true,
+            },
+            {
               "poem": 2,
               "text": "nor is there any rock like our God.",
             },
@@ -316,8 +319,14 @@ exports[`USXParser parse() should be able to parse 1SA 1`] = `
               "text": "Don’t let arrogance come out of your mouth,",
             },
             {
+              "lineBreak": true,
+            },
+            {
               "poem": 2,
               "text": "for Yahweh is a God of knowledge.",
+            },
+            {
+              "lineBreak": true,
             },
             {
               "poem": 2,
@@ -415,8 +424,14 @@ exports[`USXParser parse() should be able to parse 1SA 1`] = `
               "text": "He lifts up the needy from the dunghill",
             },
             {
+              "lineBreak": true,
+            },
+            {
               "poem": 2,
               "text": "to make them sit with princes",
+            },
+            {
+              "lineBreak": true,
             },
             {
               "poem": 2,
@@ -443,6 +458,9 @@ exports[`USXParser parse() should be able to parse 1SA 1`] = `
             {
               "poem": 2,
               "text": "but the wicked will be put to silence in darkness;",
+            },
+            {
+              "lineBreak": true,
             },
             {
               "poem": 2,
@@ -472,6 +490,9 @@ exports[`USXParser parse() should be able to parse 1SA 1`] = `
             {
               "poem": 2,
               "text": "He will give strength to his king,",
+            },
+            {
+              "lineBreak": true,
             },
             {
               "poem": 2,
@@ -11854,12 +11875,21 @@ exports[`USXParser parse() should be able to parse John 1`] = `
               "text": "lest they should see with their eyes,",
             },
             {
+              "lineBreak": true,
+            },
+            {
               "poem": 2,
               "text": "and perceive with their heart,",
             },
             {
+              "lineBreak": true,
+            },
+            {
               "poem": 2,
               "text": "and would turn,",
+            },
+            {
+              "lineBreak": true,
             },
             {
               "poem": 2,
@@ -15370,6 +15400,9 @@ exports[`USXParser parse() should be able to parse a whole book 1`] = `
               "text": "she wouldn’t be comforted,",
             },
             {
+              "lineBreak": true,
+            },
+            {
               "poem": 2,
               "text": "because they are no more.”",
             },
@@ -15453,6 +15486,9 @@ exports[`USXParser parse() should be able to parse a whole book 1`] = `
             {
               "poem": 2,
               "text": "make the way of the Lord ready!",
+            },
+            {
+              "lineBreak": true,
             },
             {
               "poem": 2,
@@ -15645,6 +15681,9 @@ exports[`USXParser parse() should be able to parse a whole book 1`] = `
               "text": "‘He will command his angels concerning you,’ and,",
             },
             {
+              "lineBreak": true,
+            },
+            {
               "poem": 1,
               "text": "‘On their hands they will bear you up,",
             },
@@ -15738,6 +15777,9 @@ exports[`USXParser parse() should be able to parse a whole book 1`] = `
               "text": "toward the sea, beyond the Jordan,",
             },
             {
+              "lineBreak": true,
+            },
+            {
               "poem": 2,
               "text": "Galilee of the Gentiles,",
             },
@@ -15754,6 +15796,9 @@ exports[`USXParser parse() should be able to parse a whole book 1`] = `
             {
               "poem": 2,
               "text": "to those who sat in the region and shadow of death,",
+            },
+            {
+              "lineBreak": true,
             },
             {
               "poem": 2,
@@ -16675,6 +16720,9 @@ exports[`USXParser parse() should be able to parse a whole book 1`] = `
         {
           "content": [
             {
+              "lineBreak": true,
+            },
+            {
               "poem": 1,
               "text": "Let your Kingdom come.",
               "wordsOfJesus": true,
@@ -16701,6 +16749,9 @@ exports[`USXParser parse() should be able to parse a whole book 1`] = `
         },
         {
           "content": [
+            {
+              "lineBreak": true,
+            },
             {
               "poem": 1,
               "text": "Forgive us our debts,",
@@ -19520,6 +19571,9 @@ exports[`USXParser parse() should be able to parse a whole book 1`] = `
               "wordsOfJesus": true,
             },
             {
+              "lineBreak": true,
+            },
+            {
               "poem": 2,
               "text": "and they have closed their eyes;",
               "wordsOfJesus": true,
@@ -19533,6 +19587,9 @@ exports[`USXParser parse() should be able to parse a whole book 1`] = `
               "poem": 2,
               "text": "hear with their ears,",
               "wordsOfJesus": true,
+            },
+            {
+              "lineBreak": true,
             },
             {
               "poem": 2,
@@ -20450,6 +20507,9 @@ exports[`USXParser parse() should be able to parse a whole book 1`] = `
               "poem": 2,
               "text": "and honor me with their lips;",
               "wordsOfJesus": true,
+            },
+            {
+              "lineBreak": true,
             },
             {
               "poem": 2,
@@ -22533,8 +22593,14 @@ exports[`USXParser parse() should be able to parse a whole book 1`] = `
               "text": "behold, your King comes to you,",
             },
             {
+              "lineBreak": true,
+            },
+            {
               "poem": 2,
               "text": "humble, and riding on a donkey,",
+            },
+            {
+              "lineBreak": true,
             },
             {
               "poem": 2,
@@ -23381,6 +23447,9 @@ exports[`USXParser parse() should be able to parse a whole book 1`] = `
               "poem": 2,
               "text": "sit on my right hand,",
               "wordsOfJesus": true,
+            },
+            {
+              "lineBreak": true,
             },
             {
               "poem": 2,
@@ -25801,6 +25870,9 @@ exports[`USXParser parse() should be able to parse a whole book 1`] = `
             {
               "poem": 2,
               "text": "the price of him upon whom a price had been set,",
+            },
+            {
+              "lineBreak": true,
             },
             {
               "poem": 2,

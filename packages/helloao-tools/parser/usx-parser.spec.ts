@@ -910,7 +910,48 @@ describe('USXParser', () => {
             });
         });
 
-        it('should not ignore newlines between two poem paras', () => {
+        it('should handle regular poems', () => {
+            const usx = `
+                <usx version="3.0">
+                    <book code="MAT" style="id">- World English Bible</book>
+                    <chapter number="2" style="c" sid="MAT 2"/>
+                    <para style="q1"><verse number="18" style="v" sid="MAT 2:18"/><char style="w" strong="G2532">she</char> wouldn&#8217;t <char style="w" strong="G1510">be</char> <char style="w" strong="G3870">comforted</char>,</para>
+                    <para style="q2"><char style="w" strong="G3754">because</char> <char style="w" strong="G2532">they</char> <char style="w" strong="G1510">are</char> <char style="w" strong="G3756">no</char> <char style="w" strong="G4183">more</char>.&#8221;<note style="x" caller="+"><char style="xo">2:18 </char><char style="xt">Jeremiah 31:15</char></note><verse eid="MAT 2:18"/></para>
+                </usx>
+            `;
+
+            const tree = parser.parse(usx);
+
+            expect(tree).toEqual({
+                type: 'root',
+                id: 'MAT',
+                content: [
+                    {
+                        type: 'chapter',
+                        number: 2,
+                        content: [
+                            {
+                                type: 'verse',
+                                number: 18,
+                                content: [
+                                    {
+                                        text: 'she wouldn’t be comforted,',
+                                        poem: 1,
+                                    },
+                                    {
+                                        text: 'because they are no more.”',
+                                        poem: 2,
+                                    },
+                                ],
+                            },
+                        ],
+                        footnotes: [],
+                    },
+                ],
+            });
+        });
+
+        it('should infer newlines when two poems with the same number are next to each other', () => {
             const usx = `
                 <usx version="3.0">
                     <book code="MAT" style="id">- World English Bible</book>
@@ -938,6 +979,7 @@ describe('USXParser', () => {
                                         text: 'she wouldn’t be comforted,',
                                         poem: 2,
                                     },
+                                    { lineBreak: true },
                                     {
                                         text: 'because they are no more.”',
                                         poem: 2,
@@ -946,6 +988,68 @@ describe('USXParser', () => {
                             },
                         ],
                         footnotes: [],
+                    },
+                ],
+            });
+        });
+
+        it('should should correctly handle scenarios where a footnote breaks up a poem', () => {
+            const usx = `
+                <usx version="3.0">
+                    <book code="LAM" style="id">- Berean Study Bible</book>
+                    <chapter number="3" style="c" sid="LAM 3"/>
+                    <para style="s1">The Prophet&#8217;s Afflictions</para>
+                    <para style="q1"><verse number="1" style="v" sid="LAM 3:1"/><char style="w" strong="H7200">I</char> <note style="f" caller="+"><char style="fr"/><char style="ft">3:1 </char><char style="ft">This chapter is an acrostic poem, each 3&#8211;verse stanza beginning with the successive letters of the Hebrew alphabet.</char></note> <char style="w" strong="H1961">am</char> <char style="w" strong="H7200">the</char> <char style="w" strong="H1397">man</char> <char style="w" strong="H1397">who</char> <char style="w" strong="H3068">has</char> <char style="w" strong="H7200">seen</char> <char style="w" strong="H6040">affliction</char></para>
+                    <para style="q2"><char style="w" strong="H8478">under</char> <char style="w" strong="H7200">the</char> <char style="w" strong="H7626">rod</char> <char style="w" strong="H7626">of</char> <char style="w" strong="H0430">God&#8217;s</char> <char style="w" strong="H5678">wrath</char>.<verse eid="LAM 3:1"/></para>
+                </usx>
+            `;
+
+            const tree = parser.parse(usx);
+
+            expect(tree).toEqual({
+                type: 'root',
+                id: 'LAM',
+                content: [
+                    {
+                        type: 'chapter',
+                        number: 3,
+                        content: [
+                            {
+                                type: 'heading',
+                                content: ['The Prophet’s Afflictions'],
+                            },
+                            {
+                                type: 'verse',
+                                number: 1,
+                                content: [
+                                    {
+                                        text: 'I',
+                                        poem: 1,
+                                    },
+                                    { noteId: 0 },
+                                    // No lineBreak because they poem is from the same line
+                                    {
+                                        text: 'am the man who has seen affliction',
+                                        poem: 1,
+                                    },
+                                    {
+                                        text: 'under the rod of God’s wrath.',
+                                        poem: 2,
+                                    },
+                                ],
+                            },
+                        ],
+                        footnotes: [
+                            {
+                                noteId: 0,
+                                caller: '+',
+                                text: 'This chapter is an acrostic poem, each 3–verse stanza beginning with the successive letters of the Hebrew alphabet.',
+                                reference: {
+                                    chapter: 3,
+                                    verse: 1,
+                                },
+                            },
+                        ],
                     },
                 ],
             });

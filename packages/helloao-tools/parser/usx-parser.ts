@@ -25,7 +25,7 @@ enum NodeType {
  * The version of the parser.
  * Used to determine whether input files need to be re-parsed.
  */
-export const PARSER_VERSION = '1';
+export const PARSER_VERSION = '2';
 
 /**
  * Defines a class that is able to parse USX content.
@@ -198,6 +198,7 @@ export class USXParser {
         verse: Verse,
         nodes: RewindableIterator<Node>
     ): IterableIterator<string | FootnoteReference | Text | InlineLineBreak> {
+        let lastParent: Element | null = null;
         while (true) {
             const { done, value: node } = nodes.next();
             if (done) {
@@ -224,10 +225,25 @@ export class USXParser {
                         style === 'q1'
                             ? 1
                             : style === 'q2'
-                            ? 2
-                            : style === 'q3'
-                            ? 3
-                            : 4;
+                              ? 2
+                              : style === 'q3'
+                                ? 3
+                                : 4;
+
+                    // Send explicit line breaks
+                    // if we are in a new paragraph but the previous paragraph had the same poem style
+                    if (parent.previousElementSibling?.nodeName === 'para') {
+                        const previousStyle =
+                            parent.previousElementSibling?.getAttribute(
+                                'style'
+                            );
+                        if (previousStyle === style && lastParent !== parent) {
+                            lastParent = parent;
+                            yield {
+                                lineBreak: true,
+                            };
+                        }
+                    }
                 } else if (style === 'd') {
                     descriptive = true;
                 }
