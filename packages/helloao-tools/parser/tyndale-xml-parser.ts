@@ -85,17 +85,49 @@ export class TyndaleXmlParser {
             return verseNode;
         }
 
-        const noteItems = rootElement.querySelectorAll('item');
+        function formatContent(node: Node, trim: boolean = true): string {
+            let text: string;
+            if (node.nodeName === 'p') {
+                text = (node.textContent || '') + '\n';
+            } else if (node.nodeName === '#text') {
+                text = node.textContent || '';
+            } else if (node.nodeName === 'br') {
+                text = '\n';
+            } else if (node.nodeType === Node.ELEMENT_NODE) {
+                text = '';
+                for (let child of node.childNodes) {
+                    text += formatContent(child, false);
+                }
+            } else {
+                text = node.textContent || '';
+            }
 
-        for (let item of noteItems) {
+            if (trim) {
+                const lines = text.split('\n');
+                for (let i = 0; i < lines.length; i++) {
+                    // Trim extra whitespace and replace multiple spaces with a single space
+                    lines[i] = lines[i].replace(/\s+/g, ' ').trim();
+                }
+                text = lines.join('\n').trim();
+            }
+
+            return text;
+        }
+
+        const items = rootElement.querySelectorAll('item');
+
+        for (let item of items) {
             const typename = item.getAttribute('typename');
 
             if (typename === 'StudyNote') {
                 const refs = item.querySelector('refs')?.textContent;
-                const body = item.querySelector('body')?.textContent;
+                const body = item.querySelector('body');
 
                 if (!refs || !body) {
-                    console.warn('Skipping item without refs or body:', item);
+                    console.warn(
+                        'Skipping study note item without refs or body:',
+                        item
+                    );
                     continue;
                 }
 
@@ -109,7 +141,29 @@ export class TyndaleXmlParser {
                 const bookNode = getBook(ref.book);
                 const chapterNode = getChapter(bookNode, ref.chapter);
                 const verseNode = getVerse(chapterNode, ref.verse);
-                verseNode.content.push(body.trim());
+                verseNode.content.push(formatContent(body));
+            } else if (typename === 'BookIntro') {
+                const refs = item.querySelector('refs')?.textContent;
+                const body = item.querySelector('body');
+
+                if (!refs || !body) {
+                    console.warn(
+                        'Skipping book item without refs or body:',
+                        item
+                    );
+                    continue;
+                }
+
+                const ref = parseVerseReference(refs);
+
+                if (!ref) {
+                    console.warn('Failed to parse verse reference:', refs);
+                    continue;
+                }
+
+                const bookNode = getBook(ref.book);
+
+                bookNode.introduction = formatContent(body);
             }
         }
 
