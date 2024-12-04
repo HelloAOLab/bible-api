@@ -127,6 +127,11 @@ export interface Translation {
     licenseUrl: string;
 
     /**
+     * The API-added notes for the license.
+     */
+    licenseNotes?: string | null;
+
+    /**
      * The short name for the translation.
      */
     shortName?: string;
@@ -172,6 +177,11 @@ export interface Commentary {
      * The URL that the license for the commentary can be found.
      */
     licenseUrl: string;
+
+    /**
+     * The API-added notes for the license.
+     */
+    licenseNotes?: string | null;
 
     /**
      * The english name for the commentary.
