@@ -127,5 +127,10 @@ describe('getBookId()', () => {
         expect(getBookId('1Jn')).toBe('1JN');
         expect(getBookId('2Jn')).toBe('2JN');
         expect(getBookId('3Jn')).toBe('3JN');
+
+        expect(getBookId('Ezek')).toBe('EZK');
+        expect(getBookId('Nah')).toBe('NAM');
+        expect(getBookId('Phil')).toBe('PHP');
+        expect(getBookId('Phlm')).toBe('PHM');
     });
 });

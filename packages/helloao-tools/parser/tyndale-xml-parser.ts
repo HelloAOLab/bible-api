@@ -6,6 +6,12 @@ import {
     CommentaryVerseNode,
 } from './types';
 
+enum NodeType {
+    Element = 1,
+    Attribute = 2,
+    Text = 3,
+}
+
 export class TyndaleXmlParser {
     private _domParser: DOMParser;
 
@@ -93,7 +99,7 @@ export class TyndaleXmlParser {
                 text = node.textContent || '';
             } else if (node.nodeName === 'br') {
                 text = '\n';
-            } else if (node.nodeType === Node.ELEMENT_NODE) {
+            } else if (node.nodeType === NodeType.Element) {
                 text = '';
                 for (let child of node.childNodes) {
                     text += formatContent(child, false);

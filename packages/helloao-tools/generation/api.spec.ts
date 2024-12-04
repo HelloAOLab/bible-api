@@ -945,6 +945,115 @@ describe('generateApiForDataset()', () => {
         //     ]
         // });
     });
+
+    it('should support tyndale files', () => {
+        let comment1: InputCommentaryMetadata = {
+            id: 'comment',
+            name: 'Commentary',
+            englishName: 'Commentary',
+            language: 'eng',
+            direction: 'ltr',
+            licenseUrl: 'https://example.com/terms.htm',
+            website: 'https://example.com',
+        };
+
+        let inputFiles: InputFile[] = [
+            {
+                fileType: 'commentary/tyndale-xml',
+                content: [
+                    `<items release="1.25">`,
+                    `<item name="Gen.1.1-2.3" typename="StudyNote" product="TyndaleOpenStudyNotes">`,
+                    `<refs>Gen.1.1-2.3</refs>`,
+                    `<body>`,
+                    `<p class="sn-text"><span class="sn-ref"><a href="?bref=Gen.1.1-2.3">1:1–2:3</a></span> These verses introduce the Pentateuch (Genesis—Deuteronomy) and teach</p>`,
+                    `</body>`,
+                    `</item>`,
+                    `</items>`,
+                ].join('\n'),
+                metadata: comment1,
+            },
+        ];
+
+        const dataset = generateDataset(inputFiles, new DOMParser() as any);
+        const generated = generateApiForDataset(dataset);
+        const files = generateFilesForApi(generated);
+
+        const tree = fileTree(files);
+
+        const expectedCommentary = {
+            id: 'comment',
+            name: 'Commentary',
+            englishName: 'Commentary',
+            language: 'eng',
+            textDirection: 'ltr',
+            licenseUrl: 'https://example.com/terms.htm',
+            website: 'https://example.com',
+            availableFormats: ['json'],
+            listOfBooksApiLink: '/api/c/comment/books.json',
+            numberOfBooks: 1,
+            totalNumberOfChapters: 1,
+            totalNumberOfVerses: 1,
+        };
+
+        expect(tree).toEqual({
+            '/api/available_translations.json': {
+                translations: [],
+            },
+            '/api/available_commentaries.json': {
+                commentaries: [expectedCommentary],
+            },
+            '/api/c/comment/books.json': {
+                commentary: expectedCommentary,
+                books: [
+                    {
+                        id: 'GEN',
+                        order: 1,
+                        name: 'Genesis',
+                        commonName: 'Genesis',
+                        numberOfChapters: 1,
+                        totalNumberOfVerses: 1,
+                        firstChapterApiLink: '/api/c/comment/GEN/1.json',
+                        lastChapterApiLink: '/api/c/comment/GEN/1.json',
+                    },
+                ],
+            },
+            '/api/c/comment/GEN/1.json': {
+                commentary: expectedCommentary,
+                book: {
+                    id: 'GEN',
+                    order: 1,
+                    name: 'Genesis',
+                    commonName: 'Genesis',
+                    numberOfChapters: 1,
+                    totalNumberOfVerses: 1,
+                    firstChapterApiLink: '/api/c/comment/GEN/1.json',
+                    lastChapterApiLink: '/api/c/comment/GEN/1.json',
+                },
+                thisChapterLink: '/api/c/comment/GEN/1.json',
+                nextChapterApiLink: null,
+                previousChapterApiLink: null,
+                numberOfVerses: 1,
+                chapter: {
+                    number: 1,
+                    content: [
+                        {
+                            type: 'verse',
+                            number: 1,
+                            content: [
+                                '1:1–2:3 These verses introduce the Pentateuch (Genesis—Deuteronomy) and teach',
+                            ],
+                        },
+                    ],
+                },
+            },
+        });
+
+        // expect(availableTranslations).toEqual({
+        //     translations: [
+        //         expectedTranslation
+        //     ]
+        // });
+    });
 });
 
 function firstXLines(content: string, x: number) {
