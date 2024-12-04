@@ -20,6 +20,7 @@ import { getAudioUrlsForChapter } from './audio.js';
 import { CodexParser } from '../parser/codex-parser.js';
 import { CommentaryCsvParser } from '../parser/commentary-csv-parser.js';
 import { CommentaryParseTree, ParseTree } from '../parser/types.js';
+import { TyndaleXmlParser } from '../parser/tyndale-xml-parser.js';
 
 /**
  * Defines an interface that contains generated dataset info.
@@ -93,6 +94,7 @@ export function generateDataset(
     let usxParser = new USXParser(parser);
     let codexParser = new CodexParser();
     let csvCommentaryParser = new CommentaryCsvParser();
+    let tyndaleXmlParser = new TyndaleXmlParser(parser);
 
     let parsedTranslations = new Map<string, DatasetTranslation>();
     let parsedCommentaries = new Map<string, DatasetCommentary>();
@@ -104,7 +106,8 @@ export function generateDataset(
                 | UsfmParser
                 | USXParser
                 | CodexParser
-                | CommentaryCsvParser;
+                | CommentaryCsvParser
+                | TyndaleXmlParser;
             if (file.fileType === 'usfm') {
                 parser = usfmParser;
             } else if (file.fileType === 'usx') {
@@ -113,6 +116,8 @@ export function generateDataset(
                 parser = codexParser;
             } else if (file.fileType === 'commentary/csv') {
                 parser = csvCommentaryParser;
+            } else if (file.fileType === 'commentary/tyndale-xml') {
+                parser = tyndaleXmlParser;
             } else {
                 console.warn(
                     '[generate] File does not have a valid type!',
@@ -254,7 +259,7 @@ export function generateDataset(
 
         for (let parsedBook of parsed.books) {
             let book = commentary.books.find((b) => b.id === parsedBook.book);
-            if (book && book.introduction) {
+            if (book && book.introduction && parsedBook.introduction) {
                 console.warn(
                     '[generate] Book already exists in commentary!',
                     file.name,

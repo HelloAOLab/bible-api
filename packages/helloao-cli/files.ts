@@ -339,28 +339,28 @@ export async function loadCommentaryFiles(
     }
 
     let files = await readdir(commentary);
-    let csvFiles = files.filter((f) => extname(f) === '.csv');
+    let commentaryFiles = files.filter(
+        (f) => extname(f) === '.csv' || f.endsWith('.tyndale.xml')
+    );
 
-    if (csvFiles.length <= 0) {
-        commentary = path.resolve(commentary, 'usfm');
-        if (existsSync(commentary)) {
-            files = await readdir(commentary);
-            csvFiles = files.filter((f) => extname(f) === '.usfm');
-        }
-    }
-
-    if (csvFiles.length <= 0) {
-        console.error('Could not find USFM files for translation!', commentary);
+    if (commentaryFiles.length <= 0) {
+        console.error('Could not find files for commentary!', commentary);
         return [];
     }
 
     let promises = [] as Promise<InputFile>[];
-    for (let file of csvFiles) {
+    for (let file of commentaryFiles) {
         if (path.parse(file).name === 'metadata') {
             continue;
         }
         const filePath = path.resolve(commentary, file);
-        promises.push(loadFile('commentary/csv', filePath, metadata));
+
+        const type =
+            extname(filePath) === '.csv'
+                ? 'commentary/csv'
+                : 'commentary/tyndale-xml';
+
+        promises.push(loadFile(type, filePath, metadata));
     }
 
     return await Promise.all(promises);

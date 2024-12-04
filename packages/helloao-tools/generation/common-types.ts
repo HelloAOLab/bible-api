@@ -19,7 +19,7 @@ export interface InputTranslationFile extends InputFileBase {
 }
 
 export interface InputCommentaryFile extends InputFileBase {
-    fileType: 'commentary/csv';
+    fileType: 'commentary/csv' | 'commentary/tyndale-xml';
     metadata: InputCommentaryMetadata;
 }
 
