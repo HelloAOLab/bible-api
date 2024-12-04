@@ -751,6 +751,7 @@ export function insertCommentaryBooks(
         id,
         commentaryId,
         introduction,
+        introductionSummary,
         name,
         commonName,
         numberOfChapters,
@@ -759,6 +760,7 @@ export function insertCommentaryBooks(
         @id,
         @commentaryId,
         @introduction,
+        @introductionSummary,
         @name,
         @commonName,
         @numberOfChapters,
@@ -766,6 +768,7 @@ export function insertCommentaryBooks(
     ) ON CONFLICT(id,commentaryId) DO 
         UPDATE SET
             introduction=excluded.introduction,
+            introductionSummary=excluded.introductionSummary,
             name=excluded.name,
             commonName=excluded.commonName,
             numberOfChapters=excluded.numberOfChapters;`);
@@ -779,6 +782,7 @@ export function insertCommentaryBooks(
                 id: book.id,
                 commentaryId: commentary.id,
                 introduction: book.introduction ?? null,
+                introductionSummary: book.introductionSummary ?? null,
                 name: book.name,
                 commonName: book.commonName,
                 numberOfChapters: book.chapters.length,
@@ -1383,6 +1387,7 @@ export async function* loadCommentaryDatasets(
                 const datasetBook: DatasetCommentaryBook = {
                     ...book,
                     introduction: book.introduction ?? undefined,
+                    introductionSummary: book.introductionSummary ?? undefined,
                     chapters: bookChapters,
                 };
                 datasetCommentary.books.push(datasetBook);

@@ -283,6 +283,10 @@ export function generateDataset(
                 book.introduction = parsedBook.introduction;
             }
 
+            if (parsedBook.introductionSummary && !book.introductionSummary) {
+                book.introductionSummary = parsedBook.introductionSummary;
+            }
+
             for (let chapter of parsedBook.chapters) {
                 let data: CommentaryChapterData = {
                     number: chapter.number,

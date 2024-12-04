@@ -309,5 +309,88 @@ describe('CommentaryCsvParser', () => {
                 });
             });
         });
+
+        describe('book summaries', () => {
+            it('should parse the given book summaries', () => {
+                const tree = parser.parse(
+                    [
+                        `<items release="1.25">`,
+                        `<item name="GenIntro" typename="BookIntroSummary" product="TyndaleOpenStudyNotes">`,
+                        `<title>Genesis</title>`,
+                        `<refs>Gen.1.1-50.26</refs>`,
+                        `<body>`,
+                        `<p class="intro-overview">Genesis is the book of beginnings—of the universe and of humanity, of sin and its catastrophic effects, and of God’s plan to restore blessing to the world through his chosen people. God began his plan when he called Abraham and made a covenant with him. Genesis traces God’s promised blessings from.</p>`,
+                        `<p class="intro-h1">Setting</p>`,
+                        `<p class="intro-body-fl">When Genesis was written, the children of Israel had been slaves in Egypt for four hundred years. They had recently been released from bondage and guided through the desert to meet the Lord at Mount Sinai, where he had established his covenant relationship with them and had given them his law through Moses. Israel was now poised to enter the Promised Land and receive the inheritance that God had promised Abraham.</p>`,
+                        `</body>`,
+                        `</item>`,
+                        `</items>`,
+                    ].join('\n')
+                );
+
+                expect(tree).toEqual({
+                    type: 'commentary/root',
+                    books: [
+                        {
+                            type: 'book',
+                            book: 'GEN',
+                            introduction: null,
+                            introductionSummary: [
+                                'Genesis is the book of beginnings—of the universe and of humanity, of sin and its catastrophic effects, and of God’s plan to restore blessing to the world through his chosen people. God began his plan when he called Abraham and made a covenant with him. Genesis traces God’s promised blessings from.',
+                                '',
+                                'Setting',
+                                '',
+                                'When Genesis was written, the children of Israel had been slaves in Egypt for four hundred years. They had recently been released from bondage and guided through the desert to meet the Lord at Mount Sinai, where he had established his covenant relationship with them and had given them his law through Moses. Israel was now poised to enter the Promised Land and receive the inheritance that God had promised Abraham.',
+                            ].join('\n'),
+                            chapters: [],
+                        },
+                    ],
+                });
+            });
+
+            it('should support multiple books', () => {
+                const tree = parser.parse(
+                    [
+                        `<items release="1.25">`,
+                        `<item name="GenIntro" typename="BookIntroSummary" product="TyndaleOpenStudyNotes">`,
+                        `<title>Genesis</title>`,
+                        `<refs>Gen.1.1-50.26</refs>`,
+                        `<body>`,
+                        `<p class="intro-overview">Genesis is the book of beginnings—of the universe and of humanity, of sin and its catastrophic effects, and of God’s plan to restore blessing to the world through his chosen people. God began his plan when he called Abraham and made a covenant with him. Genesis traces God’s promised blessings from.</p>`,
+                        `</body>`,
+                        `</item>`,
+                        `<item name="ExodIntro" typename="BookIntroSummary" product="TyndaleOpenStudyNotes">`,
+                        `<title>Exodus</title>`,
+                        `<refs>Exod.1.1-40.38</refs>`,
+                        `<body>`,
+                        `<p class="intro-overview">What does it mean to be in a relationship with God, the ultimate being in the universe? How does one establish that relationship? What is that relationship like, and what does it take to stay in it? These are questions that people around the world have been asking since the beginning of time. The book of Exodus provided the ancient Israelites with answers to such questions</p>`,
+                        `</body>`,
+                        `</items>`,
+                    ].join('\n')
+                );
+
+                expect(tree).toEqual({
+                    type: 'commentary/root',
+                    books: [
+                        {
+                            type: 'book',
+                            book: 'GEN',
+                            introduction: null,
+                            introductionSummary:
+                                'Genesis is the book of beginnings—of the universe and of humanity, of sin and its catastrophic effects, and of God’s plan to restore blessing to the world through his chosen people. God began his plan when he called Abraham and made a covenant with him. Genesis traces God’s promised blessings from.',
+                            chapters: [],
+                        },
+                        {
+                            type: 'book',
+                            book: 'EXO',
+                            introduction: null,
+                            introductionSummary:
+                                'What does it mean to be in a relationship with God, the ultimate being in the universe? How does one establish that relationship? What is that relationship like, and what does it take to stay in it? These are questions that people around the world have been asking since the beginning of time. The book of Exodus provided the ancient Israelites with answers to such questions',
+                            chapters: [],
+                        },
+                    ],
+                });
+            });
+        });
     });
 });
