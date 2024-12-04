@@ -192,9 +192,46 @@ export class TyndaleXmlParser {
                 const bookNode = getBook(ref.book);
 
                 bookNode.introductionSummary = formatContent(body);
+            } else if (typename === 'Profile') {
+                const refs = item.querySelector('refs')?.textContent;
+                const body = item.querySelector('body');
+                const title = item.querySelector('title')?.textContent;
+                const name = item.getAttribute('name');
+
+                if (!refs || !body || !title || !name) {
+                    console.warn(
+                        'Skipping profile item without refs, body, or title:',
+                        item
+                    );
+                    continue;
+                }
+
+                const ref = parseVerseReference(refs);
+
+                if (!ref) {
+                    console.warn('Failed to parse verse reference:', refs);
+                    continue;
+                }
+
+                if (!tree.profiles) {
+                    tree.profiles = [];
+                }
+
+                // convert camelCase to kebab-case
+                const id = toKebabCase(name);
+                tree.profiles.push({
+                    id,
+                    subject: title,
+                    content: [formatContent(body)],
+                    reference: ref,
+                });
             }
         }
 
         return tree;
     }
+}
+
+export function toKebabCase(camelCase: string): string {
+    return camelCase.replace(/([a-z])\s*([A-Z])/g, '$1-$2').toLowerCase();
 }
