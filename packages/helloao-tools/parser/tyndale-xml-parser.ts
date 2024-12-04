@@ -170,6 +170,28 @@ export class TyndaleXmlParser {
                 const bookNode = getBook(ref.book);
 
                 bookNode.introduction = formatContent(body);
+            } else if (typename === 'BookIntroSummary') {
+                const refs = item.querySelector('refs')?.textContent;
+                const body = item.querySelector('body');
+
+                if (!refs || !body) {
+                    console.warn(
+                        'Skipping book item without refs or body:',
+                        item
+                    );
+                    continue;
+                }
+
+                const ref = parseVerseReference(refs);
+
+                if (!ref) {
+                    console.warn('Failed to parse verse reference:', refs);
+                    continue;
+                }
+
+                const bookNode = getBook(ref.book);
+
+                bookNode.introductionSummary = formatContent(body);
             }
         }
 

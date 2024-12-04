@@ -99,6 +99,7 @@ model CommentaryBook {
     name String
     commonName String
     introduction String?
+    introductionSummary String?
     order Int
 
     numberOfChapters Int

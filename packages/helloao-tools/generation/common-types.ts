@@ -258,6 +258,11 @@ export interface CommentaryBook {
     introduction?: string;
 
     /**
+     * The summary of the commentary's introduction for the book.
+     */
+    introductionSummary?: string;
+
+    /**
      * The order of the book in the Bible.
      */
     order: number;

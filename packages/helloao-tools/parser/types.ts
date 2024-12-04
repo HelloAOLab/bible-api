@@ -191,6 +191,7 @@ export interface CommentaryBookNode {
     type: 'book';
     book: string;
     introduction: string | null;
+    introductionSummary?: string | null;
     chapters: CommentaryChapterNode[];
 }
 
