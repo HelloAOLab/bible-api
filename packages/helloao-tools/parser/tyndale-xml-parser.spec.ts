@@ -1,6 +1,6 @@
 import { USXParser } from './usx-parser.js';
 import { DOMParser, Element, Node } from 'linkedom';
-import { TyndaleXmlParser } from './tyndale-xml-parser.js';
+import { toKebabCase, TyndaleXmlParser } from './tyndale-xml-parser.js';
 
 describe('CommentaryCsvParser', () => {
     let parser: TyndaleXmlParser;
@@ -392,5 +392,61 @@ describe('CommentaryCsvParser', () => {
                 });
             });
         });
+
+        describe('profiles', () => {
+            it('should support profiles', () => {
+                const tree = parser.parse(
+                    [
+                        `<items release="1.25">`,
+                        `<item name="AdamAndEve" typename="Profile" product="TyndaleOpenStudyNotes">`,
+                        `<title>Adam and Eve</title>`,
+                        `<refs>Gen.2.7-4.2</refs>`,
+                        `<body>`,
+                        `<p class="profile-title">Adam and Eve</p>`,
+                        `<p class="profile-body-fl">Adam was the first man, the father of the human race.</p>`,
+                        `</body>`,
+                        `</item>`,
+                        `</items>`,
+                    ].join('\n')
+                );
+
+                expect(tree).toEqual({
+                    type: 'commentary/root',
+                    books: [],
+                    profiles: [
+                        {
+                            id: 'adam-and-eve',
+                            subject: 'Adam and Eve',
+                            reference: {
+                                book: 'GEN',
+                                chapter: 2,
+                                verse: 7,
+                                endChapter: 4,
+                                endVerse: 2,
+                            },
+                            content: [
+                                [
+                                    'Adam and Eve',
+                                    '',
+                                    'Adam was the first man, the father of the human race.',
+                                ].join('\n'),
+                            ],
+                        },
+                    ],
+                });
+            });
+        });
+    });
+});
+
+describe('toKebabCase()', () => {
+    const cases = [
+        ['camelCase', 'camel-case'],
+        ['PascalCase', 'pascal-case'],
+        ['Title Case', 'title-case'],
+    ];
+
+    it.each(cases)('should convert %s to %s', (input, expected) => {
+        expect(toKebabCase(input)).toBe(expected);
     });
 });

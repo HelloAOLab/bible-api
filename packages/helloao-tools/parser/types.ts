@@ -1,3 +1,5 @@
+import { VerseRef } from '../utils.js';
+
 /**
  * The parse tree that is gathered.
  */
@@ -185,6 +187,11 @@ export interface CommentaryParseTree {
      * The books that are contained in the commentary.
      */
     books: CommentaryBookNode[];
+
+    /**
+     * The profiles that are contained in the commentary.
+     */
+    profiles?: CommentaryProfileNode[];
 }
 
 export interface CommentaryBookNode {
@@ -193,6 +200,29 @@ export interface CommentaryBookNode {
     introduction: string | null;
     introductionSummary?: string | null;
     chapters: CommentaryChapterNode[];
+}
+
+export interface CommentaryProfileNode {
+    /**
+     * The ID of the profile.
+     * Used to identify the profile within a commentary.
+     */
+    id: string;
+
+    /**
+     * The subject(s) of the profile.
+     */
+    subject: string;
+
+    /**
+     * The Bible reference that the profile is associated with.
+     */
+    reference: VerseRef | null;
+
+    /**
+     * The content of the profile.
+     */
+    content: string[];
 }
 
 export interface CommentaryChapterNode {
