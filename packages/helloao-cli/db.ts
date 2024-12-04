@@ -271,6 +271,7 @@ export function insertTranslations(
         shortName,
         textDirection,
         licenseUrl,
+        licenseNotes,
         website,
         englishName
     ) VALUES (
@@ -280,6 +281,7 @@ export function insertTranslations(
         @shortName,
         @textDirection,
         @licenseUrl,
+        @licenseNotes,
         @website,
         @englishName
     ) ON CONFLICT(id) DO 
@@ -289,23 +291,27 @@ export function insertTranslations(
             shortName=excluded.shortName,
             textDirection=excluded.textDirection,
             licenseUrl=excluded.licenseUrl,
+            licenseNotes=excluded.licenseNotes,
             website=excluded.website,
             englishName=excluded.englishName;`);
 
-    const insertManyTranslations = db.transaction((translations) => {
-        for (let translation of translations) {
-            translationUpsert.run({
-                id: translation.id,
-                name: translation.name,
-                language: translation.language,
-                shortName: translation.shortName,
-                textDirection: translation.textDirection,
-                licenseUrl: translation.licenseUrl,
-                website: translation.website,
-                englishName: translation.englishName,
-            });
+    const insertManyTranslations = db.transaction(
+        (translations: DatasetTranslation[]) => {
+            for (let translation of translations) {
+                translationUpsert.run({
+                    id: translation.id,
+                    name: translation.name,
+                    language: translation.language,
+                    shortName: translation.shortName,
+                    textDirection: translation.textDirection,
+                    licenseUrl: translation.licenseUrl,
+                    licenseNotes: translation.licenseNotes,
+                    website: translation.website,
+                    englishName: translation.englishName,
+                });
+            }
         }
-    });
+    );
 
     insertManyTranslations(translations);
 
@@ -690,6 +696,7 @@ export function insertCommentaries(
         language,
         textDirection,
         licenseUrl,
+        licenseNotes,
         website,
         englishName
     ) VALUES (
@@ -698,6 +705,7 @@ export function insertCommentaries(
         @language,
         @textDirection,
         @licenseUrl,
+        @licenseNotes,
         @website,
         @englishName
     ) ON CONFLICT(id) DO 
@@ -706,6 +714,7 @@ export function insertCommentaries(
             language=excluded.language,
             textDirection=excluded.textDirection,
             licenseUrl=excluded.licenseUrl,
+            licenseNotes=excluded.licenseNotes,
             website=excluded.website,
             englishName=excluded.englishName;`);
 
@@ -718,6 +727,7 @@ export function insertCommentaries(
                     language: commentary.language,
                     textDirection: commentary.textDirection,
                     licenseUrl: commentary.licenseUrl,
+                    licenseNotes: commentary.licenseNotes,
                     website: commentary.website,
                     englishName: commentary.englishName,
                 });

@@ -13,6 +13,7 @@ model Translation {
     name          String
     website       String
     licenseUrl    String
+    licenseNotes  String?
     shortName     String?
     englishName   String
     language      String
@@ -34,6 +35,7 @@ model Commentary {
     name          String
     website       String
     licenseUrl    String
+    licenseNotes  String?
     englishName   String
     language      String
     textDirection String
