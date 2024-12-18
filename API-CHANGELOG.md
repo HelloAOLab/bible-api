@@ -3,6 +3,14 @@
 This is the log of changes for the Free Use Bible API.
 For information on the API Generator, see [GENERATOR-CHANGELOG.md](./GENERATOR-CHANGELOG.md).
 
+## V1.4.0
+
+#### Date: 2024-12-18
+
+### :rocket: Features
+
+-   Added the [Tyndale](https://tyndaleopenresources.com/) Bible commentary.
+
 ## V1.3.0
 
 #### Date: 2024-11-15
