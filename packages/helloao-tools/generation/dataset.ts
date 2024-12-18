@@ -5,6 +5,7 @@ import {
     CommentaryBook,
     CommentaryBookChapter,
     CommentaryChapterData,
+    CommentaryProfile,
     InputCommentaryFile,
     InputFile,
     InputFileBase,
@@ -20,6 +21,7 @@ import { getAudioUrlsForChapter } from './audio.js';
 import { CodexParser } from '../parser/codex-parser.js';
 import { CommentaryCsvParser } from '../parser/commentary-csv-parser.js';
 import { CommentaryParseTree, ParseTree } from '../parser/types.js';
+import { TyndaleXmlParser } from '../parser/tyndale-xml-parser.js';
 
 /**
  * Defines an interface that contains generated dataset info.
@@ -51,9 +53,14 @@ export interface DatasetTranslation extends Translation {
  */
 export interface DatasetCommentary extends Commentary {
     /**
-     * The list of books that are available for the translation.
+     * The list of books that are available for the commentary.
      */
     books: DatasetCommentaryBook[];
+
+    /**
+     * The list of profiles that  are available for the commentary.
+     */
+    profiles: DatasetCommentaryProfile[];
 }
 
 /**
@@ -76,6 +83,13 @@ export interface DatasetCommentaryBook extends CommentaryBook {
     chapters: CommentaryBookChapter[];
 }
 
+export interface DatasetCommentaryProfile extends CommentaryProfile {
+    /**
+     * The contents of the profile.
+     */
+    content: string[];
+}
+
 /**
  * Generates a list of output files from the given list of input files.
  * @param file The list of files.
@@ -93,6 +107,7 @@ export function generateDataset(
     let usxParser = new USXParser(parser);
     let codexParser = new CodexParser();
     let csvCommentaryParser = new CommentaryCsvParser();
+    let tyndaleXmlParser = new TyndaleXmlParser(parser);
 
     let parsedTranslations = new Map<string, DatasetTranslation>();
     let parsedCommentaries = new Map<string, DatasetCommentary>();
@@ -104,7 +119,8 @@ export function generateDataset(
                 | UsfmParser
                 | USXParser
                 | CodexParser
-                | CommentaryCsvParser;
+                | CommentaryCsvParser
+                | TyndaleXmlParser;
             if (file.fileType === 'usfm') {
                 parser = usfmParser;
             } else if (file.fileType === 'usx') {
@@ -113,6 +129,8 @@ export function generateDataset(
                 parser = codexParser;
             } else if (file.fileType === 'commentary/csv') {
                 parser = csvCommentaryParser;
+            } else if (file.fileType === 'commentary/tyndale-xml') {
+                parser = tyndaleXmlParser;
             } else {
                 console.warn(
                     '[generate] File does not have a valid type!',
@@ -247,6 +265,7 @@ export function generateDataset(
                 ...omit(file.metadata, 'direction'),
                 textDirection: file.metadata.direction,
                 books: [],
+                profiles: [],
             };
             output.commentaries.push(commentary);
             parsedCommentaries.set(file.metadata.id, commentary);
@@ -254,7 +273,7 @@ export function generateDataset(
 
         for (let parsedBook of parsed.books) {
             let book = commentary.books.find((b) => b.id === parsedBook.book);
-            if (book && book.introduction) {
+            if (book && book.introduction && parsedBook.introduction) {
                 console.warn(
                     '[generate] Book already exists in commentary!',
                     file.name,
@@ -278,6 +297,10 @@ export function generateDataset(
                 book.introduction = parsedBook.introduction;
             }
 
+            if (parsedBook.introductionSummary && !book.introductionSummary) {
+                book.introductionSummary = parsedBook.introductionSummary;
+            }
+
             for (let chapter of parsedBook.chapters) {
                 let data: CommentaryChapterData = {
                     number: chapter.number,
@@ -297,7 +320,33 @@ export function generateDataset(
             commentary.books.push(book);
         }
 
+        if (parsed.profiles) {
+            for (let profile of parsed.profiles) {
+                const existing = commentary.profiles.find(
+                    (p) => p.id === profile.id
+                );
+                if (existing) {
+                    console.warn(
+                        '[generate] Profile already exists in commentary!',
+                        file.name,
+                        profile.id
+                    );
+                    continue;
+                }
+
+                const datasetProfile: DatasetCommentaryProfile = {
+                    id: profile.id,
+                    subject: profile.subject,
+                    reference: profile.reference,
+                    content: profile.content,
+                };
+
+                commentary.profiles.push(datasetProfile);
+            }
+        }
+
         commentary.books = sortBy(commentary.books, (b) => b.order);
+        commentary.profiles = sortBy(commentary.profiles, (p) => p.id);
     }
 
     function getBookNames(

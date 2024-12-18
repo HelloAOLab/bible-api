@@ -13,6 +13,7 @@ model Translation {
     name          String
     website       String
     licenseUrl    String
+    licenseNotes  String?
     shortName     String?
     englishName   String
     language      String
@@ -34,6 +35,7 @@ model Commentary {
     name          String
     website       String
     licenseUrl    String
+    licenseNotes  String?
     englishName   String
     language      String
     textDirection String
@@ -45,6 +47,7 @@ model Commentary {
     books        CommentaryBook[]
     chapters     CommentaryChapter[]
     verses       CommentaryChapterVerse[]
+    profiles     CommentaryProfile[]
 }
 
 model InputFile {
@@ -97,6 +100,7 @@ model CommentaryBook {
     name String
     commonName String
     introduction String?
+    introductionSummary String?
     order Int
 
     numberOfChapters Int
@@ -106,6 +110,29 @@ model CommentaryBook {
 
     chapters CommentaryChapter[]
     verses CommentaryChapterVerse[]
+
+    @@id([commentaryId, id])
+}
+
+model CommentaryProfile {
+    id String
+
+    commentaryId String
+    commentary Commentary @relation(fields: [commentaryId], references: [id])
+
+    subject String
+    content String
+
+    referenceBook String?
+    referenceChapter Int?
+    referenceVerse Int?
+    referenceEndChapter Int?
+    referenceEndVerse Int?
+
+    json String // The JSON of the profile
+
+    // The SHA-256 hash of the profile
+    sha256 String?
 
     @@id([commentaryId, id])
 }

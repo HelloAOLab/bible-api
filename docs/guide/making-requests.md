@@ -103,3 +103,34 @@ fetch(`https://bible.helloao.org/api/c/${commentary}/${book}/${chapter}.json`)
         console.log('Genesis 1 (adam-clarke):', chapter);
     });
 ```
+
+## List Profiles in a Commentary
+
+([reference](../reference/README.md#list-profiles-in-a-commentary))
+
+```ts:no-line-numbers title="fetch-commentary-profiles.js"
+const commentary = 'tyndale';
+
+// Get the list of profiles for the tyndale commentary
+fetch(`https://bible.helloao.org/api/c/${commentary}/profiles.json`)
+    .then(request => request.json())
+    .then(profiles => {
+        console.log('The tyndale commentary has the following profiles:', profiles);
+    });
+```
+
+## Get a Profile in a Commentary
+
+([reference](../reference/README.md#get-a-profile-in-a-commentary))
+
+```ts:no-line-numbers title="fetch-commentary-profile.js"
+const commentary = 'tyndale';
+const profile = 'aaron';
+
+// Get the aaron profile from the tyndale commentary
+fetch(`https://bible.helloao.org/api/c/${commentary}/profiles/${profile}.json`)
+    .then(request => request.json())
+    .then(profile => {
+        console.log('The Aaron tyndale commentary profile:', profile);
+    });
+```

@@ -480,6 +480,28 @@ async function start() {
             await Promise.all(promises);
         });
 
+    program
+        .command('fetch-tyndale-open-resources <dir>')
+        .description(
+            'Fetches the Tyndale Open Bible Resources and places it in the given directory.'
+        )
+        .action(async (dir: string) => {
+            let zipFiles = [
+                'TyndaleOpenBibleDictionary.zip',
+                'tyndale_open-studynotes.zip',
+            ];
+
+            await mkdir(dir, { recursive: true });
+
+            let promises = zipFiles.map(async (file) => {
+                const url = `https://tyndaleopenresources.com/wp-content/themes/tyndale-openresources/files/${file}`;
+                const fullPath = path.resolve(dir, file);
+                await downloadFile(url, fullPath);
+            });
+
+            await Promise.all(promises);
+        });
+
     await program.parseAsync(process.argv);
 }
 

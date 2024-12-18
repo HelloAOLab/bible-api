@@ -1,3 +1,5 @@
+import { VerseRef } from "utils";
+
 /**
  * Defines an interface that contains information about a input file.
  */
@@ -19,7 +21,7 @@ export interface InputTranslationFile extends InputFileBase {
 }
 
 export interface InputCommentaryFile extends InputFileBase {
-    fileType: 'commentary/csv';
+    fileType: 'commentary/csv' | 'commentary/tyndale-xml';
     metadata: InputCommentaryMetadata;
 }
 
@@ -127,6 +129,11 @@ export interface Translation {
     licenseUrl: string;
 
     /**
+     * The API-added notes for the license.
+     */
+    licenseNotes?: string | null;
+
+    /**
      * The short name for the translation.
      */
     shortName?: string;
@@ -172,6 +179,11 @@ export interface Commentary {
      * The URL that the license for the commentary can be found.
      */
     licenseUrl: string;
+
+    /**
+     * The API-added notes for the license.
+     */
+    licenseNotes?: string | null;
 
     /**
      * The english name for the commentary.
@@ -248,9 +260,34 @@ export interface CommentaryBook {
     introduction?: string;
 
     /**
+     * The summary of the commentary's introduction for the book.
+     */
+    introductionSummary?: string;
+
+    /**
      * The order of the book in the Bible.
      */
     order: number;
+}
+
+/**
+ * Defines an interface that contains information about a profile in a commentary.
+ */
+export interface CommentaryProfile {
+    /**
+     * The ID of the profile.
+     */
+    id: string;
+
+    /**
+     * The subject of the profile.
+     */
+    subject: string;
+
+    /**
+     * The Bible reference that the profile is associated with.
+     */
+    reference: VerseRef | null;
 }
 
 /**

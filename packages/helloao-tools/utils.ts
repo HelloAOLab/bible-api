@@ -48,6 +48,16 @@ export interface VerseRef {
      * The rest of the content of the verse.
      */
     content?: string;
+
+    /**
+     * The chapter that the verse reference ends at.
+     */
+    endChapter?: number;
+
+    /**
+     * The verse that the verse reference ends at.
+     */
+    endVerse?: number;
 }
 
 /**
@@ -57,16 +67,27 @@ export interface VerseRef {
  * @param text The reference to parse.
  */
 export function parseVerseReference(text: string): VerseRef | null {
-    const match = text.match(/^\s*([0-9A-Za-z\s]+)\s+(\d+):(\d+)/);
+    const match = text.match(
+        /^\s*([0-9A-Za-z\s]+)[\s\.]+(\d+)[:\.](\d+)(?:-([0-9]+)(?:[\s:\.]([0-9]+))?)?/
+    );
 
     if (!match) {
         return null;
     }
 
-    const [reference, book, chapterStr, verseStr] = match;
+    const [reference, book, chapterStr, verseStr, endChapterStr, endVerseStr] =
+        match;
 
     const chapter = parseInt(chapterStr);
     const verse = parseInt(verseStr);
+
+    let endChapter = endChapterStr ? parseInt(endChapterStr) : undefined;
+    let endVerse = endVerseStr ? parseInt(endVerseStr) : undefined;
+
+    if (endChapter && !endVerse) {
+        endVerse = endChapter;
+        endChapter = undefined;
+    }
 
     if (isNaN(chapter) || isNaN(verse)) {
         return null;
@@ -78,6 +99,8 @@ export function parseVerseReference(text: string): VerseRef | null {
             chapter,
             verse,
             content: text.substring(reference.length).trim(),
+            endChapter,
+            endVerse,
         };
     }
 
@@ -85,6 +108,8 @@ export function parseVerseReference(text: string): VerseRef | null {
         book: getBookId(book) ?? book,
         chapter,
         verse,
+        endChapter,
+        endVerse,
     };
 }
 
@@ -115,8 +140,10 @@ const BOOK_ID_MAP: Map<string, string> = new Map([
     ['2samuel', '2SA'],
     ['1ki', '1KI'],
     ['1kings', '1KI'],
+    ['1kgs', '1KI'],
     ['2ki', '2KI'],
     ['2kings', '2KI'],
+    ['2kgs', '2KI'],
     ['1ch', '1CH'],
     ['1chronicles', '1CH'],
     ['chronicles1', '1CH'],
@@ -130,14 +157,18 @@ const BOOK_ID_MAP: Map<string, string> = new Map([
     ['est', 'EST'],
     ['ester', 'EST'],
     ['job', 'JOB'],
+    ['ps', 'PSA'],
     ['psa', 'PSA'],
     ['psalms', 'PSA'],
     ['psalm', 'PSA'],
+    ['pr', 'PRO'],
     ['pro', 'PRO'],
     ['proverbs', 'PRO'],
     ['ecc', 'ECC'],
     ['ecclesiastes', 'ECC'],
+    ['eccl', 'ECC'],
     ['sng', 'SNG'],
+    ['song', 'SNG'],
     ['songofsolomon', 'SNG'],
     ['isa', 'ISA'],
     ['isaiah', 'ISA'],
@@ -147,6 +178,7 @@ const BOOK_ID_MAP: Map<string, string> = new Map([
     ['lamentations', 'LAM'],
     ['ezk', 'EZK'],
     ['ezekiel', 'EZK'],
+    ['ezek', 'EZK'],
     ['dan', 'DAN'],
     ['daniel', 'DAN'],
     ['hos', 'HOS'],
@@ -163,6 +195,7 @@ const BOOK_ID_MAP: Map<string, string> = new Map([
     ['micah', 'MIC'],
     ['nam', 'NAM'],
     ['nahum', 'NAM'],
+    ['nah', 'NAM'],
     ['hab', 'HAB'],
     ['habakkuk', 'HAB'],
     ['zep', 'ZEP'],
@@ -195,6 +228,7 @@ const BOOK_ID_MAP: Map<string, string> = new Map([
     ['ephesians', 'EPH'],
     ['php', 'PHP'],
     ['philippians', 'PHP'],
+    ['phil', 'PHP'],
     ['col', 'COL'],
     ['colossians', 'COL'],
     ['1th', '1TH'],
@@ -209,6 +243,7 @@ const BOOK_ID_MAP: Map<string, string> = new Map([
     ['titus', 'TIT'],
     ['phm', 'PHM'],
     ['philemon', 'PHM'],
+    ['phlm', 'PHM'],
     ['heb', 'HEB'],
     ['hebrews', 'HEB'],
     ['jas', 'JAS'],

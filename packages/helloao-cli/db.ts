@@ -6,6 +6,7 @@ import { randomUUID } from 'node:crypto';
 import {
     DatasetCommentary,
     DatasetCommentaryBook,
+    DatasetCommentaryProfile,
     DatasetOutput,
     DatasetTranslation,
     DatasetTranslationBook,
@@ -271,6 +272,7 @@ export function insertTranslations(
         shortName,
         textDirection,
         licenseUrl,
+        licenseNotes,
         website,
         englishName
     ) VALUES (
@@ -280,6 +282,7 @@ export function insertTranslations(
         @shortName,
         @textDirection,
         @licenseUrl,
+        @licenseNotes,
         @website,
         @englishName
     ) ON CONFLICT(id) DO 
@@ -289,23 +292,27 @@ export function insertTranslations(
             shortName=excluded.shortName,
             textDirection=excluded.textDirection,
             licenseUrl=excluded.licenseUrl,
+            licenseNotes=excluded.licenseNotes,
             website=excluded.website,
             englishName=excluded.englishName;`);
 
-    const insertManyTranslations = db.transaction((translations) => {
-        for (let translation of translations) {
-            translationUpsert.run({
-                id: translation.id,
-                name: translation.name,
-                language: translation.language,
-                shortName: translation.shortName,
-                textDirection: translation.textDirection,
-                licenseUrl: translation.licenseUrl,
-                website: translation.website,
-                englishName: translation.englishName,
-            });
+    const insertManyTranslations = db.transaction(
+        (translations: DatasetTranslation[]) => {
+            for (let translation of translations) {
+                translationUpsert.run({
+                    id: translation.id,
+                    name: translation.name,
+                    language: translation.language,
+                    shortName: translation.shortName,
+                    textDirection: translation.textDirection,
+                    licenseUrl: translation.licenseUrl,
+                    licenseNotes: translation.licenseNotes,
+                    website: translation.website,
+                    englishName: translation.englishName,
+                });
+            }
         }
-    });
+    );
 
     insertManyTranslations(translations);
 
@@ -690,6 +697,7 @@ export function insertCommentaries(
         language,
         textDirection,
         licenseUrl,
+        licenseNotes,
         website,
         englishName
     ) VALUES (
@@ -698,6 +706,7 @@ export function insertCommentaries(
         @language,
         @textDirection,
         @licenseUrl,
+        @licenseNotes,
         @website,
         @englishName
     ) ON CONFLICT(id) DO 
@@ -706,6 +715,7 @@ export function insertCommentaries(
             language=excluded.language,
             textDirection=excluded.textDirection,
             licenseUrl=excluded.licenseUrl,
+            licenseNotes=excluded.licenseNotes,
             website=excluded.website,
             englishName=excluded.englishName;`);
 
@@ -718,6 +728,7 @@ export function insertCommentaries(
                     language: commentary.language,
                     textDirection: commentary.textDirection,
                     licenseUrl: commentary.licenseUrl,
+                    licenseNotes: commentary.licenseNotes,
                     website: commentary.website,
                     englishName: commentary.englishName,
                 });
@@ -729,6 +740,7 @@ export function insertCommentaries(
 
     for (let commentary of commentaries) {
         insertCommentaryBooks(db, commentary, commentary.books);
+        insertCommentaryProfiles(db, commentary, commentary.profiles);
     }
 }
 
@@ -741,6 +753,7 @@ export function insertCommentaryBooks(
         id,
         commentaryId,
         introduction,
+        introductionSummary,
         name,
         commonName,
         numberOfChapters,
@@ -749,6 +762,7 @@ export function insertCommentaryBooks(
         @id,
         @commentaryId,
         @introduction,
+        @introductionSummary,
         @name,
         @commonName,
         @numberOfChapters,
@@ -756,6 +770,7 @@ export function insertCommentaryBooks(
     ) ON CONFLICT(id,commentaryId) DO 
         UPDATE SET
             introduction=excluded.introduction,
+            introductionSummary=excluded.introductionSummary,
             name=excluded.name,
             commonName=excluded.commonName,
             numberOfChapters=excluded.numberOfChapters;`);
@@ -769,6 +784,7 @@ export function insertCommentaryBooks(
                 id: book.id,
                 commentaryId: commentary.id,
                 introduction: book.introduction ?? null,
+                introductionSummary: book.introductionSummary ?? null,
                 name: book.name,
                 commonName: book.commonName,
                 numberOfChapters: book.chapters.length,
@@ -782,6 +798,68 @@ export function insertCommentaryBooks(
     for (let book of commentaryBooks) {
         insertCommentaryContent(db, commentary, book, book.chapters);
     }
+}
+
+export function insertCommentaryProfiles(
+    db: Database,
+    commentary: DatasetCommentary,
+    commentaryProfiles: DatasetCommentaryProfile[]
+) {
+    const profileUpsert = db.prepare(`INSERT INTO CommentaryProfile(
+        id,
+        commentaryId,
+        subject,
+        content,
+        referenceBook,
+        referenceChapter,
+        referenceVerse,
+        referenceEndChapter,
+        referenceEndVerse,
+        json
+    ) VALUES (
+        @id,
+        @commentaryId,
+        @subject,
+        @content,
+        @referenceBook,
+        @referenceChapter,
+        @referenceVerse,
+        @referenceEndChapter,
+        @referenceEndVerse,
+        @json
+    ) ON CONFLICT(id,commentaryId) DO 
+        UPDATE SET
+            subject=excluded.subject,
+            content=excluded.content,
+            referenceBook=excluded.referenceBook,
+            referenceChapter=excluded.referenceChapter,
+            referenceVerse=excluded.referenceVerse,
+            referenceEndChapter=excluded.referenceEndChapter,
+            referenceEndVerse=excluded.referenceEndVerse;`);
+
+    const insertMany = db.transaction(
+        (profiles: DatasetCommentaryProfile[]) => {
+            for (let profile of profiles) {
+                if (!profile) {
+                    continue;
+                }
+                profileUpsert.run({
+                    id: profile.id,
+                    commentaryId: commentary.id,
+                    subject: profile.subject,
+                    content: profile.content.join('\n'),
+                    referenceBook: profile.reference?.book ?? null,
+                    referenceChapter: profile.reference?.chapter ?? null,
+                    referenceVerse: profile.reference?.verse ?? null,
+                    referenceEndChapter: profile.reference?.endChapter ?? null,
+                    referenceEndVerse: profile.reference?.endVerse ?? null,
+                    json: JSON.stringify(profile),
+                });
+            }
+        }
+    );
+
+    insertMany(commentaryProfiles);
 }
 
 export function insertCommentaryContent(
@@ -921,6 +999,14 @@ function updateCommentaryHashes(
         'SELECT * FROM CommentaryChapter WHERE commentaryId = @commentaryId AND bookId = @bookId;'
     );
 
+    const updateProfileHash = db.prepare(
+        `UPDATE CommentaryProfile SET sha256 = @sha256 WHERE commentaryId = @commentaryId AND id = @profileId;`
+    );
+
+    const getProfiles = db.prepare(
+        'SELECT * FROM CommentaryProfile WHERE commentaryId = ?;'
+    );
+
     for (let commentary of commentaries) {
         const commentarySha = sha256()
             .update(commentary.id)
@@ -1010,6 +1096,46 @@ function updateCommentaryHashes(
         });
 
         updateBooks();
+
+        const profiles = getProfiles.all(commentary.id) as {
+            id: string;
+            commentaryId: string;
+            subject: string;
+            content: string;
+            referenceBook: string | null;
+            referenceChapter: number | null;
+            referenceVerse: number | null;
+            referenceEndChapter: number | null;
+            referenceEndVerse: number | null;
+            sha256: string;
+        }[];
+
+        for (let profile of profiles) {
+            const profileSha = sha256()
+                .update(profile.commentaryId)
+                .update(profile.id)
+                .update(profile.subject)
+                .update(profile.content)
+                .update(profile.referenceBook)
+                .update(profile.referenceChapter)
+                .update(profile.referenceVerse)
+                .update(profile.referenceEndChapter)
+                .update(profile.referenceEndVerse);
+
+            profile.sha256 = profileSha.digest('hex');
+        }
+
+        const updateProfiles = db.transaction(() => {
+            for (let profile of profiles) {
+                updateProfileHash.run({
+                    sha256: profile.sha256,
+                    commentaryId: profile.commentaryId,
+                    profileId: profile.id,
+                });
+            }
+        });
+
+        updateProfiles();
 
         const hash = commentarySha.digest('hex');
         (commentary as any).sha256 = hash;
@@ -1339,6 +1465,7 @@ export async function* loadCommentaryDatasets(
                 ...commentary,
                 textDirection: commentary.textDirection! as any,
                 books: [],
+                profiles: [],
             };
             dataset.commentaries.push(datasetCommentary);
 
@@ -1373,9 +1500,24 @@ export async function* loadCommentaryDatasets(
                 const datasetBook: DatasetCommentaryBook = {
                     ...book,
                     introduction: book.introduction ?? undefined,
+                    introductionSummary: book.introductionSummary ?? undefined,
                     chapters: bookChapters,
                 };
                 datasetCommentary.books.push(datasetBook);
+            }
+
+            const profiles = await db.commentaryProfile.findMany({
+                where: {
+                    commentaryId: commentary.id,
+                },
+                orderBy: {
+                    id: 'asc',
+                },
+            });
+
+            for (let profile of profiles) {
+                const json = profile.json;
+                datasetCommentary.profiles.push(JSON.parse(json));
             }
         }
 
