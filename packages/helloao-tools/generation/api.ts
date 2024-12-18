@@ -2,6 +2,7 @@ import {
     Commentary,
     CommentaryBook,
     CommentaryBookChapter,
+    CommentaryProfile,
     OutputFile,
     Translation,
     TranslationBook,
@@ -54,11 +55,24 @@ export interface ApiOutput {
     commentaryBooks: ApiCommentaryBooks[];
 
     /**
+     * The list of profiles for each commentary.
+     * This maps to the /api/c/:commentaryId/profiles.json endpoint.
+     */
+    commentaryProfiles: ApiCommentaryProfiles[];
+
+    /**
      * The list of chapters for each commentary book.
      * This maps to the following endpoint:
      * - /api/c/:commentaryId/:bookId/:chapterNumber.json
      */
     commentaryBookChapters: ApiCommentaryBookChapter[];
+
+    /**
+     * The list of individual profiles for each commentary.
+     * This maps to the following endpoint:
+     * - /api/c/:commentaryId/profiles/:profileId.json
+     */
+    commentaryProfileContents: ApiCommentaryProfileContent[];
 
     /**
      * The path prefix that the API should use.
@@ -146,6 +160,11 @@ export interface ApiCommentary extends Commentary {
     listOfBooksApiLink: string;
 
     /**
+     * The API link for the list of available profiles for this commentary.
+     */
+    listOfProfilesApiLink: string;
+
+    /**
      * The available list of formats.
      */
     availableFormats: ('json' | 'usfm')[];
@@ -170,6 +189,13 @@ export interface ApiCommentary extends Commentary {
      * Complete commentaries should have the same number of verses as the Bible (around 31,102 - some commentaries exclude verses based on the aparent likelyhood of existing in the original source texts).
      */
     totalNumberOfVerses: number;
+
+    /**
+     * The total number of profiles that are contained in this commentary.
+     *
+     * Profiles are used to provide additional information about people and people groups that are mentioned in the Bible.
+     */
+    totalNumberOfProfiles: number;
 
     /**
      * Gets the name of the language that the commentary is in.
@@ -212,6 +238,36 @@ export interface ApiCommentaryBooks {
      * The list of books that are available for the commentary.
      */
     books: ApiCommentaryBook[];
+}
+
+/**
+ * Defines an interface that contains information about the profiles that are available for a commentary.
+ */
+export interface ApiCommentaryProfiles {
+    /**
+     * The commentary information for the books.
+     */
+    commentary: ApiCommentary;
+
+    /**
+     * The list of profiles that are available for the commentary.
+     */
+    profiles: ApiCommentaryProfile[];
+}
+
+/**
+ * Defines an interface that contains information about a profile.
+ */
+export interface ApiCommentaryProfile extends CommentaryProfile {
+    /**
+     * The link to this profile.
+     */
+    thisProfileLink: string;
+
+    /**
+     * The link to the chapter that this profile references in the commentary.
+     */
+    referenceChapterLink: string | null;
 }
 
 /**
@@ -367,6 +423,23 @@ export interface ApiTranslationBookChapterAudio {
     originalUrl: string;
 }
 
+export interface ApiCommentaryProfileContent {
+    /**
+     * The commentary information for the profile.
+     */
+    commentary: ApiCommentary;
+
+    /**
+     * The information about the profile.
+     */
+    profile: ApiCommentaryProfile;
+
+    /**
+     * The content of the profile.
+     */
+    content: string[];
+}
+
 /**
  * The options for generating the API.
  */
@@ -429,6 +502,8 @@ export function generateApiForDataset(
         },
         commentaryBookChapters: [],
         commentaryBooks: [],
+        commentaryProfiles: [],
+        commentaryProfileContents: [],
         pathPrefix: apiPathPrefix,
     };
 
@@ -447,10 +522,10 @@ export function generateApiForDataset(
             totalNumberOfChapters: 0,
             totalNumberOfVerses: 0,
             languageName: getNativeName
-                ? getNativeName(translation.language) ?? undefined
+                ? (getNativeName(translation.language) ?? undefined)
                 : undefined,
             languageEnglishName: getEnglishName
-                ? getEnglishName(translation.language) ?? undefined
+                ? (getEnglishName(translation.language) ?? undefined)
                 : undefined,
         };
 
@@ -572,7 +647,7 @@ export function generateApiForDataset(
         api.translationBooks.push(translationBooks);
     }
 
-    for (let { books, ...commentary } of dataset.commentaries) {
+    for (let { books, profiles, ...commentary } of dataset.commentaries) {
         const apiCommentary: ApiCommentary = {
             ...commentary,
             availableFormats: ['json'],
@@ -580,20 +655,31 @@ export function generateApiForDataset(
                 commentary.id,
                 apiPathPrefix
             ),
+            listOfProfilesApiLink: profilesCommentaryApiLink(
+                commentary.id,
+                'json',
+                apiPathPrefix
+            ),
             numberOfBooks: books.length,
             totalNumberOfChapters: 0,
             totalNumberOfVerses: 0,
+            totalNumberOfProfiles: 0,
             languageName: getNativeName
-                ? getNativeName(commentary.language) ?? undefined
+                ? (getNativeName(commentary.language) ?? undefined)
                 : undefined,
             languageEnglishName: getEnglishName
-                ? getEnglishName(commentary.language) ?? undefined
+                ? (getEnglishName(commentary.language) ?? undefined)
                 : undefined,
         };
 
         const commentaryBooks: ApiCommentaryBooks = {
             commentary: apiCommentary,
             books: [],
+        };
+
+        const commentaryProfiles: ApiCommentaryProfiles = {
+            commentary: apiCommentary,
+            profiles: [],
         };
 
         let commentaryChapters: ApiCommentaryBookChapter[] = [];
@@ -654,6 +740,41 @@ export function generateApiForDataset(
             apiCommentary.totalNumberOfVerses += apiBook.totalNumberOfVerses;
         }
 
+        if (profiles) {
+            for (let profile of profiles) {
+                const apiProfile: ApiCommentaryProfile = {
+                    id: profile.id,
+                    reference: profile.reference,
+                    subject: profile.subject,
+                    thisProfileLink: profileCommentaryApiLink(
+                        commentary.id,
+                        profile.id,
+                        'json',
+                        apiPathPrefix
+                    ),
+                    referenceChapterLink: profile.reference
+                        ? bookCommentaryChapterApiLink(
+                              commentary.id,
+                              profile.reference.book,
+                              profile.reference.chapter,
+                              'json',
+                              apiPathPrefix
+                          )
+                        : null,
+                };
+
+                const apiProfileContent: ApiCommentaryProfileContent = {
+                    commentary: apiCommentary,
+                    profile: apiProfile,
+                    content: profile.content,
+                };
+
+                apiCommentary.totalNumberOfProfiles += 1;
+                commentaryProfiles.profiles.push(apiProfile);
+                api.commentaryProfileContents.push(apiProfileContent);
+            }
+        }
+
         for (let i = 0; i < commentaryChapters.length; i++) {
             if (i > 0) {
                 commentaryChapters[i].previousChapterApiLink =
@@ -684,6 +805,7 @@ export function generateApiForDataset(
 
         api.availableCommentaries.commentaries.push(apiCommentary);
         api.commentaryBooks.push(commentaryBooks);
+        api.commentaryProfiles.push(commentaryProfiles);
     }
 
     return api;
@@ -737,6 +859,21 @@ export function generateFilesForApi(api: ApiOutput): OutputFile[] {
                 commentaryBooks.commentary.listOfBooksApiLink,
                 commentaryBooks
             )
+        );
+    }
+
+    for (let commentaryProfiles of api.commentaryProfiles) {
+        files.push(
+            jsonFile(
+                commentaryProfiles.commentary.listOfProfilesApiLink,
+                commentaryProfiles
+            )
+        );
+    }
+
+    for (let profileContent of api.commentaryProfileContents) {
+        files.push(
+            jsonFile(profileContent.profile.thisProfileLink, profileContent)
         );
     }
 
@@ -840,6 +977,37 @@ export function bookChapterAudioApiLink(
     return `${prefix}/api/${translationId}/${replaceSpacesWithUnderscores(
         bookId
     )}/${chapterNumber}.${reader}.mp3`;
+}
+
+/**
+ * Gets the API link for a profile.
+ * @param translationId The ID of the translation.
+ * @param profileId The ID of the profile.
+ * @param extension The extension of the file.
+ */
+export function profilesCommentaryApiLink(
+    translationId: string,
+    extension: string,
+    prefix: string = ''
+) {
+    return `${prefix}/api/c/${translationId}/profiles.${extension}`;
+}
+
+/**
+ * Gets the API link for a profile.
+ * @param translationId The ID of the translation.
+ * @param profileId The ID of the profile.
+ * @param extension The extension of the file.
+ */
+export function profileCommentaryApiLink(
+    translationId: string,
+    profileId: string,
+    extension: string,
+    prefix: string = ''
+) {
+    return `${prefix}/api/c/${translationId}/profiles/${replaceSpacesWithUnderscores(
+        profileId
+    )}.${extension}`;
 }
 
 export function jsonFile(

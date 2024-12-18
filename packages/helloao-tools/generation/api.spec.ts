@@ -689,9 +689,11 @@ describe('generateApiForDataset()', () => {
             website: 'https://example.com',
             availableFormats: ['json'],
             listOfBooksApiLink: '/api/c/comment/books.json',
+            listOfProfilesApiLink: '/api/c/comment/profiles.json',
             numberOfBooks: 1,
             totalNumberOfChapters: 1,
             totalNumberOfVerses: 1,
+            totalNumberOfProfiles: 0,
         };
 
         expect(tree).toEqual({
@@ -716,6 +718,10 @@ describe('generateApiForDataset()', () => {
                         lastChapterApiLink: '/api/c/comment/GEN/1.json',
                     },
                 ],
+            },
+            '/api/c/comment/profiles.json': {
+                commentary: expectedCommentary,
+                profiles: [],
             },
             '/api/c/comment/GEN/1.json': {
                 commentary: expectedCommentary,
@@ -836,9 +842,11 @@ describe('generateApiForDataset()', () => {
             website: 'https://example.com',
             availableFormats: ['json'],
             listOfBooksApiLink: '/api/c/comment/books.json',
+            listOfProfilesApiLink: '/api/c/comment/profiles.json',
             numberOfBooks: 2,
             totalNumberOfChapters: 2,
             totalNumberOfVerses: 2,
+            totalNumberOfProfiles: 0,
         };
 
         expect(tree).toEqual({
@@ -874,6 +882,10 @@ describe('generateApiForDataset()', () => {
                         lastChapterApiLink: '/api/c/comment/EXO/1.json',
                     },
                 ],
+            },
+            '/api/c/comment/profiles.json': {
+                commentary: expectedCommentary,
+                profiles: [],
             },
             '/api/c/comment/GEN/1.json': {
                 commentary: expectedCommentary,
@@ -990,9 +1002,11 @@ describe('generateApiForDataset()', () => {
             website: 'https://example.com',
             availableFormats: ['json'],
             listOfBooksApiLink: '/api/c/comment/books.json',
+            listOfProfilesApiLink: '/api/c/comment/profiles.json',
             numberOfBooks: 1,
             totalNumberOfChapters: 1,
             totalNumberOfVerses: 1,
+            totalNumberOfProfiles: 0,
         };
 
         expect(tree).toEqual({
@@ -1016,6 +1030,10 @@ describe('generateApiForDataset()', () => {
                         lastChapterApiLink: '/api/c/comment/GEN/1.json',
                     },
                 ],
+            },
+            '/api/c/comment/profiles.json': {
+                commentary: expectedCommentary,
+                profiles: [],
             },
             '/api/c/comment/GEN/1.json': {
                 commentary: expectedCommentary,
@@ -1106,9 +1124,11 @@ describe('generateApiForDataset()', () => {
             website: 'https://example.com',
             availableFormats: ['json'],
             listOfBooksApiLink: '/api/c/comment/books.json',
+            listOfProfilesApiLink: '/api/c/comment/profiles.json',
             numberOfBooks: 1,
             totalNumberOfChapters: 1,
             totalNumberOfVerses: 1,
+            totalNumberOfProfiles: 0,
         };
 
         expect(tree).toEqual({
@@ -1134,6 +1154,10 @@ describe('generateApiForDataset()', () => {
                         lastChapterApiLink: '/api/c/comment/GEN/1.json',
                     },
                 ],
+            },
+            '/api/c/comment/profiles.json': {
+                commentary: expectedCommentary,
+                profiles: [],
             },
             '/api/c/comment/GEN/1.json': {
                 commentary: expectedCommentary,
@@ -1165,6 +1189,122 @@ describe('generateApiForDataset()', () => {
                         },
                     ],
                 },
+            },
+        });
+
+        // expect(availableTranslations).toEqual({
+        //     translations: [
+        //         expectedTranslation
+        //     ]
+        // });
+    });
+
+    it('should support profiles', () => {
+        let comment1: InputCommentaryMetadata = {
+            id: 'comment',
+            name: 'Commentary',
+            englishName: 'Commentary',
+            language: 'eng',
+            direction: 'ltr',
+            licenseUrl: 'https://example.com/terms.htm',
+            website: 'https://example.com',
+        };
+
+        let inputFiles: InputFile[] = [
+            {
+                fileType: 'commentary/tyndale-xml',
+                content: [
+                    `<items release="1.25">`,
+                    `<item name="AdamAndEve" typename="Profile" product="TyndaleOpenStudyNotes">`,
+                    `<title>Adam and Eve</title>`,
+                    `<refs>Gen.1.7-4.2</refs>`,
+                    `<body>`,
+                    `<p class="profile-title">Adam and Eve</p>`,
+                    `<p class="profile-body-fl">Adam was the first man, the father of the human race.</p>`,
+                    `</body>`,
+                    `</item>`,
+                    `</items>`,
+                ].join('\n'),
+                metadata: comment1,
+            },
+        ];
+
+        const dataset = generateDataset(inputFiles, new DOMParser() as any);
+        const generated = generateApiForDataset(dataset);
+        const files = generateFilesForApi(generated);
+
+        const tree = fileTree(files);
+
+        const expectedCommentary = {
+            id: 'comment',
+            name: 'Commentary',
+            englishName: 'Commentary',
+            language: 'eng',
+            textDirection: 'ltr',
+            licenseUrl: 'https://example.com/terms.htm',
+            website: 'https://example.com',
+            availableFormats: ['json'],
+            listOfBooksApiLink: '/api/c/comment/books.json',
+            listOfProfilesApiLink: '/api/c/comment/profiles.json',
+            numberOfBooks: 0,
+            totalNumberOfChapters: 0,
+            totalNumberOfVerses: 0,
+            totalNumberOfProfiles: 1,
+        };
+
+        expect(tree).toEqual({
+            '/api/available_translations.json': {
+                translations: [],
+            },
+            '/api/available_commentaries.json': {
+                commentaries: [expectedCommentary],
+            },
+            '/api/c/comment/books.json': {
+                commentary: expectedCommentary,
+                books: [],
+            },
+            '/api/c/comment/profiles.json': {
+                commentary: expectedCommentary,
+                profiles: [
+                    {
+                        id: 'adam-and-eve',
+                        subject: 'Adam and Eve',
+                        reference: {
+                            book: 'GEN',
+                            chapter: 1,
+                            verse: 7,
+                            endChapter: 4,
+                            endVerse: 2,
+                        },
+                        thisProfileLink:
+                            '/api/c/comment/profiles/adam-and-eve.json',
+                        referenceChapterLink: '/api/c/comment/GEN/1.json',
+                    },
+                ],
+            },
+            '/api/c/comment/profiles/adam-and-eve.json': {
+                commentary: expectedCommentary,
+                profile: {
+                    id: 'adam-and-eve',
+                    subject: 'Adam and Eve',
+                    reference: {
+                        book: 'GEN',
+                        chapter: 1,
+                        verse: 7,
+                        endChapter: 4,
+                        endVerse: 2,
+                    },
+                    thisProfileLink:
+                        '/api/c/comment/profiles/adam-and-eve.json',
+                    referenceChapterLink: '/api/c/comment/GEN/1.json',
+                },
+                content: [
+                    [
+                        'Adam and Eve',
+                        '',
+                        'Adam was the first man, the father of the human race.',
+                    ].join('\n'),
+                ],
             },
         });
 

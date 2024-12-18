@@ -5,6 +5,7 @@ import {
     CommentaryBook,
     CommentaryBookChapter,
     CommentaryChapterData,
+    CommentaryProfile,
     InputCommentaryFile,
     InputFile,
     InputFileBase,
@@ -52,9 +53,14 @@ export interface DatasetTranslation extends Translation {
  */
 export interface DatasetCommentary extends Commentary {
     /**
-     * The list of books that are available for the translation.
+     * The list of books that are available for the commentary.
      */
     books: DatasetCommentaryBook[];
+
+    /**
+     * The list of profiles that  are available for the commentary.
+     */
+    profiles: DatasetCommentaryProfile[];
 }
 
 /**
@@ -75,6 +81,13 @@ export interface DatasetCommentaryBook extends CommentaryBook {
      * The list of chapters that are available for the book.
      */
     chapters: CommentaryBookChapter[];
+}
+
+export interface DatasetCommentaryProfile extends CommentaryProfile {
+    /**
+     * The contents of the profile.
+     */
+    content: string[];
 }
 
 /**
@@ -252,6 +265,7 @@ export function generateDataset(
                 ...omit(file.metadata, 'direction'),
                 textDirection: file.metadata.direction,
                 books: [],
+                profiles: [],
             };
             output.commentaries.push(commentary);
             parsedCommentaries.set(file.metadata.id, commentary);
@@ -306,7 +320,33 @@ export function generateDataset(
             commentary.books.push(book);
         }
 
+        if (parsed.profiles) {
+            for (let profile of parsed.profiles) {
+                const existing = commentary.profiles.find(
+                    (p) => p.id === profile.id
+                );
+                if (existing) {
+                    console.warn(
+                        '[generate] Profile already exists in commentary!',
+                        file.name,
+                        profile.id
+                    );
+                    continue;
+                }
+
+                const datasetProfile: DatasetCommentaryProfile = {
+                    id: profile.id,
+                    subject: profile.subject,
+                    reference: profile.reference,
+                    content: profile.content,
+                };
+
+                commentary.profiles.push(datasetProfile);
+            }
+        }
+
         commentary.books = sortBy(commentary.books, (b) => b.order);
+        commentary.profiles = sortBy(commentary.profiles, (p) => p.id);
     }
 
     function getBookNames(

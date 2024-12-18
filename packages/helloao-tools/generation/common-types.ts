@@ -1,3 +1,5 @@
+import { VerseRef } from "utils";
+
 /**
  * Defines an interface that contains information about a input file.
  */
@@ -266,6 +268,26 @@ export interface CommentaryBook {
      * The order of the book in the Bible.
      */
     order: number;
+}
+
+/**
+ * Defines an interface that contains information about a profile in a commentary.
+ */
+export interface CommentaryProfile {
+    /**
+     * The ID of the profile.
+     */
+    id: string;
+
+    /**
+     * The subject of the profile.
+     */
+    subject: string;
+
+    /**
+     * The Bible reference that the profile is associated with.
+     */
+    reference: VerseRef | null;
 }
 
 /**
