@@ -1109,3 +1109,243 @@ interface CommentaryChapterData {
     }
 }
 ```
+
+## List Profiles in a Commentary
+
+`GET https://bible.helloao.org/api/c/{commentary}/profiles.json`
+
+Gets the list of profiles that are available for the given commentary.
+
+Profiles are overviews of people or people groups.
+
+Currently, only `tyndale` has any profiles.
+
+-   `commentary` the ID of the commentary (e.g. `tyndale`).
+
+### Code Example
+
+```ts:no-line-numbers title="fetch-commentary-profiles.js"
+const commentary = 'tyndale';
+
+// Get the list of profiles for the tyndale commentary
+fetch(`https://bible.helloao.org/api/c/${commentary}/profiles.json`)
+    .then(request => request.json())
+    .then(profiles => {
+        console.log('The tyndale commentary has the following profiles:', profiles);
+    });
+```
+
+### Structure
+
+```typescript:no-line-numbers title="commentary-profiles.ts"
+export interface CommentaryProfiles {
+    /**
+     * The commentary information for the books.
+     */
+    commentary: Commentary;
+
+    /**
+     * The list of profiles that are available for the commentary.
+     */
+    profiles: CommentaryProfile[];
+}
+
+interface VerseRef {
+    /**
+     * The ID of the book that is being referenced.
+     */
+    book: string;
+
+    /**
+     * The chapter being referenced.
+     */
+    chapter: number;
+
+    /**
+     * The verse being referenced.
+     */
+    verse: number;
+
+    /**
+     * The chapter that the reference ends at.
+     * If omitted, then reference does not span multiple chapters.
+     */
+    endChapter?: number;
+
+    /**
+     * The verse that the reference ends at.
+     * If omitted, then the reference does not span multiple verses.
+     */
+    endVerse?: number;
+}
+
+interface CommentaryProfile {
+    /**
+     * The ID of the profile.
+     */
+    id: string;
+
+    /**
+     * The subject of the profile.
+     */
+    subject: string;
+
+    /**
+     * The Bible reference that the profile is associated with.
+     */
+    reference: VerseRef | null;
+
+    /**
+     * The link to this profile.
+     */
+    thisProfileLink: string;
+
+    /**
+     * The link to the chapter that this profile references in the commentary.
+     */
+    referenceChapterLink: string | null;
+}
+```
+
+### Example
+
+```json:no-line-numbers title="/api/c/tyndale/profiles.json"
+{
+    "commentary": {
+        "id": "tyndale",
+        "name": "Tyndale Open Study Notes",
+        "website": "https://tyndaleopenresources.com/",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "licenseNotes": "Changes were made to the content to change the format to JSON to make it compatible with the Free Use Bible API. No changes were made to the content contained in the XML formatting.",
+        "englishName": "Tyndale Open Study Notes",
+        "language": "eng",
+        "textDirection": "rtl",
+        "sha256": "62fa003ca326f8ab22a04accb2a49d2b5865ce2cecd74284228e1be08edd5e10",
+        "availableFormats": [
+            "json"
+        ],
+        "listOfBooksApiLink": "/api/c/tyndale/books.json",
+        "listOfProfilesApiLink": "/api/c/tyndale/profiles.json",
+        "numberOfBooks": 69,
+        "totalNumberOfChapters": 1243,
+        "totalNumberOfVerses": 15757,
+        "totalNumberOfProfiles": 125,
+        "languageName": "English",
+        "languageEnglishName": "English"
+    },
+    "profiles": [
+        {
+            "id": "aaron",
+            "reference": {
+                "book": "EXO",
+                "chapter": 4,
+                "verse": 14,
+                "endVerse": 16
+            },
+            "subject": "Aaron",
+            "thisProfileLink": "/api/c/tyndale/profiles/aaron.json",
+            "referenceChapterLink": "/api/c/tyndale/EXO/4.json"
+        },
+        {
+            "id": "abiathar",
+            "reference": {
+                "book": "1SA",
+                "chapter": 22,
+                "verse": 20,
+                "endVerse": 23
+            },
+            "subject": "Abiathar",
+            "thisProfileLink": "/api/c/tyndale/profiles/abiathar.json",
+            "referenceChapterLink": "/api/c/tyndale/1SA/22.json"
+        },
+    ]
+}
+```
+
+## Get a Profile in a Commentary
+
+`GET https://bible.helloao.org/api/c/{commentary}/profiles/{profile}.json`
+
+Gets a profile from a commentary.
+
+-   `commentary` the ID of the commentary (e.g. `tyndale`).
+-   `profile` the ID of the profile (e.g. `aaron`).
+
+### Code Example
+
+```ts:no-line-numbers title="fetch-commentary-profile.js"
+const commentary = 'tyndale';
+const profile = 'aaron';
+
+// Get the aaron profile from the tyndale commentary
+fetch(`https://bible.helloao.org/api/c/${commentary}/profiles/${profile}.json`)
+    .then(request => request.json())
+    .then(profile => {
+        console.log('The Aaron tyndale commentary profile:', profile);
+    });
+```
+
+### Structure
+
+```typescript:no-line-numbers title="commentary-profile-content.ts"
+export interface CommentaryProfileContent {
+    /**
+     * The commentary information for the profile.
+     */
+    commentary: Commentary;
+
+    /**
+     * The information about the profile.
+     */
+    profile: CommentaryProfile;
+
+    /**
+     * The content of the profile.
+     */
+    content: string[];
+}
+```
+
+### Example
+
+```json:no-line-numbers title="/api/c/tyndale/profiles/aaron.json"
+{
+    "commentary": {
+        "id": "tyndale",
+        "name": "Tyndale Open Study Notes",
+        "website": "https://tyndaleopenresources.com/",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "licenseNotes": "Changes were made to the content to change the format to JSON to make it compatible with the Free Use Bible API. No changes were made to the content contained in the XML formatting.",
+        "englishName": "Tyndale Open Study Notes",
+        "language": "eng",
+        "textDirection": "rtl",
+        "sha256": "62fa003ca326f8ab22a04accb2a49d2b5865ce2cecd74284228e1be08edd5e10",
+        "availableFormats": [
+            "json"
+        ],
+        "listOfBooksApiLink": "/api/c/tyndale/books.json",
+        "listOfProfilesApiLink": "/api/c/tyndale/profiles.json",
+        "numberOfBooks": 69,
+        "totalNumberOfChapters": 1243,
+        "totalNumberOfVerses": 15757,
+        "totalNumberOfProfiles": 125,
+        "languageName": "English",
+        "languageEnglishName": "English"
+    },
+    "profile": {
+        "id": "aaron",
+        "reference": {
+            "book": "EXO",
+            "chapter": 4,
+            "verse": 14,
+            "endVerse": 16
+        },
+        "subject": "Aaron",
+        "thisProfileLink": "/api/c/tyndale/profiles/aaron.json",
+        "referenceChapterLink": "/api/c/tyndale/EXO/4.json"
+    },
+    "content": [
+        "Aaron\n\nMoses’ older brother, Aaron (see Exod 6:20; 7:7), played a crucial role in founding Israel and its institutions, particularly the priesthood. He first appears after Moses’ calling at the burning bush (Exod 3:1–4:17). Moses was reluctant to accept his divine commission, claiming that he was unfit to lead the Israelites out of Egypt because his words tended to “get tangled” (Exod 4:10). Despite God’s assurances, Moses continued to object until God appointed Aaron to be Moses’ mouthpiece. Thereafter, Aaron was often at Moses’ side, speaking to the Israelite leaders and demanding that Pharaoh let the Israelites leave Egypt (Exod 5:1-5).\n\nDuring the Israelites’ wilderness wanderings, God appointed Aaron and his sons to be set apart and dedicated as priests (Exod 28:1-5; 29:1-46; Lev 8:1-36). Thus, Aaron became Israel’s first high priest. Aaron’s role as high priest was especially prominent on the annual Day of Atonement, the only day when the high priest entered the Most Holy Place to purify it from the effects of Israel’s sins (Lev 16). Before the high priest could do so, however, he had to offer a sacrifice to atone for his own sins.\n\nAaron was an imperfect leader. While Moses was on Mount Sinai receiving the law from God, Aaron helped the people make an idol (Exod 32). When Moses returned, Aaron gave poor excuses and blamed the people. This event resulted in the death of three thousand Israelites, as well as a plague.\n\nAaron and his sister, Miriam, once wrongly challenged Moses’ authority, resulting in a temporary state of leprosy for Miriam (Num 12). Later, when other Levites challenged Aaron’s authority, God affirmed Aaron’s role by making his staff bud with almond blossoms (Num 17). However, because Moses and Aaron challenged God’s authority (Num 20:1-13), they both died in the wilderness without entering the Promised Land (Num 20:22-29).\n\nJesus has become the Great High Priest, far surpassing Aaron’s priestly authority and effectiveness (see Heb 7–10).\n\nPassages for Further Study\n\nExod 4:14-17, 27-31; 6:20-27; 7:1-2; 28:1-5; 32:1-25; Num 12:1-12; 20:1-13, 22-29; Acts 7:39-41"
+    ]
+}
+```
