@@ -11,6 +11,10 @@ For information on the API Generator, see [GENERATOR-CHANGELOG.md](./GENERATOR-C
 
 -   Added the [Tyndale](https://tyndaleopenresources.com/) Bible commentary.
 
+### :bug: Bug Fixes
+
+-   Fixed cases where consecutive poem lines that have the same indentation now have an explicit line break to indicate that they are actually on separate lines.
+
 ## V1.3.0
 
 #### Date: 2024-11-15
