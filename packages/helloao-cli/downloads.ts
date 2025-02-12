@@ -10,6 +10,14 @@ export async function downloadFile(
 ) {
     console.log('Downloading', url, 'to', path);
     const response = await fetch(url);
+    await downloadResponse(response, path, onProgress);
+}
+
+export async function downloadResponse(
+    response: Response,
+    path: string,
+    onProgress?: (progress: number) => void
+) {
     const totalSize = Number(response.headers.get('content-length'));
     const reader = response.body!;
     const writeStream = createWriteStream(path);

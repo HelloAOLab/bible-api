@@ -19,6 +19,9 @@ importers:
             '@types/lodash':
                 specifier: 4.14.191
                 version: 4.14.191
+            '@types/luxon':
+                specifier: 3.4.2
+                version: 3.4.2
             '@types/markdown-it':
                 specifier: ^12.2.3
                 version: 12.2.3
@@ -149,6 +152,12 @@ importers:
             lodash:
                 specifier: 4.17.21
                 version: 4.17.21
+            luxon:
+                specifier: 3.5.0
+                version: 3.5.0
+            papaparse:
+                specifier: 5.4.1
+                version: 5.4.1
             prisma:
                 specifier: ^5.12.1
                 version: 5.18.0
@@ -4098,6 +4107,13 @@ packages:
             }
         dev: true
 
+    /@types/luxon@3.4.2:
+        resolution:
+            {
+                integrity: sha512-TifLZlFudklWlMBfhubvgqTXRzLDI5pCbGa4P8a3wPyUQSW+1xQ5eDsreP9DWHX3tjq1ke96uYG/nwundroWcA==,
+            }
+        dev: true
+
     /@types/markdown-it-emoji@3.0.1:
         resolution:
             {
@@ -7341,6 +7357,14 @@ packages:
         engines: { node: '>=10' }
         dependencies:
             yallist: 4.0.0
+
+    /luxon@3.5.0:
+        resolution:
+            {
+                integrity: sha512-rh+Zjr6DNfUYR3bPwJEnuwDdqMbxZW7LOQfUN4B54+Cl+0o5zaU9RJ6bcidfDtC1cWCZXQ+nvX8bf6bAji37QQ==,
+            }
+        engines: { node: '>=12' }
+        dev: false
 
     /magic-string@0.30.10:
         resolution:

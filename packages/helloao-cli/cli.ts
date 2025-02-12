@@ -17,11 +17,16 @@ import {
     importTranslation,
     importTranslations,
     initDb,
+    sourceTranslations,
     uploadTestTranslation,
     uploadTestTranslations,
 } from './actions.js';
-import { getPrismaDbFromDir } from './db.js';
+import { getDbFromDir, getPrismaDbFromDir, importFileBatch } from './db.js';
 import { confirm, input } from '@inquirer/prompts';
+import { parse } from 'papaparse';
+import { EBibleSource } from 'prisma-gen/index.js';
+import { DateTime } from 'luxon';
+import { sha256 } from 'hash.js';
 
 async function start() {
     const parser = new DOMParser();
@@ -436,6 +441,15 @@ async function start() {
         )
         .action(async (dir: string, translations: string[], options: any) => {
             await fetchTranslations(dir, translations, options);
+        });
+
+    program
+        .command('source-translations <dir> [translations...]')
+        .description(
+            'Finds translation metadata from ebible.org and stores it in the database.'
+        )
+        .action(async (dir, translations) => {
+            await sourceTranslations(dir, translations);
         });
 
     program
