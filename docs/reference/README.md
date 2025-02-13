@@ -211,11 +211,6 @@ interface TranslationBook {
     lastChapterApiLink: string;
 
     /**
-     * The number of chapters that the book contains.
-     */
-    numberOfChapters: number;
-
-    /**
      * The number of verses that the book contains.
      */
     totalNumberOfVerses: number;
