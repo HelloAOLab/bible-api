@@ -443,14 +443,44 @@ async function start() {
             await fetchTranslations(dir, translations, options);
         });
 
-    program
-        .command('source-translations <dir> [translations...]')
-        .description(
-            'Finds translation metadata from ebible.org and stores it in the database.'
-        )
-        .action(async (dir, translations) => {
-            await sourceTranslations(dir, translations);
-        });
+program
+    .command('source-translations <dir> [translations...]')
+    .description(
+        'Finds translation metadata from ebible.org and stores it in the database.'
+    )
+    .option(
+        '--convert-to-usx3',
+        'Convert USFM files to USX3 format after download'
+    )
+    .option(
+        '--bible-multi-converter-path <path>',
+        'Path to BibleMultiConverter.jar file'
+    )
+    .option(
+        '--no-prompt-for-conversion',
+        'Do not prompt user for converter location if not found automatically'
+    )
+    .option(
+        '--no-use-database',
+        'Do not track downloads in database'
+    )
+    .option(
+        '--overwrite',
+        'Overwrite existing files in output directory'
+    )
+    .action(async (dir, translations, options) => {
+        const sourceOptions = {
+            convertToUsx3: options.convertToUsx3,
+            bibleMultiConverterPath: options.bibleMultiConverterPath,
+            promptForConversion: options.promptForConversion !== false,
+            useDatabase: options.useDatabase !== false,
+            conversionOptions: {
+                overwrite: options.overwrite
+            }
+        };
+
+        await sourceTranslations(dir, translations, sourceOptions);
+    });
 
     program
         .command('fetch-audio <dir> [translations...]')
