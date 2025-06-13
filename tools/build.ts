@@ -59,20 +59,28 @@ async function entryPoints(path: string): Promise<string[]> {
 }
 
 async function buildCli() {
+    const external = [...getExternals(cliPackageJson), '@helloao/cli'];
     const options: BuildOptions = {
         entryPoints: [cliIndex, cliEntry],
-        external: [...getExternals(cliPackageJson), '@helloao/cli'],
+        external,
     };
 
     await Promise.all([
-        // esbuild.build({
-        //     sourcemap: true,
-        //     platform: 'node',
-        //     format: 'esm',
-        //     target: 'esnext',
-        //     entryPoints: await entryPoints('packages/helloao-cli'),
-        //     outdir: path.resolve(cliDist, 'esm'),
-        // }),
+        esbuild.build({
+            ...esmOptions,
+            ...options,
+            entryPoints: [cliIndex],
+            external: [...external, '@helloao/tools'],
+            bundle: true,
+            format: 'esm',
+            platform: 'node',
+            // sourcemap: true,
+            // platform: 'node',
+            // format: 'esm',
+            // target: 'esnext',
+            // entryPoints: await entryPoints('packages/helloao-cli'),
+            outdir: path.resolve(cliDist, 'esm'),
+        }),
         esbuild.build({
             ...cjsOptions,
             ...options,

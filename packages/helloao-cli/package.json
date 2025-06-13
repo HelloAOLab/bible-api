@@ -3,10 +3,12 @@
     "version": "0.0.10",
     "description": "A CLI and related tools for managing HelloAO's Free Bible API",
     "type": "module",
+    "main": "./dist/esm/index.js",
     "exports": {
         ".": {
             "types": "./dist/types/index.d.ts",
-            "require": "./dist/cjs/index.cjs"
+            "require": "./dist/cjs/index.cjs",
+            "import": "./dist/esm/index.js"
         }
     },
     "bin": {
