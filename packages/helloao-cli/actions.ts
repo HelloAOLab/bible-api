@@ -160,7 +160,7 @@ async function findBibleMultiConverterJar(providedPath?: string): Promise<string
  * Prompts user for BibleMultiConverter.jar location
  */
 async function promptForBibleMultiConverter(): Promise<string | null> {
-    console.log('\nBibleMultiConverter.jar not found in common locations.');
+    console.log('BibleMultiConverter.jar not found in common locations.');
     
     const hasConverter = await confirm({
         message: 'Do you have BibleMultiConverter.jar available?',
@@ -882,7 +882,7 @@ export async function validateUsx3Directory(directory: string): Promise<boolean>
  * Prints conversion instructions for the user
  */
 export function printConversionInstructions(inputDir: string, outputDir: string): void {
-    console.log('\n=== MANUAL CONVERSION REQUIRED ===');
+    console.log('=== MANUAL CONVERSION REQUIRED ===');
     console.log('Please convert USFM files to USX3 format manually using BibleMultiConverter.');
     console.log('');
     console.log('1. Download BibleMultiConverter.jar from:');
@@ -894,7 +894,7 @@ export function printConversionInstructions(inputDir: string, outputDir: string)
     console.log(`   ${CONVERSION_INSTRUCTIONS.getConversionCommand(inputDir, outputDir)}`);
     console.log('');
     console.log('4. After conversion, re-run this tool to continue processing.');
-    console.log('==========================================\n');
+    console.log('==========================================');
 }
 
 
@@ -997,6 +997,9 @@ export async function sourceTranslations(
 
     console.log(`Found ${filteredSources.length} sources`);
 
+    // Create a temporary directory for USFM downloads
+    const tempDir = convertToUsx3 ? path.join(tmpdir(), 'ebible-usfm-temp', `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`) : null;
+
     try {
         let batches: EBibleSource[][] = [];
         const batchSize = 50;
@@ -1006,7 +1009,7 @@ export async function sourceTranslations(
 
         let numDownloaded = 0;
         let numErrored = 0;
-        let conversionsNeeded: string[] = [];
+        let conversionsNeeded: Array<{ tempPath: string; outputPath: string; source: EBibleSource }> = [];
 
         for (let batch of batches) {
             await Promise.all(
@@ -1034,8 +1037,12 @@ export async function sourceTranslations(
                                 const reader = new BlobReader(await usfmResult.blob());
                                 const zip = new ZipReader(reader);
 
-                                const translationDownloadDir = path.resolve(outputDir, source.translationId);
-                                await mkdir(translationDownloadDir, { recursive: true });
+                                // Use temp directory for USFM files if converting, otherwise use final output directory
+                                const downloadDir = convertToUsx3 && tempDir 
+                                    ? path.resolve(tempDir, source.translationId)
+                                    : path.resolve(outputDir, source.translationId);
+
+                                await mkdir(downloadDir, { recursive: true });
 
                                 try {
                                     const entries = await zip.getEntries();
@@ -1047,7 +1054,7 @@ export async function sourceTranslations(
                                             entry.directory === false &&
                                             entry.filename.endsWith('.usfm')
                                         ) {
-                                            const outputPath = path.resolve(translationDownloadDir, entry.filename);
+                                            const outputPath = path.resolve(downloadDir, entry.filename);
                                             const blob = await entry.getData(new BlobWriter('text/plain'), {});
                                             await writeFile(
                                                 outputPath,
@@ -1057,15 +1064,25 @@ export async function sourceTranslations(
                                         }
                                     }
 
-                                    if (convertToUsx3 && usfmFileCount > 0) {
+                                    if (convertToUsx3 && usfmFileCount > 0 && tempDir) {
                                         // Track translations that need conversion
-                                        conversionsNeeded.push(translationDownloadDir);
-                                        await createMetadataJson(translationDownloadDir, source, false);
+                                        const finalOutputPath = path.resolve(outputDir, source.translationId);
+                                        conversionsNeeded.push({
+                                            tempPath: downloadDir,
+                                            outputPath: finalOutputPath,
+                                            source: source
+                                        });
+                                        
+                                        // Create metadata in temp directory for now
+                                        await createMetadataJson(downloadDir, source, false);
+                                    } else if (!convertToUsx3) {
+                                        // If not converting, create metadata in final location
+                                        await createMetadataJson(downloadDir, source, false);
                                     }
 
                                     numDownloaded++;
                                     source.usfmDownloadDate = DateTime.utc().toISO() as any;
-                                    source.usfmDownloadPath = translationDownloadDir;
+                                    source.usfmDownloadPath = convertToUsx3 && tempDir ? null : downloadDir;
                                 } finally {
                                     zip.close();
                                 }
@@ -1087,9 +1104,8 @@ export async function sourceTranslations(
 
         console.log(`Downloaded ${numDownloaded} sources. ${numErrored} errored.`);
 
-        // NEW: Handle USX3 conversion
         if (convertToUsx3 && conversionsNeeded.length > 0) {
-            console.log(`\n${conversionsNeeded.length} translations need conversion to USX3.`);
+            console.log(`${conversionsNeeded.length} translations need conversion to USX3.`);
 
             // Try to find BibleMultiConverter.jar
             let jarPath = await findBibleMultiConverterJar(bibleMultiConverterPath);
@@ -1099,36 +1115,49 @@ export async function sourceTranslations(
             }
 
             if (jarPath) {
-                // Automatic conversion
-                console.log(`\nStarting automatic conversion using: ${jarPath}`);
+                console.log(`Starting automatic conversion using: ${jarPath}`);
                 
-                for (const usfmDir of conversionsNeeded) {
-                    const translationName = path.basename(usfmDir);
-                    const usxDir = path.join(outputDir, `${translationName}_usx3`);
+                for (const { tempPath, outputPath, source } of conversionsNeeded) {
+                    const translationName = path.basename(tempPath);
                     
-                    console.log(`\nConverting ${translationName}...`);
-                    const success = await convertUsfmToUsx3(usfmDir, usxDir, jarPath);
+                    console.log(`Converting ${translationName}...`);
+                    const success = await convertUsfmToUsx3(tempPath, outputPath, jarPath);
                     
                     if (success) {
-                        // Copy metadata.json to USX3 directory
-                        const metadataSource = path.join(usfmDir, 'metadata.json');
-                        const metadataTarget = path.join(usxDir, 'metadata.json');
+                        // Copy metadata.json to final output directory
+                        const metadataSource = path.join(tempPath, 'metadata.json');
+                        const metadataTarget = path.join(outputPath, 'metadata.json');
                         if (existsSync(metadataSource)) {
                             await copyFile(metadataSource, metadataTarget);
-                            console.log(`Copied metadata to ${usxDir}`);
+                            console.log(`Created metadata.json in ${outputPath}`);
+                        }
+
+                        // Update database with final path
+                        if (useDatabase && sourceUpsert) {
+                            source.usfmDownloadPath = outputPath;
+                            sourceUpsert.run(source);
                         }
                     }
                 }
+
+                // Clean up temp directory
+                if (tempDir && existsSync(tempDir)) {
+                    console.log(`Cleaning up temporary directory: ${tempDir}`);
+                    await rm(tempDir, { recursive: true, force: true });
+                }
             } else {
                 // Manual conversion instructions (fallback)
-                console.log('\nAutomatic conversion not available. Manual conversion required:');
+                console.log('Automatic conversion not available. Manual conversion required:');
                 
-                conversionsNeeded.forEach(usfmDir => {
-                    const translationName = path.basename(usfmDir);
-                    const usxDir = path.join(outputDir, `${translationName}_usx3`);
-                    console.log(`\nTranslation: ${translationName}`);
-                    printConversionInstructions(usfmDir, usxDir);
+                conversionsNeeded.forEach(({ tempPath, outputPath }) => {
+                    const translationName = path.basename(tempPath);
+                    console.log(`Translation: ${translationName}`);
+                    console.log(`Temp USFM files: ${tempPath}`);
+                    printConversionInstructions(tempPath, outputPath);
                 });
+
+                console.log(`IMPORTANT: Temporary files are in: ${tempDir}`);
+                console.log('Please complete conversions before this directory is cleaned up.');
             }
         }
 
