@@ -4,8 +4,15 @@ settings:
     autoInstallPeers: true
     excludeLinksFromLockfile: false
 
+overrides:
+    '@helloao/cli': link:packages/helloao-cli
+
 importers:
     .:
+        dependencies:
+            '@helloao/cli':
+                specifier: link:packages/helloao-cli
+                version: link:packages/helloao-cli
         devDependencies:
             '@types/better-sqlite3':
                 specifier: ^7.6.9
@@ -105,8 +112,8 @@ importers:
                 specifier: ^0.7.0
                 version: 0.7.0
             '@helloao/tools':
-                specifier: ^0.0.10
-                version: 0.0.10
+                specifier: workspace:*
+                version: link:../helloao-tools
             '@inquirer/prompts':
                 specifier: 5.3.8
                 version: 5.3.8
@@ -1388,12 +1395,6 @@ packages:
         resolution:
             {
                 integrity: sha512-TbxGrJ/kMZZevw12XysjyHJjWWuNhO5FLWwD0Zwrb+/8Y1+6cKAlgP/n3P8dN86mXd9aFUKoI7hgsLbTaI38/w==,
-            }
-
-    '@helloao/tools@0.0.10':
-        resolution:
-            {
-                integrity: sha512-KShsSJ0FphZPcSRX6PV3Ptw6p0DrwbUQz0hIgmxIpsp/vKwkNniekMRQyVJBLbIhr0zeiLuPIVluGVX8u//LFQ==,
             }
 
     '@inquirer/checkbox@2.5.0':
@@ -7283,12 +7284,6 @@ snapshots:
         optional: true
 
     '@gracious.tech/fetch-client@0.7.0': {}
-
-    '@helloao/tools@0.0.10':
-        dependencies:
-            lodash: 4.17.21
-            papaparse: 5.4.1
-            zod: 3.25.64
 
     '@inquirer/checkbox@2.5.0':
         dependencies:

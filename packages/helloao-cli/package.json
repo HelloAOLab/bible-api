@@ -18,7 +18,7 @@
     "author": "Kallyn Gowdy <kal@helloao.org>",
     "license": "MIT",
     "dependencies": {
-        "@helloao/tools": "^0.0.10",
+        "@helloao/tools": "workspace:*",
         "commander": "12.1.0",
         "@gracious.tech/fetch-client": "^0.7.0",
         "prisma": "^5.12.1",
