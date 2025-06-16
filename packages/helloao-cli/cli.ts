@@ -170,6 +170,10 @@ async function start() {
             '--secret-access-key <secretAccessKey>',
             'The AWS Secret Access Key to use for uploading to S3.'
         )
+        .option(
+            '--s3-region <region>',
+            'The AWS region to use for uploading to S3.'
+        )
         .option('--pretty', 'Whether to generate pretty-printed JSON files.')
         .option(
             '--s3-url <s3Url>',
@@ -243,6 +247,10 @@ async function start() {
             '--secret-access-key <secretAccessKey>',
             'The AWS Secret Access Key to use for uploading to S3.'
         )
+        .option(
+            '--s3-region <region>',
+            'The AWS region to use for uploading to S3.'
+        )
         .option('--pretty', 'Whether to generate pretty-printed JSON files.')
         .option(
             '--s3-url <s3Url>',
@@ -312,6 +320,10 @@ async function start() {
             '--secret-access-key <secretAccessKey>',
             'The AWS Secret Access Key to use for uploading to S3.'
         )
+        .option(
+            '--s3-region <region>',
+            'The AWS region to use for uploading to S3.'
+        )
         .option('--pretty', 'Whether to generate pretty-printed JSON files.')
         .action(async (input: string, dest: string, options: any) => {
             await generateTranslationFiles(input, dest, options);
@@ -357,6 +369,10 @@ async function start() {
         .option(
             '--secret-access-key <secretAccessKey>',
             'The AWS Secret Access Key to use for uploading to S3.'
+        )
+        .option(
+            '--s3-region <region>',
+            'The AWS region to use for uploading to S3.'
         )
         .option('--pretty', 'Whether to generate pretty-printed JSON files.')
         .action(async (input: string, dest: string, options: any) => {
@@ -410,6 +426,10 @@ async function start() {
         .option(
             '--secret-access-key <secretAccessKey>',
             'The AWS Secret Access Key to use for uploading to S3.'
+        )
+        .option(
+            '--s3-region <region>',
+            'The AWS region to use for uploading to S3.'
         )
         .option('--pretty', 'Whether to generate pretty-printed JSON files.')
         .option(

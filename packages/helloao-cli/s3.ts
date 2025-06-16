@@ -26,11 +26,13 @@ export class S3Uploader implements Uploader {
             | string
             | null
             | AwsCredentialIdentity
-            | Provider<AwsCredentialIdentity>
+            | Provider<AwsCredentialIdentity>,
+        region?: string
     ) {
         this._bucketName = bucketName;
         this._keyPrefix = keyPrefix;
         this._client = new S3Client({
+            region: region,
             credentials:
                 !profile || typeof profile === 'string'
                     ? fromNodeProviderChain({ profile: profile ?? undefined })

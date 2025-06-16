@@ -60,6 +60,11 @@ export interface UploadApiOptions {
     secretAccessKey?: string;
 
     /**
+     * The AWS region to use for uploading to S3.
+     */
+    s3Region?: string;
+
+    /**
      * Whether to generate API files that use the common name instead of book IDs.
      */
     useCommonName?: boolean;
@@ -209,7 +214,8 @@ export async function uploadFiles(
         uploader = new S3Uploader(
             s3Url.bucketName,
             s3Url.objectKey,
-            defaultProviderForOptions(options)
+            defaultProviderForOptions(options),
+            options.s3Region
         );
     } else if (dest.startsWith('console://')) {
         console.log('Uploading to console');
