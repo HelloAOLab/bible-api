@@ -40,7 +40,7 @@ export class S3Uploader implements Uploader {
                     : profile,
         });
 
-        if (!process.env.AWS_REGION || !process.env.AWS_PROFILE) {
+        if ((!process.env.AWS_REGION || !process.env.AWS_PROFILE) && !region) {
             const logger = log.getLogger();
             logger.warn(
                 'No AWS_REGION or AWS_PROFILE environment variable set. This may cause issues with the S3 client.'
