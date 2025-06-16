@@ -22,6 +22,7 @@ import {
 } from './actions.js';
 import { getPrismaDbFromDir } from './db.js';
 import { confirm, input } from '@inquirer/prompts';
+import { log } from '@helloao/tools';
 
 async function start() {
     const parser = new DOMParser();
@@ -58,7 +59,8 @@ async function start() {
         .action(async () => {
             const meta = await askForMetadata();
 
-            console.log('Your metadata:', meta);
+            const logger = log.getLogger();
+            logger.log('Your metadata:', meta);
 
             const save = await confirm({
                 message: 'Do you want to save this metadata?',
@@ -78,7 +80,7 @@ async function start() {
                     location += 'metadata.json';
                 }
 
-                console.log('Saving metadata to:', location);
+                logger.log('Saving metadata to:', location);
 
                 const dir = path.dirname(location);
                 await mkdir(dir, { recursive: true });
@@ -113,7 +115,6 @@ async function start() {
         )
         .option('--overwrite', 'Whether to overwrite existing files.')
         .action(async (dir: string, dirs: string[], options: any) => {
-            console.log('options', options);
             await importCommentary(dir, dirs, options);
         });
 
@@ -193,11 +194,12 @@ async function start() {
             const result = await uploadTestTranslation(input, options);
 
             if (result) {
-                console.log('\n');
-                console.log('Version:               ', result.version);
-                console.log('Uploaded to:           ', result.uploadS3Url);
-                console.log('URL:                   ', result.url);
-                console.log(
+                const logger = log.getLogger();
+                logger.log('\n');
+                logger.log('Version:               ', result.version);
+                logger.log('Uploaded to:           ', result.uploadS3Url);
+                logger.log('URL:                   ', result.url);
+                logger.log(
                     'Available Translations:',
                     result.availableTranslationsUrl
                 );
@@ -270,13 +272,16 @@ async function start() {
 
             const result = await uploadTestTranslations(input, options);
 
-            console.log('\nVersion:             ', result.version);
-            console.log('Uploaded to:          ', result.uploadS3Url);
-            console.log('URL:                  ', result.url);
-            console.log(
-                'Available Translations:',
-                result.availableTranslationsUrl
-            );
+            if (result) {
+                const logger = log.getLogger();
+                logger.log('\nVersion:             ', result.version);
+                logger.log('Uploaded to:          ', result.uploadS3Url);
+                logger.log('URL:                  ', result.url);
+                logger.log(
+                    'Available Translations:',
+                    result.availableTranslationsUrl
+                );
+            }
         });
 
     program

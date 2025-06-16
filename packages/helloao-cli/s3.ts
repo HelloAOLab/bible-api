@@ -8,6 +8,7 @@ import { fromNodeProviderChain } from '@aws-sdk/credential-providers'; // ES6 im
 import { SerializedFile, Uploader } from './files.js';
 import { AwsCredentialIdentity, Provider } from '@smithy/types';
 import { input, password } from '@inquirer/prompts';
+import { log } from '@helloao/tools';
 
 export class S3Uploader implements Uploader {
     private _client: S3Client;
@@ -40,13 +41,15 @@ export class S3Uploader implements Uploader {
         });
 
         if (!process.env.AWS_REGION || !process.env.AWS_PROFILE) {
-            console.warn(
+            const logger = log.getLogger();
+            logger.warn(
                 'No AWS_REGION or AWS_PROFILE environment variable set. This may cause issues with the S3 client.'
             );
         }
     }
 
     async upload(file: SerializedFile, overwrite: boolean): Promise<boolean> {
+        const logger = log.getLogger();
         const path = file.path.startsWith('/')
             ? file.path.substring(1)
             : file.path;
@@ -81,7 +84,7 @@ export class S3Uploader implements Uploader {
                     }
                 } else {
                     // File is already uploaded but the checksum is not available.
-                    console.log(`[s3] Checksum not available: ${key}`);
+                    logger.log(`[s3] Checksum not available: ${key}`);
 
                     // Assume the file has changed and needs to be uploaded again.
                     matches = false;

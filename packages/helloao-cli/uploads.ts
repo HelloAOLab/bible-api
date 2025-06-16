@@ -6,6 +6,7 @@ import { Readable } from 'node:stream';
 import { DatasetOutput } from '@helloao/tools/generation/dataset.js';
 import { PrismaClient } from './prisma-gen/index.js';
 import { GenerateApiOptions } from '@helloao/tools/generation/api.js';
+import { log } from '@helloao/tools';
 
 export interface UploadApiFromDatabaseOptions
     extends UploadApiOptions,
@@ -96,29 +97,30 @@ export async function uploadApiFilesFromDatabase(
     dest: string,
     options: UploadApiFromDatabaseOptions
 ) {
+    const logger = log.getLogger();
     if (options.overwrite) {
-        console.log('Overwriting existing files');
+        logger.log('Overwriting existing files');
     }
 
     if (options.overwriteCommonFiles) {
-        console.log('Overwriting only common files');
+        logger.log('Overwriting only common files');
     }
 
     if (!!options.filePattern) {
-        console.log('Using file pattern:', options.filePattern);
+        logger.log('Using file pattern:', options.filePattern);
     }
 
     if (options.translations) {
-        console.log(
+        logger.log(
             'Generating for specific translations:',
             options.translations
         );
     } else {
-        console.log('Generating for all translations');
+        logger.log('Generating for all translations');
     }
 
     if (options.pretty) {
-        console.log('Generating pretty-printed JSON files');
+        logger.log('Generating pretty-printed JSON files');
     }
 
     const pageSize =
@@ -143,38 +145,39 @@ export async function serializeAndUploadDatasets(
     datasets: AsyncIterable<DatasetOutput>,
     options: UploadApiOptions & GenerateApiOptions = {}
 ): Promise<void> {
+    const logger = log.getLogger();
     const overwrite = !!options.overwrite;
     if (overwrite) {
-        console.log('Overwriting existing files');
+        logger.log('Overwriting existing files');
     }
 
     const overwriteCommonFiles = !!options.overwriteCommonFiles;
     if (overwriteCommonFiles) {
-        console.log('Overwriting only common files');
+        logger.log('Overwriting only common files');
     }
 
     const overwriteMergedFiles = !!options.overwriteMergedFiles;
     if (overwriteMergedFiles) {
-        console.log('Overwriting only merged files');
+        logger.log('Overwriting only merged files');
     }
 
     let filePattern: RegExp | undefined;
     if (!!options.filePattern) {
         filePattern = new RegExp(options.filePattern, 'g');
-        console.log('Using file pattern:', filePattern);
+        logger.log('Using file pattern:', filePattern);
     }
 
     if (options.translations) {
-        console.log(
+        logger.log(
             'Generating for specific translations:',
             options.translations
         );
     } else {
-        console.log('Generating for all translations');
+        logger.log('Generating for all translations');
     }
 
     if (options.pretty) {
-        console.log('Generating pretty-printed JSON files');
+        logger.log('Generating pretty-printed JSON files');
     }
 
     const files = serializeDatasets(datasets, {
@@ -195,9 +198,10 @@ export async function uploadFiles(
     options: UploadApiOptions,
     serializedFiles: AsyncIterable<SerializedFile[]>
 ): Promise<void> {
+    const logger = log.getLogger();
     let uploader: Uploader;
     if (dest.startsWith('s3://')) {
-        console.log('Uploading to S3');
+        logger.log('Uploading to S3');
         // Upload to S3
         const url = dest;
         const s3Url = parseS3Url(url);
@@ -218,26 +222,26 @@ export async function uploadFiles(
             options.s3Region
         );
     } else if (dest.startsWith('console://')) {
-        console.log('Uploading to console');
+        logger.log('Uploading to console');
         uploader = {
             idealBatchSize: 50,
             async upload(
                 file: SerializedFile,
                 _overwrite: boolean
             ): Promise<boolean> {
-                console.log(file.path);
-                console.log(file.content);
+                logger.log(file.path);
+                logger.log(file.content);
                 return true;
             },
         };
     } else if (extname(dest) === '.zip') {
-        console.log('Writing to zip file:', dest);
+        logger.log('Writing to zip file:', dest);
         uploader = new ZipUploader(dest);
     } else if (dest) {
-        console.log('Writing to local directory:', dest);
+        logger.log('Writing to local directory:', dest);
         uploader = new FilesUploader(dest);
     } else {
-        console.error('Unsupported destination:', dest);
+        logger.error('Unsupported destination:', dest);
         process.exit(1);
     }
 
@@ -261,6 +265,7 @@ export async function uploadFilesUsingUploader(
     options: UploadApiOptions,
     serializedFiles: AsyncIterable<SerializedFile[]>
 ): Promise<void> {
+    const logger = log.getLogger();
     const overwrite = !!options.overwrite;
     const overwriteCommonFiles = !!options.overwriteCommonFiles;
     const overwriteMergedFiles = !!options.overwriteMergedFiles;
@@ -273,20 +278,20 @@ export async function uploadFilesUsingUploader(
     for await (let files of serializedFiles) {
         const batchSize = uploader.idealBatchSize ?? files.length;
         const totalBatches = Math.ceil(files.length / batchSize);
-        console.log('Uploading', files.length, 'total files');
-        console.log('Uploading in batches of', batchSize);
+        logger.log('Uploading', files.length, 'total files');
+        logger.log('Uploading in batches of', batchSize);
 
         let offset = 0;
         let batchNumber = 1;
         let batch = files.slice(offset, offset + batchSize);
 
         while (batch.length > 0) {
-            console.log('Uploading batch', batchNumber, 'of', totalBatches);
+            logger.log('Uploading batch', batchNumber, 'of', totalBatches);
             let writtenFiles = 0;
             const promises = batch.map(async (file) => {
                 if (filePattern) {
                     if (!filePattern.test(file.path)) {
-                        console.log('Skipping file:', file.path);
+                        logger.log('Skipping file:', file.path);
                         return;
                     }
                 }
@@ -311,12 +316,12 @@ export async function uploadFilesUsingUploader(
                     )
                 ) {
                     if (options.verbose) {
-                        console.log('Uploaded file:', file.path);
+                        logger.log('Uploaded file:', file.path);
                     }
                     writtenFiles++;
                 } else if (options.verbose) {
-                    console.warn('File already exists:', file.path);
-                    console.warn('Skipping file');
+                    logger.warn('File already exists:', file.path);
+                    logger.warn('Skipping file');
                 }
 
                 if (file.content instanceof Readable) {
@@ -326,8 +331,8 @@ export async function uploadFilesUsingUploader(
 
             await Promise.all(promises);
 
-            console.log('Wrote', writtenFiles, 'files');
-            console.log('Skipped', batch.length - writtenFiles, 'files');
+            logger.log('Wrote', writtenFiles, 'files');
+            logger.log('Skipped', batch.length - writtenFiles, 'files');
             batchNumber++;
             offset += batchSize;
             batch = files.slice(offset, offset + batchSize);

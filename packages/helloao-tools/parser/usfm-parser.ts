@@ -8,6 +8,7 @@ import {
     Footnote,
     Text,
 } from './types.js';
+import { getLogger } from '../log.js';
 
 /**
  * Defines a class that can tokenize a stream of characters into tokens.
@@ -796,6 +797,7 @@ export class UsfmParser {
         message: string,
         warn: boolean = false
     ): void {
+        const logger = getLogger();
         if (token) {
             let line = 1;
             let column = 1;
@@ -822,13 +824,13 @@ export class UsfmParser {
             }
 
             if (warn) {
-                console.warn(`(${line}, ${column}${tokenDebug}) ${message}`);
+                logger.warn(`(${line}, ${column}${tokenDebug}) ${message}`);
             } else {
                 throw new Error(`(${line}, ${column}${tokenDebug}) ${message}`);
             }
         } else {
             if (warn) {
-                console.warn(message);
+                logger.warn(message);
             } else {
                 throw new Error(message);
             }

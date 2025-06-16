@@ -22,6 +22,7 @@ import { CodexParser } from '../parser/codex-parser.js';
 import { CommentaryCsvParser } from '../parser/commentary-csv-parser.js';
 import { CommentaryParseTree, ParseTree } from '../parser/types.js';
 import { TyndaleXmlParser } from '../parser/tyndale-xml-parser.js';
+import { getLogger } from '../log.js';
 
 /**
  * Defines an interface that contains generated dataset info.
@@ -101,6 +102,7 @@ export function generateDataset(
     parser: DOMParser = new globalThis.DOMParser(),
     bookMap?: Map<string, { commonName: string }> | undefined
 ): DatasetOutput {
+    const logger = getLogger();
     let output: DatasetOutput = {
         translations: [],
         commentaries: [],
@@ -135,7 +137,7 @@ export function generateDataset(
             } else if (file.fileType === 'commentary/tyndale-xml') {
                 parser = tyndaleXmlParser;
             } else {
-                console.warn(
+                logger.warn(
                     '[generate] File does not have a valid type!',
                     file.name
                 );
@@ -150,7 +152,7 @@ export function generateDataset(
                 addCommentaryTree(file as InputCommentaryFile, parsed);
             }
         } catch (err) {
-            console.error(
+            logger.error(
                 `[generate] Error occurred while parsing ${file.name}`,
                 err
             );
@@ -161,7 +163,7 @@ export function generateDataset(
         const id = parsed.id;
 
         if (!id) {
-            console.warn(
+            logger.warn(
                 '[generate] File does not have a valid book ID!',
                 file.name,
                 id
@@ -172,7 +174,7 @@ export function generateDataset(
         const order = bookOrderMap.get(id);
 
         if (typeof order !== 'number') {
-            console.warn('[generate] Book does not have an order!', id);
+            logger.warn('[generate] Book does not have an order!', id);
             return;
         }
 
@@ -194,11 +196,7 @@ export function generateDataset(
             parsed.header ?? bookName?.bookName?.commonName ?? parsed.title;
 
         if (!name) {
-            console.warn(
-                '[generate] Book does not have a name!',
-                file.name,
-                id
-            );
+            logger.warn('[generate] Book does not have a name!', file.name, id);
             return;
         }
 
@@ -260,7 +258,7 @@ export function generateDataset(
         for (let parsedBook of parsed.books) {
             let book = commentary.books.find((b) => b.id === parsedBook.book);
             if (book && book.introduction && parsedBook.introduction) {
-                console.warn(
+                logger.warn(
                     '[generate] Book already exists in commentary!',
                     file.name,
                     parsedBook.book
@@ -312,7 +310,7 @@ export function generateDataset(
                     (p) => p.id === profile.id
                 );
                 if (existing) {
-                    console.warn(
+                    logger.warn(
                         '[generate] Profile already exists in commentary!',
                         file.name,
                         profile.id
@@ -345,7 +343,7 @@ export function generateDataset(
 
             if (!bookMap) {
                 if (!unknownLanguages.has(metadata.language)) {
-                    console.warn(
+                    logger.warn(
                         '[generate] File does not have a known language!',
                         file.name,
                         metadata.language
@@ -353,7 +351,7 @@ export function generateDataset(
                     unknownLanguages.add(metadata.language);
                 }
 
-                console.warn(
+                logger.warn(
                     '[generate] Using English book map for unknown language! This might result in outputting english book names.'
                 );
                 bookMap = defaultBookIdMap.get('en');
@@ -363,7 +361,7 @@ export function generateDataset(
         const bookName = bookMap?.get(id);
 
         if (!!bookMap && !bookName) {
-            console.warn(
+            logger.warn(
                 '[generate] Book name not found for ID!',
                 file.name,
                 id

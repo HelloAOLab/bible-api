@@ -33,6 +33,7 @@ import {
 import { getHttpUrl, parseS3Url } from './s3.js';
 import { input, select, confirm } from '@inquirer/prompts';
 import { getNativeName, isValid } from 'all-iso-language-codes';
+import { log } from '@helloao/tools';
 
 export interface GetTranslationsItem {
     id: string;
@@ -90,18 +91,17 @@ export async function initDb(
     dbPath: string | null,
     options: InitDbOptions
 ): Promise<void> {
-    console.log('Initializing new Bible API DB...');
+    const logger = log.getLogger();
+    logger.log('Initializing new Bible API DB...');
 
     if (options.source) {
         if (options.source.startsWith('https://')) {
-            console.log('Downloading source database...');
+            logger.log('Downloading source database...');
             const databasePath = database.getDbPath(dbPath);
             let progressIncrement = 0.01;
             await downloadFile(options.source, databasePath, (progress) => {
                 if (progress >= progressIncrement) {
-                    console.log(
-                        `Downloading... ${Math.round(progress * 100)}%`
-                    );
+                    logger.log(`Downloading... ${Math.round(progress * 100)}%`);
                     progressIncrement += 0.01;
                 }
             });
@@ -109,10 +109,10 @@ export async function initDb(
             const databasePath = database.getDbPath(dbPath);
             if (await exists(databasePath)) {
                 if (!options.overwrite) {
-                    console.log('Database already exists.');
+                    logger.log('Database already exists.');
                     return;
                 } else {
-                    console.log('Overwriting existing database...');
+                    logger.log('Overwriting existing database...');
                     await rm(databasePath);
                 }
             }
@@ -120,10 +120,10 @@ export async function initDb(
             const sourcePath = path.resolve(options.source);
 
             try {
-                console.log('Copying schema from source DB...');
+                logger.log('Copying schema from source DB...');
 
                 if (options.language) {
-                    console.log(
+                    logger.log(
                         'Copying only the following languages:',
                         options.language
                     );
@@ -192,7 +192,7 @@ export async function initDb(
                     `);
                 }
 
-                console.log('Done.');
+                logger.log('Done.');
             } finally {
                 db.close();
             }
@@ -248,6 +248,7 @@ export async function importTranslations(
     dir: string,
     options: ImportTranslationOptions
 ): Promise<void> {
+    const logger = log.getLogger();
     const parser = new DOMParser();
     globalThis.DOMParser = DOMParser as any;
     globalThis.Element = Element as any;
@@ -257,7 +258,7 @@ export async function importTranslations(
     try {
         const files = await readdir(dir);
         const translationDirs = files.map((f) => path.resolve(dir, f));
-        console.log(`Importing ${translationDirs.length} translations`);
+        logger.log(`Importing ${translationDirs.length} translations`);
         await database.importTranslations(
             db,
             translationDirs,
@@ -307,6 +308,7 @@ export async function importCommentaries(
     dir: string,
     options: ImportTranslationOptions
 ): Promise<void> {
+    const logger = log.getLogger();
     const parser = new DOMParser();
     globalThis.DOMParser = DOMParser as any;
     globalThis.Element = Element as any;
@@ -316,7 +318,7 @@ export async function importCommentaries(
     try {
         const files = await readdir(dir);
         const commentaryDirs = files.map((f) => path.resolve(dir, f));
-        console.log(`Importing ${commentaryDirs.length} commentaries`);
+        logger.log(`Importing ${commentaryDirs.length} commentaries`);
         await database.importCommentaries(
             db,
             commentaryDirs,
@@ -346,6 +348,7 @@ export async function fetchTranslations(
     translations?: string[],
     options: FetchTranslationsOptions = {}
 ): Promise<void> {
+    const logger = log.getLogger();
     const translationsSet = new Set(translations);
     const client = new BibleClient({
         remember_fetches: false,
@@ -354,7 +357,7 @@ export async function fetchTranslations(
     const collection = await client.fetch_collection();
     const collectionTranslations = collection.get_translations();
 
-    console.log(`Discovered ${collectionTranslations.length} translations`);
+    logger.log(`Discovered ${collectionTranslations.length} translations`);
 
     const filtered =
         translations && translations.length <= 0
@@ -366,13 +369,13 @@ export async function fetchTranslations(
         batches.push(filtered.splice(0, 10));
     }
 
-    console.log(
+    logger.log(
         `Downloading ${filtered.length} translations in ${batches.length} batches`
     );
 
     for (let i = 0; i < batches.length; i++) {
         const batch = batches[i];
-        console.log(`Downloading batch ${i + 1} of ${batches.length}`);
+        logger.log(`Downloading batch ${i + 1} of ${batches.length}`);
         const translations = await Promise.all(
             batch.map(async (t) => {
                 const id = getTranslationId(t.id);
@@ -432,7 +435,7 @@ export async function fetchTranslations(
             })
         );
 
-        console.log(`Writing batch ${i + 1} of ${batches.length}`);
+        logger.log(`Writing batch ${i + 1} of ${batches.length}`);
         let promises: Promise<void>[] = [];
         for (let { translation, books } of translations) {
             for (let book of books) {
@@ -474,13 +477,14 @@ export async function fetchAudio(
     translations: string[],
     options: FetchTranslationsOptions = {}
 ): Promise<void> {
+    const logger = log.getLogger();
     for (let translation of translations) {
         const [translationId, reader] = translation.split('/');
         const generator =
             KNOWN_AUDIO_TRANSLATIONS.get(translationId)?.get(reader);
 
         if (!generator) {
-            console.warn('Unknown translation:', translation);
+            logger.warn('Unknown translation:', translation);
             continue;
         }
 
@@ -553,6 +557,7 @@ export async function generateTranslationFiles(
     dest: string,
     options: UploadApiOptions
 ): Promise<void> {
+    const logger = log.getLogger();
     const parser = new DOMParser();
     globalThis.DOMParser = DOMParser as any;
     globalThis.Element = Element as any;
@@ -562,7 +567,7 @@ export async function generateTranslationFiles(
         path.resolve(input)
     );
     if (!files) {
-        console.log('No translation files found.');
+        logger.log('No translation files found.');
         return;
     }
 
@@ -666,6 +671,7 @@ export async function uploadTestTranslation(
     input: string,
     options: UploadTestTranslationOptions
 ): Promise<UploadTestTranslationResult | undefined> {
+    const logger = log.getLogger();
     const parser = new DOMParser();
     globalThis.DOMParser = DOMParser as any;
     globalThis.Element = Element as any;
@@ -678,7 +684,7 @@ export async function uploadTestTranslation(
     );
 
     if (!files || files.length <= 0) {
-        console.log('No translation files found.');
+        logger.log('No translation files found.');
         return;
     }
 
@@ -713,10 +719,11 @@ async function loadTranslationFilesOrAskForMetadata(
     dir: string,
     translationMetadata?: InputTranslationMetadata
 ) {
+    const logger = log.getLogger();
     let files = await loadTranslationFiles(dir, translationMetadata);
 
     if (!files) {
-        console.log(`No metadata found for the translation in ${dir}`);
+        logger.log(`No metadata found for the translation in ${dir}`);
 
         const enterMetadata = await confirm({
             message: 'Do you want to enter the metadata for the translation?',
