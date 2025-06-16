@@ -584,6 +584,11 @@ export interface UploadTestTranslationOptions extends UploadApiOptions {
      * The metadata that should be used for the translation.
      */
     translationMetadata?: InputTranslationMetadata;
+
+    /**
+     * The map of book IDs to common names.
+     */
+    bookNameMap?: Map<string, { commonName: string }>;
 }
 
 export interface UploadTestTranslationResult {
@@ -631,7 +636,7 @@ export async function uploadTestTranslations(
     const files = await loadTranslationsFiles(dirs);
     const hash = hashInputFiles(files);
 
-    const dataset = generateDataset(files, parser as any);
+    const dataset = generateDataset(files, parser as any, options.bookNameMap);
     const url = options.s3Url || 's3://ao-bible-api-public-uploads';
 
     await serializeAndUploadDatasets(url, toAsyncIterable([dataset]), {
@@ -678,7 +683,7 @@ export async function uploadTestTranslation(
     }
 
     const hash = hashInputFiles(files);
-    const dataset = generateDataset(files, parser as any);
+    const dataset = generateDataset(files, parser as any, options.bookNameMap);
     const url = options.s3Url || 's3://ao-bible-api-public-uploads';
 
     await serializeAndUploadDatasets(url, toAsyncIterable([dataset]), {
