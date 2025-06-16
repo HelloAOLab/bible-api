@@ -264,7 +264,8 @@ export async function loadTranslationFiles(
         (f) =>
             extname(f) === '.usfm' ||
             extname(f) === '.usx' ||
-            extname(f) === '.json'
+            extname(f) === '.json' ||
+            extname(f) === '.codex'
     );
 
     if (usfmFiles.length <= 0) {
@@ -289,15 +290,12 @@ export async function loadTranslationFiles(
             continue;
         }
         const filePath = path.resolve(translation, file);
-        promises.push(
-            loadFile(
-                path
-                    .extname(filePath)
-                    .slice(1) as InputTranslationFile['fileType'],
-                filePath,
-                metadata
-            )
-        );
+        let fileType = getFileType(path.extname(file).slice(1));
+        if (!fileType) {
+            console.warn(`Unknown file type for ${filePath}, skipping file.`);
+            continue;
+        }
+        promises.push(loadFile(fileType, filePath, metadata));
     }
 
     return await Promise.all(promises);
@@ -431,6 +429,21 @@ async function loadCommentaryMetadata(
     }
     console.error('Could not find metadata for commentary!', commentary);
     return null;
+}
+
+function getFileType(ext: string): InputTranslationFile['fileType'] | null {
+    switch (ext) {
+        case 'usfm':
+            return 'usfm';
+        case 'usx':
+            return 'usx';
+        case 'json':
+            return 'json';
+        case 'codex':
+            return 'json';
+        default:
+            return null;
+    }
 }
 
 /**
