@@ -248,10 +248,11 @@ export async function loadTranslationsFiles(
  * @returns The list of files that were loaded, or null if the translation has no metadata.
  */
 export async function loadTranslationFiles(
-    translation: string
+    translation: string,
+    translationMetadata?: InputTranslationMetadata
 ): Promise<InputFile[] | null> {
     const metadata: InputTranslationMetadata | null =
-        await loadTranslationMetadata(translation);
+        translationMetadata ?? (await loadTranslationMetadata(translation));
 
     if (!metadata) {
         console.error('Could not load metadata for translation!', translation);

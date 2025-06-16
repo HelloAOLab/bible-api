@@ -579,6 +579,11 @@ export interface UploadTestTranslationOptions extends UploadApiOptions {
      * Defaults to "s3://ao-bible-api-public-uploads"
      */
     s3Url?: string;
+
+    /**
+     * The metadata that should be used for the translation.
+     */
+    translationMetadata?: InputTranslationMetadata;
 }
 
 export interface UploadTestTranslationResult {
@@ -662,7 +667,10 @@ export async function uploadTestTranslation(
     globalThis.Node = Node as any;
 
     const inputPath = path.resolve(input);
-    const files = await loadTranslationFilesOrAskForMetadata(inputPath);
+    const files = await loadTranslationFilesOrAskForMetadata(
+        inputPath,
+        options.translationMetadata
+    );
 
     if (!files || files.length <= 0) {
         console.log('No translation files found.');
@@ -696,8 +704,11 @@ function getUrls(dest: string) {
     };
 }
 
-async function loadTranslationFilesOrAskForMetadata(dir: string) {
-    let files = await loadTranslationFiles(dir);
+async function loadTranslationFilesOrAskForMetadata(
+    dir: string,
+    translationMetadata?: InputTranslationMetadata
+) {
+    let files = await loadTranslationFiles(dir, translationMetadata);
 
     if (!files) {
         console.log(`No metadata found for the translation in ${dir}`);
