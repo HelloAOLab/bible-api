@@ -24,6 +24,7 @@ import { sha256 } from 'hash.js';
 import { PARSER_VERSION } from '@helloao/tools/parser/usx-parser.js';
 import { mergeWith } from 'lodash';
 import { fromByteArray } from 'base64-js';
+import { log } from '@helloao/tools';
 
 /**
  * Defines an interface that contains information about a serialized file.
@@ -153,6 +154,7 @@ export async function serializeFile(
     content: OutputFile['content'],
     options: SerializeApiOptions
 ): Promise<SerializedFile | null> {
+    const logger = log.getLogger();
     let fileContent: OutputFileContent;
     if (typeof content === 'function') {
         fileContent = await content();
@@ -191,14 +193,14 @@ export async function serializeFile(
                 content: Readable.fromWeb(fileContent as any),
             };
         } else {
-            console.warn('Expected content to be a readable stream for', path);
-            console.warn('Skipping file');
+            logger.warn('Expected content to be a readable stream for', path);
+            logger.warn('Skipping file');
             return null;
         }
     }
 
-    console.warn('Unknown file type', path);
-    console.warn('Skipping file');
+    logger.warn('Unknown file type', path);
+    logger.warn('Skipping file');
     return null;
 }
 
@@ -248,13 +250,15 @@ export async function loadTranslationsFiles(
  * @returns The list of files that were loaded, or null if the translation has no metadata.
  */
 export async function loadTranslationFiles(
-    translation: string
+    translation: string,
+    translationMetadata?: InputTranslationMetadata
 ): Promise<InputFile[] | null> {
+    const logger = log.getLogger();
     const metadata: InputTranslationMetadata | null =
-        await loadTranslationMetadata(translation);
+        translationMetadata ?? (await loadTranslationMetadata(translation));
 
     if (!metadata) {
-        console.error('Could not load metadata for translation!', translation);
+        logger.error('Could not load metadata for translation!', translation);
         return null;
     }
 
@@ -263,7 +267,8 @@ export async function loadTranslationFiles(
         (f) =>
             extname(f) === '.usfm' ||
             extname(f) === '.usx' ||
-            extname(f) === '.json'
+            extname(f) === '.json' ||
+            extname(f) === '.codex'
     );
 
     if (usfmFiles.length <= 0) {
@@ -275,10 +280,7 @@ export async function loadTranslationFiles(
     }
 
     if (usfmFiles.length <= 0) {
-        console.error(
-            'Could not find USFM files for translation!',
-            translation
-        );
+        logger.error('Could not find USFM files for translation!', translation);
         return [];
     }
 
@@ -288,15 +290,12 @@ export async function loadTranslationFiles(
             continue;
         }
         const filePath = path.resolve(translation, file);
-        promises.push(
-            loadFile(
-                path
-                    .extname(filePath)
-                    .slice(1) as InputTranslationFile['fileType'],
-                filePath,
-                metadata
-            )
-        );
+        let fileType = getFileType(path.extname(file).slice(1));
+        if (!fileType) {
+            logger.warn(`Unknown file type for ${filePath}, skipping file.`);
+            continue;
+        }
+        promises.push(loadFile(fileType, filePath, metadata));
     }
 
     return await Promise.all(promises);
@@ -330,11 +329,12 @@ export async function loadCommentariesFiles(
 export async function loadCommentaryFiles(
     commentary: string
 ): Promise<InputFile[] | null> {
+    const logger = log.getLogger();
     const metadata: InputCommentaryMetadata | null =
         await loadCommentaryMetadata(commentary);
 
     if (!metadata) {
-        console.error('Could not load metadata for commentary!', commentary);
+        logger.error('Could not load metadata for commentary!', commentary);
         return null;
     }
 
@@ -344,7 +344,7 @@ export async function loadCommentaryFiles(
     );
 
     if (commentaryFiles.length <= 0) {
-        console.error('Could not find files for commentary!', commentary);
+        logger.error('Could not find files for commentary!', commentary);
         return [];
     }
 
@@ -374,6 +374,7 @@ export async function loadCommentaryFiles(
 async function loadTranslationMetadata(
     translation: string
 ): Promise<InputTranslationMetadata | null> {
+    const logger = log.getLogger();
     const metadataTs = path.resolve(translation, 'metadata.ts');
     if (existsSync(metadataTs)) {
         const importPath = new URL('file://' + metadataTs).href;
@@ -404,7 +405,7 @@ async function loadTranslationMetadata(
             }
         }
     }
-    console.error('Could not find metadata for translation!', translation);
+    logger.error('Could not find metadata for translation!', translation);
     return null;
 }
 
@@ -416,6 +417,7 @@ async function loadTranslationMetadata(
 async function loadCommentaryMetadata(
     commentary: string
 ): Promise<InputCommentaryMetadata | null> {
+    const logger = log.getLogger();
     const metadataTs = path.resolve(commentary, 'metadata.ts');
     if (existsSync(metadataTs)) {
         return (await import(metadataTs)).default as InputCommentaryMetadata;
@@ -428,8 +430,23 @@ async function loadCommentaryMetadata(
             return JSON.parse(data) as InputCommentaryMetadata;
         }
     }
-    console.error('Could not find metadata for commentary!', commentary);
+    logger.error('Could not find metadata for commentary!', commentary);
     return null;
+}
+
+function getFileType(ext: string): InputTranslationFile['fileType'] | null {
+    switch (ext) {
+        case 'usfm':
+            return 'usfm';
+        case 'usx':
+            return 'usx';
+        case 'json':
+            return 'json';
+        case 'codex':
+            return 'json';
+        default:
+            return null;
+    }
 }
 
 /**

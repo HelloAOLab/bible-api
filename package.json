@@ -4,7 +4,7 @@
     "version": "0.0.0",
     "type": "module",
     "scripts": {
-        "test": "npm run clean && node --experimental-vm-modules node_modules/jest/bin/jest.js --watchAll",
+        "test": "npm run clean && tsc --build && node --experimental-vm-modules node_modules/jest/bin/jest.js --watchAll",
         "build": "npm run clean && npm run esbuild && npm run build:tsc",
         "build:tsc": "tsc --build",
         "esbuild": "tsx ./tools/build.ts",
@@ -47,13 +47,13 @@
         "ts-jest": "29.2.5",
         "ts-node": "^10.9.1",
         "tsx": "^4.19.1",
-        "typescript": "^5.5.3"
+        "typescript": "^5.8.3"
     },
     "engines": {
         "node": "^20.17.0",
-        "pnpm": "^8.11.0"
+        "pnpm": "^10.12.1"
     },
-    "packageManager": "pnpm@8.11.0",
+    "packageManager": "pnpm@10.12.1+sha512.f0dda8580f0ee9481c5c79a1d927b9164f2c478e90992ad268bbb2465a736984391d6333d2c327913578b2804af33474ca554ba29c04a8b13060a717675ae3ac",
     "prisma": {
         "schema": "./packages/helloao-cli/schema.prisma"
     }

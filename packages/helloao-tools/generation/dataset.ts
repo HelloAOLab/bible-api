@@ -15,13 +15,14 @@ import {
     TranslationBook,
     TranslationBookChapter,
 } from './common-types.js';
-import { bookIdMap, bookOrderMap } from './book-order.js';
+import { bookIdMap as defaultBookIdMap, bookOrderMap } from './book-order.js';
 import { omit, sortBy, sortedIndexBy } from 'lodash';
 import { getAudioUrlsForChapter } from './audio.js';
 import { CodexParser } from '../parser/codex-parser.js';
 import { CommentaryCsvParser } from '../parser/commentary-csv-parser.js';
 import { CommentaryParseTree, ParseTree } from '../parser/types.js';
 import { TyndaleXmlParser } from '../parser/tyndale-xml-parser.js';
+import { getLogger } from '../log.js';
 
 /**
  * Defines an interface that contains generated dataset info.
@@ -93,11 +94,15 @@ export interface DatasetCommentaryProfile extends CommentaryProfile {
 /**
  * Generates a list of output files from the given list of input files.
  * @param file The list of files.
+ * @param parser The parser to use for parsing the files.
+ * @param bookMap The map of book IDs to names. If undefined, then a default map will be used.
  */
 export function generateDataset(
     files: InputFile[],
-    parser: DOMParser = new globalThis.DOMParser()
+    parser: DOMParser = new globalThis.DOMParser(),
+    bookMap?: Map<string, { commonName: string }> | undefined
 ): DatasetOutput {
+    const logger = getLogger();
     let output: DatasetOutput = {
         translations: [],
         commentaries: [],
@@ -132,7 +137,7 @@ export function generateDataset(
             } else if (file.fileType === 'commentary/tyndale-xml') {
                 parser = tyndaleXmlParser;
             } else {
-                console.warn(
+                logger.warn(
                     '[generate] File does not have a valid type!',
                     file.name
                 );
@@ -147,7 +152,7 @@ export function generateDataset(
                 addCommentaryTree(file as InputCommentaryFile, parsed);
             }
         } catch (err) {
-            console.error(
+            logger.error(
                 `[generate] Error occurred while parsing ${file.name}`,
                 err
             );
@@ -158,7 +163,7 @@ export function generateDataset(
         const id = parsed.id;
 
         if (!id) {
-            console.warn(
+            logger.warn(
                 '[generate] File does not have a valid book ID!',
                 file.name,
                 id
@@ -169,32 +174,11 @@ export function generateDataset(
         const order = bookOrderMap.get(id);
 
         if (typeof order !== 'number') {
-            console.warn('[generate] Book does not have an order!', id);
+            logger.warn('[generate] Book does not have an order!', id);
             return;
         }
 
-        const bookMap = bookIdMap.get(file.metadata.language);
-
-        if (!bookMap) {
-            if (!unknownLanguages.has(file.metadata.language)) {
-                console.warn(
-                    '[generate] File does not have a known language!',
-                    file.name,
-                    file.metadata.language
-                );
-                unknownLanguages.add(file.metadata.language);
-            }
-        }
-
-        const bookName = bookMap?.get(id);
-
-        if (!!bookMap && !bookName) {
-            console.warn(
-                '[generate] Book name not found for ID!',
-                file.name,
-                id
-            );
-        }
+        const bookName = getBookNames(file, file.metadata, id);
 
         let translation = parsedTranslations.get(file.metadata.id);
 
@@ -208,19 +192,19 @@ export function generateDataset(
             parsedTranslations.set(file.metadata.id, translation);
         }
 
-        const name = parsed.header ?? bookName?.commonName ?? parsed.title;
+        const name =
+            parsed.header ?? bookName?.bookName?.commonName ?? parsed.title;
 
         if (!name) {
-            console.warn(
-                '[generate] Book does not have a name!',
-                file.name,
-                id
-            );
+            logger.warn('[generate] Book does not have a name!', file.name, id);
             return;
         }
 
         const commonName =
-            bookName?.commonName ?? parsed.header ?? parsed.title ?? id;
+            bookName?.bookName?.commonName ??
+            parsed.header ??
+            parsed.title ??
+            id;
 
         const book: DatasetTranslationBook = {
             id: id,
@@ -274,7 +258,7 @@ export function generateDataset(
         for (let parsedBook of parsed.books) {
             let book = commentary.books.find((b) => b.id === parsedBook.book);
             if (book && book.introduction && parsedBook.introduction) {
-                console.warn(
+                logger.warn(
                     '[generate] Book already exists in commentary!',
                     file.name,
                     parsedBook.book
@@ -326,7 +310,7 @@ export function generateDataset(
                     (p) => p.id === profile.id
                 );
                 if (existing) {
-                    console.warn(
+                    logger.warn(
                         '[generate] Profile already exists in commentary!',
                         file.name,
                         profile.id
@@ -354,23 +338,30 @@ export function generateDataset(
         metadata: MetadataBase,
         id: string
     ) {
-        const bookMap = bookIdMap.get(metadata.language);
-
         if (!bookMap) {
-            if (!unknownLanguages.has(metadata.language)) {
-                console.warn(
-                    '[generate] File does not have a known language!',
-                    file.name,
-                    metadata.language
+            bookMap = defaultBookIdMap.get(metadata.language);
+
+            if (!bookMap) {
+                if (!unknownLanguages.has(metadata.language)) {
+                    logger.warn(
+                        '[generate] File does not have a known language!',
+                        file.name,
+                        metadata.language
+                    );
+                    unknownLanguages.add(metadata.language);
+                }
+
+                logger.warn(
+                    '[generate] Using English book map for unknown language! This might result in outputting english book names.'
                 );
-                unknownLanguages.add(metadata.language);
+                bookMap = defaultBookIdMap.get('en');
             }
         }
 
         const bookName = bookMap?.get(id);
 
         if (!!bookMap && !bookName) {
-            console.warn(
+            logger.warn(
                 '[generate] Book name not found for ID!',
                 file.name,
                 id
