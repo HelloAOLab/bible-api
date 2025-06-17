@@ -1,4 +1,4 @@
-import { VerseRef } from "utils";
+import { VerseRef } from '../utils.js';
 
 /**
  * Defines an interface that contains information about a input file.

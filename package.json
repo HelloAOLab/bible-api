@@ -4,7 +4,7 @@
     "version": "0.0.0",
     "type": "module",
     "scripts": {
-        "test": "npm run clean && node --experimental-vm-modules node_modules/jest/bin/jest.js --watchAll",
+        "test": "npm run clean && tsc --build && node --experimental-vm-modules node_modules/jest/bin/jest.js --watchAll",
         "build": "npm run clean && npm run esbuild && npm run build:tsc",
         "build:tsc": "tsc --build",
         "esbuild": "tsx ./tools/build.ts",
