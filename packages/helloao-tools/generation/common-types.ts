@@ -91,7 +91,7 @@ export interface InputTranslationMetadata extends MetadataBase {
     /**
      * The short name for the translation.
      */
-    shortName?: string;
+    shortName: string;
 }
 
 /**

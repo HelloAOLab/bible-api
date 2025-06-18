@@ -56,7 +56,7 @@ interface Translation {
     /**
      * The short name for the translation.
      */
-    shortName?: string;
+    shortName: string;
 
     /**
      * The ISO 639  3-letter language tag that the translation is primarily in.

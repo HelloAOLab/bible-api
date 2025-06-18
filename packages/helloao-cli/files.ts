@@ -476,7 +476,7 @@ async function loadFile(
         metadata: metadata,
         name: file,
         sha256: hash,
-        fileType,
+        fileType: fileType as any,
     };
 }
 
