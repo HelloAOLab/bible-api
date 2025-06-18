@@ -247,6 +247,9 @@ export async function uploadFiles(
 
     try {
         await uploadFilesUsingUploader(uploader, options, serializedFiles);
+    } catch (err) {
+        logger.error('Error uploading files:', err);
+        throw err;
     } finally {
         if (uploader && uploader.dispose) {
             await uploader.dispose();
