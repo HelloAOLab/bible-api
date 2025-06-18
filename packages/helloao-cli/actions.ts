@@ -31,7 +31,7 @@ import {
     UploadApiOptions,
 } from './uploads.js';
 import { getHttpUrl, parseS3Url } from './s3.js';
-import { input, select, confirm } from '@inquirer/prompts';
+import { input, select, confirm, checkbox } from '@inquirer/prompts';
 import { getNativeName, isValid } from 'all-iso-language-codes';
 import { parse } from 'papaparse';
 import { EBibleSource } from 'prisma-gen/index.js';
@@ -1029,14 +1029,62 @@ export async function sourceTranslations(
 
     console.log(`Found ${filteredSources.length} sources`);
 
+    // If multiple sources found and user specified translation(s), prompt for selection
+    if (filteredSources.length > 1 && translations && translations.length > 0) {
+        console.log('\nMultiple sources found matching your search:');
+        
+        filteredSources.forEach((source, index) => {
+            console.log(`  ${index + 1}. ${source.id} -> ${source.translationId} | ${source.title} | ${source.languageCode}`);
+        });
+
+        const SELECT_ALL_VALUE = -1;
+        const choices = [
+            ...filteredSources.map((source, index) => ({
+                name: `${source.id} -> ${source.translationId} | ${source.title} | ${source.languageCode}`,
+                value: index,
+                checked: false
+            })),
+            { name: 'Select All', value: SELECT_ALL_VALUE, checked: false }
+        ];
+
+        const selectedSources: number[] = await checkbox({
+            message: 'Select which sources to download (use space to select, enter to confirm):',
+            choices: choices,
+            validate: (choices: readonly { value: number }[]) => {
+                if (choices.length === 0) {
+                    return 'Please select at least one source or "Select All"';
+                }
+                return true;
+            }
+        });
+
+        // Handle selection
+        if (selectedSources.includes(SELECT_ALL_VALUE)) {
+            // User selected "Select All" - keep all sources
+            console.log(`Selected all ${filteredSources.length} sources for download.`);
+        } else {
+            // User selected specific sources
+            const selectedIndices = selectedSources.filter((s: number) => s !== SELECT_ALL_VALUE);
+            filteredSources = selectedIndices.map((index: number) => filteredSources[index]);
+            console.log(`Selected ${filteredSources.length} sources for download.`);
+        }
+    } else if (filteredSources.length === 0) {
+        console.log('No matching sources found.');
+        if (translations && translations.length > 0) {
+            console.log('Tip: Use the "list-ebible-translations" command to find available translations.');
+        }
+        return;
+    }
+
     // Create a temporary directory for USFM downloads
     const tempDir = convertToUsx3 ? path.join(tmpdir(), 'ebible-usfm-temp', `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`) : null;
 
     try {
         let batches: EBibleSource[][] = [];
         const batchSize = 50;
-        while (filteredSources.length > 0) {
-            batches.push(filteredSources.splice(0, batchSize));
+        const sourcesToProcess = [...filteredSources];
+        while (sourcesToProcess.length > 0) {
+            batches.push(sourcesToProcess.splice(0, batchSize));
         }
 
         let numDownloaded = 0;
