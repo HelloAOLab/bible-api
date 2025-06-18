@@ -161,7 +161,7 @@ async function findBibleMultiConverterJar(providedPath?: string): Promise<string
  */
 async function promptForBibleMultiConverter(): Promise<string | null> {
     console.log('BibleMultiConverter.jar not found in common locations.');
-    
+
     const hasConverter = await confirm({
         message: 'Do you have BibleMultiConverter.jar available?',
     });
@@ -191,39 +191,39 @@ async function promptForBibleMultiConverter(): Promise<string | null> {
  * Converts USFM directory to USX3 using BibleMultiConverter
  */
 async function convertUsfmToUsx3(
-    inputDir: string, 
-    outputDir: string, 
+    inputDir: string,
+    outputDir: string,
     jarPath: string
 ): Promise<boolean> {
     try {
         console.log(`Converting USFM files from ${inputDir} to USX3 format...`);
-        
+
         // Ensure output directory exists
         await mkdir(outputDir, { recursive: true });
 
         // Run BibleMultiConverter
         const args = [
-            '-jar', 
-            jarPath, 
-            'ParatextConverter', 
-            'USFM', 
-            inputDir, 
-            'USX3', 
-            outputDir, 
+            '-jar',
+            jarPath,
+            'ParatextConverter',
+            'USFM',
+            inputDir,
+            'USX3',
+            outputDir,
             '*.usx'
         ];
 
         console.log(`Running: java ${args.join(' ')}`);
-        
+
         const { stdout, stderr } = await execFile('java', args);
-        
+
         if (stdout) console.log('Conversion output:', stdout);
         if (stderr) console.log('Conversion warnings:', stderr);
 
         // Verify conversion worked
         const files = await readdir(outputDir);
         const usxFiles = files.filter(f => f.endsWith('.usx'));
-        
+
         if (usxFiles.length > 0) {
             console.log(`Successfully converted to ${usxFiles.length} USX3 files`);
             return true;
@@ -914,7 +914,9 @@ export async function sourceTranslations(
         promptForConversion = true
     } = options;
 
+    console.log('Fetching eBible metadata...');
     const ebibleSources = await fetchEBibleMetadata();
+    console.log(`Total eBible sources found: ${ebibleSources.length}`);
 
     let db: any = null;
     let sourceExists: any = null;
@@ -931,7 +933,17 @@ export async function sourceTranslations(
             if (!source.FCBHID) {
                 return false;
             }
-            if (translations && !translations.includes(source.translationId)) {
+            if (translations && !translations.some(t => {
+                const lowerT = t.toLowerCase();
+                const lowerSourceId = source.id.toLowerCase();
+                const lowerTranslationId = source.translationId.toLowerCase();
+                
+                const exactMatch = t === source.translationId || t === source.id;
+                const caseInsensitiveMatch = lowerT === lowerTranslationId || lowerT === lowerSourceId;
+                const partialMatch = lowerSourceId.includes(lowerT) || lowerTranslationId.includes(lowerT);
+                
+                return exactMatch || caseInsensitiveMatch || partialMatch;
+            })) {
                 return false;
             }
             const existingSource = sourceExists.get(source) as {
@@ -945,7 +957,17 @@ export async function sourceTranslations(
                 source.usfmZipEtag = existingSource.usfmZipEtag;
                 source.usfmDownloadDate = existingSource.usfmDownloadDate as any;
 
-                if (translations && translations.includes(source.translationId)) {
+                if (translations && translations.some(t => {
+                    const lowerT = t.toLowerCase();
+                    const lowerSourceId = source.id.toLowerCase();
+                    const lowerTranslationId = source.translationId.toLowerCase();
+                    
+                    const exactMatch = t === source.translationId || t === source.id;
+                    const caseInsensitiveMatch = lowerT === lowerTranslationId || lowerT === lowerSourceId;
+                    const partialMatch = lowerSourceId.includes(lowerT) || lowerTranslationId.includes(lowerT);
+                    
+                    return exactMatch || caseInsensitiveMatch || partialMatch;
+                })) {
                     return true;
                 }
 
@@ -988,7 +1010,17 @@ export async function sourceTranslations(
             if (!source.FCBHID) {
                 return false;
             }
-            if (translations && !translations.includes(source.translationId)) {
+            if (translations && !translations.some(t => {
+                const lowerT = t.toLowerCase();
+                const lowerSourceId = source.id.toLowerCase();
+                const lowerTranslationId = source.translationId.toLowerCase();
+                
+                const exactMatch = t === source.translationId || t === source.id;
+                const caseInsensitiveMatch = lowerT === lowerTranslationId || lowerT === lowerSourceId;
+                const partialMatch = lowerSourceId.includes(lowerT) || lowerTranslationId.includes(lowerT);
+                
+                return exactMatch || caseInsensitiveMatch || partialMatch;
+            })) {
                 return false;
             }
             return true;
@@ -1038,7 +1070,7 @@ export async function sourceTranslations(
                                 const zip = new ZipReader(reader);
 
                                 // Use temp directory for USFM files if converting, otherwise use final output directory
-                                const downloadDir = convertToUsx3 && tempDir 
+                                const downloadDir = convertToUsx3 && tempDir
                                     ? path.resolve(tempDir, source.translationId)
                                     : path.resolve(outputDir, source.translationId);
 
@@ -1165,6 +1197,38 @@ export async function sourceTranslations(
         if (db) {
             db.close();
         }
+    }
+}
+
+export async function listEBibleTranslations(searchTerm?: string): Promise<void> {
+    console.log('Fetching eBible translation list...');
+    const ebibleSources = await fetchEBibleMetadata();
+
+    let filteredSources = ebibleSources;
+
+    if (searchTerm) {
+        const search = searchTerm.toLowerCase();
+        filteredSources = ebibleSources.filter(source =>
+            source.id.toLowerCase().includes(search) ||
+            source.translationId.toLowerCase().includes(search) ||
+            source.title.toLowerCase().includes(search) ||
+            source.languageCode.toLowerCase().includes(search)
+        );
+        console.log(`Found ${filteredSources.length} translations matching "${searchTerm}":`);
+    } else {
+        console.log(`All ${filteredSources.length} available eBible translations:`);
+    }
+
+    console.log('Format: [ID] -> [TranslationID] | [Title] | [Language]');
+    console.log('─'.repeat(80));
+
+    filteredSources.forEach(source => {
+        console.log(`${source.id} -> ${source.translationId} | ${source.title} | ${source.languageCode}`);
+    });
+
+    if (searchTerm && filteredSources.length === 0) {
+        console.log('No translations found. Try a different search term.');
+        console.log('Tip: Try searching for language codes like "en", "es", "fr", etc.');
     }
 }
 
