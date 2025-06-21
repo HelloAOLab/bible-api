@@ -458,19 +458,19 @@ async function start() {
             'Path to BibleMultiConverter.jar file'
         )
         .option(
-            '--no-prompt-for-conversion',
-            'Do not prompt user for converter location if not found automatically'
-        )
-        .option(
             '--overwrite',
             'Overwrite existing files in output directory'
+        )
+        .option(
+            '--no-database',
+            'Disable database tracking for downloads'
         )
         .action(async (dir, translations, options) => {
             const sourceOptions = {
                 convertToUsx3: options.convertToUsx3,
                 bibleMultiConverterPath: options.bibleMultiConverterPath,
-                promptForConversion: options.promptForConversion !== false,
-                useDatabase: options.useDatabase !== false,
+                useDatabase: options.database !== false,
+                overwrite: options.overwrite,
                 conversionOptions: {
                     overwrite: options.overwrite
                 }
