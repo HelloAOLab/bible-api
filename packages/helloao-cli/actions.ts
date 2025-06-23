@@ -638,20 +638,26 @@ export const CONVERSION_INSTRUCTIONS = {
 /**
  * Prints conversion instructions for the user
  */
-export function printConversionInstructions(inputDir: string, outputDir: string): void {
-    console.log('=== MANUAL CONVERSION REQUIRED ===');
-    console.log('Please convert USFM files to USX3 format manually using BibleMultiConverter.');
+export function printConversionInstructions(): void {
+    console.log('\n=== MANUAL CONVERSION REQUIRED ===');
+    console.log('Automatic conversion is not available.');
     console.log('');
-    console.log('1. Download BibleMultiConverter.jar from:');
+    console.log('To enable automatic conversion, please:');
+    console.log('1. Download BibleMultiConverter.zip from:');
     console.log(`   ${CONVERSION_INSTRUCTIONS.downloadUrl}`);
     console.log('');
-    console.log('2. Ensure Java 8+ is installed');
+    console.log('2. Extract the zip file to one of these locations:');
+    console.log('   • Current directory (./BibleMultiConverter/)');
+    console.log('   • Tools subdirectory (./tools/BibleMultiConverter/)');
+    console.log('   • Parent directory (../BibleMultiConverter/)');
+    console.log('   • Or extract anywhere and provide the JAR path when prompted');
     console.log('');
-    console.log('3. Run this command:');
-    console.log(`   ${CONVERSION_INSTRUCTIONS.getConversionCommand(inputDir, outputDir)}`);
+    console.log('3. Ensure Java 8+ is installed');
     console.log('');
-    console.log('4. After conversion, re-run this tool to continue processing.');
-    console.log('==========================================');
+    console.log('4. Re-run this command with the --convertToUsx3 option');
+    console.log('');
+    console.log('Note: USFM files have been downloaded but conversion was skipped.');
+    console.log('==========================================\n');
 }
 
 /**
@@ -1100,18 +1106,55 @@ export async function sourceTranslations(
                     await rm(tempDir, { recursive: true, force: true });
                 }
             } else {
-                // Manual conversion instructions (fallback)
-                console.log('Automatic conversion not available. Manual conversion required:');
+                // Manual conversion instructions (fallback) with cleanup
+                console.log('Automatic conversion not available.');
+                
+                // Show simplified instructions
+                printConversionInstructions();
 
-                conversionsNeeded.forEach(({ tempPath, outputPath }) => {
+                // Copy USFM files to final output directory
+                console.log('\nCopying USFM files to output directory for later processing...');
+                for (const { tempPath, outputPath, source } of conversionsNeeded) {
                     const translationName = path.basename(tempPath);
-                    console.log(`Translation: ${translationName}`);
-                    console.log(`Temp USFM files: ${tempPath}`);
-                    printConversionInstructions(tempPath, outputPath);
-                });
+                    console.log(`Copying ${translationName} to ${outputPath}...`);
+                    
+                    // Ensure output directory exists
+                    await mkdir(outputPath, { recursive: true });
+                    
+                    // Copy all USFM files
+                    const files = await readdir(tempPath);
+                    for (const file of files) {
+                        const sourcePath = path.join(tempPath, file);
+                        const targetPath = path.join(outputPath, file);
+                        
+                        if ((await access(sourcePath).then(() => true).catch(() => false))) {
+                            if (overwrite && existsSync(targetPath)) {
+                                console.log(`Overwriting existing file: ${file}`);
+                            } else if (!overwrite && existsSync(targetPath)) {
+                                console.log(`File already exists, skipping: ${file}`);
+                                continue;
+                            }
+                            await copyFile(sourcePath, targetPath);
+                        }
+                    }
+                    
+                    // Update database with final path for USFM files
+                    if (useDatabase && sourceUpsert) {
+                        source.usfmDownloadPath = outputPath;
+                        sourceUpsert.run(source);
+                        console.log(`Updated database with USFM path for ${source.translationId}`);
+                    }
+                }
 
-                console.log(`IMPORTANT: Temporary files are in: ${tempDir}`);
-                console.log('Please complete conversions before this directory is cleaned up.');
+                // Clean up temp directory
+                if (tempDir && existsSync(tempDir)) {
+                    console.log(`\nCleaning up temporary directory: ${tempDir}`);
+                    await rm(tempDir, { recursive: true, force: true });
+                    console.log('Temporary files have been cleaned up to save disk space.');
+                }
+                
+                console.log('\nUSFM files are now available in the output directory.');
+                console.log('Install BibleMultiConverter.jar and re-run with --convertToUsx3 to convert them automatically.');
             }
         }
 

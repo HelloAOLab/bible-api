@@ -15,7 +15,7 @@ export async function findBibleMultiConverterJar(providedPath?: string): Promise
         return providedPath;
     }
 
-    //Check common locations
+    // Check common locations for standalone JAR file
     const commonPaths = [
         './BibleMultiConverter.jar',
         './tools/BibleMultiConverter.jar',
@@ -24,7 +24,18 @@ export async function findBibleMultiConverterJar(providedPath?: string): Promise
         'BibleMultiConverter.jar'
     ];
 
-    for (const jarPath of commonPaths) {
+    // Check common locations for JAR file inside BibleMultiConverter folder
+    const folderPaths = [
+        './BibleMultiConverter/BibleMultiConverter.jar',
+        './tools/BibleMultiConverter/BibleMultiConverter.jar',
+        '../BibleMultiConverter/BibleMultiConverter.jar',
+        '../../BibleMultiConverter/BibleMultiConverter.jar',
+    ];
+
+    // Combine all paths to check
+    const allPaths = [...commonPaths, ...folderPaths];
+
+    for (const jarPath of allPaths) {
         if (existsSync(jarPath)) {
             console.log(`Found BibleMultiConverter.jar at: ${jarPath}`);
             return jarPath;
