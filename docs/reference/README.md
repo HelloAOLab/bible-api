@@ -56,7 +56,7 @@ interface Translation {
     /**
      * The short name for the translation.
      */
-    shortName?: string;
+    shortName: string;
 
     /**
      * The ISO 639  3-letter language tag that the translation is primarily in.
@@ -209,11 +209,6 @@ interface TranslationBook {
      * The link to the last chapter of the book.
      */
     lastChapterApiLink: string;
-
-    /**
-     * The number of chapters that the book contains.
-     */
-    numberOfChapters: number;
 
     /**
      * The number of verses that the book contains.

@@ -1,3 +1,6 @@
 packages:
-  - '*'
-  - 'packages/*'
+    - '*'
+    - packages/*
+
+overrides:
+    '@helloao/cli': link:packages/helloao-cli

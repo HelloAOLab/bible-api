@@ -635,6 +635,131 @@ describe('generateApiForDataset()', () => {
         // });
     });
 
+    it('use the given book ID map', () => {
+        let translation1: InputTranslationMetadata = {
+            id: 'bsb',
+            name: 'Berean Standard Bible',
+            englishName: 'Berean Standard Bible',
+            shortName: 'BSB',
+            language: 'spa',
+            direction: 'ltr',
+            licenseUrl: 'https://berean.bible/terms.htm',
+            website: 'https://berean.bible',
+        };
+
+        let inputFiles: InputFile[] = [
+            {
+                fileType: 'usfm',
+                metadata: translation1,
+                content: firstXLines(_1Chronicles, 11),
+            },
+        ];
+
+        const dataset = generateDataset(
+            inputFiles,
+            new DOMParser() as any,
+            new Map([
+                [
+                    '1CH',
+                    {
+                        commonName: 'test book name',
+                    },
+                ],
+            ])
+        );
+        const generated = generateApiForDataset(dataset, {
+            useCommonName: false,
+        });
+        const files = generateFilesForApi(generated);
+        const tree = fileTree(files);
+
+        const expectedTranslation = {
+            id: 'bsb',
+            name: 'Berean Standard Bible',
+            englishName: 'Berean Standard Bible',
+            shortName: 'BSB',
+            language: 'spa',
+            textDirection: 'ltr',
+            licenseUrl: 'https://berean.bible/terms.htm',
+            website: 'https://berean.bible',
+            availableFormats: ['json'],
+            listOfBooksApiLink: '/api/bsb/books.json',
+            numberOfBooks: 1,
+            totalNumberOfChapters: 1,
+            totalNumberOfVerses: 1,
+        };
+
+        expect(tree).toEqual({
+            '/api/available_translations.json': {
+                translations: [expectedTranslation],
+            },
+            '/api/available_commentaries.json': {
+                commentaries: [],
+            },
+            '/api/bsb/books.json': {
+                translation: expectedTranslation,
+                books: [
+                    {
+                        id: '1CH',
+                        name: '1 Chronicles',
+                        commonName: 'test book name',
+                        title: '1 Chronicles',
+                        numberOfChapters: 1,
+                        totalNumberOfVerses: 1,
+                        order: 13,
+                        firstChapterApiLink: '/api/bsb/1CH/1.json',
+                        lastChapterApiLink: '/api/bsb/1CH/1.json',
+                    },
+                ],
+            },
+            '/api/bsb/1CH/1.json': {
+                translation: expectedTranslation,
+                book: {
+                    id: '1CH',
+                    name: '1 Chronicles',
+                    commonName: 'test book name',
+                    title: '1 Chronicles',
+                    numberOfChapters: 1,
+                    totalNumberOfVerses: 1,
+                    order: 13,
+                    firstChapterApiLink: '/api/bsb/1CH/1.json',
+                    lastChapterApiLink: '/api/bsb/1CH/1.json',
+                },
+                thisChapterLink: '/api/bsb/1CH/1.json',
+                thisChapterAudioLinks: {},
+                nextChapterApiLink: null,
+                nextChapterAudioLinks: null,
+                previousChapterApiLink: null,
+                previousChapterAudioLinks: null,
+                numberOfVerses: 1,
+                chapter: {
+                    number: 1,
+                    content: [
+                        {
+                            type: 'heading',
+                            content: ['From Adam to Abraham'],
+                        },
+                        {
+                            type: 'line_break',
+                        },
+                        {
+                            type: 'verse',
+                            number: 1,
+                            content: ['Adam, Seth, Enosh,'],
+                        },
+                    ],
+                    footnotes: [],
+                },
+            },
+        });
+
+        // expect(availableTranslations).toEqual({
+        //     translations: [
+        //         expectedTranslation
+        //     ]
+        // });
+    });
+
     it('should support commentary files', () => {
         let comment1: InputCommentaryMetadata = {
             id: 'comment',

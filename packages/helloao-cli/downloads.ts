@@ -1,3 +1,4 @@
+import { log } from '@helloao/tools';
 import { createWriteStream } from 'fs-extra';
 import { createReadStream } from 'node:fs';
 import { Readable } from 'node:stream';
@@ -8,7 +9,8 @@ export async function downloadFile(
     path: string,
     onProgress?: (progress: number) => void
 ) {
-    console.log('Downloading', url, 'to', path);
+    const logger = log.getLogger();
+    logger.log('Downloading', url, 'to', path);
     const response = await fetch(url);
     await downloadResponse(response, path, onProgress);
 }

@@ -81,7 +81,6 @@ export class CommentaryCsvParser {
                 }
 
                 if (!book) {
-                    // console.log(line);
                     throw new Error('Chapter without book');
                 }
 

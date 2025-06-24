@@ -1,3 +1,4 @@
+import { getLogger } from '../log.js';
 
 /**
  * Defines an interface that represents an iterator that can be rewound.
@@ -24,12 +25,12 @@ export class Rewindable<T> implements RewindableIterator<T> {
         this._iterator = iterator;
         this._bufferSize = bufferSize;
 
-        if(this._iterator.return) {
+        if (this._iterator.return) {
             this.return = (value?: any) => {
                 return this._iterator.return!(value);
             };
         }
-        if(this._iterator.throw) {
+        if (this._iterator.throw) {
             this.throw = (value?: any) => {
                 return this._iterator.throw!(value);
             };
@@ -50,14 +51,17 @@ export class Rewindable<T> implements RewindableIterator<T> {
             this._position--;
             return {
                 value: item,
-                done: false
+                done: false,
             };
         }
 
         let result = this._iterator.next(...args);
         this.buffer.unshift(result.value);
         if (this.buffer.length > this._bufferSize) {
-            this.buffer.splice(this._bufferSize, this.buffer.length - this._bufferSize);
+            this.buffer.splice(
+                this._bufferSize,
+                this.buffer.length - this._bufferSize
+            );
         }
         return result;
     }
@@ -66,14 +70,15 @@ export class Rewindable<T> implements RewindableIterator<T> {
     throw?(e?: any): IteratorResult<T, any>;
 }
 
-export function *debug(label: string, iterator: IterableIterator<any>) {
+export function* debug(label: string, iterator: IterableIterator<any>) {
+    const logger = getLogger();
     for (let value of uncompletable(iterator)) {
         if (value instanceof Element) {
-            console.log(label, value.outerHTML);
-        } else if(value instanceof Node) {
-            console.log(label, value.textContent);
+            logger.log(label, value.outerHTML);
+        } else if (value instanceof Node) {
+            logger.log(label, value.textContent);
         } else {
-            console.log(label, value);
+            logger.log(label, value);
         }
         yield value;
     }
@@ -84,13 +89,15 @@ export function *debug(label: string, iterator: IterableIterator<any>) {
  * @param iterator The iterator.
  * @param bufferSize The size of the buffer.
  */
-export function rewindable<T>(iterator: IterableIterator<T>, bufferSize: number = 2): Rewindable<T> {
+export function rewindable<T>(
+    iterator: IterableIterator<T>,
+    bufferSize: number = 2
+): Rewindable<T> {
     return new Rewindable(iterator, bufferSize);
 }
 
-
-function *iterateNodes(node: Node) {
-    for(let i = 0; i < node.childNodes.length; i++) {
+function* iterateNodes(node: Node) {
+    for (let i = 0; i < node.childNodes.length; i++) {
         yield node.childNodes[i];
     }
 }
@@ -100,7 +107,10 @@ function *iterateNodes(node: Node) {
  * @param node The node.
  */
 export function parentChar(node: Node): Element | null {
-    return matchingParent(node, n => n instanceof Element && n.nodeName === 'char') as Element | null;
+    return matchingParent(
+        node,
+        (n) => n instanceof Element && n.nodeName === 'char'
+    ) as Element | null;
 }
 
 /**
@@ -108,7 +118,10 @@ export function parentChar(node: Node): Element | null {
  * @param node The node.
  */
 export function parentNote(node: Node): Element | null {
-    return matchingParent(node, n => n instanceof Element && n.nodeName === 'note') as Element | null;
+    return matchingParent(
+        node,
+        (n) => n instanceof Element && n.nodeName === 'note'
+    ) as Element | null;
 }
 
 /**
@@ -116,9 +129,12 @@ export function parentNote(node: Node): Element | null {
  * @param node The node to start the search from.
  * @param filter The filter that should be used.
  */
-export function matchingParent(node: Node, filter: (node: Node) => boolean): Node | null {
+export function matchingParent(
+    node: Node,
+    filter: (node: Node) => boolean
+): Node | null {
     let parent = node.parentNode;
-    while(parent) {
+    while (parent) {
         if (filter(parent)) {
             return parent;
         }
@@ -131,11 +147,11 @@ export function matchingParent(node: Node, filter: (node: Node) => boolean): Nod
  * Determines if the given node is a child of the parent node.
  * @param node The node to test.
  * @param parent The parent.
- * @returns 
+ * @returns
  */
 export function isParent(node: Node, parent: Node): boolean {
     let parentNode = node.parentNode;
-    while(parentNode) {
+    while (parentNode) {
         if (parentNode === parent) {
             return true;
         }
@@ -146,14 +162,17 @@ export function isParent(node: Node, parent: Node): boolean {
 
 /**
  * Iterates through all of the nodes in the tree in a depth-first traversal.
- * @param node The node to start the traversal from. 
+ * @param node The node to start the traversal from.
  */
 export function iterateAll(node: Node): RewindableIterator<Node> {
     return rewindable(_iterateAll(node));
 }
 
-export function *iterateUntil<T>(iterator: IterableIterator<T>, predicate: (value: T) => boolean): IterableIterator<T> {
-    for(let value of iterator) {
+export function* iterateUntil<T>(
+    iterator: IterableIterator<T>,
+    predicate: (value: T) => boolean
+): IterableIterator<T> {
+    for (let value of iterator) {
         if (predicate(value)) {
             return;
         }
@@ -161,10 +180,10 @@ export function *iterateUntil<T>(iterator: IterableIterator<T>, predicate: (valu
     }
 }
 
-function *_iterateAll(node: Node): IterableIterator<Node> {
-    for(let child of node.childNodes) {
+function* _iterateAll(node: Node): IterableIterator<Node> {
+    for (let child of node.childNodes) {
         yield child;
-        yield *iterateAll(child);
+        yield* iterateAll(child);
     }
 }
 
@@ -172,7 +191,9 @@ function *_iterateAll(node: Node): IterableIterator<Node> {
  * Iterates only the elements in the iterator.
  * @param iterator The iterator that should be used.
  */
-export function *elements(iterator: IterableIterator<Node>): IterableIterator<Element> {
+export function* elements(
+    iterator: IterableIterator<Node>
+): IterableIterator<Element> {
     for (let node of uncompletable(iterator)) {
         if (node instanceof Element) {
             yield node;
@@ -185,7 +206,10 @@ export function *elements(iterator: IterableIterator<Node>): IterableIterator<El
  * @param iterator The iterator that should be used.
  * @param parent The parent node.
  */
-export function *children(iterator: RewindableIterator<Node>, parent: Node): IterableIterator<Node> {
+export function* children(
+    iterator: RewindableIterator<Node>,
+    parent: Node
+): IterableIterator<Node> {
     for (let node of uncompletable(iterator)) {
         if (!isParent(node, parent)) {
             iterator.rewind(1);
@@ -200,8 +224,10 @@ export function *children(iterator: RewindableIterator<Node>, parent: Node): Ite
  * Wraps the given iterable in a generator that will prevent consumers from calling return() on the iterator.
  * @param iterable The iterable.
  */
-export function *uncompletable<T>(iterable: IterableIterator<T>): IterableIterator<T> {
-    while(true) {
+export function* uncompletable<T>(
+    iterable: IterableIterator<T>
+): IterableIterator<T> {
+    while (true) {
         const { done, value } = iterable.next();
         if (done) {
             return;
@@ -214,7 +240,9 @@ export function *uncompletable<T>(iterable: IterableIterator<T>): IterableIterat
  * Converts the given iterable into an async iterable.
  * @param input The input iterable.
  */
-export async function *toAsyncIterable<T>(input: Iterable<T>): AsyncIterable<T> {
+export async function* toAsyncIterable<T>(
+    input: Iterable<T>
+): AsyncIterable<T> {
     for (let item of input) {
         yield item;
     }
@@ -225,8 +253,11 @@ export async function *toAsyncIterable<T>(input: Iterable<T>): AsyncIterable<T> 
  * @param input The input iterator.
  * @param batchSize The size of each batch.
  */
-export function* batch<T>(input: Iterable<T>, batchSize: number): Iterable<T[]> {
-    while(true) {
+export function* batch<T>(
+    input: Iterable<T>,
+    batchSize: number
+): Iterable<T[]> {
+    while (true) {
         let batch = [] as T[];
         for (let item of input) {
             batch.push(item);

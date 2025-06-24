@@ -1,3 +1,4 @@
+import { getLogger } from '../log.js';
 import { parseVerseReference } from '../utils';
 import {
     CommentaryBookNode,
@@ -20,6 +21,7 @@ export class TyndaleXmlParser {
     }
 
     parse(xml: string): CommentaryParseTree {
+        const logger = getLogger();
         const parser = this._domParser;
         const doc = parser.parseFromString(xml, 'application/xml');
         const rootElement = doc.documentElement;
@@ -130,7 +132,7 @@ export class TyndaleXmlParser {
                 const body = item.querySelector('body');
 
                 if (!refs || !body) {
-                    console.warn(
+                    logger.warn(
                         'Skipping study note item without refs or body:',
                         item
                     );
@@ -140,7 +142,7 @@ export class TyndaleXmlParser {
                 const ref = parseVerseReference(refs);
 
                 if (!ref) {
-                    console.warn('Failed to parse verse reference:', refs);
+                    logger.warn('Failed to parse verse reference:', refs);
                     continue;
                 }
 
@@ -153,7 +155,7 @@ export class TyndaleXmlParser {
                 const body = item.querySelector('body');
 
                 if (!refs || !body) {
-                    console.warn(
+                    logger.warn(
                         'Skipping book item without refs or body:',
                         item
                     );
@@ -163,7 +165,7 @@ export class TyndaleXmlParser {
                 const ref = parseVerseReference(refs);
 
                 if (!ref) {
-                    console.warn('Failed to parse verse reference:', refs);
+                    logger.warn('Failed to parse verse reference:', refs);
                     continue;
                 }
 
@@ -175,7 +177,7 @@ export class TyndaleXmlParser {
                 const body = item.querySelector('body');
 
                 if (!refs || !body) {
-                    console.warn(
+                    logger.warn(
                         'Skipping book item without refs or body:',
                         item
                     );
@@ -185,7 +187,7 @@ export class TyndaleXmlParser {
                 const ref = parseVerseReference(refs);
 
                 if (!ref) {
-                    console.warn('Failed to parse verse reference:', refs);
+                    logger.warn('Failed to parse verse reference:', refs);
                     continue;
                 }
 
@@ -199,7 +201,7 @@ export class TyndaleXmlParser {
                 const name = item.getAttribute('name');
 
                 if (!refs || !body || !title || !name) {
-                    console.warn(
+                    logger.warn(
                         'Skipping profile item without refs, body, or title:',
                         item
                     );
@@ -209,7 +211,7 @@ export class TyndaleXmlParser {
                 const ref = parseVerseReference(refs);
 
                 if (!ref) {
-                    console.warn('Failed to parse verse reference:', refs);
+                    logger.warn('Failed to parse verse reference:', refs);
                     continue;
                 }
 

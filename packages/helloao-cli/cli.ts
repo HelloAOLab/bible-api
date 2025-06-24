@@ -24,6 +24,7 @@ import {
 } from './actions.js';
 import { getDbFromDir, getPrismaDbFromDir, importFileBatch } from './db.js';
 import { confirm, input } from '@inquirer/prompts';
+import { log } from '@helloao/tools';
 import { parse } from 'papaparse';
 import { EBibleSource } from 'prisma-gen/index.js';
 import { DateTime } from 'luxon';
@@ -64,7 +65,8 @@ async function start() {
         .action(async () => {
             const meta = await askForMetadata();
 
-            console.log('Your metadata:', meta);
+            const logger = log.getLogger();
+            logger.log('Your metadata:', meta);
 
             const save = await confirm({
                 message: 'Do you want to save this metadata?',
@@ -84,7 +86,7 @@ async function start() {
                     location += 'metadata.json';
                 }
 
-                console.log('Saving metadata to:', location);
+                logger.log('Saving metadata to:', location);
 
                 const dir = path.dirname(location);
                 await mkdir(dir, { recursive: true });
@@ -119,7 +121,6 @@ async function start() {
         )
         .option('--overwrite', 'Whether to overwrite existing files.')
         .action(async (dir: string, dirs: string[], options: any) => {
-            console.log('options', options);
             await importCommentary(dir, dirs, options);
         });
 
@@ -176,6 +177,10 @@ async function start() {
             '--secret-access-key <secretAccessKey>',
             'The AWS Secret Access Key to use for uploading to S3.'
         )
+        .option(
+            '--s3-region <region>',
+            'The AWS region to use for uploading to S3.'
+        )
         .option('--pretty', 'Whether to generate pretty-printed JSON files.')
         .option(
             '--s3-url <s3Url>',
@@ -195,11 +200,12 @@ async function start() {
             const result = await uploadTestTranslation(input, options);
 
             if (result) {
-                console.log('\n');
-                console.log('Version:               ', result.version);
-                console.log('Uploaded to:           ', result.uploadS3Url);
-                console.log('URL:                   ', result.url);
-                console.log(
+                const logger = log.getLogger();
+                logger.log('\n');
+                logger.log('Version:               ', result.version);
+                logger.log('Uploaded to:           ', result.uploadS3Url);
+                logger.log('URL:                   ', result.url);
+                logger.log(
                     'Available Translations:',
                     result.availableTranslationsUrl
                 );
@@ -249,6 +255,10 @@ async function start() {
             '--secret-access-key <secretAccessKey>',
             'The AWS Secret Access Key to use for uploading to S3.'
         )
+        .option(
+            '--s3-region <region>',
+            'The AWS region to use for uploading to S3.'
+        )
         .option('--pretty', 'Whether to generate pretty-printed JSON files.')
         .option(
             '--s3-url <s3Url>',
@@ -268,13 +278,16 @@ async function start() {
 
             const result = await uploadTestTranslations(input, options);
 
-            console.log('\nVersion:             ', result.version);
-            console.log('Uploaded to:          ', result.uploadS3Url);
-            console.log('URL:                  ', result.url);
-            console.log(
-                'Available Translations:',
-                result.availableTranslationsUrl
-            );
+            if (result) {
+                const logger = log.getLogger();
+                logger.log('\nVersion:             ', result.version);
+                logger.log('Uploaded to:          ', result.uploadS3Url);
+                logger.log('URL:                  ', result.url);
+                logger.log(
+                    'Available Translations:',
+                    result.availableTranslationsUrl
+                );
+            }
         });
 
     program
@@ -317,6 +330,10 @@ async function start() {
         .option(
             '--secret-access-key <secretAccessKey>',
             'The AWS Secret Access Key to use for uploading to S3.'
+        )
+        .option(
+            '--s3-region <region>',
+            'The AWS region to use for uploading to S3.'
         )
         .option('--pretty', 'Whether to generate pretty-printed JSON files.')
         .action(async (input: string, dest: string, options: any) => {
@@ -363,6 +380,10 @@ async function start() {
         .option(
             '--secret-access-key <secretAccessKey>',
             'The AWS Secret Access Key to use for uploading to S3.'
+        )
+        .option(
+            '--s3-region <region>',
+            'The AWS region to use for uploading to S3.'
         )
         .option('--pretty', 'Whether to generate pretty-printed JSON files.')
         .action(async (input: string, dest: string, options: any) => {
@@ -417,6 +438,10 @@ async function start() {
             '--secret-access-key <secretAccessKey>',
             'The AWS Secret Access Key to use for uploading to S3.'
         )
+        .option(
+            '--s3-region <region>',
+            'The AWS region to use for uploading to S3.'
+        )
         .option('--pretty', 'Whether to generate pretty-printed JSON files.')
         .option(
             '--verbose',
@@ -457,14 +482,8 @@ async function start() {
             '--bible-multi-converter-path <path>',
             'Path to BibleMultiConverter.jar file'
         )
-        .option(
-            '--overwrite',
-            'Overwrite existing files in output directory'
-        )
-        .option(
-            '--no-database',
-            'Disable database tracking for downloads'
-        )
+        .option('--overwrite', 'Overwrite existing files in output directory')
+        .option('--no-database', 'Disable database tracking for downloads')
         .action(async (dir, translations, options) => {
             const sourceOptions = {
                 convertToUsx3: options.convertToUsx3,
@@ -472,8 +491,8 @@ async function start() {
                 useDatabase: options.database !== false,
                 overwrite: options.overwrite,
                 conversionOptions: {
-                    overwrite: options.overwrite
-                }
+                    overwrite: options.overwrite,
+                },
             };
 
             await sourceTranslations(dir, translations, sourceOptions);
@@ -481,7 +500,9 @@ async function start() {
 
     program
         .command('list-ebible-translations [search]')
-        .description('List available eBible translations. Optionally filter by search term.')
+        .description(
+            'List available eBible translations. Optionally filter by search term.'
+        )
         .action(async (search?: string) => {
             await listEBibleTranslations(search);
         });

@@ -119,7 +119,7 @@ export class CodexParser {
         }
 
         for (let cell of data.cells) {
-            if (cell.languageId === 'html') {
+            if (cell.languageId === 'html' && cell.value) {
                 if (!cell.metadata) continue; // ignore html cells without metadata
                 const metadata = metadataSchema.parse(cell.metadata);
                 if (metadata.type === 'text') {
@@ -132,9 +132,8 @@ export class CodexParser {
                     const content = stripHTML(cell.value);
 
                     // add line breaks in heading if there are multiple lines
-                    const lines = content
-                        .split('\n')
-                        .reduce((prev, current) => {
+                    const lines = content.split('\n').reduce(
+                        (prev, current) => {
                             if (prev.length === 0) return [current];
                             else
                                 return [
@@ -144,7 +143,9 @@ export class CodexParser {
                                     },
                                     current,
                                 ] satisfies Verse['content'];
-                        }, [] as Verse['content']);
+                        },
+                        [] as Verse['content']
+                    );
 
                     addReference(reference, lines);
                 } else if (metadata.type === 'paratext') {

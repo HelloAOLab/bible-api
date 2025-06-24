@@ -35,6 +35,7 @@ import { sha256 } from 'hash.js';
 import type { DOMParser } from 'linkedom';
 import { Readable } from 'stream';
 import { getEnglishName, getNativeName } from 'all-iso-language-codes';
+import { log } from '@helloao/tools';
 
 let dirname = __dirname;
 if (!dirname) {
@@ -98,15 +99,16 @@ export async function importFiles(
     parser: DOMParser,
     overwrite: boolean
 ) {
+    const logger = log.getLogger();
     let batches = [] as string[][];
     while (dirs.length > 0) {
         batches.push(dirs.splice(0, 10));
     }
 
-    console.log('Processing', batches.length, 'batches of directories');
+    logger.log('Processing', batches.length, 'batches of directories');
     for (let i = 0; i < batches.length; i++) {
         const batch = batches[i];
-        console.log(`Processing batch ${i + 1} of ${batches.length}`);
+        logger.log(`Processing batch ${i + 1} of ${batches.length}`);
         await loadAndImportBatch(
             loadFilesFromDir,
             db,
@@ -170,16 +172,17 @@ export async function importFileBatch(
     parser: DOMParser,
     overwrite: boolean
 ) {
-    console.log('Importing', files.length, 'files');
+    const logger = log.getLogger();
+    logger.log('Importing', files.length, 'files');
     if (overwrite) {
-        console.log('Overwriting existing translations.');
+        logger.log('Overwriting existing translations.');
     }
     const changedFiles = overwrite
         ? files
         : getChangedOrNewInputFiles(db, files);
 
-    console.log('Processing', changedFiles.length, 'changed files');
-    console.log(
+    logger.log('Processing', changedFiles.length, 'changed files');
+    logger.log(
         'Skipping',
         files.length - changedFiles.length,
         'unchanged files'
@@ -190,8 +193,8 @@ export async function importFileBatch(
         parser as globalThis.DOMParser
     );
 
-    console.log('Generated', output.translations.length, 'translations');
-    console.log('Generated', output.commentaries.length, 'commentaries');
+    logger.log('Generated', output.translations.length, 'translations');
+    logger.log('Generated', output.commentaries.length, 'commentaries');
 
     insertTranslations(db, output.translations);
     updateTranslationHashes(db, output.translations);
@@ -199,8 +202,8 @@ export async function importFileBatch(
     updateCommentaryHashes(db, output.commentaries);
     insertFileMetadata(db, changedFiles);
 
-    console.log(`Inserted ${output.translations.length} translations into DB`);
-    console.log(`Inserted ${output.commentaries.length} commentaries into DB`);
+    logger.log(`Inserted ${output.translations.length} translations into DB`);
+    logger.log(`Inserted ${output.commentaries.length} commentaries into DB`);
 }
 
 /**
@@ -379,6 +382,8 @@ export function insertTranslationContent(
     book: DatasetTranslationBook,
     chapters: TranslationBookChapter[]
 ) {
+    const logger = log.getLogger();
+
     const chapterUpsert = db.prepare(`INSERT INTO Chapter(
         translationId,
         bookId,
@@ -472,7 +477,7 @@ export function insertTranslationContent(
                 if (c.type === 'verse') {
                     const verse: ChapterVerse = c;
                     if (!verse.number) {
-                        console.error(
+                        logger.error(
                             'Verse missing number',
                             translation.id,
                             book.id,
@@ -565,7 +570,8 @@ function updateTranslationHashes(
     db: Database,
     translations: DatasetTranslation[]
 ) {
-    console.log(`Updating hashes for ${translations.length} translations.`);
+    const logger = log.getLogger();
+    logger.log(`Updating hashes for ${translations.length} translations.`);
 
     const updateTranslationHash = db.prepare(
         `UPDATE Translation SET sha256 = @sha256 WHERE id = @translationId;`
@@ -684,7 +690,7 @@ function updateTranslationHashes(
 
     updateTranslations();
 
-    console.log(`Updated.`);
+    logger.log(`Updated.`);
 }
 
 export function insertCommentaries(
@@ -868,6 +874,8 @@ export function insertCommentaryContent(
     book: DatasetCommentaryBook,
     chapters: CommentaryBookChapter[]
 ) {
+    const logger = log.getLogger();
+
     const chapterUpsert = db.prepare(`INSERT INTO CommentaryChapter(
         commentaryId,
         bookId,
@@ -915,7 +923,7 @@ export function insertCommentaryContent(
                 if (c.type === 'verse') {
                     const verse: ChapterVerse = c;
                     if (!verse.number) {
-                        console.error(
+                        logger.error(
                             'Verse missing number',
                             commentary.id,
                             book.id,
@@ -980,7 +988,8 @@ function updateCommentaryHashes(
     db: Database,
     commentaries: DatasetCommentary[]
 ) {
-    console.log(`Updating hashes for ${commentaries.length} commentaries.`);
+    const logger = log.getLogger();
+    logger.log(`Updating hashes for ${commentaries.length} commentaries.`);
 
     const updateTranslationHash = db.prepare(
         `UPDATE Commentary SET sha256 = @sha256 WHERE id = @commentaryId;`
@@ -1152,7 +1161,7 @@ function updateCommentaryHashes(
 
     updateCommentaries();
 
-    console.log(`Updated.`);
+    logger.log(`Updated.`);
 }
 
 export function getDbPathFromDir(dir: string) {
@@ -1187,6 +1196,7 @@ export async function getDbFromDir(dir: string): Promise<Database> {
 }
 
 export async function getDb(dbPath: string): Promise<Database> {
+    const logger = log.getLogger();
     const migrationsPath = await getMigrationsPath();
     if (!migrationsPath) {
         throw new Error('Could not find migrations path');
@@ -1226,7 +1236,7 @@ export async function getDb(dbPath: string): Promise<Database> {
     );
 
     for (let missingMigration of missingMigrations) {
-        console.log(`Applying migration ${missingMigration}...`);
+        logger.log(`Applying migration ${missingMigration}...`);
         const migration = path.resolve(
             migrationsPath,
             missingMigration,
@@ -1290,16 +1300,17 @@ export async function* loadTranslationDatasets(
     translationsPerBatch: number = 50,
     translationsToLoad?: string[]
 ) {
+    const logger = log.getLogger();
     let offset = 0;
     let pageSize = translationsPerBatch;
 
-    console.log('Generating translation datasets in batches of', pageSize);
+    logger.log('Generating translation datasets in batches of', pageSize);
     const totalTranslations = await db.translation.count();
     const totalBatches = Math.ceil(totalTranslations / pageSize);
     let batchNumber = 1;
 
     while (true) {
-        console.log(
+        logger.log(
             'Generating translation batch',
             batchNumber,
             'of',
@@ -1419,16 +1430,17 @@ export async function* loadCommentaryDatasets(
     perBatch: number = 50,
     commentariesToLoad?: string[]
 ) {
+    const logger = log.getLogger();
     let offset = 0;
     let pageSize = perBatch;
 
-    console.log('Generating commentaries datasets in batches of', pageSize);
+    logger.log('Generating commentaries datasets in batches of', pageSize);
     const totalCommentaries = await db.commentary.count();
     const totalBatches = Math.ceil(totalCommentaries / pageSize);
     let batchNumber = 1;
 
     while (true) {
-        console.log(
+        logger.log(
             'Generating commentary batch',
             batchNumber,
             'of',

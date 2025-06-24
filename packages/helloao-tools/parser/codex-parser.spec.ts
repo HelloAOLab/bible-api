@@ -682,6 +682,115 @@ describe('CodexParser', () => {
             });
         });
 
+        it('should be able to ignore cells that dont have a', () => {
+            const tree = parser.parse(
+                JSON.stringify({
+                    cells: [
+                        {
+                            kind: 2,
+                            languageId: 'html',
+                            value: '<h1>The Beginning</h1>',
+                            metadata: {
+                                type: 'paratext',
+                                id: 'JON 1',
+                            },
+                        },
+                        {
+                            kind: 2,
+                            languageId: 'html',
+                            value: '',
+                            metadata: {
+                                type: 'text',
+                                id: 'JON 1:1',
+                            },
+                        },
+                        {
+                            kind: 2,
+                            languageId: 'html',
+                            value: 'ཡོྃ་རྡེ་ དངུལ་མེ་ ནི་ནེ་ཝེ་ སོང་, ཁོང་རྒུན་ལ་ ཀོན་འཇོག་རྒེ་ གསུང་, ཁོང་རྒུ་ནི་ ངན་པ་ ངེ་ མག་ལྟོང་ངེ་ ཐུག་པེན་ ཟེར་རྡེ་ མོལ་།',
+                            metadata: {
+                                type: 'text',
+                                id: 'JON 1:2',
+                            },
+                        },
+                        {
+                            kind: 2,
+                            languageId: 'html',
+                            value: '',
+                            metadata: {
+                                type: 'paratext',
+                                id: 'JON 2',
+                            },
+                        },
+                        {
+                            kind: 2,
+                            languageId: 'html',
+                            value: 'ཉ་ལུའི་ཧན་ནང་ནས་ ཡོ་ན་ཡེ་གོ་བེ་ ཀོན་འཇོག་ལ་ མོ་ལམ་ ཞུའི་ མོལ་།',
+                            metadata: {
+                                type: 'text',
+                                id: 'JON 2:2',
+                            },
+                        },
+                        {
+                            kind: 2,
+                            languageId: 'html',
+                            value: 'ངེ་ཀ་ འཇའི་རྐང་ནང་ ཡེ་གོ་བེ་དེ་ སོང་ ཟེར་དང་ ཁོང་ནི་ ཉམ་པོ་ ཏོང་རྒེ་མེད་། ངེ་ མངན་པོའི་ཧན་ནང་ ཤུག་རྒེ་ ཟེར་དང་ ཉེ་རང་ ངེ་ སུང་ཧད་ཅེ་ ཏུའི་རྒྱུན་ ཉེ་ནེ་ ཡོ་ཀན་འབོ།',
+                            metadata: {
+                                type: 'text',
+                                id: 'JON 2:3',
+                            },
+                        },
+                    ],
+                })
+            );
+
+            expect(tree).toEqual({
+                type: 'root',
+                id: 'JON',
+                content: [
+                    {
+                        type: 'chapter',
+                        number: 1,
+                        content: [
+                            {
+                                type: 'heading',
+                                content: ['The Beginning'],
+                            },
+                            {
+                                type: 'verse',
+                                number: 2,
+                                content: [
+                                    'ཡོྃ་རྡེ་ དངུལ་མེ་ ནི་ནེ་ཝེ་ སོང་, ཁོང་རྒུན་ལ་ ཀོན་འཇོག་རྒེ་ གསུང་, ཁོང་རྒུ་ནི་ ངན་པ་ ངེ་ མག་ལྟོང་ངེ་ ཐུག་པེན་ ཟེར་རྡེ་ མོལ་།',
+                                ],
+                            },
+                        ],
+                        footnotes: [],
+                    },
+                    {
+                        type: 'chapter',
+                        number: 2,
+                        content: [
+                            {
+                                type: 'verse',
+                                number: 2,
+                                content: [
+                                    'ཉ་ལུའི་ཧན་ནང་ནས་ ཡོ་ན་ཡེ་གོ་བེ་ ཀོན་འཇོག་ལ་ མོ་ལམ་ ཞུའི་ མོལ་།',
+                                ],
+                            },
+                            {
+                                type: 'verse',
+                                number: 3,
+                                content: [
+                                    'ངེ་ཀ་ འཇའི་རྐང་ནང་ ཡེ་གོ་བེ་དེ་ སོང་ ཟེར་དང་ ཁོང་ནི་ ཉམ་པོ་ ཏོང་རྒེ་མེད་། ངེ་ མངན་པོའི་ཧན་ནང་ ཤུག་རྒེ་ ཟེར་དང་ ཉེ་རང་ ངེ་ སུང་ཧད་ཅེ་ ཏུའི་རྒྱུན་ ཉེ་ནེ་ ཡོ་ཀན་འབོ།',
+                                ],
+                            },
+                        ],
+                        footnotes: [],
+                    },
+                ],
+            });
+        });
+
         // it('should be able to parse markdown notes', () => {
         //     const tree = parser.parse(
         //         JSON.stringify({

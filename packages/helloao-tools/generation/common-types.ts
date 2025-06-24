@@ -1,4 +1,4 @@
-import { VerseRef } from "utils";
+import { VerseRef } from '../utils.js';
 
 /**
  * Defines an interface that contains information about a input file.
@@ -91,7 +91,7 @@ export interface InputTranslationMetadata extends MetadataBase {
     /**
      * The short name for the translation.
      */
-    shortName?: string;
+    shortName: string;
 }
 
 /**

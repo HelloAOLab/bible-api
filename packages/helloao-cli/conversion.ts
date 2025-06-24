@@ -1,15 +1,19 @@
 import { mkdir, readdir } from 'node:fs/promises';
 import { existsSync } from 'fs';
-import { execFile as execFileCallback } from "child_process";
-import { promisify } from "util";
+import { execFile as execFileCallback } from 'child_process';
+import { promisify } from 'util';
 import { confirm, input } from '@inquirer/prompts';
+import { log } from '@helloao/tools';
 
 const execFile = promisify(execFileCallback);
 
 /**
  * Finds BibleMultiConverter.jar automatically in common locations
  */
-export async function findBibleMultiConverterJar(providedPath?: string): Promise<string | null> {
+export async function findBibleMultiConverterJar(
+    providedPath?: string
+): Promise<string | null> {
+    const logger = log.getLogger();
     //Use provided path
     if (providedPath && existsSync(providedPath)) {
         return providedPath;
@@ -21,7 +25,7 @@ export async function findBibleMultiConverterJar(providedPath?: string): Promise
         './tools/BibleMultiConverter.jar',
         '../BibleMultiConverter.jar',
         '../../BibleMultiConverter.jar',
-        'BibleMultiConverter.jar'
+        'BibleMultiConverter.jar',
     ];
 
     // Check common locations for JAR file inside BibleMultiConverter folder
@@ -37,7 +41,7 @@ export async function findBibleMultiConverterJar(providedPath?: string): Promise
 
     for (const jarPath of allPaths) {
         if (existsSync(jarPath)) {
-            console.log(`Found BibleMultiConverter.jar at: ${jarPath}`);
+            logger.log(`Found BibleMultiConverter.jar at: ${jarPath}`);
             return jarPath;
         }
     }
@@ -49,14 +53,17 @@ export async function findBibleMultiConverterJar(providedPath?: string): Promise
  * Prompts user for BibleMultiConverter.jar location
  */
 export async function promptForBibleMultiConverter(): Promise<string | null> {
-    console.log('BibleMultiConverter.jar not found in common locations.');
+    const logger = log.getLogger();
+    logger.log('BibleMultiConverter.jar not found in common locations.');
 
     const hasConverter = await confirm({
         message: 'Do you have BibleMultiConverter.jar available?',
     });
 
     if (!hasConverter) {
-        console.log('Please download BibleMultiConverter.jar from: https://github.com/schierlm/BibleMultiConverter/releases');
+        logger.log(
+            'Please download BibleMultiConverter.jar from: https://github.com/schierlm/BibleMultiConverter/releases'
+        );
         return null;
     }
 
@@ -70,7 +77,7 @@ export async function promptForBibleMultiConverter(): Promise<string | null> {
                 return 'Please provide a .jar file.';
             }
             return true;
-        }
+        },
     });
 
     return jarPath;
@@ -85,12 +92,13 @@ export async function convertUsfmToUsx3(
     jarPath: string,
     overwrite: boolean
 ): Promise<boolean> {
+    const logger = log.getLogger();
     try {
-        console.log(`Converting USFM files from ${inputDir} to USX3 format...`);
+        logger.log(`Converting USFM files from ${inputDir} to USX3 format...`);
 
         // Handle overwrite logic for output directory
         if (overwrite && existsSync(outputDir)) {
-            console.log(`Overwriting existing USX3 directory: ${outputDir}`);
+            logger.log(`Overwriting existing USX3 directory: ${outputDir}`);
             const { rm } = await import('node:fs/promises');
             await rm(outputDir, { recursive: true, force: true });
         }
@@ -106,30 +114,31 @@ export async function convertUsfmToUsx3(
             inputDir,
             'USX3',
             outputDir,
-            '*.usx'
+            '*.usx',
         ];
 
-        console.log(`Running: java ${args.join(' ')}`);
+        logger.log(`Running: java ${args.join(' ')}`);
 
         const { stdout, stderr } = await execFile('java', args);
 
-        if (stdout) console.log('Conversion output:', stdout);
-        if (stderr) console.log('Conversion warnings:', stderr);
+        if (stdout) logger.log('Conversion output:', stdout);
+        if (stderr) logger.log('Conversion warnings:', stderr);
 
         // Verify conversion worked
         const files = await readdir(outputDir);
-        const usxFiles = files.filter(f => f.endsWith('.usx'));
+        const usxFiles = files.filter((f) => f.endsWith('.usx'));
 
         if (usxFiles.length > 0) {
-            console.log(`Successfully converted to ${usxFiles.length} USX3 files`);
+            logger.log(
+                `Successfully converted to ${usxFiles.length} USX3 files`
+            );
             return true;
         } else {
-            console.log('No USX3 files were created');
+            logger.log('No USX3 files were created');
             return false;
         }
-
     } catch (error: any) {
-        console.error('Conversion failed:', error.message);
+        logger.error('Conversion failed:', error.message);
         return false;
     }
 }

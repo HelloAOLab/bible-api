@@ -2,7 +2,8 @@
     "compilerOptions": {
         "target": "ESNext",
         "useDefineForClassFields": true,
-        "module": "NodeNext",
+        "moduleResolution": "bundler",
+        "module": "esnext",
         "lib": ["ESNext", "DOM", "DOM.AsyncIterable", "DOM.Iterable"],
         "strict": true,
         "resolveJsonModule": true,
