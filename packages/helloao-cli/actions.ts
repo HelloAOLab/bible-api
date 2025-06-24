@@ -16,7 +16,11 @@ import {
 import { exists } from 'fs-extra';
 import { KNOWN_AUDIO_TRANSLATIONS } from '@helloao/tools/generation/audio.js';
 import { bookChapterCountMap } from '@helloao/tools/generation/book-order.js';
-import { downloadFile, downloadResponse } from './downloads.js';
+import {
+    downloadFile,
+    downloadResponse,
+    unzipToDirectory,
+} from './downloads.js';
 import { batch, toAsyncIterable } from '@helloao/tools/parser/iterators.js';
 import {
     hashInputFiles,
@@ -669,9 +673,6 @@ export function printConversionInstructions(): void {
     logger.log('');
     logger.log('4. Re-run this command with the --convertToUsx3 option');
     logger.log('');
-    logger.log(
-        'Note: USFM files have been downloaded but conversion was skipped.'
-    );
     logger.log('==========================================\n');
 }
 
@@ -829,6 +830,7 @@ export async function sourceTranslations(
         // If translations are specified, must match at least one
         if (
             translations &&
+            translations.length > 0 &&
             !translations.some((t) => matchesTranslation(t, source))
         ) {
             return false;
@@ -866,6 +868,7 @@ export async function sourceTranslations(
                 // If specific translations were requested, include sources that match
                 if (
                     translations &&
+                    translations.length > 0 &&
                     translations.some((t) => matchesTranslation(t, source))
                 ) {
                     return true;
@@ -968,35 +971,57 @@ export async function sourceTranslations(
         }
     }
 
-    // Create a temporary directory for USFM downloads
-    const tempDir = convertToUsx3
-        ? path.join(
-              tmpdir(),
-              'ebible-usfm-temp',
-              `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-          )
-        : null;
+    // temporary directory path for USFM downloads
+    const tempDir = path.join(
+        tmpdir(),
+        'bible-api',
+        'ebible',
+        'usfm-downloads'
+    );
 
     try {
-        let batches: EBibleSource[][] = [];
-        const batchSize = 50;
-        const sourcesToProcess = selectedSources;
-        while (sourcesToProcess.length > 0) {
-            batches.push(sourcesToProcess.splice(0, batchSize));
+        const downloadBatches: EBibleSource[][] = [];
+        const downloadBatchSize = 50;
+        const conversionBatchSize = 10;
+
+        while (selectedSources.length > 0) {
+            downloadBatches.push(selectedSources.splice(0, downloadBatchSize));
         }
 
         let numDownloaded = 0;
         let numErrored = 0;
-        let numDatabaseUpdates = 0;
+        let numConverted = 0;
         let conversionsNeeded: Array<{
             tempPath: string;
             outputPath: string;
             source: EBibleSource;
         }> = [];
+        // Try to find BibleMultiConverter.jar
+        let jarPath = await findBibleMultiConverterJar(bibleMultiConverterPath);
 
-        for (let batch of batches) {
+        if (!jarPath && convertToUsx3) {
+            jarPath = await promptForBibleMultiConverter();
+        }
+
+        if (!jarPath && convertToUsx3) {
+            logger.error(
+                'BibleMultiConverter JAR not found. Cannot convert USFM to USX3.'
+            );
+            printConversionInstructions();
+            return;
+        }
+
+        console.log(
+            `Processing ${downloadBatches.length} batches of ${downloadBatchSize} sources each.`
+        );
+
+        for (let i = 0; i < downloadBatches.length; i++) {
+            const sources = downloadBatches[i];
+            logger.log(
+                `Processing batch ${i + 1} of ${downloadBatches.length}`
+            );
             await Promise.all(
-                batch.map(async (source) => {
+                sources.map(async (source) => {
                     try {
                         logger.log(`Processing: ${source.translationId}`);
 
@@ -1020,22 +1045,21 @@ export async function sourceTranslations(
                             } else if (usfmResult.status === 200) {
                                 source.usfmZipEtag =
                                     usfmResult.headers.get('etag') || null;
-                                const reader = new BlobReader(
-                                    await usfmResult.blob()
-                                );
-                                const zip = new ZipReader(reader);
 
                                 // Use temp directory for USFM files if converting, otherwise use final output directory
-                                const downloadDir =
-                                    convertToUsx3 && tempDir
-                                        ? path.resolve(
-                                              tempDir,
-                                              source.translationId
-                                          )
-                                        : path.resolve(
-                                              outputDir,
-                                              source.translationId
-                                          );
+                                const finalOutputPath = path.resolve(
+                                    outputDir,
+                                    source.translationId
+                                );
+                                const downloadDir = convertToUsx3
+                                    ? path.resolve(
+                                          tempDir,
+                                          source.translationId
+                                      )
+                                    : path.resolve(
+                                          outputDir,
+                                          source.translationId
+                                      );
 
                                 if (overwrite && existsSync(downloadDir)) {
                                     logger.log(
@@ -1049,111 +1073,62 @@ export async function sourceTranslations(
 
                                 await mkdir(downloadDir, { recursive: true });
 
-                                try {
-                                    const entries = await zip.getEntries();
-                                    let usfmFileCount = 0;
+                                const reader = new BlobReader(
+                                    await usfmResult.blob()
+                                );
+                                const zip = new ZipReader(reader);
+                                const usfmFileCount = await unzipToDirectory(
+                                    zip,
+                                    downloadDir,
+                                    overwrite,
+                                    (entry) => entry.filename.endsWith('.usfm')
+                                );
 
-                                    for (let entry of entries) {
-                                        if (
-                                            entry.getData &&
-                                            entry.directory === false &&
-                                            entry.filename.endsWith('.usfm')
-                                        ) {
-                                            const outputPath = path.resolve(
-                                                downloadDir,
-                                                entry.filename
-                                            );
+                                // Create metadata in output directory
+                                await createMetadataJson(
+                                    finalOutputPath,
+                                    source,
+                                    overwrite
+                                );
 
-                                            if (
-                                                !overwrite &&
-                                                (await exists(outputPath))
-                                            ) {
-                                                logger.log(
-                                                    `File already exists, skipping: ${entry.filename}`
-                                                );
-                                                continue;
-                                            } else if (
-                                                overwrite &&
-                                                (await exists(outputPath))
-                                            ) {
-                                                logger.log(
-                                                    `Overwriting existing file: ${entry.filename}`
-                                                );
-                                            }
-
-                                            const blob = await entry.getData(
-                                                new BlobWriter('text/plain'),
-                                                {}
-                                            );
-                                            await writeFile(
-                                                outputPath,
-                                                new Uint8Array(
-                                                    await blob.arrayBuffer()
-                                                )
-                                            );
-                                            usfmFileCount++;
-                                        }
-                                    }
-
-                                    if (
-                                        convertToUsx3 &&
-                                        usfmFileCount > 0 &&
-                                        tempDir
-                                    ) {
-                                        // Track translations that need conversion
-                                        const finalOutputPath = path.resolve(
-                                            outputDir,
-                                            source.translationId
-                                        );
+                                if (convertToUsx3) {
+                                    if (usfmFileCount > 0) {
+                                        // convert USFM files to USX3 format
                                         conversionsNeeded.push({
                                             tempPath: downloadDir,
                                             outputPath: finalOutputPath,
-                                            source: source,
+                                            source,
                                         });
-
-                                        // Create metadata in temp directory
-                                        await createMetadataJson(
-                                            downloadDir,
-                                            source,
-                                            overwrite
-                                        );
-                                    } else if (!convertToUsx3) {
-                                        // If not converting, create metadata in final location - pass overwrite parameter
-                                        await createMetadataJson(
-                                            downloadDir,
-                                            source,
-                                            overwrite
+                                    } else {
+                                        logger.warn(
+                                            `No USFM files found for ${source.translationId}.`
                                         );
                                     }
-
-                                    numDownloaded++;
+                                } else {
                                     source.usfmDownloadDate =
                                         DateTime.utc().toISO() as any;
-                                    source.usfmDownloadPath =
-                                        convertToUsx3 && tempDir
-                                            ? null
-                                            : downloadDir;
-                                } finally {
-                                    zip.close();
+                                    source.usfmDownloadPath = finalOutputPath;
                                 }
+
+                                numDownloaded++;
                             } else {
                                 numErrored += 1;
                             }
+                        } else {
+                            logger.warn(
+                                `No USFM zip found for ${source.translationId}. Skipping.`
+                            );
+                            numErrored++;
+                            return;
                         }
 
-                        // Enhanced database logging
-                        if (useDatabase && sourceUpsert) {
+                        if (!convertToUsx3) {
+                            source.usfmDownloadDate =
+                                DateTime.utc().toISO() as any;
+                            source.usfmDownloadPath = outputDir;
+                        }
+                        if (sourceUpsert) {
                             sourceUpsert.run(source);
-                            numDatabaseUpdates++;
-                            if (numDatabaseUpdates === 1) {
-                                logger.log(
-                                    'Updating database with download information...'
-                                );
-                            }
-                        } else if (!useDatabase) {
-                            logger.log(
-                                `Skipping database update for ${source.translationId} (database tracking disabled)`
-                            );
                         }
                     } catch (error) {
                         numErrored++;
@@ -1171,16 +1146,6 @@ export async function sourceTranslations(
         logger.log('DOWNLOAD SUMMARY:');
         logger.log(`   Downloaded: ${numDownloaded} sources`);
         logger.log(`   Errored: ${numErrored} sources`);
-        if (useDatabase) {
-            logger.log(`   Database updates: ${numDatabaseUpdates} records`);
-            if (skippedByDatabase > 0) {
-                logger.log(
-                    `   Skipped (already in DB): ${skippedByDatabase} sources`
-                );
-            }
-        } else {
-            logger.log(`   Database updates: 0 (tracking disabled)`);
-        }
         logger.log('');
 
         if (convertToUsx3 && conversionsNeeded.length > 0) {
@@ -1188,161 +1153,66 @@ export async function sourceTranslations(
                 `${conversionsNeeded.length} translations need conversion to USX3.`
             );
 
-            // Try to find BibleMultiConverter.jar
-            let jarPath = await findBibleMultiConverterJar(
-                bibleMultiConverterPath
+            logger.log(`Starting automatic conversion using: ${jarPath}`);
+
+            const conversionBatches = [];
+            while (conversionsNeeded.length > 0) {
+                conversionBatches.push(
+                    conversionsNeeded.splice(0, conversionBatchSize)
+                );
+            }
+
+            logger.log(
+                `Processing ${conversionBatches.length} conversion batches of ${conversionBatchSize} each.`
             );
 
-            if (!jarPath) {
-                jarPath = await promptForBibleMultiConverter();
-            }
+            for (let i = 0; i < conversionBatches.length; i++) {
+                logger.log(
+                    `Processing conversion batch ${i + 1} of ${conversionBatches.length}`
+                );
+                const sources = conversionBatches[i];
+                await Promise.all(
+                    sources.map(async ({ tempPath, outputPath, source }) => {
+                        logger.log(`Converting ${source.translationId}...`);
 
-            if (jarPath) {
-                logger.log(`Starting automatic conversion using: ${jarPath}`);
-
-                for (const {
-                    tempPath,
-                    outputPath,
-                    source,
-                } of conversionsNeeded) {
-                    const translationName = path.basename(tempPath);
-
-                    logger.log(`Converting ${translationName}...`);
-                    const success = await convertUsfmToUsx3(
-                        tempPath,
-                        outputPath,
-                        jarPath,
-                        overwrite
-                    );
-
-                    if (success) {
-                        // Copy metadata.json to final output directory
-                        const metadataSource = path.join(
+                        const success = await convertUsfmToUsx3(
                             tempPath,
-                            'metadata.json'
-                        );
-                        const metadataTarget = path.join(
                             outputPath,
-                            'metadata.json'
+                            jarPath!,
+                            overwrite
                         );
-                        if (existsSync(metadataSource)) {
-                            // Handle overwrite for metadata file
-                            if (overwrite && existsSync(metadataTarget)) {
-                                logger.log(
-                                    `Overwriting metadata.json in ${outputPath}`
-                                );
-                                await copyFile(metadataSource, metadataTarget);
-                            } else if (!existsSync(metadataTarget)) {
-                                await copyFile(metadataSource, metadataTarget);
-                                logger.log(
-                                    `Created metadata.json in ${outputPath}`
-                                );
-                            } else {
-                                logger.log(
-                                    `Metadata file already exists, skipping: ${metadataTarget}`
-                                );
+
+                        if (success) {
+                            if (sourceUpsert) {
+                                source.usfmDownloadDate =
+                                    DateTime.utc().toISO() as any;
+                                source.usfmDownloadPath = outputPath;
+                                sourceUpsert.run(source);
                             }
+                            numConverted++;
+                        } else {
+                            numErrored++;
                         }
-
-                        // Update database with final path (with enhanced logging)
-                        if (useDatabase && sourceUpsert) {
-                            source.usfmDownloadPath = outputPath;
-                            sourceUpsert.run(source);
-                            logger.log(
-                                `Updated database with final path for ${source.translationId}`
-                            );
-                        } else if (!useDatabase) {
-                            logger.log(
-                                `Skipping database update for converted ${source.translationId} (database tracking disabled)`
-                            );
-                        }
-                    }
-                }
-
-                // Clean up temp directory
-                if (tempDir && existsSync(tempDir)) {
-                    logger.log(`Cleaning up temporary directory: ${tempDir}`);
-                    await rm(tempDir, { recursive: true, force: true });
-                }
-            } else {
-                // Manual conversion instructions (fallback) with cleanup
-                logger.log('Automatic conversion not available.');
-
-                // Show simplified instructions
-                printConversionInstructions();
-
-                // Copy USFM files to final output directory
-                logger.log(
-                    '\nCopying USFM files to output directory for later processing...'
-                );
-                for (const {
-                    tempPath,
-                    outputPath,
-                    source,
-                } of conversionsNeeded) {
-                    const translationName = path.basename(tempPath);
-                    logger.log(
-                        `Copying ${translationName} to ${outputPath}...`
-                    );
-
-                    // Ensure output directory exists
-                    await mkdir(outputPath, { recursive: true });
-
-                    // Copy all USFM files
-                    const files = await readdir(tempPath);
-                    for (const file of files) {
-                        const sourcePath = path.join(tempPath, file);
-                        const targetPath = path.join(outputPath, file);
-
-                        if (
-                            await access(sourcePath)
-                                .then(() => true)
-                                .catch(() => false)
-                        ) {
-                            if (overwrite && existsSync(targetPath)) {
-                                logger.log(
-                                    `Overwriting existing file: ${file}`
-                                );
-                            } else if (!overwrite && existsSync(targetPath)) {
-                                logger.log(
-                                    `File already exists, skipping: ${file}`
-                                );
-                                continue;
-                            }
-                            await copyFile(sourcePath, targetPath);
-                        }
-                    }
-
-                    // Update database with final path for USFM files
-                    if (useDatabase && sourceUpsert) {
-                        source.usfmDownloadPath = outputPath;
-                        sourceUpsert.run(source);
-                        logger.log(
-                            `Updated database with USFM path for ${source.translationId}`
-                        );
-                    }
-                }
-
-                // Clean up temp directory
-                if (tempDir && existsSync(tempDir)) {
-                    logger.log(`\nCleaning up temporary directory: ${tempDir}`);
-                    await rm(tempDir, { recursive: true, force: true });
-                    logger.log(
-                        'Temporary files have been cleaned up to save disk space.'
-                    );
-                }
-
-                logger.log(
-                    '\nUSFM files are now available in the output directory.'
-                );
-                logger.log(
-                    'Install BibleMultiConverter.jar and re-run with --convertToUsx3 to convert them automatically.'
+                    })
                 );
             }
+
+            // Clean up temp directory
+            if (tempDir && existsSync(tempDir)) {
+                logger.log(`Cleaning up temporary directory: ${tempDir}`);
+                await rm(tempDir, { recursive: true, force: true });
+            }
+
+            logger.log(`CONVERSION SUMMARY:`);
+            logger.log(`   Converted: ${numConverted}`);
+            logger.log(`   Errored: ${numErrored}`);
+        } else {
+            logger.log(
+                'Conversion to USX3 was skipped or no conversions were needed.'
+            );
         }
     } finally {
         if (db) {
-            logger.log('Closing database connection...');
             db.close();
         }
     }

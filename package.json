@@ -19,6 +19,7 @@
         "fetch:bible:audio": "npm run cli fetch-audio -- ./sources/audio",
         "fetch:bible:metadata": "npm run cli fetch-bible-metadata -- ./sources/metadata",
         "fetch:bible:commentaries": "npm run cli fetch-tyndale-open-resources -- ./sources/comment/tyndale",
+        "fetch:ebible": "npm run cli source-translations -- --convert-to-usx3 ./sources/ebible",
         "import:bible:sources": "npm run cli import-translations -- ./sources/bible",
         "import:bible:commentaries": "npm run cli import-commentaries -- ./sources/comment",
         "zip:sync": "npm run cli upload-api-files ./bible-api.zip",
@@ -54,6 +55,14 @@
     "engines": {
         "node": "^20.17.0",
         "pnpm": "^10.12.1"
+    },
+    "pnpm": {
+        "onlyBuiltDependencies": [
+            "better-sqlite3",
+            "@prisma/client",
+            "@prisma/engines",
+            "prisma"
+        ]
     },
     "packageManager": "pnpm@10.12.1+sha512.f0dda8580f0ee9481c5c79a1d927b9164f2c478e90992ad268bbb2465a736984391d6333d2c327913578b2804af33474ca554ba29c04a8b13060a717675ae3ac",
     "prisma": {

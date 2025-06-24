@@ -36,3 +36,4 @@ metadata
 cli.js
 bible-api.*
 sources
+tools/BibleMultiConverter
