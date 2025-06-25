@@ -147,16 +147,24 @@ async function createMetadataJson(
         logger.log(`Metadata file already exists: ${metadataPath}`);
         return;
     }
-
+    const language = normalizeLanguage(source.languageCode);
+    const englishName = getFirstNonEmpty(
+        source.shortTitle?.normalize('NFKC')?.replace(/\p{Diacritic}/gu, '')!,
+        source.title
+    );
     const metadata: InputTranslationMetadata = {
         id: source.translationId,
-        name: getFirstNonEmpty(source.title, source.translationId),
-        direction: 'ltr',
-        englishName: source.title,
-        language: normalizeLanguage(source.languageCode),
-        licenseUrl: `https://ebible.org/details.php?id=${source.id}`,
+        name: getFirstNonEmpty(
+            source.title,
+            source.shortTitle!,
+            source.translationId
+        ),
+        direction: /rtl/gi.test(source.textDirection ?? 'ltr') ? 'rtl' : 'ltr',
+        englishName: englishName,
+        language: language,
+        licenseUrl: `https://ebible.org/Scriptures/details.php?id=${source.id}`,
         shortName: source.translationId,
-        website: `https://ebible.org/details.php?id=${source.id}`,
+        website: `https://ebible.org/Scriptures/details.php?id=${source.id}`,
     };
 
     await writeFile(metadataPath, JSON.stringify(metadata, null, 2));
@@ -892,22 +900,22 @@ export async function sourceTranslations(
         }
 
         sourceUpsert = db.prepare(`INSERT INTO EBibleSource(
-            id, translationId, title, languageCode, copyright, description,
+            id, translationId, title, shortTitle, languageCode, textDirection, copyright, description,
             oldTestamentBooks, oldTestamentChapters, oldTestamentVerses,
             newTestamentBooks, newTestamentChapters, newTestamentVerses,
             apocryphaBooks, apocryphaChapters, apocryphaVerses,
             redistributable, sourceDate, updateDate, usfmDownloadDate,
             usfmDownloadPath, sha256, usfmZipUrl, usfmZipEtag, FCBHID
         ) VALUES (
-            @id, @translationId, @title, @languageCode, @copyright, @description,
+            @id, @translationId, @title, @shortTitle, @languageCode, @textDirection, @copyright, @description,
             @oldTestamentBooks, @oldTestamentChapters, @oldTestamentVerses,
             @newTestamentBooks, @newTestamentChapters, @newTestamentVerses,
             @apocryphaBooks, @apocryphaChapters, @apocryphaVerses,
             @redistributable, @sourceDate, @updateDate, @usfmDownloadDate,
             @usfmDownloadPath, @sha256, @usfmZipUrl, @usfmZipEtag, @FCBHID
         ) ON CONFLICT(id) DO UPDATE SET
-            translationId = excluded.translationId, title = excluded.title,
-            languageCode = excluded.languageCode, copyright = excluded.copyright,
+            translationId = excluded.translationId, title = excluded.title, shortTitle = excluded.shortTitle,
+            languageCode = excluded.languageCode, textDirection = excluded.textDirection, copyright = excluded.copyright,
             description = excluded.description, oldTestamentBooks = excluded.oldTestamentBooks,
             oldTestamentChapters = excluded.oldTestamentChapters, oldTestamentVerses = excluded.oldTestamentVerses,
             newTestamentBooks = excluded.newTestamentBooks, newTestamentChapters = excluded.newTestamentChapters,

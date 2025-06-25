@@ -62,6 +62,8 @@ model EBibleSource {
 
     languageCode String
     title String
+    shortTitle String?
+    textDirection String?
     redistributable Boolean
     description String
     copyright String

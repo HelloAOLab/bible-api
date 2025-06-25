@@ -60,6 +60,8 @@ export async function fetchEBibleMetadata(): Promise<EBibleSource[]> {
                 `${languageCode.toLowerCase()}_${fcbhid.slice(3).toLowerCase()}`
             ),
             title: translation.title.trim(),
+            shortTitle: translation.shortTitle.trim(),
+            textDirection: translation.textDirection.trim(),
             languageCode: languageCode,
             copyright: translation.Copyright.trim(),
             description: translation.description.trim(),
@@ -94,7 +96,9 @@ export async function fetchEBibleMetadata(): Promise<EBibleSource[]> {
             .update(source.id)
             .update(source.translationId)
             .update(source.title)
+            .update(source.shortTitle)
             .update(source.languageCode)
+            .update(source.textDirection)
             .update(source.copyright)
             .update(source.description)
             .update(source.oldTestamentBooks)
