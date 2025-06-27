@@ -143,7 +143,8 @@ async function createMetadataJson(
     const logger = log.getLogger();
     const metadataPath = path.resolve(outputDir, 'metadata.json');
 
-    if (!overwrite && (await exists(metadataPath))) {
+    const metadataExists = await exists(metadataPath);
+    if (!overwrite && metadataExists) {
         logger.log(`Metadata file already exists: ${metadataPath}`);
         return;
     }
@@ -861,6 +862,9 @@ export async function sourceTranslations(
         );
 
         filteredSources = filteredSources.filter((source) => {
+            if (overwrite) {
+                return true; // If overwrite is enabled, skip database checks
+            }
             const existingSource = sourceExists.get(source) as {
                 usfmZipEtag: string;
                 usfmDownloadDate: string;
@@ -1069,17 +1073,32 @@ export async function sourceTranslations(
                                           source.translationId
                                       );
 
-                                if (overwrite && existsSync(downloadDir)) {
-                                    logger.log(
-                                        `Overwriting existing directory: ${downloadDir}`
-                                    );
-                                    await rm(downloadDir, {
-                                        recursive: true,
-                                        force: true,
-                                    });
+                                if (overwrite) {
+                                    if (existsSync(downloadDir)) {
+                                        logger.log(
+                                            `Overwriting existing directory: ${downloadDir}`
+                                        );
+                                        await rm(downloadDir, {
+                                            recursive: true,
+                                            force: true,
+                                        });
+                                    }
+
+                                    if (existsSync(finalOutputPath)) {
+                                        logger.log(
+                                            `Overwriting existing directory: ${downloadDir}`
+                                        );
+                                        await rm(downloadDir, {
+                                            recursive: true,
+                                            force: true,
+                                        });
+                                    }
                                 }
 
                                 await mkdir(downloadDir, { recursive: true });
+                                await mkdir(finalOutputPath, {
+                                    recursive: true,
+                                });
 
                                 const reader = new BlobReader(
                                     await usfmResult.blob()
@@ -1186,8 +1205,7 @@ export async function sourceTranslations(
                         const success = await convertUsfmToUsx3(
                             tempPath,
                             outputPath,
-                            jarPath!,
-                            overwrite
+                            jarPath!
                         );
 
                         if (success) {

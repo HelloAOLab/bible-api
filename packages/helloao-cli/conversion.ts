@@ -89,19 +89,18 @@ export async function promptForBibleMultiConverter(): Promise<string | null> {
 export async function convertUsfmToUsx3(
     inputDir: string,
     outputDir: string,
-    jarPath: string,
-    overwrite: boolean
+    jarPath: string
 ): Promise<boolean> {
     const logger = log.getLogger();
     try {
         logger.log(`Converting USFM files from ${inputDir} to USX3 format...`);
 
         // Handle overwrite logic for output directory
-        if (overwrite && existsSync(outputDir)) {
-            logger.log(`Overwriting existing USX3 directory: ${outputDir}`);
-            const { rm } = await import('node:fs/promises');
-            await rm(outputDir, { recursive: true, force: true });
-        }
+        // if (overwrite && existsSync(outputDir)) {
+        //     logger.log(`Overwriting existing USX3 directory: ${outputDir}`);
+        //     const { rm } = await import('node:fs/promises');
+        //     await rm(outputDir, { recursive: true, force: true });
+        // }
 
         await mkdir(outputDir, { recursive: true });
 
