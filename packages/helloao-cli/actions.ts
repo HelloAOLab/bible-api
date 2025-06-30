@@ -197,7 +197,7 @@ async function createMetadataJson(
             source.title
         );
 
-        let shortName: string;
+        let shortName: string | null = null;
         if (language === 'eng') {
             // for english translations,
             // use the uppercase letters of the title
@@ -208,13 +208,17 @@ async function createMetadataJson(
                 .slice(0, 5);
 
             if (shortName.length <= 2) {
-                // If the short name is too short, fallback to the last 3 characters of the translationId
-                shortName = source.translationId.slice(-3).toUpperCase();
+                // If the short name is too short, fallback to the default short name
+                shortName = null;
             }
-        } else {
+        }
+
+        if (!shortName) {
+            // Skip the language code prefix (e.g., "eng_", "arb_") and use the rest for the short name
             shortName = source.translationId
                 .toUpperCase()
-                .replace(/[^A-Z0-9]/g, '');
+                .replace(/[^A-Z0-9]/g, '')
+                .slice(3);
         }
 
         metadata = {
