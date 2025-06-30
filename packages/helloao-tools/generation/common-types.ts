@@ -233,6 +233,11 @@ export interface TranslationBook {
      * The numerical order of the book in the translation.
      */
     order: number;
+
+    /**
+     * Whether the book is an apocryphal book.
+     */
+    isApocryphal?: boolean;
 }
 
 /**

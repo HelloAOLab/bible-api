@@ -31,6 +31,12 @@ describe('replaceSpacesWithUnderscores()', () => {
 });
 
 describe('generateApiForDataset()', () => {
+    beforeEach(() => {
+        globalThis.DOMParser = DOMParser as any; // window.DOMParser as any;
+        globalThis.Element = Element as any; // window.Element;
+        globalThis.Node = Node as any; // window.Node;
+    });
+
     it('should output a file tree', () => {
         let translation1: InputTranslationMetadata = {
             id: 'bsb',
@@ -1430,6 +1436,237 @@ describe('generateApiForDataset()', () => {
                         'Adam was the first man, the father of the human race.',
                     ].join('\n'),
                 ],
+            },
+        });
+
+        // expect(availableTranslations).toEqual({
+        //     translations: [
+        //         expectedTranslation
+        //     ]
+        // });
+    });
+
+    it('should support apocryphal books', () => {
+        let translation1: InputTranslationMetadata = {
+            id: 'test',
+            name: 'Test Translation',
+            englishName: 'Test Translation',
+            shortName: 'TT',
+            language: 'eng',
+            direction: 'ltr',
+            licenseUrl: 'https://example.com/terms.htm',
+            website: 'https://example.com',
+        };
+
+        let inputFiles: InputFile[] = [
+            {
+                fileType: 'usx',
+                metadata: translation1,
+                content: `<usx version="3.0"><book code="2MA" style="id">A12-2MA-kjv.sfm The King James Version of the Holy Bible Wednesday, October 14, 2009</book>
+  <para style="h">2 Maccabees</para>
+  <para style="toc1">The Second Book of the Maccabees</para>
+  <para style="toc2">2 Maccabees</para>
+  <para style="toc3">2Ma</para>
+  <para style="mt1">The Second Book of the Maccabees</para>
+  <chapter number="1" style="c" sid="2MA 1"/>
+  <para style="p"><verse number="1" style="v" sid="2MA 1:1"/>The brethren, the Jews that be at Jerusalem and in the land of Judea, wish unto the brethren, the Jews that are throughout Egypt health and peace:<verse eid="2MA 1:1"/></para>
+  <para style="p"><verse number="2" style="v" sid="2MA 1:2"/>God be gracious unto you, and remember his covenant that he made with Abraham, Isaac, and Jacob, his faithful servants;<verse eid="2MA 1:2"/></para>
+  <para style="p"><verse number="3" style="v" sid="2MA 1:3"/>And give you all an heart to serve him, and to do his will, with a good courage and a willing mind;<verse eid="2MA 1:3"/></para>
+  <para style="p"><verse number="4" style="v" sid="2MA 1:4"/>And open your hearts in his law and commandments, and send you peace,<verse eid="2MA 1:4"/></para>
+  <para style="p"><verse number="5" style="v" sid="2MA 1:5"/>And hear your prayers, and be at one with you, and never forsake you in time of trouble.<verse eid="2MA 1:5"/></para>
+ </usx>`,
+            },
+            {
+                fileType: 'usx',
+                metadata: translation1,
+                content: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<usx version="3.0"><book code="BEL" style="id">A10-BEL-kjv.sfm The King James Version of the Holy Bible Wednesday, October 14, 2009</book>
+  <para style="h">Bel</para>
+  <para style="toc1">The History of the Destruction of Bel and the Dragon</para>
+  <para style="toc2">Bel and the Dragon</para>
+  <para style="toc3">Bel</para>
+  <para style="mt1">The Book of Bel and the Dragon [in Daniel]</para>
+  <para style="is1">The History of the Destruction of Bel and the Dragon, Cut off from the end of Daniel.</para>
+  <chapter number="1" style="c" sid="BEL 1"/>
+  <para style="p"><verse number="1" style="v" sid="BEL 1:1"/>And king Astyages was gathered to his fathers, and Cyrus of Persia received his kingdom.<verse eid="BEL 1:1"/></para>
+  <para style="p"><verse number="2" style="v" sid="BEL 1:2"/>And Daniel conversed with the king, and was honoured above all his friends.<verse eid="BEL 1:2"/></para>
+  <para style="p"><verse number="3" style="v" sid="BEL 1:3"/>Now the Babylons had an idol, called Bel, and there were spent upon him every day twelve great measures of fine flour, and forty sheep, and six vessels of wine.<verse eid="BEL 1:3"/></para>
+</usx>`,
+            },
+        ];
+
+        const dataset = generateDataset(inputFiles, new DOMParser() as any);
+        const generated = generateApiForDataset(dataset);
+        const files = generateFilesForApi(generated);
+
+        const tree = fileTree(files);
+
+        const expectedTranslation = {
+            id: 'test',
+            name: 'Test Translation',
+            englishName: 'Test Translation',
+            shortName: 'TT',
+            language: 'eng',
+            textDirection: 'ltr',
+            licenseUrl: 'https://example.com/terms.htm',
+            website: 'https://example.com',
+            availableFormats: ['json'],
+            listOfBooksApiLink: '/api/test/books.json',
+            numberOfBooks: 0,
+            totalNumberOfChapters: 0,
+            totalNumberOfVerses: 0,
+            numberOfApocryphalBooks: 2,
+            totalNumberOfApocryphalChapters: 2,
+            totalNumberOfApocryphalVerses: 8,
+        };
+
+        expect(tree).toEqual({
+            '/api/available_translations.json': {
+                translations: [expectedTranslation],
+            },
+            '/api/available_commentaries.json': {
+                commentaries: [],
+            },
+            '/api/test/books.json': {
+                translation: expectedTranslation,
+                books: [
+                    {
+                        id: 'BEL',
+                        name: 'Bel',
+                        commonName: 'Bel',
+                        title: 'The Book of Bel and the Dragon [in Daniel]',
+                        order: 76,
+                        numberOfChapters: 1,
+                        totalNumberOfVerses: 3,
+                        firstChapterApiLink: '/api/test/BEL/1.json',
+                        lastChapterApiLink: '/api/test/BEL/1.json',
+                        isApocryphal: true,
+                    },
+                    {
+                        id: '2MA',
+                        name: '2 Maccabees',
+                        commonName: '2 Maccabees',
+                        title: 'The Second Book of the Maccabees',
+                        order: 78,
+                        numberOfChapters: 1,
+                        totalNumberOfVerses: 5,
+                        firstChapterApiLink: '/api/test/2MA/1.json',
+                        lastChapterApiLink: '/api/test/2MA/1.json',
+                        isApocryphal: true,
+                    },
+                ],
+            },
+            '/api/test/BEL/1.json': {
+                translation: expectedTranslation,
+                book: {
+                    id: 'BEL',
+                    name: 'Bel',
+                    commonName: 'Bel',
+                    title: 'The Book of Bel and the Dragon [in Daniel]',
+                    order: 76,
+                    numberOfChapters: 1,
+                    totalNumberOfVerses: 3,
+                    firstChapterApiLink: '/api/test/BEL/1.json',
+                    lastChapterApiLink: '/api/test/BEL/1.json',
+                    isApocryphal: true,
+                },
+                thisChapterLink: '/api/test/BEL/1.json',
+                thisChapterAudioLinks: {},
+                nextChapterApiLink: '/api/test/2MA/1.json',
+                nextChapterAudioLinks: {},
+                previousChapterApiLink: null,
+                previousChapterAudioLinks: null,
+                numberOfVerses: 3,
+                chapter: {
+                    number: 1,
+                    content: [
+                        {
+                            type: 'verse',
+                            number: 1,
+                            content: [
+                                'And king Astyages was gathered to his fathers, and Cyrus of Persia received his kingdom.',
+                            ],
+                        },
+                        {
+                            type: 'verse',
+                            number: 2,
+                            content: [
+                                'And Daniel conversed with the king, and was honoured above all his friends.',
+                            ],
+                        },
+                        {
+                            type: 'verse',
+                            number: 3,
+                            content: [
+                                'Now the Babylons had an idol, called Bel, and there were spent upon him every day twelve great measures of fine flour, and forty sheep, and six vessels of wine.',
+                            ],
+                        },
+                    ],
+                    footnotes: [],
+                },
+            },
+            '/api/test/2MA/1.json': {
+                translation: expectedTranslation,
+                book: {
+                    id: '2MA',
+                    name: '2 Maccabees',
+                    commonName: '2 Maccabees',
+                    title: 'The Second Book of the Maccabees',
+                    order: 78,
+                    numberOfChapters: 1,
+                    totalNumberOfVerses: 5,
+                    firstChapterApiLink: '/api/test/2MA/1.json',
+                    lastChapterApiLink: '/api/test/2MA/1.json',
+                    isApocryphal: true,
+                },
+                thisChapterLink: '/api/test/2MA/1.json',
+                thisChapterAudioLinks: {},
+                nextChapterApiLink: null,
+                nextChapterAudioLinks: null,
+                previousChapterApiLink: '/api/test/BEL/1.json',
+                previousChapterAudioLinks: {},
+                numberOfVerses: 5,
+                chapter: {
+                    number: 1,
+                    content: [
+                        {
+                            type: 'verse',
+                            number: 1,
+                            content: [
+                                'The brethren, the Jews that be at Jerusalem and in the land of Judea, wish unto the brethren, the Jews that are throughout Egypt health and peace:',
+                            ],
+                        },
+                        {
+                            type: 'verse',
+                            number: 2,
+                            content: [
+                                'God be gracious unto you, and remember his covenant that he made with Abraham, Isaac, and Jacob, his faithful servants;',
+                            ],
+                        },
+                        {
+                            type: 'verse',
+                            number: 3,
+                            content: [
+                                'And give you all an heart to serve him, and to do his will, with a good courage and a willing mind;',
+                            ],
+                        },
+                        {
+                            type: 'verse',
+                            number: 4,
+                            content: [
+                                'And open your hearts in his law and commandments, and send you peace,',
+                            ],
+                        },
+                        {
+                            type: 'verse',
+                            number: 5,
+                            content: [
+                                'And hear your prayers, and be at one with you, and never forsake you in time of trouble.',
+                            ],
+                        },
+                    ],
+                    footnotes: [],
+                },
             },
         });
 

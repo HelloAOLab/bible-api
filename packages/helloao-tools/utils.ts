@@ -114,7 +114,7 @@ export function parseVerseReference(text: string): VerseRef | null {
 }
 
 /**
- * Defines a map that maps the book ID to the numerical order of the book.
+ * Defines a map that maps the book ID to the USFM Book identifier.
  */
 const BOOK_ID_MAP: Map<string, string> = new Map([
     ['gen', 'GEN'],

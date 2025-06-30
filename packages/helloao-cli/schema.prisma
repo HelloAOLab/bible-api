@@ -126,6 +126,8 @@ model Book {
 
     numberOfChapters Int
 
+    isApocryphal Boolean? // Whether the book is an apocryphal book
+
     // The SHA-256 hash of the book
     sha256 String?
 

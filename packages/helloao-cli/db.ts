@@ -336,7 +336,8 @@ export function insertTranslationBooks(
         name,
         commonName,
         numberOfChapters,
-        \`order\`
+        \`order\`,
+        isApocryphal
     ) VALUES (
         @id,
         @translationId,
@@ -344,13 +345,15 @@ export function insertTranslationBooks(
         @name,
         @commonName,
         @numberOfChapters,
-        @bookOrder
+        @bookOrder,
+        @isApocryphal
     ) ON CONFLICT(id,translationId) DO 
         UPDATE SET
             title=excluded.title,
             name=excluded.name,
             commonName=excluded.commonName,
-            numberOfChapters=excluded.numberOfChapters;`);
+            numberOfChapters=excluded.numberOfChapters,
+            isApocryphal=excluded.isApocryphal;`);
 
     const insertMany = db.transaction((books: DatasetTranslationBook[]) => {
         for (let book of books) {
@@ -365,6 +368,7 @@ export function insertTranslationBooks(
                 commonName: book.commonName,
                 numberOfChapters: book.chapters.length,
                 bookOrder: book.order ?? 9999,
+                isApocryphal: Number(book.isApocryphal ?? false),
             });
         }
     });
@@ -1408,7 +1412,11 @@ export async function* loadTranslationDatasets(
                 const datasetBook: DatasetTranslationBook = {
                     ...book,
                     chapters: bookChapters,
+                    isApocryphal: book.isApocryphal ?? false,
                 };
+                if (!datasetBook.isApocryphal) {
+                    delete datasetBook.isApocryphal;
+                }
                 datasetTranslation.books.push(datasetBook);
             }
         }

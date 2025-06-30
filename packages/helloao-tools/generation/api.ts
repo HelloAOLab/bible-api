@@ -138,6 +138,21 @@ export interface ApiTranslation extends Translation {
     totalNumberOfVerses: number;
 
     /**
+     * The total number of apocryphal books that are contained in this translation.
+     */
+    numberOfApocryphalBooks?: number;
+
+    /**
+     * The total number of apocryphal chapters that are contained in this translation.
+     */
+    totalNumberOfApocryphalChapters?: number;
+
+    /**
+     * the total number of apocryphal verses that are contained in this translation.
+     */
+    totalNumberOfApocryphalVerses?: number;
+
+    /**
      * Gets the name of the language that the translation is in.
      * Null or undefined if the name of the language is not known.
      */
@@ -511,6 +526,17 @@ export function generateApiForDataset(
     const getEnglishName = options.getEnglishName;
 
     for (let { books, ...translation } of dataset.translations) {
+        let numberOfBooks = 0;
+        let numberOfApocryphalBooks = 0;
+
+        for (let book of books) {
+            if (book.isApocryphal) {
+                numberOfApocryphalBooks++;
+            } else {
+                numberOfBooks++;
+            }
+        }
+
         const apiTranslation: ApiTranslation = {
             ...translation,
             availableFormats: ['json'],
@@ -518,7 +544,7 @@ export function generateApiForDataset(
                 translation.id,
                 apiPathPrefix
             ),
-            numberOfBooks: books.length,
+            numberOfBooks,
             totalNumberOfChapters: 0,
             totalNumberOfVerses: 0,
             languageName: getNativeName
@@ -528,6 +554,10 @@ export function generateApiForDataset(
                 ? (getEnglishName(translation.language) ?? undefined)
                 : undefined,
         };
+
+        if (numberOfApocryphalBooks > 0) {
+            apiTranslation.numberOfApocryphalBooks = numberOfApocryphalBooks;
+        }
 
         const translationBooks: ApiTranslationBooks = {
             translation: apiTranslation,
@@ -612,8 +642,23 @@ export function generateApiForDataset(
 
             translationBooks.books.push(apiBook);
 
-            apiTranslation.totalNumberOfChapters += apiBook.numberOfChapters;
-            apiTranslation.totalNumberOfVerses += apiBook.totalNumberOfVerses;
+            if (apiBook.isApocryphal) {
+                if (!apiTranslation.totalNumberOfApocryphalChapters) {
+                    apiTranslation.totalNumberOfApocryphalChapters = 0;
+                }
+                if (!apiTranslation.totalNumberOfApocryphalVerses) {
+                    apiTranslation.totalNumberOfApocryphalVerses = 0;
+                }
+                apiTranslation.totalNumberOfApocryphalChapters +=
+                    apiBook.numberOfChapters;
+                apiTranslation.totalNumberOfApocryphalVerses +=
+                    apiBook.totalNumberOfVerses;
+            } else {
+                apiTranslation.totalNumberOfChapters +=
+                    apiBook.numberOfChapters;
+                apiTranslation.totalNumberOfVerses +=
+                    apiBook.totalNumberOfVerses;
+            }
         }
 
         for (let i = 0; i < translationChapters.length; i++) {

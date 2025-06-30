@@ -15,7 +15,11 @@ import {
     TranslationBook,
     TranslationBookChapter,
 } from './common-types.js';
-import { bookIdMap as defaultBookIdMap, bookOrderMap } from './book-order.js';
+import {
+    bookIdMap as defaultBookIdMap,
+    bookOrderMap,
+    apocryphaBooks,
+} from './book-order.js';
 import { omit, sortBy, sortedIndexBy } from 'lodash';
 import { getAudioUrlsForChapter } from './audio.js';
 import { CodexParser } from '../parser/codex-parser.js';
@@ -178,6 +182,8 @@ export function generateDataset(
             return;
         }
 
+        const isApocryphal = apocryphaBooks.has(id);
+
         const bookName = getBookNames(file, file.metadata, id);
 
         let translation = parsedTranslations.get(file.metadata.id);
@@ -214,6 +220,10 @@ export function generateDataset(
             order,
             chapters: [],
         };
+
+        if (isApocryphal) {
+            book.isApocryphal = true;
+        }
 
         for (let content of parsed.content) {
             if (content.type === 'chapter') {
