@@ -18,7 +18,7 @@ const openBibleUrlGenerator: (
         const chapterStr = padStart(chapter.toString(), 3, '0');
 
         let link = `https://openbible.com/audio/${reader}/${translation}_${bookOrder}_${capitalize(
-            bookId
+            bookId === 'TIT' ? 'TTS' : bookId
         )}_${chapterStr}`;
 
         if (postfix) {
