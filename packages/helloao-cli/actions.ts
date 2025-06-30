@@ -1,4 +1,4 @@
-import path, { basename, dirname, extname } from 'node:path';
+import path, { basename, extname } from 'node:path';
 import * as database from './db.js';
 import Sql from 'better-sqlite3';
 import { DOMParser, Element, Node } from 'linkedom';
@@ -13,7 +13,7 @@ import {
     InputFile,
     InputTranslationMetadata,
 } from '@helloao/tools/generation/index.js';
-import { exists } from 'fs-extra';
+import { exists, readFile } from 'fs-extra';
 import { KNOWN_AUDIO_TRANSLATIONS } from '@helloao/tools/generation/audio.js';
 import { bookChapterCountMap } from '@helloao/tools/generation/book-order.js';
 import {
@@ -132,6 +132,30 @@ export interface SourceTranslationsOptions {
     overwrite?: boolean;
 }
 
+let dirname = __dirname;
+if (!dirname) {
+    // @ts-ignore
+    dirname = import.meta.dirname;
+}
+
+let metaDir: string | null = null;
+export async function getMetaPath() {
+    if (metaDir) {
+        return metaDir;
+    }
+    const metaPaths = ['../../meta'];
+
+    for (let metaPath of metaPaths) {
+        const fullPath = path.resolve(dirname, metaPath);
+        if (await exists(fullPath)) {
+            metaDir = fullPath;
+            return fullPath;
+        }
+    }
+
+    return null;
+}
+
 /**
  * Creates metadata.json file in the output directory based on EBible source information.
  */
@@ -148,25 +172,68 @@ async function createMetadataJson(
         logger.log(`Metadata file already exists: ${metadataPath}`);
         return;
     }
-    const language = normalizeLanguage(source.languageCode);
-    const englishName = getFirstNonEmpty(
-        source.shortTitle?.normalize('NFKC')?.replace(/\p{Diacritic}/gu, '')!,
-        source.title
-    );
-    const metadata: InputTranslationMetadata = {
-        id: source.translationId,
-        name: getFirstNonEmpty(
-            source.title,
-            source.shortTitle!,
-            source.translationId
-        ),
-        direction: /rtl/gi.test(source.textDirection ?? 'ltr') ? 'rtl' : 'ltr',
-        englishName: englishName,
-        language: language,
-        licenseUrl: `https://ebible.org/Scriptures/details.php?id=${source.id}`,
-        shortName: source.translationId,
-        website: `https://ebible.org/Scriptures/details.php?id=${source.id}`,
-    };
+    const metaDir = await getMetaPath();
+
+    let metadata: InputTranslationMetadata | null = null;
+    if (metaDir) {
+        const overridePath = path.resolve(
+            metaDir,
+            `${source.translationId}.json`
+        );
+        const overrideExists = await exists(overridePath);
+        if (overrideExists) {
+            logger.log(`Using override metadata file: ${overridePath}`);
+            const overrideMetadata = await readFile(overridePath, 'utf-8');
+            metadata = JSON.parse(overrideMetadata);
+        }
+    }
+
+    if (!metadata) {
+        const language = normalizeLanguage(source.languageCode);
+        const englishName = getFirstNonEmpty(
+            source.shortTitle
+                ?.normalize('NFKC')
+                ?.replace(/\p{Diacritic}/gu, '')!,
+            source.title
+        );
+
+        let shortName: string;
+        if (language === 'eng') {
+            // for english translations,
+            // use the uppercase letters of the title
+            // or translationId
+            shortName = source.title
+                .replace(/[^A-Z]/g, '')
+                .toUpperCase()
+                .slice(0, 5);
+
+            if (shortName.length <= 2) {
+                // If the short name is too short, fallback to the last 3 characters of the translationId
+                shortName = source.translationId.slice(-3).toUpperCase();
+            }
+        } else {
+            shortName = source.translationId
+                .toUpperCase()
+                .replace(/[^A-Z0-9]/g, '');
+        }
+
+        metadata = {
+            id: source.translationId,
+            name: getFirstNonEmpty(
+                source.title,
+                source.shortTitle!,
+                source.translationId
+            ),
+            direction: /rtl/gi.test(source.textDirection ?? 'ltr')
+                ? 'rtl'
+                : 'ltr',
+            englishName: englishName,
+            language: language,
+            licenseUrl: `https://ebible.org/Scriptures/details.php?id=${source.id}`,
+            shortName: shortName,
+            website: `https://ebible.org/Scriptures/details.php?id=${source.id}`,
+        };
+    }
 
     await writeFile(metadataPath, JSON.stringify(metadata, null, 2));
     logger.log(`Created metadata.json: ${metadataPath}`);

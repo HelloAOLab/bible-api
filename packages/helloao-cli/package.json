@@ -53,7 +53,8 @@
         "**/*.js.map",
         "**/*.d.ts",
         "/migrations/**/*.sql",
-        "./schema.prisma"
+        "./schema.prisma",
+        "/meta/*.json"
     ],
     "prisma": {
         "schema": "./schema.prisma"
