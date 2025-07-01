@@ -53,7 +53,7 @@ fetch(`https://bible.helloao.org/api/BSB/books.json`)
 
 ```ts:no-line-numbers
 // Get Genesis 1 from the BSB translation
-fetch(`https://bible.helloao.org/api/BSB/Genesis/1.json`)
+fetch(`https://bible.helloao.org/api/BSB/GEN/1.json`)
     .then(request => request.json())
     .then(chapter => {
         console.log('Genesis 1 (BSB):', chapter);

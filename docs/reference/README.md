@@ -300,7 +300,7 @@ interface TranslationBook {
 Gets the content of a single chapter for a given book and translation.
 
 -   `translation` is the ID of the translation (e.g. `BSB`).
--   `book` is either the ID of the book or the common name of the book (e.g. `GEN` or `Genesis` for the BSB).
+-   `book` is the ID of the book (e.g. `GEN` for Genesis - you can find a list of book IDs [here](https://ubsicap.github.io/usfm/identification/books.html)).
 -   `chapter` is the numerical chapter (e.g. `1` for the first chapter).
 
 ### Code Example
