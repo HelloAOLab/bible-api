@@ -1921,6 +1921,229 @@ describe('generateApiForDataset', () => {
         //     ]
         // });
     });
+
+    it('use the native names instead of english for the common name for multiple languages', () => {
+        let translation1: InputTranslationMetadata = {
+            id: 'bsb',
+            name: 'Test Translation',
+            englishName: 'Test Translation',
+            shortName: 'BSB',
+            language: 'spa',
+            direction: 'ltr',
+            licenseUrl: 'https://example.com/terms.htm',
+            website: 'https://example.com',
+        };
+
+        let translation2: InputTranslationMetadata = {
+            id: 'test',
+            name: 'Test Translation 2',
+            englishName: 'Test Translation 2',
+            shortName: 'TEST',
+            language: 'hin',
+            direction: 'ltr',
+            licenseUrl: 'https://example.com/terms.htm',
+            website: 'https://example.com',
+        };
+
+        let inputFiles: InputFile[] = [
+            {
+                fileType: 'usx',
+                metadata: translation1,
+                content: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<usx version="3.0"><book code="1CO" style="id">- Ambulas (Maprik) NT [abtM] -Papua New Guinea 1983 (DBL 2014 bd)</book>
+  <para style="h">1 Korinba</para>
+  <para style="toc1">Korinba rakwa du taakwak&#233; Pol taale kavin ny&#233;ga</para>
+  <para style="toc2">1 Korinba</para>
+  <para style="toc3">1 Ko</para>
+  <para style="mt1">Korinba rakwa du taakwak&#233; Pol taale kavin ny&#233;ga</para>
+  <chapter number="1" style="c" sid="1CO 1"/>
+  <para style="p"><verse number="1" style="v" sid="1CO 1:1"/>Got wunat wad&#233;k wun&#233; Pol Krais Jisasna kudi kure yaakwa du wun&#233; ro. Rate gunat wun&#233; wakweyo ny&#233;gaba. Sostenis wawo Krais Jisasna j&#233;baaba d&#233;bu yaalak. Yaale wun&#233; wale rate an&#233; k&#233;ni ny&#233;ga kaviyu gun&#233;k&#233;.<verse eid="1CO 1:1"/> <verse number="2" style="v" sid="1CO 1:2"/>Gun&#233; Korinba rate Gotna kudi mit&#233;k v&#233;knwukwa du taakwak&#233; an&#233; k&#233;ni ny&#233;ga kaviyu.</para>
+ </usx>`,
+            },
+            {
+                fileType: 'usx',
+                metadata: translation2,
+                content: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<usx version="3.0"><book code="1CO" style="id">- Ambulas (Maprik) NT [abtM] -Papua New Guinea 1983 (DBL 2014 bd)</book>
+  <para style="h">1 Korinba</para>
+  <para style="toc1">Korinba rakwa du taakwak&#233; Pol taale kavin ny&#233;ga</para>
+  <para style="toc2">1 Korinba</para>
+  <para style="toc3">1 Ko</para>
+  <para style="mt1">Korinba rakwa du taakwak&#233; Pol taale kavin ny&#233;ga</para>
+  <chapter number="1" style="c" sid="1CO 1"/>
+  <para style="p"><verse number="1" style="v" sid="1CO 1:1"/>Got wunat wad&#233;k wun&#233; Pol Krais Jisasna kudi kure yaakwa du wun&#233; ro. Rate gunat wun&#233; wakweyo ny&#233;gaba. Sostenis wawo Krais Jisasna j&#233;baaba d&#233;bu yaalak. Yaale wun&#233; wale rate an&#233; k&#233;ni ny&#233;ga kaviyu gun&#233;k&#233;.<verse eid="1CO 1:1"/> <verse number="2" style="v" sid="1CO 1:2"/>Gun&#233; Korinba rate Gotna kudi mit&#233;k v&#233;knwukwa du taakwak&#233; an&#233; k&#233;ni ny&#233;ga kaviyu.</para>
+ </usx>`,
+            },
+        ];
+
+        const dataset = generateDataset(inputFiles, new DOMParser() as any);
+        const generated = generateApiForDataset(dataset, {
+            useCommonName: false,
+        });
+        const files = generateFilesForApi(generated);
+        const tree = fileTree(files);
+
+        const expectedTranslation = {
+            id: 'bsb',
+            name: 'Test Translation',
+            englishName: 'Test Translation',
+            shortName: 'BSB',
+            language: 'spa',
+            textDirection: 'ltr',
+            licenseUrl: 'https://example.com/terms.htm',
+            website: 'https://example.com',
+            availableFormats: ['json'],
+            listOfBooksApiLink: '/api/bsb/books.json',
+            numberOfBooks: 1,
+            totalNumberOfChapters: 1,
+            totalNumberOfVerses: 2,
+        };
+
+        const expectedTranslation2 = {
+            id: 'test',
+            name: 'Test Translation 2',
+            englishName: 'Test Translation 2',
+            shortName: 'TEST',
+            language: 'hin',
+            textDirection: 'ltr',
+            licenseUrl: 'https://example.com/terms.htm',
+            website: 'https://example.com',
+            availableFormats: ['json'],
+            listOfBooksApiLink: '/api/test/books.json',
+            numberOfBooks: 1,
+            totalNumberOfChapters: 1,
+            totalNumberOfVerses: 2,
+        };
+
+        expect(tree).toEqual({
+            '/api/available_translations.json': {
+                translations: [expectedTranslation, expectedTranslation2],
+            },
+            '/api/available_commentaries.json': {
+                commentaries: [],
+            },
+            '/api/bsb/books.json': {
+                translation: expectedTranslation,
+                books: [
+                    {
+                        id: '1CO',
+                        name: '1 Korinba',
+                        commonName: '1 Korinba',
+                        title: 'Korinba rakwa du taakwaké Pol taale kavin nyéga',
+                        numberOfChapters: 1,
+                        totalNumberOfVerses: 2,
+                        order: 46,
+                        firstChapterApiLink: '/api/bsb/1CO/1.json',
+                        lastChapterApiLink: '/api/bsb/1CO/1.json',
+                    },
+                ],
+            },
+            '/api/test/books.json': {
+                translation: expectedTranslation2,
+                books: [
+                    {
+                        id: '1CO',
+                        name: '1 Korinba',
+                        commonName: '1 Korinba',
+                        title: 'Korinba rakwa du taakwaké Pol taale kavin nyéga',
+                        numberOfChapters: 1,
+                        totalNumberOfVerses: 2,
+                        order: 46,
+                        firstChapterApiLink: '/api/test/1CO/1.json',
+                        lastChapterApiLink: '/api/test/1CO/1.json',
+                    },
+                ],
+            },
+            '/api/bsb/1CO/1.json': {
+                translation: expectedTranslation,
+                book: {
+                    id: '1CO',
+                    name: '1 Korinba',
+                    commonName: '1 Korinba',
+                    title: 'Korinba rakwa du taakwaké Pol taale kavin nyéga',
+                    numberOfChapters: 1,
+                    totalNumberOfVerses: 2,
+                    order: 46,
+                    firstChapterApiLink: '/api/bsb/1CO/1.json',
+                    lastChapterApiLink: '/api/bsb/1CO/1.json',
+                },
+                thisChapterLink: '/api/bsb/1CO/1.json',
+                thisChapterAudioLinks: {},
+                nextChapterApiLink: null,
+                nextChapterAudioLinks: null,
+                previousChapterApiLink: null,
+                previousChapterAudioLinks: null,
+                numberOfVerses: 2,
+                chapter: {
+                    number: 1,
+                    content: [
+                        {
+                            type: 'verse',
+                            number: 1,
+                            content: [
+                                'Got wunat wadék wuné Pol Krais Jisasna kudi kure yaakwa du wuné ro. Rate gunat wuné wakweyo nyégaba. Sostenis wawo Krais Jisasna jébaaba débu yaalak. Yaale wuné wale rate ané kéni nyéga kaviyu gunéké.',
+                            ],
+                        },
+                        {
+                            type: 'verse',
+                            number: 2,
+                            content: [
+                                'Guné Korinba rate Gotna kudi miték véknwukwa du taakwaké ané kéni nyéga kaviyu.',
+                            ],
+                        },
+                    ],
+                    footnotes: [],
+                },
+            },
+            '/api/test/1CO/1.json': {
+                translation: expectedTranslation2,
+                book: {
+                    id: '1CO',
+                    name: '1 Korinba',
+                    commonName: '1 Korinba',
+                    title: 'Korinba rakwa du taakwaké Pol taale kavin nyéga',
+                    numberOfChapters: 1,
+                    totalNumberOfVerses: 2,
+                    order: 46,
+                    firstChapterApiLink: '/api/test/1CO/1.json',
+                    lastChapterApiLink: '/api/test/1CO/1.json',
+                },
+                thisChapterLink: '/api/test/1CO/1.json',
+                thisChapterAudioLinks: {},
+                nextChapterApiLink: null,
+                nextChapterAudioLinks: null,
+                previousChapterApiLink: null,
+                previousChapterAudioLinks: null,
+                numberOfVerses: 2,
+                chapter: {
+                    number: 1,
+                    content: [
+                        {
+                            type: 'verse',
+                            number: 1,
+                            content: [
+                                'Got wunat wadék wuné Pol Krais Jisasna kudi kure yaakwa du wuné ro. Rate gunat wuné wakweyo nyégaba. Sostenis wawo Krais Jisasna jébaaba débu yaalak. Yaale wuné wale rate ané kéni nyéga kaviyu gunéké.',
+                            ],
+                        },
+                        {
+                            type: 'verse',
+                            number: 2,
+                            content: [
+                                'Guné Korinba rate Gotna kudi miték véknwukwa du taakwaké ané kéni nyéga kaviyu.',
+                            ],
+                        },
+                    ],
+                    footnotes: [],
+                },
+            },
+        });
+
+        // expect(availableTranslations).toEqual({
+        //     translations: [
+        //         expectedTranslation
+        //     ]
+        // });
+    });
 });
 
 function firstXLines(content: string, x: number) {

@@ -353,10 +353,11 @@ export function generateDataset(
         id: string
     ) {
         let exactMatch = true;
-        if (!bookMap) {
-            bookMap = defaultBookIdMap.get(metadata.language);
+        let map = bookMap;
+        if (!map) {
+            map = defaultBookIdMap.get(metadata.language);
 
-            if (!bookMap) {
+            if (!map) {
                 if (!unknownLanguages.has(metadata.language)) {
                     logger.warn(
                         '[generate] File does not have a known language!',
@@ -370,13 +371,13 @@ export function generateDataset(
                     '[generate] Using English book map for unknown language! This might result in outputting english book names.'
                 );
                 exactMatch = false;
-                bookMap = defaultBookIdMap.get('en');
+                map = defaultBookIdMap.get('en');
             }
         }
 
-        const bookName = bookMap?.get(id);
+        const bookName = map?.get(id);
 
-        if (!!bookMap && !bookName) {
+        if (!!map && !bookName) {
             logger.warn(
                 '[generate] Book name not found for ID!',
                 file.name,
