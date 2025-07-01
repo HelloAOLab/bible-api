@@ -15,6 +15,7 @@ const TRANSLATION_ID_MAP: Map<string, string> = new Map([
     ['eng_webp', 'ENGWEBP'],
     ['hin_irv', 'HINIRV'],
     ['hbo_mas', 'HBOMAS'],
+    ['eng_drv', 'eng_dra'],
 ]);
 
 /**
