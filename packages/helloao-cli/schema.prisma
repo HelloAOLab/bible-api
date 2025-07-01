@@ -113,6 +113,19 @@ model InputFile {
     @@id([translationId, name])
 }
 
+model InputFileWarning {
+    // The name of the file
+    name String
+
+    // The type of the warning
+    type String
+
+    // The message of the warning
+    message String
+
+    @@id([name, type, message])
+}
+
 model Book {
     id String
 

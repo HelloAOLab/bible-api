@@ -285,3 +285,24 @@ export function getBookId(book: string): string | null {
 
     return null;
 }
+
+/**
+ * A brief list of verses which may appear in some older translations
+ * but are not present in more modern translations.
+ */
+export const KNOWN_SKIPPED_VERSES = new Set([
+    'MAT 17:21',
+    'MAT 18:11',
+    'MAT 23:14',
+    'MAR 7:16',
+    'MAR 9:44',
+    'MAR 9:46',
+    'MAR 11:26',
+    'LUK 17:36',
+    'JHN 5:4',
+    'ACT 8:37',
+    'ACT 15:34',
+    'ACT 24:7',
+    'ACT 28:29',
+    'ROM 16:24',
+]);

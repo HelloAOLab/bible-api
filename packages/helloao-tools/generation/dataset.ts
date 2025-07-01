@@ -24,7 +24,11 @@ import { omit, sortBy, sortedIndexBy } from 'lodash';
 import { getAudioUrlsForChapter } from './audio.js';
 import { CodexParser } from '../parser/codex-parser.js';
 import { CommentaryCsvParser } from '../parser/commentary-csv-parser.js';
-import { CommentaryParseTree, ParseTree } from '../parser/types.js';
+import {
+    CommentaryParseTree,
+    ParseMessage,
+    ParseTree,
+} from '../parser/types.js';
 import { TyndaleXmlParser } from '../parser/tyndale-xml-parser.js';
 import { getLogger } from '../log.js';
 
@@ -41,6 +45,10 @@ export interface DatasetOutput {
      * The list of commentaries that are available in the dataset.
      */
     commentaries: DatasetCommentary[];
+
+    parseMessages?: {
+        [key: string]: ParseMessage[];
+    };
 }
 
 /**
@@ -149,6 +157,16 @@ export function generateDataset(
             }
 
             const parsed = parser.parse(file.content);
+
+            if (
+                'parseMessages' in parsed &&
+                parsed.parseMessages &&
+                file.name
+            ) {
+                const messages = (output.parseMessages =
+                    output.parseMessages || {});
+                messages[file.name] = parsed.parseMessages;
+            }
 
             if (parsed.type === 'root') {
                 addTranslationTree(file as InputTranslationFile, parsed);

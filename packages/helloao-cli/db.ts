@@ -36,6 +36,7 @@ import type { DOMParser } from 'linkedom';
 import { Readable } from 'stream';
 import { getEnglishName, getNativeName } from 'all-iso-language-codes';
 import { log } from '@helloao/tools';
+import { ParseMessage } from '@helloao/tools/parser/types.js';
 
 let dirname = __dirname;
 if (!dirname) {
@@ -201,9 +202,13 @@ export async function importFileBatch(
     insertCommentaries(db, output.commentaries);
     updateCommentaryHashes(db, output.commentaries);
     insertFileMetadata(db, changedFiles);
+    insertWarningMetadata(db, output.parseMessages);
 
     logger.log(`Inserted ${output.translations.length} translations into DB`);
     logger.log(`Inserted ${output.commentaries.length} commentaries into DB`);
+    logger.log(
+        `Produced ${output.parseMessages?.length ?? 0} warnings/errors.`
+    );
 }
 
 /**
@@ -1594,4 +1599,23 @@ export function serializeDatasets(
         }),
         options
     );
+}
+
+function insertWarningMetadata(
+    db: Database,
+    parseMessages: DatasetOutput['parseMessages'] | undefined
+) {
+    if (!parseMessages) return;
+
+    const logger = log.getLogger();
+
+    const insertStatement = db.prepare(
+        'INSERT INTO InputFileWarning (name, type, message) VALUES (?, ?, ?) ON CONFLICT (name, type, message) DO NOTHING;'
+    );
+    for (const [fileName, messages] of Object.entries(parseMessages)) {
+        for (const message of messages) {
+            logger.warn(`Warning in file ${fileName}: ${message.message}`);
+            insertStatement.run(fileName, message.type, message.message);
+        }
+    }
 }
