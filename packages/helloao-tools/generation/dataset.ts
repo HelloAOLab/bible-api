@@ -199,7 +199,10 @@ export function generateDataset(
         }
 
         const name =
-            parsed.header ?? bookName?.bookName?.commonName ?? parsed.title;
+            parsed.header ??
+            (bookName?.exactMatch ? bookName?.bookName?.commonName : null) ??
+            parsed.title ??
+            bookName?.bookName?.commonName;
 
         if (!name) {
             logger.warn('[generate] Book does not have a name!', file.name, id);
@@ -207,9 +210,10 @@ export function generateDataset(
         }
 
         const commonName =
-            bookName?.bookName?.commonName ??
+            (bookName?.exactMatch ? bookName?.bookName?.commonName : null) ??
             parsed.header ??
             parsed.title ??
+            bookName?.bookName?.commonName ??
             id;
 
         const book: DatasetTranslationBook = {
@@ -348,6 +352,7 @@ export function generateDataset(
         metadata: MetadataBase,
         id: string
     ) {
+        let exactMatch = true;
         if (!bookMap) {
             bookMap = defaultBookIdMap.get(metadata.language);
 
@@ -364,6 +369,7 @@ export function generateDataset(
                 logger.warn(
                     '[generate] Using English book map for unknown language! This might result in outputting english book names.'
                 );
+                exactMatch = false;
                 bookMap = defaultBookIdMap.get('en');
             }
         }
@@ -380,6 +386,7 @@ export function generateDataset(
         }
 
         return {
+            exactMatch,
             bookName,
         };
     }
