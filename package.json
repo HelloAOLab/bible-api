@@ -4,7 +4,9 @@
     "version": "0.0.0",
     "type": "module",
     "scripts": {
-        "test": "npm run clean && tsc --build && node --experimental-vm-modules node_modules/jest/bin/jest.js --watchAll",
+        "pretest": "npm run clean && tsc --build",
+        "test": "jest",
+        "test:watch": "npm run pretest && node --experimental-vm-modules node_modules/jest/bin/jest.js --watchAll",
         "build": "npm run clean && npm run esbuild && npm run build:tsc",
         "build:tsc": "tsc --build",
         "esbuild": "tsx ./tools/build.ts",
@@ -19,11 +21,13 @@
         "fetch:bible:audio": "npm run cli fetch-audio -- ./sources/audio",
         "fetch:bible:metadata": "npm run cli fetch-bible-metadata -- ./sources/metadata",
         "fetch:bible:commentaries": "npm run cli fetch-tyndale-open-resources -- ./sources/comment/tyndale",
+        "fetch:ebible": "npm run cli source-translations -- --convert-to-usx3 --overwrite ./sources/ebible",
         "import:bible:sources": "npm run cli import-translations -- ./sources/bible",
+        "import:bible:ebible": "npm run cli import-translations -- --overwrite ./sources/ebible",
         "import:bible:commentaries": "npm run cli import-commentaries -- ./sources/comment",
         "zip:sync": "npm run cli upload-api-files ./bible-api.zip",
         "s3:sync:docs": "aws --profile aolabs s3 sync ./build/docs s3://ao-bible-api/docs --delete",
-        "s3:sync:api": "npm run cli upload-api-files s3://ao-bible-api -- --profile aolabs --overwrite-common-files",
+        "s3:sync:api": "npm run cli upload-api-files s3://ao-bible-api -- --profile aolabs --overwrite-common-files --verbose",
         "s3:sync:db": "npm run db:init:eng && aws --profile aolabs s3 cp ./bible-api.db s3://ao-bible-api/bible.db && aws --profile aolabs s3 cp ./bible-api.eng.db s3://ao-bible-api/bible.eng.db",
         "s3:sync:zip": "aws --profile aolabs s3 cp ./bible-api.zip s3://ao-bible-api/api.zip",
         "postinstall": "prisma generate",
@@ -37,6 +41,7 @@
         "@types/markdown-it": "^12.2.3",
         "@types/node": "^22.7.4",
         "@types/papaparse": "5.3.15",
+        "@types/luxon": "3.4.2",
         "del": "7.0.0",
         "esbuild": "0.24.0",
         "fast-glob": "^3.3.2",
@@ -53,6 +58,14 @@
     "engines": {
         "node": "^20.17.0",
         "pnpm": "^10.12.1"
+    },
+    "pnpm": {
+        "onlyBuiltDependencies": [
+            "better-sqlite3",
+            "@prisma/client",
+            "@prisma/engines",
+            "prisma"
+        ]
     },
     "packageManager": "pnpm@10.12.1+sha512.f0dda8580f0ee9481c5c79a1d927b9164f2c478e90992ad268bbb2465a736984391d6333d2c327913578b2804af33474ca554ba29c04a8b13060a717675ae3ac",
     "prisma": {

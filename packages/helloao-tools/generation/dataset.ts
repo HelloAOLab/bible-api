@@ -15,12 +15,20 @@ import {
     TranslationBook,
     TranslationBookChapter,
 } from './common-types.js';
-import { bookIdMap as defaultBookIdMap, bookOrderMap } from './book-order.js';
+import {
+    bookIdMap as defaultBookIdMap,
+    bookOrderMap,
+    apocryphaBooks,
+} from './book-order.js';
 import { omit, sortBy, sortedIndexBy } from 'lodash';
 import { getAudioUrlsForChapter } from './audio.js';
 import { CodexParser } from '../parser/codex-parser.js';
 import { CommentaryCsvParser } from '../parser/commentary-csv-parser.js';
-import { CommentaryParseTree, ParseTree } from '../parser/types.js';
+import {
+    CommentaryParseTree,
+    ParseMessage,
+    ParseTree,
+} from '../parser/types.js';
 import { TyndaleXmlParser } from '../parser/tyndale-xml-parser.js';
 import { getLogger } from '../log.js';
 
@@ -37,6 +45,10 @@ export interface DatasetOutput {
      * The list of commentaries that are available in the dataset.
      */
     commentaries: DatasetCommentary[];
+
+    parseMessages?: {
+        [key: string]: ParseMessage[];
+    };
 }
 
 /**
@@ -146,6 +158,16 @@ export function generateDataset(
 
             const parsed = parser.parse(file.content);
 
+            if (
+                'parseMessages' in parsed &&
+                parsed.parseMessages &&
+                file.name
+            ) {
+                const messages = (output.parseMessages =
+                    output.parseMessages || {});
+                messages[file.name] = parsed.parseMessages;
+            }
+
             if (parsed.type === 'root') {
                 addTranslationTree(file as InputTranslationFile, parsed);
             } else {
@@ -178,6 +200,8 @@ export function generateDataset(
             return;
         }
 
+        const isApocryphal = apocryphaBooks.has(id);
+
         const bookName = getBookNames(file, file.metadata, id);
 
         let translation = parsedTranslations.get(file.metadata.id);
@@ -193,7 +217,10 @@ export function generateDataset(
         }
 
         const name =
-            parsed.header ?? bookName?.bookName?.commonName ?? parsed.title;
+            parsed.header ??
+            (bookName?.exactMatch ? bookName?.bookName?.commonName : null) ??
+            parsed.title ??
+            bookName?.bookName?.commonName;
 
         if (!name) {
             logger.warn('[generate] Book does not have a name!', file.name, id);
@@ -201,9 +228,10 @@ export function generateDataset(
         }
 
         const commonName =
-            bookName?.bookName?.commonName ??
+            (bookName?.exactMatch ? bookName?.bookName?.commonName : null) ??
             parsed.header ??
             parsed.title ??
+            bookName?.bookName?.commonName ??
             id;
 
         const book: DatasetTranslationBook = {
@@ -214,6 +242,10 @@ export function generateDataset(
             order,
             chapters: [],
         };
+
+        if (isApocryphal) {
+            book.isApocryphal = true;
+        }
 
         for (let content of parsed.content) {
             if (content.type === 'chapter') {
@@ -338,10 +370,12 @@ export function generateDataset(
         metadata: MetadataBase,
         id: string
     ) {
-        if (!bookMap) {
-            bookMap = defaultBookIdMap.get(metadata.language);
+        let exactMatch = true;
+        let map = bookMap;
+        if (!map) {
+            map = defaultBookIdMap.get(metadata.language);
 
-            if (!bookMap) {
+            if (!map) {
                 if (!unknownLanguages.has(metadata.language)) {
                     logger.warn(
                         '[generate] File does not have a known language!',
@@ -354,13 +388,14 @@ export function generateDataset(
                 logger.warn(
                     '[generate] Using English book map for unknown language! This might result in outputting english book names.'
                 );
-                bookMap = defaultBookIdMap.get('en');
+                exactMatch = false;
+                map = defaultBookIdMap.get('en');
             }
         }
 
-        const bookName = bookMap?.get(id);
+        const bookName = map?.get(id);
 
-        if (!!bookMap && !bookName) {
+        if (!!map && !bookName) {
             logger.warn(
                 '[generate] Book name not found for ID!',
                 file.name,
@@ -370,6 +405,7 @@ export function generateDataset(
         }
 
         return {
+            exactMatch,
             bookName,
         };
     }

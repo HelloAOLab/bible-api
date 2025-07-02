@@ -1,8 +1,8 @@
-import path, { basename, dirname, extname } from 'node:path';
+import path, { basename, extname } from 'node:path';
 import * as database from './db.js';
 import Sql from 'better-sqlite3';
 import { DOMParser, Element, Node } from 'linkedom';
-import { mkdir, readdir, rm, writeFile } from 'node:fs/promises';
+import { mkdir, readdir, rm, writeFile, access } from 'node:fs/promises';
 import { BibleClient } from '@gracious.tech/fetch-client';
 import {
     getFirstNonEmpty,
@@ -13,10 +13,14 @@ import {
     InputFile,
     InputTranslationMetadata,
 } from '@helloao/tools/generation/index.js';
-import { exists } from 'fs-extra';
+import { exists, readFile } from 'fs-extra';
 import { KNOWN_AUDIO_TRANSLATIONS } from '@helloao/tools/generation/audio.js';
 import { bookChapterCountMap } from '@helloao/tools/generation/book-order.js';
-import { downloadFile } from './downloads.js';
+import {
+    downloadFile,
+    downloadResponse,
+    unzipToDirectory,
+} from './downloads.js';
 import { batch, toAsyncIterable } from '@helloao/tools/parser/iterators.js';
 import {
     hashInputFiles,
@@ -31,9 +35,21 @@ import {
     UploadApiOptions,
 } from './uploads.js';
 import { getHttpUrl, parseS3Url } from './s3.js';
-import { input, select, confirm } from '@inquirer/prompts';
+import { input, select, confirm, checkbox } from '@inquirer/prompts';
 import { getNativeName, isValid } from 'all-iso-language-codes';
 import { log } from '@helloao/tools';
+import { EBibleSource } from 'prisma-gen/index.js';
+import { DateTime } from 'luxon';
+import { BlobReader, BlobWriter, ZipReader } from '@zip.js/zip.js';
+import { tmpdir } from 'node:os';
+import { existsSync } from 'fs';
+import { copyFile } from 'node:fs/promises';
+import {
+    findBibleMultiConverterJar,
+    promptForBibleMultiConverter,
+    convertUsfmToUsx3,
+} from './conversion.js';
+import { fetchEBibleMetadata } from './ebible.js';
 
 export interface GetTranslationsItem {
     id: string;
@@ -80,6 +96,151 @@ export interface InitDbOptions {
      * The languages to copy from the source database. If not specified, then all languages will be copied.
      */
     language?: string[];
+}
+
+export interface ConvertToUsx3Options {
+    /**
+     * Whether to overwrite existing files in output directory.
+     */
+    overwrite?: boolean;
+}
+
+export interface SourceTranslationsOptions {
+    /**
+     * Whether to convert USFM files to USX3 format after download.
+     */
+    convertToUsx3?: boolean;
+
+    /**
+     * Options for USX3 conversion.
+     */
+    conversionOptions?: ConvertToUsx3Options;
+
+    /**
+     * Whether to track downloads in database.
+     */
+    useDatabase?: boolean;
+
+    /**
+     * Path to BibleMultiConverter.jar file. If not provided, will search common locations.
+     */
+    bibleMultiConverterPath?: string;
+
+    /**
+     * Whether to overwrite existing files in output directory.
+     */
+    overwrite?: boolean;
+}
+
+let dirname = __dirname;
+if (!dirname) {
+    // @ts-ignore
+    dirname = import.meta.dirname;
+}
+
+let metaDir: string | null = null;
+export async function getMetaPath() {
+    if (metaDir) {
+        return metaDir;
+    }
+    const metaPaths = ['../../meta'];
+
+    for (let metaPath of metaPaths) {
+        const fullPath = path.resolve(dirname, metaPath);
+        if (await exists(fullPath)) {
+            metaDir = fullPath;
+            return fullPath;
+        }
+    }
+
+    return null;
+}
+
+/**
+ * Creates metadata.json file in the output directory based on EBible source information.
+ */
+async function createMetadataJson(
+    outputDir: string,
+    source: EBibleSource,
+    overwrite: boolean = false
+): Promise<void> {
+    const logger = log.getLogger();
+    const metadataPath = path.resolve(outputDir, 'metadata.json');
+
+    const metadataExists = await exists(metadataPath);
+    if (!overwrite && metadataExists) {
+        logger.log(`Metadata file already exists: ${metadataPath}`);
+        return;
+    }
+    const metaDir = await getMetaPath();
+
+    let metadata: InputTranslationMetadata | null = null;
+    if (metaDir) {
+        const overridePath = path.resolve(
+            metaDir,
+            `${source.translationId}.json`
+        );
+        const overrideExists = await exists(overridePath);
+        if (overrideExists) {
+            logger.log(`Using override metadata file: ${overridePath}`);
+            const overrideMetadata = await readFile(overridePath, 'utf-8');
+            metadata = JSON.parse(overrideMetadata);
+        }
+    }
+
+    if (!metadata) {
+        const language = normalizeLanguage(source.languageCode);
+        const englishName = getFirstNonEmpty(
+            source.shortTitle
+                ?.normalize('NFKC')
+                ?.replace(/\p{Diacritic}/gu, '')!,
+            source.title
+        );
+
+        let shortName: string | null = null;
+        if (language === 'eng') {
+            // for english translations,
+            // use the uppercase letters of the title
+            // or translationId
+            shortName = source.title
+                .replace(/[^A-Z]/g, '')
+                .toUpperCase()
+                .slice(0, 5);
+
+            if (shortName.length <= 2) {
+                // If the short name is too short, fallback to the default short name
+                shortName = null;
+            }
+        }
+
+        if (!shortName) {
+            // Skip the language code prefix (e.g., "eng_", "arb_") and use the rest for the short name
+            shortName = source.translationId
+                .toUpperCase()
+                .replace(/[^A-Z0-9]/g, '')
+                .slice(3);
+        }
+
+        metadata = {
+            id: source.translationId,
+            name: getFirstNonEmpty(
+                source.title,
+                source.shortTitle!,
+                source.translationId
+            ),
+            direction: /rtl/gi.test(source.textDirection ?? 'ltr')
+                ? 'rtl'
+                : 'ltr',
+            englishName: englishName,
+            language: language,
+            licenseUrl: `https://ebible.org/Scriptures/details.php?id=${source.id}`,
+            shortName: shortName,
+            website: `https://ebible.org/Scriptures/details.php?id=${source.id}`,
+        };
+    }
+
+    await writeFile(metadataPath, JSON.stringify(metadata, null, 2));
+    logger.log(`Created metadata.json: ${metadataPath}`);
 }
 
 /**
@@ -542,6 +703,658 @@ export async function generateTranslationsFiles(
             dest,
             toAsyncIterable([dataset]),
             options
+        );
+    }
+}
+
+/**
+ * Instructions for manual USFM to USX3 conversion using BibleMultiConverter
+ */
+export const CONVERSION_INSTRUCTIONS = {
+    downloadUrl: 'https://github.com/schierlm/BibleMultiConverter/releases',
+    javaRequirement: 'Java 8 or higher required',
+
+    getConversionCommand: (
+        inputDir: string,
+        outputDir: string,
+        filenamePattern: string = '*.usx'
+    ) => {
+        return `java -jar BibleMultiConverter.jar ParatextConverter USFM "${inputDir}" USX3 "${outputDir}" "${filenamePattern}"`;
+    },
+
+    examples: {
+        windows:
+            'java -jar BibleMultiConverter.jar ParatextConverter USFM "C:\\input\\usfm" USX3 "C:\\output\\usx3" "*.usx"',
+        unix: 'java -jar BibleMultiConverter.jar ParatextConverter USFM "/path/to/input/usfm" USX3 "/path/to/output/usx3" "*.usx"',
+    },
+};
+
+/**
+ * Prints conversion instructions for the user
+ */
+export function printConversionInstructions(): void {
+    const logger = log.getLogger();
+    logger.log('\n=== MANUAL CONVERSION REQUIRED ===');
+    logger.log('Automatic conversion is not available.');
+    logger.log('');
+    logger.log('To enable automatic conversion, please:');
+    logger.log('1. Download BibleMultiConverter.zip from:');
+    logger.log(`   ${CONVERSION_INSTRUCTIONS.downloadUrl}`);
+    logger.log('');
+    logger.log('2. Extract the zip file to one of these locations:');
+    logger.log('   • Current directory (./BibleMultiConverter/)');
+    logger.log('   • Tools subdirectory (./tools/BibleMultiConverter/)');
+    logger.log('   • Parent directory (../BibleMultiConverter/)');
+    logger.log(
+        '   • Or extract anywhere and provide the JAR path when prompted'
+    );
+    logger.log('');
+    logger.log('3. Ensure Java 8+ is installed');
+    logger.log('');
+    logger.log('4. Re-run this command with the --convertToUsx3 option');
+    logger.log('');
+    logger.log('==========================================\n');
+}
+
+/**
+ * Helper function to check if a translation ID matches a source
+ */
+function matchesTranslation(
+    translationQuery: string,
+    source: EBibleSource
+): boolean {
+    const lowerQuery = translationQuery.toLowerCase();
+    const lowerSourceId = source.id.toLowerCase();
+    const lowerTranslationId = source.translationId.toLowerCase();
+
+    const exactMatch =
+        translationQuery === source.translationId ||
+        translationQuery === source.id;
+    const caseInsensitiveMatch =
+        lowerQuery === lowerTranslationId || lowerQuery === lowerSourceId;
+    const partialMatch =
+        lowerSourceId.includes(lowerQuery) ||
+        lowerTranslationId.includes(lowerQuery);
+
+    return exactMatch || caseInsensitiveMatch || partialMatch;
+}
+
+/**
+ * Groups sources by which translation query they match
+ */
+function groupSourcesByTranslation(
+    sources: EBibleSource[],
+    translationQueries: string[]
+): Map<string, EBibleSource[]> {
+    const groups = new Map<string, EBibleSource[]>();
+
+    for (const query of translationQueries) {
+        const matchingSources = sources.filter((source) =>
+            matchesTranslation(query, source)
+        );
+        if (matchingSources.length > 0) {
+            groups.set(query, matchingSources);
+        }
+    }
+
+    return groups;
+}
+
+/**
+ * Handles source selection for a single translation query
+ */
+async function selectSourcesForTranslation(
+    translationQuery: string,
+    sources: EBibleSource[]
+): Promise<EBibleSource[]> {
+    const logger = log.getLogger();
+    if (sources.length === 0) {
+        logger.log(`No sources found for translation: ${translationQuery}`);
+        return [];
+    }
+
+    if (sources.length === 1) {
+        logger.log(
+            `Found 1 source for '${translationQuery}': ${sources[0].id} -> ${sources[0].translationId} | ${sources[0].title}`
+        );
+        logger.log(`Automatically selecting: ${sources[0].id}`);
+        return sources;
+    }
+
+    // Multiple sources found - prompt user
+    logger.log(`\nFound ${sources.length} sources for '${translationQuery}':`);
+    sources.forEach((source, index) => {
+        logger.log(
+            `  ${index + 1}. ${source.id} -> ${source.translationId} | ${source.title} | ${source.languageCode}`
+        );
+    });
+
+    const SELECT_ALL_VALUE = -1;
+    const choices = [
+        ...sources.map((source, index) => ({
+            name: `${source.id} -> ${source.translationId} | ${source.title} | ${source.languageCode}`,
+            value: index,
+            checked: false,
+        })),
+        { name: 'Select All', value: SELECT_ALL_VALUE, checked: false },
+    ];
+
+    const selectedIndices: number[] = await checkbox({
+        message: `Select sources for '${translationQuery}' (use space to select, enter to confirm):`,
+        choices: choices,
+        validate: (choices: readonly { value: number }[]) => {
+            if (choices.length === 0) {
+                return 'Please select at least one source or "Select All"';
+            }
+            return true;
+        },
+    });
+
+    // Handle selection
+    if (selectedIndices.includes(SELECT_ALL_VALUE)) {
+        logger.log(
+            `Selected all ${sources.length} sources for '${translationQuery}'.`
+        );
+        return sources;
+    } else {
+        const selectedSources = selectedIndices
+            .filter((index: number) => index !== SELECT_ALL_VALUE)
+            .map((index: number) => sources[index]);
+        logger.log(
+            `Selected ${selectedSources.length} sources for '${translationQuery}'.`
+        );
+        return selectedSources;
+    }
+}
+
+/**
+ * Downloads and processes USFM files from eBible.org.
+ * Can optionally convert to USX3 format and/or track in database.
+ */
+export async function sourceTranslations(
+    outputDir: string,
+    translations?: string[],
+    options: SourceTranslationsOptions = {}
+): Promise<void> {
+    const logger = log.getLogger();
+    const {
+        convertToUsx3 = false,
+        useDatabase = true, // Default to true
+        bibleMultiConverterPath,
+        overwrite = false,
+    } = options;
+
+    logger.log('Fetching eBible metadata...');
+    const ebibleSources = await fetchEBibleMetadata();
+    logger.log(`Total eBible sources found: ${ebibleSources.length}`);
+
+    logger.log('');
+    if (useDatabase) {
+        logger.log('DATABASE TRACKING: ENABLED');
+        logger.log('   • Will check existing downloads in database');
+        logger.log('   • Will skip already downloaded sources');
+        logger.log('   • Will update database with download information');
+    } else {
+        logger.log('DATABASE TRACKING: DISABLED');
+        logger.log('   • All matching sources will be processed');
+        logger.log('   • No database filtering or updates will be performed');
+        logger.log('   • Downloads may overwrite existing files');
+    }
+    logger.log('');
+
+    // Basic source validation and translation matching
+    let filteredSources = ebibleSources.filter((source) => {
+        if (!source.FCBHID) {
+            return false;
+        }
+        // If translations are specified, must match at least one
+        if (
+            translations &&
+            translations.length > 0 &&
+            !translations.some((t) => matchesTranslation(t, source))
+        ) {
+            return false;
+        }
+
+        return true;
+    });
+
+    let db: any = null;
+    let sourceExists: any = null;
+    let sourceUpsert: any = null;
+    let skippedByDatabase = 0;
+
+    // Database-based filtering (if database is enabled)
+    if (useDatabase) {
+        logger.log('Connecting to database for download tracking...');
+        db = await database.getDbFromDir(process.cwd());
+        sourceExists = db.prepare(
+            'SELECT usfmZipEtag, usfmDownloadDate FROM EBibleSource WHERE id = @id AND sha256 = @sha256;'
+        );
+
+        filteredSources = filteredSources.filter((source) => {
+            if (overwrite) {
+                return true; // If overwrite is enabled, skip database checks
+            }
+            const existingSource = sourceExists.get(source) as {
+                usfmZipEtag: string;
+                usfmDownloadDate: string;
+            };
+            if (existingSource) {
+                if (!existingSource.usfmDownloadDate) {
+                    return true;
+                }
+                source.usfmZipEtag = existingSource.usfmZipEtag;
+                source.usfmDownloadDate =
+                    existingSource.usfmDownloadDate as any;
+
+                // If specific translations were requested, include sources that match
+                if (
+                    translations &&
+                    translations.length > 0 &&
+                    translations.some((t) => matchesTranslation(t, source))
+                ) {
+                    return true;
+                }
+
+                skippedByDatabase++;
+                return false;
+            }
+
+            return true;
+        });
+
+        if (skippedByDatabase > 0) {
+            logger.log(
+                `Database filtering: Skipped ${skippedByDatabase} already downloaded sources`
+            );
+        } else {
+            logger.log(
+                'Database filtering: No sources were skipped (none previously downloaded)'
+            );
+        }
+
+        sourceUpsert = db.prepare(`INSERT INTO EBibleSource(
+            id, translationId, title, shortTitle, languageCode, textDirection, copyright, description,
+            oldTestamentBooks, oldTestamentChapters, oldTestamentVerses,
+            newTestamentBooks, newTestamentChapters, newTestamentVerses,
+            apocryphaBooks, apocryphaChapters, apocryphaVerses,
+            redistributable, sourceDate, updateDate, usfmDownloadDate,
+            usfmDownloadPath, sha256, usfmZipUrl, usfmZipEtag, FCBHID
+        ) VALUES (
+            @id, @translationId, @title, @shortTitle, @languageCode, @textDirection, @copyright, @description,
+            @oldTestamentBooks, @oldTestamentChapters, @oldTestamentVerses,
+            @newTestamentBooks, @newTestamentChapters, @newTestamentVerses,
+            @apocryphaBooks, @apocryphaChapters, @apocryphaVerses,
+            @redistributable, @sourceDate, @updateDate, @usfmDownloadDate,
+            @usfmDownloadPath, @sha256, @usfmZipUrl, @usfmZipEtag, @FCBHID
+        ) ON CONFLICT(id) DO UPDATE SET
+            translationId = excluded.translationId, title = excluded.title, shortTitle = excluded.shortTitle,
+            languageCode = excluded.languageCode, textDirection = excluded.textDirection, copyright = excluded.copyright,
+            description = excluded.description, oldTestamentBooks = excluded.oldTestamentBooks,
+            oldTestamentChapters = excluded.oldTestamentChapters, oldTestamentVerses = excluded.oldTestamentVerses,
+            newTestamentBooks = excluded.newTestamentBooks, newTestamentChapters = excluded.newTestamentChapters,
+            newTestamentVerses = excluded.newTestamentVerses, apocryphaBooks = excluded.apocryphaBooks,
+            apocryphaChapters = excluded.apocryphaChapters, apocryphaVerses = excluded.apocryphaVerses,
+            redistributable = excluded.redistributable, sourceDate = excluded.sourceDate,
+            updateDate = excluded.updateDate, usfmDownloadDate = excluded.usfmDownloadDate,
+            usfmDownloadPath = excluded.usfmDownloadPath, sha256 = excluded.sha256,
+            usfmZipUrl = excluded.usfmZipUrl, usfmZipEtag = excluded.usfmZipEtag,
+            FCBHID = excluded.FCBHID;
+        `);
+    } else {
+        logger.log('Database connection skipped (tracking disabled)');
+    }
+
+    logger.log(`Found ${filteredSources.length} sources to process`);
+
+    // Handle source selection based on whether specific translations were requested
+    let selectedSources: EBibleSource[] = [];
+
+    if (translations && translations.length > 0) {
+        const sourceGroups = groupSourcesByTranslation(
+            filteredSources,
+            translations
+        );
+
+        if (sourceGroups.size === 0) {
+            logger.log(
+                'No matching sources found for any of the specified translations.'
+            );
+            logger.log(
+                'Tip: Use the "list-ebible-translations" command to find available translations.'
+            );
+            return;
+        }
+
+        logger.log(`Processing ${sourceGroups.size} translation(s)...\n`);
+
+        for (const [translationQuery, sources] of sourceGroups) {
+            const selected = await selectSourcesForTranslation(
+                translationQuery,
+                sources
+            );
+            selectedSources.push(...selected);
+        }
+
+        if (selectedSources.length === 0) {
+            logger.log('No sources selected for download.');
+            return;
+        }
+
+        logger.log(
+            `\nTotal selected: ${selectedSources.length} sources from ${sourceGroups.size} translation(s).`
+        );
+    } else {
+        // No specific translations requested - use all filtered sources
+        selectedSources = filteredSources;
+        if (selectedSources.length === 0) {
+            logger.log('No sources found.');
+            return;
+        }
+    }
+
+    // temporary directory path for USFM downloads
+    const tempDir = path.join(
+        tmpdir(),
+        'bible-api',
+        'ebible',
+        'usfm-downloads'
+    );
+
+    try {
+        const downloadBatches: EBibleSource[][] = [];
+        const downloadBatchSize = 50;
+        const conversionBatchSize = 10;
+
+        while (selectedSources.length > 0) {
+            downloadBatches.push(selectedSources.splice(0, downloadBatchSize));
+        }
+
+        let numDownloaded = 0;
+        let numErrored = 0;
+        let numConverted = 0;
+        let conversionsNeeded: Array<{
+            tempPath: string;
+            outputPath: string;
+            source: EBibleSource;
+        }> = [];
+        // Try to find BibleMultiConverter.jar
+        let jarPath = await findBibleMultiConverterJar(bibleMultiConverterPath);
+
+        if (!jarPath && convertToUsx3) {
+            jarPath = await promptForBibleMultiConverter();
+        }
+
+        if (!jarPath && convertToUsx3) {
+            logger.error(
+                'BibleMultiConverter JAR not found. Cannot convert USFM to USX3.'
+            );
+            printConversionInstructions();
+            return;
+        }
+
+        console.log(
+            `Processing ${downloadBatches.length} batches of ${downloadBatchSize} sources each.`
+        );
+
+        for (let i = 0; i < downloadBatches.length; i++) {
+            const sources = downloadBatches[i];
+            logger.log(
+                `Processing batch ${i + 1} of ${downloadBatches.length}`
+            );
+            await Promise.all(
+                sources.map(async (source) => {
+                    try {
+                        logger.log(`Processing: ${source.translationId}`);
+
+                        // Check if USFM zip file exists
+                        const detailsPage = await fetch(
+                            `https://ebible.org/Scriptures/details.php?id=${source.id}`
+                        );
+                        const detailsHtml = await detailsPage.text();
+                        const hasUsfm = detailsHtml.includes(
+                            `${source.id}_usfm.zip`
+                        );
+
+                        if (hasUsfm) {
+                            const usfmZipUrl = `https://ebible.org/Scriptures/${source.id}_usfm.zip`;
+                            source.usfmZipUrl = usfmZipUrl;
+
+                            const usfmResult = await fetch(usfmZipUrl);
+
+                            if (usfmResult.status === 404) {
+                                source.usfmZipUrl = null;
+                            } else if (usfmResult.status === 200) {
+                                source.usfmZipEtag =
+                                    usfmResult.headers.get('etag') || null;
+
+                                // Use temp directory for USFM files if converting, otherwise use final output directory
+                                const finalOutputPath = path.resolve(
+                                    outputDir,
+                                    source.translationId
+                                );
+                                const downloadDir = convertToUsx3
+                                    ? path.resolve(
+                                          tempDir,
+                                          source.translationId
+                                      )
+                                    : path.resolve(
+                                          outputDir,
+                                          source.translationId
+                                      );
+
+                                if (overwrite) {
+                                    if (existsSync(downloadDir)) {
+                                        logger.log(
+                                            `Overwriting existing directory: ${downloadDir}`
+                                        );
+                                        await rm(downloadDir, {
+                                            recursive: true,
+                                            force: true,
+                                        });
+                                    }
+
+                                    if (existsSync(finalOutputPath)) {
+                                        logger.log(
+                                            `Overwriting existing directory: ${downloadDir}`
+                                        );
+                                        await rm(downloadDir, {
+                                            recursive: true,
+                                            force: true,
+                                        });
+                                    }
+                                }
+
+                                await mkdir(downloadDir, { recursive: true });
+                                await mkdir(finalOutputPath, {
+                                    recursive: true,
+                                });
+
+                                const reader = new BlobReader(
+                                    await usfmResult.blob()
+                                );
+                                const zip = new ZipReader(reader);
+                                const usfmFileCount = await unzipToDirectory(
+                                    zip,
+                                    downloadDir,
+                                    overwrite,
+                                    (entry) => entry.filename.endsWith('.usfm')
+                                );
+
+                                // Create metadata in output directory
+                                await createMetadataJson(
+                                    finalOutputPath,
+                                    source,
+                                    overwrite
+                                );
+
+                                if (convertToUsx3) {
+                                    if (usfmFileCount > 0) {
+                                        // convert USFM files to USX3 format
+                                        conversionsNeeded.push({
+                                            tempPath: downloadDir,
+                                            outputPath: finalOutputPath,
+                                            source,
+                                        });
+                                    } else {
+                                        logger.warn(
+                                            `No USFM files found for ${source.translationId}.`
+                                        );
+                                    }
+                                } else {
+                                    source.usfmDownloadDate =
+                                        DateTime.utc().toISO() as any;
+                                    source.usfmDownloadPath = finalOutputPath;
+                                }
+
+                                numDownloaded++;
+                            } else {
+                                numErrored += 1;
+                            }
+                        } else {
+                            logger.warn(
+                                `No USFM zip found for ${source.translationId}. Skipping.`
+                            );
+                            numErrored++;
+                            return;
+                        }
+
+                        if (!convertToUsx3) {
+                            source.usfmDownloadDate =
+                                DateTime.utc().toISO() as any;
+                            source.usfmDownloadPath = outputDir;
+                        }
+                        if (sourceUpsert) {
+                            sourceUpsert.run(source);
+                        }
+                    } catch (error) {
+                        numErrored++;
+                        logger.error(
+                            `Error processing ${source.translationId}:`,
+                            error
+                        );
+                    }
+                })
+            );
+        }
+
+        // Enhanced summary with database tracking info
+        logger.log('');
+        logger.log('DOWNLOAD SUMMARY:');
+        logger.log(`   Downloaded: ${numDownloaded} sources`);
+        logger.log(`   Errored: ${numErrored} sources`);
+        logger.log('');
+
+        if (convertToUsx3 && conversionsNeeded.length > 0) {
+            logger.log(
+                `${conversionsNeeded.length} translations need conversion to USX3.`
+            );
+
+            logger.log(`Starting automatic conversion using: ${jarPath}`);
+
+            const conversionBatches = [];
+            while (conversionsNeeded.length > 0) {
+                conversionBatches.push(
+                    conversionsNeeded.splice(0, conversionBatchSize)
+                );
+            }
+
+            logger.log(
+                `Processing ${conversionBatches.length} conversion batches of ${conversionBatchSize} each.`
+            );
+
+            for (let i = 0; i < conversionBatches.length; i++) {
+                logger.log(
+                    `Processing conversion batch ${i + 1} of ${conversionBatches.length}`
+                );
+                const sources = conversionBatches[i];
+                await Promise.all(
+                    sources.map(async ({ tempPath, outputPath, source }) => {
+                        logger.log(`Converting ${source.translationId}...`);
+
+                        const success = await convertUsfmToUsx3(
+                            tempPath,
+                            outputPath,
+                            jarPath!
+                        );
+
+                        if (success) {
+                            if (sourceUpsert) {
+                                source.usfmDownloadDate =
+                                    DateTime.utc().toISO() as any;
+                                source.usfmDownloadPath = outputPath;
+                                sourceUpsert.run(source);
+                            }
+                            numConverted++;
+                        } else {
+                            numErrored++;
+                        }
+                    })
+                );
+            }
+
+            // Clean up temp directory
+            if (tempDir && existsSync(tempDir)) {
+                logger.log(`Cleaning up temporary directory: ${tempDir}`);
+                await rm(tempDir, { recursive: true, force: true });
+            }
+
+            logger.log(`CONVERSION SUMMARY:`);
+            logger.log(`   Converted: ${numConverted}`);
+            logger.log(`   Errored: ${numErrored}`);
+        } else {
+            logger.log(
+                'Conversion to USX3 was skipped or no conversions were needed.'
+            );
+        }
+    } finally {
+        if (db) {
+            db.close();
+        }
+    }
+}
+
+export async function listEBibleTranslations(
+    searchTerm?: string
+): Promise<void> {
+    const logger = log.getLogger();
+    logger.log('Fetching eBible translation list...');
+    const ebibleSources = await fetchEBibleMetadata();
+
+    let filteredSources = ebibleSources;
+
+    if (searchTerm) {
+        const search = searchTerm.toLowerCase();
+        filteredSources = ebibleSources.filter(
+            (source) =>
+                source.id.toLowerCase().includes(search) ||
+                source.translationId.toLowerCase().includes(search) ||
+                source.title.toLowerCase().includes(search) ||
+                source.languageCode.toLowerCase().includes(search)
+        );
+        logger.log(
+            `Found ${filteredSources.length} translations matching "${searchTerm}":`
+        );
+    } else {
+        logger.log(
+            `All ${filteredSources.length} available eBible translations:`
+        );
+    }
+
+    logger.log('Format: [ID] -> [TranslationID] | [Title] | [Language]');
+    logger.log('─'.repeat(80));
+
+    filteredSources.forEach((source) => {
+        logger.log(
+            `${source.id} -> ${source.translationId} | ${source.title} | ${source.languageCode}`
+        );
+    });
+
+    if (searchTerm && filteredSources.length === 0) {
+        logger.log('No translations found. Try a different search term.');
+        logger.log(
+            'Tip: Try searching for language codes like "en", "es", "fr", etc.'
         );
     }
 }

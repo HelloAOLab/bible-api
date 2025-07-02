@@ -25,6 +25,16 @@ export interface ParseTree {
      * The list of chapters for the tree.
      */
     content: (Heading | Chapter)[];
+
+    /**
+     * The list of messages that were generated during parsing.
+     */
+    parseMessages?: ParseMessage[];
+}
+
+export interface ParseMessage {
+    type: 'warning' | 'error';
+    message: string;
 }
 
 export interface Heading {

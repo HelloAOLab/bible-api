@@ -3,6 +3,26 @@
 This is the log of changes for the Free Use Bible API.
 For information on the API Generator, see [GENERATOR-CHANGELOG.md](./GENERATOR-CHANGELOG.md).
 
+## V1.5.0
+
+#### Date: 2025-07-02
+
+### :rocket: Features
+
+-   Switched primary source for Bible translations to [ebible.org](https://ebible.org/).
+    -   This switch adds a bunch of new translations in various different languages.
+-   Added apocrypha for translations which decide to include them.
+    -   Apocryphal books have their `isApocryphal` property set to `true` in their book information and are always ordered after Revelation.
+    -   An example is the King James Version + Apocrypha (`eng_kja`) translation.
+
+### :bug: Bug Fixes
+
+-   Fixed missing verses in PSA 119 in the `npi_ulb` translation. ([#18](https://github.com/HelloAOLab/bible-api/issues/18))
+-   Fixed missing books in the `fra_lsg` translation. ([#17](https://github.com/HelloAOLab/bible-api/issues/17))
+-   Fixed missing books in the `hbo_wlc` translation. ([#14](https://github.com/HelloAOLab/bible-api/issues/14))
+-   Changed the ID of `eng_drv` to `eng_dra`. ([#21](https://github.com/HelloAOLab/bible-api/issues/21))
+-   Fixed audio links for Titus in the BSB translation. ([#15](https://github.com/HelloAOLab/bible-api/issues/15))
+
 ## V1.4.0
 
 #### Date: 2024-12-18

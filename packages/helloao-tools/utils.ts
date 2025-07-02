@@ -15,6 +15,7 @@ const TRANSLATION_ID_MAP: Map<string, string> = new Map([
     ['eng_webp', 'ENGWEBP'],
     ['hin_irv', 'HINIRV'],
     ['hbo_mas', 'HBOMAS'],
+    ['eng_drv', 'eng_dra'],
 ]);
 
 /**
@@ -114,7 +115,7 @@ export function parseVerseReference(text: string): VerseRef | null {
 }
 
 /**
- * Defines a map that maps the book ID to the numerical order of the book.
+ * Defines a map that maps the book ID to the USFM Book identifier.
  */
 const BOOK_ID_MAP: Map<string, string> = new Map([
     ['gen', 'GEN'],
@@ -285,3 +286,24 @@ export function getBookId(book: string): string | null {
 
     return null;
 }
+
+/**
+ * A brief list of verses which may appear in some older translations
+ * but are not present in more modern translations.
+ */
+export const KNOWN_SKIPPED_VERSES = new Set([
+    'MAT 17:21',
+    'MAT 18:11',
+    'MAT 23:14',
+    'MAR 7:16',
+    'MAR 9:44',
+    'MAR 9:46',
+    'MAR 11:26',
+    'LUK 17:36',
+    'JHN 5:4',
+    'ACT 8:37',
+    'ACT 15:34',
+    'ACT 24:7',
+    'ACT 28:29',
+    'ROM 16:24',
+]);

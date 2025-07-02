@@ -9,6 +9,7 @@ import {
     HebrewSubtitle,
     InlineLineBreak,
     InlineHeading,
+    ParseMessage,
 } from './types.js';
 import {
     iterateAll,
@@ -16,6 +17,7 @@ import {
     RewindableIterator,
     isParent,
 } from './iterators.js';
+import { KNOWN_SKIPPED_VERSES } from '../utils.js';
 
 enum NodeType {
     Text = 3,
@@ -33,6 +35,10 @@ export const PARSER_VERSION = '2';
 export class USXParser {
     private _domParser: DOMParser;
     private _noteCounter: number = 0;
+    private _messages: ParseMessage[] = [];
+    private _lastVerse: Verse | null = null;
+    private _currentChapter: Chapter | null = null;
+    private _bookId: string | null = null;
 
     constructor(domParser: DOMParser) {
         this._domParser = domParser;
@@ -45,6 +51,11 @@ export class USXParser {
      * @returns The parse tree that was generated.
      */
     public parse(usx: string): ParseTree {
+        this._noteCounter = 0;
+        this._messages = [];
+        this._lastVerse = null;
+        this._currentChapter = null;
+        this._bookId = null;
         const parser = this._domParser;
         const doc = parser.parseFromString(usx, 'application/xml');
         const usxElement = doc.documentElement;
@@ -68,7 +79,7 @@ export class USXParser {
             );
         }
 
-        root.id = bookCode;
+        this._bookId = root.id = bookCode;
 
         const header = usxElement.querySelector('para[style="h"]');
         if (header) {
@@ -90,6 +101,10 @@ export class USXParser {
 
         for (let content of this.iterateRootContent(usxElement)) {
             root.content.push(content);
+        }
+
+        if (this._messages.length > 0) {
+            root.parseMessages = this._messages.slice();
         }
 
         return root;
@@ -120,6 +135,7 @@ export class USXParser {
                     content: [],
                     footnotes: [],
                 };
+                this._currentChapter = chapter;
 
                 for (let content of this.iterateChapterContent(
                     chapter,
@@ -206,6 +222,9 @@ export class USXParser {
             }
 
             if (node.nodeName === 'verse') {
+                if (!(node instanceof Element) || !node.hasAttribute('eid')) {
+                    nodes.rewind(1);
+                }
                 break;
             }
 
@@ -307,6 +326,37 @@ export class USXParser {
             number: parseInt(element.getAttribute('number') || '0', 10),
             content: [],
         };
+
+        if (this._currentChapter && this._lastVerse) {
+            if (this._currentChapter.number === chapter.number) {
+                // We're parsing the same chapter as the last one
+                const delta = verse.number - this._lastVerse.number;
+                if (delta > 1) {
+                    // Delta is greater than 1, so we might have missed some verses
+                    for (
+                        let v = this._lastVerse.number + 1;
+                        v < verse.number;
+                        v++
+                    ) {
+                        let isExpected = false;
+                        if (this._bookId) {
+                            const missingVerse = `${this._bookId} ${chapter.number}:${v}`;
+                            if (KNOWN_SKIPPED_VERSES.has(missingVerse)) {
+                                isExpected = true;
+                            }
+                        }
+
+                        if (!isExpected) {
+                            this._messages.push({
+                                type: 'warning',
+                                message: `Verse ${this._bookId ?? '(null)'} ${chapter.number}:${v} is missing.`,
+                            });
+                        }
+                    }
+                }
+            }
+        }
+        this._lastVerse = verse;
 
         for (let content of this.iterateVerseContent(chapter, verse, nodes)) {
             addOrJoin(verse.content, content);

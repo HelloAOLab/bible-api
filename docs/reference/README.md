@@ -112,6 +112,24 @@ interface Translation {
      * Complete translations should have the same number of verses as the Bible (around 31,102 - some translations exclude verses based on the aparent likelyhood of existing in the original source texts).
      */
     totalNumberOfVerses: number;
+
+    /**
+     * The total number of apocryphal books that are contained in this translation.
+     * Omitted if the translation does not include apocrypha.
+     */
+    numberOfApocryphalBooks?: number;
+
+    /**
+     * The total number of apocryphal chapters that are contained in this translation.
+     * Omitted if the translation does not include apocrypha.
+     */
+    totalNumberOfApocryphalChapters?: number;
+
+    /**
+     * the total number of apocryphal verses that are contained in this translation.
+     * Omitted if the translation does not include apocrypha.
+     */
+    totalNumberOfApocryphalVerses?: number;
 }
 ```
 
@@ -196,6 +214,18 @@ interface TranslationBook {
     commonName: string;
 
     /**
+     * The title of the book.
+     * This is usually a more descriptive version of the book name.
+     * If not available, then one was not provided by the translation.
+     */
+    title: string | null;
+
+    /**
+     * The numerical order of the book in the translation.
+     */
+    order: number;
+
+    /**
      * The number of chapters that the book contains.
      */
     numberOfChapters: number;
@@ -214,6 +244,12 @@ interface TranslationBook {
      * The number of verses that the book contains.
      */
     totalNumberOfVerses: number;
+
+    /**
+     * Whether the book is an apocryphal book.
+     * Omitted if the translation is canonical.
+     */
+    isApocryphal?: boolean;
 }
 ```
 
@@ -264,7 +300,7 @@ interface TranslationBook {
 Gets the content of a single chapter for a given book and translation.
 
 -   `translation` is the ID of the translation (e.g. `BSB`).
--   `book` is either the ID of the book or the common name of the book (e.g. `GEN` or `Genesis` for the BSB).
+-   `book` is the ID of the book (e.g. `GEN` for Genesis - you can find a list of book IDs [here](https://ubsicap.github.io/usfm/identification/books.html)).
 -   `chapter` is the numerical chapter (e.g. `1` for the first chapter).
 
 ### Code Example

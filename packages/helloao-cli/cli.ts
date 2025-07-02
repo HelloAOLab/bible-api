@@ -17,12 +17,18 @@ import {
     importTranslation,
     importTranslations,
     initDb,
+    listEBibleTranslations,
+    sourceTranslations,
     uploadTestTranslation,
     uploadTestTranslations,
 } from './actions.js';
-import { getPrismaDbFromDir } from './db.js';
+import { getDbFromDir, getPrismaDbFromDir, importFileBatch } from './db.js';
 import { confirm, input } from '@inquirer/prompts';
 import { log } from '@helloao/tools';
+import { parse } from 'papaparse';
+import { EBibleSource } from 'prisma-gen/index.js';
+import { DateTime } from 'luxon';
+import { sha256 } from 'hash.js';
 
 async function start() {
     const parser = new DOMParser();
@@ -461,6 +467,44 @@ async function start() {
         )
         .action(async (dir: string, translations: string[], options: any) => {
             await fetchTranslations(dir, translations, options);
+        });
+
+    program
+        .command('source-translations <dir> [translations...]')
+        .description(
+            'Finds translation metadata from ebible.org and stores it in the database.'
+        )
+        .option(
+            '--convert-to-usx3',
+            'Convert USFM files to USX3 format after download'
+        )
+        .option(
+            '--bible-multi-converter-path <path>',
+            'Path to BibleMultiConverter.jar file'
+        )
+        .option('--overwrite', 'Overwrite existing files in output directory')
+        .option('--no-database', 'Disable database tracking for downloads')
+        .action(async (dir, translations, options) => {
+            const sourceOptions = {
+                convertToUsx3: options.convertToUsx3,
+                bibleMultiConverterPath: options.bibleMultiConverterPath,
+                useDatabase: options.database !== false,
+                overwrite: options.overwrite,
+                conversionOptions: {
+                    overwrite: options.overwrite,
+                },
+            };
+
+            await sourceTranslations(dir, translations, sourceOptions);
+        });
+
+    program
+        .command('list-ebible-translations [search]')
+        .description(
+            'List available eBible translations. Optionally filter by search term.'
+        )
+        .action(async (search?: string) => {
+            await listEBibleTranslations(search);
         });
 
     program

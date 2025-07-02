@@ -50,6 +50,52 @@ model Commentary {
     profiles     CommentaryProfile[]
 }
 
+// The ebible.org source for a particular translation
+// Contains metadata that is useful for managing downloads
+model EBibleSource {
+    id String @id
+    
+    // The URL to the USFM zip file download
+    usfmZipUrl String?
+    // The ETag of the downloaded USFM zip file
+    usfmZipEtag String?
+
+    languageCode String
+    title String
+    shortTitle String?
+    textDirection String?
+    redistributable Boolean
+    description String
+    copyright String
+    FCBHID String
+    updateDate DateTime
+    sourceDate DateTime
+
+    oldTestamentBooks Int
+    oldTestamentChapters Int
+    oldTestamentVerses Int
+    newTestamentBooks Int
+    newTestamentChapters Int
+    newTestamentVerses Int
+    apocryphaBooks Int
+    apocryphaChapters Int
+    apocryphaVerses Int
+
+    // The ID of the translation that the source is for
+    translationId String
+
+    // The date that the source was downloaded
+    usfmDownloadDate DateTime?
+    
+    // The path that the USFM was downloaded to
+    usfmDownloadPath String?
+
+    // The SHA-256 hash of the source
+    // Can be used to determine if the source has changed
+    sha256 String?
+}
+
+// Files that were input into the API generator
 model InputFile {
     // The ID of the translation that the file is for
     translationId String
@@ -67,6 +113,19 @@ model InputFile {
     @@id([translationId, name])
 }
 
+model InputFileWarning {
+    // The name of the file
+    name String
+
+    // The type of the warning
+    type String
+
+    // The message of the warning
+    message String
+
+    @@id([name, type, message])
+}
+
 model Book {
     id String
 
@@ -79,6 +138,8 @@ model Book {
     order Int
 
     numberOfChapters Int
+
+    isApocryphal Boolean? // Whether the book is an apocryphal book
 
     // The SHA-256 hash of the book
     sha256 String?
