@@ -19,28 +19,32 @@ Usage: helloao [options] [command]
 A CLI for managing a Free Use Bible API.
 
 Options:
-  -V, --version                                         output the version number
-  -h, --help                                            display help for command
+  -V, --version                                          output the version number
+  -h, --help                                             display help for command
 
 Commands:
-  init [options] [path]                                 Initialize a new Bible API DB.
-  generate-translation-metadata                         Generates a metadata file for a translation.
-  import-translation [options] <dir> [dirs...]          Imports a translation from the given directory into the database.
-  import-translations [options] <dir>                   Imports all translations from the given directory into the database.
-  upload-test-translation [options] <input>             Uploads a translation to the HelloAO Free Bible API test S3 bucket.
-                                                        Requires access to the HelloAO Free Bible API test S3 bucket.
-                                                        For inquiries, please contact hello@helloao.org.
-  upload-test-translations [options] <input>            Uploads all the translations in the given input directory to the HelloAO Free Bible API test S3 bucket.
-                                                        Requires access to the HelloAO Free Bible API test S3 bucket.
-                                                        For inquiries, please contact hello@helloao.org.
-  generate-translation-files [options] <input> <dir>    Generates API files from the given input translation.
-  generate-translations-files [options] <input> <dir>   Generates API files from the given input translations.
-  upload-api-files [options] <dest>                     Uploads API files to the specified destination. For S3, use the format s3://bucket-name/path/to/folder.
-  fetch-translations [options] <dir> [translations...]  Fetches the specified translations from fetch.bible and places them in the given directory.
-  fetch-audio [options] <dir> [translations...]         Fetches the specified audio translations and places them in the given directory.
-                                                        Translations should be in the format "translationId/audioId". e.g. "BSB/gilbert"
-  fetch-bible-metadata <dir>                            Fetches the Theographic bible metadata and places it in the given directory.
-  help [command]                                        display help for command
+  init [options] [path]                                  Initialize a new Bible API DB.
+  generate-translation-metadata                          Generates a metadata file for a translation.
+  import-translation [options] <dir> [dirs...]           Imports a translation from the given directory into the database.
+  import-translations [options] <dir>                    Imports all translations from the given directory into the database.
+  import-commentary [options] <dir> [dirs...]            Imports a commentary from the given directory into the database.
+  import-commentaries [options] <dir>                    Imports all commentaries from the given directory into the database.
+  upload-test-translation [options] <input>              Uploads a translation to the HelloAO Free Bible API test S3 bucket.
+                                                         Requires access to the HelloAO Free Bible API test S3 bucket.
+                                                         For inquiries, please contact hello@helloao.org.
+  upload-test-translations [options] <input>             Uploads all the translations in the given input directory to the HelloAO Free Bible API test S3 bucket.
+                                                         Requires access to the HelloAO Free Bible API test S3 bucket.
+                                                         For inquiries, please contact hello@helloao.org.
+  generate-translation-files [options] <input> <dir>     Generates API files from the given input translation.
+  generate-translations-files [options] <input> <dir>    Generates API files from the given input translations.
+  upload-api-files [options] <dest>                      Uploads API files to the specified destination. For S3, use the format s3://bucket-name/path/to/folder.
+  source-translations [options] <dir> [translations...]  Finds translation sources from ebible.org and downloads it.
+  list-ebible-translations [search]                      List available eBible translations. Optionally filter by search term.
+  fetch-audio [options] <dir> [translations...]          Fetches the specified audio translations and places them in the given directory.
+                                                         Translations should be in the format "translationId/audioId". e.g. "BSB/gilbert"
+  fetch-bible-metadata <dir>                             Fetches the Theographic bible metadata and places it in the given directory.
+  fetch-tyndale-open-resources <dir>                     Fetches the Tyndale Open Bible Resources and places it in the given directory.
+  help [command]                                         display help for command
 ```
 
 The `@helloao/cli` package can also be used as a library.
