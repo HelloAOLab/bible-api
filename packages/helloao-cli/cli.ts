@@ -9,7 +9,6 @@ import { uploadApiFilesFromDatabase } from './uploads.js';
 import {
     askForMetadata,
     fetchAudio,
-    fetchTranslations,
     generateTranslationFiles,
     generateTranslationsFiles,
     importCommentaries,
@@ -457,22 +456,9 @@ async function start() {
         });
 
     program
-        .command('fetch-translations <dir> [translations...]')
-        .description(
-            'Fetches the specified translations from fetch.bible and places them in the given directory.'
-        )
-        .option(
-            '-a, --all',
-            'Fetch all translations. If omitted, only undownloaded translations will be fetched.'
-        )
-        .action(async (dir: string, translations: string[], options: any) => {
-            await fetchTranslations(dir, translations, options);
-        });
-
-    program
         .command('source-translations <dir> [translations...]')
         .description(
-            'Finds translation metadata from ebible.org and stores it in the database.'
+            'Finds translation sources from ebible.org and downloads it.'
         )
         .option(
             '--convert-to-usx3',

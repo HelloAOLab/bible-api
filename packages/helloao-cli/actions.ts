@@ -2,25 +2,13 @@ import path, { basename, extname } from 'node:path';
 import * as database from './db.js';
 import Sql from 'better-sqlite3';
 import { DOMParser, Element, Node } from 'linkedom';
-import { mkdir, readdir, rm, writeFile, access } from 'node:fs/promises';
-import { BibleClient } from '@gracious.tech/fetch-client';
-import {
-    getFirstNonEmpty,
-    getTranslationId,
-    normalizeLanguage,
-} from '@helloao/tools/utils.js';
-import {
-    InputFile,
-    InputTranslationMetadata,
-} from '@helloao/tools/generation/index.js';
+import { mkdir, readdir, rm, writeFile } from 'node:fs/promises';
+import { getFirstNonEmpty, normalizeLanguage } from '@helloao/tools/utils.js';
+import { InputTranslationMetadata } from '@helloao/tools/generation/index.js';
 import { exists, readFile } from 'fs-extra';
 import { KNOWN_AUDIO_TRANSLATIONS } from '@helloao/tools/generation/audio.js';
 import { bookChapterCountMap } from '@helloao/tools/generation/book-order.js';
-import {
-    downloadFile,
-    downloadResponse,
-    unzipToDirectory,
-} from './downloads.js';
+import { downloadFile, unzipToDirectory } from './downloads.js';
 import { batch, toAsyncIterable } from '@helloao/tools/parser/iterators.js';
 import {
     hashInputFiles,
@@ -30,20 +18,18 @@ import {
 import { generateDataset } from '@helloao/tools/generation/dataset.js';
 import {
     serializeAndUploadDatasets,
-    uploadApiFilesFromDatabase,
     UploadApiFromDatabaseOptions,
     UploadApiOptions,
 } from './uploads.js';
-import { getHttpUrl, parseS3Url } from './s3.js';
+import { getHttpUrl } from './s3.js';
 import { input, select, confirm, checkbox } from '@inquirer/prompts';
-import { getNativeName, isValid } from 'all-iso-language-codes';
+import { isValid } from 'all-iso-language-codes';
 import { log } from '@helloao/tools';
 import { EBibleSource } from 'prisma-gen/index.js';
 import { DateTime } from 'luxon';
-import { BlobReader, BlobWriter, ZipReader } from '@zip.js/zip.js';
+import { BlobReader, ZipReader } from '@zip.js/zip.js';
 import { tmpdir } from 'node:os';
 import { existsSync } from 'fs';
-import { copyFile } from 'node:fs/promises';
 import {
     findBibleMultiConverterJar,
     promptForBibleMultiConverter,
@@ -496,134 +482,6 @@ export interface FetchTranslationsOptions {
      * Fetch all translations. If omitted, only undownloaded translations will be fetched.
      */
     all?: boolean;
-}
-
-/**
- * Fetches the specified translations from fetch.bible and places them in the given directory.
- * @param dir The directory that the translations should be placed in.
- * @param translations The translations that should be downloaded. If not specified, then all translations will be downloaded.
- * @param options The options.
- */
-export async function fetchTranslations(
-    dir: string,
-    translations?: string[],
-    options: FetchTranslationsOptions = {}
-): Promise<void> {
-    const logger = log.getLogger();
-    const translationsSet = new Set(translations);
-    const client = new BibleClient({
-        remember_fetches: false,
-    });
-
-    const collection = await client.fetch_collection();
-    const collectionTranslations = collection.get_translations();
-
-    logger.log(`Discovered ${collectionTranslations.length} translations`);
-
-    const filtered =
-        translations && translations.length <= 0
-            ? collectionTranslations
-            : collectionTranslations.filter((t) => translationsSet.has(t.id));
-
-    let batches: GetTranslationsItem[][] = [];
-    while (filtered.length > 0) {
-        batches.push(filtered.splice(0, 10));
-    }
-
-    logger.log(
-        `Downloading ${filtered.length} translations in ${batches.length} batches`
-    );
-
-    for (let i = 0; i < batches.length; i++) {
-        const batch = batches[i];
-        logger.log(`Downloading batch ${i + 1} of ${batches.length}`);
-        const translations = await Promise.all(
-            batch.map(async (t) => {
-                const id = getTranslationId(t.id);
-                const translation: InputTranslationMetadata = {
-                    id,
-                    name: getFirstNonEmpty(
-                        t.name_local,
-                        t.name_english,
-                        t.name_abbrev
-                    ),
-                    direction: getFirstNonEmpty(t.direction, 'ltr'),
-                    englishName: getFirstNonEmpty(
-                        t.name_english,
-                        t.name_abbrev,
-                        t.name_local
-                    ),
-                    language: normalizeLanguage(t.language),
-                    licenseUrl: t.attribution_url,
-                    shortName: getFirstNonEmpty(t.name_abbrev, id),
-                    website: t.attribution_url,
-                };
-
-                const books = await Promise.all(
-                    collection.get_books(t.id).map(async (b) => {
-                        const name = `${b.id}.usx`;
-                        if (
-                            !options.all &&
-                            (await exists(
-                                path.resolve(dir, translation.id, name)
-                            ))
-                        ) {
-                            return null;
-                        }
-
-                        const content = await collection.fetch_book(
-                            t.id,
-                            b.id,
-                            'usx'
-                        );
-
-                        const contentString = content.get_whole();
-                        const file: InputFile = {
-                            fileType: 'usx',
-                            content: contentString,
-                            metadata: translation,
-                            name,
-                        };
-
-                        return file;
-                    })
-                );
-
-                return {
-                    translation,
-                    books,
-                };
-            })
-        );
-
-        logger.log(`Writing batch ${i + 1} of ${batches.length}`);
-        let promises: Promise<void>[] = [];
-        for (let { translation, books } of translations) {
-            for (let book of books) {
-                if (!book) {
-                    continue;
-                }
-                if (!book.name) {
-                    throw new Error('Book name is required');
-                }
-                const fullPath = path.resolve(dir, translation.id, book.name);
-                await mkdir(path.dirname(fullPath), { recursive: true });
-                const promise = writeFile(fullPath, book.content);
-                promises.push(promise);
-            }
-
-            const translationPath = path.resolve(
-                dir,
-                translation.id,
-                'metadata.json'
-            );
-            await mkdir(path.dirname(translationPath), { recursive: true });
-            const translationData = JSON.stringify(translation, null, 2);
-            promises.push(writeFile(translationPath, translationData));
-        }
-
-        await Promise.all(promises);
-    }
 }
 
 /**
