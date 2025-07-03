@@ -292,6 +292,7 @@ export function getBookId(book: string): string | null {
  * but are not present in more modern translations.
  */
 export const KNOWN_SKIPPED_VERSES = new Set([
+    'MAT 12:47',
     'MAT 17:21',
     'MAT 18:11',
     'MAT 23:14',
@@ -300,6 +301,7 @@ export const KNOWN_SKIPPED_VERSES = new Set([
     'MRK 9:46',
     'MRK 11:26',
     'LUK 17:36',
+    'LUK 23:17',
     'JHN 5:4',
     'ACT 8:37',
     'ACT 15:34',
