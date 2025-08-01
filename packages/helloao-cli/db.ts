@@ -1205,6 +1205,7 @@ export async function getDbFromDir(dir: string): Promise<Database> {
 }
 
 export async function getDb(dbPath: string): Promise<Database> {
+    console.log('Opening database at', dbPath);
     const logger = log.getLogger();
     const migrationsPath = await getMigrationsPath();
     if (!migrationsPath) {

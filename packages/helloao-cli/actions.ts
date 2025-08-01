@@ -114,6 +114,8 @@ export interface SourceTranslationsOptions {
 
     /**
      * Whether to overwrite existing files in output directory.
+     *
+     * If database tracking is enabled, this will prevent overwriting files that were not tracked in the database.
      */
     overwrite?: boolean;
 }
@@ -735,7 +737,7 @@ export async function sourceTranslations(
     options: SourceTranslationsOptions = {}
 ): Promise<void> {
     const logger = log.getLogger();
-    const {
+    let {
         convertToUsx3 = false,
         useDatabase = true, // Default to true
         bibleMultiConverterPath,
@@ -780,26 +782,35 @@ export async function sourceTranslations(
     let db: any = null;
     let sourceExists: any = null;
     let sourceUpsert: any = null;
-    let skippedByDatabase = 0;
 
     // Database-based filtering (if database is enabled)
     if (useDatabase) {
+        if (!overwrite) {
+            // overwrite existing files
+            overwrite = true;
+            console.warn(
+                'Overwriting files is enabled due to database tracking.'
+            );
+        }
+
         logger.log('Connecting to database for download tracking...');
         db = await database.getDbFromDir(process.cwd());
         sourceExists = db.prepare(
             'SELECT usfmZipEtag, usfmDownloadDate FROM EBibleSource WHERE id = @id AND sha256 = @sha256;'
         );
+        let skippedByDatabase = 0;
+        let sourcesChecked = 0;
+        let notDownloaded = 0;
 
         filteredSources = filteredSources.filter((source) => {
-            if (overwrite) {
-                return true; // If overwrite is enabled, skip database checks
-            }
             const existingSource = sourceExists.get(source) as {
                 usfmZipEtag: string;
                 usfmDownloadDate: string;
             };
+            sourcesChecked++;
             if (existingSource) {
                 if (!existingSource.usfmDownloadDate) {
+                    notDownloaded++;
                     return true;
                 }
                 source.usfmZipEtag = existingSource.usfmZipEtag;
@@ -824,13 +835,19 @@ export async function sourceTranslations(
 
         if (skippedByDatabase > 0) {
             logger.log(
-                `Database filtering: Skipped ${skippedByDatabase} already downloaded sources`
+                `Database filtering: Skipped ${skippedByDatabase} already downloaded sources.`
             );
         } else {
-            logger.log(
-                'Database filtering: No sources were skipped (none previously downloaded)'
-            );
+            logger.log(`Database filtering: No sources were skipped.`);
         }
+
+        logger.log(`Database filtering:`);
+        logger.log(`   • Checked: ${sourcesChecked}`);
+        logger.log(`   • Skipped: ${skippedByDatabase}`);
+        logger.log(`   • New: ${notDownloaded}`);
+        logger.log(
+            `   • Needs Update: ${filteredSources.length - notDownloaded}`
+        );
 
         sourceUpsert = db.prepare(`INSERT INTO EBibleSource(
             id, translationId, title, shortTitle, languageCode, textDirection, copyright, description,
@@ -1082,9 +1099,9 @@ export async function sourceTranslations(
                             source.usfmDownloadDate =
                                 DateTime.utc().toISO() as any;
                             source.usfmDownloadPath = outputDir;
-                        }
-                        if (sourceUpsert) {
-                            sourceUpsert.run(source);
+                            if (sourceUpsert) {
+                                sourceUpsert.run(source);
+                            }
                         }
                     } catch (error) {
                         numErrored++;
