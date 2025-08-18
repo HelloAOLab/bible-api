@@ -1178,15 +1178,16 @@ export function getDbPathFromDir(dir: string) {
     return path.resolve(dir, 'bible-api.db');
 }
 
-export function getDbPath(p: string | null) {
+export function getDbPath(p?: string | null) {
     if (p) {
         return path.resolve(p);
     }
     return getDbPathFromDir(process.cwd());
 }
 
-export function getPrismaDbFromDir(dir: string) {
-    const dbPath = getDbPathFromDir(dir);
+export function getPrismaDb(path?: string | null) {
+    const dbPath = getDbPath(path);
+    console.log('Opening database at', dbPath);
     const prisma = new PrismaClient({
         datasources: {
             db: {
@@ -1197,14 +1198,18 @@ export function getPrismaDbFromDir(dir: string) {
     return prisma;
 }
 
-export async function getDbFromDir(dir: string): Promise<Database> {
-    const dbPath = getDbPathFromDir(dir);
-
-    const db = await getDb(dbPath);
+/**
+ * Gets the database from the given path. If no path is provided, the current working directory is used.
+ * @param path The path to the database. If not provided, the current working directory is used.
+ * @returns
+ */
+export async function getDb(path?: string | null): Promise<Database> {
+    const dbPath = getDbPath(path);
+    const db = await getDbFromPath(dbPath);
     return db;
 }
 
-export async function getDb(dbPath: string): Promise<Database> {
+async function getDbFromPath(dbPath: string): Promise<Database> {
     console.log('Opening database at', dbPath);
     const logger = log.getLogger();
     const migrationsPath = await getMigrationsPath();

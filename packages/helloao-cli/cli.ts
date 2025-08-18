@@ -21,13 +21,9 @@ import {
     uploadTestTranslation,
     uploadTestTranslations,
 } from './actions.js';
-import { getDbFromDir, getPrismaDbFromDir, importFileBatch } from './db.js';
+import { getPrismaDb } from './db.js';
 import { confirm, input } from '@inquirer/prompts';
 import { log } from '@helloao/tools';
-import { parse } from 'papaparse';
-import { EBibleSource } from 'prisma-gen/index.js';
-import { DateTime } from 'luxon';
-import { sha256 } from 'hash.js';
 
 async function start() {
     const parser = new DOMParser();
@@ -40,6 +36,7 @@ async function start() {
     program
         .name('helloao')
         .description('A CLI for managing a Free Use Bible API.')
+        .option('--db <path>', 'Path to the database file.')
         .version('0.0.1');
 
     program
@@ -55,7 +52,10 @@ async function start() {
             'The language(s) that the database should be initialized with.'
         )
         .action(async (dbPath: string, options: any) => {
-            await initDb(dbPath, options);
+            await initDb(dbPath, {
+                ...program.opts(),
+                ...options,
+            });
         });
 
     program
@@ -100,7 +100,10 @@ async function start() {
         )
         .option('--overwrite', 'Whether to overwrite existing files.')
         .action(async (dir: string, dirs: string[], options: any) => {
-            await importTranslation(dir, dirs, options);
+            await importTranslation(dir, dirs, {
+                ...program.opts(),
+                ...options,
+            });
         });
 
     program
@@ -110,7 +113,10 @@ async function start() {
         )
         .option('--overwrite', 'Whether to overwrite existing files.')
         .action(async (dir: string, options: any) => {
-            await importTranslations(dir, options);
+            await importTranslations(dir, {
+                ...program.opts(),
+                ...options,
+            });
         });
 
     program
@@ -120,7 +126,10 @@ async function start() {
         )
         .option('--overwrite', 'Whether to overwrite existing files.')
         .action(async (dir: string, dirs: string[], options: any) => {
-            await importCommentary(dir, dirs, options);
+            await importCommentary(dir, dirs, {
+                ...program.opts(),
+                ...options,
+            });
         });
 
     program
@@ -130,7 +139,10 @@ async function start() {
         )
         .option('--overwrite', 'Whether to overwrite existing files.')
         .action(async (dir: string, options: any) => {
-            await importCommentaries(dir, options);
+            await importCommentaries(dir, {
+                ...program.opts(),
+                ...options,
+            });
         });
 
     program
@@ -196,7 +208,10 @@ async function start() {
                 return;
             }
 
-            const result = await uploadTestTranslation(input, options);
+            const result = await uploadTestTranslation(input, {
+                ...program.opts(),
+                ...options,
+            });
 
             if (result) {
                 const logger = log.getLogger();
@@ -275,7 +290,10 @@ async function start() {
                 return;
             }
 
-            const result = await uploadTestTranslations(input, options);
+            const result = await uploadTestTranslations(input, {
+                ...program.opts(),
+                ...options,
+            });
 
             if (result) {
                 const logger = log.getLogger();
@@ -336,7 +354,10 @@ async function start() {
         )
         .option('--pretty', 'Whether to generate pretty-printed JSON files.')
         .action(async (input: string, dest: string, options: any) => {
-            await generateTranslationFiles(input, dest, options);
+            await generateTranslationFiles(input, dest, {
+                ...program.opts(),
+                ...options,
+            });
         });
 
     program
@@ -386,7 +407,10 @@ async function start() {
         )
         .option('--pretty', 'Whether to generate pretty-printed JSON files.')
         .action(async (input: string, dest: string, options: any) => {
-            await generateTranslationsFiles(input, dest, options);
+            await generateTranslationsFiles(input, dest, {
+                ...program.opts(),
+                ...options,
+            });
         });
 
     program
@@ -447,7 +471,7 @@ async function start() {
             'Whether to output verbose information during the upload.'
         )
         .action(async (dest: string, options: any) => {
-            const db = getPrismaDbFromDir(process.cwd());
+            const db = getPrismaDb(program.opts().db);
             try {
                 await uploadApiFilesFromDatabase(db, dest, options);
             } finally {
@@ -481,7 +505,10 @@ async function start() {
                 },
             };
 
-            await sourceTranslations(dir, translations, sourceOptions);
+            await sourceTranslations(dir, translations, {
+                ...program.opts(),
+                ...sourceOptions,
+            });
         });
 
     program
@@ -503,7 +530,10 @@ async function start() {
             'Fetch all translations. If omitted, only undownloaded translations will be fetched.'
         )
         .action(async (dir: string, translations: string[], options: any) => {
-            await fetchAudio(dir, translations, options);
+            await fetchAudio(dir, translations, {
+                ...program.opts(),
+                ...options,
+            });
         });
 
     program

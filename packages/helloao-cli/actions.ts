@@ -118,6 +118,11 @@ export interface SourceTranslationsOptions {
      * If database tracking is enabled, this will prevent overwriting files that were not tracked in the database.
      */
     overwrite?: boolean;
+
+    /**
+     * The database to use for tracking downloads.
+     */
+    db?: string | null;
 }
 
 let dirname = __dirname;
@@ -347,7 +352,7 @@ export async function initDb(
             }
         }
     } else {
-        const db = await database.getDb(database.getDbPath(dbPath));
+        const db = await database.getDb(dbPath);
         db.close();
     }
 }
@@ -357,6 +362,11 @@ export interface ImportTranslationOptions {
      * Whether to forcibly import the translations, even if they have already been imported.
      */
     overwrite?: boolean;
+
+    /**
+     * The database to import the translations into.
+     */
+    db?: string | null;
 }
 
 /**
@@ -375,7 +385,7 @@ export async function importTranslation(
     globalThis.Element = Element as any;
     globalThis.Node = Node as any;
 
-    const db = await database.getDbFromDir(process.cwd());
+    const db = await database.getDb(options.db);
     try {
         await database.importTranslations(
             db,
@@ -403,7 +413,7 @@ export async function importTranslations(
     globalThis.Element = Element as any;
     globalThis.Node = Node as any;
 
-    const db = await database.getDbFromDir(process.cwd());
+    const db = await database.getDb(options.db);
     try {
         const files = await readdir(dir);
         const translationDirs = files.map((f) => path.resolve(dir, f));
@@ -435,7 +445,7 @@ export async function importCommentary(
     globalThis.Element = Element as any;
     globalThis.Node = Node as any;
 
-    const db = await database.getDbFromDir(process.cwd());
+    const db = await database.getDb(options.db);
     try {
         await database.importCommentaries(
             db,
@@ -463,7 +473,7 @@ export async function importCommentaries(
     globalThis.Element = Element as any;
     globalThis.Node = Node as any;
 
-    const db = await database.getDbFromDir(process.cwd());
+    const db = await database.getDb(options.db);
     try {
         const files = await readdir(dir);
         const commentaryDirs = files.map((f) => path.resolve(dir, f));
@@ -794,7 +804,7 @@ export async function sourceTranslations(
         }
 
         logger.log('Connecting to database for download tracking...');
-        db = await database.getDbFromDir(process.cwd());
+        db = await database.getDb(options.db);
         sourceExists = db.prepare(
             'SELECT usfmZipEtag, usfmDownloadDate FROM EBibleSource WHERE id = @id AND sha256 = @sha256;'
         );
