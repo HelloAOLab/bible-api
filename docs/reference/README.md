@@ -335,7 +335,7 @@ export interface TranslationBookChapter {
     /**
      * The link to the current chapter.
      */
-    thisChapterApiLink: string;
+    thisChapterLink: string;
 
     /**
      * The links to different audio versions for the chapter.
