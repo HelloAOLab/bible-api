@@ -290,9 +290,19 @@ export interface ApiCommentaryProfile extends CommentaryProfile {
  */
 export interface ApiTranslationBook extends TranslationBook {
     /**
+     * The number of the first chapter in the book.
+     */
+    firstChapterNumber: number;
+
+    /**
      * The link to the first chapter of the book.
      */
     firstChapterApiLink: string;
+
+    /**
+     * The number of the last chapter in the book.
+     */
+    lastChapterNumber: number;
 
     /**
      * The link to the last chapter of the book.
@@ -315,9 +325,19 @@ export interface ApiTranslationBook extends TranslationBook {
  */
 export interface ApiCommentaryBook extends CommentaryBook {
     /**
+     * The number of the first chapter in the book.
+     */
+    firstChapterNumber: number;
+
+    /**
      * The link to the first chapter of the book.
      */
     firstChapterApiLink: string;
+
+    /**
+     * The number of the last chapter in the book.
+     */
+    lastChapterNumber: number;
 
     /**
      * The link to the last chapter of the book.
@@ -567,19 +587,24 @@ export function generateApiForDataset(
         let translationChapters: ApiTranslationBookChapter[] = [];
 
         for (let { chapters, ...book } of books) {
+            const firstChapterNumber = chapters[0].chapter.number;
+            const lastChapterNumber =
+                chapters[chapters.length - 1].chapter.number;
             const apiBook: ApiTranslationBook = {
                 ...book,
+                firstChapterNumber,
                 firstChapterApiLink: bookChapterApiLink(
                     translation.id,
                     getBookLink(book),
-                    1,
+                    firstChapterNumber,
                     'json',
                     apiPathPrefix
                 ),
+                lastChapterNumber,
                 lastChapterApiLink: bookChapterApiLink(
                     translation.id,
                     getBookLink(book),
-                    chapters.length,
+                    lastChapterNumber,
                     'json',
                     apiPathPrefix
                 ),
@@ -730,19 +755,24 @@ export function generateApiForDataset(
         let commentaryChapters: ApiCommentaryBookChapter[] = [];
 
         for (let { chapters, ...book } of books) {
+            const firstChapterNumber = chapters[0].chapter.number;
+            const lastChapterNumber =
+                chapters[chapters.length - 1].chapter.number;
             const apiBook: ApiCommentaryBook = {
                 ...book,
+                firstChapterNumber,
                 firstChapterApiLink: bookCommentaryChapterApiLink(
                     commentary.id,
                     getBookLink(book),
-                    1,
+                    firstChapterNumber,
                     'json',
                     apiPathPrefix
                 ),
+                lastChapterNumber,
                 lastChapterApiLink: bookCommentaryChapterApiLink(
                     commentary.id,
                     getBookLink(book),
-                    chapters.length,
+                    lastChapterNumber,
                     'json',
                     apiPathPrefix
                 ),

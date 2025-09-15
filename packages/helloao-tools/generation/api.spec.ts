@@ -102,7 +102,9 @@ describe('generateApiForDataset', () => {
                         order: 1,
                         numberOfChapters: 1,
                         totalNumberOfVerses: 2,
+                        firstChapterNumber: 1,
                         firstChapterApiLink: '/api/bsb/GEN/1.json',
+                        lastChapterNumber: 1,
                         lastChapterApiLink: '/api/bsb/GEN/1.json',
                     },
                     {
@@ -113,7 +115,9 @@ describe('generateApiForDataset', () => {
                         order: 2,
                         numberOfChapters: 1,
                         totalNumberOfVerses: 2,
+                        firstChapterNumber: 1,
                         firstChapterApiLink: '/api/bsb/EXO/1.json',
+                        lastChapterNumber: 1,
                         lastChapterApiLink: '/api/bsb/EXO/1.json',
                     },
                 ],
@@ -128,7 +132,9 @@ describe('generateApiForDataset', () => {
                     order: 1,
                     numberOfChapters: 1,
                     totalNumberOfVerses: 2,
+                    firstChapterNumber: 1,
                     firstChapterApiLink: '/api/bsb/GEN/1.json',
+                    lastChapterNumber: 1,
                     lastChapterApiLink: '/api/bsb/GEN/1.json',
                 },
                 thisChapterLink: '/api/bsb/GEN/1.json',
@@ -179,7 +185,9 @@ describe('generateApiForDataset', () => {
                     order: 2,
                     numberOfChapters: 1,
                     totalNumberOfVerses: 2,
+                    firstChapterNumber: 1,
                     firstChapterApiLink: '/api/bsb/EXO/1.json',
+                    lastChapterNumber: 1,
                     lastChapterApiLink: '/api/bsb/EXO/1.json',
                 },
                 thisChapterLink: '/api/bsb/EXO/1.json',
@@ -213,6 +221,202 @@ describe('generateApiForDataset', () => {
                             type: 'verse',
                             number: 2,
                             content: ['Reuben, Simeon, Levi, and Judah;'],
+                        },
+                    ],
+                    footnotes: [],
+                },
+            },
+        });
+    });
+
+    it('should support books that start on a different chapter than 1', () => {
+        let translation1: InputTranslationMetadata = {
+            id: 'bsb',
+            name: 'Berean Standard Bible',
+            englishName: 'Berean Standard Bible',
+            shortName: 'BSB',
+            language: 'eng',
+            direction: 'ltr',
+            licenseUrl: 'https://berean.bible/terms.htm',
+            website: 'https://berean.bible',
+        };
+
+        let inputFiles: InputFile[] = [
+            {
+                fileType: 'usx',
+                metadata: translation1,
+                content: `
+            <usx version="3.0">
+                    <book code="GEN" style="id">- Berean Study Bible</book>
+                    <para style="h">Genesis</para>
+                    <para style="toc2">Genesis</para>
+                    <para style="toc1">Genesis</para>
+                    <para style="mt1">Genesis</para>
+                    <chapter number="5" style="c" sid="GEN 5"/>
+                    <para style="s1">The Creation</para>
+                    <para style="r">(John 1:1–5; Hebrews 11:1–3)</para>
+                    <para style="m">
+                        <verse number="1" style="v" sid="GEN 5:1"/>
+                        <char style="w" strong="H8064">In</char>
+                        <char style="w" strong="H1254">the</char>
+                        <char style="w" strong="H7225">beginning</char>
+                        <char style="w" strong="H8064">God</char>
+                        <char style="w" strong="H1254">created</char>
+                        <char style="w" strong="H1254">the</char>
+                        <char style="w" strong="H8064">heavens</char>
+                        <char style="w" strong="H8064">and</char>
+                        <char style="w" strong="H1254">the</char>
+                        <char style="w" strong="H8064">earth</char>.
+                        <verse eid="GEN 5:1"/>
+                    </para>
+                    <chapter eid="GEN 5"/>
+                    <para style="s2">The Second Section</para>
+                    <chapter number="6" sid="GEN 6"/>
+                    <para style="s1">The Seventh Day</para>
+                    <para style="r">(Exodus 16:22–30; Hebrews 4:1–11)</para>
+                    <para style="m">
+                        <verse number="1" style="v" sid="GEN 6:1"/>
+                        <char style="w" strong="H3541">Thus</char>
+                        <char style="w" strong="H3605">the</char>
+                        <char style="w" strong="H8064">heavens</char>
+                        <char style="w" strong="H8064">and</char>
+                        <char style="w" strong="H3605">the</char>
+                        <char style="w" strong="H8064">earth</char>
+                        <char style="w" strong="H8064">were</char>
+                        <char style="w" strong="H3615">completed</char>
+                        <char style="w" strong="H6635">in</char>
+                        <char style="w" strong="H3605">all</char>
+                        <char style="w" strong="H3605">their</char>
+                        <char style="w" strong="H6635">vast</char>
+                        <char style="w" strong="H6635">array</char>.
+                        <verse eid="GEN 6:1"/>
+                    </para>
+                </usx>`,
+            },
+        ];
+
+        const dataset = generateDataset(inputFiles, new DOMParser() as any);
+        const generated = generateApiForDataset(dataset);
+        const files = generateFilesForApi(generated);
+
+        const tree = fileTree(files);
+
+        const expectedTranslation = {
+            id: 'bsb',
+            name: 'Berean Standard Bible',
+            englishName: 'Berean Standard Bible',
+            shortName: 'BSB',
+            language: 'eng',
+            textDirection: 'ltr',
+            licenseUrl: 'https://berean.bible/terms.htm',
+            website: 'https://berean.bible',
+            availableFormats: ['json'],
+            listOfBooksApiLink: '/api/bsb/books.json',
+            numberOfBooks: 1,
+            totalNumberOfChapters: 2,
+            totalNumberOfVerses: 2,
+        };
+
+        expect(tree).toEqual({
+            '/api/available_translations.json': {
+                translations: [expectedTranslation],
+            },
+            '/api/available_commentaries.json': {
+                commentaries: [],
+            },
+            '/api/bsb/books.json': {
+                translation: expectedTranslation,
+                books: [
+                    {
+                        id: 'GEN',
+                        name: 'Genesis',
+                        commonName: 'Genesis',
+                        title: 'Genesis',
+                        order: 1,
+                        numberOfChapters: 2,
+                        totalNumberOfVerses: 2,
+                        firstChapterNumber: 5,
+                        lastChapterNumber: 6,
+                        firstChapterApiLink: '/api/bsb/GEN/5.json',
+                        lastChapterApiLink: '/api/bsb/GEN/6.json',
+                    },
+                ],
+            },
+            '/api/bsb/GEN/5.json': {
+                translation: expectedTranslation,
+                book: {
+                    id: 'GEN',
+                    name: 'Genesis',
+                    commonName: 'Genesis',
+                    title: 'Genesis',
+                    order: 1,
+                    numberOfChapters: 2,
+                    totalNumberOfVerses: 2,
+                    firstChapterNumber: 5,
+                    firstChapterApiLink: '/api/bsb/GEN/5.json',
+                    lastChapterNumber: 6,
+                    lastChapterApiLink: '/api/bsb/GEN/6.json',
+                },
+                thisChapterLink: '/api/bsb/GEN/5.json',
+                thisChapterAudioLinks: {},
+                nextChapterApiLink: '/api/bsb/GEN/6.json',
+                nextChapterAudioLinks: {},
+                previousChapterApiLink: null,
+                previousChapterAudioLinks: null,
+                numberOfVerses: 1,
+                chapter: {
+                    number: 5,
+                    content: [
+                        {
+                            type: 'heading',
+                            content: ['The Creation'],
+                        },
+                        {
+                            type: 'verse',
+                            number: 1,
+                            content: [
+                                'In the beginning God created the heavens and the earth.',
+                            ],
+                        },
+                    ],
+                    footnotes: [],
+                },
+            },
+            '/api/bsb/GEN/6.json': {
+                translation: expectedTranslation,
+                book: {
+                    id: 'GEN',
+                    name: 'Genesis',
+                    commonName: 'Genesis',
+                    title: 'Genesis',
+                    order: 1,
+                    numberOfChapters: 2,
+                    totalNumberOfVerses: 2,
+                    firstChapterNumber: 5,
+                    lastChapterNumber: 6,
+                    firstChapterApiLink: '/api/bsb/GEN/5.json',
+                    lastChapterApiLink: '/api/bsb/GEN/6.json',
+                },
+                thisChapterLink: '/api/bsb/GEN/6.json',
+                thisChapterAudioLinks: {},
+                nextChapterApiLink: null,
+                nextChapterAudioLinks: null,
+                previousChapterApiLink: '/api/bsb/GEN/5.json',
+                previousChapterAudioLinks: {},
+                numberOfVerses: 1,
+                chapter: {
+                    number: 6,
+                    content: [
+                        {
+                            type: 'heading',
+                            content: ['The Seventh Day'],
+                        },
+                        {
+                            type: 'verse',
+                            number: 1,
+                            content: [
+                                'Thus the heavens and the earth were completed in all their vast array.',
+                            ],
                         },
                     ],
                     footnotes: [],
@@ -294,6 +498,8 @@ describe('generateApiForDataset', () => {
                         order: 1,
                         numberOfChapters: 1,
                         totalNumberOfVerses: 2,
+                        firstChapterNumber: 1,
+                        lastChapterNumber: 1,
                         firstChapterApiLink: '/hello/api/bsb/GEN/1.json',
                         lastChapterApiLink: '/hello/api/bsb/GEN/1.json',
                     },
@@ -305,6 +511,8 @@ describe('generateApiForDataset', () => {
                         order: 2,
                         numberOfChapters: 1,
                         totalNumberOfVerses: 2,
+                        firstChapterNumber: 1,
+                        lastChapterNumber: 1,
                         firstChapterApiLink: '/hello/api/bsb/EXO/1.json',
                         lastChapterApiLink: '/hello/api/bsb/EXO/1.json',
                     },
@@ -320,6 +528,8 @@ describe('generateApiForDataset', () => {
                     order: 1,
                     numberOfChapters: 1,
                     totalNumberOfVerses: 2,
+                    firstChapterNumber: 1,
+                    lastChapterNumber: 1,
                     firstChapterApiLink: '/hello/api/bsb/GEN/1.json',
                     lastChapterApiLink: '/hello/api/bsb/GEN/1.json',
                 },
@@ -371,6 +581,8 @@ describe('generateApiForDataset', () => {
                     order: 2,
                     numberOfChapters: 1,
                     totalNumberOfVerses: 2,
+                    firstChapterNumber: 1,
+                    lastChapterNumber: 1,
                     firstChapterApiLink: '/hello/api/bsb/EXO/1.json',
                     lastChapterApiLink: '/hello/api/bsb/EXO/1.json',
                 },
@@ -474,6 +686,8 @@ describe('generateApiForDataset', () => {
                         numberOfChapters: 1,
                         totalNumberOfVerses: 1,
                         order: 13,
+                        firstChapterNumber: 1,
+                        lastChapterNumber: 1,
                         firstChapterApiLink: '/api/bsb/1_Chronicles/1.json',
                         lastChapterApiLink: '/api/bsb/1_Chronicles/1.json',
                     },
@@ -489,6 +703,8 @@ describe('generateApiForDataset', () => {
                     numberOfChapters: 1,
                     totalNumberOfVerses: 1,
                     order: 13,
+                    firstChapterNumber: 1,
+                    lastChapterNumber: 1,
                     firstChapterApiLink: '/api/bsb/1_Chronicles/1.json',
                     lastChapterApiLink: '/api/bsb/1_Chronicles/1.json',
                 },
@@ -519,12 +735,6 @@ describe('generateApiForDataset', () => {
                 },
             },
         });
-
-        // expect(availableTranslations).toEqual({
-        //     translations: [
-        //         expectedTranslation
-        //     ]
-        // });
     });
 
     it('produce the correct names for languages', () => {
@@ -588,6 +798,8 @@ describe('generateApiForDataset', () => {
                         numberOfChapters: 1,
                         totalNumberOfVerses: 1,
                         order: 13,
+                        firstChapterNumber: 1,
+                        lastChapterNumber: 1,
                         firstChapterApiLink: '/api/bsb/1_Chronicles/1.json',
                         lastChapterApiLink: '/api/bsb/1_Chronicles/1.json',
                     },
@@ -603,6 +815,8 @@ describe('generateApiForDataset', () => {
                     numberOfChapters: 1,
                     totalNumberOfVerses: 1,
                     order: 13,
+                    firstChapterNumber: 1,
+                    lastChapterNumber: 1,
                     firstChapterApiLink: '/api/bsb/1_Chronicles/1.json',
                     lastChapterApiLink: '/api/bsb/1_Chronicles/1.json',
                 },
@@ -713,6 +927,8 @@ describe('generateApiForDataset', () => {
                         numberOfChapters: 1,
                         totalNumberOfVerses: 1,
                         order: 13,
+                        firstChapterNumber: 1,
+                        lastChapterNumber: 1,
                         firstChapterApiLink: '/api/bsb/1CH/1.json',
                         lastChapterApiLink: '/api/bsb/1CH/1.json',
                     },
@@ -728,6 +944,8 @@ describe('generateApiForDataset', () => {
                     numberOfChapters: 1,
                     totalNumberOfVerses: 1,
                     order: 13,
+                    firstChapterNumber: 1,
+                    lastChapterNumber: 1,
                     firstChapterApiLink: '/api/bsb/1CH/1.json',
                     lastChapterApiLink: '/api/bsb/1CH/1.json',
                 },
@@ -758,12 +976,6 @@ describe('generateApiForDataset', () => {
                 },
             },
         });
-
-        // expect(availableTranslations).toEqual({
-        //     translations: [
-        //         expectedTranslation
-        //     ]
-        // });
     });
 
     it('should support commentary files', () => {
@@ -845,6 +1057,8 @@ describe('generateApiForDataset', () => {
                         introduction: 'Genesis Book Intro',
                         numberOfChapters: 1,
                         totalNumberOfVerses: 1,
+                        firstChapterNumber: 1,
+                        lastChapterNumber: 1,
                         firstChapterApiLink: '/api/c/comment/GEN/1.json',
                         lastChapterApiLink: '/api/c/comment/GEN/1.json',
                     },
@@ -864,6 +1078,8 @@ describe('generateApiForDataset', () => {
                     introduction: 'Genesis Book Intro',
                     numberOfChapters: 1,
                     totalNumberOfVerses: 1,
+                    firstChapterNumber: 1,
+                    lastChapterNumber: 1,
                     firstChapterApiLink: '/api/c/comment/GEN/1.json',
                     lastChapterApiLink: '/api/c/comment/GEN/1.json',
                 },
@@ -998,6 +1214,8 @@ describe('generateApiForDataset', () => {
                         introduction: 'Genesis Book Intro',
                         numberOfChapters: 1,
                         totalNumberOfVerses: 1,
+                        firstChapterNumber: 1,
+                        lastChapterNumber: 1,
                         firstChapterApiLink: '/api/c/comment/GEN/1.json',
                         lastChapterApiLink: '/api/c/comment/GEN/1.json',
                     },
@@ -1009,6 +1227,8 @@ describe('generateApiForDataset', () => {
                         introduction: 'Exodus Book Intro',
                         numberOfChapters: 1,
                         totalNumberOfVerses: 1,
+                        firstChapterNumber: 1,
+                        lastChapterNumber: 1,
                         firstChapterApiLink: '/api/c/comment/EXO/1.json',
                         lastChapterApiLink: '/api/c/comment/EXO/1.json',
                     },
@@ -1028,6 +1248,8 @@ describe('generateApiForDataset', () => {
                     introduction: 'Genesis Book Intro',
                     numberOfChapters: 1,
                     totalNumberOfVerses: 1,
+                    firstChapterNumber: 1,
+                    lastChapterNumber: 1,
                     firstChapterApiLink: '/api/c/comment/GEN/1.json',
                     lastChapterApiLink: '/api/c/comment/GEN/1.json',
                 },
@@ -1060,6 +1282,8 @@ describe('generateApiForDataset', () => {
                     introduction: 'Exodus Book Intro',
                     numberOfChapters: 1,
                     totalNumberOfVerses: 1,
+                    firstChapterNumber: 1,
+                    lastChapterNumber: 1,
                     firstChapterApiLink: '/api/c/comment/EXO/1.json',
                     lastChapterApiLink: '/api/c/comment/EXO/1.json',
                 },
@@ -1157,6 +1381,8 @@ describe('generateApiForDataset', () => {
                         commonName: 'Genesis',
                         numberOfChapters: 1,
                         totalNumberOfVerses: 1,
+                        firstChapterNumber: 1,
+                        lastChapterNumber: 1,
                         firstChapterApiLink: '/api/c/comment/GEN/1.json',
                         lastChapterApiLink: '/api/c/comment/GEN/1.json',
                     },
@@ -1175,6 +1401,8 @@ describe('generateApiForDataset', () => {
                     commonName: 'Genesis',
                     numberOfChapters: 1,
                     totalNumberOfVerses: 1,
+                    firstChapterNumber: 1,
+                    lastChapterNumber: 1,
                     firstChapterApiLink: '/api/c/comment/GEN/1.json',
                     lastChapterApiLink: '/api/c/comment/GEN/1.json',
                 },
@@ -1281,6 +1509,8 @@ describe('generateApiForDataset', () => {
                             'Genesis is the book of beginnings—of the universe and of humanity, of sin and its catastrophic effects, and of God’s plan to restore blessing to the world through his chosen people. God began his plan when he called Abraham and made a covenant with him. Genesis traces God’s promised blessings from.',
                         numberOfChapters: 1,
                         totalNumberOfVerses: 1,
+                        firstChapterNumber: 1,
+                        lastChapterNumber: 1,
                         firstChapterApiLink: '/api/c/comment/GEN/1.json',
                         lastChapterApiLink: '/api/c/comment/GEN/1.json',
                     },
@@ -1301,6 +1531,8 @@ describe('generateApiForDataset', () => {
                         'Genesis is the book of beginnings—of the universe and of humanity, of sin and its catastrophic effects, and of God’s plan to restore blessing to the world through his chosen people. God began his plan when he called Abraham and made a covenant with him. Genesis traces God’s promised blessings from.',
                     numberOfChapters: 1,
                     totalNumberOfVerses: 1,
+                    firstChapterNumber: 1,
+                    lastChapterNumber: 1,
                     firstChapterApiLink: '/api/c/comment/GEN/1.json',
                     lastChapterApiLink: '/api/c/comment/GEN/1.json',
                 },
@@ -1538,6 +1770,8 @@ describe('generateApiForDataset', () => {
                         order: 76,
                         numberOfChapters: 1,
                         totalNumberOfVerses: 3,
+                        firstChapterNumber: 1,
+                        lastChapterNumber: 1,
                         firstChapterApiLink: '/api/test/BEL/1.json',
                         lastChapterApiLink: '/api/test/BEL/1.json',
                         isApocryphal: true,
@@ -1550,6 +1784,8 @@ describe('generateApiForDataset', () => {
                         order: 78,
                         numberOfChapters: 1,
                         totalNumberOfVerses: 5,
+                        firstChapterNumber: 1,
+                        lastChapterNumber: 1,
                         firstChapterApiLink: '/api/test/2MA/1.json',
                         lastChapterApiLink: '/api/test/2MA/1.json',
                         isApocryphal: true,
@@ -1566,6 +1802,8 @@ describe('generateApiForDataset', () => {
                     order: 76,
                     numberOfChapters: 1,
                     totalNumberOfVerses: 3,
+                    firstChapterNumber: 1,
+                    lastChapterNumber: 1,
                     firstChapterApiLink: '/api/test/BEL/1.json',
                     lastChapterApiLink: '/api/test/BEL/1.json',
                     isApocryphal: true,
@@ -1615,6 +1853,8 @@ describe('generateApiForDataset', () => {
                     order: 78,
                     numberOfChapters: 1,
                     totalNumberOfVerses: 5,
+                    firstChapterNumber: 1,
+                    lastChapterNumber: 1,
                     firstChapterApiLink: '/api/test/2MA/1.json',
                     lastChapterApiLink: '/api/test/2MA/1.json',
                     isApocryphal: true,
@@ -1747,6 +1987,8 @@ describe('generateApiForDataset', () => {
                         numberOfChapters: 1,
                         totalNumberOfVerses: 2,
                         order: 46,
+                        firstChapterNumber: 1,
+                        lastChapterNumber: 1,
                         firstChapterApiLink: '/api/bsb/1CO/1.json',
                         lastChapterApiLink: '/api/bsb/1CO/1.json',
                     },
@@ -1762,6 +2004,8 @@ describe('generateApiForDataset', () => {
                     numberOfChapters: 1,
                     totalNumberOfVerses: 2,
                     order: 46,
+                    firstChapterNumber: 1,
+                    lastChapterNumber: 1,
                     firstChapterApiLink: '/api/bsb/1CO/1.json',
                     lastChapterApiLink: '/api/bsb/1CO/1.json',
                 },
@@ -1867,6 +2111,8 @@ describe('generateApiForDataset', () => {
                         numberOfChapters: 1,
                         totalNumberOfVerses: 2,
                         order: 46,
+                        firstChapterNumber: 1,
+                        lastChapterNumber: 1,
                         firstChapterApiLink: '/api/bsb/1CO/1.json',
                         lastChapterApiLink: '/api/bsb/1CO/1.json',
                     },
@@ -1882,6 +2128,8 @@ describe('generateApiForDataset', () => {
                     numberOfChapters: 1,
                     totalNumberOfVerses: 2,
                     order: 46,
+                    firstChapterNumber: 1,
+                    lastChapterNumber: 1,
                     firstChapterApiLink: '/api/bsb/1CO/1.json',
                     lastChapterApiLink: '/api/bsb/1CO/1.json',
                 },
@@ -2033,6 +2281,8 @@ describe('generateApiForDataset', () => {
                         numberOfChapters: 1,
                         totalNumberOfVerses: 2,
                         order: 46,
+                        firstChapterNumber: 1,
+                        lastChapterNumber: 1,
                         firstChapterApiLink: '/api/bsb/1CO/1.json',
                         lastChapterApiLink: '/api/bsb/1CO/1.json',
                     },
@@ -2049,6 +2299,8 @@ describe('generateApiForDataset', () => {
                         numberOfChapters: 1,
                         totalNumberOfVerses: 2,
                         order: 46,
+                        firstChapterNumber: 1,
+                        lastChapterNumber: 1,
                         firstChapterApiLink: '/api/test/1CO/1.json',
                         lastChapterApiLink: '/api/test/1CO/1.json',
                     },
@@ -2064,6 +2316,8 @@ describe('generateApiForDataset', () => {
                     numberOfChapters: 1,
                     totalNumberOfVerses: 2,
                     order: 46,
+                    firstChapterNumber: 1,
+                    lastChapterNumber: 1,
                     firstChapterApiLink: '/api/bsb/1CO/1.json',
                     lastChapterApiLink: '/api/bsb/1CO/1.json',
                 },
@@ -2105,6 +2359,8 @@ describe('generateApiForDataset', () => {
                     numberOfChapters: 1,
                     totalNumberOfVerses: 2,
                     order: 46,
+                    firstChapterNumber: 1,
+                    lastChapterNumber: 1,
                     firstChapterApiLink: '/api/test/1CO/1.json',
                     lastChapterApiLink: '/api/test/1CO/1.json',
                 },
