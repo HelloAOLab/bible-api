@@ -326,23 +326,31 @@ export interface ApiTranslationBook extends TranslationBook {
 export interface ApiCommentaryBook extends CommentaryBook {
     /**
      * The number of the first chapter in the book.
+     *
+     * Null if the comentary book has no chapters.
      */
-    firstChapterNumber: number;
+    firstChapterNumber: number | null;
 
     /**
      * The link to the first chapter of the book.
+     *
+     * Null if the comentary book has no chapters.
      */
-    firstChapterApiLink: string;
+    firstChapterApiLink: string | null;
 
     /**
      * The number of the last chapter in the book.
+     *
+     * Null if the comentary book has no chapters.
      */
-    lastChapterNumber: number;
+    lastChapterNumber: number | null;
 
     /**
      * The link to the last chapter of the book.
+     *
+     * Null if the comentary book has no chapters.
      */
-    lastChapterApiLink: string;
+    lastChapterApiLink: string | null;
 
     /**
      * The number of chapters that the book contains.
@@ -755,27 +763,31 @@ export function generateApiForDataset(
         let commentaryChapters: ApiCommentaryBookChapter[] = [];
 
         for (let { chapters, ...book } of books) {
-            const firstChapterNumber = chapters[0].chapter.number;
+            const firstChapterNumber = chapters[0]?.chapter.number ?? null;
             const lastChapterNumber =
-                chapters[chapters.length - 1].chapter.number;
+                chapters[chapters.length - 1]?.chapter.number ?? null;
             const apiBook: ApiCommentaryBook = {
                 ...book,
                 firstChapterNumber,
-                firstChapterApiLink: bookCommentaryChapterApiLink(
-                    commentary.id,
-                    getBookLink(book),
-                    firstChapterNumber,
-                    'json',
-                    apiPathPrefix
-                ),
+                firstChapterApiLink: firstChapterNumber
+                    ? bookCommentaryChapterApiLink(
+                          commentary.id,
+                          getBookLink(book),
+                          firstChapterNumber,
+                          'json',
+                          apiPathPrefix
+                      )
+                    : null,
                 lastChapterNumber,
-                lastChapterApiLink: bookCommentaryChapterApiLink(
-                    commentary.id,
-                    getBookLink(book),
-                    lastChapterNumber,
-                    'json',
-                    apiPathPrefix
-                ),
+                lastChapterApiLink: lastChapterNumber
+                    ? bookCommentaryChapterApiLink(
+                          commentary.id,
+                          getBookLink(book),
+                          lastChapterNumber,
+                          'json',
+                          apiPathPrefix
+                      )
+                    : null,
                 numberOfChapters: chapters.length,
                 totalNumberOfVerses: 0,
             };

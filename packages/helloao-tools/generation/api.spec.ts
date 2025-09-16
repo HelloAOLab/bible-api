@@ -1111,6 +1111,93 @@ describe('generateApiForDataset', () => {
         // });
     });
 
+    it('should support commentary books that have no chapters', () => {
+        let comment1: InputCommentaryMetadata = {
+            id: 'comment',
+            name: 'Commentary',
+            englishName: 'Commentary',
+            language: 'eng',
+            direction: 'ltr',
+            licenseUrl: 'https://example.com/terms.htm',
+            website: 'https://example.com',
+        };
+
+        let inputFiles: InputFile[] = [
+            {
+                fileType: 'commentary/csv',
+                content: unparse([
+                    {
+                        book: 'Genesis',
+                        chapter: '',
+                        verse: 'Book Introduction',
+                        commentaries: 'Genesis Book Intro',
+                    },
+                ]),
+                metadata: comment1,
+            },
+        ];
+
+        const dataset = generateDataset(inputFiles, new DOMParser() as any);
+        const generated = generateApiForDataset(dataset);
+        const files = generateFilesForApi(generated);
+
+        const tree = fileTree(files);
+
+        const expectedCommentary = {
+            id: 'comment',
+            name: 'Commentary',
+            englishName: 'Commentary',
+            language: 'eng',
+            textDirection: 'ltr',
+            licenseUrl: 'https://example.com/terms.htm',
+            website: 'https://example.com',
+            availableFormats: ['json'],
+            listOfBooksApiLink: '/api/c/comment/books.json',
+            listOfProfilesApiLink: '/api/c/comment/profiles.json',
+            numberOfBooks: 1,
+            totalNumberOfChapters: 0,
+            totalNumberOfVerses: 0,
+            totalNumberOfProfiles: 0,
+        };
+
+        expect(tree).toEqual({
+            '/api/available_translations.json': {
+                translations: [],
+            },
+            '/api/available_commentaries.json': {
+                commentaries: [expectedCommentary],
+            },
+            '/api/c/comment/books.json': {
+                commentary: expectedCommentary,
+                books: [
+                    {
+                        id: 'GEN',
+                        order: 1,
+                        name: 'Genesis',
+                        commonName: 'Genesis',
+                        introduction: 'Genesis Book Intro',
+                        numberOfChapters: 0,
+                        totalNumberOfVerses: 0,
+                        firstChapterNumber: null,
+                        lastChapterNumber: null,
+                        firstChapterApiLink: null,
+                        lastChapterApiLink: null,
+                    },
+                ],
+            },
+            '/api/c/comment/profiles.json': {
+                commentary: expectedCommentary,
+                profiles: [],
+            },
+        });
+
+        // expect(availableTranslations).toEqual({
+        //     translations: [
+        //         expectedTranslation
+        //     ]
+        // });
+    });
+
     it('should be able to merge commentary files', () => {
         let comment1: InputCommentaryMetadata = {
             id: 'comment',
