@@ -3,6 +3,18 @@
 This is the log of changes for the Free Use Bible API.
 For information on the API Generator, see [GENERATOR-CHANGELOG.md](./GENERATOR-CHANGELOG.md).
 
+## V1.6.0
+
+#### Date: 2025-09-16
+
+### :rocket: Features
+
+-   Added the `firstChapterNumber` and `lastChapterNumber` fields for `TranslationBook`.
+
+### :bug: Bug Fixes
+
+-   Fixed chapter links to start at the correct number for the book. ([#24](https://github.com/HelloAOLab/bible-api/issues/24))
+
 ## V1.5.0
 
 #### Date: 2025-07-02
