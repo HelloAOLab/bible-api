@@ -231,9 +231,19 @@ interface TranslationBook {
     numberOfChapters: number;
 
     /**
+     * The number of the first chapter in the book.
+     */
+    firstChapterNumber: number;
+
+    /**
      * The link to the first chapter of the book.
      */
     firstChapterApiLink: string;
+
+    /**
+     * The number of the last chapter in the book.
+     */
+    lastChapterNumber: number;
 
     /**
      * The link to the last chapter of the book.
@@ -285,7 +295,9 @@ interface TranslationBook {
             "title": "Genesis",
             "order": 1,
             "numberOfChapters": 50,
+            "firstChapterNumber": 1,
             "firstChapterApiLink": "/api/BSB/GEN/1.json",
+            "lastChapterNumber": 50,
             "lastChapterApiLink": "/api/BSB/GEN/50.json",
             "totalNumberOfVerses": 1533
         },
@@ -581,6 +593,7 @@ interface TranslationBookChapterAudioLinks {
         "name": "Berean Standard Bible",
         "website": "https://berean.bible/",
         "licenseUrl": "https://berean.bible/",
+        "licenseNotes": null,
         "shortName": "BSB",
         "englishName": "Berean Standard Bible",
         "language": "eng",
@@ -603,7 +616,9 @@ interface TranslationBookChapterAudioLinks {
         "title": "Genesis",
         "order": 1,
         "numberOfChapters": 50,
+        "firstChapterNumber": 1,
         "firstChapterApiLink": "/api/BSB/GEN/1.json",
+        "lastChapterNumber": 50,
         "lastChapterApiLink": "/api/BSB/GEN/50.json",
         "totalNumberOfVerses": 1533
     },
@@ -945,14 +960,32 @@ interface CommentaryBook {
     order: number;
 
     /**
-     * The link to the first chapter of the book.
+     * The number of the first chapter in the book.
+     *
+     * Null if the comentary book has no chapters.
      */
-    firstChapterApiLink: string;
+    firstChapterNumber: number | null;
+
+    /**
+     * The link to the first chapter of the book.
+     *
+     * Null if the comentary book has no chapters.
+     */
+    firstChapterApiLink: string | null;
+
+    /**
+     * The number of the last chapter in the book.
+     *
+     * Null if the comentary book has no chapters.
+     */
+    lastChapterNumber: number | null;
 
     /**
      * The link to the last chapter of the book.
+     *
+     * Null if the comentary book has no chapters.
      */
-    lastChapterApiLink: string;
+    lastChapterApiLink: string | null;
 
     /**
      * The number of chapters that the book contains.
@@ -997,7 +1030,9 @@ interface CommentaryBook {
             "introduction": "Preface to the Book of Genesis, Every believer in Divine revelation finds himself amply justified in taking for granted that the Pentateuch is the work of Moses. For more than 3000 years this has been the invariable opinion of those who were best qualified to form a correct judgment on this subject. The Jewish Church, from its most remote antiquity, has ascribed the work to no other hand; and the Christian Church, from its foundation, has attributed it to the Jewish lawgiver alone. The most respectable heathens have concurred in this testimony, and Jesus Christ and his apostles have completed the evidence, and have put the question beyond the possibility of being doubted by those who profess to believe the Divine authenticity of the New Testament. As to those who, in opposition to all these proofs, obstinately persist in their unbelief, they are worthy of little regard, as argument is lost on their unprincipled prejudices, and demonstration on their minds, because ever willfully closed against the light. When they have proved that Moses is not the author of this work, the advocates of Divine revelation will reconsider the grounds of their faith. That there are a few things in the Pentateuch which seem to have been added by a later hand there can be little doubt; among these some have reckoned, perhaps without reason, the following passage, Gen 12:6 : \"And the Canaanite was then in the land\"; but see the note on Gen 12:6. Num 21:14, \"In the book of the wars of the Lord,\" was probably a marginal note, which in process of time got into the text; see the note on Num 21:14. To these may be added DeuteronomyDeu 1:1-5; Deu 2:12; and the eight concluding verses of the last chapter, in which we have an account of the death of Moses. These last words could not have been added by Moses himself, but are very probably the work of Ezra, by whom, according to uninterrupted tradition among the Jews, the various books which constitute the canon of the Old Testament were collected and arranged, and such expository notes added as were essential to connect the different parts; but as he acted under Divine inspiration, the additions may be considered of equal authority with the text. A few other places might be added, but they are of little importance, and are mentioned in the notes. The book of Genesis, Γενεσις, has its name from the title it bears in the Septuagint, βιβλος Γενεσεως, (Gen 2:4), which signifies the book of the Generation; but it is called in Hebrew בראשית Bereshith, \"In the beginning,\" from its initial word. It is the most ancient history in the world; and, from the great variety of its singular details and most interesting accounts, is as far superior in its value and importance to all others, as it is in its antiquity. This book contains an account of the creation of the world, and its first inhabitants; the original innocence and fall of man; the rise of religion; the invention of arts; the general corruption and degeneracy of mankind; the universal deluge; the repeopling and division of the earth; the origin of nations and kingdoms; and a particular history of the patriarchs from Adam down to the death of Joseph; including a space, at the lowest computation, of 2369 years. It may be asked how a detail so circumstantial and minute could have been preserved when there was no writing of any kind, and when the earth, whose history is here given, had already existed more than 2000 years. To this inquiry a very satisfactory answer may be given. There are only three ways in which these important records could have been preserved and brought down to the time of Moses: viz., writing, tradition, and Divine revelation. In the antediluvian world, when the life of man was so protracted, there was comparatively little need for writing of any kind, and perhaps no alphabetical writing then existed. Tradition answered every purpose to which writing in any kind of characters could be subservient; and the necessity of erecting monuments to perpetuate public events could scarcely have suggested itself, as during those times there could be little danger apprehended of any important fact becoming obsolete, as its history had to pass through very few hands, and all these friends and relatives in the most proper sense of the terms; for they lived in an insulated state under a patriarchal government. Thus it was easy for Moses to be satisfied of the truth of all he relates in the book of Genesis, as the accounts came to him through the medium of very few persons. From Adam to Noah there was but one man necessary to the correct transmission of the history of this period of 1656 years. Now this history was, without doubt, perfectly known to Methuselah, who lived to see them both. In like manner Shem connected Noah and Abraham, having lived to converse with both; as Isaac did with Abraham and Joseph, from whom these things might be easily conveyed to Moses by Amram, who was contemporary with Joseph. Supposing, then, all the curious facts recorded in the book of Genesis had no other authority than the tradition already referred to, they would stand upon a foundation of credibility superior to any that the most reputable of the ancient Greek and Latin historians can boast. Yet to preclude all possibility of mistake, the unerring Spirit of God directed Moses in the selection of his facts and the ascertaining of his dates. Indeed, the narrative is so simple, so much like truth, so consistent everywhere with itself, so correct in its dates, so impartial in its biography, so accurate in its philosophical details, so pure in its morality, and so benevolent in its design, as amply to demonstrate that it never could have had an earthly origin. In this case, also, Moses constructed every thing according to the pattern which God showed him in the mount.",
             "order": 1,
             "numberOfChapters": 50,
+            "firstChapterNumber": 1,
             "firstChapterApiLink": "/api/c/adam-clarke/GEN/1.json",
+            "lastChapterNumber": 50,
             "lastChapterApiLink": "/api/c/adam-clarke/GEN/50.json",
             "totalNumberOfVerses": 877
         }
@@ -1122,7 +1157,9 @@ interface CommentaryChapterData {
         "introduction": "Preface to the Book of Genesis, Every believer in Divine revelation finds himself amply justified in taking for granted that the Pentateuch is the work of Moses. For more than 3000 years this has been the invariable opinion of those who were best qualified to form a correct judgment on this subject. The Jewish Church, from its most remote antiquity, has ascribed the work to no other hand; and the Christian Church, from its foundation, has attributed it to the Jewish lawgiver alone. The most respectable heathens have concurred in this testimony, and Jesus Christ and his apostles have completed the evidence, and have put the question beyond the possibility of being doubted by those who profess to believe the Divine authenticity of the New Testament. As to those who, in opposition to all these proofs, obstinately persist in their unbelief, they are worthy of little regard, as argument is lost on their unprincipled prejudices, and demonstration on their minds, because ever willfully closed against the light. When they have proved that Moses is not the author of this work, the advocates of Divine revelation will reconsider the grounds of their faith. That there are a few things in the Pentateuch which seem to have been added by a later hand there can be little doubt; among these some have reckoned, perhaps without reason, the following passage, Gen 12:6 : \"And the Canaanite was then in the land\"; but see the note on Gen 12:6. Num 21:14, \"In the book of the wars of the Lord,\" was probably a marginal note, which in process of time got into the text; see the note on Num 21:14. To these may be added DeuteronomyDeu 1:1-5; Deu 2:12; and the eight concluding verses of the last chapter, in which we have an account of the death of Moses. These last words could not have been added by Moses himself, but are very probably the work of Ezra, by whom, according to uninterrupted tradition among the Jews, the various books which constitute the canon of the Old Testament were collected and arranged, and such expository notes added as were essential to connect the different parts; but as he acted under Divine inspiration, the additions may be considered of equal authority with the text. A few other places might be added, but they are of little importance, and are mentioned in the notes. The book of Genesis, Γενεσις, has its name from the title it bears in the Septuagint, βιβλος Γενεσεως, (Gen 2:4), which signifies the book of the Generation; but it is called in Hebrew בראשית Bereshith, \"In the beginning,\" from its initial word. It is the most ancient history in the world; and, from the great variety of its singular details and most interesting accounts, is as far superior in its value and importance to all others, as it is in its antiquity. This book contains an account of the creation of the world, and its first inhabitants; the original innocence and fall of man; the rise of religion; the invention of arts; the general corruption and degeneracy of mankind; the universal deluge; the repeopling and division of the earth; the origin of nations and kingdoms; and a particular history of the patriarchs from Adam down to the death of Joseph; including a space, at the lowest computation, of 2369 years. It may be asked how a detail so circumstantial and minute could have been preserved when there was no writing of any kind, and when the earth, whose history is here given, had already existed more than 2000 years. To this inquiry a very satisfactory answer may be given. There are only three ways in which these important records could have been preserved and brought down to the time of Moses: viz., writing, tradition, and Divine revelation. In the antediluvian world, when the life of man was so protracted, there was comparatively little need for writing of any kind, and perhaps no alphabetical writing then existed. Tradition answered every purpose to which writing in any kind of characters could be subservient; and the necessity of erecting monuments to perpetuate public events could scarcely have suggested itself, as during those times there could be little danger apprehended of any important fact becoming obsolete, as its history had to pass through very few hands, and all these friends and relatives in the most proper sense of the terms; for they lived in an insulated state under a patriarchal government. Thus it was easy for Moses to be satisfied of the truth of all he relates in the book of Genesis, as the accounts came to him through the medium of very few persons. From Adam to Noah there was but one man necessary to the correct transmission of the history of this period of 1656 years. Now this history was, without doubt, perfectly known to Methuselah, who lived to see them both. In like manner Shem connected Noah and Abraham, having lived to converse with both; as Isaac did with Abraham and Joseph, from whom these things might be easily conveyed to Moses by Amram, who was contemporary with Joseph. Supposing, then, all the curious facts recorded in the book of Genesis had no other authority than the tradition already referred to, they would stand upon a foundation of credibility superior to any that the most reputable of the ancient Greek and Latin historians can boast. Yet to preclude all possibility of mistake, the unerring Spirit of God directed Moses in the selection of his facts and the ascertaining of his dates. Indeed, the narrative is so simple, so much like truth, so consistent everywhere with itself, so correct in its dates, so impartial in its biography, so accurate in its philosophical details, so pure in its morality, and so benevolent in its design, as amply to demonstrate that it never could have had an earthly origin. In this case, also, Moses constructed every thing according to the pattern which God showed him in the mount.",
         "order": 1,
         "numberOfChapters": 50,
+        "firstChapterNumber": 1,
         "firstChapterApiLink": "/api/c/adam-clarke/GEN/1.json",
+        "lastChapterNumber": 50,
         "lastChapterApiLink": "/api/c/adam-clarke/GEN/50.json",
         "totalNumberOfVerses": 877
     },
