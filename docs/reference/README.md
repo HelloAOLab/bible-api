@@ -364,7 +364,7 @@ export interface TranslationBookChapter {
      * The links to different audio versions for the next chapter.
      * Null if this is the last chapter in the translation.
      */
-    thisChapterAudioLinks: TranslationBookChapterAudioLinks;
+    nextChapterAudioLinks: TranslationBookChapterAudioLinks | null;
 
     /**
      * The link to the previous chapter.
@@ -374,9 +374,9 @@ export interface TranslationBookChapter {
 
     /**
      * The links to different audio versions for the previous chapter.
-     * Null if this is the last chapter in the translation.
+     * Null if this is the first chapter in the translation.
      */
-    previousChapterAudioLinks: TranslationBookChapterAudioLinks;
+    previousChapterAudioLinks: TranslationBookChapterAudioLinks | null;
 
     /**
      * The number of verses that the chapter contains.
