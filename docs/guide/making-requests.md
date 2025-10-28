@@ -104,7 +104,7 @@ fetch(`https://bible.helloao.org/api/c/${commentary}/${book}/${chapter}.json`)
     });
 ```
 
-## List Profiles in a Commentary
+### List Profiles in a Commentary
 
 ([reference](../reference/README.md#list-profiles-in-a-commentary))
 
@@ -119,7 +119,7 @@ fetch(`https://bible.helloao.org/api/c/${commentary}/profiles.json`)
     });
 ```
 
-## Get a Profile in a Commentary
+### Get a Profile in a Commentary
 
 ([reference](../reference/README.md#get-a-profile-in-a-commentary))
 
@@ -132,5 +132,49 @@ fetch(`https://bible.helloao.org/api/c/${commentary}/profiles/${profile}.json`)
     .then(request => request.json())
     .then(profile => {
         console.log('The Aaron tyndale commentary profile:', profile);
+    });
+```
+
+### Get the list of Available Datasets
+
+([reference](../reference/README.md#available-datasets))
+
+```ts:no-line-numbers title="fetch-datasets.js"
+fetch(`https://bible.helloao.org/api/available_datasets.json`)
+    .then(request => request.json())
+    .then(availableDatasets => {
+        console.log('The API has the following datasets:', availableDatasets);
+    });
+```
+
+### Get the list of books in a dataset
+
+([reference](../reference/README.md#list-books-in-a-dataset))
+
+```ts:no-line-numbers title="fetch-dataset-books.js"
+const dataset = 'open-cross-ref';
+
+// Get the list of books for the open-cross-ref dataset
+fetch(`https://bible.helloao.org/api/d/${dataset}/books.json`)
+    .then(request => request.json())
+    .then(books => {
+        console.log('The open-cross-ref dataset has the following books:', books);
+    });
+```
+
+### Get a Chapter from a Dataset
+
+([reference](../reference/README.md#get-a-chapter-from-a-dataset))
+
+```ts:no-line-numbers title="fetch-dataset-chapter.js"
+const dataset = 'open-cross-ref';
+const book = 'GEN';
+const chapter = 1;
+
+// Get Genesis 1 from the open-cross-ref dataset
+fetch(`https://bible.helloao.org/api/d/${dataset}/${book}/${chapter}.json`)
+    .then(request => request.json())
+    .then(chapter => {
+        console.log('Genesis 1 (open-cross-ref):', chapter);
     });
 ```
