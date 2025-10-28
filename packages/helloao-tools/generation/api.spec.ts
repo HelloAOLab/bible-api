@@ -6,7 +6,7 @@ import {
 import Genesis from '../../../bible/bsb/01GENBSB.usfm';
 import Exodus from '../../../bible/bsb/02EXOBSB.usfm';
 import _1Chronicles from '../../../bible/bsb/131CHBSB.usfm';
-import { generateDataset } from './dataset.js';
+import { DatasetOutput, generateDataset } from './dataset.js';
 import {
     InputCommentaryMetadata,
     InputFile,
@@ -2477,6 +2477,141 @@ describe('generateApiForDataset', () => {
                         },
                     ],
                     footnotes: [],
+                },
+            },
+        });
+
+        // expect(availableTranslations).toEqual({
+        //     translations: [
+        //         expectedTranslation
+        //     ]
+        // });
+    });
+
+    it('should support datasets', () => {
+        const dataset: DatasetOutput = {
+            translations: [],
+            commentaries: [],
+            datasets: [
+                {
+                    id: 'default',
+                    englishName: 'Default Dataset',
+                    name: 'Default Dataset',
+                    language: 'eng',
+                    textDirection: 'ltr',
+                    licenseUrl: 'https://example.com/terms.htm',
+                    website: 'https://example.com',
+                    books: [
+                        {
+                            id: 'GEN',
+                            order: 1,
+                            chapters: [
+                                {
+                                    chapter: {
+                                        number: 1,
+                                        content: [
+                                            {
+                                                verse: 1,
+                                                references: [
+                                                    {
+                                                        book: 'JHN',
+                                                        chapter: 1,
+                                                        verse: 1,
+                                                        endVerse: 3,
+                                                        score: 500,
+                                                    },
+                                                ],
+                                            },
+                                        ],
+                                    },
+                                },
+                            ],
+                        },
+                    ],
+                },
+            ],
+        };
+        const generated = generateApiForDataset(dataset);
+        const files = generateFilesForApi(generated);
+
+        const tree = fileTree(files);
+
+        const expectedDataset = {
+            id: 'default',
+            englishName: 'Default Dataset',
+            name: 'Default Dataset',
+            language: 'eng',
+            textDirection: 'ltr',
+            licenseUrl: 'https://example.com/terms.htm',
+            website: 'https://example.com',
+            availableFormats: ['json'],
+            listOfBooksApiLink: '/api/d/default/books.json',
+            numberOfBooks: 1,
+            totalNumberOfChapters: 1,
+            totalNumberOfVerses: 1,
+            totalNumberOfReferences: 1,
+        };
+
+        expect(tree).toEqual({
+            '/api/available_translations.json': {
+                translations: [],
+            },
+            '/api/available_commentaries.json': {
+                commentaries: [],
+            },
+            '/api/available_datasets.json': {
+                datasets: [expectedDataset],
+            },
+            '/api/d/default/books.json': {
+                dataset: expectedDataset,
+                books: [
+                    {
+                        id: 'GEN',
+                        order: 1,
+                        numberOfChapters: 1,
+                        totalNumberOfVerses: 1,
+                        totalNumberOfReferences: 1,
+                        firstChapterNumber: 1,
+                        lastChapterNumber: 1,
+                        firstChapterApiLink: '/api/d/default/GEN/1.json',
+                        lastChapterApiLink: '/api/d/default/GEN/1.json',
+                    },
+                ],
+            },
+            '/api/d/default/GEN/1.json': {
+                dataset: expectedDataset,
+                book: {
+                    id: 'GEN',
+                    order: 1,
+                    numberOfChapters: 1,
+                    totalNumberOfVerses: 1,
+                    totalNumberOfReferences: 1,
+                    firstChapterNumber: 1,
+                    lastChapterNumber: 1,
+                    firstChapterApiLink: '/api/d/default/GEN/1.json',
+                    lastChapterApiLink: '/api/d/default/GEN/1.json',
+                },
+                thisChapterLink: '/api/d/default/GEN/1.json',
+                nextChapterApiLink: null,
+                previousChapterApiLink: null,
+                numberOfVerses: 1,
+                numberOfReferences: 1,
+                chapter: {
+                    number: 1,
+                    content: [
+                        {
+                            verse: 1,
+                            references: [
+                                {
+                                    book: 'JHN',
+                                    chapter: 1,
+                                    verse: 1,
+                                    endVerse: 3,
+                                    score: 500,
+                                },
+                            ],
+                        },
+                    ],
                 },
             },
         });

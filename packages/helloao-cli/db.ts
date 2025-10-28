@@ -1,8 +1,4 @@
-import {
-    PrismaClient,
-    Prisma,
-    DatasetChapterVerse,
-} from './prisma-gen/index.js';
+import { PrismaClient, Prisma } from './prisma-gen/index.js';
 import path from 'path';
 import Sql, { Database } from 'better-sqlite3';
 import { exists, readdir, readFile } from 'fs-extra';
@@ -28,6 +24,7 @@ import {
     DatasetBookChapter,
     DatasetChapterVerseContent,
     Dataset,
+    DatasetBook,
 } from '@helloao/tools/generation/index.js';
 import {
     generateApiForDataset,
@@ -1647,6 +1644,7 @@ export async function* loadDatasets(
 ): AsyncGenerator<DatasetOutput> {
     yield* loadTranslationDatasets(db, perBatch, translationsToLoad);
     yield* loadCommentaryDatasets(db, perBatch, translationsToLoad);
+    yield* loadDatasetDatasets(db, perBatch, translationsToLoad);
 }
 
 /**
@@ -1898,6 +1896,105 @@ export async function* loadCommentaryDatasets(
         }
 
         yield dataset;
+
+        offset += pageSize;
+    }
+}
+
+/**
+ * Loads the datasets from the database as a dataset.
+ * @param db The database.
+ * @param perBatch The number of translations to load per batch.
+ * @param datasetsToLoad The list of commentaries to load. If not provided, all commentaries will be loaded.
+ */
+export async function* loadDatasetDatasets(
+    db: PrismaClient,
+    perBatch: number = 50,
+    datasetsToLoad?: string[]
+) {
+    const logger = log.getLogger();
+    let offset = 0;
+    let pageSize = perBatch;
+
+    logger.log('Generating dataset datasets in batches of', pageSize);
+    const totalDatasets = await db.dataset.count();
+    const totalBatches = Math.ceil(totalDatasets / pageSize);
+    let batchNumber = 1;
+
+    while (true) {
+        logger.log('Generating dataset batch', batchNumber, 'of', totalBatches);
+        batchNumber++;
+
+        const datasetQuery: Prisma.DatasetFindManyArgs = {
+            skip: offset,
+            take: pageSize,
+        };
+
+        if (datasetsToLoad && datasetsToLoad.length > 0) {
+            datasetQuery.where = {
+                id: {
+                    in: datasetsToLoad,
+                },
+            };
+        }
+
+        const datasets = await db.dataset.findMany(datasetQuery);
+
+        if (datasets.length <= 0) {
+            break;
+        }
+
+        const output: DatasetOutput = {
+            translations: [],
+            commentaries: [],
+            datasets: [],
+        };
+
+        for (let dataset of datasets) {
+            const datasetDataset: DatasetDataset = {
+                ...dataset,
+                textDirection: dataset.textDirection! as any,
+                books: [],
+            };
+            output.datasets!.push(datasetDataset);
+
+            const books = await db.datasetBook.findMany({
+                where: {
+                    datasetId: dataset.id,
+                },
+                orderBy: {
+                    order: 'asc',
+                },
+            });
+
+            for (let book of books) {
+                const chapters = await db.datasetChapter.findMany({
+                    where: {
+                        datasetId: dataset.id,
+                        bookId: book.id,
+                    },
+                    orderBy: {
+                        number: 'asc',
+                    },
+                });
+
+                const bookChapters: DatasetBookChapter[] = chapters.map(
+                    (chapter) => {
+                        return {
+                            chapter: JSON.parse(chapter.json),
+                        };
+                    }
+                );
+
+                const datasetBook: DatasetDatasetBook = {
+                    ...book,
+                    chapters: bookChapters,
+                };
+                datasetDataset.books.push(datasetBook);
+            }
+        }
+
+        yield output;
 
         offset += pageSize;
     }

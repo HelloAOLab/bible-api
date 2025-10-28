@@ -154,17 +154,29 @@ export interface ApiDataset extends Dataset {
     /**
      * The total number of chapters that are contained in this dataset.
      */
-    numberOfChapters: number;
+    totalNumberOfChapters: number;
 
     /**
      * The total number of verses that are contained in this dataset.
      */
-    numberOfVerses: number;
+    totalNumberOfVerses: number;
 
     /**
      * The total number of references that are contained in this dataset.
      */
-    numberOfReferences: number;
+    totalNumberOfReferences: number;
+
+    /**
+     * Gets the name of the language that the commentary is in.
+     * Null or undefined if the name of the language is not known.
+     */
+    languageName?: string;
+
+    /**
+     * Gets the name of the language in English.
+     * Null or undefined if the language doesn't have an english name.
+     */
+    languageEnglishName?: string;
 }
 
 /**
@@ -574,14 +586,14 @@ export interface ApiCommentaryBookChapter extends CommentaryBookChapter {
  */
 export interface ApiDatasetBookChapter extends DatasetBookChapter {
     /**
-     * The commentary information for the book chapter.
+     * The dataset information for the book chapter.
      */
-    commentary: ApiCommentary;
+    dataset: ApiDataset;
 
     /**
      * The book information for the book chapter.
      */
-    book: ApiCommentaryBook;
+    book: ApiDatasetBook;
 
     /**
      * The link to this chapter.
@@ -604,6 +616,11 @@ export interface ApiDatasetBookChapter extends DatasetBookChapter {
      * The number of verses that the chapter contains.
      */
     numberOfVerses: number;
+
+    /**
+     * The number of references that the chapter contains.
+     */
+    numberOfReferences: number;
 }
 
 export interface ApiTranslationBookChapterAudio {
@@ -1052,6 +1069,139 @@ export function generateApiForDataset(
         api.commentaryProfiles.push(commentaryProfiles);
     }
 
+    for (let { books, ...datasetInfo } of dataset.datasets ?? []) {
+        const apiDataset: ApiDataset = {
+            ...datasetInfo,
+            availableFormats: ['json'],
+            listOfBooksApiLink: listOfDatasetBooksApiLink(
+                datasetInfo.id,
+                apiPathPrefix
+            ),
+            numberOfBooks: books.length,
+            totalNumberOfChapters: 0,
+            totalNumberOfVerses: 0,
+            totalNumberOfReferences: 0,
+            languageName: getNativeName
+                ? (getNativeName(datasetInfo.language) ?? undefined)
+                : undefined,
+            languageEnglishName: getEnglishName
+                ? (getEnglishName(datasetInfo.language) ?? undefined)
+                : undefined,
+        };
+
+        const datasetBooks: ApiDatasetBooks = {
+            dataset: apiDataset,
+            books: [],
+        };
+
+        let datasetChapters: ApiDatasetBookChapter[] = [];
+
+        for (let { chapters, ...book } of books) {
+            const firstChapterNumber = chapters[0]?.chapter.number ?? null;
+            const lastChapterNumber =
+                chapters[chapters.length - 1]?.chapter.number ?? null;
+            const apiBook: ApiDatasetBook = {
+                ...book,
+                firstChapterNumber,
+                firstChapterApiLink: bookDatasetChapterApiLink(
+                    datasetInfo.id,
+                    book.id,
+                    firstChapterNumber,
+                    'json',
+                    apiPathPrefix
+                ),
+                lastChapterNumber,
+                lastChapterApiLink: bookDatasetChapterApiLink(
+                    datasetInfo.id,
+                    book.id,
+                    lastChapterNumber,
+                    'json',
+                    apiPathPrefix
+                ),
+                numberOfChapters: chapters.length,
+                totalNumberOfVerses: 0,
+                totalNumberOfReferences: 0,
+            };
+
+            for (let { chapter } of chapters) {
+                const apiBookChapter: ApiDatasetBookChapter = {
+                    dataset: apiDataset,
+                    book: apiBook,
+                    chapter: chapter,
+                    thisChapterLink: bookDatasetChapterApiLink(
+                        datasetInfo.id,
+                        book.id,
+                        chapter.number,
+                        'json',
+                        apiPathPrefix
+                    ),
+                    nextChapterApiLink: null,
+                    previousChapterApiLink: null,
+                    numberOfVerses: chapter.content.length,
+                    numberOfReferences: 0,
+                };
+
+                // apiBookChapter.numberOfVerses += ;
+                for (let verse of chapter.content) {
+                    apiBookChapter.numberOfReferences +=
+                        verse.references.length;
+                }
+
+                apiBook.totalNumberOfVerses += apiBookChapter.numberOfVerses;
+                apiBook.totalNumberOfReferences +=
+                    apiBookChapter.numberOfReferences;
+
+                datasetChapters.push(apiBookChapter);
+                if (!api.datasetBookChapters) {
+                    api.datasetBookChapters = [];
+                }
+                api.datasetBookChapters.push(apiBookChapter);
+            }
+
+            datasetBooks.books.push(apiBook);
+
+            apiDataset.totalNumberOfChapters += apiBook.numberOfChapters;
+            apiDataset.totalNumberOfVerses += apiBook.totalNumberOfVerses;
+            apiDataset.totalNumberOfReferences +=
+                apiBook.totalNumberOfReferences;
+        }
+
+        for (let i = 0; i < datasetChapters.length; i++) {
+            if (i > 0) {
+                datasetChapters[i].previousChapterApiLink =
+                    bookDatasetChapterApiLink(
+                        datasetInfo.id,
+                        datasetChapters[i - 1].book.id,
+                        datasetChapters[i - 1].chapter.number,
+                        'json',
+                        apiPathPrefix
+                    );
+            }
+
+            if (i < datasetChapters.length - 1) {
+                datasetChapters[i].nextChapterApiLink =
+                    bookDatasetChapterApiLink(
+                        datasetInfo.id,
+                        datasetChapters[i + 1].book.id,
+                        datasetChapters[i + 1].chapter.number,
+                        'json',
+                        apiPathPrefix
+                    );
+            }
+        }
+
+        if (!api.availableDatasets) {
+            api.availableDatasets = {
+                datasets: [],
+            };
+        }
+        api.availableDatasets.datasets.push(apiDataset);
+        if (!api.datasetBooks) {
+            api.datasetBooks = [];
+        }
+        api.datasetBooks.push(datasetBooks);
+    }
+
     return api;
 
     function getBookLink(book: TranslationBook | CommentaryBook): string {
@@ -1125,6 +1275,32 @@ export function generateFilesForApi(api: ApiOutput): OutputFile[] {
         files.push(jsonFile(bookChapter.thisChapterLink, bookChapter));
     }
 
+    if (api.availableDatasets) {
+        files.push(
+            jsonFile(
+                `${api.pathPrefix}/api/available_datasets.json`,
+                api.availableDatasets,
+                true
+            )
+        );
+    }
+
+    if (api.datasetBooks) {
+        for (let datasetBook of api.datasetBooks) {
+            files.push(
+                jsonFile(datasetBook.dataset.listOfBooksApiLink, datasetBook)
+            );
+        }
+    }
+
+    if (api.datasetBookChapters) {
+        for (let datasetBookChapter of api.datasetBookChapters) {
+            files.push(
+                jsonFile(datasetBookChapter.thisChapterLink, datasetBookChapter)
+            );
+        }
+    }
+
     // for (let audio of api.translationBookChapterAudio) {
     //     files.push(downloadedFile(audio.link, audio.originalUrl));
     // }
@@ -1171,6 +1347,18 @@ export function listOfCommentaryBooksApiLink(
     prefix: string = ''
 ): string {
     return `${prefix}/api/c/${commentaryId}/books.json`;
+}
+
+/**
+ * Gets the API Link for the list of books endpoint for a dataset.
+ * @param datasetId The ID of the dataset.
+ * @returns
+ */
+export function listOfDatasetBooksApiLink(
+    datasetId: string,
+    prefix: string = ''
+): string {
+    return `${prefix}/api/d/${datasetId}/books.json`;
 }
 
 /**
@@ -1221,6 +1409,25 @@ export function bookChapterAudioApiLink(
     return `${prefix}/api/${translationId}/${replaceSpacesWithUnderscores(
         bookId
     )}/${chapterNumber}.${reader}.mp3`;
+}
+
+/**
+ * Getes the API link for a book chapter.
+ * @param translationId The ID of the translation.
+ * @param commonName The name of the book.
+ * @param chapterNumber The number of the book.
+ * @param extension The extension of the file.
+ */
+export function bookDatasetChapterApiLink(
+    translationId: string,
+    commonName: string,
+    chapterNumber: number,
+    extension: string,
+    prefix: string = ''
+) {
+    return `${prefix}/api/d/${translationId}/${replaceSpacesWithUnderscores(
+        commonName
+    )}/${chapterNumber}.${extension}`;
 }
 
 /**
