@@ -14,6 +14,9 @@ import {
     Translation,
     TranslationBook,
     TranslationBookChapter,
+    Dataset as CommonDataset,
+    DatasetBook,
+    DatasetBookChapter,
 } from './common-types.js';
 import {
     bookIdMap as defaultBookIdMap,
@@ -45,6 +48,11 @@ export interface DatasetOutput {
      * The list of commentaries that are available in the dataset.
      */
     commentaries: DatasetCommentary[];
+
+    /**
+     * The list of datasets that are available in the dataset.
+     */
+    datasets?: DatasetDataset[];
 
     parseMessages?: {
         [key: string]: ParseMessage[];
@@ -101,6 +109,14 @@ export interface DatasetCommentaryProfile extends CommentaryProfile {
      * The contents of the profile.
      */
     content: string[];
+}
+
+export interface DatasetDataset extends CommonDataset {
+    books: DatasetDatasetBook[];
+}
+
+export interface DatasetDatasetBook extends DatasetBook {
+    chapters: DatasetBookChapter[];
 }
 
 /**

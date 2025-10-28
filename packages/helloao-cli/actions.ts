@@ -1,21 +1,38 @@
 import path, { basename, extname } from 'node:path';
 import * as database from './db.js';
-import Sql from 'better-sqlite3';
+import Sql, { Database } from 'better-sqlite3';
 import { DOMParser, Element, Node } from 'linkedom';
 import { mkdir, readdir, rm, writeFile } from 'node:fs/promises';
-import { getFirstNonEmpty, normalizeLanguage } from '@helloao/tools/utils.js';
-import { InputTranslationMetadata } from '@helloao/tools/generation/index.js';
+import {
+    getBookId,
+    getFirstNonEmpty,
+    normalizeLanguage,
+} from '@helloao/tools/utils.js';
+import {
+    bookOrder,
+    dataset,
+    InputTranslationMetadata,
+} from '@helloao/tools/generation/index.js';
 import { exists, readFile } from 'fs-extra';
 import { KNOWN_AUDIO_TRANSLATIONS } from '@helloao/tools/generation/audio.js';
-import { bookChapterCountMap } from '@helloao/tools/generation/book-order.js';
+import {
+    bookChapterCountMap,
+    bookOrderMap,
+} from '@helloao/tools/generation/book-order.js';
 import { downloadFile, unzipToDirectory } from './downloads.js';
 import { batch, toAsyncIterable } from '@helloao/tools/parser/iterators.js';
 import {
     hashInputFiles,
+    loadDatasetsFromDirectory,
     loadTranslationFiles,
     loadTranslationsFiles,
 } from './files.js';
-import { generateDataset } from '@helloao/tools/generation/dataset.js';
+import {
+    DatasetDataset,
+    DatasetDatasetBook,
+    DatasetOutput,
+    generateDataset,
+} from '@helloao/tools/generation/dataset.js';
 import {
     serializeAndUploadDatasets,
     UploadApiFromDatabaseOptions,
@@ -36,6 +53,7 @@ import {
     convertUsfmToUsx3,
 } from './conversion.js';
 import { fetchEBibleMetadata } from './ebible.js';
+import { importDatasetOutput } from './db.js';
 
 export interface GetTranslationsItem {
     id: string;
@@ -327,6 +345,25 @@ export async function initDb(
                         CREATE TABLE "CommentaryChapterVerse" AS SELECT * FROM source.CommentaryChapterVerse
                         INNER JOIN source.Commentary ON source.Commentary.id = source.CommentaryChapterVerse.commentaryId
                         WHERE source.Commentary.language IN ${languages};
+
+                        CREATE TABLE "Dataset" AS SELECT * FROM source.Dataset
+                        WHERE language IN ${languages};
+
+                        CREATE TABLE "DatasetBook" AS SELECT * FROM source.DatasetBook
+                        INNER JOIN source.Dataset ON source.Dataset.id = source.DatasetBook.datasetId
+                        WHERE source.Dataset.language IN ${languages};
+
+                        CREATE TABLE "DatasetChapter" AS SELECT * FROM source.DatasetChapter
+                        INNER JOIN source.Dataset ON source.Dataset.id = source.DatasetChapter.datasetId
+                        WHERE source.Dataset.language IN ${languages};
+
+                        CREATE TABLE "DatasetChapterVerse" AS SELECT * FROM source.DatasetChapterVerse
+                        INNER JOIN source.Dataset ON source.Dataset.id = source.DatasetChapterVerse.datasetId
+                        WHERE source.Dataset.language IN ${languages};
+
+                        CREATE TABLE "DatasetReference" AS SELECT * FROM source.DatasetReference
+                        INNER JOIN source.Dataset ON source.Dataset.id = source.DatasetReference.datasetId
+                        WHERE source.Dataset.language IN ${languages};
                     `);
                 } else {
                     db.exec(`
@@ -343,6 +380,11 @@ export async function initDb(
                         CREATE TABLE "CommentaryBook" AS SELECT * FROM source.CommentaryBook;
                         CREATE TABLE "CommentaryChapter" AS SELECT * FROM source.CommentaryChapter;
                         CREATE TABLE "CommentaryChapterVerse" AS SELECT * FROM source.CommentaryChapterVerse;
+                        CREATE TABLE "Dataset" AS SELECT * FROM source.Dataset;
+                        CREATE TABLE "DatasetBook" AS SELECT * FROM source.DatasetBook;
+                        CREATE TABLE "DatasetChapter" AS SELECT * FROM source.DatasetChapter;
+                        CREATE TABLE "DatasetChapterVerse" AS SELECT * FROM source.DatasetChapterVerse;
+                        CREATE TABLE "DatasetReference" AS SELECT * FROM source.DatasetReference;
                     `);
                 }
 
@@ -484,6 +526,28 @@ export async function importCommentaries(
             parser,
             !!options.overwrite
         );
+    } finally {
+        db.close();
+    }
+}
+
+/**
+ * Imports the API from the given directory into the database in the current working directory.
+ * @param dir The directory that the API is located in.
+ * @param options The options.
+ */
+export async function importApi(
+    dir: string,
+    options: ImportTranslationOptions
+) {
+    const db = await database.getDb(options.db);
+    try {
+        const datasets = await loadDatasetsFromDirectory(dir);
+        importDatasetOutput(db, {
+            commentaries: [],
+            translations: [],
+            datasets,
+        });
     } finally {
         db.close();
     }

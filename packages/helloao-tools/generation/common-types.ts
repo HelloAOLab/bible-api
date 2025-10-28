@@ -203,6 +203,48 @@ export interface Commentary {
     textDirection: 'ltr' | 'rtl';
 }
 
+export interface Dataset {
+    /**
+     * The ID of the dataset.
+     */
+    id: string;
+
+    /**
+     * The name of the dataset.
+     */
+    name: string;
+
+    /**
+     * The website for the dataset.
+     */
+    website: string;
+
+    /**
+     * The URL that the license for the dataset can be found.
+     */
+    licenseUrl: string;
+
+    /**
+     * The API-added notes for the license.
+     */
+    licenseNotes?: string | null;
+
+    /**
+     * The English name for the dataset.
+     */
+    englishName: string;
+
+    /**
+     * The ISO 639 3-letter language tag that the dataset is primarily in.
+     */
+    language: string;
+
+    /**
+     * The direction that the language is written in.
+     */
+    textDirection: 'ltr' | 'rtl';
+}
+
 /**
  * Defines an interface that contains information about a book.
  */
@@ -273,6 +315,68 @@ export interface CommentaryBook {
      * The order of the book in the Bible.
      */
     order: number;
+}
+
+/**
+ * Defines an interface that contains information about a dataset book.
+ */
+export interface DatasetBook {
+    /**
+     * The ID of the book. Should match the USFM book ID.
+     */
+    id: string;
+
+    /**
+     * The order of the book in the Bible.
+     */
+    order: number;
+}
+
+/**
+ * Defines an interface that contains information about a chapter in a dataset.
+ */
+export interface DatasetBookChapter {
+    /**
+     * The data for the chapter.
+     */
+    chapter: DatasetChapterData;
+}
+
+export interface DatasetChapterData {
+    /**
+     * The number of the chapter.
+     */
+    number: number;
+
+    /**
+     * The content of the chapter.
+     */
+    content: DatasetChapterVerseContent[];
+}
+
+/**
+ * Defines an interface that contains information about a verse in a dataset chapter.
+ */
+export interface DatasetChapterVerseContent {
+    /**
+     * The number of the verse.
+     */
+    verse: number;
+
+    /**
+     * The list of references for the verse.
+     */
+    references: ScoredVerseRef[];
+}
+
+/**
+ * Defines an interface that contains information about a verse reference that has an arbitrary score attached to it.
+ */
+export interface ScoredVerseRef extends VerseRef {
+    /**
+     * The score of the verse reference.
+     */
+    score: number;
 }
 
 /**

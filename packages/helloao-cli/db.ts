@@ -7,6 +7,8 @@ import {
     DatasetCommentary,
     DatasetCommentaryBook,
     DatasetCommentaryProfile,
+    DatasetDataset,
+    DatasetDatasetBook,
     DatasetOutput,
     DatasetTranslation,
     DatasetTranslationBook,
@@ -19,6 +21,10 @@ import {
     OutputFile,
     OutputFileContent,
     CommentaryBookChapter,
+    DatasetBookChapter,
+    DatasetChapterVerseContent,
+    Dataset,
+    DatasetBook,
 } from '@helloao/tools/generation/index.js';
 import {
     generateApiForDataset,
@@ -197,15 +203,31 @@ export async function importFileBatch(
     logger.log('Generated', output.translations.length, 'translations');
     logger.log('Generated', output.commentaries.length, 'commentaries');
 
+    importDatasetOutput(db, output);
+    insertFileMetadata(db, changedFiles);
+}
+
+/**
+ * Imports the given dataset output into the database.
+ * @param db The database to import the dataset into.
+ * @param output The dataset output to import.
+ */
+export function importDatasetOutput(db: Database, output: DatasetOutput) {
+    const logger = log.getLogger();
+
     insertTranslations(db, output.translations);
     updateTranslationHashes(db, output.translations);
     insertCommentaries(db, output.commentaries);
     updateCommentaryHashes(db, output.commentaries);
-    insertFileMetadata(db, changedFiles);
+    insertDatasets(db, output.datasets ?? []);
+    updateDatasetHashes(db, output.datasets ?? []);
     insertWarningMetadata(db, output.parseMessages);
 
     logger.log(`Inserted ${output.translations.length} translations into DB`);
     logger.log(`Inserted ${output.commentaries.length} commentaries into DB`);
+    if (output.datasets) {
+        logger.log(`Inserted ${output.datasets.length} datasets into DB`);
+    }
     logger.log(
         `Produced ${output.parseMessages?.length ?? 0} warnings/errors.`
     );
@@ -1173,6 +1195,326 @@ function updateCommentaryHashes(
     logger.log(`Updated.`);
 }
 
+export function insertDatasets(db: Database, datasets: DatasetDataset[]) {
+    const translationUpsert = db.prepare(`INSERT INTO Dataset(
+        id,
+        name,
+        language,
+        textDirection,
+        licenseUrl,
+        licenseNotes,
+        website,
+        englishName
+    ) VALUES (
+        @id,
+        @name,
+        @language,
+        @textDirection,
+        @licenseUrl,
+        @licenseNotes,
+        @website,
+        @englishName
+    ) ON CONFLICT(id) DO 
+        UPDATE SET
+            name=excluded.name,
+            language=excluded.language,
+            textDirection=excluded.textDirection,
+            licenseUrl=excluded.licenseUrl,
+            licenseNotes=excluded.licenseNotes,
+            website=excluded.website,
+            englishName=excluded.englishName;`);
+
+    const insertManyTranslations = db.transaction(
+        (datasets: DatasetDataset[]) => {
+            for (let dataset of datasets) {
+                translationUpsert.run({
+                    id: dataset.id,
+                    name: dataset.name,
+                    language: dataset.language,
+                    textDirection: dataset.textDirection,
+                    licenseUrl: dataset.licenseUrl,
+                    licenseNotes: dataset.licenseNotes,
+                    website: dataset.website,
+                    englishName: dataset.englishName,
+                });
+            }
+        }
+    );
+
+    insertManyTranslations(datasets);
+
+    const deleteReferences = db.prepare(`DELETE FROM DatasetReference
+        WHERE datasetId = @datasetId;`);
+
+    for (let dataset of datasets) {
+        deleteReferences.run({
+            datasetId: dataset.id,
+        });
+        insertDatasetBooks(db, dataset, dataset.books);
+    }
+}
+
+export function insertDatasetBooks(
+    db: Database,
+    dataset: DatasetDataset,
+    datasetBooks: DatasetDatasetBook[]
+) {
+    const bookUpsert = db.prepare(`INSERT INTO DatasetBook(
+        id,
+        datasetId,
+        numberOfChapters,
+        \`order\`
+    ) VALUES (
+        @id,
+        @datasetId,
+        @numberOfChapters,
+        @bookOrder
+    ) ON CONFLICT(id,datasetId) DO 
+        UPDATE SET
+            numberOfChapters=excluded.numberOfChapters;`);
+
+    const insertMany = db.transaction((books: DatasetDatasetBook[]) => {
+        for (let book of books) {
+            if (!book) {
+                continue;
+            }
+            bookUpsert.run({
+                id: book.id,
+                datasetId: dataset.id,
+                numberOfChapters: book.chapters.length,
+                bookOrder: book.order ?? 9999,
+            });
+        }
+    });
+
+    insertMany(datasetBooks);
+
+    for (let book of datasetBooks) {
+        insertDatasetContent(db, dataset, book, book.chapters);
+    }
+}
+
+export function insertDatasetContent(
+    db: Database,
+    dataset: DatasetDataset,
+    book: DatasetDatasetBook,
+    chapters: DatasetBookChapter[]
+) {
+    const logger = log.getLogger();
+
+    const chapterUpsert = db.prepare(`INSERT INTO DatasetChapter(
+        datasetId,
+        bookId,
+        number,
+        json
+    ) VALUES (
+        @datasetId,
+        @bookId,
+        @number,
+        @json
+    ) ON CONFLICT(datasetId,bookId,number) DO 
+        UPDATE SET
+            json=excluded.json;`);
+    const verseUpsert = db.prepare(`INSERT INTO DatasetChapterVerse(
+        datasetId,
+        bookId,
+        chapterNumber,
+        number,
+        contentJson
+    ) VALUES (
+        @datasetId,
+        @bookId,
+        @chapterNumber,
+        @number,
+        @contentJson
+    ) ON CONFLICT(datasetId,bookId,chapterNumber,number) DO 
+        UPDATE SET
+            contentJson=excluded.contentJson;`);
+
+    const referenceInsert = db.prepare(`INSERT INTO DatasetReference(
+        datasetId,
+        bookId,
+        chapterNumber,
+        verseNumber,
+        referenceBookId,
+        referenceChapter,
+        referenceVerse,
+        endVerseNumber,
+        score
+    ) VALUES (
+        @datasetId,
+        @bookId,
+        @chapterNumber,
+        @verseNumber,
+        @referenceBookId,
+        @referenceChapter,
+        @referenceVerse,
+        @endVerseNumber,
+        @score
+    );`);
+
+    const insertChaptersAndVerses = db.transaction(() => {
+        for (let chapter of chapters) {
+            chapterUpsert.run({
+                datasetId: dataset.id,
+                bookId: book.id,
+                number: chapter.chapter.number,
+                json: JSON.stringify(chapter.chapter),
+            });
+
+            for (let verse of chapter.chapter.content) {
+                verseUpsert.run({
+                    datasetId: dataset.id,
+                    bookId: book.id,
+                    chapterNumber: chapter.chapter.number,
+                    number: verse.verse,
+                    contentJson: JSON.stringify(verse),
+                });
+
+                for (let ref of verse.references) {
+                    referenceInsert.run({
+                        datasetId: dataset.id,
+                        bookId: book.id,
+                        chapterNumber: chapter.chapter.number,
+                        verseNumber: verse.verse,
+                        referenceBookId: ref.book,
+                        referenceChapter: ref.chapter,
+                        referenceVerse: ref.verse,
+                        endVerseNumber: ref.endVerse ?? null,
+                        score: ref.score ?? null,
+                    });
+                }
+            }
+        }
+    });
+
+    insertChaptersAndVerses();
+}
+
+/**
+ * Updates the hashes for the datasets in the database.
+ * @param db The database to update the hashes in.
+ * @param datasets The datasets to update the hashes for.
+ */
+function updateDatasetHashes(db: Database, datasets: Dataset[]) {
+    const logger = log.getLogger();
+    logger.log(`Updating hashes for ${datasets.length} datasets.`);
+
+    const updateTranslationHash = db.prepare(
+        `UPDATE Dataset SET sha256 = @sha256 WHERE id = @datasetId;`
+    );
+    const updateBookHash = db.prepare(
+        `UPDATE DatasetBook SET sha256 = @sha256 WHERE datasetId = @datasetId AND id = @bookId;`
+    );
+    const updateChapterHash = db.prepare(
+        `UPDATE DatasetChapter SET sha256 = @sha256 WHERE datasetId = @datasetId AND bookId = @bookId AND number = @chapterNumber;`
+    );
+
+    const getBooks = db.prepare(
+        'SELECT * FROM DatasetBook WHERE datasetId = ?;'
+    );
+    const getChapters = db.prepare(
+        'SELECT * FROM DatasetChapter WHERE datasetId = @datasetId AND bookId = @bookId;'
+    );
+
+    for (let dataset of datasets) {
+        const commentarySha = sha256()
+            .update(dataset.id)
+            .update(dataset.name)
+            .update(dataset.language)
+            .update(dataset.licenseUrl)
+            .update(dataset.textDirection)
+            .update(dataset.website)
+            .update(dataset.englishName);
+
+        const books = getBooks.all(dataset.id) as {
+            id: string;
+            datasetId: string;
+            order: number;
+            numberOfChapters: number;
+            sha256: string;
+        }[];
+
+        for (let book of books) {
+            const chapters = getChapters.all({
+                datasetId: dataset.id,
+                bookId: book.id,
+            }) as {
+                number: string;
+                bookId: string;
+                datasetId: string;
+                json: string;
+                sha256: string;
+            }[];
+
+            const bookSha = sha256()
+                .update(book.datasetId)
+                .update(book.id)
+                .update(book.numberOfChapters)
+                .update(book.order);
+
+            for (let chapter of chapters) {
+                const hash = sha256()
+                    .update(chapter.datasetId)
+                    .update(chapter.bookId)
+                    .update(chapter.number)
+                    .update(chapter.json)
+                    .digest('hex');
+
+                chapter.sha256 = hash;
+
+                bookSha.update(hash);
+            }
+
+            const updateChapters = db.transaction(() => {
+                for (let chapter of chapters) {
+                    updateChapterHash.run({
+                        sha256: chapter.sha256,
+                        datasetId: chapter.datasetId,
+                        bookId: chapter.bookId,
+                        chapterNumber: chapter.number,
+                    });
+                }
+            });
+
+            updateChapters();
+
+            const bookHash = bookSha.digest('hex');
+            book.sha256 = bookHash;
+
+            commentarySha.update(bookHash);
+        }
+
+        const updateBooks = db.transaction(() => {
+            for (let book of books) {
+                updateBookHash.run({
+                    sha256: book.sha256,
+                    datasetId: book.datasetId,
+                    bookId: book.id,
+                });
+            }
+        });
+
+        updateBooks();
+
+        const hash = commentarySha.digest('hex');
+        (dataset as any).sha256 = hash;
+    }
+
+    const updateDatasets = db.transaction(() => {
+        for (let dataset of datasets) {
+            updateTranslationHash.run({
+                sha256: (dataset as any).sha256,
+                datasetId: dataset.id,
+            });
+        }
+    });
+
+    updateDatasets();
+
+    logger.log(`Updated.`);
+}
+
 export function getDbPathFromDir(dir: string) {
     dir = dir || process.cwd();
     return path.resolve(dir, 'bible-api.db');
@@ -1302,6 +1644,7 @@ export async function* loadDatasets(
 ): AsyncGenerator<DatasetOutput> {
     yield* loadTranslationDatasets(db, perBatch, translationsToLoad);
     yield* loadCommentaryDatasets(db, perBatch, translationsToLoad);
+    yield* loadDatasetDatasets(db, perBatch, translationsToLoad);
 }
 
 /**
@@ -1553,6 +1896,111 @@ export async function* loadCommentaryDatasets(
         }
 
         yield dataset;
+
+        offset += pageSize;
+    }
+}
+
+/**
+ * Loads the datasets from the database as a dataset.
+ * @param db The database.
+ * @param perBatch The number of translations to load per batch.
+ * @param datasetsToLoad The list of commentaries to load. If not provided, all commentaries will be loaded.
+ */
+export async function* loadDatasetDatasets(
+    db: PrismaClient,
+    perBatch: number = 50,
+    datasetsToLoad?: string[]
+) {
+    const logger = log.getLogger();
+    let offset = 0;
+    let pageSize = perBatch;
+
+    logger.log('Generating dataset datasets in batches of', pageSize);
+    const totalDatasets = await db.dataset.count();
+    const totalBatches = Math.ceil(totalDatasets / pageSize);
+    let batchNumber = 1;
+
+    while (true) {
+        logger.log('Generating dataset batch', batchNumber, 'of', totalBatches);
+        batchNumber++;
+
+        const datasetQuery: Prisma.DatasetFindManyArgs = {
+            skip: offset,
+            take: pageSize,
+        };
+
+        if (datasetsToLoad && datasetsToLoad.length > 0) {
+            datasetQuery.where = {
+                id: {
+                    in: datasetsToLoad,
+                },
+            };
+        }
+
+        const datasets = await db.dataset.findMany(datasetQuery);
+
+        if (datasets.length <= 0) {
+            break;
+        }
+
+        const output: DatasetOutput = {
+            translations: [],
+            commentaries: [],
+            datasets: [],
+        };
+
+        for (let dataset of datasets) {
+            const datasetDataset: DatasetDataset = {
+                ...dataset,
+                textDirection: dataset.textDirection! as any,
+                books: [],
+            };
+            output.datasets!.push(datasetDataset);
+
+            const books = await db.datasetBook.findMany({
+                where: {
+                    datasetId: dataset.id,
+                },
+                orderBy: {
+                    order: 'asc',
+                },
+            });
+
+            for (let book of books) {
+                const chapters = await db.datasetChapter.findMany({
+                    where: {
+                        datasetId: dataset.id,
+                        bookId: book.id,
+                    },
+                    orderBy: {
+                        number: 'asc',
+                    },
+                });
+
+                const bookChapters: DatasetBookChapter[] = chapters.map(
+                    (chapter) => {
+                        const bookChapter: DatasetBookChapter = {
+                            chapter: JSON.parse(chapter.json),
+                        };
+
+                        for (let verse of bookChapter.chapter.content) {
+                            verse.references.sort((a, b) => b.score - a.score);
+                        }
+
+                        return bookChapter;
+                    }
+                );
+
+                const datasetBook: DatasetDatasetBook = {
+                    ...book,
+                    chapters: bookChapters,
+                };
+                datasetDataset.books.push(datasetBook);
+            }
+        }
+
+        yield output;
 
         offset += pageSize;
     }
