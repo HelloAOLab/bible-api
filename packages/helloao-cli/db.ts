@@ -1980,9 +1980,15 @@ export async function* loadDatasetDatasets(
 
                 const bookChapters: DatasetBookChapter[] = chapters.map(
                     (chapter) => {
-                        return {
+                        const bookChapter: DatasetBookChapter = {
                             chapter: JSON.parse(chapter.json),
                         };
+
+                        for (let verse of bookChapter.chapter.content) {
+                            verse.references.sort((a, b) => b.score - a.score);
+                        }
+
+                        return bookChapter;
                     }
                 );
 
