@@ -3,6 +3,9 @@ import {
     CommentaryBook,
     CommentaryBookChapter,
     CommentaryProfile,
+    Dataset,
+    DatasetBook,
+    DatasetBookChapter,
     OutputFile,
     Translation,
     TranslationBook,
@@ -75,6 +78,25 @@ export interface ApiOutput {
     commentaryProfileContents: ApiCommentaryProfileContent[];
 
     /**
+     * The list of available datasets.
+     * This maps to the /api/available-datasets.json endpoint.
+     */
+    availableDatasets?: ApiAvailableDatasets;
+
+    /**
+     * The list of books for each dataset.
+     * This maps to the /api/d/:datasetId/books.json endpoint.
+     */
+    datasetBooks?: ApiDatasetBooks[];
+
+    /**
+     * The list of chapters for each dataset book.
+     * This maps to the following endpoint:
+     * - /api/d/:datasetId/:bookId/:chapterNumber.json
+     */
+    datasetBookChapters?: ApiDatasetBookChapter[];
+
+    /**
      * The path prefix that the API should use.
      */
     pathPrefix: string;
@@ -100,6 +122,49 @@ export interface ApiAvailableCommentaries {
      * The list of commentaries.
      */
     commentaries: ApiCommentary[];
+}
+
+/**
+ * The list of available datasets.
+ * Maps to the /api/available-datasets.json endpoint.
+ */
+export interface ApiAvailableDatasets {
+    datasets: ApiDataset[];
+}
+
+/**
+ * Defines a dataset that is used in the API.
+ */
+export interface ApiDataset extends Dataset {
+    /**
+     * The API link for the list of books for this dataset.
+     */
+    listOfBooksApiLink: string;
+
+    /**
+     * The available list of formats.
+     */
+    availableFormats: 'json'[];
+
+    /**
+     * The number of books that are contained in this dataset.
+     */
+    numberOfBooks: number;
+
+    /**
+     * The total number of chapters that are contained in this dataset.
+     */
+    numberOfChapters: number;
+
+    /**
+     * The total number of verses that are contained in this dataset.
+     */
+    numberOfVerses: number;
+
+    /**
+     * The total number of references that are contained in this dataset.
+     */
+    numberOfReferences: number;
 }
 
 /**
@@ -256,6 +321,21 @@ export interface ApiCommentaryBooks {
 }
 
 /**
+ * Defines an interface that contains information about the books that are available for a dataset.
+ */
+export interface ApiDatasetBooks {
+    /**
+     * The dataset information for the books.
+     */
+    dataset: ApiDataset;
+
+    /**
+     * The list of books that are available for the dataset.
+     */
+    books: ApiDatasetBook[];
+}
+
+/**
  * Defines an interface that contains information about the profiles that are available for a commentary.
  */
 export interface ApiCommentaryProfiles {
@@ -364,6 +444,46 @@ export interface ApiCommentaryBook extends CommentaryBook {
 }
 
 /**
+ * Defines an interface that contains information about a book in a dataset.
+ */
+export interface ApiDatasetBook extends DatasetBook {
+    /**
+     * The number of the first chapter in the book.
+     */
+    firstChapterNumber: number;
+
+    /**
+     * The link to the first chapter of the book.
+     */
+    firstChapterApiLink: string;
+
+    /**
+     * The number of the last chapter in the book.
+     */
+    lastChapterNumber: number;
+
+    /**
+     * The link to the last chapter of the book.
+     */
+    lastChapterApiLink: string;
+
+    /**
+     * The number of chapters that the book contains.
+     */
+    numberOfChapters: number;
+
+    /**
+     * The number of verses that the book contains.
+     */
+    totalNumberOfVerses: number;
+
+    /**
+     * The number of references that the book contains.
+     */
+    totalNumberOfReferences: number;
+}
+
+/**
  * Defines an interface that contains information about a book chapter.
  */
 export interface ApiTranslationBookChapter extends TranslationBookChapter {
@@ -416,6 +536,43 @@ export interface ApiTranslationBookChapter extends TranslationBookChapter {
  * Defines an interface that contains information about a book chapter.
  */
 export interface ApiCommentaryBookChapter extends CommentaryBookChapter {
+    /**
+     * The commentary information for the book chapter.
+     */
+    commentary: ApiCommentary;
+
+    /**
+     * The book information for the book chapter.
+     */
+    book: ApiCommentaryBook;
+
+    /**
+     * The link to this chapter.
+     */
+    thisChapterLink: string;
+
+    /**
+     * The link to the next chapter.
+     * Null if this is the last chapter in the translation.
+     */
+    nextChapterApiLink: string | null;
+
+    /**
+     * The link to the previous chapter.
+     * Null if this is the first chapter in the translation.
+     */
+    previousChapterApiLink: string | null;
+
+    /**
+     * The number of verses that the chapter contains.
+     */
+    numberOfVerses: number;
+}
+
+/**
+ * Defines an interface that contains information about a book chapter.
+ */
+export interface ApiDatasetBookChapter extends DatasetBookChapter {
     /**
      * The commentary information for the book chapter.
      */
