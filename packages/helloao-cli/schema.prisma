@@ -321,3 +321,109 @@ model ChapterFootnote {
 
     @@id([translationId, bookId, chapterNumber, id])
 }
+
+
+model Dataset {
+    id String @id
+    name String
+    website String
+    licenseUrl String
+    licenseNotes String?
+    englishName String
+    language String
+    textDirection String
+
+    sha256 String?
+
+    books DatasetBook[]
+    chapters DatasetChapter[]
+    verses DatasetChapterVerse[]
+    references DatasetReference[]
+}
+
+model DatasetBook {
+    id String
+
+    datasetId String
+    dataset Dataset @relation(fields: [datasetId], references: [id])
+
+    name String
+    commonName String
+    introduction String?
+    introductionSummary String?
+    order Int
+
+    numberOfChapters Int
+
+    // The SHA-256 hash of the book
+    sha256 String?
+
+    chapters DatasetChapter[]
+    verses DatasetChapterVerse[]
+    references DatasetReference[]
+
+    @@id([datasetId, id])
+}
+
+model DatasetChapter {
+    number Int
+
+    bookId String
+    book DatasetBook @relation(fields: [datasetId, bookId], references: [datasetId, id])
+
+    datasetId String
+    dataset Dataset @relation(fields: [datasetId], references: [id])
+
+    json String // The JSON of the chapter
+
+    // The SHA-256 hash of the chapter
+    sha256 String?
+
+    verses DatasetChapterVerse[]
+    references DatasetReference[]
+
+    @@id([datasetId, bookId, number])
+}
+
+model DatasetChapterVerse {
+    number Int
+
+    chapterNumber Int
+    chapter DatasetChapter @relation(fields: [datasetId, bookId, chapterNumber], references: [datasetId, bookId, number])
+
+    bookId String
+    book DatasetBook @relation(fields: [datasetId, bookId], references: [datasetId, id])
+
+    datasetId String
+    dataset Dataset @relation(fields: [datasetId], references: [id])
+
+    contentJson String // The JSON of the verse content
+
+    // The SHA-256 hash of the verse
+    sha256 String?
+
+    references DatasetReference[]
+
+    @@id([datasetId, bookId, chapterNumber, number])
+}
+
+model DatasetReference {
+    id Int @id @default(autoincrement())
+
+    datasetId String
+    dataset Dataset @relation(fields: [datasetId], references: [id])
+
+    bookId String
+    book DatasetBook @relation(fields: [datasetId, bookId], references: [datasetId, id])
+
+    chapterNumber Int
+    chapter DatasetChapter @relation(fields: [datasetId, bookId, chapterNumber], references: [datasetId, bookId, number])
+
+    verseNumber Int
+    verse DatasetChapterVerse @relation(fields: [datasetId, bookId, chapterNumber, verseNumber], references: [datasetId, bookId, chapterNumber, number])
+
+    endVerseNumber Int?
+    score Int?
+
+    sha256 String?
+}
