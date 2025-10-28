@@ -347,10 +347,6 @@ model DatasetBook {
     datasetId String
     dataset Dataset @relation(fields: [datasetId], references: [id])
 
-    name String
-    commonName String
-    introduction String?
-    introductionSummary String?
     order Int
 
     numberOfChapters Int
@@ -422,8 +418,10 @@ model DatasetReference {
     verseNumber Int
     verse DatasetChapterVerse @relation(fields: [datasetId, bookId, chapterNumber, verseNumber], references: [datasetId, bookId, chapterNumber, number])
 
+    referenceBookId String
+    referenceChapter Int
+    referenceVerse Int
+
     endVerseNumber Int?
     score Int?
-
-    sha256 String?
 }
