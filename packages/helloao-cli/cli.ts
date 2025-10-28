@@ -11,6 +11,7 @@ import {
     fetchAudio,
     generateTranslationFiles,
     generateTranslationsFiles,
+    importApi,
     importCommentaries,
     importCommentary,
     importTranslation,
@@ -140,6 +141,17 @@ async function start() {
         .option('--overwrite', 'Whether to overwrite existing files.')
         .action(async (dir: string, options: any) => {
             await importCommentaries(dir, {
+                ...program.opts(),
+                ...options,
+            });
+        });
+
+    program
+        .command('import-api <dir>')
+        .description('Imports API files from the given directory into the DB.')
+        .option('--overwrite', 'Whether to overwrite existing files.')
+        .action(async (dir: string, options: any) => {
+            await importApi(dir, {
                 ...program.opts(),
                 ...options,
             });

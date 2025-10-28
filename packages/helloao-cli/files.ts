@@ -6,7 +6,7 @@ import {
     readdir,
     writeFile,
 } from 'fs/promises';
-import { extname } from 'path';
+import { basename, extname } from 'path';
 import * as path from 'path';
 import { existsSync } from 'fs-extra';
 import {
@@ -25,6 +25,12 @@ import { PARSER_VERSION } from '@helloao/tools/parser/usx-parser.js';
 import { mergeWith } from 'lodash';
 import { fromByteArray } from 'base64-js';
 import { log } from '@helloao/tools';
+import { bookOrderMap } from '@helloao/tools/generation/book-order.js';
+import {
+    DatasetDataset,
+    DatasetDatasetBook,
+} from '@helloao/tools/generation/dataset.js';
+import { getBookId } from '@helloao/tools/utils.js';
 
 /**
  * Defines an interface that contains information about a serialized file.
@@ -364,6 +370,102 @@ export async function loadCommentaryFiles(
     }
 
     return await Promise.all(promises);
+}
+
+/**
+ * Imports all the datasets from the given directory into the database in the current working directory.
+ * @param dir The directory that the datasets are located in.
+ * @param options The options.
+ */
+export async function loadDatasetsFromDirectory(
+    dir: string
+): Promise<DatasetDataset[]> {
+    const logger = log.getLogger();
+
+    let datasets: DatasetDataset[] = [];
+
+    const apiDir = path.resolve(dir, 'api');
+
+    const availableDatasets = JSON.parse(
+        await readFile(path.resolve(apiDir, 'available_datasets.json'), 'utf-8')
+    );
+    datasets.push(
+        ...availableDatasets.datasets.map((d: any) => ({
+            ...d,
+            books: [],
+        }))
+    );
+
+    for (let dataset of datasets) {
+        const datasetDir = path.resolve(apiDir, 'd', dataset.id);
+        const booksList = await readdir(datasetDir);
+
+        for (let bookId of booksList) {
+            if (bookId === 'books.json') {
+                continue;
+            }
+            const id = getBookId(bookId);
+
+            if (!id) {
+                logger.warn(`Unknown book directory: ${bookId}`);
+                continue;
+            }
+
+            const book: DatasetDatasetBook = {
+                id,
+                chapters: [],
+                order: bookOrderMap.get(id)!,
+            };
+            dataset.books.push(book);
+
+            const bookDir = path.resolve(datasetDir, bookId);
+            const chapters = await readdir(bookDir);
+
+            for (let chapterFile of chapters) {
+                const chapterJson = JSON.parse(
+                    await readFile(path.resolve(bookDir, chapterFile), 'utf-8')
+                );
+
+                if (chapterJson.chapter) {
+                    book.chapters.push({
+                        chapter: chapterJson.chapter,
+                    });
+                } else if (chapterJson.content) {
+                    const chapterNumber = parseInt(
+                        basename(chapterFile, extname(chapterFile))
+                    );
+
+                    if (isNaN(chapterNumber)) {
+                        logger.warn(`Unknown chapter format: ${chapterFile}`);
+                        continue;
+                    }
+
+                    book.chapters.push({
+                        chapter: {
+                            number: chapterNumber,
+                            content: chapterJson.content.map((c: any) => ({
+                                verse: c.verse,
+                                references: (c.references ?? []).map(
+                                    (ref: any) => ({
+                                        book: ref.book,
+                                        chapter: ref.chapter,
+                                        verse: ref.verse,
+                                        endVerse: ref.endVerse,
+                                        score: ref.score ?? ref.votes,
+                                    })
+                                ),
+                            })),
+                        },
+                    });
+                } else {
+                    logger.warn(`Unknown chapter format: ${chapterFile}`);
+                    continue;
+                }
+            }
+        }
+    }
+
+    return datasets;
 }
 
 /**
