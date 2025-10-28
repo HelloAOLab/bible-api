@@ -3,6 +3,14 @@
 This is the log of changes for the Free Use Bible API.
 For information on the API Generator, see [GENERATOR-CHANGELOG.md](./GENERATOR-CHANGELOG.md).
 
+## V1.7.0
+
+#### Date: 2025-10-28
+
+### :rocket: Features
+
+-   Added the [Open BIble Cross Reference](https://www.openbible.info/labs/cross-references/) dataset.
+
 ## V1.6.0
 
 #### Date: 2025-09-16
