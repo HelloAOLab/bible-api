@@ -121,7 +121,11 @@ export class CodexParser {
         for (let cell of data.cells) {
             if (cell.languageId === 'html' && cell.value) {
                 if (!cell.metadata) continue; // ignore html cells without metadata
-                const metadata = metadataSchema.parse(cell.metadata);
+
+                const metadataResult = metadataSchema.safeParse(cell.metadata);
+
+                if (!metadataResult.success) continue; // ignore cells with invalid/unknown metadata
+                const metadata = metadataResult.data;
                 if (metadata.type === 'text') {
                     const reference = parseVerseReference(metadata.id);
                     if (!reference)

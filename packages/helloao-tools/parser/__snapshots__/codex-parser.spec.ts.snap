@@ -1,0 +1,38 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CodexParser parse should parse a new codex file 1`] = `
+{
+  "content": [
+    {
+      "content": [
+        {
+          "content": [
+            "abc def gh additional edit",
+          ],
+          "number": 1,
+          "type": "verse",
+        },
+        {
+          "content": [
+            "test verse 2",
+          ],
+          "number": 2,
+          "type": "verse",
+        },
+        {
+          "content": [
+            "test verse 3",
+          ],
+          "number": 3,
+          "type": "verse",
+        },
+      ],
+      "footnotes": [],
+      "number": 1,
+      "type": "chapter",
+    },
+  ],
+  "id": "JOB",
+  "type": "root",
+}
+`;
