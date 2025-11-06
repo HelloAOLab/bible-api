@@ -3,6 +3,14 @@
 This is the log of changes for the Bible API Generator and associated tools.
 For information on the API itself, see [API-CHANGELOG.md](./API-CHANGELOG.md).
 
+## V1.8.0
+
+#### Date: 2025-11-06
+
+### :bug: Bug Fixes
+
+-   Fixed an issue with the codex parser where it would error if it encountered cells it didn't understand.
+
 ## V1.6.0
 
 #### Date: 2025-09-16
