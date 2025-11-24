@@ -1,6 +1,6 @@
 ---
 home: true
-heroImage: /ao_lab_logo.png
+heroImage: /seed_bible_logo.png
 tagline: An easy-to-use and fully featured JSON API for accessing the Bible
 actions:
     - text: Quick Start →
