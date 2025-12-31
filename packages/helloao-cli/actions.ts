@@ -1308,6 +1308,222 @@ export async function listEBibleTranslations(
     }
 }
 
+// ============================================================================
+// Beblia XML Import Functions
+// ============================================================================
+
+import {
+    fetchBebliaIndex,
+    downloadBebliaTranslation,
+    filterByLanguage,
+    filterBySearch,
+    getTranslationStats,
+    BebliaTranslation,
+} from './beblia.js';
+import {
+    BebliaXmlParser,
+} from '@helloao/tools/parser/beblia-xml-parser.js';
+
+export interface ListBebliaOptions {
+    language?: string;
+}
+
+export interface ImportBebliaOptions {
+    all?: boolean;
+    language?: string;
+    overwrite?: boolean;
+    db?: string | null;
+}
+
+/**
+ * Lists available Beblia translations.
+ *
+ * @param searchTerm - Optional search term to filter translations.
+ * @param options - Options for filtering.
+ */
+export async function listBebliaTranslations(
+    searchTerm?: string,
+    options: ListBebliaOptions = {}
+): Promise<void> {
+    const logger = log.getLogger();
+    logger.log('Fetching Beblia translation index...');
+
+    const index = await fetchBebliaIndex();
+    let translations = index.translations;
+
+    // Apply language filter
+    if (options.language) {
+        translations = filterByLanguage(translations, options.language);
+        logger.log(
+            `Filtered to ${translations.length} translations for language: ${options.language}`
+        );
+    }
+
+    // Apply search filter
+    if (searchTerm) {
+        translations = filterBySearch(translations, searchTerm);
+        logger.log(
+            `Found ${translations.length} translations matching "${searchTerm}":`
+        );
+    } else {
+        logger.log(`Total ${translations.length} available translations:`);
+    }
+
+    logger.log('Format: [Filename] | [Language] | [Name]');
+    logger.log('─'.repeat(80));
+
+    for (const t of translations) {
+        logger.log(
+            `${t.filename.padEnd(30)} | ${t.detectedLanguage.padEnd(5)} | ${t.name}`
+        );
+    }
+
+    if (translations.length === 0) {
+        logger.log('No translations found. Try a different search term.');
+    }
+
+    // Show language stats if no filters applied
+    if (!searchTerm && !options.language) {
+        logger.log('');
+        logger.log('─'.repeat(80));
+        logger.log('Language distribution:');
+        const stats = getTranslationStats(index.translations);
+        const sortedStats = [...stats.entries()].sort((a, b) => b[1] - a[1]);
+        for (const [lang, count] of sortedStats.slice(0, 20)) {
+            logger.log(`  ${lang}: ${count} translations`);
+        }
+        if (sortedStats.length > 20) {
+            logger.log(`  ... and ${sortedStats.length - 20} more languages`);
+        }
+    }
+}
+
+/**
+ * Downloads and prepares Beblia translations for import.
+ *
+ * @param outputDir - Directory to save the translations.
+ * @param translationFilters - Specific translations to download (by name or filename).
+ * @param options - Options for the import.
+ */
+export async function importBebliaTranslations(
+    outputDir: string,
+    translationFilters: string[],
+    options: ImportBebliaOptions = {}
+): Promise<void> {
+    const logger = log.getLogger();
+    logger.log('Fetching Beblia translation index...');
+
+    const index = await fetchBebliaIndex();
+    let translations: BebliaTranslation[];
+
+    if (options.all) {
+        translations = index.translations;
+        logger.log(`Preparing to download all ${translations.length} translations...`);
+    } else if (options.language) {
+        translations = filterByLanguage(index.translations, options.language);
+        logger.log(
+            `Found ${translations.length} translations for language: ${options.language}`
+        );
+    } else if (translationFilters.length > 0) {
+        translations = index.translations.filter((t) =>
+            translationFilters.some(
+                (filter) =>
+                    t.filename.toLowerCase().includes(filter.toLowerCase()) ||
+                    t.name.toLowerCase().includes(filter.toLowerCase())
+            )
+        );
+        logger.log(
+            `Found ${translations.length} translations matching filters: ${translationFilters.join(', ')}`
+        );
+    } else {
+        logger.log(
+            'No translations specified. Use --all, --language <code>, or provide translation names.'
+        );
+        logger.log('Examples:');
+        logger.log('  npm run cli import-beblia ./sources/beblia --all');
+        logger.log('  npm run cli import-beblia ./sources/beblia --language ron');
+        logger.log('  npm run cli import-beblia ./sources/beblia RomanianBible');
+        return;
+    }
+
+    if (translations.length === 0) {
+        logger.log('No translations matched the criteria.');
+        return;
+    }
+
+    // Create output directory
+    await mkdir(outputDir, { recursive: true });
+
+    let downloaded = 0;
+    let skipped = 0;
+    let errors = 0;
+
+    for (const translation of translations) {
+        try {
+            // Create translation-specific directory
+            const translationId = translation.filename.replace(/\.xml$/i, '');
+            const translationDir = path.resolve(outputDir, translationId);
+
+            // Check if already exists
+            const metaPath = path.resolve(translationDir, 'metadata.json');
+            if (!options.overwrite && existsSync(metaPath)) {
+                logger.log(`Skipping ${translationId} (already exists)`);
+                skipped++;
+                continue;
+            }
+
+            await mkdir(translationDir, { recursive: true });
+
+            // Download XML file
+            logger.log(`Downloading: ${translation.name}`);
+            const xml = await downloadBebliaTranslation(translation);
+
+            // Save XML file
+            const xmlPath = path.resolve(translationDir, translation.filename);
+            await writeFile(xmlPath, xml, 'utf-8');
+
+            // Extract metadata from XML and create meta.json
+            const parser = new DOMParser();
+            globalThis.DOMParser = DOMParser as any;
+            const bebliaParser = new BebliaXmlParser(parser as any);
+            const metadata = bebliaParser.parseMetadataOnly(xml);
+
+            const meta: InputTranslationMetadata = {
+                id: translationId,
+                name: metadata.translation || translation.name,
+                englishName: metadata.version || metadata.translation || translation.name,
+                language: translation.detectedLanguage,
+                direction: translation.textDirection,
+                shortName: translationId.slice(0, 10).toUpperCase(),
+                licenseUrl: translation.sourceLink ||
+                    metadata.status ||
+                    'https://github.com/Beblia/Holy-Bible-XML-Format',
+                website: metadata.link ||
+                    translation.sourceLink ||
+                    'https://github.com/Beblia/Holy-Bible-XML-Format',
+            };
+
+            await writeFile(metaPath, JSON.stringify(meta, null, 2), 'utf-8');
+
+            logger.log(`  Saved to: ${translationDir}`);
+            downloaded++;
+        } catch (err) {
+            logger.error(`Error downloading ${translation.name}:`, err);
+            errors++;
+        }
+    }
+
+    logger.log('');
+    logger.log('─'.repeat(80));
+    logger.log('BEBLIA IMPORT SUMMARY:');
+    logger.log(`  Downloaded: ${downloaded}`);
+    logger.log(`  Skipped: ${skipped}`);
+    logger.log(`  Errors: ${errors}`);
+    logger.log('');
+    logger.log('To import these translations into the database, run:');
+    logger.log(`  npm run cli import-translations ${outputDir}`);
+}
+
 /**
  * Generates the translation files directly from the translation stored in the given input directory.
  * @param input The input directory that the translation is stored in.

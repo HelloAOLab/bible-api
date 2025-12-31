@@ -1,3 +1,5 @@
+import { additionalBookIdMap } from './book-names-data.js';
+
 /**
  * Defines a map that maps the book ID of apocryphal books to the numerical order of the book.
  */
@@ -331,10 +333,37 @@ const arabicBookMap = new Map([
 
 /**
  * Defines a map that maps a locale ID to a book name map.
+ * This includes English and Arabic (defined here) plus additional languages
+ * from book-names-data.ts (Romanian, Spanish, French, German, Portuguese,
+ * Russian, Chinese, Italian, Polish, Dutch).
  */
 export const bookIdMap = new Map([
     ['en', englishBookMap],
     ['en-US', englishBookMap],
     ['eng', englishBookMap],
     ['arb', arabicBookMap],
+    // Merge with additional languages from book-names-data.ts
+    ...additionalBookIdMap,
 ]);
+
+/**
+ * Reverse mapping from book number to book ID.
+ * Used for formats like Beblia XML that use book numbers (1-66) instead of IDs (GEN, EXO, etc.)
+ *
+ * @example
+ * bookNumberToIdMap.get(1) // 'GEN'
+ * bookNumberToIdMap.get(40) // 'MAT'
+ */
+export const bookNumberToIdMap = new Map<number, string>(
+    [...bookOrderMap].map(([id, num]) => [num, id])
+);
+
+/**
+ * Gets the book ID for a given book number.
+ *
+ * @param bookNumber - The book number (1-66 for standard canon, higher for apocrypha)
+ * @returns The book ID (e.g., 'GEN', 'EXO') or undefined if not found
+ */
+export function getBookIdFromNumber(bookNumber: number): string | undefined {
+    return bookNumberToIdMap.get(bookNumber);
+}

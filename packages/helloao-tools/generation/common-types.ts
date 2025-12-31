@@ -16,7 +16,7 @@ export type InputFileMetadata =
     | InputCommentaryMetadata;
 
 export interface InputTranslationFile extends InputFileBase {
-    fileType: 'usfm' | 'usx' | 'json';
+    fileType: 'usfm' | 'usx' | 'json' | 'beblia-xml';
     metadata: InputTranslationMetadata;
 }
 
