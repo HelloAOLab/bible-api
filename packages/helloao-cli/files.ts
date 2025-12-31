@@ -274,7 +274,8 @@ export async function loadTranslationFiles(
             extname(f) === '.usfm' ||
             extname(f) === '.usx' ||
             extname(f) === '.json' ||
-            extname(f) === '.codex'
+            extname(f) === '.codex' ||
+            extname(f) === '.xml'
     );
 
     if (usfmFiles.length <= 0) {
@@ -546,6 +547,10 @@ function getFileType(ext: string): InputTranslationFile['fileType'] | null {
             return 'json';
         case 'codex':
             return 'json';
+        case 'xml':
+            // For .xml files, we default to beblia-xml format
+            // USX files typically use .usx extension
+            return 'beblia-xml';
         default:
             return null;
     }

@@ -18,6 +18,8 @@ import {
     importTranslations,
     initDb,
     listEBibleTranslations,
+    listBebliaTranslations,
+    importBebliaTranslations,
     sourceTranslations,
     uploadTestTranslation,
     uploadTestTranslations,
@@ -597,6 +599,32 @@ async function start() {
             });
 
             await Promise.all(promises);
+        });
+
+    // Beblia XML format commands
+    program
+        .command('list-beblia [search]')
+        .description(
+            'List available Beblia translations. Optionally filter by search term.'
+        )
+        .option('--language <lang>', 'Filter by language code (e.g., ron, spa)')
+        .action(async (search: string | undefined, options: any) => {
+            await listBebliaTranslations(search, options);
+        });
+
+    program
+        .command('import-beblia <dir> [translations...]')
+        .description(
+            'Downloads and imports Beblia XML translations to the specified directory.'
+        )
+        .option('--all', 'Download all available translations')
+        .option('--language <lang>', 'Filter by language code (e.g., ron, spa)')
+        .option('--overwrite', 'Overwrite existing files')
+        .action(async (dir: string, translations: string[], options: any) => {
+            await importBebliaTranslations(dir, translations, {
+                ...program.opts(),
+                ...options,
+            });
         });
 
     await program.parseAsync(process.argv);
