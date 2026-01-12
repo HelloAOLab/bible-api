@@ -3,6 +3,14 @@
 This is the log of changes for the Bible API Generator and associated tools.
 For information on the API itself, see [API-CHANGELOG.md](./API-CHANGELOG.md).
 
+## V1.9.0
+
+#### Date: 2026-01-12
+
+### :rocket: Features
+
+-   Added the ability to generate a single JSON file with the entire translation.
+
 ## V1.8.0
 
 #### Date: 2025-11-06
