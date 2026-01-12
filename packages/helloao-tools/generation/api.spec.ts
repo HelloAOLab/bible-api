@@ -1,4 +1,5 @@
 import {
+    completeTranslationApiLink,
     generateApiForDataset,
     generateFilesForApi,
     replaceSpacesWithUnderscores,
@@ -225,6 +226,298 @@ describe('generateApiForDataset', () => {
                     ],
                     footnotes: [],
                 },
+            },
+        });
+    });
+
+    it('should be able to generate complete translation files', () => {
+        let translation1: InputTranslationMetadata = {
+            id: 'bsb',
+            name: 'Berean Standard Bible',
+            englishName: 'Berean Standard Bible',
+            shortName: 'BSB',
+            language: 'eng',
+            direction: 'ltr',
+            licenseUrl: 'https://berean.bible/terms.htm',
+            website: 'https://berean.bible',
+        };
+
+        let inputFiles: InputFile[] = [
+            {
+                fileType: 'usfm',
+                metadata: translation1,
+                content: firstXLines(Genesis, 13),
+            },
+            {
+                fileType: 'usfm',
+                metadata: translation1,
+                content: firstXLines(Exodus, 14),
+            },
+        ];
+
+        const dataset = generateDataset(inputFiles, new DOMParser() as any);
+        const generated = generateApiForDataset(dataset, {
+            generateCompleteTranslationFiles: true,
+        });
+        const files = generateFilesForApi(generated);
+
+        const tree = fileTree(files);
+
+        const expectedTranslation = {
+            id: 'bsb',
+            name: 'Berean Standard Bible',
+            englishName: 'Berean Standard Bible',
+            shortName: 'BSB',
+            language: 'eng',
+            textDirection: 'ltr',
+            licenseUrl: 'https://berean.bible/terms.htm',
+            website: 'https://berean.bible',
+            availableFormats: ['json'],
+            listOfBooksApiLink: '/api/bsb/books.json',
+            completeTranslationApiLink: '/api/bsb/complete.json',
+            numberOfBooks: 2,
+            totalNumberOfChapters: 2,
+            totalNumberOfVerses: 4,
+        };
+
+        expect(tree).toEqual({
+            '/api/available_translations.json': {
+                translations: [expectedTranslation],
+            },
+            '/api/available_commentaries.json': {
+                commentaries: [],
+            },
+            '/api/bsb/books.json': {
+                translation: expectedTranslation,
+                books: [
+                    {
+                        id: 'GEN',
+                        name: 'Genesis',
+                        commonName: 'Genesis',
+                        title: 'Genesis',
+                        order: 1,
+                        numberOfChapters: 1,
+                        totalNumberOfVerses: 2,
+                        firstChapterNumber: 1,
+                        firstChapterApiLink: '/api/bsb/GEN/1.json',
+                        lastChapterNumber: 1,
+                        lastChapterApiLink: '/api/bsb/GEN/1.json',
+                    },
+                    {
+                        id: 'EXO',
+                        name: 'Exodus',
+                        commonName: 'Exodus',
+                        title: 'Exodus',
+                        order: 2,
+                        numberOfChapters: 1,
+                        totalNumberOfVerses: 2,
+                        firstChapterNumber: 1,
+                        firstChapterApiLink: '/api/bsb/EXO/1.json',
+                        lastChapterNumber: 1,
+                        lastChapterApiLink: '/api/bsb/EXO/1.json',
+                    },
+                ],
+            },
+            '/api/bsb/GEN/1.json': {
+                translation: expectedTranslation,
+                book: {
+                    id: 'GEN',
+                    name: 'Genesis',
+                    commonName: 'Genesis',
+                    title: 'Genesis',
+                    order: 1,
+                    numberOfChapters: 1,
+                    totalNumberOfVerses: 2,
+                    firstChapterNumber: 1,
+                    firstChapterApiLink: '/api/bsb/GEN/1.json',
+                    lastChapterNumber: 1,
+                    lastChapterApiLink: '/api/bsb/GEN/1.json',
+                },
+                thisChapterLink: '/api/bsb/GEN/1.json',
+                thisChapterAudioLinks: {},
+                nextChapterApiLink: '/api/bsb/EXO/1.json',
+                nextChapterAudioLinks: {},
+                previousChapterApiLink: null,
+                previousChapterAudioLinks: null,
+                numberOfVerses: 2,
+                chapter: {
+                    number: 1,
+                    content: [
+                        {
+                            type: 'heading',
+                            content: ['The Creation'],
+                        },
+                        {
+                            type: 'line_break',
+                        },
+                        {
+                            type: 'verse',
+                            number: 1,
+                            content: [
+                                'In the beginning God created the heavens and the earth.',
+                            ],
+                        },
+                        {
+                            type: 'line_break',
+                        },
+                        {
+                            type: 'verse',
+                            number: 2,
+                            content: [
+                                'Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.',
+                            ],
+                        },
+                    ],
+                    footnotes: [],
+                },
+            },
+            '/api/bsb/EXO/1.json': {
+                translation: expectedTranslation,
+                book: {
+                    id: 'EXO',
+                    name: 'Exodus',
+                    commonName: 'Exodus',
+                    title: 'Exodus',
+                    order: 2,
+                    numberOfChapters: 1,
+                    totalNumberOfVerses: 2,
+                    firstChapterNumber: 1,
+                    firstChapterApiLink: '/api/bsb/EXO/1.json',
+                    lastChapterNumber: 1,
+                    lastChapterApiLink: '/api/bsb/EXO/1.json',
+                },
+                thisChapterLink: '/api/bsb/EXO/1.json',
+                thisChapterAudioLinks: {},
+                nextChapterApiLink: null,
+                nextChapterAudioLinks: null,
+                previousChapterApiLink: '/api/bsb/GEN/1.json',
+                previousChapterAudioLinks: {},
+                numberOfVerses: 2,
+                chapter: {
+                    number: 1,
+                    content: [
+                        {
+                            type: 'heading',
+                            content: ['The Israelites Multiply in Egypt'],
+                        },
+                        {
+                            type: 'line_break',
+                        },
+                        {
+                            type: 'verse',
+                            number: 1,
+                            content: [
+                                'These are the names of the sons of Israel who went to Egypt with Jacob, each with his family:',
+                            ],
+                        },
+                        {
+                            type: 'line_break',
+                        },
+                        {
+                            type: 'verse',
+                            number: 2,
+                            content: ['Reuben, Simeon, Levi, and Judah;'],
+                        },
+                    ],
+                    footnotes: [],
+                },
+            },
+            '/api/bsb/complete.json': {
+                translation: expectedTranslation,
+                books: [
+                    {
+                        id: 'GEN',
+                        name: 'Genesis',
+                        commonName: 'Genesis',
+                        title: 'Genesis',
+                        order: 1,
+                        numberOfChapters: 1,
+                        totalNumberOfVerses: 2,
+                        chapters: [
+                            {
+                                thisChapterAudioLinks: {},
+                                numberOfVerses: 2,
+                                chapter: {
+                                    number: 1,
+                                    content: [
+                                        {
+                                            type: 'heading',
+                                            content: ['The Creation'],
+                                        },
+                                        {
+                                            type: 'line_break',
+                                        },
+                                        {
+                                            type: 'verse',
+                                            number: 1,
+                                            content: [
+                                                'In the beginning God created the heavens and the earth.',
+                                            ],
+                                        },
+                                        {
+                                            type: 'line_break',
+                                        },
+                                        {
+                                            type: 'verse',
+                                            number: 2,
+                                            content: [
+                                                'Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.',
+                                            ],
+                                        },
+                                    ],
+                                    footnotes: [],
+                                },
+                            },
+                        ],
+                    },
+                    {
+                        id: 'EXO',
+                        name: 'Exodus',
+                        commonName: 'Exodus',
+                        title: 'Exodus',
+                        order: 2,
+                        numberOfChapters: 1,
+                        totalNumberOfVerses: 2,
+                        chapters: [
+                            {
+                                thisChapterAudioLinks: {},
+                                numberOfVerses: 2,
+                                chapter: {
+                                    number: 1,
+                                    content: [
+                                        {
+                                            type: 'heading',
+                                            content: [
+                                                'The Israelites Multiply in Egypt',
+                                            ],
+                                        },
+                                        {
+                                            type: 'line_break',
+                                        },
+                                        {
+                                            type: 'verse',
+                                            number: 1,
+                                            content: [
+                                                'These are the names of the sons of Israel who went to Egypt with Jacob, each with his family:',
+                                            ],
+                                        },
+                                        {
+                                            type: 'line_break',
+                                        },
+                                        {
+                                            type: 'verse',
+                                            number: 2,
+                                            content: [
+                                                'Reuben, Simeon, Levi, and Judah;',
+                                            ],
+                                        },
+                                    ],
+                                    footnotes: [],
+                                },
+                            },
+                        ],
+                    },
+                ],
             },
         });
     });

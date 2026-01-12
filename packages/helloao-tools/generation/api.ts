@@ -1,5 +1,6 @@
 import {
     ChapterContent,
+    ChapterData,
     ChapterFootnote,
     Commentary,
     CommentaryBook,
@@ -251,8 +252,10 @@ export interface ApiTranslation extends Translation {
 
     /**
      * The API link for downloading the complete translation as a single JSON file.
+     *
+     * Undefined if complete translation files are not available.
      */
-    completeTranslationApiLink: string;
+    completeTranslationApiLink?: string;
 }
 
 /**
@@ -318,37 +321,7 @@ export interface ApiTranslationCompleteBook {
     /**
      * The complete list of chapters with all content.
      */
-    chapters: ApiTranslationCompleteChapter[];
-}
-
-/**
- * A chapter in the complete translation download.
- */
-export interface ApiTranslationCompleteChapter {
-    /**
-     * The chapter number.
-     */
-    number: number;
-
-    /**
-     * The chapter content (verses, headings, line breaks).
-     */
-    content: ChapterContent[];
-
-    /**
-     * The footnotes for this chapter.
-     */
-    footnotes: ChapterFootnote[];
-
-    /**
-     * The number of verses in this chapter.
-     */
-    numberOfVerses: number;
-
-    /**
-     * The audio links for this chapter.
-     */
-    audioLinks: TranslationBookChapterAudioLinks;
+    chapters: TranslationBookChapter[];
 }
 
 /**
@@ -803,6 +776,11 @@ export interface GenerateApiOptions {
      * The prefix that should be added to paths that are generated.
      */
     pathPrefix?: string;
+
+    /**
+     * Whether to generate complete translation files for each translation.
+     */
+    generateCompleteTranslationFiles?: boolean;
 }
 
 /**
@@ -856,10 +834,9 @@ export function generateApiForDataset(
                 translation.id,
                 apiPathPrefix
             ),
-            completeTranslationApiLink: completeTranslationApiLink(
-                translation.id,
-                apiPathPrefix
-            ),
+            completeTranslationApiLink: options.generateCompleteTranslationFiles
+                ? completeTranslationApiLink(translation.id, apiPathPrefix)
+                : undefined,
             numberOfBooks,
             totalNumberOfChapters: 0,
             totalNumberOfVerses: 0,
@@ -1012,33 +989,33 @@ export function generateApiForDataset(
         api.availableTranslations.translations.push(apiTranslation);
         api.translationBooks.push(translationBooks);
 
-        // Build the complete translation data for download
-        const completeTranslation: ApiTranslationComplete = {
-            translation: apiTranslation,
-            books: translationBooks.books.map((book) => {
-                const bookChapters = translationChapters.filter(
-                    (ch) => ch.book.id === book.id
-                );
-                return {
-                    id: book.id,
-                    name: book.name,
-                    commonName: book.commonName,
-                    title: book.title,
-                    order: book.order,
-                    numberOfChapters: book.numberOfChapters,
-                    totalNumberOfVerses: book.totalNumberOfVerses,
-                    isApocryphal: book.isApocryphal,
-                    chapters: bookChapters.map((ch) => ({
-                        number: ch.chapter.number,
-                        content: ch.chapter.content,
-                        footnotes: ch.chapter.footnotes,
-                        numberOfVerses: ch.numberOfVerses,
-                        audioLinks: ch.thisChapterAudioLinks,
-                    })),
-                };
-            }),
-        };
-        api.translationComplete.push(completeTranslation);
+        if (options.generateCompleteTranslationFiles) {
+            // Build the complete translation data for download
+            const completeTranslation: ApiTranslationComplete = {
+                translation: apiTranslation,
+                books: translationBooks.books.map((book) => {
+                    const bookChapters = translationChapters.filter(
+                        (ch) => ch.book.id === book.id
+                    );
+                    return {
+                        id: book.id,
+                        name: book.name,
+                        commonName: book.commonName,
+                        title: book.title,
+                        order: book.order,
+                        numberOfChapters: book.numberOfChapters,
+                        totalNumberOfVerses: book.totalNumberOfVerses,
+                        isApocryphal: book.isApocryphal,
+                        chapters: bookChapters.map((ch) => ({
+                            numberOfVerses: ch.numberOfVerses,
+                            thisChapterAudioLinks: ch.thisChapterAudioLinks,
+                            chapter: ch.chapter,
+                        })),
+                    };
+                }),
+            };
+            api.translationComplete.push(completeTranslation);
+        }
     }
 
     for (let { books, profiles, ...commentary } of dataset.commentaries) {
@@ -1384,12 +1361,14 @@ export function generateFilesForApi(api: ApiOutput): OutputFile[] {
 
     // Generate complete translation download files
     for (let complete of api.translationComplete) {
-        files.push(
-            jsonFile(
-                complete.translation.completeTranslationApiLink,
-                complete
-            )
-        );
+        if (complete.translation.completeTranslationApiLink) {
+            files.push(
+                jsonFile(
+                    complete.translation.completeTranslationApiLink,
+                    complete
+                )
+            );
+        }
     }
 
     files.push(
