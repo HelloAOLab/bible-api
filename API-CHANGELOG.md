@@ -3,6 +3,14 @@
 This is the log of changes for the Free Use Bible API.
 For information on the API Generator, see [GENERATOR-CHANGELOG.md](./GENERATOR-CHANGELOG.md).
 
+## V1.8.0
+
+#### Date: 2026-01-12
+
+### :rocket: Features
+
+-   Added endpoints for getting an entire translation. ([#37](https://github.com/HelloAOLab/bible-api/pull/37))
+
 ## V1.7.0
 
 #### Date: 2025-10-28
