@@ -759,6 +759,175 @@ interface TranslationBookChapterAudioLinks {
 }
 ```
 
+## Get an entire Translation
+
+`GET https://bible.helloao.org/api/{translation}/complete.json`
+
+Gets the content of an entire translation.
+
+-   `translation` is the ID of the translation (e.g. `BSB`).
+
+### Code Example
+
+```ts:no-line-numbers title="fetch-translation-complete.js"
+const translation = 'BSB';
+
+// Get Genesis 1 from the BSB translation
+fetch(`https://bible.helloao.org/api/${translation}/complete.json`)
+    .then(request => request.json())
+    .then(chapter => {
+        console.log('BSB:', chapter);
+    });
+```
+
+### Structure
+
+```typescript:no-line-numbers title="complete.ts"
+/**
+ * Defines the complete translation download data.
+ * Maps to the /api/:translationId/complete.json endpoint.
+ */
+export interface TranslationComplete {
+    /**
+     * The translation metadata.
+     */
+    translation: Translation;
+
+    /**
+     * The complete list of books with all their chapters.
+     */
+    books: TranslationCompleteBook[];
+}
+
+/**
+ * A book in the complete translation download.
+ */
+export interface TranslationCompleteBook {
+    /**
+     * The ID of the book.
+     */
+    id: string;
+
+    /**
+     * The name of the book from the translation.
+     */
+    name: string;
+
+    /**
+     * The common name for the book.
+     */
+    commonName: string;
+
+    /**
+     * The title of the book.
+     */
+    title: string | null;
+
+    /**
+     * The order of the book.
+     */
+    order: number;
+
+    /**
+     * The number of chapters in the book.
+     */
+    numberOfChapters: number;
+
+    /**
+     * The total number of verses in the book.
+     */
+    totalNumberOfVerses: number;
+
+    /**
+     * Whether the book is apocryphal.
+     */
+    isApocryphal?: boolean;
+
+    /**
+     * The complete list of chapters with all content.
+     */
+    chapters: TranslationBookChapter[];
+}
+```
+
+### Example
+
+```json:no-line-numbers title="/api/BSB/complete.json"
+{
+  "translation": {
+    "id": "BSB",
+    "name": "Berean Standard Bible",
+    "website": "https://berean.bible/",
+    "licenseUrl": "https://berean.bible/",
+    "licenseNotes": null,
+    "shortName": "BSB",
+    "englishName": "Berean Standard Bible",
+    "language": "eng",
+    "textDirection": "ltr",
+    "sha256": "b2898c49cadb50fd8763feb9e2f74a90a3817e33408a24b6cbf09e7a950dde97",
+    "availableFormats": [
+      "json"
+    ],
+    "listOfBooksApiLink": "/api/BSB/books.json",
+    "completeTranslationApiLink": "/api/BSB/complete.json",
+    "numberOfBooks": 66,
+    "totalNumberOfChapters": 1189,
+    "totalNumberOfVerses": 31086,
+    "languageName": "English",
+    "languageEnglishName": "English"
+  },
+  "books": [
+    {
+      "id": "GEN",
+      "name": "Genesis",
+      "commonName": "Genesis",
+      "title": "Genesis",
+      "order": 1,
+      "numberOfChapters": 50,
+      "totalNumberOfVerses": 1533,
+      "chapters": [
+        {
+          "numberOfVerses": 31,
+          "thisChapterAudioLinks": {
+            "gilbert": "https://openbible.com/audio/gilbert/BSB_01_Gen_001_G.mp3",
+            "hays": "https://openbible.com/audio/hays/BSB_01_Gen_001_H.mp3",
+            "souer": "https://openbible.com/audio/souer/BSB_01_Gen_001.mp3"
+          },
+          "chapter": {
+            "number": 1,
+            "content": [
+              {
+                "type": "heading",
+                "content": [
+                  "The Creation"
+                ]
+              },
+              {
+                "type": "verse",
+                "number": 1,
+                "content": [
+                  "In the beginning God created the heavens and the earth."
+                ]
+              },
+              {
+                "type": "line_break"
+              },
+              {
+                "type": "verse",
+                "number": 2,
+                "content": [
+                  "Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters."
+                ]
+              },
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
+```
+
 ## Available Commentaries
 
 `GET https://bible.helloao.org/api/available_commentaries.json`
