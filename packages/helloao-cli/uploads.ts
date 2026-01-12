@@ -123,6 +123,10 @@ export async function uploadApiFilesFromDatabase(
         logger.log('Generating pretty-printed JSON files');
     }
 
+    if (options.generateCompleteTranslationFiles) {
+        logger.log('Generating complete translation files');
+    }
+
     const pageSize =
         typeof options.batchSize === 'number'
             ? options.batchSize
@@ -178,6 +182,10 @@ export async function serializeAndUploadDatasets(
 
     if (options.pretty) {
         logger.log('Generating pretty-printed JSON files');
+    }
+
+    if (options.generateCompleteTranslationFiles) {
+        logger.log('Generating complete translation files');
     }
 
     const files = serializeDatasets(datasets, {

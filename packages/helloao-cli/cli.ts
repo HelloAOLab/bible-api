@@ -189,6 +189,10 @@ async function start() {
             'Whether to replace the audio URLs in the dataset with ones that are hosted locally.'
         )
         .option(
+            '--no-generate-complete-translation-files',
+            'Whether to skip generating complete translation files.'
+        )
+        .option(
             '--profile <profile>',
             'The AWS profile to use for uploading to S3.'
         )
@@ -268,6 +272,10 @@ async function start() {
         .option(
             '--generate-audio-files',
             'Whether to replace the audio URLs in the dataset with ones that are hosted locally.'
+        )
+        .option(
+            '--no-generate-complete-translation-files',
+            'Whether to skip generating complete translation files.'
         )
         .option(
             '--profile <profile>',
@@ -365,6 +373,10 @@ async function start() {
             'The AWS region to use for uploading to S3.'
         )
         .option('--pretty', 'Whether to generate pretty-printed JSON files.')
+        .option(
+            '--no-generate-complete-translation-files',
+            'Whether to skip generating complete translation files.'
+        )
         .action(async (input: string, dest: string, options: any) => {
             await generateTranslationFiles(input, dest, {
                 ...program.opts(),
@@ -400,6 +412,10 @@ async function start() {
         .option(
             '--generate-audio-files',
             'Whether to replace the audio URLs in the dataset with ones that are hosted locally.'
+        )
+        .option(
+            '--no-generate-complete-translation-files',
+            'Whether to skip generating complete translation files.'
         )
         .option(
             '--profile <profile>',
@@ -462,6 +478,10 @@ async function start() {
             'Whether to replace the audio URLs in the dataset with ones that are hosted locally.'
         )
         .option(
+            '--no-generate-complete-translation-files',
+            'Whether to skip generating complete translation files.'
+        )
+        .option(
             '--profile <profile>',
             'The AWS profile to use for uploading to S3.'
         )
@@ -485,7 +505,10 @@ async function start() {
         .action(async (dest: string, options: any) => {
             const db = getPrismaDb(program.opts().db);
             try {
-                await uploadApiFilesFromDatabase(db, dest, options);
+                await uploadApiFilesFromDatabase(db, dest, {
+                    ...program.opts(),
+                    ...options,
+                });
             } finally {
                 db.$disconnect();
             }

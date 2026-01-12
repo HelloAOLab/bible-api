@@ -1,4 +1,7 @@
 import {
+    ChapterContent,
+    ChapterData,
+    ChapterFootnote,
     Commentary,
     CommentaryBook,
     CommentaryBookChapter,
@@ -95,6 +98,12 @@ export interface ApiOutput {
      * - /api/d/:datasetId/:bookId/:chapterNumber.json
      */
     datasetBookChapters?: ApiDatasetBookChapter[];
+
+    /**
+     * The complete translation data for each translation.
+     * This maps to the /api/:translationId/complete.json endpoint.
+     */
+    translationComplete: ApiTranslationComplete[];
 
     /**
      * The path prefix that the API should use.
@@ -240,6 +249,79 @@ export interface ApiTranslation extends Translation {
      * Null or undefined if the language doesn't have an english name.
      */
     languageEnglishName?: string;
+
+    /**
+     * The API link for downloading the complete translation as a single JSON file.
+     *
+     * Undefined if complete translation files are not available.
+     */
+    completeTranslationApiLink?: string;
+}
+
+/**
+ * Defines the complete translation download data.
+ * Maps to the /api/:translationId/complete.json endpoint.
+ */
+export interface ApiTranslationComplete {
+    /**
+     * The translation metadata.
+     */
+    translation: ApiTranslation;
+
+    /**
+     * The complete list of books with all their chapters.
+     */
+    books: ApiTranslationCompleteBook[];
+}
+
+/**
+ * A book in the complete translation download.
+ */
+export interface ApiTranslationCompleteBook {
+    /**
+     * The ID of the book.
+     */
+    id: string;
+
+    /**
+     * The name of the book from the translation.
+     */
+    name: string;
+
+    /**
+     * The common name for the book.
+     */
+    commonName: string;
+
+    /**
+     * The title of the book.
+     */
+    title: string | null;
+
+    /**
+     * The order of the book.
+     */
+    order: number;
+
+    /**
+     * The number of chapters in the book.
+     */
+    numberOfChapters: number;
+
+    /**
+     * The total number of verses in the book.
+     */
+    totalNumberOfVerses: number;
+
+    /**
+     * Whether the book is apocryphal.
+     */
+    isApocryphal?: boolean;
+
+    /**
+     * The complete list of chapters with all content.
+     */
+    chapters: TranslationBookChapter[];
 }
 
 /**
@@ -694,6 +776,11 @@ export interface GenerateApiOptions {
      * The prefix that should be added to paths that are generated.
      */
     pathPrefix?: string;
+
+    /**
+     * Whether to generate complete translation files for each translation.
+     */
+    generateCompleteTranslationFiles?: boolean;
 }
 
 /**
@@ -714,6 +801,7 @@ export function generateApiForDataset(
         translationBooks: [],
         translationBookChapters: [],
         translationBookChapterAudio: [],
+        translationComplete: [],
         availableCommentaries: {
             commentaries: [],
         },
@@ -746,6 +834,9 @@ export function generateApiForDataset(
                 translation.id,
                 apiPathPrefix
             ),
+            completeTranslationApiLink: options.generateCompleteTranslationFiles
+                ? completeTranslationApiLink(translation.id, apiPathPrefix)
+                : undefined,
             numberOfBooks,
             totalNumberOfChapters: 0,
             totalNumberOfVerses: 0,
@@ -897,6 +988,34 @@ export function generateApiForDataset(
 
         api.availableTranslations.translations.push(apiTranslation);
         api.translationBooks.push(translationBooks);
+
+        if (options.generateCompleteTranslationFiles) {
+            // Build the complete translation data for download
+            const completeTranslation: ApiTranslationComplete = {
+                translation: apiTranslation,
+                books: translationBooks.books.map((book) => {
+                    const bookChapters = translationChapters.filter(
+                        (ch) => ch.book.id === book.id
+                    );
+                    return {
+                        id: book.id,
+                        name: book.name,
+                        commonName: book.commonName,
+                        title: book.title,
+                        order: book.order,
+                        numberOfChapters: book.numberOfChapters,
+                        totalNumberOfVerses: book.totalNumberOfVerses,
+                        isApocryphal: book.isApocryphal,
+                        chapters: bookChapters.map((ch) => ({
+                            numberOfVerses: ch.numberOfVerses,
+                            thisChapterAudioLinks: ch.thisChapterAudioLinks,
+                            chapter: ch.chapter,
+                        })),
+                    };
+                }),
+            };
+            api.translationComplete.push(completeTranslation);
+        }
     }
 
     for (let { books, profiles, ...commentary } of dataset.commentaries) {
@@ -1240,6 +1359,18 @@ export function generateFilesForApi(api: ApiOutput): OutputFile[] {
         files.push(downloadedFile(audio.link, audio.originalUrl));
     }
 
+    // Generate complete translation download files
+    for (let complete of api.translationComplete) {
+        if (complete.translation.completeTranslationApiLink) {
+            files.push(
+                jsonFile(
+                    complete.translation.completeTranslationApiLink,
+                    complete
+                )
+            );
+        }
+    }
+
     files.push(
         jsonFile(
             `${api.pathPrefix}/api/available_commentaries.json`,
@@ -1335,6 +1466,19 @@ export function listOfBooksApiLink(
     prefix: string = ''
 ): string {
     return `${prefix}/api/${translationId}/books.json`;
+}
+
+/**
+ * Gets the API Link for the complete translation download endpoint.
+ * @param translationId The ID of the translation.
+ * @param prefix The path prefix.
+ * @returns
+ */
+export function completeTranslationApiLink(
+    translationId: string,
+    prefix: string = ''
+): string {
+    return `${prefix}/api/${translationId}/complete.json`;
 }
 
 /**
