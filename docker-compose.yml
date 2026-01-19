@@ -1,0 +1,58 @@
+services:
+  # Service to build and generate API files
+  bible-api-generator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bible-api-generator
+    volumes:
+      # Mount database (optional - if not present, it will need to be initialized)
+      - ./bible-api.db:/app/bible-api.db
+      # Shared volume for generated API files
+      - api-files:/app/api
+    environment:
+      - NODE_ENV=production
+    # Command to generate API files
+    # Assumes bible-api.db exists in the project root or will be mounted
+    # If you need to initialize the database first, you can download it or initialize it
+    command: >
+      sh -c "
+        if [ ! -f /app/bible-api.db ]; then
+          echo 'Database not found. You can either:';
+          echo '1. Download it: node ./packages/helloao-cli/dist/cjs/cli.cjs init /app/bible-api.db -- --source https://bible.helloao.org/bible.db';
+          echo '2. Initialize it: node ./packages/helloao-cli/dist/cjs/cli.cjs init /app/bible-api.db';
+          echo '3. Mount an existing database as a volume';
+          exit 1;
+        fi &&
+        echo 'Generating API files...' &&
+        node ./packages/helloao-cli/dist/cjs/cli.cjs upload-api-files /app/api -- --db /app/bible-api.db --overwrite --pretty &&
+        echo 'API files generated successfully!' &&
+        touch /app/api/.ready
+      "
+    restart: "no"
+    networks:
+      - bible-api-network
+
+  # Nginx server to serve the API files
+  nginx:
+    image: nginx:alpine
+    container_name: bible-api-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - api-files:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      bible-api-generator:
+        condition: service_completed_successfully
+    networks:
+      - bible-api-network
+    restart: unless-stopped
+
+volumes:
+  api-files:
+    driver: local
+
+networks:
+  bible-api-network:
+    driver: bridge
