@@ -9,42 +9,34 @@ This project includes Docker Compose configuration to build and serve the Bible 
 
 ## Quick Start
 
-### Option 1: Using an Existing Database
+1. **Optional**: Copy the example environment file and customize it:
+   ```bash
+   cp env.example .env
+   # Edit .env if you need to change defaults
+   ```
 
-If you already have a `bible-api.db` file in the project root:
+2. **Start the services** (the database will be automatically downloaded if it doesn't exist):
+   ```bash
+   docker compose up -d
+   ```
 
+The setup will automatically:
+- Download the database from the configured source URL if it doesn't exist
+- Generate all API files
+- Start nginx to serve the API
+
+### Manual Database Setup (Optional)
+
+If you prefer to set up the database manually:
+
+**Option 1: Download the Database**
 ```bash
-docker-compose up -d
-```
-
-### Option 2: Download the Database
-
-You can download the database from the public API:
-
-```bash
-# Download the database first
 docker-compose run --rm bible-api-generator sh -c "pnpm run db:clone"
 ```
 
-Then start the services:
-
+**Option 2: Initialize a New Database**
 ```bash
-docker-compose up -d
-```
-
-### Option 3: Initialize a New Database
-
-To initialize a new database from the Bible source files:
-
-```bash
-# Initialize the database
 docker-compose run --rm bible-api-generator sh -c "pnpm run cli init /app/bible-api.db"
-```
-
-Then start the services:
-
-```bash
-docker-compose up -d
 ```
 
 ## Services
@@ -74,9 +66,39 @@ Once the services are running, the API will be available at:
 
 ## Configuration
 
+### Environment Variables
+
+The Docker Compose setup supports configuration through environment variables. Copy `env.example` to `.env` and customize as needed:
+
+```bash
+cp env.example .env
+```
+
+Available environment variables:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `BIBLE_DB_SOURCE_URL` | `https://bible.helloao.org/bible.db` | URL to download the database from |
+| `BIBLE_DB_PATH` | `/app/db/bible-api.db` | Path to the database file inside the container |
+| `BIBLE_DB_MIN_SIZE` | `1000` | Minimum database file size in bytes (for validation) |
+| `API_OUTPUT_PATH` | `/app/api` | Path where API files will be generated |
+| `API_OVERWRITE` | `true` | Whether to overwrite existing API files |
+| `API_PRETTY_PRINT` | `true` | Whether to pretty-print JSON files |
+| `API_TRANSLATIONS` | (empty) | Comma-separated list of specific translations to generate (empty = all) |
+| `API_BATCH_SIZE` | `50` | Number of translations to process in each batch |
+| `NODE_ENV` | `production` | Node.js environment |
+| `NGINX_PORT` | `80` | Port to expose nginx on the host |
+| `CORS_ALLOW_ORIGIN` | `*` | CORS allowed origin (passed to nginx container) |
+
 ### Port
 
-To change the port, modify the `ports` section in `docker-compose.yml`:
+To change the port, set the `NGINX_PORT` environment variable in your `.env` file:
+
+```bash
+NGINX_PORT=8080
+```
+
+Or modify the `ports` section in `docker-compose.yml`:
 
 ```yaml
 ports:
@@ -85,11 +107,11 @@ ports:
 
 ### Database Location
 
-The database is mounted from `./bible-api.db` in the project root. You can change this path in the `volumes` section of `docker-compose.yml`.
+The database is stored in a Docker volume by default. The path inside the container can be changed via the `BIBLE_DB_PATH` environment variable.
 
 ### Nginx Configuration
 
-The nginx configuration is in `nginx.conf`. You can modify it to change server settings, add SSL, or adjust CORS headers.
+The nginx configuration is in `nginx.conf`. You can modify it to change server settings, add SSL, or adjust CORS headers. Note that CORS configuration in nginx.conf is static - to change it dynamically, you would need to use a template system or modify the file directly.
 
 ## Regenerating API Files
 
@@ -150,7 +172,12 @@ Ensure the database is properly mounted and contains data.
 
 ### Port Already in Use
 
-If port 80 is already in use, change the port mapping in `docker-compose.yml`:
+If port 80 is already in use, set `NGINX_PORT` in your `.env` file:
+```bash
+NGINX_PORT=8080
+```
+
+Or modify the `ports` section in `docker-compose.yml`:
 ```yaml
 ports:
   - "8080:80"

@@ -37,3 +37,4 @@ cli.js
 bible-api.*
 sources
 tools/BibleMultiConverter
+.env
