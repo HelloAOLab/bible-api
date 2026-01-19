@@ -62,6 +62,9 @@ services:
         fi &&
         pnpm exec node ./packages/helloao-cli/dist/cjs/cli.cjs --db "$$DB_PATH" upload-api-files "$$API_PATH" -- --batch-size "$$BATCH_SIZE" $$OVERWRITE_ARG $$PRETTY_ARG $$TRANSLATIONS_ARG &&
         echo "API files generated successfully!" &&
+        mkdir -p "$$API_PATH/api" &&
+        echo "{\"version\":\"1.0.0\",\"apiBase\":\"/api\",\"endpoints\":{\"translations\":\"/api/available-translations.json\",\"commentaries\":\"/api/available-commentaries.json\",\"datasets\":\"/api/available-datasets.json\"}}" > "$$API_PATH/api/config.json" &&
+        echo "Created config.json at $$API_PATH/api/config.json" &&
         echo "Generated files count: $$(find \"$$API_PATH\" -type f -name \"*.json\" | wc -l)" &&
         echo "Sample files:" &&
         find "$$API_PATH" -type f -name "*.json" | head -5 &&
