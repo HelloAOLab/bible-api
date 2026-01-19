@@ -22,6 +22,7 @@ public
 .cache
 extra
 bible-api.*.db
+bible.db
 fetch
 gen
 metadata

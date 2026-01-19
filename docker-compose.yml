@@ -6,53 +6,46 @@ services:
       dockerfile: Dockerfile
     container_name: bible-api-generator
     volumes:
-      # Mount database file (optional - if not present, database will be downloaded to container)
-      - bible-db:/app/db
+      # Mount local bible.db file (must exist in project root)
+      - ./bible.db:/app/db/bible.db:ro
       # Shared volume for generated API files
       - api-files:/app/api
     environment:
       - NODE_ENV=${NODE_ENV:-production}
-      - BIBLE_DB_SOURCE_URL=${BIBLE_DB_SOURCE_URL:-https://bible.helloao.org/bible.db}
-      - BIBLE_DB_PATH=${BIBLE_DB_PATH:-/app/db/bible-api.db}
-      - BIBLE_DB_MIN_SIZE=${BIBLE_DB_MIN_SIZE:-1000}
+      - NODE_OPTIONS=${NODE_OPTIONS:---max-old-space-size=4096}
+      - BIBLE_DB_PATH=/app/db/bible.db
       - API_OUTPUT_PATH=${API_OUTPUT_PATH:-/app/api}
-      - API_OVERWRITE=${API_OVERWRITE:-true}
+      - API_OVERWRITE=${API_OVERWRITE:-false}
       - API_PRETTY_PRINT=${API_PRETTY_PRINT:-true}
       - API_TRANSLATIONS=${API_TRANSLATIONS:-}
-      - API_BATCH_SIZE=${API_BATCH_SIZE:-50}
+      - API_BATCH_SIZE=${API_BATCH_SIZE:-10}
     # Command to generate API files
-    # Automatically downloads the database if it doesn't exist
-    # Uses environment variables set above
+    # Uses the local bible.db file mounted as a volume
+    # Only generates if files don't exist or if forced to regenerate
     command: >
       sh -c '
-        DB_PATH=$${BIBLE_DB_PATH:-/app/db/bible-api.db}
-        DB_SOURCE=$${BIBLE_DB_SOURCE_URL:-https://bible.helloao.org/bible.db}
-        DB_MIN_SIZE=$${BIBLE_DB_MIN_SIZE:-1000}
+        DB_PATH=$${BIBLE_DB_PATH:-/app/db/bible.db}
         API_PATH=$${API_OUTPUT_PATH:-/app/api}
-        OVERWRITE_FLAG=$${API_OVERWRITE:-true}
+        OVERWRITE_FLAG=$${API_OVERWRITE:-false}
         PRETTY_FLAG=$${API_PRETTY_PRINT:-true}
         TRANSLATIONS=$${API_TRANSLATIONS:-}
-        BATCH_SIZE=$${API_BATCH_SIZE:-50}
+        BATCH_SIZE=$${API_BATCH_SIZE:-10}
         
-        if [ ! -f "$$DB_PATH" ] || [ ! -s "$$DB_PATH" ]; then
-          echo "Database not found or empty. Downloading from $$DB_SOURCE...";
-          node ./packages/helloao-cli/dist/cjs/cli.cjs init "$$DB_PATH" -- --source "$$DB_SOURCE" || {
-            echo "Failed to download database.";
-            exit 1;
-          };
-          if [ ! -f "$$DB_PATH" ] || [ ! -s "$$DB_PATH" ]; then
-            echo "Error: Database file is missing or empty after download.";
-            exit 1;
-          fi;
-          echo "Database downloaded successfully!";
-          DB_SIZE=$$(stat -f%z "$$DB_PATH" 2>/dev/null || stat -c%s "$$DB_PATH" 2>/dev/null || echo 0)
-          if [ "$$DB_SIZE" -lt "$$DB_MIN_SIZE" ]; then
-            echo "Error: Downloaded database file is too small ($$DB_SIZE bytes), may be corrupted.";
-            exit 1;
-          fi;
-        else
-          echo "Using existing database at $$DB_PATH";
-        fi &&
+        if [ ! -f "$$DB_PATH" ]; then
+          echo "Error: Database file not found at $$DB_PATH";
+          echo "Please ensure bible.db exists in the project root directory.";
+          exit 1;
+        fi;
+        
+        # Check if API files already exist
+        if [ -f "$$API_PATH/.ready" ] && [ "$$OVERWRITE_FLAG" != "true" ]; then
+          echo "API files already exist. Skipping generation.";
+          echo "To regenerate, set API_OVERWRITE=true or remove $$API_PATH/.ready";
+          exit 0;
+        fi;
+        
+        DB_SIZE=$$(stat -f%z "$$DB_PATH" 2>/dev/null || stat -c%s "$$DB_PATH" 2>/dev/null || echo 0)
+        echo "Using database at $$DB_PATH ($$DB_SIZE bytes)" &&
         echo "Generating API files..." &&
         OVERWRITE_ARG=""
         if [ "$$OVERWRITE_FLAG" = "true" ]; then
@@ -67,8 +60,11 @@ services:
           TRANSLATIONS_LIST=$$(echo "$$TRANSLATIONS" | tr "," " ")
           TRANSLATIONS_ARG="--translations $$TRANSLATIONS_LIST"
         fi &&
-        node ./packages/helloao-cli/dist/cjs/cli.cjs --db "$$DB_PATH" upload-api-files "$$API_PATH" -- --batch-size "$$BATCH_SIZE" $$OVERWRITE_ARG $$PRETTY_ARG $$TRANSLATIONS_ARG &&
+        pnpm exec node ./packages/helloao-cli/dist/cjs/cli.cjs --db "$$DB_PATH" upload-api-files "$$API_PATH" -- --batch-size "$$BATCH_SIZE" $$OVERWRITE_ARG $$PRETTY_ARG $$TRANSLATIONS_ARG &&
         echo "API files generated successfully!" &&
+        echo "Generated files count: $$(find \"$$API_PATH\" -type f -name \"*.json\" | wc -l)" &&
+        echo "Sample files:" &&
+        find "$$API_PATH" -type f -name "*.json" | head -5 &&
         touch "$$API_PATH/.ready"
       '
     restart: "no"
@@ -80,10 +76,12 @@ services:
     image: nginx:alpine
     container_name: bible-api-nginx
     ports:
-      - "${NGINX_PORT:-80}:80"
+      - "${NGINX_HTTP_PORT:-80}:80"
+      - "${NGINX_HTTPS_PORT:-443}:443"
     volumes:
       - api-files:/usr/share/nginx/html:ro
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
     environment:
       - CORS_ALLOW_ORIGIN=${CORS_ALLOW_ORIGIN:-*}
     depends_on:
@@ -95,8 +93,6 @@ services:
 
 volumes:
   api-files:
-    driver: local
-  bible-db:
     driver: local
 
 networks:

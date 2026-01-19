@@ -30,6 +30,7 @@ public
 extra
 bible-api.db
 bible-api.eng.db
+bible.db
 fetch
 gen
 metadata
@@ -38,3 +39,10 @@ bible-api.*
 sources
 tools/BibleMultiConverter
 .env
+
+# SSL certificates (private keys should never be committed)
+ssl/*.pem
+ssl/*.key
+ssl/*.crt
+!ssl/README.md
+!ssl/generate-self-signed.sh

@@ -1,0 +1,2 @@
+# This file ensures the ssl directory is tracked by git
+# Actual certificate files (*.pem, *.key, *.crt) are ignored
