@@ -95,6 +95,19 @@ services:
     networks:
       - bible-api-network
 
+  # FastAPI documentation server
+  api-docs:
+    build:
+      context: ./api-docs
+      dockerfile: Dockerfile
+    container_name: bible-api-docs
+    volumes:
+      # Mount API directory so FastAPI can read config.json
+      - ./api:/app/api:ro
+    networks:
+      - bible-api-network
+    restart: unless-stopped
+
   # Nginx server to serve the API files
   nginx:
     image: nginx:alpine
@@ -108,9 +121,8 @@ services:
       - ./ssl:/etc/nginx/ssl:ro
     environment:
       - CORS_ALLOW_ORIGIN=${CORS_ALLOW_ORIGIN:-*}
-    # depends_on:
-    #   bible-api-generator:
-    #     condition: service_completed_successfully
+    depends_on:
+      - api-docs
     networks:
       - bible-api-network
     restart: unless-stopped
