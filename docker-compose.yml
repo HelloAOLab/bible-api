@@ -127,32 +127,8 @@ services:
       - bible-api-network
     restart: unless-stopped
 
-  # Seed Bible development server
-  seed-bible:
-    build:
-      context: ../seed-bible
-      dockerfile: Dockerfile
-    container_name: seed-bible-dev
-    volumes:
-      # Mount source code for development (optional - remove if you want immutable builds)
-      - ../seed-bible:/app
-      # Preserve node_modules from build
-      - seed-bible-node-modules:/app/node_modules
-    environment:
-      - NODE_ENV=${NODE_ENV:-development}
-      - HEADLESS=${SEED_BIBLE_HEADLESS:-true}
-      - SKIP_PATTERN_UNPACK=${SKIP_PATTERN_UNPACK:-true}
-    networks:
-      - bible-api-network
-    restart: unless-stopped
-    # Keep container running
-    stdin_open: true
-    tty: true
-
 volumes:
   # api-files volume removed - using local ./api directory instead
-  seed-bible-node-modules:
-    driver: local
 
 networks:
   bible-api-network:
