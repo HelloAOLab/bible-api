@@ -3,6 +3,14 @@
 This is the log of changes for the Bible API Generator and associated tools.
 For information on the API itself, see [API-CHANGELOG.md](./API-CHANGELOG.md).
 
+## V1.9.1
+
+#### Date: 2026-01-20
+
+### :bug: Bug Fixes
+
+-   Updated the codex parser to support newer codex files.
+
 ## V1.9.0
 
 #### Date: 2026-01-12
