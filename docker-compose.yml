@@ -19,6 +19,7 @@ services:
       - API_PRETTY_PRINT=${API_PRETTY_PRINT:-true}
       - API_TRANSLATIONS=${API_TRANSLATIONS:-}
       - API_BATCH_SIZE=${API_BATCH_SIZE:-10}
+      - SKIP_GENERATION=${SKIP_GENERATION:-true}
     # Command to generate API files
     # Uses the local bible.db file mounted as a volume
     # Only generates if files don't exist or if forced to regenerate
@@ -30,6 +31,18 @@ services:
         PRETTY_FLAG=$${API_PRETTY_PRINT:-true}
         TRANSLATIONS=$${API_TRANSLATIONS:-}
         BATCH_SIZE=$${API_BATCH_SIZE:-10}
+        SKIP_GENERATION=$${SKIP_GENERATION:-false}
+        
+        # Skip generation if SKIP_GENERATION is set to true
+        # This is useful when using an existing volume with pre-generated files
+        if [ "$$SKIP_GENERATION" = "true" ]; then
+          echo "SKIP_GENERATION=true: Skipping API file generation.";
+          echo "Serving existing files from volume.";
+          if [ ! -f "$$API_PATH/.ready" ]; then
+            echo "Warning: .ready file not found. Files may be incomplete.";
+          fi;
+          exit 0;
+        fi;
         
         if [ ! -f "$$DB_PATH" ]; then
           echo "Error: Database file not found at $$DB_PATH";
@@ -57,8 +70,12 @@ services:
         fi &&
         TRANSLATIONS_ARG=""
         if [ -n "$$TRANSLATIONS" ]; then
-          TRANSLATIONS_LIST=$$(echo "$$TRANSLATIONS" | tr "," " ")
+          # Convert comma-separated list to space-separated and trim whitespace
+          TRANSLATIONS_LIST=$$(echo "$$TRANSLATIONS" | tr "," " " | xargs)
           TRANSLATIONS_ARG="--translations $$TRANSLATIONS_LIST"
+          echo "Generating for specific translations: $$TRANSLATIONS_LIST"
+        else
+          echo "Generating for all translations"
         fi &&
         pnpm exec node ./packages/helloao-cli/dist/cjs/cli.cjs --db "$$DB_PATH" upload-api-files "$$API_PATH" -- --batch-size "$$BATCH_SIZE" $$OVERWRITE_ARG $$PRETTY_ARG $$TRANSLATIONS_ARG &&
         echo "API files generated successfully!" &&

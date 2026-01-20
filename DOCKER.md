@@ -99,6 +99,7 @@ Available environment variables:
 | `API_PRETTY_PRINT` | `true` | Whether to pretty-print JSON files |
 | `API_TRANSLATIONS` | (empty) | Comma-separated list of specific translations to generate (empty = all) |
 | `API_BATCH_SIZE` | `10` | Number of translations to process in each batch (lower = less memory, slower) |
+| `SKIP_GENERATION` | `false` | Skip API file generation entirely. Set to `true` to use existing files in the volume without regenerating |
 | `NODE_ENV` | `production` | Node.js environment |
 | `NGINX_HTTP_PORT` | `80` | Port to expose nginx HTTP on the host |
 | `NGINX_HTTPS_PORT` | `443` | Port to expose nginx HTTPS on the host |
@@ -159,6 +160,27 @@ The database is stored in a Docker volume by default. The path inside the contai
 
 The nginx configuration is in `nginx.conf`. You can modify it to change server settings, add SSL, or adjust CORS headers. Note that CORS configuration in nginx.conf is static - to change it dynamically, you would need to use a template system or modify the file directly.
 
+## Using an Existing Volume
+
+If you have a pre-populated volume with API files and want to skip generation entirely:
+
+1. Set `SKIP_GENERATION=true` in your `.env` file:
+   ```bash
+   SKIP_GENERATION=true
+   ```
+
+2. Start the services:
+   ```bash
+   docker compose up -d
+   ```
+
+The generator will skip all file generation and serve the existing files from the volume. This is useful when:
+- You have a volume with pre-generated files
+- You want to quickly start the server without waiting for generation
+- You're using a shared volume across multiple deployments
+
+**Note**: The nginx service will still start and serve files from the volume even if generation is skipped.
+
 ## Regenerating API Files
 
 To regenerate the API files after database changes:
@@ -172,6 +194,8 @@ Or to force regeneration:
 ```bash
 docker-compose run --rm bible-api-generator sh -c "pnpm run cli upload-api-files /app/api -- --db /app/bible-api.db --overwrite --pretty"
 ```
+
+Or set `SKIP_GENERATION=false` and `API_OVERWRITE=true` in your `.env` file.
 
 ## Viewing Logs
 

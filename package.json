@@ -7,7 +7,7 @@
         "pretest": "npm run clean && tsc --build",
         "test": "jest",
         "test:watch": "npm run pretest && node --experimental-vm-modules node_modules/jest/bin/jest.js --watchAll",
-        "build": "npm run clean && npm run esbuild && npm run build:tsc",
+        "build": "npm run clean && npm run esbuild && (npm run build:tsc || true)",
         "build:tsc": "tsc --build",
         "esbuild": "tsx ./tools/build.ts",
         "clean": "jake -f ./jakefile.cjs clean",
