@@ -22,6 +22,11 @@ export const verseSchema = z.object({
     bookCode: z.string().optional(),
     chapter: z.number().optional(),
     verse: z.number().optional(),
+    data: z
+        .object({
+            globalReferences: z.array(z.string()).optional(),
+        })
+        .optional(),
 });
 
 export const paratextSchema = z.object({
@@ -188,6 +193,15 @@ export class CodexParser {
                             } else {
                                 throw new Error(
                                     'Could not find verse reference in metadata.'
+                                );
+                            }
+                        } else if (metadata.data?.globalReferences?.length) {
+                            reference = parseVerseReference(
+                                metadata.data.globalReferences[0]
+                            );
+                            if (!reference) {
+                                throw new Error(
+                                    'Could not find verse reference in globalReferences metadata.'
                                 );
                             }
                         } else {

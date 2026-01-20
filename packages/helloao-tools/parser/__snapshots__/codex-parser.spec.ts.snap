@@ -77,3 +77,47 @@ exports[`CodexParser parse should parse a newer codex file 1`] = `
   "type": "root",
 }
 `;
+
+exports[`CodexParser parse should parse a newer codex file of MAT 1`] = `
+{
+  "content": [
+    {
+      "content": [
+        {
+          "content": [
+            "The book of the genealogy of Jesus the Anointed, son of David, son of Abraham.",
+          ],
+          "number": 1,
+          "type": "verse",
+        },
+        {
+          "content": [
+            "Abraham fathered Isaac, Isaac fathered Jacob, and Jacob fathered Judah and his brothers,",
+          ],
+          "number": 2,
+          "type": "verse",
+        },
+        {
+          "content": [
+            "Aram fathered Amminadab, and Amminadab fathered Nahshon, and Nahshon fathered Salmon,",
+          ],
+          "number": 4,
+          "type": "verse",
+        },
+        {
+          "content": [
+            "Salmon fathered Boaz by Rahab, and Boaz fathered Obed by Ruth, and Obed fathered Jesse,",
+          ],
+          "number": 5,
+          "type": "verse",
+        },
+      ],
+      "footnotes": [],
+      "number": 1,
+      "type": "chapter",
+    },
+  ],
+  "id": "MAT",
+  "type": "root",
+}
+`;
