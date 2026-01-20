@@ -1,6 +1,7 @@
 import * as esbuild from 'esbuild';
 import type { BuildOptions } from 'esbuild';
 import { readFileSync } from 'fs';
+import { readFile } from 'fs/promises';
 import path from 'path';
 import fg from 'fast-glob';
 
@@ -94,6 +95,59 @@ async function buildCli() {
 }
 
 async function buildTools() {
+    // Plugin to rewrite imports to .cjs for CJS builds
+    const rewriteCjsImportsPlugin: esbuild.Plugin = {
+        name: 'rewrite-cjs-imports',
+        setup(build) {
+            build.onLoad({ filter: /\.ts$/ }, async (args) => {
+                const contents = await readFile(args.path, 'utf8');
+                // Rewrite relative imports to .cjs for CJS builds
+                // Handles:
+                // - import ... from './file.js' → './file.cjs'
+                // - import ... from '../file' → '../file.cjs' (if it's a local file)
+                // - export * from './file.js' → './file.cjs'
+                let rewritten = contents;
+                
+                // Replace .js extensions with .cjs in import statements
+                rewritten = rewritten.replace(
+                    /from\s+['"](\.\.?\/[^'"]*?)\.js['"]/g,
+                    (match, importPath) => `from '${importPath}.cjs'`
+                );
+                
+                // Replace .js extensions with .cjs in export * statements
+                rewritten = rewritten.replace(
+                    /export\s+\*\s+from\s+['"](\.\.?\/[^'"]*?)\.js['"]/g,
+                    (match, importPath) => `export * from '${importPath}.cjs'`
+                );
+                
+                // Add .cjs extension to relative imports without extension
+                // Match: from '../utils' or from './types' (but not from './types.js' or from 'lodash')
+                rewritten = rewritten.replace(
+                    /from\s+['"](\.\.?\/[^'"/]+?)['"]/g,
+                    (match, importPath) => {
+                        // Skip if it already has an extension or ends with /
+                        if (importPath.match(/\.(js|ts|json|node|cjs)$/) || importPath.endsWith('/')) {
+                            return match;
+                        }
+                        return `from '${importPath}.cjs'`;
+                    }
+                );
+                
+                // Same for export * statements
+                rewritten = rewritten.replace(
+                    /export\s+\*\s+from\s+['"](\.\.?\/[^'"/]+?)['"]/g,
+                    (match, importPath) => {
+                        if (importPath.match(/\.(js|ts|json|node|cjs)$/) || importPath.endsWith('/')) {
+                            return match;
+                        }
+                        return `export * from '${importPath}.cjs'`;
+                    }
+                );
+                return { contents: rewritten, loader: 'ts' };
+            });
+        },
+    };
+
     await Promise.all([
         esbuild.build({
             ...esmOptions,
@@ -105,6 +159,7 @@ async function buildTools() {
             entryPoints: await entryPoints('packages/helloao-tools'),
             bundle: false,
             outdir: path.resolve(toolsDist, 'cjs'),
+            plugins: [rewriteCjsImportsPlugin],
         }),
     ]);
 

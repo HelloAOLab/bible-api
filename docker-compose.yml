@@ -8,8 +8,8 @@ services:
     volumes:
       # Mount local bible.db file (must exist in project root)
       - ./bible.db:/app/db/bible.db:ro
-      # Shared volume for generated API files
-      - api-files:/app/api
+      # Local directory for generated API files (accessible on host)
+      - ./api:/app/api
     environment:
       - NODE_ENV=${NODE_ENV:-production}
       - NODE_OPTIONS=${NODE_OPTIONS:---max-old-space-size=4096}
@@ -25,6 +25,10 @@ services:
     # Only generates if files don't exist or if forced to regenerate
     command: >
       sh -c '
+        echo "Installing dependencies..." &&
+        pnpm install --frozen-lockfile &&
+        echo "Building project..." &&
+        pnpm run build &&
         DB_PATH=$${BIBLE_DB_PATH:-/app/db/bible.db}
         API_PATH=$${API_OUTPUT_PATH:-/app/api}
         OVERWRITE_FLAG=$${API_OVERWRITE:-false}
@@ -99,7 +103,7 @@ services:
       - "${NGINX_HTTP_PORT:-80}:80"
       - "${NGINX_HTTPS_PORT:-443}:443"
     volumes:
-      - api-files:/usr/share/nginx/html:ro
+      - ./api:/usr/share/nginx/html:ro
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - ./ssl:/etc/nginx/ssl:ro
     environment:
@@ -125,6 +129,7 @@ services:
     environment:
       - NODE_ENV=${NODE_ENV:-development}
       - HEADLESS=${SEED_BIBLE_HEADLESS:-true}
+      - SKIP_PATTERN_UNPACK=${SKIP_PATTERN_UNPACK:-true}
     networks:
       - bible-api-network
     restart: unless-stopped
@@ -133,8 +138,7 @@ services:
     tty: true
 
 volumes:
-  api-files:
-    driver: local
+  # api-files volume removed - using local ./api directory instead
   seed-bible-node-modules:
     driver: local
 

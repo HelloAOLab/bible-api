@@ -39,6 +39,8 @@ bible-api.*
 sources
 tools/BibleMultiConverter
 .env
+# Generated API files directory
+api
 
 # SSL certificates (private keys should never be committed)
 ssl/*.pem
