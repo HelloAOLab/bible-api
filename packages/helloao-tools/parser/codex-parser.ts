@@ -6,7 +6,8 @@ import {
     Verse,
     VerseContent,
 } from './types.js';
-import { parseVerseReference, VerseRef } from '../utils.js';
+import { getBookId, parseVerseReference, VerseRef } from '../utils.js';
+import { ref } from 'process';
 
 export const chapterHeadingSchema = z.object({
     type: z.literal('chapter-heading'),
@@ -18,6 +19,9 @@ export const chapterHeadingSchema = z.object({
 export const verseSchema = z.object({
     type: z.literal('text'),
     id: z.string(),
+    bookCode: z.string().optional(),
+    chapter: z.number().optional(),
+    verse: z.number().optional(),
 });
 
 export const paratextSchema = z.object({
@@ -118,6 +122,26 @@ export class CodexParser {
             } satisfies ChapterContent;
         }
 
+        function addLineBreaks(lines: Verse['content']) {
+            return lines.reduce(
+                (prev, current) => {
+                    if (prev.length === 0) return [current];
+                    else
+                        return [
+                            ...prev,
+                            {
+                                lineBreak: true,
+                            },
+                            current,
+                        ] satisfies Verse['content'];
+                },
+                [] as Verse['content']
+            );
+        }
+
+        let previousReference: VerseRef | null = null;
+        let lines: Verse['content'] = [];
+
         for (let cell of data.cells) {
             if (cell.languageId === 'html' && cell.value) {
                 if (!cell.metadata) continue; // ignore html cells without metadata
@@ -127,31 +151,72 @@ export class CodexParser {
                 if (!metadataResult.success) continue; // ignore cells with invalid/unknown metadata
                 const metadata = metadataResult.data;
                 if (metadata.type === 'text') {
-                    const reference = parseVerseReference(metadata.id);
-                    if (!reference)
-                        throw new Error('Could not find verse reference.');
+                    let reference = parseVerseReference(metadata.id);
+                    if (!reference) {
+                        if (metadata.bookCode && metadata.chapter) {
+                            const bookId = getBookId(metadata.bookCode);
+                            if (!bookId) {
+                                throw new Error(
+                                    'Could not find book ID for code: ' +
+                                        metadata.bookCode
+                                );
+                            }
+
+                            if (metadata.verse) {
+                                reference = {
+                                    book: bookId,
+                                    chapter: metadata.chapter,
+                                    verse: metadata.verse,
+                                };
+                            } else if (previousReference?.verse) {
+                                if (
+                                    previousReference.chapter !==
+                                        metadata.chapter ||
+                                    previousReference.book !== bookId
+                                ) {
+                                    throw new Error(
+                                        'Cannot infer verse number for non-consecutive verse reference.'
+                                    );
+                                }
+
+                                // Sometimes codex doesn't include verse numbers for every cell, so we infer it from the previous reference
+                                reference = {
+                                    book: bookId,
+                                    chapter: metadata.chapter,
+                                    verse: previousReference.verse,
+                                };
+                            } else {
+                                throw new Error(
+                                    'Could not find verse reference in metadata.'
+                                );
+                            }
+                        } else {
+                            throw new Error(
+                                'Could not find verse reference in metadata.'
+                            );
+                        }
+                    }
+
+                    if (
+                        previousReference &&
+                        (reference.book !== previousReference.book ||
+                            reference.chapter !== previousReference.chapter ||
+                            reference.verse !== previousReference.verse)
+                    ) {
+                        addReference(previousReference, addLineBreaks(lines));
+                        lines = [];
+                    }
+
+                    previousReference = reference;
 
                     if (!root.id) root.id = reference.book; // set book id if not already set
 
                     const content = stripHTML(cell.value);
 
                     // add line breaks in heading if there are multiple lines
-                    const lines = content.split('\n').reduce(
-                        (prev, current) => {
-                            if (prev.length === 0) return [current];
-                            else
-                                return [
-                                    ...prev,
-                                    {
-                                        lineBreak: true,
-                                    },
-                                    current,
-                                ] satisfies Verse['content'];
-                        },
-                        [] as Verse['content']
-                    );
+                    const newLines = content.split('\n');
 
-                    addReference(reference, lines);
+                    lines.push(...newLines);
                 } else if (metadata.type === 'paratext') {
                     const reference = parseVerseReference(`${metadata.id}:1`); // chapter headings do not have a verse reference always default to 1
                     if (reference) {
@@ -191,6 +256,10 @@ export class CodexParser {
                     }
                 }
             }
+        }
+
+        if (previousReference) {
+            addReference(previousReference, addLineBreaks(lines));
         }
 
         for (let chapter of chapters.values()) {

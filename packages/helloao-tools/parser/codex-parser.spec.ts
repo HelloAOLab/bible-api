@@ -1,6 +1,7 @@
 import { CodexParser } from './codex-parser.js';
 import CodexExample from './test/codex-simple-example.codex';
 import NewCodexExample from './test/codex-new-example.codex';
+import NewerCodexExample from './test/codex-newer-example.codex';
 
 describe('CodexParser', () => {
     let parser: CodexParser;
@@ -1047,6 +1048,11 @@ describe('CodexParser', () => {
 
         it('should parse a new codex file', () => {
             const tree = parser.parse(NewCodexExample);
+            expect(tree).toMatchSnapshot();
+        });
+
+        it('should parse a newer codex file', () => {
+            const tree = parser.parse(NewerCodexExample);
             expect(tree).toMatchSnapshot();
         });
     });

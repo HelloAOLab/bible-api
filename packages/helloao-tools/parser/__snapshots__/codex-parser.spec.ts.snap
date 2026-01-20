@@ -36,3 +36,44 @@ exports[`CodexParser parse should parse a new codex file 1`] = `
   "type": "root",
 }
 `;
+
+exports[`CodexParser parse should parse a newer codex file 1`] = `
+{
+  "content": [
+    {
+      "content": [
+        {
+          "content": [
+            "Paul, an apostle—sent not from men nor by man, but by Jesus Christ and God the Father, who raised Him from the dead—",
+          ],
+          "number": 1,
+          "type": "verse",
+        },
+        {
+          "content": [
+            "and all the brothers with me,",
+            {
+              "lineBreak": true,
+            },
+            "To the churches of Galatia:",
+          ],
+          "number": 2,
+          "type": "verse",
+        },
+        {
+          "content": [
+            "Grace and peace to you from God our Father and the Lord Jesus Christ,",
+          ],
+          "number": 3,
+          "type": "verse",
+        },
+      ],
+      "footnotes": [],
+      "number": 1,
+      "type": "chapter",
+    },
+  ],
+  "id": "GAL",
+  "type": "root",
+}
+`;
