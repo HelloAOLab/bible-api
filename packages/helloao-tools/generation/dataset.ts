@@ -1,5 +1,6 @@
 import { UsfmParser } from '../parser/usfm-parser.js';
 import { USXParser } from '../parser/usx-parser.js';
+import { BebliaXmlParser } from '../parser/beblia-xml-parser.js';
 import {
     Commentary,
     CommentaryBook,
@@ -139,6 +140,7 @@ export function generateDataset(
     let usfmParser = new UsfmParser();
     let usxParser = new USXParser(parser);
     let codexParser = new CodexParser();
+    let bebliaXmlParser = new BebliaXmlParser(parser);
     let csvCommentaryParser = new CommentaryCsvParser();
     let tyndaleXmlParser = new TyndaleXmlParser(parser);
 
@@ -152,6 +154,7 @@ export function generateDataset(
                 | UsfmParser
                 | USXParser
                 | CodexParser
+                | BebliaXmlParser
                 | CommentaryCsvParser
                 | TyndaleXmlParser;
             if (file.fileType === 'usfm') {
@@ -160,6 +163,24 @@ export function generateDataset(
                 parser = usxParser;
             } else if (file.fileType === 'json') {
                 parser = codexParser;
+            } else if (file.fileType === 'beblia-xml') {
+                // Beblia XML files contain all books in one file
+                // Parse all books and add each one
+                const allBooks = bebliaXmlParser.parseAllBooks(file.content);
+                for (const parsed of allBooks) {
+                    if (
+                        'parseMessages' in parsed &&
+                        parsed.parseMessages &&
+                        file.name
+                    ) {
+                        const messages = (output.parseMessages =
+                            output.parseMessages || {});
+                        const key = `${file.name}:${parsed.id}`;
+                        messages[key] = parsed.parseMessages;
+                    }
+                    addTranslationTree(file as InputTranslationFile, parsed);
+                }
+                continue; // Skip the normal parsing flow
             } else if (file.fileType === 'commentary/csv') {
                 parser = csvCommentaryParser;
             } else if (file.fileType === 'commentary/tyndale-xml') {
