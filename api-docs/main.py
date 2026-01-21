@@ -6,7 +6,16 @@ from fastapi import FastAPI, Request, Path
 from fastapi.responses import HTMLResponse, JSONResponse
 from typing import Any, Dict, List, Optional
 import json
+import os
 from pathlib import Path as FilePath
+
+# When this app is mounted behind a reverse proxy under a sub-path (e.g. /bible-api),
+# set ROOT_PATH so Swagger/ReDoc/OpenAPI links are generated correctly.
+ROOT_PATH = os.environ.get("ROOT_PATH", "").strip()
+if ROOT_PATH and not ROOT_PATH.startswith("/"):
+    ROOT_PATH = f"/{ROOT_PATH}"
+if ROOT_PATH == "/":
+    ROOT_PATH = ""
 
 app = FastAPI(
     title="Bible API",
@@ -14,9 +23,13 @@ app = FastAPI(
     version="1.8.0",
     docs_url="/docs",
     redoc_url="/redoc",
+    root_path=ROOT_PATH,
     servers=[
-        {"url": "/", "description": "Current server"},
+        {"url": ROOT_PATH or "/", "description": "Current server"},
     ],
+    swagger_ui_parameters={
+        "persistAuthorization": True,
+    },
 )
 
 # Get the API directory path (mounted from docker-compose)
@@ -272,8 +285,8 @@ fetch('/api/BSB/GEN/1.json')
                 <h2>Interactive Documentation</h2>
                 <p>Explore the API interactively using our OpenAPI documentation:</p>
                 <div class="links">
-                    <a href="/docs" class="link-button">Swagger UI</a>
-                    <a href="/redoc" class="link-button secondary">ReDoc</a>
+                    <a href="{ROOT_PATH}/docs" class="link-button">Swagger UI</a>
+                    <a href="{ROOT_PATH}/redoc" class="link-button secondary">ReDoc</a>
                 </div>
             </div>
 
