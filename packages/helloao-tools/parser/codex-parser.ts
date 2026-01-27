@@ -69,6 +69,12 @@ export class CodexParser {
 
     private _noteCounter: number = 0;
 
+    private _parser: DOMParser;
+
+    constructor(parser: DOMParser) {
+        this._parser = parser;
+    }
+
     /**
      * Parses the specified codex content.
      *
@@ -87,10 +93,7 @@ export class CodexParser {
         let chapters: Map<number, Chapter> = new Map();
         let lastChapter: Chapter | null = null;
 
-        function addChapterContent(
-            chapterNumber: number,
-            content: ChapterContent[]
-        ) {
+        function ensureChapter(chapterNumber: number) {
             let chapter = chapters.get(chapterNumber);
             if (!chapter) {
                 chapter = {
@@ -103,7 +106,31 @@ export class CodexParser {
                 chapters.set(chapterNumber, chapter);
             }
 
+            return chapter;
+        }
+
+        function getDocumentContent(doc: Document): string {
+            let content = '';
+            for (let element of doc.childNodes) {
+                content += element.textContent;
+            }
+            return content;
+        }
+
+        function addChapterContent(
+            chapterNumber: number,
+            content: ChapterContent[]
+        ) {
+            const chapter = ensureChapter(chapterNumber);
             chapter.content.push(...content);
+        }
+
+        function addChapterFootnote(
+            chapterNumber: number,
+            footnote: Chapter['footnotes'][0]
+        ) {
+            const chapter = ensureChapter(chapterNumber);
+            chapter.footnotes.push(footnote);
         }
 
         function addReference(ref: VerseRef, content: Verse['content']) {
@@ -130,8 +157,12 @@ export class CodexParser {
         function addLineBreaks(lines: Verse['content']) {
             return lines.reduce(
                 (prev, current) => {
-                    if (prev.length === 0) return [current];
-                    else
+                    if (typeof current === 'string' && current.trim() === '') {
+                        return prev; // skip empty lines
+                    }
+                    if (prev.length === 0) {
+                        return [current];
+                    } else {
                         return [
                             ...prev,
                             {
@@ -139,6 +170,7 @@ export class CodexParser {
                             },
                             current,
                         ] satisfies Verse['content'];
+                    }
                 },
                 [] as Verse['content']
             );
@@ -225,16 +257,58 @@ export class CodexParser {
 
                     if (!root.id) root.id = reference.book; // set book id if not already set
 
-                    const content = stripHTML(cell.value);
+                    const doc = this._parser.parseFromString(
+                        cell.value,
+                        'text/html'
+                    );
 
-                    // add line breaks in heading if there are multiple lines
-                    const newLines = content.split('\n');
+                    for (let element of doc.children) {
+                        const allFootnotes = element.querySelectorAll(
+                            'sup.footnote-marker[data-footnote]'
+                        );
+                        for (const footnote of allFootnotes) {
+                            const footnoteData =
+                                footnote.getAttribute('data-footnote');
+                            if (footnoteData) {
+                                const footnoteDoc =
+                                    this._parser.parseFromString(
+                                        footnoteData,
+                                        'text/html'
+                                    );
+                                const footnoteText =
+                                    getDocumentContent(footnoteDoc);
+                                if (footnoteText) {
+                                    addChapterFootnote(reference.chapter, {
+                                        noteId: this._noteCounter++,
+                                        text: footnoteText,
+                                        caller: null,
+                                    });
+                                }
+                            }
+                            footnote.remove();
+                        }
+                    }
 
-                    lines.push(...newLines);
+                    const content = getDocumentContent(doc);
+
+                    if (content) {
+                        // add line breaks in heading if there are multiple lines
+                        const newLines = content.split('\n');
+
+                        lines.push(...newLines);
+                    }
                 } else if (metadata.type === 'paratext') {
                     const reference = parseVerseReference(`${metadata.id}:1`); // chapter headings do not have a verse reference always default to 1
                     if (reference) {
-                        const content = stripHTML(cell.value);
+                        const doc = this._parser.parseFromString(
+                            cell.value,
+                            'text/html'
+                        );
+                        const content = getDocumentContent(doc);
+
+                        if (!content) {
+                            continue;
+                        }
 
                         // add line breaks in heading if there are multiple lines
                         const lines = content
@@ -256,9 +330,14 @@ export class CodexParser {
                             addChapterContent(reference.chapter, [line])
                         );
                     } else {
+                        const doc = this._parser.parseFromString(
+                            cell.value,
+                            'text/html'
+                        );
+                        const content = getDocumentContent(doc);
                         // parse paratext that isn't a chapter reference as footnote
-                        const content = stripHTML(cell.value);
-                        if (!cell.metadata) {
+                        // const content = stripHTML(cell.value);
+                        if (content && !cell.metadata) {
                             if (lastChapter) {
                                 (lastChapter as Chapter).footnotes.push({
                                     noteId: this._noteCounter++,

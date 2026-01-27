@@ -138,7 +138,7 @@ export function generateDataset(
 
     let usfmParser = new UsfmParser();
     let usxParser = new USXParser(parser);
-    let codexParser = new CodexParser();
+    let codexParser = new CodexParser(parser);
     let csvCommentaryParser = new CommentaryCsvParser();
     let tyndaleXmlParser = new TyndaleXmlParser(parser);
 

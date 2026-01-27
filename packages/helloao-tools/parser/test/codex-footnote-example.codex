@@ -1,0 +1,447 @@
+{
+  "cells": [
+    {
+      "kind": 2,
+      "languageId": "html",
+      "value": "Matthew 1",
+      "metadata": {
+        "id": "2724a90e-b3b7-fa69-38ed-774105a3344b",
+        "type": "milestone",
+        "edits": [
+          {
+            "editMap": [
+              "value"
+            ],
+            "value": "Matthew 1",
+            "timestamp": 1768923434426,
+            "type": "initial-import",
+            "author": "Bored-Alchemist",
+            "validatedBy": []
+          },
+          {
+            "editMap": [
+              "value"
+            ],
+            "value": "Matthew 1",
+            "timestamp": 1768924151300,
+            "type": "initial-import",
+            "author": "craigbbradley",
+            "validatedBy": []
+          }
+        ]
+      }
+    },
+    {
+      "value": "<span>This is my header</span>",
+      "languageId": "html",
+      "kind": 2,
+      "metadata": {
+        "id": "5e7dadd4-9879-026e-82d9-80337922faad:paratext-1769535026243-ff1snwq09",
+        "type": "paratext",
+        "edits": [
+          {
+            "editMap": [
+              "value"
+            ],
+            "value": "<span>This is my header</span>",
+            "timestamp": 1769535035301,
+            "type": "user-edit",
+            "author": "KallynGowdy",
+            "validatedBy": [
+              {
+                "username": "KallynGowdy",
+                "creationTimestamp": 1769535035301,
+                "updatedTimestamp": 1769535035301,
+                "isDeleted": false
+              }
+            ]
+          }
+        ],
+        "data": {},
+        "parentId": "5e7dadd4-9879-026e-82d9-80337922faad"
+      }
+    },
+    {
+      "kind": 2,
+      "languageId": "html",
+      "value": "<p>The book of the genealogy of Jesus the Anointed, son of David, son of Abraham.<sup data-footnote=\"<p><em>Abraham.: </em>This is my footnote!</p>\" class=\"footnote-marker\">1</sup></p>",
+      "metadata": {
+        "type": "text",
+        "id": "5e7dadd4-9879-026e-82d9-80337922faad",
+        "data": {
+          "globalReferences": [
+            "MAT 1:1"
+          ]
+        },
+        "edits": [
+          {
+            "editMap": [
+              "value"
+            ],
+            "value": "<span>The record of the genealogy of Jesus Christ, son of David, son of Abraham.</span>",
+            "timestamp": 1768924151993,
+            "type": "llm-generation",
+            "author": "Bored-Alchemist",
+            "validatedBy": []
+          },
+          {
+            "editMap": [
+              "value"
+            ],
+            "value": "<span>The book of the genealogy of Jesus the Anointed, son of David, son of Abraham.</span>",
+            "timestamp": 1768924194265,
+            "type": "llm-generation",
+            "author": "craigbbradley",
+            "validatedBy": [],
+            "preview": true
+          },
+          {
+            "editMap": [
+              "value"
+            ],
+            "value": "<span>The book of the genealogy of Jesus the Anointed, son of David, son of Abraham.</span>",
+            "timestamp": 1768924196390,
+            "type": "user-edit",
+            "author": "craigbbradley",
+            "validatedBy": [
+              {
+                "username": "craigbbradley",
+                "creationTimestamp": 1768924196390,
+                "updatedTimestamp": 1768924196390,
+                "isDeleted": false
+              }
+            ]
+          },
+          {
+            "editMap": [
+              "value"
+            ],
+            "value": "<span>The book of the genealogy of Jesus the Anointed, son of David, son of Abraham</span>",
+            "timestamp": 1768935013457,
+            "type": "user-edit",
+            "author": "KallynGowdy",
+            "validatedBy": [
+              {
+                "username": "KallynGowdy",
+                "creationTimestamp": 1768935013457,
+                "updatedTimestamp": 1768935013457,
+                "isDeleted": false
+              }
+            ]
+          },
+          {
+            "editMap": [
+              "value"
+            ],
+            "value": "<span>The book of the genealogy of Jesus the Anointed, son of David, son of Abraham.</span>",
+            "timestamp": 1768935016183,
+            "type": "user-edit",
+            "author": "KallynGowdy",
+            "validatedBy": [
+              {
+                "username": "KallynGowdy",
+                "creationTimestamp": 1768935016183,
+                "updatedTimestamp": 1768935016183,
+                "isDeleted": false
+              }
+            ]
+          },
+          {
+            "editMap": [
+              "value"
+            ],
+            "value": "<p>The book of the genealogy of Jesus the Anointed, son of David, son of Abraham.<sup data-footnote=\"<p><em>Abraham.: </em>This is my footnote!</p>\" class=\"footnote-marker\">1</sup></p>",
+            "timestamp": 1769540148416,
+            "type": "user-edit",
+            "author": "KallynGowdy",
+            "validatedBy": [
+              {
+                "username": "KallynGowdy",
+                "creationTimestamp": 1769540148416,
+                "updatedTimestamp": 1769540148416,
+                "isDeleted": false
+              }
+            ]
+          }
+        ],
+        "cellLabel": "1"
+      }
+    },
+    {
+      "value": "",
+      "languageId": "html",
+      "kind": 2,
+      "metadata": {
+        "id": "e0569656-2b01-0689-f828-5df66c444e6b",
+        "type": "text",
+        "edits": [],
+        "data": {}
+      }
+    },
+    {
+      "value": "",
+      "languageId": "html",
+      "kind": 2,
+      "metadata": {
+        "id": "8d9e42c7-33fc-5e1a-9297-226b9664b3c3",
+        "type": "text",
+        "edits": [],
+        "data": {}
+      }
+    },
+    {
+      "value": "",
+      "languageId": "html",
+      "kind": 2,
+      "metadata": {
+        "id": "36688d5d-e60e-120a-a071-4bb379b1d7ad",
+        "type": "text",
+        "edits": [],
+        "data": {}
+      }
+    },
+    {
+      "kind": 2,
+      "languageId": "html",
+      "value": "<span>Abraham fathered Isaac, Isaac fathered Jacob, and Jacob fathered Judah and his brothers,</span>",
+      "metadata": {
+        "type": "text",
+        "id": "659494d4-2af6-685b-1db2-17b7fce729bc",
+        "data": {
+          "globalReferences": [
+            "MAT 1:2"
+          ]
+        },
+        "edits": [
+          {
+            "editMap": [
+              "value"
+            ],
+            "value": "<span>Abraham fathered Isaac, and Isaac fathered Jacob, and Jacob fathered Judah and his brothers,</span>",
+            "timestamp": 1768924154667,
+            "type": "llm-generation",
+            "author": "Bored-Alchemist",
+            "validatedBy": []
+          },
+          {
+            "editMap": [
+              "value"
+            ],
+            "value": "<span>Abraham fathered Isaac, Isaac fathered Jacob, and Jacob fathered Judah and his brothers,</span>",
+            "timestamp": 1768924220867,
+            "type": "llm-generation",
+            "author": "craigbbradley",
+            "validatedBy": [],
+            "preview": true
+          },
+          {
+            "editMap": [
+              "value"
+            ],
+            "value": "<span>Abraham fathered Isaac, Isaac fathered Jacob, and Jacob fathered Judah and his brothers,</span>",
+            "timestamp": 1768924222079,
+            "type": "user-edit",
+            "author": "craigbbradley",
+            "validatedBy": [
+              {
+                "username": "craigbbradley",
+                "creationTimestamp": 1768924222079,
+                "updatedTimestamp": 1768924222079,
+                "isDeleted": false
+              }
+            ]
+          },
+          {
+            "editMap": [
+              "value"
+            ],
+            "value": "<span>Abraham fathered Isaac, Isaac fathered Jacob, and Jacob fathered Judah and his brothers</span>",
+            "timestamp": 1768935021186,
+            "type": "user-edit",
+            "author": "KallynGowdy",
+            "validatedBy": [
+              {
+                "username": "KallynGowdy",
+                "creationTimestamp": 1768935021186,
+                "updatedTimestamp": 1768935021186,
+                "isDeleted": false
+              }
+            ]
+          },
+          {
+            "editMap": [
+              "value"
+            ],
+            "value": "<span>Abraham fathered Isaac, Isaac fathered Jacob, and Jacob fathered Judah and his brothers,</span>",
+            "timestamp": 1768935023019,
+            "type": "user-edit",
+            "author": "KallynGowdy",
+            "validatedBy": [
+              {
+                "username": "KallynGowdy",
+                "creationTimestamp": 1768935023019,
+                "updatedTimestamp": 1768935023019,
+                "isDeleted": false
+              }
+            ]
+          }
+        ],
+        "cellLabel": "2"
+      }
+    },
+    {
+      "kind": 2,
+      "languageId": "html",
+      "value": "",
+      "metadata": {
+        "type": "text",
+        "id": "2538230c-0f80-2b12-7ade-4c44eae346e4",
+        "data": {
+          "globalReferences": [
+            "MAT 1:3"
+          ]
+        },
+        "edits": [],
+        "cellLabel": "3"
+      }
+    },
+    {
+      "kind": 2,
+      "languageId": "html",
+      "value": "<span>Aram fathered Amminadab, and Amminadab fathered Nahshon, and Nahshon fathered Salmon,</span>",
+      "metadata": {
+        "type": "text",
+        "id": "8cb1ff52-b4f8-2948-c63f-b51d2bb59deb",
+        "data": {
+          "globalReferences": [
+            "MAT 1:4"
+          ]
+        },
+        "edits": [
+          {
+            "editMap": [
+              "value"
+            ],
+            "value": "<span>Aram fathered Amminadab, and Amminadab fathered Nahshon, and Nahshon fathered Salmon,</span>",
+            "timestamp": 1768924160185,
+            "type": "llm-generation",
+            "author": "Bored-Alchemist",
+            "validatedBy": []
+          },
+          {
+            "editMap": [
+              "value"
+            ],
+            "value": "<span>Aram fathered Amminadab, and Amminadab fathered Nahshon, and Nahshon fathered Salmon</span>",
+            "timestamp": 1768935026609,
+            "type": "user-edit",
+            "author": "KallynGowdy",
+            "validatedBy": [
+              {
+                "username": "KallynGowdy",
+                "creationTimestamp": 1768935026609,
+                "updatedTimestamp": 1768935026609,
+                "isDeleted": false
+              }
+            ]
+          },
+          {
+            "editMap": [
+              "value"
+            ],
+            "value": "<span>Aram fathered Amminadab, and Amminadab fathered Nahshon, and Nahshon fathered Salmon,</span>",
+            "timestamp": 1768935028404,
+            "type": "user-edit",
+            "author": "KallynGowdy",
+            "validatedBy": [
+              {
+                "username": "KallynGowdy",
+                "creationTimestamp": 1768935028404,
+                "updatedTimestamp": 1768935028404,
+                "isDeleted": false
+              }
+            ]
+          }
+        ],
+        "cellLabel": "4"
+      }
+    },
+    {
+      "kind": 2,
+      "languageId": "html",
+      "value": "<span>Salmon fathered Boaz by Rahab, and Boaz fathered Obed by Ruth, and Obed fathered Jesse,</span>",
+      "metadata": {
+        "type": "text",
+        "id": "63135a98-0480-eaf8-5c62-2433946ce337",
+        "data": {
+          "globalReferences": [
+            "MAT 1:5"
+          ]
+        },
+        "edits": [
+          {
+            "editMap": [
+              "value"
+            ],
+            "value": "<span>Salmon fathered Boaz by Rahab, and Boaz fathered Obed by Ruth, and Obed fathered Jesse,</span>",
+            "timestamp": 1768924162800,
+            "type": "llm-generation",
+            "author": "Bored-Alchemist",
+            "validatedBy": []
+          },
+          {
+            "editMap": [
+              "value"
+            ],
+            "value": "<span>Salmon fathered Boaz by Rahab, and Boaz fathered Obed by Ruth, and Obed fathered Jesse</span>",
+            "timestamp": 1768935033957,
+            "type": "user-edit",
+            "author": "KallynGowdy",
+            "validatedBy": [
+              {
+                "username": "KallynGowdy",
+                "creationTimestamp": 1768935033957,
+                "updatedTimestamp": 1768935033957,
+                "isDeleted": false
+              }
+            ]
+          },
+          {
+            "editMap": [
+              "value"
+            ],
+            "value": "<span>Salmon fathered Boaz by Rahab, and Boaz fathered Obed by Ruth, and Obed fathered Jesse,</span>",
+            "timestamp": 1768935035629,
+            "type": "user-edit",
+            "author": "KallynGowdy",
+            "validatedBy": [
+              {
+                "username": "KallynGowdy",
+                "creationTimestamp": 1768935035629,
+                "updatedTimestamp": 1768935035629,
+                "isDeleted": false
+              }
+            ]
+          }
+        ],
+        "cellLabel": "5"
+      }
+    }
+  ],
+  "metadata": {
+    "textDirection": "ltr",
+    "videoUrl": "",
+    "lineNumbersEnabled": true,
+    "lineNumbersEnabledSource": "global",
+    "edits": [],
+    "id": "MAT",
+    "originalName": "MAT.macula",
+    "sourceFsPath": "c:\\Users\\craig\\.codex-projects\\Seed-Bible-Translation\\.project\\sourceTexts\\MAT.source",
+    "codexFsPath": "c:\\Users\\craig\\.codex-projects\\Seed-Bible-Translation\\files\\target\\MAT.codex",
+    "navigation": [],
+    "sourceCreatedAt": "2025-12-16T21:37:22.205Z",
+    "corpusMarker": "NT",
+    "fileDisplayName": "Matthew",
+    "importerType": "macula"
+  }
+}

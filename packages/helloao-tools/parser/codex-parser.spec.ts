@@ -3,12 +3,18 @@ import CodexExample from './test/codex-simple-example.codex';
 import NewCodexExample from './test/codex-new-example.codex';
 import NewerCodexExample from './test/codex-newer-example.codex';
 import MatCodexExample from './test/codex-mat-example.codex';
+import FootnoteCodexExample from './test/codex-footnote-example.codex';
+import { DOMParser, Element, Node } from 'linkedom';
 
 describe('CodexParser', () => {
     let parser: CodexParser;
 
     beforeEach(() => {
-        parser = new CodexParser();
+        globalThis.DOMParser = DOMParser as any; // window.DOMParser as any;
+        globalThis.Element = Element as any; // window.Element;
+        globalThis.Node = Node as any; // window.Node;
+
+        parser = new CodexParser(new DOMParser() as any);
     });
 
     describe('parse', () => {
@@ -1059,6 +1065,11 @@ describe('CodexParser', () => {
 
         it('should parse a newer codex file of MAT', () => {
             const tree = parser.parse(MatCodexExample);
+            expect(tree).toMatchSnapshot();
+        });
+
+        it('should properly parse footnotes', () => {
+            const tree = parser.parse(FootnoteCodexExample);
             expect(tree).toMatchSnapshot();
         });
     });
