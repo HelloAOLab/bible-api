@@ -3,6 +3,15 @@
 This is the log of changes for the Bible API Generator and associated tools.
 For information on the API itself, see [API-CHANGELOG.md](./API-CHANGELOG.md).
 
+## V2.0.0
+
+#### Date: 2026-01-27
+
+### :boom: Breaking Changes
+
+-   The `CodexParser` now requires a [DOMParser](https://developer.mozilla.org/en-US/docs/Web/API/DOMParser).
+    -   This was required to add proper support for footnotes in Codex files.
+
 ## V1.9.1
 
 #### Date: 2026-01-20
