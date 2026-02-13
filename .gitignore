@@ -35,5 +35,6 @@ gen
 metadata
 cli.js
 bible-api.*
+free-use-bible-api.*
 sources
 tools/BibleMultiConverter
