@@ -1378,21 +1378,35 @@ exports[`LockmanParser should parse Psalm 16 with poem markers 1`] = `
           },
           {
             "content": [
-              "A <FA><NA><$F<FN>19<FNC>PSALM 16<FNV>Title</FN><NA>Possibly {Epigrammatic Poem} or {Atonement Psalm}$E>Mikhtam of David.",
+              "A ",
+              {
+                "noteId": 1,
+              },
+              "Mikhtam of David.",
             ],
-            "type": "heading",
+            "type": "hebrew_subtitle",
           },
           {
             "content": [
               {
-                "noteId": 1,
+                "poem": 1,
+                "text": "Preserve me, O God, for I take refuge in You.",
+              },
+            ],
+            "number": 1,
+            "type": "verse",
+          },
+          {
+            "content": [
+              {
+                "noteId": 2,
               },
               {
                 "poem": 1,
                 "text": "I said to the L<>ORD, “You are ",
               },
               {
-                "noteId": 2,
+                "noteId": 3,
               },
               {
                 "poem": 1,
@@ -1409,14 +1423,14 @@ exports[`LockmanParser should parse Psalm 16 with poem markers 1`] = `
                 "text": "As for the ",
               },
               {
-                "noteId": 3,
+                "noteId": 4,
               },
               {
                 "poem": 1,
                 "text": "saints who are in the earth, ",
               },
               {
-                "noteId": 4,
+                "noteId": 5,
               },
               {
                 "poem": 1,
@@ -1433,9 +1447,9 @@ exports[`LockmanParser should parse Psalm 16 with poem markers 1`] = `
             "noteId": 1,
             "reference": {
               "chapter": 16,
-              "verse": 2,
+              "verse": 0,
             },
-            "text": "Or O my soul, you said",
+            "text": "Possibly Epigrammatic Poem or Atonement Psalm",
           },
           {
             "caller": "+",
@@ -1444,11 +1458,20 @@ exports[`LockmanParser should parse Psalm 16 with poem markers 1`] = `
               "chapter": 16,
               "verse": 2,
             },
-            "text": "Or the Lord",
+            "text": "Or O my soul, you said",
           },
           {
             "caller": "+",
             "noteId": 3,
+            "reference": {
+              "chapter": 16,
+              "verse": 2,
+            },
+            "text": "Or the Lord",
+          },
+          {
+            "caller": "+",
+            "noteId": 4,
             "reference": {
               "chapter": 16,
               "verse": 3,
@@ -1457,7 +1480,7 @@ exports[`LockmanParser should parse Psalm 16 with poem markers 1`] = `
           },
           {
             "caller": "+",
-            "noteId": 4,
+            "noteId": 5,
             "reference": {
               "chapter": 16,
               "verse": 3,

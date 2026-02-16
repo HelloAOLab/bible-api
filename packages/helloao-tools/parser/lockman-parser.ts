@@ -6,6 +6,7 @@ import {
     Footnote,
     Text,
     FootnoteReference,
+    HebrewSubtitle,
 } from './types';
 
 export class LockmanParser {
@@ -26,10 +27,10 @@ export class LockmanParser {
         // 1. Title: <BN>...</BN>
         // 2. Chapter Heading: <CN>...</CN> or <SN>...</SN>
         // 3. Section Heading: <SH>...</SH> or <SS>...</SS>
-        // 4. Verse Start: (<V>|<C>|<CC>|<PM>|<A>|<PO>|<P>|<PN>){{...}}Number<T>
+        // 4. Verse Start: (<V>|<C>|<CC>|<CP>|<PM>|<A>|<PO>|<P>|<PN>){{...}}Number<T>
 
         const structureRegex =
-            /(<BN>.*?<\/BN>)|((?:<CN>.*?<\/CN>)|(?:<SN>.*?<\/SN>))|((?:<SH>.*?<\/SH>)|(?:<SS>.*?<\/SS>))|((?:<V>|<C>|<CC>|<PM>|<A>|<PO>|<P>|<PN>)\{\{.*?\}\}\d+(?:<T>|\^)(?:\{.*?\})?)/g;
+            /(<BN>.*?<\/BN>)|((?:<CN>.*?<\/CN>)|(?:<SN>.*?<\/SN>))|((?:<SH>.*?<\/SH>)|(?:<SS>.*?<\/SS>))|((?:<V>|<C>|<CC>|<CP>|<PM>|<A>|<PO>|<P>|<PN>)\{\{.*?\}\}\d+(?:<T>|\^)(?:\{.*?\})?)/g;
 
         let lastIndex = 0;
         let match;
@@ -102,24 +103,43 @@ export class LockmanParser {
                     roots.push(currentRoot);
                 }
 
-                // Remove tags: <SH>, </SH>, <SS>, </SS>
-                const inner = match[3].replace(/<\/?(SH|SS)>/g, '').trim();
-                const heading: Heading = {
-                    type: 'heading',
-                    content: [inner],
-                };
-                if (currentChapter) {
-                    currentChapter.content.push(heading);
+                const raw = match[3];
+                if (raw.startsWith('<SS>')) {
+                    // Hebrew subtitle in Psalms
+                    const inner = raw.replace(/<\/?SS>/g, '').trim();
+                    const subtitle: HebrewSubtitle = {
+                        type: 'hebrew_subtitle',
+                        content: [],
+                    };
+
+                    if (currentChapter) {
+                        this.parseHebrewSubtitleContent(
+                            inner,
+                            subtitle,
+                            currentChapter
+                        );
+                        currentChapter.content.push(subtitle);
+                    }
                 } else {
-                    // Start of book heading? Not typical in this structure but possible
-                    currentRoot.content.push(heading);
+                    // Section heading
+                    const inner = raw.replace(/<\/?SH>/g, '').trim();
+                    const heading: Heading = {
+                        type: 'heading',
+                        content: [inner],
+                    };
+                    if (currentChapter) {
+                        currentChapter.content.push(heading);
+                    } else {
+                        // Start of book heading? Not typical in this structure but possible
+                        currentRoot.content.push(heading);
+                    }
                 }
             } else if (match[4]) {
                 // Verse Start: <Tag>{{Ref}}Number<T>
                 // Extract Verse Number
                 const tagContent = match[4];
                 // Regex to extract digits before <T>
-                const vNumMatch = tagContent.match(/(\d+)<T>$/);
+                const vNumMatch = tagContent.match(/(\d+)(?:<T>|\^)/);
                 const vNum = vNumMatch ? parseInt(vNumMatch[1], 10) : 0;
 
                 if (currentChapter) {
@@ -129,7 +149,7 @@ export class LockmanParser {
                     }
 
                     // Update global isPoem flag
-                    isPoem = /<(?:P|PO|PN|CC)>/.test(tagContent);
+                    isPoem = /<(?:P|PO|PN|CC|CP)>/.test(tagContent);
 
                     currentVerse = {
                         type: 'verse',
@@ -281,25 +301,71 @@ export class LockmanParser {
         }
     }
 
+    private parseHebrewSubtitleContent(
+        text: string,
+        subtitle: HebrewSubtitle,
+        chapter: Chapter
+    ) {
+        let cleanText = text.replace(/\s+/g, ' ').trim();
+
+        const segmentRegex =
+            /(<\$F.*?\$E>)|(<\$R.*?\$RE>)|(<[^>]+>)|(\{.*?\})/g;
+
+        let lastIdx = 0;
+        let m;
+
+        while ((m = segmentRegex.exec(cleanText)) !== null) {
+            const snippet = cleanText.substring(lastIdx, m.index);
+            if (snippet) {
+                this.addSubtitleText(subtitle, snippet);
+            }
+
+            if (m[1]) {
+                const ref = this.processFootnoteForSubtitle(m[1], chapter);
+                if (ref) {
+                    subtitle.content.push(ref);
+                }
+            } else if (m[2]) {
+                // Cross Ref -> Ignore
+            } else if (m[3]) {
+                // Other tag -> Ignore
+            } else if (m[4]) {
+                const content = m[4].substring(1, m[4].length - 1);
+                if (content) {
+                    subtitle.content.push({
+                        text: content,
+                        italics: true,
+                    } as Text);
+                }
+            }
+
+            lastIdx = segmentRegex.lastIndex;
+        }
+
+        const remaining = cleanText.substring(lastIdx);
+        if (remaining) {
+            this.addSubtitleText(subtitle, remaining);
+        }
+    }
+
+    private addSubtitleText(subtitle: HebrewSubtitle, text: string) {
+        if (!text) return;
+
+        const lastItem = subtitle.content[subtitle.content.length - 1];
+        if (typeof lastItem === 'string') {
+            subtitle.content[subtitle.content.length - 1] = lastItem + text;
+        } else {
+            subtitle.content.push(text);
+        }
+    }
+
     private processFootnote(block: string, verse: Verse, chapter: Chapter) {
         // block is <$F...$E>
         // Inner content has tags like <FN>, <FNC>, <N1>...
         // We want the readable text.
         // Remove known technical tags.
 
-        // Remove outer $F...$E
-        let inner = block.replace(/^<\$F/, '').replace(/\$E>$/, '');
-
-        // Remove internal technical tags
-        // Remove <FN>...</FN> completely
-        inner = inner.replace(/<FN>.*?<\/FN>/g, '');
-
-        // Remove other tags <N1>, <FA> but keep content
-        // Also remove italics curly braces (keep content inside)
-        const text = inner
-            .replace(/<[^>]+>/g, '')
-            .replace(/[\{\}]/g, '')
-            .trim();
+        const text = this.extractFootnoteText(block);
 
         if (!text) return;
 
@@ -319,5 +385,47 @@ export class LockmanParser {
         verse.content.push({
             noteId: noteId,
         } as FootnoteReference);
+    }
+
+    private processFootnoteForSubtitle(
+        block: string,
+        chapter: Chapter
+    ): FootnoteReference | null {
+        const text = this.extractFootnoteText(block);
+
+        if (!text) return null;
+
+        const noteId = chapter.footnotes.length + 1;
+
+        const fn: Footnote = {
+            noteId: noteId,
+            text: text,
+            caller: '+',
+            reference: {
+                chapter: chapter.number,
+                verse: 0,
+            },
+        };
+        chapter.footnotes.push(fn);
+
+        return {
+            noteId: noteId,
+        } as FootnoteReference;
+    }
+
+    private extractFootnoteText(block: string): string {
+        // Remove outer $F...$E
+        let inner = block.replace(/^<\$F/, '').replace(/\$E>$/, '');
+
+        // Remove internal technical tags
+        // Remove <FN>...</FN> completely
+        inner = inner.replace(/<FN>.*?<\/FN>/g, '');
+
+        // Remove other tags <N1>, <FA> but keep content
+        // Also remove italics curly braces (keep content inside)
+        return inner
+            .replace(/<[^>]+>/g, '')
+            .replace(/[\{\}]/g, '')
+            .trim();
     }
 }
