@@ -415,4 +415,160 @@ describe('LockmanParser', () => {
         ]);
     });
 
+    it('should join quotes which are continuations of each other', () => {
+        const text = `<CN>CHAPTER 13</CN>
+<SH>Call to Repent</SH>
+<C>{{42::13}}1<T>Now on the same occasion there were some present who reported to Him about the Galileans whose blood <RA><$R<RFN>42<RNC>13<RNV>1</RFN><RA>Matt 27$RE>Pilate had <N1><$F<FN>42<FNC>13<FNV>1</FN><N1>I.e. shed along with$E>mixed with their sacrifices.
+<V>{{42::13}}2<T>And Jesus said to them, <RS>“<RA><$R<RFN>42<RNC>13<RNV>2</RFN><RA>John 9:2f$RE>Do you suppose that these Galileans were {greater} sinners than all {other} Galileans because they suffered this {fate?}</RS>
+<V>{{42::13}}3<T><RS>+“I tell you, no, but unless you <N1><$F<FN>42<FNC>13<FNV>3</FN><N1>Or {are repentant}$E>repent, you will all likewise perish.</RS>
+<V>{{42::13}}4<T><RS>+“Or do you suppose that those eighteen on whom the tower in <RA><$R<RFN>42<RNC>13<RNV>4</RFN><RA>Neh 3:15; Is 8:6; John 9:7, 11$RE>Siloam fell and killed them were {worse} <N1><$F<FN>42<FNC>13<FNV>4</FN><N1>Lit {debtors}$E><RB><$R<RFN>42<RNC>13<RNV>4</RFN><RB>Matt 6:12; Luke 11:4$RE>culprits than all the men who live in Jerusalem?</RS>
+<V>{{42::13}}5<T><RS>+“I tell you, no, but unless you repent, you will all likewise perish.”</RS>`;
+
+        const roots = parser.parse(text);
+
+        expect(roots).toEqual([
+            {
+                content: [
+                    {
+                        content: [
+                            {
+                                content: ['Call to Repent'],
+                                type: 'heading',
+                            },
+                            {
+                                content: [
+                                    'Now on the same occasion there were some present who reported to Him about the Galileans whose blood Pilate had ',
+                                    {
+                                        noteId: 1,
+                                    },
+                                    'mixed with their sacrifices.',
+                                ],
+                                number: 1,
+                                type: 'verse',
+                            },
+                            {
+                                content: [
+                                    'And Jesus said to them, ',
+                                    {
+                                        text: '“Do you suppose that these Galileans were ',
+                                        wordsOfJesus: true,
+                                    },
+                                    {
+                                        italics: true,
+                                        text: 'greater',
+                                        wordsOfJesus: true,
+                                    },
+                                    {
+                                        text: ' sinners than all ',
+                                        wordsOfJesus: true,
+                                    },
+                                    {
+                                        italics: true,
+                                        text: 'other',
+                                        wordsOfJesus: true,
+                                    },
+                                    {
+                                        text: ' Galileans because they suffered this ',
+                                        wordsOfJesus: true,
+                                    },
+                                    {
+                                        italics: true,
+                                        text: 'fate?',
+                                        wordsOfJesus: true,
+                                    },
+                                ],
+                                number: 2,
+                                type: 'verse',
+                            },
+                            {
+                                content: [
+                                    {
+                                        text: 'I tell you, no, but unless you ',
+                                        wordsOfJesus: true,
+                                    },
+                                    {
+                                        noteId: 2,
+                                    },
+                                    {
+                                        text: 'repent, you will all likewise perish.',
+                                        wordsOfJesus: true,
+                                    },
+                                ],
+                                number: 3,
+                                type: 'verse',
+                            },
+                            {
+                                content: [
+                                    {
+                                        text: 'Or do you suppose that those eighteen on whom the tower in Siloam fell and killed them were ',
+                                        wordsOfJesus: true,
+                                    },
+                                    {
+                                        italics: true,
+                                        text: 'worse',
+                                        wordsOfJesus: true,
+                                    },
+                                    {
+                                        text: ' ',
+                                        wordsOfJesus: true,
+                                    },
+                                    {
+                                        noteId: 3,
+                                    },
+                                    {
+                                        text: 'culprits than all the men who live in Jerusalem?',
+                                        wordsOfJesus: true,
+                                    },
+                                ],
+                                number: 4,
+                                type: 'verse',
+                            },
+                            {
+                                content: [
+                                    {
+                                        text: 'I tell you, no, but unless you repent, you will all likewise perish.”',
+                                        wordsOfJesus: true,
+                                    },
+                                ],
+                                number: 5,
+                                type: 'verse',
+                            },
+                        ],
+                        footnotes: [
+                            {
+                                caller: '+',
+                                noteId: 1,
+                                reference: {
+                                    chapter: 13,
+                                    verse: 1,
+                                },
+                                text: 'I.e. shed along with',
+                            },
+                            {
+                                caller: '+',
+                                noteId: 2,
+                                reference: {
+                                    chapter: 13,
+                                    verse: 3,
+                                },
+                                text: 'Or are repentant',
+                            },
+                            {
+                                caller: '+',
+                                noteId: 3,
+                                reference: {
+                                    chapter: 13,
+                                    verse: 4,
+                                },
+                                text: 'Lit debtors',
+                            },
+                        ],
+                        number: 13,
+                        type: 'chapter',
+                    },
+                ],
+                type: 'root',
+            },
+        ]);
+    });
 });
