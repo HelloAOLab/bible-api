@@ -247,6 +247,11 @@ export class LockmanParser {
             } else if (m[2]) {
                 // Cross Ref -> Ignore
             } else if (m[3]) {
+                if (m[3] === '<PO>') {
+                    verse.content.push({ lineBreak: true });
+                    lastIdx = segmentRegex.lastIndex;
+                    continue;
+                }
                 // Handle words of Jesus markers
                 if (m[3] === '<RS>') {
                     wordsOfJesus = true;

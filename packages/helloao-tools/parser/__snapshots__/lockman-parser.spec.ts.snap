@@ -1100,7 +1100,18 @@ exports[`LockmanParser should parse Genesis 1 and 2 from NASB 1`] = `
           },
           {
             "content": [
-              "The man said, “This is now bone of my bones, And flesh of my flesh; ",
+              "The man said, ",
+              {
+                "lineBreak": true,
+              },
+              "“This is now bone of my bones, ",
+              {
+                "lineBreak": true,
+              },
+              "And flesh of my flesh; ",
+              {
+                "lineBreak": true,
+              },
               {
                 "noteId": 21,
               },
@@ -1108,7 +1119,11 @@ exports[`LockmanParser should parse Genesis 1 and 2 from NASB 1`] = `
               {
                 "noteId": 22,
               },
-              "Woman, Because ",
+              "Woman, ",
+              {
+                "lineBreak": true,
+              },
+              "Because ",
               {
                 "noteId": 23,
               },
@@ -1411,7 +1426,14 @@ exports[`LockmanParser should parse Psalm 16 with poem markers 1`] = `
               },
               {
                 "poem": 1,
-                "text": "my Lord; I have no good besides You.”",
+                "text": "my Lord; ",
+              },
+              {
+                "lineBreak": true,
+              },
+              {
+                "poem": 1,
+                "text": "I have no good besides You.”",
               },
             ],
             "number": 2,
@@ -1429,6 +1451,9 @@ exports[`LockmanParser should parse Psalm 16 with poem markers 1`] = `
               {
                 "poem": 1,
                 "text": "saints who are in the earth, ",
+              },
+              {
+                "lineBreak": true,
               },
               {
                 "noteId": 5,
