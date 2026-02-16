@@ -321,4 +321,31 @@ describe('LockmanParser', () => {
         expect(chapter.footnotes.length).toBe(1);
         expect(chapter.footnotes[0].text).toBe('Footnote with braces.');
     });
+
+    it('should remove $START and END$ markers ', () => {
+        const text = `$START abc def END$<BN>GENESIS</BN> <CN>1</CN> <V>{{01::1}}1<T>Verse text.`;
+
+        const roots = parser.parse(text);
+
+        expect(roots).toEqual([
+            {
+                type: 'root',
+                title: 'GENESIS',
+                content: [
+                    {
+                        type: 'chapter',
+                        number: 1,
+                        footnotes: [],
+                        content: [
+                            {
+                                type: 'verse',
+                                number: 1,
+                                content: ['Verse text.'],
+                            },
+                        ],
+                    },
+                ],
+            },
+        ]);
+    });
 });
