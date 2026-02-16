@@ -881,14 +881,14 @@ exports[`LockmanParser should parse Genesis 1 and 2 from NASB 1`] = `
               {
                 "noteId": 2,
               },
-              "This is the account of the heavens and the earth when they were created, in the day that the L<>ORD God made earth and heaven.",
+              "This is the account of the heavens and the earth when they were created, in the day that the LORD God made earth and heaven.",
             ],
             "number": 4,
             "type": "verse",
           },
           {
             "content": [
-              "Now no shrub of the field was yet in the earth, and no plant of the field had yet sprouted, for the L<>ORD God had not sent rain upon the earth, and there was no man to ",
+              "Now no shrub of the field was yet in the earth, and no plant of the field had yet sprouted, for the LORD God had not sent rain upon the earth, and there was no man to ",
               {
                 "noteId": 3,
               },
@@ -914,7 +914,7 @@ exports[`LockmanParser should parse Genesis 1 and 2 from NASB 1`] = `
           },
           {
             "content": [
-              "Then the L<>ORD God formed man of dust from the ground, and breathed into his nostrils the breath of life; and man became a living ",
+              "Then the LORD God formed man of dust from the ground, and breathed into his nostrils the breath of life; and man became a living ",
               {
                 "noteId": 6,
               },
@@ -925,14 +925,14 @@ exports[`LockmanParser should parse Genesis 1 and 2 from NASB 1`] = `
           },
           {
             "content": [
-              "The L<>ORD God planted a garden toward the east, in Eden; and there He placed the man whom He had formed.",
+              "The LORD God planted a garden toward the east, in Eden; and there He placed the man whom He had formed.",
             ],
             "number": 8,
             "type": "verse",
           },
           {
             "content": [
-              "Out of the ground the L<>ORD God caused to grow every tree that is pleasing to the sight and good for food; the tree of life also in the midst of the garden, and the tree of the knowledge of good and evil.",
+              "Out of the ground the LORD God caused to grow every tree that is pleasing to the sight and good for food; the tree of life also in the midst of the garden, and the tree of the knowledge of good and evil.",
             ],
             "number": 9,
             "type": "verse",
@@ -1008,14 +1008,14 @@ exports[`LockmanParser should parse Genesis 1 and 2 from NASB 1`] = `
           },
           {
             "content": [
-              "Then the L<>ORD God took the man and put him into the garden of Eden to cultivate it and keep it.",
+              "Then the LORD God took the man and put him into the garden of Eden to cultivate it and keep it.",
             ],
             "number": 15,
             "type": "verse",
           },
           {
             "content": [
-              "The L<>ORD God commanded the man, saying, “From any tree of the garden you may eat freely;",
+              "The LORD God commanded the man, saying, “From any tree of the garden you may eat freely;",
             ],
             "number": 16,
             "type": "verse",
@@ -1036,7 +1036,7 @@ exports[`LockmanParser should parse Genesis 1 and 2 from NASB 1`] = `
           },
           {
             "content": [
-              "Then the L<>ORD God said, “It is not good for the man to be alone; I will make him a helper ",
+              "Then the LORD God said, “It is not good for the man to be alone; I will make him a helper ",
               {
                 "noteId": 15,
               },
@@ -1047,7 +1047,7 @@ exports[`LockmanParser should parse Genesis 1 and 2 from NASB 1`] = `
           },
           {
             "content": [
-              "Out of the ground the L<>ORD God formed every beast of the field and every bird of the ",
+              "Out of the ground the LORD God formed every beast of the field and every bird of the ",
               {
                 "noteId": 16,
               },
@@ -1082,14 +1082,14 @@ exports[`LockmanParser should parse Genesis 1 and 2 from NASB 1`] = `
           },
           {
             "content": [
-              "So the L<>ORD God caused a deep sleep to fall upon the man, and he slept; then He took one of his ribs and closed up the flesh at that place.",
+              "So the LORD God caused a deep sleep to fall upon the man, and he slept; then He took one of his ribs and closed up the flesh at that place.",
             ],
             "number": 21,
             "type": "verse",
           },
           {
             "content": [
-              "The L<>ORD God ",
+              "The LORD God ",
               {
                 "noteId": 20,
               },
@@ -1403,7 +1403,7 @@ exports[`LockmanParser should parse Psalm 16 with poem markers 1`] = `
               },
               {
                 "poem": 1,
-                "text": "I said to the L<>ORD, “You are ",
+                "text": "I said to the LORD, “You are ",
               },
               {
                 "noteId": 3,

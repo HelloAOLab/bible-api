@@ -187,27 +187,7 @@ export class LockmanParser {
         // Remove line breaks that are just formatting in the source file
         // But keep spaces.
         // The source has newlines. We should arguably treat them as spaces.
-        let cleanText = text.replace(/\s+/g, ' ');
-
-        // If this block of text is at the end of a verse, we might want to trim trailing space.
-        // However, we don't strictly know if it's the end, but in this parser structure,
-        // parseVerseContent is called with the *entire* text between structure markers.
-        // So `text` is "Verse 1 " (because of newline).
-        // It's generally safe to trim key whitespace if it's just a newline in source.
-
-        // Actually, let's just trim the WHOLE thing if it's creating issues.
-        // But we want to preserve internal spacing.
-        // The issue is simply that `\n` -> ` ` and it's at the end.
-
-        // Let's rely on the fact that if the text ends in space, and it's followed by a tag that starts a new structural element, that space is likely superfluous.
-        // But we don't know the future here easily.
-
-        // Let's modify the tests to EXPECT the space, OR modify the parser to trip trailing spaces for "text" nodes.
-        // Given the requirement is "validate the parsed structure", and the input has newlines,
-        // Normalize whitespace: replace newlines/tabs with spaces, and trim leading/trailing space
-        // This handles cases where source text has newlines for formatting that shouldn't appear in the output.
-        // However, we preserve internal spaces between words.
-        cleanText = cleanText.replace(/\s+/g, ' ').trim();
+        let cleanText = text.replace(/\s+/g, ' ').trim();
 
         // Regex to separate text from special inline blocks:
         // 1. Footnotes: <$F ... $E>
@@ -219,7 +199,7 @@ export class LockmanParser {
         // At the verse level, they denote italics.
 
         const segmentRegex =
-            /(<\$F.*?\$E>)|(<\$R.*?\$RE>)|(<[^>]+>)|(\{.*?\})/g;
+            /(<\$F.*?\$E>)|(<\$R.*?\$RE>)|(<[^>]*>)|(\{.*?\})/g;
 
         let lastIdx = 0;
         let m;
