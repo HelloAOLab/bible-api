@@ -362,4 +362,57 @@ describe('LockmanParser', () => {
 
         expect(roots).toMatchSnapshot();
     });
+
+    it('should parse red lettering as wordsOfJesus', () => {
+        const text = `<CN>CHAPTER 13</CN>
+<SH>Call to Repent</SH>
+<C>{{42::13}}1<T>Now on the same occasion there were some present who reported to Him about the Galileans whose blood <RA><$R<RFN>42<RNC>13<RNV>1</RFN><RA>Matt 27$RE>Pilate had <N1><$F<FN>42<FNC>13<FNV>1</FN><N1>I.e. shed along with$E>mixed with their sacrifices.
+<V>{{42::13}}2<T>And Jesus said to them, <RS>“<RA><$R<RFN>42<RNC>13<RNV>2</RFN><RA>John 9:2f$RE>Do you suppose that these Galileans were {greater} sinners than all {other} Galileans because they suffered this {fate?}</RS>
+<V>{{42::13}}3<T><RS>+“I tell you, no, but unless you <N1><$F<FN>42<FNC>13<FNV>3</FN><N1>Or {are repentant}$E>repent, you will all likewise perish.</RS>
+<V>{{42::13}}4<T><RS>+“Or do you suppose that those eighteen on whom the tower in <RA><$R<RFN>42<RNC>13<RNV>4</RFN><RA>Neh 3:15; Is 8:6; John 9:7, 11$RE>Siloam fell and killed them were {worse} <N1><$F<FN>42<FNC>13<FNV>4</FN><N1>Lit {debtors}$E><RB><$R<RFN>42<RNC>13<RNV>4</RFN><RB>Matt 6:12; Luke 11:4$RE>culprits than all the men who live in Jerusalem?</RS>
+<V>{{42::13}}5<T><RS>+“I tell you, no, but unless you repent, you will all likewise perish.”</RS>
+<PM>{{42::13}}6<T>And He {began} telling this parable: <RS>“A man had <RA><$R<RFN>42<RNC>13<RNV>6</RFN><RA>Matt 21:19$RE>a fig tree which had been planted in his vineyard; and he came looking for fruit on it and did not find any.</RS>
+<V>{{42::13}}7<T><RS>+“And he said to the vineyard-keeper, ‘Behold, for three years I have come looking for fruit on this fig tree <N1><$F<FN>42<FNC>13<FNV>7</FN><N1>Lit {and I do not find}$E>without finding any. <RA><$R<RFN>42<RNC>13<RNV>7</RFN><RA>Matt 3:10; 7:19; Luke 3:9$RE>Cut it down! Why does it even use up the ground?’</RS>
+<V>{{42::13}}8<T><RS>+“And he answered and said to him, ‘Let it alone, sir, for this year too, until I dig around it and put in fertilizer;</RS>
+<V>{{42::13}}9<T><RS>and if it bears fruit next year, {fine;} but if not, cut it down.’”</RS>`;
+
+        const roots = parser.parse(text);
+
+        expect(roots).toMatchSnapshot();
+    });
+
+    it('should parse red lettering but be able to end a verse without red lettering', () => {
+        const text = `<CN>CHAPTER 17</CN>
+<V>{{42::17}}14<T>When He saw them, He said to them, <RS>“<RA><$R<RFN>42<RNC>17<RNV>14</RFN><RA>Lev 14:1-32; Matt 8:4; Luke 5:14$RE>Go and show yourselves to the priests.”</RS> And as they were going, they were cleansed.`;
+
+        const roots = parser.parse(text);
+
+        expect(roots).toEqual([
+            {
+                type: 'root',
+                content: [
+                    {
+                        type: 'chapter',
+                        number: 17,
+                        content: [
+                            {
+                                type: 'verse',
+                                number: 14,
+                                content: [
+                                    'When He saw them, He said to them, ',
+                                    {
+                                        text: '“Go and show yourselves to the priests.”',
+                                        wordsOfJesus: true,
+                                    },
+                                    ' And as they were going, they were cleansed.',
+                                ],
+                            },
+                        ],
+                        footnotes: [],
+                    },
+                ],
+            },
+        ]);
+    });
+
 });

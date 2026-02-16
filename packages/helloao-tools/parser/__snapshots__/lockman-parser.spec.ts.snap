@@ -1497,3 +1497,226 @@ exports[`LockmanParser should parse Psalm 16 with poem markers 1`] = `
   },
 ]
 `;
+
+exports[`LockmanParser should parse red lettering as wordsOfJesus 1`] = `
+[
+  {
+    "content": [
+      {
+        "content": [
+          {
+            "content": [
+              "Call to Repent",
+            ],
+            "type": "heading",
+          },
+          {
+            "content": [
+              "Now on the same occasion there were some present who reported to Him about the Galileans whose blood Pilate had ",
+              {
+                "noteId": 1,
+              },
+              "mixed with their sacrifices.",
+            ],
+            "number": 1,
+            "type": "verse",
+          },
+          {
+            "content": [
+              "And Jesus said to them, ",
+              {
+                "text": "“Do you suppose that these Galileans were ",
+                "wordsOfJesus": true,
+              },
+              {
+                "italics": true,
+                "text": "greater",
+                "wordsOfJesus": true,
+              },
+              {
+                "text": " sinners than all ",
+                "wordsOfJesus": true,
+              },
+              {
+                "italics": true,
+                "text": "other",
+                "wordsOfJesus": true,
+              },
+              {
+                "text": " Galileans because they suffered this ",
+                "wordsOfJesus": true,
+              },
+              {
+                "italics": true,
+                "text": "fate?",
+                "wordsOfJesus": true,
+              },
+            ],
+            "number": 2,
+            "type": "verse",
+          },
+          {
+            "content": [
+              {
+                "text": "I tell you, no, but unless you ",
+                "wordsOfJesus": true,
+              },
+              {
+                "noteId": 2,
+              },
+              {
+                "text": "repent, you will all likewise perish.",
+                "wordsOfJesus": true,
+              },
+            ],
+            "number": 3,
+            "type": "verse",
+          },
+          {
+            "content": [
+              {
+                "text": "Or do you suppose that those eighteen on whom the tower in Siloam fell and killed them were ",
+                "wordsOfJesus": true,
+              },
+              {
+                "italics": true,
+                "text": "worse",
+                "wordsOfJesus": true,
+              },
+              {
+                "text": " ",
+                "wordsOfJesus": true,
+              },
+              {
+                "noteId": 3,
+              },
+              {
+                "text": "culprits than all the men who live in Jerusalem?",
+                "wordsOfJesus": true,
+              },
+            ],
+            "number": 4,
+            "type": "verse",
+          },
+          {
+            "content": [
+              {
+                "text": "I tell you, no, but unless you repent, you will all likewise perish.”",
+                "wordsOfJesus": true,
+              },
+            ],
+            "number": 5,
+            "type": "verse",
+          },
+          {
+            "type": "line_break",
+          },
+          {
+            "content": [
+              "And He ",
+              {
+                "italics": true,
+                "text": "began",
+              },
+              " telling this parable: ",
+              {
+                "text": "“A man had a fig tree which had been planted in his vineyard; and he came looking for fruit on it and did not find any.",
+                "wordsOfJesus": true,
+              },
+            ],
+            "number": 6,
+            "type": "verse",
+          },
+          {
+            "content": [
+              {
+                "text": "And he said to the vineyard-keeper, ‘Behold, for three years I have come looking for fruit on this fig tree ",
+                "wordsOfJesus": true,
+              },
+              {
+                "noteId": 4,
+              },
+              {
+                "text": "without finding any. Cut it down! Why does it even use up the ground?’",
+                "wordsOfJesus": true,
+              },
+            ],
+            "number": 7,
+            "type": "verse",
+          },
+          {
+            "content": [
+              {
+                "text": "And he answered and said to him, ‘Let it alone, sir, for this year too, until I dig around it and put in fertilizer;",
+                "wordsOfJesus": true,
+              },
+            ],
+            "number": 8,
+            "type": "verse",
+          },
+          {
+            "content": [
+              {
+                "text": "and if it bears fruit next year, ",
+                "wordsOfJesus": true,
+              },
+              {
+                "italics": true,
+                "text": "fine;",
+                "wordsOfJesus": true,
+              },
+              {
+                "text": " but if not, cut it down.’”",
+                "wordsOfJesus": true,
+              },
+            ],
+            "number": 9,
+            "type": "verse",
+          },
+        ],
+        "footnotes": [
+          {
+            "caller": "+",
+            "noteId": 1,
+            "reference": {
+              "chapter": 13,
+              "verse": 1,
+            },
+            "text": "I.e. shed along with",
+          },
+          {
+            "caller": "+",
+            "noteId": 2,
+            "reference": {
+              "chapter": 13,
+              "verse": 3,
+            },
+            "text": "Or are repentant",
+          },
+          {
+            "caller": "+",
+            "noteId": 3,
+            "reference": {
+              "chapter": 13,
+              "verse": 4,
+            },
+            "text": "Lit debtors",
+          },
+          {
+            "caller": "+",
+            "noteId": 4,
+            "reference": {
+              "chapter": 13,
+              "verse": 7,
+            },
+            "text": "Lit and I do not find",
+          },
+        ],
+        "number": 13,
+        "type": "chapter",
+      },
+    ],
+    "type": "root",
+  },
+]
+`;

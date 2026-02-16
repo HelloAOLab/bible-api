@@ -203,12 +203,13 @@ export class LockmanParser {
 
         let lastIdx = 0;
         let m;
+        let wordsOfJesus = false;
 
         while ((m = segmentRegex.exec(cleanText)) !== null) {
             const snippet = cleanText.substring(lastIdx, m.index);
             if (snippet) {
                 // Add plain text
-                this.addText(verse, snippet, isPoem);
+                this.addText(verse, snippet, isPoem, wordsOfJesus);
             }
 
             if (m[1]) {
@@ -217,6 +218,12 @@ export class LockmanParser {
             } else if (m[2]) {
                 // Cross Ref -> Ignore
             } else if (m[3]) {
+                // Handle words of Jesus markers
+                if (m[3] === '<RS>') {
+                    wordsOfJesus = true;
+                } else if (m[3] === '</RS>') {
+                    wordsOfJesus = false;
+                }
                 // Other tag -> Ignore (e.g. <RA>, <N1>, <FA>)
                 // These are often just markers or anchors.
             } else if (m[4]) {
@@ -234,6 +241,10 @@ export class LockmanParser {
                         text.poem = 1;
                     }
 
+                    if (wordsOfJesus) {
+                        text.wordsOfJesus = true;
+                    }
+
                     verse.content.push(text);
                 }
             }
@@ -243,33 +254,43 @@ export class LockmanParser {
 
         const remaining = cleanText.substring(lastIdx);
         if (remaining) {
-            this.addText(verse, remaining, isPoem);
+            this.addText(verse, remaining, isPoem, wordsOfJesus);
         }
     }
 
-    private addText(verse: Verse, text: string, isPoem: boolean) {
+    private addText(
+        verse: Verse,
+        text: string,
+        isPoem: boolean,
+        wordsOfJesus: boolean
+    ) {
         if (!text) return;
 
-        if (isPoem) {
-            // Check if we can merge with previous.
-            // When poem=1, verse.content should contain Text objects, not strings (to carry the poem attribute).
+        if (isPoem || wordsOfJesus) {
+            // When poem=1 or wordsOfJesus is true, use Text objects to carry attributes.
             const lastItem = verse.content[verse.content.length - 1];
 
-            // Check if lastItem is a compatible Text object
             if (
                 lastItem &&
                 typeof lastItem !== 'string' &&
-                (lastItem as Text).poem === 1 &&
-                !(lastItem as Text).italics &&
-                !(lastItem as Text).wordsOfJesus &&
-                !('noteId' in lastItem) // Ensure it's not a footnote reference
+                !('noteId' in lastItem) &&
+                (lastItem as Text).poem === (isPoem ? 1 : undefined) &&
+                (lastItem as Text).wordsOfJesus ===
+                    (wordsOfJesus ? true : undefined) &&
+                !(lastItem as Text).italics
             ) {
                 (lastItem as Text).text += text;
             } else {
-                verse.content.push({
+                const formatted: Text = {
                     text: text,
-                    poem: 1,
-                } as Text);
+                };
+                if (isPoem) {
+                    formatted.poem = 1;
+                }
+                if (wordsOfJesus) {
+                    formatted.wordsOfJesus = true;
+                }
+                verse.content.push(formatted);
             }
         } else {
             // Merge with previous string if possible
