@@ -1372,7 +1372,7 @@ exports[`LockmanParser should parse Psalm 16 with poem markers 1`] = `
         "content": [
           {
             "content": [
-              "The L<>{ORD}</> the Psalmist’s Portion in Life and Deliverer in Death.",
+              "The LORD the Psalmist’s Portion in Life and Deliverer in Death.",
             ],
             "type": "heading",
           },

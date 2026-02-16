@@ -123,9 +123,10 @@ export class LockmanParser {
                 } else {
                     // Section heading
                     const inner = raw.replace(/<\/?SH>/g, '').trim();
+                    const normalized = inner.replace(/<\\>|<\/?>|[{}]/g, '');
                     const heading: Heading = {
                         type: 'heading',
-                        content: [inner],
+                        content: [normalized],
                     };
                     if (currentChapter) {
                         currentChapter.content.push(heading);
@@ -307,6 +308,7 @@ export class LockmanParser {
         chapter: Chapter
     ) {
         let cleanText = text.replace(/\s+/g, ' ').trim();
+        cleanText = cleanText.replace(/[{}]/g, '');
 
         const segmentRegex =
             /(<\$F.*?\$E>)|(<\$R.*?\$RE>)|(<[^>]+>)|(\{.*?\})/g;
@@ -332,10 +334,7 @@ export class LockmanParser {
             } else if (m[4]) {
                 const content = m[4].substring(1, m[4].length - 1);
                 if (content) {
-                    subtitle.content.push({
-                        text: content,
-                        italics: true,
-                    } as Text);
+                    this.addSubtitleText(subtitle, content);
                 }
             }
 
