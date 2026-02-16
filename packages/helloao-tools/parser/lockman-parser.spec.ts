@@ -149,6 +149,7 @@ describe('LockmanParser', () => {
         expect(roots).toEqual([
             {
                 type: 'root',
+                id: 'GEN',
                 title: 'GENESIS',
                 content: [
                     {
@@ -167,6 +168,7 @@ describe('LockmanParser', () => {
             },
             {
                 type: 'root',
+                id: 'EXO',
                 title: 'EXODUS',
                 content: [
                     {
@@ -199,6 +201,7 @@ describe('LockmanParser', () => {
         expect(roots).toEqual([
             {
                 type: 'root',
+                id: 'GEN',
                 title: 'GENESIS',
                 content: [
                     {
@@ -242,6 +245,7 @@ describe('LockmanParser', () => {
         expect(roots).toEqual([
             {
                 type: 'root',
+                id: 'GEN',
                 title: 'GENESIS',
                 content: [
                     {
@@ -278,6 +282,7 @@ describe('LockmanParser', () => {
         expect(roots).toEqual([
             {
                 type: 'root',
+                id: 'GEN',
                 title: 'GENESIS',
                 content: [
                     {
@@ -330,6 +335,7 @@ describe('LockmanParser', () => {
         expect(roots).toEqual([
             {
                 type: 'root',
+                id: 'GEN',
                 title: 'GENESIS',
                 content: [
                     {
@@ -390,6 +396,7 @@ describe('LockmanParser', () => {
         expect(roots).toEqual([
             {
                 type: 'root',
+                id: 'LUK',
                 content: [
                     {
                         type: 'chapter',
@@ -567,6 +574,7 @@ describe('LockmanParser', () => {
                         type: 'chapter',
                     },
                 ],
+                id: 'LUK',
                 type: 'root',
             },
         ]);

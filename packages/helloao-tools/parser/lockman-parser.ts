@@ -8,6 +8,14 @@ import {
     FootnoteReference,
     HebrewSubtitle,
 } from './types';
+import { bookOrderMap } from '../generation/book-order';
+
+const bookNumberIdMap = new Map<number, string>();
+for (const [id, order] of bookOrderMap) {
+    if (!bookNumberIdMap.has(order)) {
+        bookNumberIdMap.set(order, id);
+    }
+}
 
 export class LockmanParser {
     parse(text: string): ParseTree[] {
@@ -139,6 +147,12 @@ export class LockmanParser {
                 // Verse Start: <Tag>{{Ref}}Number<T>
                 // Extract Verse Number
                 const tagContent = match[4];
+                if (currentRoot && !currentRoot.id) {
+                    const bookId = this.getBookIdFromVerseTag(tagContent);
+                    if (bookId) {
+                        currentRoot.id = bookId;
+                    }
+                }
                 // Regex to extract digits before <T>
                 const vNumMatch = tagContent.match(/(\d+)(?:<T>|\^)/);
                 const vNum = vNumMatch ? parseInt(vNumMatch[1], 10) : 0;
@@ -176,6 +190,20 @@ export class LockmanParser {
         }
 
         return roots;
+    }
+
+    private getBookIdFromVerseTag(tagContent: string): string | null {
+        const match = tagContent.match(/\{\{(\d+)::/);
+        if (!match) {
+            return null;
+        }
+
+        const bookNumber = parseInt(match[1], 10);
+        if (isNaN(bookNumber)) {
+            return null;
+        }
+
+        return bookNumberIdMap.get(bookNumber) ?? null;
     }
 
     private parseVerseContent(

@@ -1358,6 +1358,7 @@ exports[`LockmanParser should parse Genesis 1 and 2 from NASB 1`] = `
         "type": "chapter",
       },
     ],
+    "id": "GEN",
     "title": "GENESIS",
     "type": "root",
   },
@@ -1492,6 +1493,7 @@ exports[`LockmanParser should parse Psalm 16 with poem markers 1`] = `
         "type": "chapter",
       },
     ],
+    "id": "PSA",
     "title": "PSALMS",
     "type": "root",
   },
@@ -1716,6 +1718,7 @@ exports[`LockmanParser should parse red lettering as wordsOfJesus 1`] = `
         "type": "chapter",
       },
     ],
+    "id": "LUK",
     "type": "root",
   },
 ]
