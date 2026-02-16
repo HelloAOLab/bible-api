@@ -120,6 +120,11 @@ export class LockmanParser {
                 const vNum = vNumMatch ? parseInt(vNumMatch[1], 10) : 0;
 
                 if (currentChapter) {
+                    // Check for Paragraph Marker
+                    if (tagContent.startsWith('<PM>')) {
+                        currentChapter.content.push({ type: 'line_break' });
+                    }
+
                     currentVerse = {
                         type: 'verse',
                         number: vNum,
@@ -145,18 +150,39 @@ export class LockmanParser {
         // Remove line breaks that are just formatting in the source file
         // But keep spaces.
         // The source has newlines. We should arguably treat them as spaces.
-        const cleanText = text.replace(/\r?\n/g, ' ');
+        let cleanText = text.replace(/\s+/g, ' ');
+
+        // If this block of text is at the end of a verse, we might want to trim trailing space.
+        // However, we don't strictly know if it's the end, but in this parser structure,
+        // parseVerseContent is called with the *entire* text between structure markers.
+        // So `text` is "Verse 1 " (because of newline).
+        // It's generally safe to trim key whitespace if it's just a newline in source.
+
+        // Actually, let's just trim the WHOLE thing if it's creating issues.
+        // But we want to preserve internal spacing.
+        // The issue is simply that `\n` -> ` ` and it's at the end.
+
+        // Let's rely on the fact that if the text ends in space, and it's followed by a tag that starts a new structural element, that space is likely superfluous.
+        // But we don't know the future here easily.
+
+        // Let's modify the tests to EXPECT the space, OR modify the parser to trip trailing spaces for "text" nodes.
+        // Given the requirement is "validate the parsed structure", and the input has newlines,
+        // Normalize whitespace: replace newlines/tabs with spaces, and trim leading/trailing space
+        // This handles cases where source text has newlines for formatting that shouldn't appear in the output.
+        // However, we preserve internal spaces between words.
+        cleanText = cleanText.replace(/\s+/g, ' ').trim();
 
         // Regex to separate text from special inline blocks:
         // 1. Footnotes: <$F ... $E>
         // 2. Cross References: <$R ... $RE>  (To be removed)
         // 3. Formatting Tags: <RA>, <N1>, etc. (To be removed?)
+        // 4. Italics in curly braces: {text}
 
-        // We'll iterate and build the verse content.
-        // Note: Some tags like <N1> might be footnote markers in the text,
-        // usually ignored if we use the footnote architecture.
+        // Note: Curly braces are nested inside footnotes sometimes, but stripped there.
+        // At the verse level, they denote italics.
 
-        const segmentRegex = /(<\$F.*?\$E>)|(<\$R.*?\$RE>)|(<[^>]+>)/g;
+        const segmentRegex =
+            /(<\$F.*?\$E>)|(<\$R.*?\$RE>)|(<[^>]+>)|(\{.*?\})/g;
 
         let lastIdx = 0;
         let m;
@@ -176,6 +202,17 @@ export class LockmanParser {
             } else if (m[3]) {
                 // Other tag -> Ignore (e.g. <RA>, <N1>, <FA>)
                 // These are often just markers or anchors.
+            } else if (m[4]) {
+                // Italics {text}
+                const content = m[4].substring(1, m[4].length - 1);
+                // We push a Text object with italics: true
+                // Check if we need to decode inside? Usually just text.
+                if (content) {
+                    verse.content.push({
+                        text: content,
+                        italics: true,
+                    } as Text);
+                }
             }
 
             lastIdx = segmentRegex.lastIndex;
@@ -188,24 +225,15 @@ export class LockmanParser {
     }
 
     private addText(verse: Verse, text: string) {
-        // Decode HTML entities if necessary?
-        // Basic normalization
-        // Collapse multiple spaces?
-        // The test expects "In the beginning God..."
-        // If we just stripped tags, we might have extra spaces.
-        // Typically, we want to preserve explicit spaces but collapse newlines/tabs.
-        // We already replaced newlines with spaces.
-        // Let's not aggressively trim middle, but useful to trim ends if it's strictly isolated?
-        // No, spacing between "beginning" and "<Tag>God" is important.
-        // The tag removal shouldn't remove the space.
-
-        // However, if the text is ONLY whitespace and we are between tags...
-
         if (!text) return;
 
-        // Push as string or Text object (if needed for Jesus words etc)
-        // For now, simpler is string.
-        verse.content.push(text);
+        // Merge with previous string if possible
+        const lastItem = verse.content[verse.content.length - 1];
+        if (typeof lastItem === 'string') {
+            verse.content[verse.content.length - 1] = lastItem + text;
+        } else {
+            verse.content.push(text);
+        }
     }
 
     private processFootnote(block: string, verse: Verse, chapter: Chapter) {
@@ -215,16 +243,18 @@ export class LockmanParser {
         // Remove known technical tags.
 
         // Remove outer $F...$E
-        let inner = block.substring(3, block.length - 2);
+        let inner = block.replace(/^<\$F/, '').replace(/\$E>$/, '');
 
-        // The logical structure of footnote content in Lockman format:
-        // often contained in {} or just text after tags.
-        // E.g. <N1>Or {a waste and emptiness}
-        // Simplified approach: strip all tags from inner content.
-        let text = inner.replace(/<[^>]+>/g, '').trim();
+        // Remove internal technical tags
+        // Remove <FN>...</FN> completely
+        inner = inner.replace(/<FN>.*?<\/FN>/g, '');
 
-        // Handle { } braces which denote alternative translation usually
-        // The text often keeps them.
+        // Remove other tags <N1>, <FA> but keep content
+        // Also remove italics curly braces (keep content inside)
+        const text = inner
+            .replace(/<[^>]+>/g, '')
+            .replace(/[\{\}]/g, '')
+            .trim();
 
         if (!text) return;
 

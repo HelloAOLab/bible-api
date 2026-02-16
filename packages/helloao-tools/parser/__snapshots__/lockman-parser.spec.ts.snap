@@ -1,0 +1,1365 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`LockmanParser should parse Genesis 1 and 2 from NASB 1`] = `
+[
+  {
+    "content": [
+      {
+        "content": [
+          {
+            "content": [
+              "The Creation",
+            ],
+            "type": "heading",
+          },
+          {
+            "content": [
+              "In the beginning God created the heavens and the earth.",
+            ],
+            "number": 1,
+            "type": "verse",
+          },
+          {
+            "content": [
+              "The earth was ",
+              {
+                "noteId": 1,
+              },
+              "formless and void, and darkness was over the ",
+              {
+                "noteId": 2,
+              },
+              "surface of the deep, and the Spirit of God was ",
+              {
+                "noteId": 3,
+              },
+              "moving over the ",
+              {
+                "noteId": 4,
+              },
+              "surface of the waters.",
+            ],
+            "number": 2,
+            "type": "verse",
+          },
+          {
+            "content": [
+              "Then God said, “Let there be light”; and there was light.",
+            ],
+            "number": 3,
+            "type": "verse",
+          },
+          {
+            "content": [
+              "God saw that the light was good; and God separated the light from the darkness.",
+            ],
+            "number": 4,
+            "type": "verse",
+          },
+          {
+            "content": [
+              "God called the light day, and the darkness He called night. And there was evening and there was morning, one day.",
+            ],
+            "number": 5,
+            "type": "verse",
+          },
+          {
+            "type": "line_break",
+          },
+          {
+            "content": [
+              "Then God said, “Let there be ",
+              {
+                "noteId": 5,
+              },
+              "an expanse in the midst of the waters, and let it separate the waters from the waters.”",
+            ],
+            "number": 6,
+            "type": "verse",
+          },
+          {
+            "content": [
+              "God made the ",
+              {
+                "noteId": 6,
+              },
+              "expanse, and separated the waters which were below the ",
+              {
+                "noteId": 7,
+              },
+              "expanse from the waters which were above the ",
+              {
+                "noteId": 8,
+              },
+              "expanse; and it was so.",
+            ],
+            "number": 7,
+            "type": "verse",
+          },
+          {
+            "content": [
+              "God called the ",
+              {
+                "noteId": 9,
+              },
+              "expanse heaven. And there was evening and there was morning, a second day.",
+            ],
+            "number": 8,
+            "type": "verse",
+          },
+          {
+            "type": "line_break",
+          },
+          {
+            "content": [
+              "Then God said, “Let the waters below the heavens be gathered into one place, and let the dry land appear”; and it was so.",
+            ],
+            "number": 9,
+            "type": "verse",
+          },
+          {
+            "content": [
+              "God called the dry land earth, and the gathering of the waters He called seas; and God saw that it was good.",
+            ],
+            "number": 10,
+            "type": "verse",
+          },
+          {
+            "content": [
+              "Then God said, “Let the earth sprout ",
+              {
+                "noteId": 10,
+              },
+              "vegetation, ",
+              {
+                "noteId": 11,
+              },
+              "plants yielding seed, ",
+              {
+                "italics": true,
+                "text": "and",
+              },
+              " fruit trees on the earth bearing fruit after ",
+              {
+                "noteId": 12,
+              },
+              "their kind ",
+              {
+                "noteId": 13,
+              },
+              "with seed in them”; and it was so.",
+            ],
+            "number": 11,
+            "type": "verse",
+          },
+          {
+            "content": [
+              "The earth brought forth ",
+              {
+                "noteId": 14,
+              },
+              "vegetation, ",
+              {
+                "noteId": 15,
+              },
+              "plants yielding seed after ",
+              {
+                "noteId": 16,
+              },
+              "their kind, and trees bearing fruit ",
+              {
+                "noteId": 17,
+              },
+              "with seed in them, after ",
+              {
+                "noteId": 18,
+              },
+              "their kind; and God saw that it was good.",
+            ],
+            "number": 12,
+            "type": "verse",
+          },
+          {
+            "content": [
+              "There was evening and there was morning, a third day.",
+            ],
+            "number": 13,
+            "type": "verse",
+          },
+          {
+            "type": "line_break",
+          },
+          {
+            "content": [
+              "Then God said, “Let there be ",
+              {
+                "noteId": 19,
+              },
+              "lights in the ",
+              {
+                "noteId": 20,
+              },
+              "expanse of the heavens to separate the day from the night, and let them be for signs and for seasons and for days and years;",
+            ],
+            "number": 14,
+            "type": "verse",
+          },
+          {
+            "content": [
+              "and let them be for ",
+              {
+                "noteId": 21,
+              },
+              "lights in the ",
+              {
+                "noteId": 22,
+              },
+              "expanse of the heavens to give light on the earth”; and it was so.",
+            ],
+            "number": 15,
+            "type": "verse",
+          },
+          {
+            "content": [
+              "God made the two ",
+              {
+                "noteId": 23,
+              },
+              "great lights, the greater ",
+              {
+                "noteId": 24,
+              },
+              "light ",
+              {
+                "noteId": 25,
+              },
+              "to govern the day, and the lesser ",
+              {
+                "noteId": 26,
+              },
+              "light ",
+              {
+                "noteId": 27,
+              },
+              "to govern the night; ",
+              {
+                "italics": true,
+                "text": "He made",
+              },
+              " the stars also.",
+            ],
+            "number": 16,
+            "type": "verse",
+          },
+          {
+            "content": [
+              "God placed them in the ",
+              {
+                "noteId": 28,
+              },
+              "expanse of the heavens to give light on the earth,",
+            ],
+            "number": 17,
+            "type": "verse",
+          },
+          {
+            "content": [
+              "and ",
+              {
+                "noteId": 29,
+              },
+              "to govern the day and the night, and to separate the light from the darkness; and God saw that it was good.",
+            ],
+            "number": 18,
+            "type": "verse",
+          },
+          {
+            "content": [
+              "There was evening and there was morning, a fourth day.",
+            ],
+            "number": 19,
+            "type": "verse",
+          },
+          {
+            "type": "line_break",
+          },
+          {
+            "content": [
+              "Then God said, “Let the waters ",
+              {
+                "noteId": 30,
+              },
+              "teem with swarms of living creatures, and let birds fly above the earth ",
+              {
+                "noteId": 31,
+              },
+              "in the open ",
+              {
+                "noteId": 32,
+              },
+              "expanse of the heavens.”",
+            ],
+            "number": 20,
+            "type": "verse",
+          },
+          {
+            "content": [
+              "God created the great sea monsters and every living creature that moves, with which the waters swarmed after their kind, and every winged bird after its kind; and God saw that it was good.",
+            ],
+            "number": 21,
+            "type": "verse",
+          },
+          {
+            "content": [
+              "God blessed them, saying, “Be fruitful and multiply, and fill the waters in the seas, and let birds multiply on the earth.”",
+            ],
+            "number": 22,
+            "type": "verse",
+          },
+          {
+            "content": [
+              "There was evening and there was morning, a fifth day.",
+            ],
+            "number": 23,
+            "type": "verse",
+          },
+          {
+            "type": "line_break",
+          },
+          {
+            "content": [
+              "Then God said, “Let the earth bring forth living creatures after ",
+              {
+                "noteId": 33,
+              },
+              "their kind: cattle and creeping things and beasts of the earth after ",
+              {
+                "noteId": 34,
+              },
+              "their kind”; and it was so.",
+            ],
+            "number": 24,
+            "type": "verse",
+          },
+          {
+            "content": [
+              "God made the beasts of the earth after ",
+              {
+                "noteId": 35,
+              },
+              "their kind, and the cattle after ",
+              {
+                "noteId": 36,
+              },
+              "their kind, and everything that creeps on the ground after its kind; and God saw that it was good.",
+            ],
+            "number": 25,
+            "type": "verse",
+          },
+          {
+            "type": "line_break",
+          },
+          {
+            "content": [
+              "Then God said, “Let Us make man in Our image, according to Our likeness; and let them rule over the fish of the sea and over the birds of the ",
+              {
+                "noteId": 37,
+              },
+              "sky and over the cattle and over all the earth, and over every creeping thing that creeps on the earth.”",
+            ],
+            "number": 26,
+            "type": "verse",
+          },
+          {
+            "content": [
+              "God created man in His own image, in the image of God He created him; male and female He created them.",
+            ],
+            "number": 27,
+            "type": "verse",
+          },
+          {
+            "content": [
+              "God blessed them; and God said to them, “Be fruitful and multiply, and fill the earth, and subdue it; and rule over the fish of the sea and over the birds of the ",
+              {
+                "noteId": 38,
+              },
+              "sky and over every living thing that ",
+              {
+                "noteId": 39,
+              },
+              "moves on the earth.”",
+            ],
+            "number": 28,
+            "type": "verse",
+          },
+          {
+            "content": [
+              "Then God said, “Behold, I have given you every plant yielding seed that is on the ",
+              {
+                "noteId": 40,
+              },
+              "surface of all the earth, and every tree ",
+              {
+                "noteId": 41,
+              },
+              "which has fruit yielding seed; it shall be food for you;",
+            ],
+            "number": 29,
+            "type": "verse",
+          },
+          {
+            "content": [
+              "and to every beast of the earth and to every bird of the ",
+              {
+                "noteId": 42,
+              },
+              "sky and to every thing that ",
+              {
+                "noteId": 43,
+              },
+              "moves on the earth ",
+              {
+                "noteId": 44,
+              },
+              "which has life, ",
+              {
+                "italics": true,
+                "text": "I have given",
+              },
+              " every green plant for food”; and it was so.",
+            ],
+            "number": 30,
+            "type": "verse",
+          },
+          {
+            "content": [
+              "God saw all that He had made, and behold, it was very good. And there was evening and there was morning, the sixth day.",
+            ],
+            "number": 31,
+            "type": "verse",
+          },
+        ],
+        "footnotes": [
+          {
+            "caller": "+",
+            "noteId": 1,
+            "reference": {
+              "chapter": 1,
+              "verse": 2,
+            },
+            "text": "Or a waste and emptiness",
+          },
+          {
+            "caller": "+",
+            "noteId": 2,
+            "reference": {
+              "chapter": 1,
+              "verse": 2,
+            },
+            "text": "Lit face of",
+          },
+          {
+            "caller": "+",
+            "noteId": 3,
+            "reference": {
+              "chapter": 1,
+              "verse": 2,
+            },
+            "text": "Or hovering",
+          },
+          {
+            "caller": "+",
+            "noteId": 4,
+            "reference": {
+              "chapter": 1,
+              "verse": 2,
+            },
+            "text": "Lit face of",
+          },
+          {
+            "caller": "+",
+            "noteId": 5,
+            "reference": {
+              "chapter": 1,
+              "verse": 6,
+            },
+            "text": "Or a firmament",
+          },
+          {
+            "caller": "+",
+            "noteId": 6,
+            "reference": {
+              "chapter": 1,
+              "verse": 7,
+            },
+            "text": "Or firmament",
+          },
+          {
+            "caller": "+",
+            "noteId": 7,
+            "reference": {
+              "chapter": 1,
+              "verse": 7,
+            },
+            "text": "Or firmament",
+          },
+          {
+            "caller": "+",
+            "noteId": 8,
+            "reference": {
+              "chapter": 1,
+              "verse": 7,
+            },
+            "text": "Or firmament",
+          },
+          {
+            "caller": "+",
+            "noteId": 9,
+            "reference": {
+              "chapter": 1,
+              "verse": 8,
+            },
+            "text": "Or firmament",
+          },
+          {
+            "caller": "+",
+            "noteId": 10,
+            "reference": {
+              "chapter": 1,
+              "verse": 11,
+            },
+            "text": "Or grass",
+          },
+          {
+            "caller": "+",
+            "noteId": 11,
+            "reference": {
+              "chapter": 1,
+              "verse": 11,
+            },
+            "text": "Or herbs",
+          },
+          {
+            "caller": "+",
+            "noteId": 12,
+            "reference": {
+              "chapter": 1,
+              "verse": 11,
+            },
+            "text": "Lit its",
+          },
+          {
+            "caller": "+",
+            "noteId": 13,
+            "reference": {
+              "chapter": 1,
+              "verse": 11,
+            },
+            "text": "Lit in which is its seed",
+          },
+          {
+            "caller": "+",
+            "noteId": 14,
+            "reference": {
+              "chapter": 1,
+              "verse": 12,
+            },
+            "text": "Or grass",
+          },
+          {
+            "caller": "+",
+            "noteId": 15,
+            "reference": {
+              "chapter": 1,
+              "verse": 12,
+            },
+            "text": "Or herbs",
+          },
+          {
+            "caller": "+",
+            "noteId": 16,
+            "reference": {
+              "chapter": 1,
+              "verse": 12,
+            },
+            "text": "Lit its",
+          },
+          {
+            "caller": "+",
+            "noteId": 17,
+            "reference": {
+              "chapter": 1,
+              "verse": 12,
+            },
+            "text": "Lit in which is its seed",
+          },
+          {
+            "caller": "+",
+            "noteId": 18,
+            "reference": {
+              "chapter": 1,
+              "verse": 12,
+            },
+            "text": "Lit its",
+          },
+          {
+            "caller": "+",
+            "noteId": 19,
+            "reference": {
+              "chapter": 1,
+              "verse": 14,
+            },
+            "text": "Or luminaries, light-bearers",
+          },
+          {
+            "caller": "+",
+            "noteId": 20,
+            "reference": {
+              "chapter": 1,
+              "verse": 14,
+            },
+            "text": "Or firmament",
+          },
+          {
+            "caller": "+",
+            "noteId": 21,
+            "reference": {
+              "chapter": 1,
+              "verse": 15,
+            },
+            "text": "Or luminaries, light-bearers",
+          },
+          {
+            "caller": "+",
+            "noteId": 22,
+            "reference": {
+              "chapter": 1,
+              "verse": 15,
+            },
+            "text": "Or firmament",
+          },
+          {
+            "caller": "+",
+            "noteId": 23,
+            "reference": {
+              "chapter": 1,
+              "verse": 16,
+            },
+            "text": "Or luminaries, light-bearers",
+          },
+          {
+            "caller": "+",
+            "noteId": 24,
+            "reference": {
+              "chapter": 1,
+              "verse": 16,
+            },
+            "text": "Or luminary, light-bearer",
+          },
+          {
+            "caller": "+",
+            "noteId": 25,
+            "reference": {
+              "chapter": 1,
+              "verse": 16,
+            },
+            "text": "Lit for the dominion of",
+          },
+          {
+            "caller": "+",
+            "noteId": 26,
+            "reference": {
+              "chapter": 1,
+              "verse": 16,
+            },
+            "text": "Or luminary, light-bearer",
+          },
+          {
+            "caller": "+",
+            "noteId": 27,
+            "reference": {
+              "chapter": 1,
+              "verse": 16,
+            },
+            "text": "Lit for the dominion of",
+          },
+          {
+            "caller": "+",
+            "noteId": 28,
+            "reference": {
+              "chapter": 1,
+              "verse": 17,
+            },
+            "text": "Or firmament",
+          },
+          {
+            "caller": "+",
+            "noteId": 29,
+            "reference": {
+              "chapter": 1,
+              "verse": 18,
+            },
+            "text": "Lit for the dominion of",
+          },
+          {
+            "caller": "+",
+            "noteId": 30,
+            "reference": {
+              "chapter": 1,
+              "verse": 20,
+            },
+            "text": "Or swarm",
+          },
+          {
+            "caller": "+",
+            "noteId": 31,
+            "reference": {
+              "chapter": 1,
+              "verse": 20,
+            },
+            "text": "Lit on the face of",
+          },
+          {
+            "caller": "+",
+            "noteId": 32,
+            "reference": {
+              "chapter": 1,
+              "verse": 20,
+            },
+            "text": "Or firmament",
+          },
+          {
+            "caller": "+",
+            "noteId": 33,
+            "reference": {
+              "chapter": 1,
+              "verse": 24,
+            },
+            "text": "Lit its",
+          },
+          {
+            "caller": "+",
+            "noteId": 34,
+            "reference": {
+              "chapter": 1,
+              "verse": 24,
+            },
+            "text": "Lit its",
+          },
+          {
+            "caller": "+",
+            "noteId": 35,
+            "reference": {
+              "chapter": 1,
+              "verse": 25,
+            },
+            "text": "Lit its",
+          },
+          {
+            "caller": "+",
+            "noteId": 36,
+            "reference": {
+              "chapter": 1,
+              "verse": 25,
+            },
+            "text": "Lit its",
+          },
+          {
+            "caller": "+",
+            "noteId": 37,
+            "reference": {
+              "chapter": 1,
+              "verse": 26,
+            },
+            "text": "Lit heavens",
+          },
+          {
+            "caller": "+",
+            "noteId": 38,
+            "reference": {
+              "chapter": 1,
+              "verse": 28,
+            },
+            "text": "Lit heavens",
+          },
+          {
+            "caller": "+",
+            "noteId": 39,
+            "reference": {
+              "chapter": 1,
+              "verse": 28,
+            },
+            "text": "Or creeps",
+          },
+          {
+            "caller": "+",
+            "noteId": 40,
+            "reference": {
+              "chapter": 1,
+              "verse": 29,
+            },
+            "text": "Lit face of",
+          },
+          {
+            "caller": "+",
+            "noteId": 41,
+            "reference": {
+              "chapter": 1,
+              "verse": 29,
+            },
+            "text": "Lit in which is the fruit of a tree yielding seed",
+          },
+          {
+            "caller": "+",
+            "noteId": 42,
+            "reference": {
+              "chapter": 1,
+              "verse": 30,
+            },
+            "text": "Lit heavens",
+          },
+          {
+            "caller": "+",
+            "noteId": 43,
+            "reference": {
+              "chapter": 1,
+              "verse": 30,
+            },
+            "text": "Or creeps",
+          },
+          {
+            "caller": "+",
+            "noteId": 44,
+            "reference": {
+              "chapter": 1,
+              "verse": 30,
+            },
+            "text": "Lit in which is a living soul",
+          },
+        ],
+        "number": 1,
+        "type": "chapter",
+      },
+      {
+        "content": [
+          {
+            "content": [
+              "The Creation of Man and Woman",
+            ],
+            "type": "heading",
+          },
+          {
+            "content": [
+              "Thus the heavens and the earth were completed, and all their hosts.",
+            ],
+            "number": 1,
+            "type": "verse",
+          },
+          {
+            "content": [
+              "By the seventh day God completed His work which He had done, and He rested on the seventh day from all His work which He had done.",
+            ],
+            "number": 2,
+            "type": "verse",
+          },
+          {
+            "content": [
+              "Then God blessed the seventh day and sanctified it, because in it He rested from all His work which God had created ",
+              {
+                "noteId": 1,
+              },
+              "and made.",
+            ],
+            "number": 3,
+            "type": "verse",
+          },
+          {
+            "type": "line_break",
+          },
+          {
+            "content": [
+              {
+                "noteId": 2,
+              },
+              "This is the account of the heavens and the earth when they were created, in the day that the L<>ORD God made earth and heaven.",
+            ],
+            "number": 4,
+            "type": "verse",
+          },
+          {
+            "content": [
+              "Now no shrub of the field was yet in the earth, and no plant of the field had yet sprouted, for the L<>ORD God had not sent rain upon the earth, and there was no man to ",
+              {
+                "noteId": 3,
+              },
+              "cultivate the ground.",
+            ],
+            "number": 5,
+            "type": "verse",
+          },
+          {
+            "content": [
+              "But a ",
+              {
+                "noteId": 4,
+              },
+              "mist used to rise from the earth and water the whole ",
+              {
+                "noteId": 5,
+              },
+              "surface of the ground.",
+            ],
+            "number": 6,
+            "type": "verse",
+          },
+          {
+            "content": [
+              "Then the L<>ORD God formed man of dust from the ground, and breathed into his nostrils the breath of life; and man became a living ",
+              {
+                "noteId": 6,
+              },
+              "being.",
+            ],
+            "number": 7,
+            "type": "verse",
+          },
+          {
+            "content": [
+              "The L<>ORD God planted a garden toward the east, in Eden; and there He placed the man whom He had formed.",
+            ],
+            "number": 8,
+            "type": "verse",
+          },
+          {
+            "content": [
+              "Out of the ground the L<>ORD God caused to grow every tree that is pleasing to the sight and good for food; the tree of life also in the midst of the garden, and the tree of the knowledge of good and evil.",
+            ],
+            "number": 9,
+            "type": "verse",
+          },
+          {
+            "type": "line_break",
+          },
+          {
+            "content": [
+              "Now a river ",
+              {
+                "noteId": 7,
+              },
+              "flowed out of Eden to water the garden; and from there it divided and became four ",
+              {
+                "noteId": 8,
+              },
+              "rivers.",
+            ],
+            "number": 10,
+            "type": "verse",
+          },
+          {
+            "content": [
+              "The name of the first is Pishon; it ",
+              {
+                "noteId": 9,
+              },
+              "flows around the whole land of Havilah, where there is gold.",
+            ],
+            "number": 11,
+            "type": "verse",
+          },
+          {
+            "content": [
+              "The gold of that land is good; the bdellium and the onyx stone are there.",
+            ],
+            "number": 12,
+            "type": "verse",
+          },
+          {
+            "content": [
+              "The name of the second river is Gihon; it ",
+              {
+                "noteId": 10,
+              },
+              "flows around the whole land of Cush.",
+            ],
+            "number": 13,
+            "type": "verse",
+          },
+          {
+            "content": [
+              "The name of the third river is ",
+              {
+                "noteId": 11,
+              },
+              "Tigris; it ",
+              {
+                "noteId": 12,
+              },
+              "flows east of Assyria. And the fourth river is the ",
+              {
+                "noteId": 13,
+              },
+              "Euphrates.",
+            ],
+            "number": 14,
+            "type": "verse",
+          },
+          {
+            "type": "line_break",
+          },
+          {
+            "content": [
+              "Then the L<>ORD God took the man and put him into the garden of Eden to cultivate it and keep it.",
+            ],
+            "number": 15,
+            "type": "verse",
+          },
+          {
+            "content": [
+              "The L<>ORD God commanded the man, saying, “From any tree of the garden you may eat freely;",
+            ],
+            "number": 16,
+            "type": "verse",
+          },
+          {
+            "content": [
+              "but from the tree of the knowledge of good and evil you shall not ",
+              {
+                "noteId": 14,
+              },
+              "eat, for in the day that you eat from it you will surely die.”",
+            ],
+            "number": 17,
+            "type": "verse",
+          },
+          {
+            "type": "line_break",
+          },
+          {
+            "content": [
+              "Then the L<>ORD God said, “It is not good for the man to be alone; I will make him a helper ",
+              {
+                "noteId": 15,
+              },
+              "suitable for him.”",
+            ],
+            "number": 18,
+            "type": "verse",
+          },
+          {
+            "content": [
+              "Out of the ground the L<>ORD God formed every beast of the field and every bird of the ",
+              {
+                "noteId": 16,
+              },
+              "sky, and brought ",
+              {
+                "italics": true,
+                "text": "them",
+              },
+              " to the man to see what he would call them; and whatever the man called a living creature, that was its name.",
+            ],
+            "number": 19,
+            "type": "verse",
+          },
+          {
+            "content": [
+              "The man gave names to all the cattle, and to the birds of the ",
+              {
+                "noteId": 17,
+              },
+              "sky, and to every beast of the field, but for ",
+              {
+                "noteId": 18,
+              },
+              "Adam there was not found a helper ",
+              {
+                "noteId": 19,
+              },
+              "suitable for him.",
+            ],
+            "number": 20,
+            "type": "verse",
+          },
+          {
+            "content": [
+              "So the L<>ORD God caused a deep sleep to fall upon the man, and he slept; then He took one of his ribs and closed up the flesh at that place.",
+            ],
+            "number": 21,
+            "type": "verse",
+          },
+          {
+            "content": [
+              "The L<>ORD God ",
+              {
+                "noteId": 20,
+              },
+              "fashioned into a woman the rib which He had taken from the man, and brought her to the man.",
+            ],
+            "number": 22,
+            "type": "verse",
+          },
+          {
+            "content": [
+              "The man said, “This is now bone of my bones, And flesh of my flesh; ",
+              {
+                "noteId": 21,
+              },
+              "She shall be called ",
+              {
+                "noteId": 22,
+              },
+              "Woman, Because ",
+              {
+                "noteId": 23,
+              },
+              "she was taken out of ",
+              {
+                "noteId": 24,
+              },
+              "Man.”",
+            ],
+            "number": 23,
+            "type": "verse",
+          },
+          {
+            "content": [
+              "For this reason a man shall leave his father and his mother, and be joined to his wife; and they shall become one flesh.",
+            ],
+            "number": 24,
+            "type": "verse",
+          },
+          {
+            "content": [
+              "And the man and his wife were both naked and were not ashamed.",
+            ],
+            "number": 25,
+            "type": "verse",
+          },
+        ],
+        "footnotes": [
+          {
+            "caller": "+",
+            "noteId": 1,
+            "reference": {
+              "chapter": 2,
+              "verse": 3,
+            },
+            "text": "Lit to make",
+          },
+          {
+            "caller": "+",
+            "noteId": 2,
+            "reference": {
+              "chapter": 2,
+              "verse": 4,
+            },
+            "text": "Lit These are the generations",
+          },
+          {
+            "caller": "+",
+            "noteId": 3,
+            "reference": {
+              "chapter": 2,
+              "verse": 5,
+            },
+            "text": "Lit work, serve",
+          },
+          {
+            "caller": "+",
+            "noteId": 4,
+            "reference": {
+              "chapter": 2,
+              "verse": 6,
+            },
+            "text": "Or flow",
+          },
+          {
+            "caller": "+",
+            "noteId": 5,
+            "reference": {
+              "chapter": 2,
+              "verse": 6,
+            },
+            "text": "Lit face of",
+          },
+          {
+            "caller": "+",
+            "noteId": 6,
+            "reference": {
+              "chapter": 2,
+              "verse": 7,
+            },
+            "text": "Lit soul",
+          },
+          {
+            "caller": "+",
+            "noteId": 7,
+            "reference": {
+              "chapter": 2,
+              "verse": 10,
+            },
+            "text": "Lit was going out",
+          },
+          {
+            "caller": "+",
+            "noteId": 8,
+            "reference": {
+              "chapter": 2,
+              "verse": 10,
+            },
+            "text": "Lit heads",
+          },
+          {
+            "caller": "+",
+            "noteId": 9,
+            "reference": {
+              "chapter": 2,
+              "verse": 11,
+            },
+            "text": "Lit surrounds",
+          },
+          {
+            "caller": "+",
+            "noteId": 10,
+            "reference": {
+              "chapter": 2,
+              "verse": 13,
+            },
+            "text": "Lit is the one surrounding",
+          },
+          {
+            "caller": "+",
+            "noteId": 11,
+            "reference": {
+              "chapter": 2,
+              "verse": 14,
+            },
+            "text": "Heb Hiddekel",
+          },
+          {
+            "caller": "+",
+            "noteId": 12,
+            "reference": {
+              "chapter": 2,
+              "verse": 14,
+            },
+            "text": "Lit is the one going",
+          },
+          {
+            "caller": "+",
+            "noteId": 13,
+            "reference": {
+              "chapter": 2,
+              "verse": 14,
+            },
+            "text": "Heb Perath",
+          },
+          {
+            "caller": "+",
+            "noteId": 14,
+            "reference": {
+              "chapter": 2,
+              "verse": 17,
+            },
+            "text": "Lit eat from it",
+          },
+          {
+            "caller": "+",
+            "noteId": 15,
+            "reference": {
+              "chapter": 2,
+              "verse": 18,
+            },
+            "text": "Lit corresponding to",
+          },
+          {
+            "caller": "+",
+            "noteId": 16,
+            "reference": {
+              "chapter": 2,
+              "verse": 19,
+            },
+            "text": "Lit heavens",
+          },
+          {
+            "caller": "+",
+            "noteId": 17,
+            "reference": {
+              "chapter": 2,
+              "verse": 20,
+            },
+            "text": "Lit heavens",
+          },
+          {
+            "caller": "+",
+            "noteId": 18,
+            "reference": {
+              "chapter": 2,
+              "verse": 20,
+            },
+            "text": "Or man",
+          },
+          {
+            "caller": "+",
+            "noteId": 19,
+            "reference": {
+              "chapter": 2,
+              "verse": 20,
+            },
+            "text": "Lit corresponding to",
+          },
+          {
+            "caller": "+",
+            "noteId": 20,
+            "reference": {
+              "chapter": 2,
+              "verse": 22,
+            },
+            "text": "Lit built",
+          },
+          {
+            "caller": "+",
+            "noteId": 21,
+            "reference": {
+              "chapter": 2,
+              "verse": 23,
+            },
+            "text": "Lit This one",
+          },
+          {
+            "caller": "+",
+            "noteId": 22,
+            "reference": {
+              "chapter": 2,
+              "verse": 23,
+            },
+            "text": "Heb Ishshah",
+          },
+          {
+            "caller": "+",
+            "noteId": 23,
+            "reference": {
+              "chapter": 2,
+              "verse": 23,
+            },
+            "text": "Lit This one",
+          },
+          {
+            "caller": "+",
+            "noteId": 24,
+            "reference": {
+              "chapter": 2,
+              "verse": 23,
+            },
+            "text": "Heb Ish",
+          },
+        ],
+        "number": 2,
+        "type": "chapter",
+      },
+    ],
+    "title": "GENESIS",
+    "type": "root",
+  },
+]
+`;

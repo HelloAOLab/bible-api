@@ -122,6 +122,11 @@ export interface Text {
      * This is only used for "hebrew subtitles" that are included inside the verse markers.
      */
     descriptive?: boolean;
+
+    /**
+     * Whether the text should be displayed in italics.
+     */
+    italics?: boolean;
 }
 
 /**

@@ -74,6 +74,8 @@ describe('LockmanParser', () => {
 
         const results = parser.parse(text);
 
+        expect(results).toMatchSnapshot();
+
         // Expect 1 book for this test
         expect(results.length).toBe(1);
         const result = results[0];
@@ -143,51 +145,180 @@ describe('LockmanParser', () => {
 
         const roots = parser.parse(text);
 
-        const books = roots.filter((r) => r.type === 'root');
-        expect(books.length).toBe(2);
+        // Full structure validation for the multiple books test
+        expect(roots).toEqual([
+            {
+                type: 'root',
+                title: 'GENESIS',
+                content: [
+                    {
+                        type: 'chapter',
+                        number: 1,
+                        footnotes: [],
+                        content: [
+                            {
+                                type: 'verse',
+                                number: 1,
+                                content: ['In the beginning...'],
+                            },
+                        ],
+                    },
+                ],
+            },
+            {
+                type: 'root',
+                title: 'EXODUS',
+                content: [
+                    {
+                        type: 'chapter',
+                        number: 1,
+                        footnotes: [],
+                        content: [
+                            {
+                                type: 'verse',
+                                number: 1,
+                                content: ['Now these are the names...'],
+                            },
+                        ],
+                    },
+                ],
+            },
+        ]);
+    });
 
-        // First book is Genesis
-        const genBook = books[0];
-        expect(genBook.title).toBe('GENESIS');
-        expect(genBook.content.length).toBe(1);
+    it('should parse paragraph breaks', () => {
+        // <PM> implies a paragraph start for that verse
+        const text = `<BN>GENESIS</BN>
+<CN>CHAPTER 1</CN>
+<V>{{01::1}}1<T>Verse 1
+<PM>{{01::1}}2<T>Verse 2
+<V>{{01::1}}3<T>Verse 3`;
 
-        const genChapters = genBook.content.filter(
-            (c) => c.type === 'chapter'
-        ) as Chapter[];
-        expect(genChapters.length).toBe(1);
-        expect(genChapters[0].number).toBe(1);
+        const roots = parser.parse(text);
 
-        const genVerse = genChapters[0].content.find(
-            (c) => c.type === 'verse'
-        ) as Verse;
-        expect(genVerse).toBeDefined();
-        if (genVerse) {
-            const textContent = genVerse.content
-                .map((c) => (typeof c === 'string' ? c : (c as any).text || ''))
-                .join('');
-            expect(textContent).toContain('In the beginning');
-        }
+        expect(roots).toEqual([
+            {
+                type: 'root',
+                title: 'GENESIS',
+                content: [
+                    {
+                        type: 'chapter',
+                        number: 1,
+                        footnotes: [],
+                        content: [
+                            {
+                                type: 'verse',
+                                number: 1,
+                                content: ['Verse 1'],
+                            },
+                            {
+                                type: 'line_break',
+                            },
+                            {
+                                type: 'verse',
+                                number: 2,
+                                content: ['Verse 2'],
+                            },
+                            {
+                                type: 'verse',
+                                number: 3,
+                                content: ['Verse 3'],
+                            },
+                        ],
+                    },
+                ],
+            },
+        ]);
+    });
 
-        // Second book is Exodus
-        const exBook = books[1];
-        expect(exBook.title).toBe('EXODUS');
-        expect(exBook.content.length).toBe(1);
+    it('should parse italics', () => {
+        // {} implies italics
+        const text = `<BN>GENESIS</BN>
+<CN>CHAPTER 1</CN>
+<V>{{01::1}}1<T>In the {beginning} God.`;
 
-        const exChapters = exBook.content.filter(
-            (c) => c.type === 'chapter'
-        ) as Chapter[];
-        expect(exChapters.length).toBe(1);
-        expect(exChapters[0].number).toBe(1);
+        const roots = parser.parse(text);
 
-        const exVerse = exChapters[0].content.find(
-            (c) => c.type === 'verse'
-        ) as Verse;
-        expect(exVerse).toBeDefined();
-        if (exVerse) {
-            const textContent = exVerse.content
-                .map((c) => (typeof c === 'string' ? c : (c as any).text || ''))
-                .join('');
-            expect(textContent).toContain('Now these are the names');
-        }
+        expect(roots).toEqual([
+            {
+                type: 'root',
+                title: 'GENESIS',
+                content: [
+                    {
+                        type: 'chapter',
+                        number: 1,
+                        footnotes: [],
+                        content: [
+                            {
+                                type: 'verse',
+                                number: 1,
+                                content: [
+                                    'In the ',
+                                    {
+                                        text: 'beginning',
+                                        italics: true,
+                                    },
+                                    ' God.',
+                                ],
+                            },
+                        ],
+                    },
+                ],
+            },
+        ]);
+    });
+
+    it('should parse footnotes', () => {
+        const text = `<BN>GENESIS</BN>
+<CN>CHAPTER 1</CN>
+<V>{{01::1}}1<T>The earth <FA><N1><$F<FN>01<FNC>1<FNV>1</FN><N1>Or {a waste}$E>was formless.`;
+
+        const roots = parser.parse(text);
+
+        expect(roots).toEqual([
+            {
+                type: 'root',
+                title: 'GENESIS',
+                content: [
+                    {
+                        type: 'chapter',
+                        number: 1,
+                        footnotes: [
+                            {
+                                noteId: 1,
+                                text: 'Or a waste',
+                                caller: '+',
+                                reference: {
+                                    chapter: 1,
+                                    verse: 1,
+                                },
+                            },
+                        ],
+                        content: [
+                            {
+                                type: 'verse',
+                                number: 1,
+                                content: [
+                                    'The earth ',
+                                    { noteId: 1 },
+                                    'was formless.',
+                                ],
+                            },
+                        ],
+                    },
+                ],
+            },
+        ]);
+    });
+
+    it('should remove italics curly braces from footnotes', () => {
+        // Use realistic footnote structure: <$F <FN>metadata</FN> Content $E>
+        const text = `<BN>GENESIS</BN> <CN>1</CN> <V>{{01::1}}1<T>Verse text.<$F<FN>01</FN>Footnote {with} braces.$E>`;
+        const roots = parser.parse(text);
+
+        const chapter = roots[0].content[0] as Chapter;
+
+        expect(chapter.footnotes.length).toBe(1);
+        expect(chapter.footnotes[0].text).toBe('Footnote with braces.');
     });
 });
