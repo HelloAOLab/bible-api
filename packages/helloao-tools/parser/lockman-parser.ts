@@ -4,7 +4,6 @@ import {
     Verse,
     Heading,
     Footnote,
-    VerseContent,
     Text,
     FootnoteReference,
 } from './types';
@@ -25,15 +24,16 @@ export class LockmanParser {
         // Regex for structural separators
         // Captures:
         // 1. Title: <BN>...</BN>
-        // 2. Chapter Heading: <CN>...</CN>
-        // 3. Section Heading: <SH>...</SH>
-        // 4. Verse Start: (<V>|<C>|<PM>|<A>|<PO>){{...}}Number<T>
+        // 2. Chapter Heading: <CN>...</CN> or <SN>...</SN>
+        // 3. Section Heading: <SH>...</SH> or <SS>...</SS>
+        // 4. Verse Start: (<V>|<C>|<CC>|<PM>|<A>|<PO>|<P>|<PN>){{...}}Number<T>
 
         const structureRegex =
-            /(<BN>.*?<\/BN>)|(<CN>.*?<\/CN>)|(<SH>.*?<\/SH>)|((?:<V>|<C>|<PM>|<A>|<PO>)\{\{.*?\}\}\d+<T>)/g;
+            /(<BN>.*?<\/BN>)|((?:<CN>.*?<\/CN>)|(?:<SN>.*?<\/SN>))|((?:<SH>.*?<\/SH>)|(?:<SS>.*?<\/SS>))|((?:<V>|<C>|<CC>|<PM>|<A>|<PO>|<P>|<PN>)\{\{.*?\}\}\d+(?:<T>|\^)(?:\{.*?\})?)/g;
 
         let lastIndex = 0;
         let match;
+        let isPoem = false;
 
         while ((match = structureRegex.exec(text)) !== null) {
             const fullMatch = match[0];
@@ -46,7 +46,8 @@ export class LockmanParser {
                     this.parseVerseContent(
                         content,
                         currentVerse,
-                        currentChapter
+                        currentChapter,
+                        isPoem
                     );
                 }
             }
@@ -69,7 +70,7 @@ export class LockmanParser {
                 currentChapter = null;
                 currentVerse = null;
             } else if (match[2]) {
-                // <CN>CHAPTER 1</CN>
+                // <CN>CHAPTER 1</CN> or <SN>PSALM 1</SN>
                 // Start new Chapter
                 // Ensure we have a root (handle case where no <BN> provided, implicitly create one? Or just attach to last root)
                 if (!currentRoot) {
@@ -81,7 +82,8 @@ export class LockmanParser {
                     roots.push(currentRoot);
                 }
 
-                const inner = match[2].replace(/<\/?CN>/g, '').trim();
+                // Remove tags: <CN>, </CN>, <SN>, </SN>
+                const inner = match[2].replace(/<\/?(CN|SN)>/g, '').trim();
                 const numMatch = inner.match(/\d+/);
                 const num = numMatch ? parseInt(numMatch[0], 10) : 0;
 
@@ -94,13 +96,14 @@ export class LockmanParser {
                 currentRoot.content.push(currentChapter);
                 currentVerse = null;
             } else if (match[3]) {
-                // <SH>Heading</SH>
+                // <SH>Heading</SH> or <SS>Subtitle</SS>
                 if (!currentRoot) {
                     currentRoot = { type: 'root', content: [] };
                     roots.push(currentRoot);
                 }
 
-                const inner = match[3].replace(/<\/?SH>/g, '').trim();
+                // Remove tags: <SH>, </SH>, <SS>, </SS>
+                const inner = match[3].replace(/<\/?(SH|SS)>/g, '').trim();
                 const heading: Heading = {
                     type: 'heading',
                     content: [inner],
@@ -125,6 +128,9 @@ export class LockmanParser {
                         currentChapter.content.push({ type: 'line_break' });
                     }
 
+                    // Update global isPoem flag
+                    isPoem = /<(?:P|PO|PN|CC)>/.test(tagContent);
+
                     currentVerse = {
                         type: 'verse',
                         number: vNum,
@@ -139,14 +145,24 @@ export class LockmanParser {
         if (lastIndex < text.length) {
             const content = text.substring(lastIndex);
             if (currentVerse && currentChapter) {
-                this.parseVerseContent(content, currentVerse, currentChapter);
+                this.parseVerseContent(
+                    content,
+                    currentVerse,
+                    currentChapter,
+                    isPoem
+                );
             }
         }
 
         return roots;
     }
 
-    private parseVerseContent(text: string, verse: Verse, chapter: Chapter) {
+    private parseVerseContent(
+        text: string,
+        verse: Verse,
+        chapter: Chapter,
+        isPoem: boolean
+    ) {
         // Remove line breaks that are just formatting in the source file
         // But keep spaces.
         // The source has newlines. We should arguably treat them as spaces.
@@ -191,7 +207,7 @@ export class LockmanParser {
             const snippet = cleanText.substring(lastIdx, m.index);
             if (snippet) {
                 // Add plain text
-                this.addText(verse, snippet);
+                this.addText(verse, snippet, isPoem);
             }
 
             if (m[1]) {
@@ -208,10 +224,16 @@ export class LockmanParser {
                 // We push a Text object with italics: true
                 // Check if we need to decode inside? Usually just text.
                 if (content) {
-                    verse.content.push({
+                    let text: Text = {
                         text: content,
                         italics: true,
-                    } as Text);
+                    };
+
+                    if (isPoem) {
+                        text.poem = 1;
+                    }
+
+                    verse.content.push(text);
                 }
             }
 
@@ -220,19 +242,42 @@ export class LockmanParser {
 
         const remaining = cleanText.substring(lastIdx);
         if (remaining) {
-            this.addText(verse, remaining);
+            this.addText(verse, remaining, isPoem);
         }
     }
 
-    private addText(verse: Verse, text: string) {
+    private addText(verse: Verse, text: string, isPoem: boolean) {
         if (!text) return;
 
-        // Merge with previous string if possible
-        const lastItem = verse.content[verse.content.length - 1];
-        if (typeof lastItem === 'string') {
-            verse.content[verse.content.length - 1] = lastItem + text;
+        if (isPoem) {
+            // Check if we can merge with previous.
+            // When poem=1, verse.content should contain Text objects, not strings (to carry the poem attribute).
+            const lastItem = verse.content[verse.content.length - 1];
+
+            // Check if lastItem is a compatible Text object
+            if (
+                lastItem &&
+                typeof lastItem !== 'string' &&
+                (lastItem as Text).poem === 1 &&
+                !(lastItem as Text).italics &&
+                !(lastItem as Text).wordsOfJesus &&
+                !('noteId' in lastItem) // Ensure it's not a footnote reference
+            ) {
+                (lastItem as Text).text += text;
+            } else {
+                verse.content.push({
+                    text: text,
+                    poem: 1,
+                } as Text);
+            }
         } else {
-            verse.content.push(text);
+            // Merge with previous string if possible
+            const lastItem = verse.content[verse.content.length - 1];
+            if (typeof lastItem === 'string') {
+                verse.content[verse.content.length - 1] = lastItem + text;
+            } else {
+                verse.content.push(text);
+            }
         }
     }
 

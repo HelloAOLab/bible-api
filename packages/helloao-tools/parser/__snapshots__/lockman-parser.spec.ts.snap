@@ -1363,3 +1363,114 @@ exports[`LockmanParser should parse Genesis 1 and 2 from NASB 1`] = `
   },
 ]
 `;
+
+exports[`LockmanParser should parse Psalm 16 with poem markers 1`] = `
+[
+  {
+    "content": [
+      {
+        "content": [
+          {
+            "content": [
+              "The L<>{ORD}</> the Psalmist’s Portion in Life and Deliverer in Death.",
+            ],
+            "type": "heading",
+          },
+          {
+            "content": [
+              "A <FA><NA><$F<FN>19<FNC>PSALM 16<FNV>Title</FN><NA>Possibly {Epigrammatic Poem} or {Atonement Psalm}$E>Mikhtam of David.",
+            ],
+            "type": "heading",
+          },
+          {
+            "content": [
+              {
+                "noteId": 1,
+              },
+              {
+                "poem": 1,
+                "text": "I said to the L<>ORD, “You are ",
+              },
+              {
+                "noteId": 2,
+              },
+              {
+                "poem": 1,
+                "text": "my Lord; I have no good besides You.”",
+              },
+            ],
+            "number": 2,
+            "type": "verse",
+          },
+          {
+            "content": [
+              {
+                "poem": 1,
+                "text": "As for the ",
+              },
+              {
+                "noteId": 3,
+              },
+              {
+                "poem": 1,
+                "text": "saints who are in the earth, ",
+              },
+              {
+                "noteId": 4,
+              },
+              {
+                "poem": 1,
+                "text": "They are the majestic ones in whom is all my delight.",
+              },
+            ],
+            "number": 3,
+            "type": "verse",
+          },
+        ],
+        "footnotes": [
+          {
+            "caller": "+",
+            "noteId": 1,
+            "reference": {
+              "chapter": 16,
+              "verse": 2,
+            },
+            "text": "Or O my soul, you said",
+          },
+          {
+            "caller": "+",
+            "noteId": 2,
+            "reference": {
+              "chapter": 16,
+              "verse": 2,
+            },
+            "text": "Or the Lord",
+          },
+          {
+            "caller": "+",
+            "noteId": 3,
+            "reference": {
+              "chapter": 16,
+              "verse": 3,
+            },
+            "text": "Lit holy ones; i.e. the godly",
+          },
+          {
+            "caller": "+",
+            "noteId": 4,
+            "reference": {
+              "chapter": 16,
+              "verse": 3,
+            },
+            "text": "Lit And the majestic ones...delight",
+          },
+        ],
+        "number": 16,
+        "type": "chapter",
+      },
+    ],
+    "title": "PSALMS",
+    "type": "root",
+  },
+]
+`;

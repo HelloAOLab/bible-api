@@ -348,4 +348,18 @@ describe('LockmanParser', () => {
             },
         ]);
     });
+
+    it('should parse Psalm 16 with poem markers', () => {
+        const text = `<BN>PSALMS</BN>
+<SN>PSALM 16</SN>
+<SH>The L<\>{ORD}</> the Psalmist’s Portion in Life and Deliverer in Death.</SH>
+<SS>A <FA><NA><$F<FN>19<FNC>PSALM 16<FNV>Title</FN><NA>Possibly {Epigrammatic Poem} or {Atonement Psalm}$E>Mikhtam of David.</SS>
+<CP>{{19::16}}1<T><PN><RA><$R<RFN>19<RNC>16<RNV>1</RFN><RA>Ps 17:8$RE>Preserve me, O God, for <RB><$R<RFN>19<RNC>16<RNV>1</RFN><RB>Ps 7:1$RE>I take refuge in You.
+<P>{{19::16}}2<T><PN><N1><$F<FN>19<FNC>16<FNV>2</FN><N1>Or O my soul, {you said}$E>I said to the L<\>ORD</>, “You are <N2><$F<FN>19<FNC>16<FNV>2</FN><N2>Or {the Lord}$E>my Lord; <PO>I <RA><$R<RFN>19<RNC>16<RNV>2</RFN><RA>Ps 73:25$RE>have no good besides You.”
+<P>{{19::16}}3<T><PN>As for the <N1><$F<FN>19<FNC>16<FNV>3</FN><N1>Lit {holy ones;} i.e. the godly$E><RA><$R<RFN>19<RNC>16<RNV>3</RFN><RA>Ps 101:6$RE>saints who are in the earth, <PO><N2><$F<FN>19<FNC>16<FNV>3</FN><N2>Lit {And the majestic ones...delight}$E>They are the majestic ones <RB><$R<RFN>19<RNC>16<RNV>3</RFN><RB>Ps 119:63$RE>in whom is all my delight.`;
+
+        const roots = parser.parse(text);
+
+        expect(roots).toMatchSnapshot();
+    });
 });
