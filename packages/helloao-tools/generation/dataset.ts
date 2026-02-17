@@ -34,6 +34,7 @@ import {
 } from '../parser/types.js';
 import { TyndaleXmlParser } from '../parser/tyndale-xml-parser.js';
 import { getLogger } from '../log.js';
+import { LockmanParser } from '../parser/lockman-parser.js';
 
 /**
  * Defines an interface that contains generated dataset info.
@@ -141,6 +142,7 @@ export function generateDataset(
     let codexParser = new CodexParser(parser);
     let csvCommentaryParser = new CommentaryCsvParser();
     let tyndaleXmlParser = new TyndaleXmlParser(parser);
+    let lockmanParser = new LockmanParser();
 
     let parsedTranslations = new Map<string, DatasetTranslation>();
     let parsedCommentaries = new Map<string, DatasetCommentary>();
@@ -153,7 +155,8 @@ export function generateDataset(
                 | USXParser
                 | CodexParser
                 | CommentaryCsvParser
-                | TyndaleXmlParser;
+                | TyndaleXmlParser
+                | LockmanParser;
             if (file.fileType === 'usfm') {
                 parser = usfmParser;
             } else if (file.fileType === 'usx') {
@@ -164,6 +167,8 @@ export function generateDataset(
                 parser = csvCommentaryParser;
             } else if (file.fileType === 'commentary/tyndale-xml') {
                 parser = tyndaleXmlParser;
+            } else if (file.fileType === 'lockman') {
+                parser = lockmanParser;
             } else {
                 logger.warn(
                     '[generate] File does not have a valid type!',
@@ -172,28 +177,46 @@ export function generateDataset(
                 continue;
             }
 
-            const parsed = parser.parse(file.content);
+            const parsed:
+                | ParseTree
+                | CommentaryParseTree
+                | (ParseTree | CommentaryParseTree)[] = parser.parse(
+                file.content
+            );
 
-            if (
-                'parseMessages' in parsed &&
-                parsed.parseMessages &&
-                file.name
-            ) {
-                const messages = (output.parseMessages =
-                    output.parseMessages || {});
-                messages[file.name] = parsed.parseMessages;
-            }
-
-            if (parsed.type === 'root') {
-                addTranslationTree(file as InputTranslationFile, parsed);
+            if (Array.isArray(parsed)) {
+                for (let p of parsed) {
+                    logParseMessages(p, file);
+                    if (p.type === 'root') {
+                        addTranslationTree(file as InputTranslationFile, p);
+                    } else {
+                        addCommentaryTree(file as InputCommentaryFile, p);
+                    }
+                }
             } else {
-                addCommentaryTree(file as InputCommentaryFile, parsed);
+                logParseMessages(parsed, file);
+                if (parsed.type === 'root') {
+                    addTranslationTree(file as InputTranslationFile, parsed);
+                } else {
+                    addCommentaryTree(file as InputCommentaryFile, parsed);
+                }
             }
         } catch (err) {
             logger.error(
                 `[generate] Error occurred while parsing ${file.name}`,
                 err
             );
+        }
+    }
+
+    function logParseMessages(
+        parsed: ParseTree | CommentaryParseTree,
+        file: InputFile
+    ) {
+        if ('parseMessages' in parsed && parsed.parseMessages && file.name) {
+            const messages = (output.parseMessages =
+                output.parseMessages || {});
+            messages[file.name] = parsed.parseMessages;
         }
     }
 

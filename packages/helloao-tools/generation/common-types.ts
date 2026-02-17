@@ -16,7 +16,7 @@ export type InputFileMetadata =
     | InputCommentaryMetadata;
 
 export interface InputTranslationFile extends InputFileBase {
-    fileType: 'usfm' | 'usx' | 'json';
+    fileType: 'usfm' | 'usx' | 'json' | 'lockman';
     metadata: InputTranslationMetadata;
 }
 
@@ -67,6 +67,11 @@ export interface MetadataBase {
      * The URL that the license for the translation can be found.
      */
     licenseUrl: string;
+
+    /**
+     * The notice that should be displayed when displaying content from the translation.
+     */
+    licenseNotice?: string | null;
 
     /**
      * The ISO 639 letter language tag that the translation is primarily in.
@@ -132,6 +137,11 @@ export interface Translation {
      * The API-added notes for the license.
      */
     licenseNotes?: string | null;
+
+    /**
+     * The notice that should be displayed when displaying content from the translation.
+     */
+    licenseNotice?: string | null;
 
     /**
      * The short name for the translation.

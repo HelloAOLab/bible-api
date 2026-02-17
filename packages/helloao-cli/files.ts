@@ -274,7 +274,8 @@ export async function loadTranslationFiles(
             extname(f) === '.usfm' ||
             extname(f) === '.usx' ||
             extname(f) === '.json' ||
-            extname(f) === '.codex'
+            extname(f) === '.codex' ||
+            f.endsWith('.lockman.txt')
     );
 
     if (usfmFiles.length <= 0) {
@@ -286,7 +287,7 @@ export async function loadTranslationFiles(
     }
 
     if (usfmFiles.length <= 0) {
-        logger.error('Could not find USFM files for translation!', translation);
+        logger.error('Could not find files for translation!', translation);
         return [];
     }
 
@@ -296,7 +297,7 @@ export async function loadTranslationFiles(
             continue;
         }
         const filePath = path.resolve(translation, file);
-        let fileType = getFileType(path.extname(file).slice(1));
+        let fileType = getFileType(file);
         if (!fileType) {
             logger.warn(`Unknown file type for ${filePath}, skipping file.`);
             continue;
@@ -536,18 +537,19 @@ async function loadCommentaryMetadata(
     return null;
 }
 
-function getFileType(ext: string): InputTranslationFile['fileType'] | null {
-    switch (ext) {
-        case 'usfm':
-            return 'usfm';
-        case 'usx':
-            return 'usx';
-        case 'json':
-            return 'json';
-        case 'codex':
-            return 'json';
-        default:
-            return null;
+function getFileType(path: string): InputTranslationFile['fileType'] | null {
+    if (path.endsWith('.lockman.txt')) {
+        return 'lockman';
+    } else if (extname(path) === '.usfm') {
+        return 'usfm';
+    } else if (extname(path) === '.usx') {
+        return 'usx';
+    } else if (extname(path) === '.json') {
+        return 'json';
+    } else if (extname(path) === '.codex') {
+        return 'json';
+    } else {
+        return null;
     }
 }
 

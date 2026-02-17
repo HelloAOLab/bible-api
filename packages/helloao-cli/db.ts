@@ -303,6 +303,7 @@ export function insertTranslations(
         textDirection,
         licenseUrl,
         licenseNotes,
+        licenseNotice,
         website,
         englishName
     ) VALUES (
@@ -313,6 +314,7 @@ export function insertTranslations(
         @textDirection,
         @licenseUrl,
         @licenseNotes,
+        @licenseNotice,
         @website,
         @englishName
     ) ON CONFLICT(id) DO 
@@ -323,6 +325,7 @@ export function insertTranslations(
             textDirection=excluded.textDirection,
             licenseUrl=excluded.licenseUrl,
             licenseNotes=excluded.licenseNotes,
+            licenseNotice=excluded.licenseNotice,
             website=excluded.website,
             englishName=excluded.englishName;`);
 
@@ -337,6 +340,7 @@ export function insertTranslations(
                     textDirection: translation.textDirection,
                     licenseUrl: translation.licenseUrl,
                     licenseNotes: translation.licenseNotes,
+                    licenseNotice: translation.licenseNotice,
                     website: translation.website,
                     englishName: translation.englishName,
                 });
