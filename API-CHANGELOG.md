@@ -3,6 +3,22 @@
 This is the log of changes for the Free Use Bible API.
 For information on the API Generator, see [GENERATOR-CHANGELOG.md](./GENERATOR-CHANGELOG.md).
 
+## V1.9.1
+
+#### Date: 2026-02-18
+
+### :boom: Breaking Changes
+
+-   Changed the following translation IDs to match their language codes:
+    -   `cug_wbt` -> `cnq_wbt`
+    -   `plj_tsc` -> `zlu_tsc`
+
+### :bug: Bug Fixes
+
+-   Updated language codes for the `cnq_wbt` (formerly `cug_wbt`) and `zlu_tsc` (formerly `plj_tsc`) translations.
+    -   `cug` (Chungmboko langauge group) -> `cnq` (Chung language) ([Change Request](https://iso639-3.sil.org/request/2021-012))
+    -   `plj` (Polci langauge group) -> `zlu` (Zul language) ([Change Request](https://iso639-3.sil.org/request/2022-023))
+
 ## V1.9.0
 
 #### Date: 2026-01-12
