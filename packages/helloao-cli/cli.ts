@@ -503,7 +503,7 @@ async function start() {
             'Whether to output verbose information during the upload.'
         )
         .action(async (dest: string, options: any) => {
-            const db = getPrismaDb(program.opts().db);
+            const db = await getPrismaDb(program.opts().db);
             try {
                 await uploadApiFilesFromDatabase(db, dest, {
                     ...program.opts(),

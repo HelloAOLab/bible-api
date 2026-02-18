@@ -1531,7 +1531,9 @@ export function getDbPath(p?: string | null) {
     return getDbPathFromDir(process.cwd());
 }
 
-export function getPrismaDb(path?: string | null) {
+export async function getPrismaDb(path?: string | null) {
+    const db = await getDb(path);
+    db.close();
     const dbPath = getDbPath(path);
     console.log('Opening database at', dbPath);
     const prisma = new PrismaClient({
