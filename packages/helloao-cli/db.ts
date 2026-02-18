@@ -1716,6 +1716,11 @@ export async function* loadTranslationDatasets(
             commentaries: [],
         };
 
+        const optionalTranslationKeys: (keyof DatasetTranslation)[] = [
+            'licenseNotes',
+            'licenseNotice',
+        ];
+
         for (let translation of translations) {
             const datasetTranslation: DatasetTranslation = {
                 ...translation,
@@ -1723,6 +1728,12 @@ export async function* loadTranslationDatasets(
                 textDirection: translation.textDirection! as any,
                 books: [],
             };
+            for (let key of optionalTranslationKeys) {
+                if (!datasetTranslation[key]) {
+                    delete datasetTranslation[key];
+                }
+            }
+
             dataset.translations.push(datasetTranslation);
 
             const books = await db.book.findMany({
