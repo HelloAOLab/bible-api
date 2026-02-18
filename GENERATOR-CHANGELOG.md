@@ -3,6 +3,14 @@
 This is the log of changes for the Bible API Generator and associated tools.
 For information on the API itself, see [API-CHANGELOG.md](./API-CHANGELOG.md).
 
+## V2.1.0
+
+#### Date: 2026-02-18
+
+### :rocket: Features
+
+-   Added support for parsing translation files from [The Lockman Foundation](https://www.lockman.org/).
+
 ## V2.0.0
 
 #### Date: 2026-01-27
