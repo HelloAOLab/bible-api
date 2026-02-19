@@ -217,6 +217,8 @@ export class LockmanParser {
         // The source has newlines. We should arguably treat them as spaces.
         let cleanText = text.replace(/\s+/g, ' ').trim();
         cleanText = cleanText.replace(/[\+\-][“‘"]/g, '');
+        cleanText = cleanText.replace(/\+\[/g, '[').replace(/\+\]/g, ']');
+        cleanText = cleanText.replace(/@\[.*?@\]/g, '');
 
         // Regex to separate text from special inline blocks:
         // 1. Footnotes: <$F ... $E>
@@ -344,6 +346,7 @@ export class LockmanParser {
     ) {
         let cleanText = text.replace(/\s+/g, ' ').trim();
         cleanText = cleanText.replace(/[{}]/g, '');
+        cleanText = cleanText.replace(/@\[.*?@\]/g, '');
 
         const segmentRegex =
             /(<\$F.*?\$E>)|(<\$R.*?\$RE>)|(<[^>]+>)|(\{.*?\})/g;

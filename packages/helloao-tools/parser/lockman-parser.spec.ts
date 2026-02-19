@@ -272,6 +272,38 @@ describe('LockmanParser', () => {
         ]);
     });
 
+    it('should normalize Lockman amplification bracket markers', () => {
+        const text = `<BN>GENESIS</BN>
+<CN>CHAPTER 1</CN>
+<V>{{01::1}}1<T>God created +[by forming from nothing+] the heavens and the earth.`;
+
+        const roots = parser.parse(text);
+
+        expect(roots).toEqual([
+            {
+                type: 'root',
+                id: 'GEN',
+                title: 'GENESIS',
+                content: [
+                    {
+                        type: 'chapter',
+                        number: 1,
+                        footnotes: [],
+                        content: [
+                            {
+                                type: 'verse',
+                                number: 1,
+                                content: [
+                                    'God created [by forming from nothing] the heavens and the earth.',
+                                ],
+                            },
+                        ],
+                    },
+                ],
+            },
+        ]);
+    });
+
     it('should parse footnotes', () => {
         const text = `<BN>GENESIS</BN>
 <CN>CHAPTER 1</CN>
@@ -347,6 +379,34 @@ describe('LockmanParser', () => {
                                 type: 'verse',
                                 number: 1,
                                 content: ['Verse text.'],
+                            },
+                        ],
+                    },
+                ],
+            },
+        ]);
+    });
+
+    it('should remove Lockman @[ ... @] markers', () => {
+        const text = `<BN>GENESIS</BN> <CN>1</CN> <V>{{01::1}}1<T>created the heavens. @[Heb 11:3@]`;
+
+        const roots = parser.parse(text);
+
+        expect(roots).toEqual([
+            {
+                type: 'root',
+                id: 'GEN',
+                title: 'GENESIS',
+                content: [
+                    {
+                        type: 'chapter',
+                        number: 1,
+                        footnotes: [],
+                        content: [
+                            {
+                                type: 'verse',
+                                number: 1,
+                                content: ['created the heavens. '],
                             },
                         ],
                     },
