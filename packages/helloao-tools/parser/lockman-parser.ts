@@ -10,6 +10,8 @@ import {
 } from './types';
 import { bookOrderMap } from '../generation/book-order';
 
+export const LOCKMAN_PARSER_VERSION = 3;
+
 const bookNumberIdMap = new Map<number, string>();
 for (const [id, order] of bookOrderMap) {
     if (!bookNumberIdMap.has(order)) {

@@ -31,6 +31,7 @@ import {
     DatasetDatasetBook,
 } from '@helloao/tools/generation/dataset.js';
 import { getBookId } from '@helloao/tools/utils.js';
+import { LOCKMAN_PARSER_VERSION } from '@helloao/tools/parser/lockman-parser.js';
 
 /**
  * Defines an interface that contains information about a serialized file.
@@ -572,7 +573,9 @@ async function loadFile(
         .update(content)
 
         // Hack to ensure that file hashes are different for different versions of the parser.
-        .update(PARSER_VERSION)
+        .update(
+            fileType === 'lockman' ? LOCKMAN_PARSER_VERSION : PARSER_VERSION
+        )
         .digest('hex');
 
     return {
