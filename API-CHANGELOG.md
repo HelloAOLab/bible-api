@@ -3,6 +3,15 @@
 This is the log of changes for the Free Use Bible API.
 For information on the API Generator, see [GENERATOR-CHANGELOG.md](./GENERATOR-CHANGELOG.md).
 
+## V1.10.0
+
+#### Date: 2026-02-20
+
+### :rocket: Features
+
+-   Updated the `BSB` translation to 2025-12-23 (Third Printing)
+-   Added Garth's Hyper-literal Translation (`GHT`) and Greek sources (`GHTG`).
+
 ## V1.9.1
 
 #### Date: 2026-02-18
