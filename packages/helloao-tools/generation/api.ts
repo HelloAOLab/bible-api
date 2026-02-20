@@ -860,9 +860,9 @@ export function generateApiForDataset(
         let translationChapters: ApiTranslationBookChapter[] = [];
 
         for (let { chapters, ...book } of books) {
-            const firstChapterNumber = chapters[0].chapter.number;
+            const firstChapterNumber = chapters[0]?.chapter.number;
             const lastChapterNumber =
-                chapters[chapters.length - 1].chapter.number;
+                chapters[chapters.length - 1]?.chapter.number;
             const apiBook: ApiTranslationBook = {
                 ...book,
                 firstChapterNumber,
