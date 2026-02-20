@@ -857,6 +857,25 @@ export async function sourceTranslations(
     let sourceExists: any = null;
     let sourceUpsert: any = null;
 
+    let ignorelist: string[] = [];
+    const ignorelistPath = path.resolve(outputDir, 'ignorelist.txt');
+    if (await exists(ignorelistPath)) {
+        const ignorelistContent = await readFile(ignorelistPath, 'utf-8');
+        ignorelist = ignorelistContent
+            .split('\n')
+            .map((line) => line.trim())
+            .filter((line) => line.length > 0 && !line.startsWith('#'));
+    }
+
+    if (ignorelist.length > 0) {
+        logger.log(
+            `Applying ignorelist from ${ignorelistPath}: ${ignorelist.length} entries`
+        );
+        filteredSources = filteredSources.filter(
+            (source) => !ignorelist.includes(source.id)
+        );
+    }
+
     // Database-based filtering (if database is enabled)
     if (useDatabase) {
         if (!overwrite) {
