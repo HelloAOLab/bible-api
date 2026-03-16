@@ -6,11 +6,8 @@ actions:
     - text: Quick Start →
       link: /guide/
       type: 'primary'
-    - text: Newsletter
-      link: https://start.helloao.org/newsletter
-      type: accent
-    - text: YouTube
-      link: https://www.youtube.com/@aolab
+    - text: Donate
+      link: https://better.giving/marketplace/1118469
       type: accent
 features:
     - title: The Bible in JSON

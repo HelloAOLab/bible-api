@@ -44,8 +44,12 @@ export default defineUserConfig({
                 link: 'https://github.com/HelloAOLab/bible-api',
             },
             {
-                text: 'Newsletter',
-                link: 'https://start.helloao.org/newsletter',
+                text: 'About Us',
+                link: 'https://helloao.org/about-us',
+            },
+            {
+                text: 'Donate',
+                link: 'https://better.giving/marketplace/1118469',
             },
             {
                 text: 'YouTube',
