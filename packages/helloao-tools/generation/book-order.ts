@@ -210,7 +210,7 @@ const englishBookMap = new Map([
     ['PSA', { commonName: 'Psalms' }],
     ['PRO', { commonName: 'Proverbs' }],
     ['ECC', { commonName: 'Ecclesiastes' }],
-    ['SNG', { commonName: 'Song of Songs' }],
+    ['SNG', { commonName: 'Song of Solomon' }],
     ['ISA', { commonName: 'Isaiah' }],
     ['JER', { commonName: 'Jeremiah' }],
     ['LAM', { commonName: 'Lamentations' }],
