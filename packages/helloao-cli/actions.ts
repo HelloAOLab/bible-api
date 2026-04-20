@@ -2,7 +2,7 @@ import path, { basename, extname } from 'node:path';
 import * as database from './db.js';
 import Sql, { Database } from 'better-sqlite3';
 import Typesense from 'typesense';
-import { PrismaClient } from './prisma-gen/index.js';
+import { Book, PrismaClient } from './prisma-gen/index.js';
 import { DOMParser, Element, Node } from 'linkedom';
 import { mkdir, readdir, rm, writeFile } from 'node:fs/promises';
 import {
@@ -33,6 +33,7 @@ import {
     DatasetDataset,
     DatasetDatasetBook,
     DatasetOutput,
+    DatasetTranslationBook,
     generateDataset,
 } from '@helloao/tools/generation/dataset.js';
 import {
@@ -56,6 +57,7 @@ import {
 } from './conversion.js';
 import { fetchEBibleMetadata } from './ebible.js';
 import { importDatasetOutput } from './db.js';
+import { Prisma } from '@prisma/client';
 
 export interface GetTranslationsItem {
     id: string;
@@ -1582,6 +1584,7 @@ export async function uploadTypesenseVerses(
         name: collectionName,
         fields: [
             { name: 'translation', type: 'string' as const },
+            { name: 'reference', type: 'string' as const },
             { name: 'book', type: 'string' as const },
             { name: 'chapter', type: 'int32' as const },
             { name: 'verse', type: 'int32' as const },
@@ -1591,8 +1594,21 @@ export async function uploadTypesenseVerses(
     };
 
     try {
-        await client.collections(collectionName).retrieve();
+        const existing = await client.collections(collectionName).retrieve();
         logger.log(`Collection '${collectionName}' already exists.`);
+
+        const existingFields = existing.fields.map((f) => f.name);
+        const requiredFields = schema.fields.map((f) => f.name);
+        const missingFields = requiredFields.filter(
+            (f) => !existingFields.includes(f)
+        );
+
+        if (missingFields.length > 0) {
+            logger.log(
+                `Collection '${collectionName}' is missing fields: ${missingFields.join(', ')}. Updating schema...`
+            );
+            await client.collections(collectionName).update(schema);
+        }
     } catch {
         logger.log(`Creating collection '${collectionName}'...`);
         await client.collections().create(schema);
@@ -1640,15 +1656,38 @@ export async function uploadTypesenseVerses(
                 break;
             }
 
-            const documents = verses.map((v) => ({
-                id: `${v.translationId}_${v.bookId}_${v.chapterNumber}_${v.number}`,
-                translation: v.translationId,
-                book: v.bookId,
-                chapter: v.chapterNumber,
-                verse: v.number,
-                language: translation.language,
-                text: v.text,
-            }));
+            let documents = [] as any[];
+            let books = new Map<string, Book | null>();
+
+            for (const verse of verses) {
+                let book = books.get(verse.bookId) ?? null;
+                if (!book) {
+                    book = await db.book.findFirst({
+                        where: {
+                            translationId: translation.id,
+                            id: verse.bookId,
+                        },
+                    });
+                    if (book) {
+                        books.set(verse.bookId, book);
+                    } else {
+                        logger.warn(
+                            `Book not found for translation ${verse.translationId} and book ID ${verse.bookId}`
+                        );
+                    }
+                }
+
+                documents.push({
+                    id: `${verse.translationId}_${verse.bookId}_${verse.chapterNumber}_${verse.number}`,
+                    translation: verse.translationId,
+                    reference: `${book ? book.commonName : verse.bookId} ${verse.chapterNumber}:${verse.number}`,
+                    book: verse.bookId,
+                    chapter: verse.chapterNumber,
+                    verse: verse.number,
+                    language: translation.language,
+                    text: verse.text,
+                });
+            }
 
             await client
                 .collections(collectionName)
