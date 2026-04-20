@@ -1585,12 +1585,14 @@ export async function uploadTypesenseVerses(
         fields: [
             { name: 'translation', type: 'string' as const },
             { name: 'reference', type: 'string' as const },
+            { name: 'referenceNormalized', type: 'string' as const },
             { name: 'book', type: 'string' as const },
             { name: 'chapter', type: 'int32' as const },
             { name: 'verse', type: 'int32' as const },
             { name: 'language', type: 'string' as const },
             { name: 'text', type: 'string' as const, stem: true },
         ],
+        token_separators: [':'],
     };
 
     try {
@@ -1677,10 +1679,16 @@ export async function uploadTypesenseVerses(
                     }
                 }
 
+                let normalizedReference = `${verse.bookId} ${verse.chapterNumber}:${verse.number}`;
+                if (book) {
+                    normalizedReference += ` ${book.commonName} ${verse.chapterNumber}:${verse.number}`;
+                }
+
                 documents.push({
                     id: `${verse.translationId}_${verse.bookId}_${verse.chapterNumber}_${verse.number}`,
                     translation: verse.translationId,
                     reference: `${book ? book.commonName : verse.bookId} ${verse.chapterNumber}:${verse.number}`,
+                    referenceNormalized: normalizedReference,
                     book: verse.bookId,
                     chapter: verse.chapterNumber,
                     verse: verse.number,
@@ -1753,7 +1761,7 @@ export async function searchTypesenseVerses(
         .documents()
         .search({
             q: options.search?.trim() ? options.search : '*',
-            query_by: 'text',
+            query_by: ['referenceNormalized', 'text'],
             filter_by:
                 filterByParts.length > 0
                     ? filterByParts.join(' && ')
