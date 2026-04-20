@@ -1,6 +1,8 @@
 import path, { basename, extname } from 'node:path';
 import * as database from './db.js';
 import Sql, { Database } from 'better-sqlite3';
+import Typesense from 'typesense';
+import { PrismaClient } from './prisma-gen/index.js';
 import { DOMParser, Element, Node } from 'linkedom';
 import { mkdir, readdir, rm, writeFile } from 'node:fs/promises';
 import {
@@ -1537,6 +1539,128 @@ async function loadTranslationFilesOrAskForMetadata(
 /**
  * Asks the user for the metadata for the translation.
  */
+export interface UploadTypesenseVersesOptions {
+    translations?: string[];
+}
+
+export async function uploadTypesenseVerses(
+    nodes: string[],
+    apiKey: string,
+    db: PrismaClient,
+    options: UploadTypesenseVersesOptions
+): Promise<void> {
+    const logger = log.getLogger();
+
+    const parsedNodes = nodes.map((node) => {
+        const url = new URL(node);
+        const protocol = url.protocol.replace(':', '');
+        const host = url.hostname;
+        const port = url.port
+            ? parseInt(url.port, 10)
+            : protocol === 'https'
+              ? 443
+              : 80;
+        return { host, port, protocol };
+    });
+
+    const client = new Typesense.Client({
+        nodes: parsedNodes,
+        apiKey,
+        connectionTimeoutSeconds: 10,
+    });
+
+    const collectionName = 'bible-verses';
+    const schema = {
+        name: collectionName,
+        fields: [
+            { name: 'translation', type: 'string' as const },
+            { name: 'book', type: 'string' as const },
+            { name: 'chapter', type: 'int32' as const },
+            { name: 'verse', type: 'int32' as const },
+            { name: 'language', type: 'string' as const },
+            { name: 'text', type: 'string' as const, stem: true },
+        ],
+    };
+
+    try {
+        await client.collections(collectionName).retrieve();
+        logger.log(`Collection '${collectionName}' already exists.`);
+    } catch {
+        logger.log(`Creating collection '${collectionName}'...`);
+        await client.collections().create(schema);
+        logger.log(`Collection '${collectionName}' created.`);
+    }
+
+    const translationWhere =
+        options.translations && options.translations.length > 0
+            ? { id: { in: options.translations } }
+            : undefined;
+
+    const translations = await db.translation.findMany({
+        where: translationWhere,
+        select: { id: true, language: true },
+    });
+
+    logger.log(`Uploading verses for ${translations.length} translation(s)...`);
+
+    const BATCH_SIZE = 1000;
+
+    for (const translation of translations) {
+        logger.log(`Processing translation: ${translation.id}`);
+        let skip = 0;
+
+        while (true) {
+            const verses = await db.chapterVerse.findMany({
+                where: { translationId: translation.id },
+                select: {
+                    translationId: true,
+                    bookId: true,
+                    chapterNumber: true,
+                    number: true,
+                    text: true,
+                },
+                orderBy: [
+                    { bookId: 'asc' },
+                    { chapterNumber: 'asc' },
+                    { number: 'asc' },
+                ],
+                skip,
+                take: BATCH_SIZE,
+            });
+
+            if (verses.length === 0) {
+                break;
+            }
+
+            const documents = verses.map((v) => ({
+                id: `${v.translationId}_${v.bookId}_${v.chapterNumber}_${v.number}`,
+                translation: v.translationId,
+                book: v.bookId,
+                chapter: v.chapterNumber,
+                verse: v.number,
+                language: translation.language,
+                text: v.text,
+            }));
+
+            await client
+                .collections(collectionName)
+                .documents()
+                .import(documents, { action: 'upsert' });
+
+            logger.log(
+                `  Uploaded ${skip + verses.length} verses for ${translation.id}`
+            );
+
+            if (verses.length < BATCH_SIZE) {
+                break;
+            }
+            skip += BATCH_SIZE;
+        }
+    }
+
+    logger.log('Done uploading verses to Typesense.');
+}
+
 export async function askForMetadata(
     defaultId?: string
 ): Promise<InputTranslationMetadata> {

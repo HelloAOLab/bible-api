@@ -21,6 +21,7 @@ import {
     sourceTranslations,
     uploadTestTranslation,
     uploadTestTranslations,
+    uploadTypesenseVerses,
 } from './actions.js';
 import { getPrismaDb } from './db.js';
 import { confirm, input } from '@inquirer/prompts';
@@ -620,6 +621,38 @@ async function start() {
             });
 
             await Promise.all(promises);
+        });
+
+    program
+        .command('upload-typesense-verses <nodes...>')
+        .description('Uploads bible chapter verses to a Typesense instance.')
+        .option(
+            '--api-key <apiKey>',
+            'The Typesense API key. If not specified, uses the TYPESENSE_API_KEY environment variable.'
+        )
+        .option(
+            '--translations <translations...>',
+            'The translations to upload. If not specified, all translations are uploaded.'
+        )
+        .action(async (nodes: string[], options: any) => {
+            const apiKey = options.apiKey || process.env.TYPESENSE_API_KEY;
+
+            if (!apiKey) {
+                console.error(
+                    'Error: No API key provided. Use --api-key or set the TYPESENSE_API_KEY environment variable.'
+                );
+                process.exit(1);
+            }
+
+            const db = await getPrismaDb(program.opts().db);
+            try {
+                await uploadTypesenseVerses(nodes, apiKey, db, {
+                    ...program.opts(),
+                    ...options,
+                });
+            } finally {
+                db.$disconnect();
+            }
         });
 
     await program.parseAsync(process.argv);
