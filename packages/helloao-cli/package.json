@@ -44,7 +44,8 @@
         "@inquirer/prompts": "5.3.8",
         "all-iso-language-codes": "1.0.17",
         "papaparse": "5.4.1",
-        "luxon": "3.5.0"
+        "luxon": "3.5.0",
+        "typesense": "3.0.5"
     },
     "files": [
         "/README.md",

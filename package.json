@@ -51,7 +51,8 @@
         "ts-jest": "29.2.5",
         "ts-node": "^10.9.1",
         "tsx": "^4.19.1",
-        "typescript": "^5.8.3"
+        "typescript": "^5.8.3",
+        "typesense": "3.0.5"
     },
     "engines": {
         "node": "^20.17.0",
