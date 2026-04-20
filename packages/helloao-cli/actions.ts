@@ -1680,9 +1680,6 @@ export async function uploadTypesenseVerses(
                 }
 
                 let normalizedReference = `${verse.bookId} ${verse.chapterNumber}:${verse.number}`;
-                if (book) {
-                    normalizedReference += ` ${book.commonName} ${verse.chapterNumber}:${verse.number}`;
-                }
 
                 documents.push({
                     id: `${verse.translationId}_${verse.bookId}_${verse.chapterNumber}_${verse.number}`,
@@ -1761,7 +1758,7 @@ export async function searchTypesenseVerses(
         .documents()
         .search({
             q: options.search?.trim() ? options.search : '*',
-            query_by: ['referenceNormalized', 'text'],
+            query_by: ['referenceNormalized', 'reference', 'text'],
             filter_by:
                 filterByParts.length > 0
                     ? filterByParts.join(' && ')
