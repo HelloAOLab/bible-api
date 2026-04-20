@@ -1543,6 +1543,14 @@ export interface UploadTypesenseVersesOptions {
     translations?: string[];
 }
 
+export interface TypesenseSearchOptions {
+    translation?: string;
+    book?: string;
+    chapter?: string | number;
+    language?: string;
+    search?: string;
+}
+
 export async function uploadTypesenseVerses(
     nodes: string[],
     apiKey: string,
@@ -1659,6 +1667,60 @@ export async function uploadTypesenseVerses(
     }
 
     logger.log('Done uploading verses to Typesense.');
+}
+
+export async function searchTypesenseVerses(
+    nodes: string[],
+    apiKey: string,
+    options: TypesenseSearchOptions
+) {
+    const parsedNodes = nodes.map((node) => {
+        const url = new URL(node);
+        const protocol = url.protocol.replace(':', '');
+        const host = url.hostname;
+        const port = url.port
+            ? parseInt(url.port, 10)
+            : protocol === 'https'
+              ? 443
+              : 80;
+        return { host, port, protocol };
+    });
+
+    const client = new Typesense.Client({
+        nodes: parsedNodes,
+        apiKey,
+        connectionTimeoutSeconds: 10,
+    });
+
+    const filterByParts = [] as string[];
+    if (options.translation) {
+        filterByParts.push(`translation:=${options.translation}`);
+    }
+    if (options.book) {
+        filterByParts.push(`book:=${options.book}`);
+    }
+    if (options.chapter !== undefined && options.chapter !== null) {
+        const chapter = Number.parseInt(String(options.chapter), 10);
+        if (!Number.isNaN(chapter)) {
+            filterByParts.push(`chapter:=${chapter}`);
+        }
+    }
+    if (options.language) {
+        filterByParts.push(`language:=${options.language}`);
+    }
+
+    return await client
+        .collections('bible-verses')
+        .documents()
+        .search({
+            q: options.search?.trim() ? options.search : '*',
+            query_by: 'text',
+            filter_by:
+                filterByParts.length > 0
+                    ? filterByParts.join(' && ')
+                    : undefined,
+            per_page: 50,
+        });
 }
 
 export async function askForMetadata(

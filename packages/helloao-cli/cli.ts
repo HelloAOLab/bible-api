@@ -19,6 +19,7 @@ import {
     initDb,
     listEBibleTranslations,
     sourceTranslations,
+    searchTypesenseVerses,
     uploadTestTranslation,
     uploadTestTranslations,
     uploadTypesenseVerses,
@@ -653,6 +654,45 @@ async function start() {
             } finally {
                 db.$disconnect();
             }
+        });
+
+    program
+        .command('typesense-search <nodes...>')
+        .description(
+            'Searches verses in the bible-verses Typesense collection.'
+        )
+        .option(
+            '--api-key <apiKey>',
+            'The Typesense API key. If not specified, uses the TYPESENSE_API_KEY environment variable.'
+        )
+        .option(
+            '--translation <filterTranslation>',
+            'Filter by translation ID.'
+        )
+        .option('--book <filterBook>', 'Filter by book ID.')
+        .option('--chapter <filterChapter>', 'Filter by chapter number.')
+        .option('--language <filterLanguage>', 'Filter by language code.')
+        .option('--search <search>', 'Search text for verse content.')
+        .action(async (nodes: string[], options: any) => {
+            const apiKey = options.apiKey || process.env.TYPESENSE_API_KEY;
+
+            if (!apiKey) {
+                console.error(
+                    'Error: No API key provided. Use --api-key or set the TYPESENSE_API_KEY environment variable.'
+                );
+                process.exit(1);
+            }
+
+            const result = await searchTypesenseVerses(nodes, apiKey, {
+                translation: options.translation,
+                book: options.book,
+                chapter: options.chapter,
+                language: options.language,
+                search: options.search,
+            });
+
+            const logger = log.getLogger();
+            logger.log(JSON.stringify(result, null, 2));
         });
 
     await program.parseAsync(process.argv);
