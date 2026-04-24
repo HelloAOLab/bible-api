@@ -658,7 +658,7 @@ async function start() {
         });
 
     program
-        .command('typesense-search <node> <query>')
+        .command('typesense-search <node> <language> <query>')
         .description(
             'Searches verses in the bible-verses Typesense collection.'
         )
@@ -669,28 +669,34 @@ async function start() {
         .option('--translation <translation>', 'Filter by translation ID.')
         .option('--book <book>', 'Filter by book ID.')
         .option('--chapter <chapter>', 'Filter by chapter number.')
-        .option('--language <language>', 'Filter by language code.')
-        .action(async (node: string, query: string, options: any) => {
-            const apiKey = options.apiKey || process.env.TYPESENSE_API_KEY;
+        .action(
+            async (
+                node: string,
+                language: string,
+                query: string,
+                options: any
+            ) => {
+                const apiKey = options.apiKey || process.env.TYPESENSE_API_KEY;
 
-            if (!apiKey) {
-                console.error(
-                    'Error: No API key provided. Use --api-key or set the TYPESENSE_API_KEY environment variable.'
-                );
-                process.exit(1);
+                if (!apiKey) {
+                    console.error(
+                        'Error: No API key provided. Use --api-key or set the TYPESENSE_API_KEY environment variable.'
+                    );
+                    process.exit(1);
+                }
+
+                const result = await searchTypesenseVerses([node], apiKey, {
+                    translation: options.translation,
+                    book: options.book,
+                    chapter: options.chapter,
+                    language,
+                    search: query,
+                });
+
+                const logger = log.getLogger();
+                logger.log(JSON.stringify(result, null, 2));
             }
-
-            const result = await searchTypesenseVerses([node], apiKey, {
-                translation: options.translation,
-                book: options.book,
-                chapter: options.chapter,
-                language: options.language,
-                search: query,
-            });
-
-            const logger = log.getLogger();
-            logger.log(JSON.stringify(result, null, 2));
-        });
+        );
 
     await program.parseAsync(process.argv);
 }
