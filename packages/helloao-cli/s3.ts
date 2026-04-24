@@ -38,6 +38,8 @@ export class S3Uploader implements Uploader {
                 !profile || typeof profile === 'string'
                     ? fromNodeProviderChain({ profile: profile ?? undefined })
                     : profile,
+            maxAttempts: 10,
+            retryMode: 'standard',
         });
 
         if ((!process.env.AWS_REGION || !process.env.AWS_PROFILE) && !region) {
