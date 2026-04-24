@@ -16713,15 +16713,15 @@ exports[`USXParser parse() should be able to parse a whole book 1`] = `
               "text": "“‘Our Father in heaven, may your name be kept holy.",
               "wordsOfJesus": true,
             },
+            {
+              "lineBreak": true,
+            },
           ],
           "number": 9,
           "type": "verse",
         },
         {
           "content": [
-            {
-              "lineBreak": true,
-            },
             {
               "poem": 1,
               "text": "Let your Kingdom come.",
@@ -16743,15 +16743,15 @@ exports[`USXParser parse() should be able to parse a whole book 1`] = `
               "text": "Give us today our daily bread.",
               "wordsOfJesus": true,
             },
+            {
+              "lineBreak": true,
+            },
           ],
           "number": 11,
           "type": "verse",
         },
         {
           "content": [
-            {
-              "lineBreak": true,
-            },
             {
               "poem": 1,
               "text": "Forgive us our debts,",

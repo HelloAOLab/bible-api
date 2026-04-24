@@ -67,7 +67,7 @@ Map {
       "commonName": "Ecclesiastes",
     },
     "SNG" => {
-      "commonName": "Song of Songs",
+      "commonName": "Song of Solomon",
     },
     "ISA" => {
       "commonName": "Isaiah",
@@ -267,7 +267,7 @@ Map {
       "commonName": "Ecclesiastes",
     },
     "SNG" => {
-      "commonName": "Song of Songs",
+      "commonName": "Song of Solomon",
     },
     "ISA" => {
       "commonName": "Isaiah",
@@ -467,7 +467,7 @@ Map {
       "commonName": "Ecclesiastes",
     },
     "SNG" => {
-      "commonName": "Song of Songs",
+      "commonName": "Song of Solomon",
     },
     "ISA" => {
       "commonName": "Isaiah",
