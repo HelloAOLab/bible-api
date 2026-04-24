@@ -2,7 +2,7 @@ import path, { basename, extname } from 'node:path';
 import * as database from './db.js';
 import Sql, { Database } from 'better-sqlite3';
 import Typesense from 'typesense';
-import { Book, PrismaClient } from './prisma-gen/index.js';
+import { Book, Prisma, PrismaClient } from './prisma-gen/index.js';
 import { DOMParser, Element, Node } from 'linkedom';
 import { mkdir, readdir, rm, writeFile } from 'node:fs/promises';
 import {
@@ -57,7 +57,7 @@ import {
 } from './conversion.js';
 import { fetchEBibleMetadata } from './ebible.js';
 import { importDatasetOutput } from './db.js';
-import { Prisma } from '@prisma/client';
+import { groupBy } from 'lodash';
 
 export interface GetTranslationsItem {
     id: string;
@@ -1543,6 +1543,7 @@ async function loadTranslationFilesOrAskForMetadata(
  */
 export interface UploadTypesenseVersesOptions {
     translations?: string[];
+    language?: string;
 }
 
 export interface TypesenseSearchOptions {
@@ -1552,6 +1553,19 @@ export interface TypesenseSearchOptions {
     language?: string;
     search?: string;
 }
+
+const ISO_639_3_TO_1_LOCALE: Record<string, string> = {
+    eng: 'en',
+    spa: 'es',
+    fra: 'fr',
+    deu: 'de',
+    por: 'pt',
+    rus: 'ru',
+    ara: 'ar',
+    hin: 'hi',
+    zho: 'zh',
+    ind: 'id',
+};
 
 export async function uploadTypesenseVerses(
     nodes: string[],
@@ -1579,138 +1593,174 @@ export async function uploadTypesenseVerses(
         connectionTimeoutSeconds: 10,
     });
 
-    const collectionName = 'bible-verses';
-    const schema = {
-        name: collectionName,
-        fields: [
-            { name: 'translation', type: 'string' as const },
-            { name: 'reference', type: 'string' as const },
-            { name: 'referenceNormalized', type: 'string' as const },
-            { name: 'book', type: 'string' as const },
-            { name: 'chapter', type: 'int32' as const },
-            { name: 'verse', type: 'int32' as const },
-            { name: 'language', type: 'string' as const },
-            { name: 'text', type: 'string' as const, stem: true },
-        ],
-        token_separators: [':'],
-    };
-
-    try {
-        const existing = await client.collections(collectionName).retrieve();
-        logger.log(`Collection '${collectionName}' already exists.`);
-
-        const existingFields = existing.fields.map((f) => f.name);
-        const requiredFields = schema.fields.map((f) => f.name);
-        const missingFields = requiredFields.filter(
-            (f) => !existingFields.includes(f)
-        );
-
-        if (missingFields.length > 0) {
-            logger.log(
-                `Collection '${collectionName}' is missing fields: ${missingFields.join(', ')}. Updating schema...`
-            );
-            await client.collections(collectionName).update(schema);
-        }
-    } catch {
-        logger.log(`Creating collection '${collectionName}'...`);
-        await client.collections().create(schema);
-        logger.log(`Collection '${collectionName}' created.`);
-    }
-
-    const translationWhere =
+    let translationWhere: Prisma.TranslationWhereInput | undefined =
         options.translations && options.translations.length > 0
             ? { id: { in: options.translations } }
             : undefined;
+
+    if (options.language) {
+        if (!translationWhere) {
+            translationWhere = {};
+        }
+        translationWhere.language = options.language;
+    }
 
     const translations = await db.translation.findMany({
         where: translationWhere,
         select: { id: true, language: true },
     });
 
+    const translationsByLanguage = groupBy(translations, (t) => t.language);
+
     logger.log(`Uploading verses for ${translations.length} translation(s)...`);
+    logger.log(
+        `Grouped into ${Object.keys(translationsByLanguage).length} language collection(s).`
+    );
 
     const BATCH_SIZE = 1000;
 
-    for (const translation of translations) {
-        logger.log(`Processing translation: ${translation.id}`);
-        let skip = 0;
+    for (const [languageCode, languageTranslations] of Object.entries(
+        translationsByLanguage
+    )) {
+        const locale = ISO_639_3_TO_1_LOCALE[languageCode] ?? null;
 
-        while (true) {
-            const verses = await db.chapterVerse.findMany({
-                where: { translationId: translation.id },
-                select: {
-                    translationId: true,
-                    bookId: true,
-                    chapterNumber: true,
-                    number: true,
-                    text: true,
+        if (!locale) {
+            logger.warn(
+                `No ISO-639-1 locale mapping found for language code '${languageCode}'. Skipping.`
+            );
+            continue;
+        }
+
+        const collectionName = `bibleVerses.${languageCode}`;
+        const schema = {
+            name: collectionName,
+            fields: [
+                { name: 'translation', type: 'string' as const },
+                { name: 'reference', type: 'string' as const },
+                { name: 'referenceNormalized', type: 'string' as const },
+                { name: 'book', type: 'string' as const },
+                { name: 'chapter', type: 'int32' as const },
+                { name: 'verse', type: 'int32' as const },
+                { name: 'language', type: 'string' as const },
+                {
+                    name: 'text',
+                    type: 'string' as const,
+                    stem: true,
+                    locale,
                 },
-                orderBy: [
-                    { bookId: 'asc' },
-                    { chapterNumber: 'asc' },
-                    { number: 'asc' },
-                ],
-                skip,
-                take: BATCH_SIZE,
-            });
+            ],
+            token_separators: [':'],
+        };
 
-            if (verses.length === 0) {
-                break;
-            }
-
-            let documents = [] as any[];
-            let books = new Map<string, Book | null>();
-
-            for (const verse of verses) {
-                let book = books.get(verse.bookId) ?? null;
-                if (!book) {
-                    book = await db.book.findFirst({
-                        where: {
-                            translationId: translation.id,
-                            id: verse.bookId,
-                        },
-                    });
-                    if (book) {
-                        books.set(verse.bookId, book);
-                    } else {
-                        logger.warn(
-                            `Book not found for translation ${verse.translationId} and book ID ${verse.bookId}`
-                        );
-                    }
-                }
-
-                let normalizedReference = `${verse.bookId} ${verse.chapterNumber}:${verse.number}`;
-
-                documents.push({
-                    id: `${verse.translationId}_${verse.bookId}_${verse.chapterNumber}_${verse.number}`,
-                    translation: verse.translationId,
-                    reference: `${book ? book.commonName : verse.bookId} ${verse.chapterNumber}:${verse.number}`,
-                    referenceNormalized: normalizedReference,
-                    book: verse.bookId,
-                    chapter: verse.chapterNumber,
-                    verse: verse.number,
-                    language: translation.language,
-                    text: verse.text,
-                });
-            }
-
-            await client
+        try {
+            const existing = await client
                 .collections(collectionName)
-                .documents()
-                .import(documents, { action: 'upsert' });
+                .retrieve();
+            logger.log(`Collection '${collectionName}' already exists.`);
 
-            logger.log(
-                `  Uploaded ${skip + verses.length} verses for ${translation.id}`
+            const existingFields = existing.fields.map((f) => f.name);
+            const requiredFields = schema.fields.map((f) => f.name);
+            const missingFields = requiredFields.filter(
+                (f) => !existingFields.includes(f)
             );
 
-            if (verses.length < BATCH_SIZE) {
-                break;
+            if (missingFields.length > 0) {
+                logger.log(
+                    `Collection '${collectionName}' is missing fields: ${missingFields.join(', ')}. Updating schema...`
+                );
+                await client.collections(collectionName).update(schema);
             }
-            skip += BATCH_SIZE;
+        } catch {
+            logger.log(
+                `Creating collection '${collectionName}' with locale '${locale}'...`
+            );
+            await client.collections().create(schema);
+            logger.log(`Collection '${collectionName}' created.`);
+        }
+
+        for (const translation of languageTranslations) {
+            logger.log(
+                `Processing translation: ${translation.id} -> ${collectionName}`
+            );
+            let skip = 0;
+
+            while (true) {
+                const verses = await db.chapterVerse.findMany({
+                    where: { translationId: translation.id },
+                    select: {
+                        translationId: true,
+                        bookId: true,
+                        chapterNumber: true,
+                        number: true,
+                        text: true,
+                    },
+                    orderBy: [
+                        { bookId: 'asc' },
+                        { chapterNumber: 'asc' },
+                        { number: 'asc' },
+                    ],
+                    skip,
+                    take: BATCH_SIZE,
+                });
+
+                if (verses.length === 0) {
+                    break;
+                }
+
+                let documents = [] as any[];
+                let books = new Map<string, Book | null>();
+
+                for (const verse of verses) {
+                    let book = books.get(verse.bookId) ?? null;
+                    if (!book) {
+                        book = await db.book.findFirst({
+                            where: {
+                                translationId: translation.id,
+                                id: verse.bookId,
+                            },
+                        });
+                        if (book) {
+                            books.set(verse.bookId, book);
+                        } else {
+                            logger.warn(
+                                `Book not found for translation ${verse.translationId} and book ID ${verse.bookId}`
+                            );
+                        }
+                    }
+
+                    let normalizedReference = `${verse.bookId} ${verse.chapterNumber}:${verse.number}`;
+
+                    documents.push({
+                        id: `${verse.translationId}_${verse.bookId}_${verse.chapterNumber}_${verse.number}`,
+                        translation: verse.translationId,
+                        reference: `${book ? book.commonName : verse.bookId} ${verse.chapterNumber}:${verse.number}`,
+                        referenceNormalized: normalizedReference,
+                        book: verse.bookId,
+                        chapter: verse.chapterNumber,
+                        verse: verse.number,
+                        language: translation.language,
+                        text: verse.text,
+                    });
+                }
+
+                await client
+                    .collections(collectionName)
+                    .documents()
+                    .import(documents, { action: 'upsert' });
+
+                logger.log(
+                    `  Uploaded ${skip + verses.length} verses for ${translation.id}`
+                );
+
+                if (verses.length < BATCH_SIZE) {
+                    break;
+                }
+                skip += BATCH_SIZE;
+            }
         }
     }
 
-    logger.log('Done uploading verses to Typesense.');
+    logger.log('Done uploading verses to Typesense language collections.');
 }
 
 export async function searchTypesenseVerses(
@@ -1753,8 +1803,10 @@ export async function searchTypesenseVerses(
         filterByParts.push(`language:=${options.language}`);
     }
 
+    const collectionName = `bibleVerses.${options.language || 'en'}`;
+
     return await client
-        .collections('bible-verses')
+        .collections(collectionName)
         .documents()
         .search({
             q: options.search?.trim() ? options.search : '*',
