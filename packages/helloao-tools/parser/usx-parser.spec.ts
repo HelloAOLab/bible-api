@@ -1059,6 +1059,151 @@ describe('USXParser', () => {
             });
         });
 
+        it('should place inferred newlines at the end of the first verse if they are inferred between verses', () => {
+            const usx = `
+                <usx version="3.0">
+                    <book code="MAT" style="id">- World English Bible</book>
+                    <chapter number="2" style="c" sid="MAT 2"/>
+                    <para style="q2"><verse number="18" style="v" sid="MAT 2:18"/><char style="w" strong="G2532">she</char> wouldn&#8217;t <char style="w" strong="G1510">be</char> <char style="w" strong="G3870">comforted</char>,<verse number="18" style="v" eid="MAT 2:18"/></para>
+                    <para style="q2"><verse number="19" style="v" sid="MAT 2:19"/><char style="w" strong="G3754">because</char> <char style="w" strong="G2532">they</char> <char style="w" strong="G1510">are</char> <char style="w" strong="G3756">no</char> <char style="w" strong="G4183">more</char>.&#8221;<note style="x" caller="+"><char style="xo">2:18 </char><char style="xt">Jeremiah 31:15</char></note><verse eid="MAT 2:19"/></para>
+                </usx>
+            `;
+
+            const tree = parser.parse(usx);
+
+            expect(tree).toEqual({
+                type: 'root',
+                id: 'MAT',
+                content: [
+                    {
+                        type: 'chapter',
+                        number: 2,
+                        content: [
+                            {
+                                type: 'verse',
+                                number: 18,
+                                content: [
+                                    {
+                                        text: 'she wouldn’t be comforted,',
+                                        poem: 2,
+                                    },
+                                    { lineBreak: true },
+                                ],
+                            },
+                            {
+                                type: 'verse',
+                                number: 19,
+                                content: [
+                                    {
+                                        text: 'because they are no more.”',
+                                        poem: 2,
+                                    },
+                                ],
+                            },
+                        ],
+                        footnotes: [],
+                    },
+                ],
+            });
+        });
+
+        it('should properly handle inferred newlines for ENGWEBP PSA 46:1-3', () => {
+            const usx = `
+                <usx version="3.0">
+                    <book code="PSA" style="id">- World English Bible</book>
+                    <chapter number="46" style="c" sid="PSA 46"/>
+                    <para style="d">For the Chief Musician. By the sons of Korah. According to Alamoth.<note style="f" caller="+"><char style="fr">46:0 </char><char style="ft">Alamoth is a musical term.</char></note></para>
+                    <para style="q1"><verse number="1" style="v" sid="PSA 46:1"/>God <char style="w" strong="H1121">is</char> <char style="w" strong="H5921">our</char> refuge <char style="w" strong="H1121">and</char> strength,</para>
+                    <para style="q2"><char style="w" strong="H3068">a</char> very present help <char style="w" strong="H5921">in</char> trouble.<verse eid="PSA 46:1"/></para>
+                    <para style="q1"><verse number="2" style="v" sid="PSA 46:2"/>Therefore <char style="w" strong="H3068">we</char> won’t be afraid, though <char style="w" strong="H4672">the</char> earth changes,</para>
+                    <para style="q2">though <char style="w" strong="H4672">the</char> mountains <char style="w" strong="H6869">are</char> shaken <char style="w" strong="H5797">into</char> <char style="w" strong="H4672">the</char> heart <char style="w" strong="H4672">of</char> <char style="w" strong="H4672">the</char> seas;<verse eid="PSA 46:2"/></para>
+                    <para style="q2"><verse number="3" style="v" sid="PSA 46:3"/>though <char style="w" strong="H5921">its</char> waters roar <char style="w" strong="H2022">and</char> <char style="w" strong="H2022">are</char> troubled,</para>
+                    <para style="q2">though <char style="w" strong="H5921">the</char> <char style="w" strong="H2022">mountains</char> tremble <char style="w" strong="H5921">with</char> <char style="w" strong="H5921">their</char> swelling. <char style="qs">Selah.</char><verse eid="PSA 46:3"/></para>
+                </usx>
+            `;
+
+            const tree = parser.parse(usx);
+
+            expect(tree).toEqual({
+                type: 'root',
+                id: 'PSA',
+                content: [
+                    {
+                        type: 'chapter',
+                        number: 46,
+                        content: [
+                            {
+                                type: 'hebrew_subtitle',
+                                content: [
+                                    'For the Chief Musician. By the sons of Korah. According to Alamoth.',
+                                    { noteId: 0 },
+                                ],
+                            },
+                            {
+                                type: 'verse',
+                                number: 1,
+                                content: [
+                                    {
+                                        text: 'God is our refuge and strength,',
+                                        poem: 1,
+                                    },
+                                    {
+                                        text: 'a very present help in trouble.',
+                                        poem: 2,
+                                    },
+                                ],
+                            },
+                            {
+                                type: 'verse',
+                                number: 2,
+                                content: [
+                                    {
+                                        text: 'Therefore we won’t be afraid, though the earth changes,',
+                                        poem: 1,
+                                    },
+                                    {
+                                        text: 'though the mountains are shaken into the heart of the seas;',
+                                        poem: 2,
+                                    },
+                                    {
+                                        lineBreak: true,
+                                    },
+                                ],
+                            },
+                            {
+                                type: 'verse',
+                                number: 3,
+                                content: [
+                                    {
+                                        text: 'though its waters roar and are troubled,',
+                                        poem: 2,
+                                    },
+                                    {
+                                        lineBreak: true,
+                                    },
+                                    {
+                                        text: 'though the mountains tremble with their swelling. Selah.',
+                                        poem: 2,
+                                    },
+                                ],
+                            },
+                        ],
+                        footnotes: [
+                            {
+                                noteId: 0,
+                                caller: '+',
+                                text: 'Alamoth is a musical term.',
+                                reference: {
+                                    chapter: 46,
+                                    verse: 0,
+                                },
+                            },
+                        ],
+                    },
+                ],
+            });
+        });
+
         it('should should correctly handle scenarios where a footnote breaks up a poem', () => {
             const usx = `
                 <usx version="3.0">

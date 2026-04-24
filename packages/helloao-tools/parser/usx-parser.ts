@@ -212,7 +212,8 @@ export class USXParser {
     *iterateVerseContent(
         chapter: Chapter,
         verse: Verse,
-        nodes: RewindableIterator<Node>
+        nodes: RewindableIterator<Node>,
+        previousVerse?: Verse | null
     ): IterableIterator<string | FootnoteReference | Text | InlineLineBreak> {
         let lastParent: Element | null = null;
         while (true) {
@@ -258,9 +259,29 @@ export class USXParser {
                             );
                         if (previousStyle === style && lastParent !== parent) {
                             lastParent = parent;
-                            yield {
-                                lineBreak: true,
-                            };
+
+                            const firstChild = parent.firstElementChild;
+                            const startsWithVerse =
+                                firstChild?.nodeName === 'verse' &&
+                                !firstChild.hasAttribute('eid') &&
+                                parseInt(
+                                    firstChild.getAttribute('number') || '0',
+                                    10
+                                ) === verse.number;
+
+                            if (
+                                startsWithVerse &&
+                                previousVerse &&
+                                previousVerse.number !== verse.number
+                            ) {
+                                addOrJoin(previousVerse.content, {
+                                    lineBreak: true,
+                                });
+                            } else {
+                                yield {
+                                    lineBreak: true,
+                                };
+                            }
                         }
                     }
                 } else if (style === 'd') {
@@ -356,13 +377,22 @@ export class USXParser {
                 }
             }
         }
-        this._lastVerse = verse;
+        const previousVerse =
+            this._currentChapter?.number === chapter.number
+                ? this._lastVerse
+                : null;
 
-        for (let content of this.iterateVerseContent(chapter, verse, nodes)) {
+        for (let content of this.iterateVerseContent(
+            chapter,
+            verse,
+            nodes,
+            previousVerse
+        )) {
             addOrJoin(verse.content, content);
         }
 
         trimContent(verse.content);
+        this._lastVerse = verse;
         return verse;
     }
 
