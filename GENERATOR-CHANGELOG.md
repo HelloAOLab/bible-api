@@ -3,6 +3,14 @@
 This is the log of changes for the Bible API Generator and associated tools.
 For information on the API itself, see [API-CHANGELOG.md](./API-CHANGELOG.md).
 
+## V2.1.1
+
+#### Date: 2026-04-24
+
+### :bug: Bug Fixes
+
+-   Fixed an issue where inline line breaks between poem lines were added to the start of the new verse instead of the end of the previous verse.
+
 ## V2.1.0
 
 #### Date: 2026-02-18

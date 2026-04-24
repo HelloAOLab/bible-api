@@ -3,6 +3,113 @@
 This is the log of changes for the Free Use Bible API.
 For information on the API Generator, see [GENERATOR-CHANGELOG.md](./GENERATOR-CHANGELOG.md).
 
+## V1.11.1
+
+#### Date: 2026-04-24
+
+### :bug: Bug Fixes
+
+-   Fixed an issue where consecutive poem lines on different verses would prepend inline line breaks to the second verse instead of appending them to the first verse. This could cause some renderers to display verse number markers before the line break, causing a weird visual bug.
+    -   The fix moves inline `lineBreak` objects from the start of the second verse to the end of the first verse.
+    -   Example
+        -   `ENGWEBP PSA 46:2-3` is a good example of the issue:
+        -   Before:
+            ```json
+            {
+                "translation": {...},
+                "book": {...},
+                "chapter": {
+                    "number": 46,
+                    "content": [
+                        ...
+                        {
+                            "type": "verse",
+                            "number": 2,
+                            "content": [
+                                {
+                                    "text": "Therefore we won’t be afraid, though the earth changes,",
+                                    "poem": 1
+                                },
+                                {
+                                    "text": "though the mountains are shaken into the heart of the seas;",
+                                    "poem": 2
+                                }
+                            ]
+                        },
+                        {
+                            "type": "verse",
+                            "number": 3,
+                            "content": [
+                                {
+                                    "lineBreak": true
+                                },
+                                {
+                                    "text": "though its waters roar and are troubled,",
+                                    "poem": 2
+                                },
+                                {
+                                    "lineBreak": true
+                                },
+                                {
+                                    "text": "though the mountains tremble with their swelling. Selah.",
+                                    "poem": 2
+                                }
+                            ]
+                        },
+                        ...
+                    ]
+                }
+            }
+            ```
+        -   After:
+            ```json
+            {
+                "translation": {...},
+                "book": {...},
+                "chapter": {
+                    "number": 46,
+                    "content": [
+                        ...
+                        {
+                            "type": "verse",
+                            "number": 2,
+                            "content": [
+                                {
+                                    "text": "Therefore we won’t be afraid, though the earth changes,",
+                                    "poem": 1
+                                },
+                                {
+                                    "text": "though the mountains are shaken into the heart of the seas;",
+                                    "poem": 2
+                                },
+                                {
+                                    "lineBreak": true
+                                }
+                            ]
+                        },
+                        {
+                            "type": "verse",
+                            "number": 3,
+                            "content": [
+                                {
+                                    "text": "though its waters roar and are troubled,",
+                                    "poem": 2
+                                },
+                                {
+                                    "lineBreak": true
+                                },
+                                {
+                                    "text": "though the mountains tremble with their swelling. Selah.",
+                                    "poem": 2
+                                }
+                            ]
+                        },
+                        ...
+                    ]
+                }
+            }
+            ```
+
 ## V1.11.0
 
 #### Date: 2026-03-24
