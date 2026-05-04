@@ -36,6 +36,8 @@ import { TyndaleXmlParser } from '../parser/tyndale-xml-parser.js';
 import { getLogger } from '../log.js';
 import { LockmanParser } from '../parser/lockman-parser.js';
 
+export const DATASET_VERSION = 1;
+
 /**
  * Defines an interface that contains generated dataset info.
  */

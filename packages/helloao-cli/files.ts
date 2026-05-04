@@ -27,6 +27,7 @@ import { fromByteArray } from 'base64-js';
 import { log } from '@helloao/tools';
 import { bookOrderMap } from '@helloao/tools/generation/book-order.js';
 import {
+    DATASET_VERSION,
     DatasetDataset,
     DatasetDatasetBook,
 } from '@helloao/tools/generation/dataset.js';
@@ -574,7 +575,8 @@ async function loadFile(
 
         // Hack to ensure that file hashes are different for different versions of the parser.
         .update(
-            fileType === 'lockman' ? LOCKMAN_PARSER_VERSION : PARSER_VERSION
+            (fileType === 'lockman' ? LOCKMAN_PARSER_VERSION : PARSER_VERSION) +
+                DATASET_VERSION
         )
         .digest('hex');
 
