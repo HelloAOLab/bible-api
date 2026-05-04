@@ -57,6 +57,16 @@ const openBibleUrlGenerator: (
     };
 };
 
+const freeUseBibleApiGenerator: (
+    translation: string,
+    reader: string
+) => AudioTranslationUrlGenerator = (translation, reader) => {
+    return (bookId, chapter) => {
+        const link = `https://audio.bible.helloao.org/api/${translation}/${bookId}/${chapter.toString()}/audio/${reader}.mp3`;
+        return link;
+    };
+};
+
 /**
  * A map of translation IDs to a map of reader IDs to the URL generator for the audio file.
  */
@@ -84,9 +94,9 @@ export const KNOWN_AUDIO_TRANSLATIONS: Map<
     [
         'BSB',
         new Map([
-            ['gilbert', openBibleUrlGenerator('BSB', 'gilbert', 'G')],
-            ['hays', openBibleUrlGenerator('BSB', 'hays', 'H')],
-            ['souer', openBibleUrlGenerator('BSB', 'souer', null)],
+            ['hays', freeUseBibleApiGenerator('BSB', 'hays')],
+            ['souer', freeUseBibleApiGenerator('BSB', 'souer')],
+            ['david', freeUseBibleApiGenerator('BSB', 'david')],
         ]),
     ],
 ]);
