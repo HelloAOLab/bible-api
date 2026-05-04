@@ -16,7 +16,11 @@ import {
     InputTranslationMetadata,
 } from '@helloao/tools/generation/index.js';
 import { exists, readFile } from 'fs-extra';
-import { KNOWN_AUDIO_TRANSLATIONS } from '@helloao/tools/generation/audio.js';
+import { copyFile } from 'node:fs/promises';
+import {
+    KNOWN_AUDIO_TRANSLATIONS,
+    KNOWN_AUDIO_FILE_TRANSLATIONS,
+} from '@helloao/tools/generation/audio.js';
 import {
     bookChapterCountMap,
     bookOrderMap,
@@ -2074,4 +2078,84 @@ export async function askForMetadata(
         licenseUrl,
         website,
     };
+}
+
+export interface CopyOpenBibleAudioOptions {
+    /**
+     * The translations to copy. If omitted, all known translations are copied.
+     * Should be in the format "translationId/reader". e.g. "BSB/hays"
+     */
+    translations?: string[];
+
+    /**
+     * Whether to overwrite existing files.
+     */
+    overwrite?: boolean;
+}
+
+/**
+ * Copies .mp3 files from the OpenBible filename format to the Free Use Bible API format:
+ * /api/{translationId}/{bookId}/{chapterNumber}/audio/{reader}.mp3
+ * @param srcDir The source directory containing .mp3 files in OpenBible filename format.
+ * @param destDir The destination directory for files in API format.
+ * @param options The options.
+ */
+export async function copyOpenBibleAudio(
+    srcDir: string,
+    destDir: string,
+    options: CopyOpenBibleAudioOptions = {}
+): Promise<void> {
+    const logger = log.getLogger();
+
+    const translationsToProcess = options.translations?.length
+        ? options.translations
+        : Array.from(KNOWN_AUDIO_FILE_TRANSLATIONS.entries()).flatMap(
+              ([translationId, readers]) =>
+                  Array.from(readers.keys()).map(
+                      (reader) => `${translationId}/${reader}`
+                  )
+          );
+
+    for (const translation of translationsToProcess) {
+        const [translationId, reader] = translation.split('/');
+        const generator =
+            KNOWN_AUDIO_FILE_TRANSLATIONS.get(translationId)?.get(reader);
+
+        if (!generator) {
+            logger.warn('Unknown translation/reader:', translation);
+            continue;
+        }
+
+        for (const [bookId, chapters] of bookChapterCountMap) {
+            for (let chapter = 1; chapter <= chapters; chapter++) {
+                const filename = generator(bookId, chapter);
+                const srcPath = path.resolve(srcDir, filename);
+
+                if (!(await exists(srcPath))) {
+                    logger.warn('Source file not found:', srcPath);
+                    continue;
+                }
+
+                const destPath = path.resolve(
+                    destDir,
+                    'api',
+                    translationId,
+                    bookId,
+                    chapter.toString(),
+                    'audio',
+                    `${reader}.mp3`
+                );
+
+                if (!options.overwrite && (await exists(destPath))) {
+                    continue;
+                }
+
+                await mkdir(path.dirname(destPath), { recursive: true });
+                await copyFile(srcPath, destPath);
+                logger.log(
+                    `Copied: ${filename} -> ${path.relative(destDir, destPath)}`
+                );
+            }
+        }
+    }
 }

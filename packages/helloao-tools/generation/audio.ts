@@ -4,6 +4,32 @@ import { TranslationBookChapterAudioLinks } from './common-types.js';
 
 type AudioTranslationUrlGenerator = (bookId: string, chapter: number) => string;
 
+export const openBibleFilenameGenerator: (
+    translation: string,
+    postfix: string | null
+) => AudioTranslationUrlGenerator = (translation, postfix) => {
+    return (bookId, chapter) => {
+        const bookOrder = padStart(
+            bookOrderMap.get(bookId)!.toString(),
+            2,
+            '0'
+        );
+        const chapterStr = padStart(chapter.toString(), 3, '0');
+
+        let filename = `${translation}_${bookOrder}_${capitalize(
+            bookId === 'TIT' ? 'TTS' : bookId
+        )}_${chapterStr}`;
+
+        if (postfix) {
+            filename += `_${postfix}`;
+        }
+
+        filename += '.mp3';
+
+        return filename;
+    };
+};
+
 const openBibleUrlGenerator: (
     translation: string,
     reader: string,
@@ -30,6 +56,23 @@ const openBibleUrlGenerator: (
         return link;
     };
 };
+
+/**
+ * A map of translation IDs to a map of reader IDs to the URL generator for the audio file.
+ */
+export const KNOWN_AUDIO_FILE_TRANSLATIONS: Map<
+    string,
+    Map<string, AudioTranslationUrlGenerator>
+> = new Map([
+    [
+        'BSB',
+        new Map([
+            ['hays', openBibleFilenameGenerator('BSB', 'H')],
+            ['souer', openBibleFilenameGenerator('BSB', null)],
+            ['david', openBibleFilenameGenerator('BSB', 'D')],
+        ]),
+    ],
+]);
 
 /**
  * A map of translation IDs to a map of reader IDs to the URL generator for the audio file.

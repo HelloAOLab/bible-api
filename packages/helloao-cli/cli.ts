@@ -8,6 +8,7 @@ import { downloadFile } from './downloads.js';
 import { uploadApiFilesFromDatabase } from './uploads.js';
 import {
     askForMetadata,
+    copyOpenBibleAudio,
     fetchAudio,
     generateTranslationFiles,
     generateTranslationsFiles,
@@ -697,6 +698,23 @@ async function start() {
                 logger.log(JSON.stringify(result, null, 2));
             }
         );
+
+    program
+        .command('copy-openbible-audio <src> <dest>')
+        .description(
+            'Copies .mp3 files from the OpenBible filename format to the Free Use Bible API format:\n/api/{translationId}/{bookId}/{chapterNumber}/audio/{reader}.mp3'
+        )
+        .option(
+            '--translations <translations...>',
+            'The translations to copy in the format "translationId/reader" (e.g. "BSB/hays"). If omitted, all known translations are copied.'
+        )
+        .option('--overwrite', 'Whether to overwrite existing files.')
+        .action(async (src: string, dest: string, options: any) => {
+            await copyOpenBibleAudio(src, dest, {
+                ...program.opts(),
+                ...options,
+            });
+        });
 
     await program.parseAsync(process.argv);
 }
