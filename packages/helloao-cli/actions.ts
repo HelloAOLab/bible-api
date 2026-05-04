@@ -2198,25 +2198,21 @@ export async function copyOpenBibleAudio(
         }
     }
 
-    const BATCH_SIZE = 50;
-    for (const taskBatch of batch(tasks, BATCH_SIZE)) {
-        await Promise.all(
-            taskBatch.map(async ({ filename, srcPath, destPath }) => {
-                if (!(await exists(srcPath))) {
-                    logger.warn('Source file not found:', srcPath);
-                    return;
-                }
+    for (const task of tasks) {
+        const { filename, srcPath, destPath } = task;
+        if (!(await exists(srcPath))) {
+            logger.warn('Source file not found:', srcPath);
+            continue;
+        }
 
-                if (!options.overwrite && (await exists(destPath))) {
-                    return;
-                }
+        if (!options.overwrite && (await exists(destPath))) {
+            continue;
+        }
 
-                await mkdir(path.dirname(destPath), { recursive: true });
-                await copyFile(srcPath, destPath);
-                logger.log(
-                    `Copied: ${filename} -> ${path.relative(destDir, destPath)}`
-                );
-            })
+        await mkdir(path.dirname(destPath), { recursive: true });
+        await copyFile(srcPath, destPath);
+        logger.log(
+            `Copied: ${filename} -> ${path.relative(destDir, destPath)}`
         );
     }
 }
