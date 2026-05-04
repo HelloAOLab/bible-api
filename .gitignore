@@ -39,6 +39,7 @@ bible-api.*
 free-use-bible-api.*
 sources
 tools/BibleMultiConverter
+audio
 
 *.db
 *.db-journal

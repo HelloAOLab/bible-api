@@ -2111,6 +2111,19 @@ export async function copyOpenBibleAudio(
 ): Promise<void> {
     const logger = log.getLogger();
 
+    // let folder = `${translation}_${bookOrder}_Chapters_${reader}`;
+
+    const folders = new Map<string, Map<string, string>>([
+        [
+            'BSB',
+            new Map([
+                ['hays', 'BSB_Chapters_Hays'],
+                ['souer', 'BSB_Chapters_Souer'],
+                ['david', 'BSB_Chapters_David'],
+            ]),
+        ],
+    ]);
+
     const translationsToProcess: Array<[string, string]> = options.translation
         ? (options.readers?.length
               ? options.readers
@@ -2152,6 +2165,15 @@ export async function copyOpenBibleAudio(
             continue;
         }
 
+        const folder = folders.get(translationId)?.get(reader);
+        if (!folder) {
+            logger.warn(
+                'No folder mapping found for translation/reader:',
+                `${translationId}/${reader}`
+            );
+            continue;
+        }
+
         for (const [bookId, chapters] of bookChapterCountMap) {
             for (let chapter = 1; chapter <= chapters; chapter++) {
                 const filename = generator(bookId, chapter);
@@ -2161,7 +2183,7 @@ export async function copyOpenBibleAudio(
                     bookId,
                     chapter,
                     filename,
-                    srcPath: path.resolve(srcDir, filename),
+                    srcPath: path.resolve(srcDir, folder, filename),
                     destPath: path.resolve(
                         destDir,
                         'api',
