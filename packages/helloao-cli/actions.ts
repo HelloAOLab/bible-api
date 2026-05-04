@@ -2128,6 +2128,18 @@ export async function copyOpenBibleAudio(
                   ])
           );
 
+    type CopyTask = {
+        translationId: string;
+        reader: string;
+        bookId: string;
+        chapter: number;
+        filename: string;
+        srcPath: string;
+        destPath: string;
+    };
+
+    const tasks: CopyTask[] = [];
+
     for (const [translationId, reader] of translationsToProcess) {
         const generator =
             KNOWN_AUDIO_FILE_TRANSLATIONS.get(translationId)?.get(reader);
@@ -2143,25 +2155,38 @@ export async function copyOpenBibleAudio(
         for (const [bookId, chapters] of bookChapterCountMap) {
             for (let chapter = 1; chapter <= chapters; chapter++) {
                 const filename = generator(bookId, chapter);
-                const srcPath = path.resolve(srcDir, filename);
+                tasks.push({
+                    translationId,
+                    reader,
+                    bookId,
+                    chapter,
+                    filename,
+                    srcPath: path.resolve(srcDir, filename),
+                    destPath: path.resolve(
+                        destDir,
+                        'api',
+                        translationId,
+                        bookId,
+                        chapter.toString(),
+                        'audio',
+                        `${reader}.mp3`
+                    ),
+                });
+            }
+        }
+    }
 
+    const BATCH_SIZE = 50;
+    for (const taskBatch of batch(tasks, BATCH_SIZE)) {
+        await Promise.all(
+            taskBatch.map(async ({ filename, srcPath, destPath }) => {
                 if (!(await exists(srcPath))) {
                     logger.warn('Source file not found:', srcPath);
-                    continue;
+                    return;
                 }
 
-                const destPath = path.resolve(
-                    destDir,
-                    'api',
-                    translationId,
-                    bookId,
-                    chapter.toString(),
-                    'audio',
-                    `${reader}.mp3`
-                );
-
                 if (!options.overwrite && (await exists(destPath))) {
-                    continue;
+                    return;
                 }
 
                 await mkdir(path.dirname(destPath), { recursive: true });
@@ -2169,7 +2194,7 @@ export async function copyOpenBibleAudio(
                 logger.log(
                     `Copied: ${filename} -> ${path.relative(destDir, destPath)}`
                 );
-            }
-        }
+            })
+        );
     }
 }
