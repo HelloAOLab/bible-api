@@ -99,6 +99,15 @@ export const KNOWN_AUDIO_TRANSLATIONS: Map<
             ['david', freeUseBibleApiGenerator('BSB', 'david')],
         ]),
     ],
+    [
+        'AAB',
+        // AAB re-uses the BSB audio files
+        new Map([
+            ['hays', freeUseBibleApiGenerator('BSB', 'hays')],
+            ['souer', freeUseBibleApiGenerator('BSB', 'souer')],
+            ['david', freeUseBibleApiGenerator('BSB', 'david')],
+        ]),
+    ],
 ]);
 
 /**
