@@ -705,8 +705,12 @@ async function start() {
             'Copies .mp3 files from the OpenBible filename format to the Free Use Bible API format:\n/api/{translationId}/{bookId}/{chapterNumber}/audio/{reader}.mp3'
         )
         .option(
-            '--translations <translations...>',
-            'The translations to copy in the format "translationId/reader" (e.g. "BSB/hays"). If omitted, all known translations are copied.'
+            '--translation <translation>',
+            'The translation ID to copy (e.g. "BSB"). If omitted, all known translations are copied.'
+        )
+        .option(
+            '--readers <readers...>',
+            'The readers to copy (e.g. "hays souer"). If omitted, all known readers for the translation are copied.'
         )
         .option('--overwrite', 'Whether to overwrite existing files.')
         .action(async (src: string, dest: string, options: any) => {

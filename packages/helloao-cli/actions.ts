@@ -2082,10 +2082,14 @@ export async function askForMetadata(
 
 export interface CopyOpenBibleAudioOptions {
     /**
-     * The translations to copy. If omitted, all known translations are copied.
-     * Should be in the format "translationId/reader". e.g. "BSB/hays"
+     * The translation ID to copy (e.g. "BSB"). If omitted, all known translations are copied.
      */
-    translations?: string[];
+    translation?: string;
+
+    /**
+     * The readers to copy (e.g. ["hays", "souer"]). If omitted, all known readers for the translation are copied.
+     */
+    readers?: string[];
 
     /**
      * Whether to overwrite existing files.
@@ -2107,22 +2111,32 @@ export async function copyOpenBibleAudio(
 ): Promise<void> {
     const logger = log.getLogger();
 
-    const translationsToProcess = options.translations?.length
-        ? options.translations
+    const translationsToProcess: Array<[string, string]> = options.translation
+        ? (options.readers?.length
+              ? options.readers
+              : Array.from(
+                    KNOWN_AUDIO_FILE_TRANSLATIONS.get(
+                        options.translation
+                    )?.keys() ?? []
+                )
+          ).map((reader) => [options.translation!, reader])
         : Array.from(KNOWN_AUDIO_FILE_TRANSLATIONS.entries()).flatMap(
               ([translationId, readers]) =>
-                  Array.from(readers.keys()).map(
-                      (reader) => `${translationId}/${reader}`
-                  )
+                  Array.from(readers.keys()).map((reader): [string, string] => [
+                      translationId,
+                      reader,
+                  ])
           );
 
-    for (const translation of translationsToProcess) {
-        const [translationId, reader] = translation.split('/');
+    for (const [translationId, reader] of translationsToProcess) {
         const generator =
             KNOWN_AUDIO_FILE_TRANSLATIONS.get(translationId)?.get(reader);
 
         if (!generator) {
-            logger.warn('Unknown translation/reader:', translation);
+            logger.warn(
+                'Unknown translation/reader:',
+                `${translationId}/${reader}`
+            );
             continue;
         }
 
