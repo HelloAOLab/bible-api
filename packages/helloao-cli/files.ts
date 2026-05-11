@@ -17,6 +17,7 @@ import {
     InputCommentaryMetadata,
     InputFileMetadata,
     InputTranslationFile,
+    TranslationBookChapter,
 } from '@helloao/tools/generation/common-types.js';
 import { ZipWriter, Writer, TextReader, Reader } from '@zip.js/zip.js';
 import { Readable, Writable } from 'stream';
@@ -30,9 +31,15 @@ import {
     DATASET_VERSION,
     DatasetDataset,
     DatasetDatasetBook,
+    DatasetTranslation,
+    DatasetTranslationBook,
 } from '@helloao/tools/generation/dataset.js';
 import { getBookId } from '@helloao/tools/utils.js';
 import { LOCKMAN_PARSER_VERSION } from '@helloao/tools/parser/lockman-parser.js';
+import {
+    ApiAvailableTranslations,
+    ApiTranslationBooks,
+} from '@helloao/tools/generation/api.js';
 
 /**
  * Defines an interface that contains information about a serialized file.
@@ -380,6 +387,104 @@ export async function loadCommentaryFiles(
  * @param dir The directory that the datasets are located in.
  * @param options The options.
  */
+export async function loadTranslationsFromDirectory(
+    dir: string
+): Promise<DatasetTranslation[]> {
+    const logger = log.getLogger();
+
+    let translations: DatasetTranslation[] = [];
+
+    const apiDir = path.resolve(dir, 'api');
+
+    const availableTranslationsPath = path.resolve(
+        apiDir,
+        'available_translations.json'
+    );
+
+    if (!existsSync(availableTranslationsPath)) {
+        logger.warn(
+            `Could not find available_translations.json at ${availableTranslationsPath}, skipping translation loading.`
+        );
+        return [];
+    }
+
+    const availableTranslations: ApiAvailableTranslations = JSON.parse(
+        await readFile(availableTranslationsPath, 'utf-8')
+    );
+    translations.push(
+        ...availableTranslations.translations.map((d: any) => ({
+            ...d,
+            books: [],
+        }))
+    );
+
+    for (let dataset of translations) {
+        const datasetDir = path.resolve(apiDir, dataset.id);
+        const booksList = await readdir(datasetDir);
+
+        const booksPath = path.resolve(datasetDir, 'books.json');
+        const booksData: ApiTranslationBooks | null = existsSync(booksPath)
+            ? JSON.parse(await readFile(booksPath, 'utf-8'))
+            : null;
+
+        for (let bookId of booksList) {
+            if (bookId === 'books.json') {
+                continue;
+            }
+            const id = getBookId(bookId);
+
+            if (!id) {
+                logger.warn(`Unknown book directory: ${bookId}`);
+                continue;
+            }
+
+            const bookData = booksData?.books.find((b) => b.id === id);
+            if (!bookData) {
+                logger.warn(
+                    `Could not find book data for book ${id} in translation ${dataset.id}`
+                );
+            }
+
+            const book: DatasetTranslationBook = {
+                id,
+                commonName: bookData?.commonName ?? '',
+                name: bookData?.name ?? '',
+                title: bookData?.title ?? '',
+                chapters: [],
+                order: bookOrderMap.get(id)!,
+            };
+            dataset.books.push(book);
+
+            const bookDir = path.resolve(datasetDir, bookId);
+            const chapters = await readdir(bookDir);
+
+            for (let chapterFile of chapters) {
+                const chapterJson: TranslationBookChapter = JSON.parse(
+                    await readFile(path.resolve(bookDir, chapterFile), 'utf-8')
+                );
+
+                if (chapterJson.chapter) {
+                    book.chapters.push({
+                        chapter: chapterJson.chapter,
+                        thisChapterAudioLinks:
+                            chapterJson.thisChapterAudioLinks,
+                    });
+                } else {
+                    logger.warn(`Unknown chapter format: ${chapterFile}`);
+                    continue;
+                }
+            }
+        }
+    }
+
+    return translations;
+}
+
+/**
+ * Imports all the datasets from the given directory into the database in the current working directory.
+ * @param dir The directory that the datasets are located in.
+ * @param options The options.
+ */
 export async function loadDatasetsFromDirectory(
     dir: string
 ): Promise<DatasetDataset[]> {
@@ -389,8 +494,20 @@ export async function loadDatasetsFromDirectory(
 
     const apiDir = path.resolve(dir, 'api');
 
+    const availableDatasetsPath = path.resolve(
+        apiDir,
+        'available_datasets.json'
+    );
+
+    if (!existsSync(availableDatasetsPath)) {
+        logger.warn(
+            `Could not find available_datasets.json at ${availableDatasetsPath}, skipping dataset loading.`
+        );
+        return [];
+    }
+
     const availableDatasets = JSON.parse(
-        await readFile(path.resolve(apiDir, 'available_datasets.json'), 'utf-8')
+        await readFile(availableDatasetsPath, 'utf-8')
     );
     datasets.push(
         ...availableDatasets.datasets.map((d: any) => ({

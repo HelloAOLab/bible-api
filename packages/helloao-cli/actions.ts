@@ -32,6 +32,7 @@ import {
     loadDatasetsFromDirectory,
     loadTranslationFiles,
     loadTranslationsFiles,
+    loadTranslationsFromDirectory,
 } from './files.js';
 import {
     DatasetDataset,
@@ -551,9 +552,10 @@ export async function importApi(
     const db = await database.getDb(options.db);
     try {
         const datasets = await loadDatasetsFromDirectory(dir);
+        const translations = await loadTranslationsFromDirectory(dir);
         importDatasetOutput(db, {
             commentaries: [],
-            translations: [],
+            translations,
             datasets,
         });
     } finally {
