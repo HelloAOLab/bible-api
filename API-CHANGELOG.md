@@ -3,6 +3,14 @@
 This is the log of changes for the Free Use Bible API.
 For information on the API Generator, see [GENERATOR-CHANGELOG.md](./GENERATOR-CHANGELOG.md).
 
+## V1.11.2
+
+#### Date: 2026-05-11
+
+### :bug: Bug Fixes
+
+-   Updated the `fra_lsg` with fixes for typos.
+
 ## V1.11.1
 
 #### Date: 2026-04-24
