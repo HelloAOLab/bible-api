@@ -5,6 +5,7 @@
             "node_modules/@types",
             "./packages/helloao-tools/typings"
         ],
+        "noUnusedParameters": false
     },
     "files": [
         "./packages/helloao-tools/typings/types.d.ts"
