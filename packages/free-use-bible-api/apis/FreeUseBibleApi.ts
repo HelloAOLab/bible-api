@@ -3,7 +3,6 @@ import { ApiTranslationBookChapter, ApiTranslationBookChapterFromJSON } from "..
 import { DefaultApi } from "./DefaultApi";
 
 export class FreeUseBibleApi extends DefaultApi {
-
     /**
      * Gets the chapter that follows the given chapter, or null if there is no next chapter.
      * @param chapter The chapter to get the next chapter of.
