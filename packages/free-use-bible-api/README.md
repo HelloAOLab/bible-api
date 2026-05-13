@@ -27,13 +27,13 @@ yarn add free-use-bible-api
 Create a client and point it at the production API:
 
 ```ts
-import { Configuration, DefaultApi } from 'free-use-bible-api';
+import { Configuration, FreeUseBibleApi } from 'free-use-bible-api';
 
 const config = new Configuration({
 	basePath: 'https://bible.helloao.org',
 });
 
-const api = new DefaultApi(config);
+const api = new FreeUseBibleApi(config);
 ```
 
 ## Translation Usage Guide
