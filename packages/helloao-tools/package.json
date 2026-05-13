@@ -51,7 +51,7 @@
     "license": "MIT",
     "dependencies": {
         "lodash": "4.17.21",
-        "zod": "^3.23.8",
+        "zod": "^4.4.3",
         "papaparse": "5.4.1"
     },
     "devDependencies": {
