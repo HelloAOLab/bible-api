@@ -46,6 +46,12 @@ export function createFreeUseBibleApiOpenApiDocument(): any {
                 email: "hello@helloao.org",
             },
         },
+        servers: [
+            {
+                url: "https://bible.helloao.org",
+                description: "Free Use Bible API production server",
+            }
+        ],
         paths: {
             "/api/available_translations.json": {
                 get: {
@@ -105,13 +111,18 @@ export function createFreeUseBibleApiOpenApiDocument(): any {
                                 'application/json': {
                                     schema: ApiTranslationBookChapterSchema
                                 }
+                            },
+                            links: {
+                                nextChapter: {
+
+                                }
                             }
                         },
                         '404': {
                             description: '404 Not Found - The specified translation, book, or chapter was not found.',
                         }
                     }
-                }
+                },
             },
             "/api/{translation}/complete.json": {
                 get: {
