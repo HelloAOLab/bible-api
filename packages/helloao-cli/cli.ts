@@ -34,12 +34,12 @@ import { PrismaClient } from './prisma-gen/index.js';
 import { DefaultArgs } from './prisma-gen/runtime/library.js';
 
 const OPENAPI_CLIENT_LANGUAGES = [
-    ['csharp', 'csharp'],
-    ['java', 'java'],
-    ['go', 'go'],
-    ['python', 'python'],
-    ['dart', 'dart'],
-    ['swift', 'swift6'],
+    // ['csharp', 'csharp'],
+    // ['java', 'java'],
+    // ['go', 'go'],
+    // ['python', 'python'],
+    // ['dart', 'dart'],
+    // ['swift', 'swift6'],
     ['typescript', 'typescript-fetch'],
 ] as const;
 
