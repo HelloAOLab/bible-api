@@ -1,4 +1,5 @@
-import { VerseRef } from '../utils.js';
+import { z } from 'zod';
+import { VerseRef, VerseRefSchema } from '../utils.js';
 
 /**
  * Defines an interface that contains information about a input file.
@@ -110,380 +111,487 @@ export interface InputCommentaryMetadata extends MetadataBase {
 }
 
 /**
- * Defines an interface that contains information about a translation.
+ * Defines a Zod schema for information about a translation.
  */
-export interface Translation {
+export const TranslationSchema = z.object({
     /**
      * The ID of the translation.
      */
-    id: string;
+    id: z.string(),
 
     /**
      * The name of the translation.
      */
-    name: string;
+    name: z.string(),
 
     /**
      * The website for the translation.
      */
-    website: string;
+    website: z.string(),
 
     /**
      * The URL that the license for the translation can be found.
      */
-    licenseUrl: string;
+    licenseUrl: z.string(),
 
     /**
      * The API-added notes for the license.
      */
-    licenseNotes?: string | null;
+    licenseNotes: z.string().nullable().optional(),
 
     /**
      * The notice that should be displayed when displaying content from the translation.
      */
-    licenseNotice?: string | null;
+    licenseNotice: z.string().nullable().optional(),
 
     /**
      * The short name for the translation.
      */
-    shortName?: string;
+    shortName: z.string().optional(),
 
     /**
      * The English name for the translation.
      */
-    englishName: string;
+    englishName: z.string(),
 
     /**
      * The ISO 639 3-letter language tag that the translation is primarily in.
      */
-    language: string;
+    language: z.string(),
 
     /**
      * The direction that the language is written in.
      * "ltr" indicates that the text is written from the left side of the page to the right.
      * "rtl" indicates that the text is written from the right side of the page to the left.
      */
-    textDirection: 'ltr' | 'rtl';
-}
+    textDirection: z.enum(['ltr', 'rtl']),
+});
+
+export type Translation = z.infer<typeof TranslationSchema>;
 
 /**
- * Defines an interface that contains information about a commentary.
+ * Defines a Zod schema for information about a commentary.
  */
-export interface Commentary {
+export const CommentarySchema = z.object({
     /**
      * The ID of the commentary.
      */
-    id: string;
+    id: z.string(),
 
     /**
      * The name of the commentary.
      */
-    name: string;
+    name: z.string(),
 
     /**
      * The website for the commentary.
      */
-    website: string;
+    website: z.string(),
 
     /**
      * The URL that the license for the commentary can be found.
      */
-    licenseUrl: string;
+    licenseUrl: z.string(),
 
     /**
      * The API-added notes for the license.
      */
-    licenseNotes?: string | null;
+    licenseNotes: z.string().nullable().optional(),
 
     /**
      * The english name for the commentary.
      */
-    englishName: string;
+    englishName: z.string(),
 
     /**
      * The ISO 639 3-letter language tag that the translation is primarily in.
      */
-    language: string;
+    language: z.string(),
 
     /**
      * The direction that the language is written in.
      * "ltr" indicates that the text is written from the left side of the page to the right.
      * "rtl" indicates that the text is written from the right side of the page to the left.
      */
-    textDirection: 'ltr' | 'rtl';
-}
+    textDirection: z.enum(['ltr', 'rtl']),
+});
 
-export interface Dataset {
+export type Commentary = z.infer<typeof CommentarySchema>;
+
+export const DatasetSchema = z.object({
     /**
      * The ID of the dataset.
      */
-    id: string;
+    id: z.string(),
 
     /**
      * The name of the dataset.
      */
-    name: string;
+    name: z.string(),
 
     /**
      * The website for the dataset.
      */
-    website: string;
+    website: z.string(),
 
     /**
      * The URL that the license for the dataset can be found.
      */
-    licenseUrl: string;
+    licenseUrl: z.string(),
 
     /**
      * The API-added notes for the license.
      */
-    licenseNotes?: string | null;
+    licenseNotes: z.string().nullable().optional(),
 
     /**
      * The English name for the dataset.
      */
-    englishName: string;
+    englishName: z.string(),
 
     /**
      * The ISO 639 3-letter language tag that the dataset is primarily in.
      */
-    language: string;
+    language: z.string(),
 
     /**
      * The direction that the language is written in.
      */
-    textDirection: 'ltr' | 'rtl';
-}
+    textDirection: z.enum(['ltr', 'rtl']),
+});
+
+export type Dataset = z.infer<typeof DatasetSchema>;
 
 /**
- * Defines an interface that contains information about a book.
+ * Defines a Zod schema for information about a book.
  */
-export interface TranslationBook {
+export const TranslationBookSchema = z.object({
     /**
      * The ID of the book. Should match the USFM book ID.
      */
-    id: string;
+    id: z.string(),
 
     /**
      * The name that the translation provided for the book.
      */
-    name: string;
+    name: z.string(),
 
     /**
      * The common name for the book.
      */
-    commonName: string;
+    commonName: z.string(),
 
     /**
      * The title of the book.
      * This is usually a more descriptive version of the book name.
      * If not available, then one was not provided by the translation.
      */
-    title: string | null;
+    title: z.string().nullable(),
 
     /**
      * The numerical order of the book in the translation.
      */
-    order: number;
+    order: z.number(),
 
     /**
      * Whether the book is an apocryphal book.
      */
-    isApocryphal?: boolean;
-}
+    isApocryphal: z.boolean().optional(),
+});
+
+export type TranslationBook = z.infer<typeof TranslationBookSchema>;
 
 /**
- * Defines an interface that contains information about a book in a commentary.
+ * Defines a Zod schema for information about a book in a commentary.
  */
-export interface CommentaryBook {
+export const CommentaryBookSchema = z.object({
     /**
      * The ID of the book. Should match the USFM book ID.
      */
-    id: string;
+    id: z.string(),
 
     /**
      * The name that the commentary provided for the book.
      */
-    name: string;
+    name: z.string(),
 
     /**
      * The common name for the book.
      */
-    commonName: string;
+    commonName: z.string(),
 
     /**
      * The commentary's introduction for the book.
      */
-    introduction?: string;
+    introduction: z.string().optional(),
 
     /**
      * The summary of the commentary's introduction for the book.
      */
-    introductionSummary?: string;
+    introductionSummary: z.string().optional(),
 
     /**
      * The order of the book in the Bible.
      */
-    order: number;
-}
+    order: z.number(),
+});
+
+export type CommentaryBook = z.infer<typeof CommentaryBookSchema>;
 
 /**
- * Defines an interface that contains information about a dataset book.
+ * Defines a Zod schema for information about a dataset book.
  */
-export interface DatasetBook {
+export const DatasetBookSchema = z.object({
     /**
      * The ID of the book. Should match the USFM book ID.
      */
-    id: string;
+    id: z.string(),
 
     /**
      * The order of the book in the Bible.
      */
-    order: number;
-}
+    order: z.number(),
+});
+
+export type DatasetBook = z.infer<typeof DatasetBookSchema>;
 
 /**
- * Defines an interface that contains information about a chapter in a dataset.
+ * Defines a Zod schema for information about a chapter in a dataset.
  */
-export interface DatasetBookChapter {
+export const DatasetBookChapterSchema = z.object({
     /**
      * The data for the chapter.
      */
-    chapter: DatasetChapterData;
-}
+    chapter: z.lazy(() => DatasetChapterDataSchema),
+});
 
-export interface DatasetChapterData {
+export type DatasetBookChapter = z.infer<typeof DatasetBookChapterSchema>;
+
+export const DatasetChapterDataSchema = z.object({
     /**
      * The number of the chapter.
      */
-    number: number;
+    number: z.number(),
 
     /**
      * The content of the chapter.
      */
-    content: DatasetChapterVerseContent[];
-}
+    content: z.array(z.lazy(() => DatasetChapterVerseContentSchema)),
+});
+
+export type DatasetChapterData = z.infer<typeof DatasetChapterDataSchema>;
 
 /**
- * Defines an interface that contains information about a verse in a dataset chapter.
+ * Defines a Zod schema for information about a verse in a dataset chapter.
  */
-export interface DatasetChapterVerseContent {
+export const DatasetChapterVerseContentSchema = z.object({
     /**
      * The number of the verse.
      */
-    verse: number;
+    verse: z.number(),
 
     /**
      * The list of references for the verse.
      */
-    references: ScoredVerseRef[];
-}
+    references: z.array(z.lazy(() => ScoredVerseRefSchema)),
+});
+
+export type DatasetChapterVerseContent = z.infer<typeof DatasetChapterVerseContentSchema>;
 
 /**
  * Defines an interface that contains information about a verse reference that has an arbitrary score attached to it.
  */
-export interface ScoredVerseRef extends VerseRef {
-    /**
-     * The score of the verse reference.
-     */
-    score: number;
-}
+export const ScoredVerseRefSchema = VerseRefSchema.extend({
+    score: z.number(),
+});
+
+export type ScoredVerseRef = z.infer<typeof ScoredVerseRefSchema>;
 
 /**
- * Defines an interface that contains information about a profile in a commentary.
+ * Defines a Zod schema for information about a profile in a commentary.
  */
-export interface CommentaryProfile {
+export const CommentaryProfileSchema = z.object({
     /**
      * The ID of the profile.
      */
-    id: string;
+    id: z.string(),
 
     /**
      * The subject of the profile.
      */
-    subject: string;
+    subject: z.string(),
 
     /**
      * The Bible reference that the profile is associated with.
      */
-    reference: VerseRef | null;
-}
+    reference: VerseRefSchema.nullable(),
+});
+
+export type CommentaryProfile = z.infer<typeof CommentaryProfileSchema>;
 
 /**
- * Defines an interface that contains information about a book chapter.
+ * Defines a Zod schema for information about a book chapter.
  */
-export interface TranslationBookChapter {
+export const TranslationBookChapterSchema = z.object({
     /**
      * The information for the chapter.
      */
-    chapter: ChapterData;
+    chapter: z.lazy(() => ChapterDataSchema),
 
     /**
      * The links to different audio versions for the chapter.
      */
-    thisChapterAudioLinks: TranslationBookChapterAudioLinks;
-}
+    thisChapterAudioLinks: z.lazy(() => TranslationBookChapterAudioLinksSchema),
+});
+
+export type TranslationBookChapter = z.infer<typeof TranslationBookChapterSchema>;
 
 /**
- * Defines an interface that contains information about a book chapter in a commentary.
+ * Defines a Zod schema for information about a book chapter in a commentary.
  */
-export interface CommentaryBookChapter {
+export const CommentaryBookChapterSchema = z.object({
     /**
      * The information for the chapter.
      */
-    chapter: CommentaryChapterData;
-}
+    chapter: z.lazy(() => CommentaryChapterDataSchema),
+});
+
+export type CommentaryBookChapter = z.infer<typeof CommentaryBookChapterSchema>;
 
 /**
- * Defines an interface that contains the audio links for a book chapter.
+ * Defines a Zod schema for the audio links for a book chapter.
  */
-export interface TranslationBookChapterAudioLinks {
-    /**
-     * The reader for the chapter and the URL link to the audio file.
-     */
-    [reader: string]: string;
-}
+export const TranslationBookChapterAudioLinksSchema = z.record(z.string(), z.string());
+
+export type TranslationBookChapterAudioLinks = z.infer<typeof TranslationBookChapterAudioLinksSchema>;
 
 /**
- * Defines an interface that represents data in a chapter.
+ * Defines a Zod schema for information about data in a chapter.
  */
-export interface ChapterData {
+export const ChapterDataSchema = z.object({
     /**
      * The number of the chapter.
      */
-    number: number;
+    number: z.number(),
 
     /**
      * The content of the chapter.
      */
-    content: ChapterContent[];
+    content: z.array(z.lazy(() => ChapterContentSchema)),
 
     /**
      * The list of footnotes for the chapter.
      */
-    footnotes: ChapterFootnote[];
-}
+    footnotes: z.array(z.lazy(() => ChapterFootnoteSchema)),
+});
+
+export type ChapterData = z.infer<typeof ChapterDataSchema>;
 
 /**
- * Defines an interface that represents data in a chapter in a commentary.
+ * Defines a Zod schema for information about data in a chapter in a commentary.
  */
-export interface CommentaryChapterData {
+export const CommentaryChapterDataSchema = z.object({
     /**
      * The number of the chapter.
      */
-    number: number;
+    number: z.number(),
 
     /**
      * The introduction that the commentary provided to the chapter.
      * Not all commentaries provide an introduction to a chapter.
      */
-    introduction?: string;
+    introduction: z.string().optional(),
 
     /**
      * The content of the chapter.
      */
-    content: ChapterVerse[];
-}
+    content: z.array(z.lazy(() => ChapterVerseSchema)),
+});
+
+export type CommentaryChapterData = z.infer<typeof CommentaryChapterDataSchema>;
+
+/**
+ * A Zod schema for a heading in a chapter.
+ */
+export const ChapterHeadingSchema = z.object({
+    /**
+     * Indicates that the content represents a heading.
+     */
+    type: z.literal('heading'),
+
+    /**
+     * The content for the heading.
+     * If multiple strings are included in the array, they should be concatenated with a space.
+     */
+    content: z.array(z.string()),
+});
+
+export type ChapterHeading = z.infer<typeof ChapterHeadingSchema>;
+
+/**
+ * A Zod schema for a line break in a chapter.
+ */
+export const ChapterLineBreakSchema = z.object({
+    /**
+     * Indicates that the content represents a line break.
+     */
+    type: z.literal('line_break'),
+});
+
+export type ChapterLineBreak = z.infer<typeof ChapterLineBreakSchema>;
+
+/**
+ * A Zod schema for a Hebrew Subtitle in a chapter.
+ * These are often used included as informational content that appeared in the original manuscripts.
+ * For example, Psalms 49 has the Hebrew Subtitle "To the choirmaster. A Psalm of the Sons of Korah."
+ */
+export const ChapterHebrewSubtitleSchema = z.object({
+    /**
+     * Indicates that the content represents a Hebrew Subtitle.
+     */
+    type: z.literal('hebrew_subtitle'),
+
+    /**
+     * The list of content that is contained in the subtitle.
+     * Each element in the list could be a string, formatted text, or a footnote reference.
+     */
+    content: z.array(z.union([
+        z.string(),
+        z.lazy(() => FormattedTextSchema),
+        z.lazy(() => VerseFootnoteReferenceSchema),
+    ])),
+});
+
+export type ChapterHebrewSubtitle = z.infer<typeof ChapterHebrewSubtitleSchema>;
+
+/**
+ * A Zod schema for a verse in a chapter.
+ */
+export const ChapterVerseSchema = z.object({
+    /**
+     * Indicates that the content is a verse.
+     */
+    type: z.literal('verse'),
+
+    /**
+     * The number of the verse.
+     */
+    number: z.number(),
+
+    /**
+     * The list of content for the verse.
+     * Each element in the list could be a string, formatted text, or a footnote reference.
+     */
+    content: z.array(z.union([
+        z.string(),
+        z.lazy(() => FormattedTextSchema),
+        z.lazy(() => InlineHeadingSchema),
+        z.lazy(() => InlineLineBreakSchema),
+        z.lazy(() => VerseFootnoteReferenceSchema),
+    ])),
+});
+
+export type ChapterVerse = z.infer<typeof ChapterVerseSchema>;
 
 /**
  * A union type that represents a single piece of chapter content.
@@ -493,91 +601,31 @@ export interface CommentaryChapterData {
  * - A verse.
  * - A Hebrew Subtitle.
  */
-export type ChapterContent =
-    | ChapterHeading
-    | ChapterLineBreak
-    | ChapterVerse
-    | ChapterHebrewSubtitle;
+export const ChapterContentSchema = z.discriminatedUnion('type', [
+    ChapterHeadingSchema,
+    ChapterLineBreakSchema,
+    ChapterVerseSchema,
+    ChapterHebrewSubtitleSchema,
+]);
 
 /**
- * A heading in a chapter.
+ * A union type that represents a single piece of chapter content.
+ * A piece of chapter content can be one of the following things:
+ * - A heading.
+ * - A line break.
+ * - A verse.
+ * - A Hebrew Subtitle.
  */
-export interface ChapterHeading {
-    /**
-     * Indicates that the content represents a heading.
-     */
-    type: 'heading';
-
-    /**
-     * The content for the heading.
-     * If multiple strings are included in the array, they should be concatenated with a space.
-     */
-    content: string[];
-}
+export type ChapterContent = z.infer<typeof ChapterContentSchema>;
 
 /**
- * A line break in a chapter.
+ * A Zod schema for formatted text. That is, text that is formatted in a particular manner.
  */
-export interface ChapterLineBreak {
-    /**
-     * Indicates that the content represents a line break.
-     */
-    type: 'line_break';
-}
-
-/**
- * A Hebrew Subtitle in a chapter.
- * These are often used included as informational content that appeared in the original manuscripts.
- * For example, Psalms 49 has the Hebrew Subtitle "To the choirmaster. A Psalm of the Sons of Korah."
- */
-export interface ChapterHebrewSubtitle {
-    /**
-     * Indicates that the content represents a Hebrew Subtitle.
-     */
-    type: 'hebrew_subtitle';
-
-    /**
-     * The list of content that is contained in the subtitle.
-     * Each element in the list could be a string, formatted text, or a footnote reference.
-     */
-    content: (string | FormattedText | VerseFootnoteReference)[];
-}
-
-/**
- * A verse in a chapter.
- */
-export interface ChapterVerse {
-    /**
-     * Indicates that the content is a verse.
-     */
-    type: 'verse';
-
-    /**
-     * The number of the verse.
-     */
-    number: number;
-
-    /**
-     * The list of content for the verse.
-     * Each element in the list could be a string, formatted text, or a footnote reference.
-     */
-    content: (
-        | string
-        | FormattedText
-        | InlineHeading
-        | InlineLineBreak
-        | VerseFootnoteReference
-    )[];
-}
-
-/**
- * Formatted text. That is, text that is formated in a particular manner.
- */
-export interface FormattedText {
+export const FormattedTextSchema = z.object({
     /**
      * The text that is formatted.
      */
-    text: string;
+    text: z.string(),
 
     /**
      * Whether the text represents a poem.
@@ -585,62 +633,70 @@ export interface FormattedText {
      *
      * Common in Psalms.
      */
-    poem?: number;
+    poem: z.number().optional(),
 
     /**
      * Whether the text represents the Words of Jesus.
      */
-    wordsOfJesus?: boolean;
-}
+    wordsOfJesus: z.boolean().optional(),
+});
+
+export type FormattedText = z.infer<typeof FormattedTextSchema>;
 
 /**
- * Defines an interface that represents a heading that is embedded in a verse.
+ * A Zod schema for a heading that is embedded in a verse.
  */
-export interface InlineHeading {
+export const InlineHeadingSchema = z.object({
     /**
      * The text of the heading.
      */
-    heading: string;
-}
+    heading: z.string(),
+});
+
+export type InlineHeading = z.infer<typeof InlineHeadingSchema>;
 
 /**
- * Defines an interface that represents a line break that is embedded in a verse.
+ * A Zod schema for a line break that is embedded in a verse.
  */
-export interface InlineLineBreak {
-    lineBreak: true;
-}
+export const InlineLineBreakSchema = z.object({
+    lineBreak: z.literal(true),
+});
+
+export type InlineLineBreak = z.infer<typeof InlineLineBreakSchema>;
 
 /**
- * A footnote reference in a verse or a Hebrew Subtitle.
+ * A Zod schema for a footnote reference in a verse or a Hebrew Subtitle.
  */
-export interface VerseFootnoteReference {
+export const VerseFootnoteReferenceSchema = z.object({
     /**
      * The ID of the note.
      */
-    noteId: number;
-}
+    noteId: z.number(),
+});
+
+export type VerseFootnoteReference = z.infer<typeof VerseFootnoteReferenceSchema>;
 
 /**
- * Information about a footnote.
+ * A Zod schema for information about a footnote.
  */
-export interface ChapterFootnote {
+export const ChapterFootnoteSchema = z.object({
     /**
      * The ID of the note that is referenced.
      */
-    noteId: number;
+    noteId: z.number(),
 
     /**
      * The text of the footnote.
      */
-    text: string;
+    text: z.string(),
 
     /**
      * The verse reference for the footnote.
      */
-    reference?: {
-        chapter: number;
-        verse: number;
-    };
+    reference: z.object({
+        chapter: z.number(),
+        verse: z.number(),
+    }).optional(),
 
     /**
      * The caller that should be used for the footnote.
@@ -658,5 +714,7 @@ export interface ChapterFootnote {
      * If null, then the caller should be empty.
      * If a string, then the caller should be that string.
      */
-    caller: '+' | string | null;
-}
+    caller: z.union([z.literal('+'), z.string(), z.null()]),
+});
+
+export type ChapterFootnote = z.infer<typeof ChapterFootnoteSchema>;

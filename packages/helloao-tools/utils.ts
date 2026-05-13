@@ -1,3 +1,5 @@
+import z from "zod";
+
 /**
  * Normalizes the given language code into a ISO 639 code.
  * @param language The language code to normalize.
@@ -40,26 +42,31 @@ export function getFirstNonEmpty<T extends string>(...values: T[]): T {
     throw new Error('All values are empty or whitespace!');
 }
 
-export interface VerseRef {
-    book: string;
-    chapter: number;
-    verse: number;
+/**
+ * Defines a schema for validating verse references.
+ */
+export const VerseRefSchema = z.object({
+    book: z.string(),
+    chapter: z.number(),
+    verse: z.number(),
 
     /**
      * The rest of the content of the verse.
      */
-    content?: string;
+    content: z.string().optional(),
 
     /**
      * The chapter that the verse reference ends at.
      */
-    endChapter?: number;
+    endChapter: z.number().optional(),
 
     /**
      * The verse that the verse reference ends at.
      */
-    endVerse?: number;
-}
+    endVerse: z.number().optional(),
+});
+
+export type VerseRef = z.infer<typeof VerseRefSchema>;
 
 /**
  * Parses the given verse reference.
