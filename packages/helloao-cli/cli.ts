@@ -28,6 +28,7 @@ import {
 import { getPrismaDb } from './db.js';
 import { confirm, input } from '@inquirer/prompts';
 import { log } from '@helloao/tools';
+import { createFreeUseBibleApiOpenApiDocument } from './openapi.js';
 
 async function start() {
     const parser = new DOMParser();
@@ -95,6 +96,16 @@ async function start() {
                 await mkdir(dir, { recursive: true });
                 await writeFile(location, JSON.stringify(meta, null, 2));
             }
+        });
+
+    program
+        .command('generate-openapi-metadata')
+        .description('Generates a OpenAPI document file for the API.')
+        .action(async () => {
+            const document = createFreeUseBibleApiOpenApiDocument();
+
+            const logger = log.getLogger();
+            logger.log('Your OpenAPI document:', document);
         });
 
     program

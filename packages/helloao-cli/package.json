@@ -46,7 +46,8 @@
         "papaparse": "5.4.1",
         "luxon": "3.5.0",
         "typesense": "3.0.5",
-        "zod-openapi": "5.4.6"
+        "zod-openapi": "5.4.6",
+        "zod": "^4.4.3"
     },
     "files": [
         "/README.md",
