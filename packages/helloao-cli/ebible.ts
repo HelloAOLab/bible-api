@@ -1,5 +1,5 @@
 import { parse } from 'papaparse';
-import { EBibleSource } from 'prisma-gen/index.js';
+import { EBibleSource } from './prisma-gen/index.js';
 import { DateTime } from 'luxon';
 import { sha256 } from 'hash.js';
 import { getTranslationId } from '@helloao/tools/utils.js';

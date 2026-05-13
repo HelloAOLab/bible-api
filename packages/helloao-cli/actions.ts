@@ -50,7 +50,7 @@ import { getHttpUrl } from './s3.js';
 import { input, select, confirm, checkbox } from '@inquirer/prompts';
 import { isValid } from 'all-iso-language-codes';
 import { log } from '@helloao/tools';
-import { EBibleSource } from 'prisma-gen/index.js';
+import { EBibleSource } from './prisma-gen/index.js';
 import { DateTime } from 'luxon';
 import { BlobReader, ZipReader } from '@zip.js/zip.js';
 import { tmpdir } from 'node:os';

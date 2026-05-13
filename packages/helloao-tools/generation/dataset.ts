@@ -35,6 +35,7 @@ import {
 import { TyndaleXmlParser } from '../parser/tyndale-xml-parser.js';
 import { getLogger } from '../log.js';
 import { LockmanParser } from '../parser/lockman-parser.js';
+import { BookId } from '../utils.js';
 
 export const DATASET_VERSION = 1;
 
@@ -276,7 +277,7 @@ export function generateDataset(
             id;
 
         const book: DatasetTranslationBook = {
-            id: id,
+            id: id as BookId,
             name,
             commonName,
             title: parsed.title ?? null,
@@ -342,7 +343,7 @@ export function generateDataset(
             if (!book) {
                 const name = getBookNames(file, file.metadata, parsedBook.book);
                 book = {
-                    id: parsedBook.book,
+                    id: parsedBook.book as BookId,
                     order: bookOrderMap.get(parsedBook.book) ?? -1,
                     commonName: name?.bookName?.commonName ?? parsedBook.book,
                     name: name?.bookName?.commonName ?? parsedBook.book,

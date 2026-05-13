@@ -214,7 +214,7 @@ export function parseVerseReference(text: string): VerseRef | null {
 
     if (reference.length !== text.length) {
         return {
-            book: getBookId(book) ?? book,
+            book: getBookId(book) ?? book as BookId,
             chapter,
             verse,
             content: text.substring(reference.length).trim(),
@@ -224,7 +224,7 @@ export function parseVerseReference(text: string): VerseRef | null {
     }
 
     return {
-        book: getBookId(book) ?? book,
+        book: getBookId(book) ?? book as BookId,
         chapter,
         verse,
         endChapter,
@@ -235,7 +235,7 @@ export function parseVerseReference(text: string): VerseRef | null {
 /**
  * Defines a map that maps the book ID to the USFM Book identifier.
  */
-const BOOK_ID_MAP: Map<string, string> = new Map([
+const BOOK_ID_MAP: Map<string, BookId> = new Map([
     ['gen', 'GEN'],
     ['genesis', 'GEN'],
     ['exo', 'EXO'],
@@ -388,7 +388,7 @@ const BOOK_ID_MAP: Map<string, string> = new Map([
  * Returns null if the ID could not be found.
  * @param book The name/ID of the book.
  */
-export function getBookId(book: string): string | null {
+export function getBookId(book: string): BookId | null {
     const bookLower = book.toLowerCase().replaceAll(/\s+/g, '');
 
     const id = BOOK_ID_MAP.get(bookLower);

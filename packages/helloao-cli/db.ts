@@ -43,6 +43,7 @@ import { Readable } from 'stream';
 import { getEnglishName, getNativeName } from 'all-iso-language-codes';
 import { log } from '@helloao/tools';
 import { ParseMessage } from '@helloao/tools/parser/types.js';
+import { BookId } from '@helloao/tools/utils.js';
 
 let dirname = __dirname;
 if (!dirname) {
@@ -1782,6 +1783,7 @@ export async function* loadTranslationDatasets(
 
                 const datasetBook: DatasetTranslationBook = {
                     ...book,
+                    id: book.id as BookId,
                     chapters: bookChapters,
                     isApocryphal: book.isApocryphal ?? false,
                 };
@@ -1890,6 +1892,7 @@ export async function* loadCommentaryDatasets(
 
                 const datasetBook: DatasetCommentaryBook = {
                     ...book,
+                    id: book.id as BookId,
                     introduction: book.introduction ?? undefined,
                     introductionSummary: book.introductionSummary ?? undefined,
                     chapters: bookChapters,
@@ -2011,6 +2014,7 @@ export async function* loadDatasetDatasets(
 
                 const datasetBook: DatasetDatasetBook = {
                     ...book,
+                    id: book.id as BookId,
                     chapters: bookChapters,
                 };
                 datasetDataset.books.push(datasetBook);
