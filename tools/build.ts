@@ -115,7 +115,7 @@ async function buildTools() {
 
 async function buildClient() {
     const options: BuildOptions = {
-        entryPoints: await entryPoints('clients/typescript'),
+        entryPoints: await entryPoints('packages/free-use-bible-api'),
     };
 
     await Promise.all([
@@ -132,7 +132,7 @@ async function buildClient() {
         }),
     ]);
 
-    console.log('Tools built successfully!');
+    console.log('Client built successfully!');
 }
 
 async function build() {
