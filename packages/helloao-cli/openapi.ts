@@ -48,8 +48,10 @@ export function createFreeUseBibleApiOpenApiDocument(): any {
         },
         paths: {
             "/api/available_translations.json": {
+                
                 description: "Get the list of available Bible translations.",
                 get: {
+                    operationId: "getAvailableTranslations",
                     responses: {
                         '200': {
                             description: '200 OK',
@@ -65,6 +67,7 @@ export function createFreeUseBibleApiOpenApiDocument(): any {
             "/api/{translation}/books.json": {
                 description: "Get the list of books available for a specific translation.",
                 get: {
+                    operationId: "getTranslationBooks",
                     requestParams: {
                         path: z.object({
                             translation: translation
@@ -88,6 +91,7 @@ export function createFreeUseBibleApiOpenApiDocument(): any {
             "/api/{translation}/{book}/{chapter}.json": {
                 description: "Get the content of a specific chapter of a specific book for a specific translation.",
                 get: {
+                    operationId: "getTranslationBookChapter",
                     requestParams: {
                         path: z.object({
                             translation,
@@ -113,6 +117,7 @@ export function createFreeUseBibleApiOpenApiDocument(): any {
             "/api/{translation}/complete.json": {
                 description: "Get the complete content of a specific translation.",
                 get: {
+                    operationId: "getTranslationComplete",
                     requestParams: {
                         path: z.object({
                             translation,
@@ -136,6 +141,7 @@ export function createFreeUseBibleApiOpenApiDocument(): any {
             "/api/available_commentaries.json": {
                 description: "Get the list of available commentaries.",
                 get: {
+                    operationId: "getAvailableCommentaries",
                     responses: {
                         '200': {
                             description: '200 OK',
@@ -151,6 +157,7 @@ export function createFreeUseBibleApiOpenApiDocument(): any {
             "/api/c/{commentary}/books.json": {
                 description: "Get the list of books available for a specific commentary.",
                 get: {
+                    operationId: "getCommentaryBooks",
                     requestParams: {
                         path: z.object({
                             commentary,
@@ -174,6 +181,7 @@ export function createFreeUseBibleApiOpenApiDocument(): any {
             "/api/c/{commentary}/{book}/{chapter}.json": {
                 description: "Get the content of a specific chapter of a specific book for a specific commentary.",
                 get: {
+                    operationId: "getCommentaryBookChapter",
                     requestParams: {
                         path: z.object({
                             commentary,
@@ -199,6 +207,7 @@ export function createFreeUseBibleApiOpenApiDocument(): any {
             "/api/available_datasets.json": {
                 description: "Get the list of available datasets.",
                 get: {
+                    operationId: "getAvailableDatasets",
                     responses: {
                         '200': {
                             description: '200 OK',
@@ -214,6 +223,7 @@ export function createFreeUseBibleApiOpenApiDocument(): any {
             "/api/d/{dataset}/books.json": {
                 description: "Get the list of books available for a specific dataset.",
                 get: {
+                    operationId: "getDatasetBooks",
                     requestParams: {
                         path: z.object({
                             dataset,
@@ -237,6 +247,7 @@ export function createFreeUseBibleApiOpenApiDocument(): any {
             "/api/d/{dataset}/{book}/{chapter}.json": {
                 description: "Get the content of a specific chapter of a specific book for a specific dataset.",
                 get: {
+                    operationId: "getDatasetBookChapter",
                     requestParams: {
                         path: z.object({
                             dataset,
