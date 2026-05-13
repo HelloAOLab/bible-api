@@ -1,16 +1,17 @@
 import { loadDatasets, serializeDatasets, SerializedFile } from './db.js';
 import { defaultProviderForOptions, parseS3Url, S3Uploader } from './s3.js';
 import { extname } from 'path';
-import { FilesUploader, Uploader, ZipUploader } from './files.js';
+import { FilesUploader, serializeFile, Uploader, ZipUploader } from './files.js';
 import { Readable } from 'node:stream';
 import { DatasetOutput } from '@helloao/tools/generation/dataset.js';
 import { PrismaClient } from './prisma-gen/index.js';
 import { GenerateApiOptions } from '@helloao/tools/generation/api.js';
 import { log } from '@helloao/tools';
+import { createFreeUseBibleApiOpenApiDocument } from './openapi.js';
 
 export interface UploadApiFromDatabaseOptions
     extends UploadApiOptions,
-        GenerateApiOptions {
+    GenerateApiOptions {
     /**
      * The number of files to upload in each batch.
      */
@@ -76,6 +77,12 @@ export interface UploadApiOptions {
     generateAudioFiles?: boolean;
 
     /**
+     * Whether to generate the OpenAPI document for the API.
+     * Defaults to true.
+     */
+    generateOpenApiDocument?: boolean;
+
+    /**
      * Whether to generate pretty-printed JSON files.
      */
     pretty?: boolean;
@@ -119,6 +126,10 @@ export async function uploadApiFilesFromDatabase(
         logger.log('Generating for all translations');
     }
 
+    if (options.generateOpenApiDocument !== false) {
+        logger.log('Generating OpenAPI document');
+    }
+
     if (options.pretty) {
         logger.log('Generating pretty-printed JSON files');
     }
@@ -136,6 +147,25 @@ export async function uploadApiFilesFromDatabase(
         loadDatasets(db, pageSize, options.translations),
         options
     );
+
+    if (options.generateOpenApiDocument !== false) {
+        await uploadOpenApiDocument(dest, options);
+    }
+}
+
+export async function uploadOpenApiDocument(dest: string, options: UploadApiFromDatabaseOptions) {
+    async function* iterator(): AsyncGenerator<SerializedFile[]> {
+        const file = await serializeFile('/openapi.json', createFreeUseBibleApiOpenApiDocument(), {
+            pretty: true
+        });
+        if (file) {
+            yield [file];
+        } else {
+            yield [];
+        }
+    }
+
+    await uploadFiles(dest, options, iterator());
 }
 
 /**
@@ -322,8 +352,8 @@ export async function uploadFilesUsingUploader(
                     await uploader.upload(
                         file,
                         overwrite ||
-                            (overwriteCommonFiles && isCommonFile) ||
-                            (isMergedFile && overwriteMergedFiles)
+                        (overwriteCommonFiles && isCommonFile) ||
+                        (isMergedFile && overwriteMergedFiles)
                     )
                 ) {
                     if (options.verbose) {

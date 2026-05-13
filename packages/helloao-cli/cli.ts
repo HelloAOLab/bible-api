@@ -3,9 +3,10 @@
 import { Command } from 'commander';
 import path, { extname } from 'path';
 import { mkdir, stat, writeFile } from 'fs/promises';
+import { spawn } from 'child_process';
 import { DOMParser, Element, Node } from 'linkedom';
 import { downloadFile } from './downloads.js';
-import { uploadApiFilesFromDatabase } from './uploads.js';
+import { uploadApiFilesFromDatabase, uploadOpenApiDocument } from './uploads.js';
 import {
     askForMetadata,
     copyOpenBibleAudio,
@@ -105,7 +106,9 @@ async function start() {
             const document = createFreeUseBibleApiOpenApiDocument();
 
             const logger = log.getLogger();
-            logger.log('Your OpenAPI document:', document);
+            logger.log('Your OpenAPI document:', JSON.stringify(document, null, 2));
+        });
+
         });
 
     program
@@ -495,6 +498,7 @@ async function start() {
             '--no-generate-complete-translation-files',
             'Whether to skip generating complete translation files.'
         )
+        .option('--no-generate-open-api-document', 'Whether to skip generating the OpenAPI document file.')
         .option(
             '--profile <profile>',
             'The AWS profile to use for uploading to S3.'
@@ -526,6 +530,44 @@ async function start() {
             } finally {
                 db.$disconnect();
             }
+        });
+    program
+        .command('upload-open-api-document')
+        .argument('<dest>', 'The destination to upload the OpenAPI document to.')
+        .description(
+            'Uploads the OpenAPI document to the specified destination. For S3, use the format s3://bucket-name/path/to/folder.'
+        )
+        .option(
+            '--batch-size <size>',
+            'The number of translations to generate API files for in each batch.',
+            '50'
+        )
+        .option(
+            '--profile <profile>',
+            'The AWS profile to use for uploading to S3.'
+        )
+        .option(
+            '--access-key-id <accessKeyId>',
+            'The AWS access key ID to use for uploading to S3.'
+        )
+        .option(
+            '--secret-access-key <secretAccessKey>',
+            'The AWS Secret Access Key to use for uploading to S3.'
+        )
+        .option(
+            '--s3-region <region>',
+            'The AWS region to use for uploading to S3.'
+        )
+        .option('--pretty', 'Whether to generate pretty-printed JSON files.')
+        .option(
+            '--verbose',
+            'Whether to output verbose information during the upload.'
+        )
+        .action(async (dest: string, options: any) => {
+            await uploadOpenApiDocument(dest, {
+                ...program.opts(),
+                ...options,
+            });
         });
 
     program
@@ -735,3 +777,4 @@ async function start() {
 }
 
 start();
+
