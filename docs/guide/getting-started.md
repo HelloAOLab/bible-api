@@ -1,6 +1,15 @@
 # Getting Started
 
-Let's get right into it! The Bible API is structured as a set of JSON files that are available for download from the internet.
+Let's get right into it! 
+
+## SDKs
+
+We have API clients for the following languages:
+
+- [JavaScript/TypeScript](../sdks/javascript.md)
+
+## API
+The Bible API is structured as a set of JSON files that are available for download from the internet.
 
 Using these files, you can get a list of available translations, the list of books for a particular translation, the list of chapters for a particular book, and the content for each chapter.
 

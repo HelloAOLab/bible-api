@@ -40,6 +40,10 @@ export default defineUserConfig({
                 link: '/reference/',
             },
             {
+                text: 'SDKs',
+                link: '/sdks/',
+            },
+            {
                 text: 'Source Code',
                 link: 'https://github.com/HelloAOLab/bible-api',
             },
@@ -75,6 +79,13 @@ export default defineUserConfig({
                     text: 'Reference',
                     collapsible: false,
                     children: [''],
+                },
+            ],
+            '/sdks/': [
+                {
+                    text: 'SDKs',
+                    collapsible: false,
+                    children: ['', 'javascript'],
                 },
             ],
         },

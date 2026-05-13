@@ -1,10 +1,8 @@
-# Free Use Bible API
-
-The Free Use Bible API provides access to over 1000 Bible translations in hundreds of languages.
+# JavaScript/TypeScript
 
 This package is a TypeScript and JavaScript client for the public API hosted at:
 
-- https://bible.helloao.org
+- `https://bible.helloao.org`
 
 ## Installation
 
@@ -136,4 +134,3 @@ Use available translations and books responses to drive your UI selections and r
 - This client uses fetch under the hood.
 - In modern Node.js versions, fetch is available globally.
 - For custom environments, pass a custom fetch implementation in `Configuration`.
-
