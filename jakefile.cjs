@@ -10,6 +10,7 @@ function makeGlobbablePath(path) {
 let folders = [
     `${__dirname}/packages/helloao-tools`,
     `${__dirname}/packages/helloao-cli`,
+    `${__dirname}/packages/free-use-bible-api`,
 ];
 
 let patterns = [

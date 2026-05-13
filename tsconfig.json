@@ -8,6 +8,7 @@
     "files": [],
     "references": [
         { "path": "./packages/helloao-tools" },
-        { "path": "./packages/helloao-cli" }
+        { "path": "./packages/helloao-cli" },
+        { "path": "./packages/free-use-bible-api" }
     ]
 }

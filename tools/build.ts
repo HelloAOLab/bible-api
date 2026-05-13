@@ -21,6 +21,11 @@ const toolsIndex = path.resolve(tools, 'index.ts');
 const toolsPackageJson = path.resolve(tools, 'package.json');
 const toolsDist = path.resolve(tools, 'dist');
 
+const fuba = path.resolve(packages, 'free-use-bible-api');
+const fubaIndex = path.resolve(fuba, 'index.ts');
+const fubaPackageJson = path.resolve(fuba, 'package.json');
+const fubaDist = path.resolve(fuba, 'dist');
+
 function getExternals(packageJson: string) {
     const packageData = JSON.parse(
         readFileSync(packageJson, { encoding: 'utf-8' })
@@ -122,13 +127,13 @@ async function buildClient() {
         esbuild.build({
             ...esmOptions,
             ...options,
-            outdir: path.resolve(toolsDist, 'esm'),
+            outdir: path.resolve(fubaDist, 'esm'),
         }),
         esbuild.build({
             ...cjsOptions,
             ...options,
             bundle: false,
-            outdir: path.resolve(toolsDist, 'cjs'),
+            outdir: path.resolve(fubaDist, 'cjs'),
         }),
     ]);
 

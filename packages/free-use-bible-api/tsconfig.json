@@ -6,6 +6,7 @@
         "declarationMap": true,
         "composite": true,
         "incremental": true,
+        "noUnusedParameters": false,
         "skipLibCheck": true,
         "emitDeclarationOnly": true
     },
