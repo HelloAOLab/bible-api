@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { VerseRef, VerseRefSchema } from '../utils.js';
+import { BookIdSchema, VerseRef, VerseRefSchema } from '../utils.js';
 
 /**
  * Defines an interface that contains information about a input file.
@@ -269,7 +269,7 @@ export const TranslationBookSchema = z.object({
     /**
      * The ID of the book. Should match the USFM book ID.
      */
-    id: z.string(),
+    id: BookIdSchema,
 
     /**
      * The name that the translation provided for the book.
@@ -308,7 +308,7 @@ export const CommentaryBookSchema = z.object({
     /**
      * The ID of the book. Should match the USFM book ID.
      */
-    id: z.string(),
+    id: BookIdSchema,
 
     /**
      * The name that the commentary provided for the book.
@@ -345,7 +345,7 @@ export const DatasetBookSchema = z.object({
     /**
      * The ID of the book. Should match the USFM book ID.
      */
-    id: z.string(),
+    id: BookIdSchema,
 
     /**
      * The order of the book in the Bible.
