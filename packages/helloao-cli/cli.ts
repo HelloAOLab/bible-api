@@ -197,6 +197,7 @@ async function start() {
             const projectRoot = await findProjectRoot(process.cwd());
             const tempDir = path.resolve(projectRoot, 'temp');
             const clientsDir = path.resolve(projectRoot, 'clients');
+            const packagesDir = path.resolve(projectRoot, 'packages');
             const openApiPath = path.resolve(tempDir, 'openapi.json');
 
             await mkdir(tempDir, { recursive: true });
@@ -210,7 +211,7 @@ async function start() {
             logger.log('OpenAPI document written to:', openApiPath);
 
             for (const [language, generatorName] of OPENAPI_CLIENT_LANGUAGES) {
-                const outputPath = path.resolve(clientsDir, language);
+                const outputPath = language === "typescript" ? path.resolve(packagesDir, "free-use-bible-api") : path.resolve(clientsDir, language);
                 await mkdir(outputPath, { recursive: true });
                 logger.log('Generating client:', language, 'with generator:', generatorName);
                 await runOpenApiGenerator(

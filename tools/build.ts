@@ -113,9 +113,32 @@ async function buildTools() {
     console.log('Tools built successfully!');
 }
 
+async function buildClient() {
+    const options: BuildOptions = {
+        entryPoints: await entryPoints('clients/typescript'),
+    };
+
+    await Promise.all([
+        esbuild.build({
+            ...esmOptions,
+            ...options,
+            outdir: path.resolve(toolsDist, 'esm'),
+        }),
+        esbuild.build({
+            ...cjsOptions,
+            ...options,
+            bundle: false,
+            outdir: path.resolve(toolsDist, 'cjs'),
+        }),
+    ]);
+
+    console.log('Tools built successfully!');
+}
+
 async function build() {
     await buildTools();
     await buildCli();
+    await buildClient();
 }
 
 build();
