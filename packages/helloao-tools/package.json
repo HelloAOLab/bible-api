@@ -57,7 +57,8 @@
     "devDependencies": {
         "@types/jest": "^29.4.0",
         "linkedom": "0.18.4",
-        "hash.js": "1.1.7"
+        "hash.js": "1.1.7",
+        "zod-openapi": "5.4.6"
     },
     "files": [
         "/README.md",

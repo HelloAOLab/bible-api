@@ -45,7 +45,8 @@
         "all-iso-language-codes": "1.0.17",
         "papaparse": "5.4.1",
         "luxon": "3.5.0",
-        "typesense": "3.0.5"
+        "typesense": "3.0.5",
+        "zod-openapi": "5.4.6"
     },
     "files": [
         "/README.md",
