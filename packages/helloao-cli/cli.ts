@@ -3,7 +3,7 @@
 import { Command } from 'commander';
 import path, { extname } from 'path';
 import { mkdir, stat, writeFile } from 'fs/promises';
-import { spawn } from 'child_process';
+import { exec, spawn } from 'child_process';
 import { DOMParser, Element, Node } from 'linkedom';
 import { downloadFile } from './downloads.js';
 import { uploadApiFilesFromDatabase, uploadOpenApiDocument } from './uploads.js';
@@ -30,6 +30,84 @@ import { getPrismaDb } from './db.js';
 import { confirm, input } from '@inquirer/prompts';
 import { log } from '@helloao/tools';
 import { createFreeUseBibleApiOpenApiDocument } from './openapi.js';
+import { PrismaClient } from './prisma-gen/index.js';
+import { DefaultArgs } from './prisma-gen/runtime/library.js';
+
+const OPENAPI_CLIENT_LANGUAGES = [
+    ['csharp', 'csharp'],
+    ['java', 'java'],
+    ['go', 'go'],
+    ['python', 'python'],
+    ['dart', 'dart'],
+    ['swift', 'swift6'],
+    ['typescript', 'typescript-fetch'],
+] as const;
+
+async function findProjectRoot(startDir: string): Promise<string> {
+    let currentDir = path.resolve(startDir);
+    while (true) {
+        try {
+            await stat(path.resolve(currentDir, 'openapitools.json'));
+            return currentDir;
+        } catch {
+            // Keep searching upward for the repository root marker.
+        }
+
+        const parent = path.dirname(currentDir);
+        if (parent === currentDir) {
+            throw new Error(
+                'Could not find project root (missing openapitools.json).' 
+            );
+        }
+
+        currentDir = parent;
+    }
+}
+
+async function runOpenApiGenerator(
+    cwd: string,
+    inputPath: string,
+    generatorName: string,
+    outputPath: string
+): Promise<void> {
+    const executable = 'openapi-generator-cli';
+
+    await new Promise<void>((resolve, reject) => {
+        const child = exec(
+            `${executable} generate -i "${inputPath}" -g "${generatorName}" -o "${outputPath}"`,
+            {
+                cwd,
+            },
+        );
+
+        child.on('error', (error) => {
+            const err = error as NodeJS.ErrnoException;
+            if (err.code === 'ENOENT') {
+                reject(
+                    new Error(
+                        'openapi-generator-cli was not found in PATH. Install it first and try again.'
+                    )
+                );
+                return;
+            }
+
+            reject(error);
+        });
+
+        child.on('close', (code) => {
+            if (code === 0) {
+                resolve();
+                return;
+            }
+
+            reject(
+                new Error(
+                    `openapi-generator-cli failed for language "${generatorName}" with exit code ${code ?? 'unknown'}.`
+                )
+            );
+        });
+    });
+}
 
 async function start() {
     const parser = new DOMParser();
@@ -109,6 +187,41 @@ async function start() {
             logger.log('Your OpenAPI document:', JSON.stringify(document, null, 2));
         });
 
+    program
+        .command('generate-clients')
+        .description(
+            'Generates OpenAPI clients in /clients for csharp, java, go, python, dart, swift6, and typescript-fetch.'
+        )
+        .action(async () => {
+            const logger = log.getLogger();
+            const projectRoot = await findProjectRoot(process.cwd());
+            const tempDir = path.resolve(projectRoot, 'temp');
+            const clientsDir = path.resolve(projectRoot, 'clients');
+            const openApiPath = path.resolve(tempDir, 'openapi.json');
+
+            await mkdir(tempDir, { recursive: true });
+            await mkdir(clientsDir, { recursive: true });
+
+            const document = createFreeUseBibleApiOpenApiDocument();
+            await writeFile(openApiPath, JSON.stringify(document, null, 2), {
+                encoding: 'utf-8',
+            });
+
+            logger.log('OpenAPI document written to:', openApiPath);
+
+            for (const [language, generatorName] of OPENAPI_CLIENT_LANGUAGES) {
+                const outputPath = path.resolve(clientsDir, language);
+                await mkdir(outputPath, { recursive: true });
+                logger.log('Generating client:', language, 'with generator:', generatorName);
+                await runOpenApiGenerator(
+                    projectRoot,
+                    openApiPath,
+                    generatorName,
+                    outputPath
+                );
+            }
+
+            logger.log('OpenAPI client generation complete.');
         });
 
     program
