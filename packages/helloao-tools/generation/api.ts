@@ -27,6 +27,7 @@ import {
     CommentarySchema,
 } from './common-types.js';
 import { DatasetOutput } from './dataset.js';
+import "zod-openapi";
 
 /**
  * Defines the output of the API generation.
@@ -130,7 +131,13 @@ export const ApiAvailableTranslationsSchema = z.object({
     /**
      * The list of translations.
      */
-    translations: z.array(z.lazy(() => ApiTranslationSchema)),
+    translations: z.array(z.lazy(() => ApiTranslationSchema))
+        .meta({
+            description: 'The list of translations that are available in the API.',
+        }),
+}).meta({
+    id: 'ApiAvailableTranslations',
+    description: 'The list of available translations. Maps to the /api/available-translations.json endpoint.',
 });
 
 export type ApiAvailableTranslations = z.infer<
@@ -145,7 +152,12 @@ export const ApiAvailableCommentariesSchema = z.object({
     /**
      * The list of commentaries.
      */
-    commentaries: z.array(z.lazy(() => ApiCommentarySchema)),
+    commentaries: z.array(z.lazy(() => ApiCommentarySchema)).meta({
+        description: 'The list of commentaries that are available in the API.',
+    }),
+}).meta({
+    id: 'ApiAvailableCommentaries',
+    description: 'The list of available commentaries. Maps to the /api/available-commentaries.json endpoint.',
 });
 
 export type ApiAvailableCommentaries = z.infer<
@@ -157,7 +169,12 @@ export type ApiAvailableCommentaries = z.infer<
  * Maps to the /api/available-datasets.json endpoint.
  */
 export const ApiAvailableDatasetsSchema = z.object({
-    datasets: z.array(z.lazy(() => ApiDatasetSchema)),
+    datasets: z.array(z.lazy(() => ApiDatasetSchema)).meta({
+        description: 'The list of datasets that are available in the API.',
+    }),
+}).meta({
+    id: 'ApiAvailableDatasets',
+    description: 'The list of available datasets. Maps to the /api/available-datasets.json endpoint.',
 });
 
 export type ApiAvailableDatasets = z.infer<typeof ApiAvailableDatasetsSchema>;
@@ -169,7 +186,9 @@ export const ApiDatasetSchema = DatasetSchema.extend({
     /**
      * The API link for the list of books for this dataset.
      */
-    listOfBooksApiLink: z.string(),
+    listOfBooksApiLink: z.string().meta({
+        description: 'The API link for the list of books for this dataset. Relative to the API origin.',
+    }),
 
     /**
      * The available list of formats.
@@ -179,34 +198,49 @@ export const ApiDatasetSchema = DatasetSchema.extend({
     /**
      * The number of books that are contained in this dataset.
      */
-    numberOfBooks: z.number(),
+    numberOfBooks: z.number().meta({
+        description: 'The number of books that are contained in this dataset.',
+    }),
 
     /**
      * The total number of chapters that are contained in this dataset.
      */
-    totalNumberOfChapters: z.number(),
+    totalNumberOfChapters: z.number().meta({
+        description: 'The total number of chapters that are contained in this dataset.',
+    }),
 
     /**
      * The total number of verses that are contained in this dataset.
      */
-    totalNumberOfVerses: z.number(),
+    totalNumberOfVerses: z.number().meta({
+        description: 'The total number of verses that are contained in this dataset.',
+    }),
 
     /**
      * The total number of references that are contained in this dataset.
      */
-    totalNumberOfReferences: z.number(),
+    totalNumberOfReferences: z.number().meta({
+        description: 'The total number of references that are contained in this dataset.',
+    }),
 
     /**
      * Gets the name of the language that the commentary is in.
      * Null or undefined if the name of the language is not known.
      */
-    languageName: z.string().optional(),
+    languageName: z.string().optional().meta({
+        description: 'Gets the name of the language that the dataset is in. Null or undefined if the name of the language is not known.',
+    }),
 
     /**
      * Gets the name of the language in English.
      * Null or undefined if the language doesn't have an english name.
      */
-    languageEnglishName: z.string().optional(),
+    languageEnglishName: z.string().optional().meta({
+        description: 'Gets the name of the language in English. Null or undefined if the language doesn\'t have an english name.',
+    }),
+}).meta({
+    id: 'ApiDataset',
+    description: 'Defines a dataset that is used in the API.',
 });
 
 export type ApiDataset = z.infer<typeof ApiDatasetSchema>;
@@ -218,7 +252,9 @@ export const ApiTranslationSchema = TranslationSchema.extend({
     /**
      * The API link for the list of available books for this translation.
      */
-    listOfBooksApiLink: z.string(),
+    listOfBooksApiLink: z.string().meta({
+        description: 'The API link for the list of books for this translation. Relative to the API origin.',
+    }),
 
     /**
      * The available list of formats.
@@ -230,55 +266,76 @@ export const ApiTranslationSchema = TranslationSchema.extend({
      *
      * Complete translations should have the same number of books as the Bible (66).
      */
-    numberOfBooks: z.number(),
+    numberOfBooks: z.number().meta({
+        description: 'The number of books that are contained in this translation. Complete translations should have the same number of books as the Bible (66).',
+    }),
 
     /**
      * The total number of chapters that are contained in this translation.
      *
      * Complete translations should have the same number of chapters as the Bible (1,189).
      */
-    totalNumberOfChapters: z.number(),
+    totalNumberOfChapters: z.number().meta({
+        description: 'The total number of chapters that are contained in this translation. Complete translations should have the same number of chapters as the Bible (1,189).',
+    }),
 
     /**
      * The total number of verses that are contained in this translation.
      *
      * Complete translations should have the same number of verses as the Bible (around 31,102 - some translations exclude verses based on the aparent likelyhood of existing in the original source texts).
      */
-    totalNumberOfVerses: z.number(),
+    totalNumberOfVerses: z.number().meta({
+        description: 'The total number of verses that are contained in this translation. Complete translations should have the same number of verses as the Bible (around 31,102 - some translations exclude verses based on the aparent likelyhood of existing in the original source texts).',
+    }),
 
     /**
      * The total number of apocryphal books that are contained in this translation.
      */
-    numberOfApocryphalBooks: z.number().optional(),
+    numberOfApocryphalBooks: z.number().optional().meta({
+        description: 'The total number of apocryphal books that are contained in this translation.',
+    }),
 
     /**
      * The total number of apocryphal chapters that are contained in this translation.
      */
-    totalNumberOfApocryphalChapters: z.number().optional(),
+    totalNumberOfApocryphalChapters: z.number().optional().meta({
+        description: 'The total number of apocryphal chapters that are contained in this translation.',
+    }),
 
     /**
-     * the total number of apocryphal verses that are contained in this translation.
+     * The total number of apocryphal verses that are contained in this translation.
      */
-    totalNumberOfApocryphalVerses: z.number().optional(),
+    totalNumberOfApocryphalVerses: z.number().optional().meta({
+        description: 'The total number of apocryphal verses that are contained in this translation.',
+    }),
 
     /**
      * Gets the name of the language that the translation is in.
      * Null or undefined if the name of the language is not known.
      */
-    languageName: z.string().optional(),
+    languageName: z.string().optional().meta({
+        description: 'Gets the name of the language that the translation is in. Null or undefined if the name of the language is not known.',
+    }),
 
     /**
      * Gets the name of the language in English.
      * Null or undefined if the language doesn't have an english name.
      */
-    languageEnglishName: z.string().optional(),
+    languageEnglishName: z.string().optional().meta({
+        description: 'Gets the name of the language in English. Null or undefined if the language doesn\'t have an english name.',
+    }),
 
     /**
      * The API link for downloading the complete translation as a single JSON file.
      *
      * Undefined if complete translation files are not available.
      */
-    completeTranslationApiLink: z.string().optional(),
+    completeTranslationApiLink: z.string().optional().meta({
+        description: 'The API link for downloading the complete translation as a single JSON file. Relative to the API origin. Undefined if complete translation files are not available.',
+    }),
+}).meta({
+    id: 'ApiTranslation',
+    description: 'Defines a translation that is used in the API.',
 });
 
 export type ApiTranslation = z.infer<typeof ApiTranslationSchema>;
@@ -291,12 +348,19 @@ export const ApiTranslationCompleteSchema = z.object({
     /**
      * The translation metadata.
      */
-    translation: z.lazy(() => ApiTranslationSchema),
+    translation: z.lazy(() => ApiTranslationSchema).meta({
+        description: 'The translation metadata.',
+    }),
 
     /**
      * The complete list of books with all their chapters.
      */
-    books: z.array(z.lazy(() => ApiTranslationCompleteBookSchema)),
+    books: z.array(z.lazy(() => ApiTranslationCompleteBookSchema)).meta({
+        description: 'The complete list of books with all their chapters.',
+    }),
+}).meta({
+    id: 'ApiTranslationComplete',
+    description: 'Defines the complete translation download data. Maps to the /api/:translationId/complete.json endpoint.',
 });
 
 export type ApiTranslationComplete = z.infer<typeof ApiTranslationCompleteSchema>;
@@ -306,49 +370,28 @@ export type ApiTranslationComplete = z.infer<typeof ApiTranslationCompleteSchema
  */
 export const ApiTranslationCompleteBookSchema = TranslationBookSchema.extend({
     /**
-     * The ID of the book.
-     */
-    id: z.string(),
-
-    /**
-     * The name of the book from the translation.
-     */
-    name: z.string(),
-
-    /**
-     * The common name for the book.
-     */
-    commonName: z.string(),
-
-    /**
-     * The title of the book.
-     */
-    title: z.string().nullable(),
-
-    /**
-     * The order of the book.
-     */
-    order: z.number(),
-
-    /**
      * The number of chapters in the book.
      */
-    numberOfChapters: z.number(),
+    numberOfChapters: z.number().meta({
+        description: 'The number of chapters in the book.',
+    }),
 
     /**
      * The total number of verses in the book.
      */
-    totalNumberOfVerses: z.number(),
-
-    /**
-     * Whether the book is apocryphal.
-     */
-    isApocryphal: z.boolean().optional(),
+    totalNumberOfVerses: z.number().meta({
+        description: 'The total number of verses in the book.',
+    }),
 
     /**
      * The complete list of chapters with all content.
      */
-    chapters: z.array(TranslationBookChapterSchema),
+    chapters: z.array(TranslationBookChapterSchema).meta({
+        description: 'The complete list of chapters with all content.',
+    }),
+}).meta({
+    id: 'ApiTranslationCompleteBook',
+    description: 'A book in the complete translation download.',
 });
 
 export type ApiTranslationCompleteBook = z.infer<
@@ -362,12 +405,16 @@ export const ApiCommentarySchema = CommentarySchema.extend({
     /**
      * The API link for the list of available books for this translation.
      */
-    listOfBooksApiLink: z.string(),
+    listOfBooksApiLink: z.string().meta({
+        description: 'The API link for the list of books for this commentary. Relative to the API origin.',
+    }),
 
     /**
      * The API link for the list of available profiles for this commentary.
      */
-    listOfProfilesApiLink: z.string(),
+    listOfProfilesApiLink: z.string().meta({
+        description: 'The API link for the list of profiles for this commentary. Relative to the API origin.',
+    }),
 
     /**
      * The available list of formats.
@@ -379,40 +426,55 @@ export const ApiCommentarySchema = CommentarySchema.extend({
      *
      * Complete commentaries should have the same number of books as the Bible (66).
      */
-    numberOfBooks: z.number(),
+    numberOfBooks: z.number().meta({
+        description: 'The number of books that are contained in this commentary. Complete commentaries should have the same number of books as the Bible (66).',
+    }),
 
     /**
      * The total number of chapters that are contained in this translation.
      *
      * Complete commentaries should have the same number of chapters as the Bible (1,189).
      */
-    totalNumberOfChapters: z.number(),
+    totalNumberOfChapters: z.number().meta({
+        description: 'The total number of chapters that are contained in this commentary. Complete commentaries should have the same number of chapters as the Bible (1,189).',
+    }),
 
     /**
      * The total number of verses that are contained in this commentary.
      *
      * Complete commentaries should have the same number of verses as the Bible (around 31,102 - some commentaries exclude verses based on the aparent likelyhood of existing in the original source texts).
      */
-    totalNumberOfVerses: z.number(),
+    totalNumberOfVerses: z.number().meta({
+        description: 'The total number of verses that are contained in this commentary. Complete commentaries should have the same number of verses as the Bible (around 31,102 - some commentaries exclude verses based on the aparent likelyhood of existing in the original source texts).',
+    }),
 
     /**
      * The total number of profiles that are contained in this commentary.
      *
      * Profiles are used to provide additional information about people and people groups that are mentioned in the Bible.
      */
-    totalNumberOfProfiles: z.number(),
+    totalNumberOfProfiles: z.number().meta({
+        description: 'The total number of profiles that are contained in this commentary. Profiles are used to provide additional information about people and people groups that are mentioned in the Bible.',
+    }),
 
     /**
      * Gets the name of the language that the commentary is in.
      * Null or undefined if the name of the language is not known.
      */
-    languageName: z.string().optional(),
+    languageName: z.string().optional().meta({
+        description: 'Gets the name of the language that the commentary is in. Null or undefined if the name of the language is not known.',
+    }),
 
     /**
      * Gets the name of the language in English.
      * Null or undefined if the language doesn't have an english name.
      */
-    languageEnglishName: z.string().optional(),
+    languageEnglishName: z.string().optional().meta({
+        description: 'Gets the name of the language in English. Null or undefined if the language doesn\'t have an english name.',
+    }),
+}).meta({
+    id: 'ApiCommentary',
+    description: 'Defines a commentary that is used in the API.',
 });
 
 export type ApiCommentary = z.infer<typeof ApiCommentarySchema>;
@@ -424,12 +486,19 @@ export const ApiTranslationBooksSchema = z.object({
     /**
      * The translation information for the books.
      */
-    translation: z.lazy(() => ApiTranslationSchema),
+    translation: z.lazy(() => ApiTranslationSchema).meta({
+        description: 'The translation information for the books.',
+    }),
 
     /**
      * The list of books that are available for the translation.
      */
-    books: z.array(z.lazy(() => ApiTranslationBookSchema)),
+    books: z.array(z.lazy(() => ApiTranslationBookSchema)).meta({
+        description: 'The list of books that are available for the translation.',
+    }),
+}).meta({
+    id: 'ApiTranslationBooks',
+    description: 'Defines an interface that contains information about the books that are available for a translation.',
 });
 
 export type ApiTranslationBooks = z.infer<typeof ApiTranslationBooksSchema>;
@@ -441,12 +510,19 @@ export const ApiCommentaryBooksSchema = z.object({
     /**
      * The commentary information for the books.
      */
-    commentary: z.lazy(() => ApiCommentarySchema),
+    commentary: z.lazy(() => ApiCommentarySchema).meta({
+        description: 'The commentary information for the books.',
+    }),
 
     /**
      * The list of books that are available for the commentary.
      */
-    books: z.array(z.lazy(() => ApiCommentaryBookSchema)),
+    books: z.array(z.lazy(() => ApiCommentaryBookSchema)).meta({
+        description: 'The list of books that are available for the commentary.',
+    }),
+}).meta({
+    id: 'ApiCommentaryBooks',
+    description: 'Defines an interface that contains information about the books that are available for a commentary.',
 });
 
 export type ApiCommentaryBooks = z.infer<typeof ApiCommentaryBooksSchema>;
@@ -458,12 +534,19 @@ export const ApiDatasetBooksSchema = z.object({
     /**
      * The dataset information for the books.
      */
-    dataset: z.lazy(() => ApiDatasetSchema),
+    dataset: z.lazy(() => ApiDatasetSchema).meta({
+        description: 'The dataset information for the books.',
+    }),
 
     /**
      * The list of books that are available for the dataset.
      */
-    books: z.array(z.lazy(() => ApiDatasetBookSchema)),
+    books: z.array(z.lazy(() => ApiDatasetBookSchema)).meta({
+        description: 'The list of books that are available for the dataset.',
+    }),
+}).meta({
+    id: 'ApiDatasetBooks',
+    description: 'Defines an interface that contains information about the books that are available for a dataset.',
 });
 
 export type ApiDatasetBooks = z.infer<typeof ApiDatasetBooksSchema>;
@@ -475,12 +558,19 @@ export const ApiCommentaryProfilesSchema = z.object({
     /**
      * The commentary information for the books.
      */
-    commentary: z.lazy(() => ApiCommentarySchema),
+    commentary: z.lazy(() => ApiCommentarySchema).meta({
+        description: 'The commentary information for the profiles.',
+    }),
 
     /**
      * The list of profiles that are available for the commentary.
      */
-    profiles: z.array(z.lazy(() => ApiCommentaryProfileSchema)),
+    profiles: z.array(z.lazy(() => ApiCommentaryProfileSchema)).meta({
+        description: 'The list of profiles that are available for the commentary.',
+    }),
+}).meta({
+    id: 'ApiCommentaryProfiles',
+    description: 'Defines an interface that contains information about the profiles that are available for a commentary.',
 });
 
 export type ApiCommentaryProfiles = z.infer<typeof ApiCommentaryProfilesSchema>;
@@ -492,12 +582,19 @@ export const ApiCommentaryProfileSchema = CommentaryProfileSchema.extend({
     /**
      * The link to this profile.
      */
-    thisProfileLink: z.string(),
+    thisProfileLink: z.string().meta({
+        description: 'The API link for this profile. Relative to the API origin.',
+    }),
 
     /**
      * The link to the chapter that this profile references in the commentary.
      */
-    referenceChapterLink: z.string().nullable(),
+    referenceChapterLink: z.string().nullable().meta({
+        description: 'The API link to the chapter that this profile references in the commentary. Relative to the API origin. Null if the profile doesn\'t reference a specific chapter.',
+    }),
+}).meta({
+    id: 'ApiCommentaryProfile',
+    description: 'Defines an interface that contains information about a profile.',
 });
 
 export type ApiCommentaryProfile = z.infer<typeof ApiCommentaryProfileSchema>;
@@ -509,32 +606,47 @@ export const ApiTranslationBookSchema = TranslationBookSchema.extend({
     /**
      * The number of the first chapter in the book.
      */
-    firstChapterNumber: z.number(),
+    firstChapterNumber: z.number().meta({
+        description: 'The number of the first chapter in the book.',
+    }),
 
     /**
      * The link to the first chapter of the book.
      */
-    firstChapterApiLink: z.string(),
+    firstChapterApiLink: z.string().meta({
+        description: 'The link to the first chapter of the book.',
+    }),
 
     /**
      * The number of the last chapter in the book.
      */
-    lastChapterNumber: z.number(),
+    lastChapterNumber: z.number().meta({
+        description: 'The number of the last chapter in the book.',
+    }),
 
     /**
      * The link to the last chapter of the book.
      */
-    lastChapterApiLink: z.string(),
+    lastChapterApiLink: z.string().meta({
+        description: 'The link to the last chapter of the book.',
+    }),
 
     /**
      * The number of chapters that the book contains.
      */
-    numberOfChapters: z.number(),
+    numberOfChapters: z.number().meta({
+        description: 'The number of chapters that the book contains.',
+    }),
 
     /**
      * The number of verses that the book contains.
      */
-    totalNumberOfVerses: z.number(),
+    totalNumberOfVerses: z.number().meta({
+        description: 'The number of verses that the book contains.',
+    }),
+}).meta({
+    id: 'ApiTranslationBook',
+    description: 'Defines a schema that contains information about a translation book.',
 });
 
 export type ApiTranslationBook = z.infer<typeof ApiTranslationBookSchema>;
@@ -548,38 +660,53 @@ export const ApiCommentaryBookSchema = CommentaryBookSchema.extend({
      *
      * Null if the comentary book has no chapters.
      */
-    firstChapterNumber: z.number().nullable(),
+    firstChapterNumber: z.number().nullable().meta({
+        description: 'The number of the first chapter in the book. Null if the comentary book has no chapters.',
+    }),
 
     /**
      * The link to the first chapter of the book.
      *
      * Null if the comentary book has no chapters.
      */
-    firstChapterApiLink: z.string().nullable(),
+    firstChapterApiLink: z.string().nullable().meta({
+        description: 'The link to the first chapter of the book. Null if the comentary book has no chapters.',
+    }),
 
     /**
      * The number of the last chapter in the book.
      *
      * Null if the comentary book has no chapters.
      */
-    lastChapterNumber: z.number().nullable(),
+    lastChapterNumber: z.number().nullable().meta({
+        description: 'The number of the last chapter in the book. Null if the comentary book has no chapters.',
+    }),
 
     /**
      * The link to the last chapter of the book.
      *
      * Null if the comentary book has no chapters.
      */
-    lastChapterApiLink: z.string().nullable(),
+    lastChapterApiLink: z.string().nullable().meta({
+        description: 'The link to the last chapter of the book. Null if the comentary book has no chapters.',
+    }),
 
     /**
      * The number of chapters that the book contains.
      */
-    numberOfChapters: z.number(),
+    numberOfChapters: z.number().meta({
+        description: 'The number of chapters that the book contains.',
+    }),
 
     /**
      * The number of verses that the book contains.
      */
-    totalNumberOfVerses: z.number(),
+    totalNumberOfVerses: z.number().meta({
+        description: 'The number of verses that the book contains.',
+    }),
+}).meta({
+    id: 'ApiCommentaryBook',
+    description: 'Defines a schema that contains information about a commentary book.',
 });
 
 export type ApiCommentaryBook = z.infer<typeof ApiCommentaryBookSchema>;
@@ -591,37 +718,54 @@ export const ApiDatasetBookSchema = DatasetBookSchema.extend({
     /**
      * The number of the first chapter in the book.
      */
-    firstChapterNumber: z.number(),
+    firstChapterNumber: z.number().meta({
+        description: 'The number of the first chapter in the book.',
+    }),
 
     /**
      * The link to the first chapter of the book.
      */
-    firstChapterApiLink: z.string(),
+    firstChapterApiLink: z.string().meta({
+        description: 'The link to the first chapter of the book.',
+    }),
 
     /**
      * The number of the last chapter in the book.
      */
-    lastChapterNumber: z.number(),
+    lastChapterNumber: z.number().meta({
+        description: 'The number of the last chapter in the book.',
+    }),
 
     /**
      * The link to the last chapter of the book.
      */
-    lastChapterApiLink: z.string(),
+    lastChapterApiLink: z.string().meta({
+        description: 'The link to the last chapter of the book.',
+    }),
 
     /**
      * The number of chapters that the book contains.
      */
-    numberOfChapters: z.number(),
+    numberOfChapters: z.number().meta({
+        description: 'The number of chapters that the book contains.',
+    }),
 
     /**
      * The number of verses that the book contains.
      */
-    totalNumberOfVerses: z.number(),
+    totalNumberOfVerses: z.number().meta({
+        description: 'The number of verses that the book contains.',
+    }),
 
     /**
      * The number of references that the book contains.
      */
-    totalNumberOfReferences: z.number(),
+    totalNumberOfReferences: z.number().meta({
+        description: 'The number of references that the book contains.',
+    }),
+}).meta({
+    id: 'ApiDatasetBook',
+    description: 'Defines a schema that contains information about a book in a dataset.',
 });
 
 export type ApiDatasetBook = z.infer<typeof ApiDatasetBookSchema>;
@@ -633,46 +777,65 @@ export const ApiTranslationBookChapterSchema = TranslationBookChapterSchema.exte
     /**
      * The translation information for the book chapter.
      */
-    translation: z.lazy(() => ApiTranslationSchema),
+    translation: z.lazy(() => ApiTranslationSchema).meta({
+        description: 'The translation information for the book chapter.',
+    }),
 
     /**
      * The book information for the book chapter.
      */
-    book: z.lazy(() => ApiTranslationBookSchema),
+    book: z.lazy(() => ApiTranslationBookSchema).meta({
+        description: 'The book information for the book chapter.',
+    }),
 
     /**
      * The link to this chapter.
      */
-    thisChapterLink: z.string(),
+    thisChapterLink: z.string().meta({
+        description: 'The API link for this chapter. Relative to the API origin.',
+    }),
 
     /**
      * The link to the next chapter.
      * Null if this is the last chapter in the translation.
      */
-    nextChapterApiLink: z.string().nullable(),
+    nextChapterApiLink: z.string().nullable().meta({
+        description: 'The API link to the next chapter. Relative to the API origin. Null if this is the last chapter in the translation.',
+    }),
 
     /**
      * The links to the audio versions for the next chapter.
      * Null if this is the last chapter in the translation.
      */
-    nextChapterAudioLinks: z.record(z.string(), z.string()).nullable(),
+    nextChapterAudioLinks: z.record(z.string(), z.string()).nullable().meta({
+        description: 'The links to the audio versions for the next chapter. Relative to the API origin. Null if this is the last chapter in the translation.',
+    }),
 
     /**
      * The link to the previous chapter.
      * Null if this is the first chapter in the translation.
      */
-    previousChapterApiLink: z.string().nullable(),
+    previousChapterApiLink: z.string().nullable().meta({
+        description: 'The API link to the previous chapter. Relative to the API origin. Null if this is the first chapter in the translation.',
+    }),
 
     /**
      * The links to the audio versions for the previous chapter.
      * Null if this is the first chapter in the translation.
      */
-    previousChapterAudioLinks: z.record(z.string(), z.string()).nullable(),
+    previousChapterAudioLinks: z.record(z.string(), z.string()).nullable().meta({
+        description: 'The links to the audio versions for the previous chapter. Relative to the API origin. Null if this is the first chapter in the translation.',
+    }),
 
     /**
      * The number of verses that the chapter contains.
      */
-    numberOfVerses: z.number(),
+    numberOfVerses: z.number().meta({
+        description: 'The number of verses that the chapter contains.',
+    }),
+}).meta({
+    id: 'ApiTranslationBookChapter',
+    description: 'Defines an interface that contains information about a book chapter in a translation.',
 });
 
 export type ApiTranslationBookChapter = z.infer<
@@ -686,34 +849,49 @@ export const ApiCommentaryBookChapterSchema = CommentaryBookChapterSchema.extend
     /**
      * The commentary information for the book chapter.
      */
-    commentary: z.lazy(() => ApiCommentarySchema),
+    commentary: z.lazy(() => ApiCommentarySchema).meta({
+        description: 'The commentary information for the book chapter.',
+    }),
 
     /**
      * The book information for the book chapter.
      */
-    book: z.lazy(() => ApiCommentaryBookSchema),
+    book: z.lazy(() => ApiCommentaryBookSchema).meta({
+        description: 'The book information for the book chapter.',
+    }),
 
     /**
      * The link to this chapter.
      */
-    thisChapterLink: z.string(),
+    thisChapterLink: z.string().meta({
+        description: 'The API link for this chapter. Relative to the API origin.',
+    }),
 
     /**
      * The link to the next chapter.
      * Null if this is the last chapter in the translation.
      */
-    nextChapterApiLink: z.string().nullable(),
+    nextChapterApiLink: z.string().nullable().meta({
+        description: 'The API link to the next chapter. Relative to the API origin. Null if this is the last chapter in the commentary.',
+    }),
 
     /**
      * The link to the previous chapter.
      * Null if this is the first chapter in the translation.
      */
-    previousChapterApiLink: z.string().nullable(),
+    previousChapterApiLink: z.string().nullable().meta({
+        description: 'The API link to the previous chapter. Relative to the API origin. Null if this is the first chapter in the commentary.',
+    }),
 
     /**
      * The number of verses that the chapter contains.
      */
-    numberOfVerses: z.number(),
+    numberOfVerses: z.number().meta({
+        description: 'The number of verses that the chapter contains.',
+    }),
+}).meta({
+    id: 'ApiCommentaryBookChapter',
+    description: 'Defines a schema that contains information about a book chapter in a commentary.',
 });
 
 export type ApiCommentaryBookChapter = z.infer<
@@ -727,39 +905,56 @@ export const ApiDatasetBookChapterSchema = DatasetBookChapterSchema.extend({
     /**
      * The dataset information for the book chapter.
      */
-    dataset: z.lazy(() => ApiDatasetSchema),
+    dataset: z.lazy(() => ApiDatasetSchema).meta({
+        description: 'The dataset information for the book chapter.',
+    }),
 
     /**
      * The book information for the book chapter.
      */
-    book: z.lazy(() => ApiDatasetBookSchema),
+    book: z.lazy(() => ApiDatasetBookSchema).meta({
+        description: 'The book information for the book chapter.',
+    }),
 
     /**
      * The link to this chapter.
      */
-    thisChapterLink: z.string(),
+    thisChapterLink: z.string().meta({
+        description: 'The API link for this chapter. Relative to the API origin.',
+    }),
 
     /**
      * The link to the next chapter.
      * Null if this is the last chapter in the translation.
      */
-    nextChapterApiLink: z.string().nullable(),
+    nextChapterApiLink: z.string().nullable().meta({
+        description: 'The API link to the next chapter. Relative to the API origin. Null if this is the last chapter in the dataset.',
+    }),
 
     /**
      * The link to the previous chapter.
      * Null if this is the first chapter in the translation.
      */
-    previousChapterApiLink: z.string().nullable(),
+    previousChapterApiLink: z.string().nullable().meta({
+        description: 'The API link to the previous chapter. Relative to the API origin. Null if this is the first chapter in the dataset.',
+    }),
 
     /**
      * The number of verses that the chapter contains.
      */
-    numberOfVerses: z.number(),
+    numberOfVerses: z.number().meta({
+        description: 'The number of verses that the chapter contains.',
+    }),
 
     /**
      * The number of references that the chapter contains.
      */
-    numberOfReferences: z.number(),
+    numberOfReferences: z.number().meta({
+        description: 'The number of references that the chapter contains.',
+    }),
+}).meta({
+    id: 'ApiDatasetBookChapter',
+    description: 'Defines a schema that contains information about a book chapter in a dataset.',
 });
 
 export type ApiDatasetBookChapter = z.infer<typeof ApiDatasetBookChapterSchema>;
@@ -768,17 +963,23 @@ export const ApiTranslationBookChapterAudioSchema = z.object({
     /**
      * The chapter that the audio is for.
      */
-    chapter: z.lazy(() => ApiTranslationBookChapterSchema),
+    chapter: z.lazy(() => ApiTranslationBookChapterSchema).meta({
+        description: 'The chapter that the audio is for.',
+    }),
 
     /**
      * The link that the audio should be placed at.
      */
-    link: z.string(),
+    link: z.string().meta({
+        description: 'The link that the audio should be placed at. Relative to the API origin.',
+    }),
 
     /**
      * The original URL of the audio.
      */
-    originalUrl: z.string(),
+    originalUrl: z.string().meta({
+        description: 'The original URL of the audio.',
+    }),
 });
 
 export type ApiTranslationBookChapterAudio = z.infer<
@@ -789,17 +990,23 @@ export const ApiCommentaryProfileContentSchema = z.object({
     /**
      * The commentary information for the profile.
      */
-    commentary: z.lazy(() => ApiCommentarySchema),
+    commentary: z.lazy(() => ApiCommentarySchema).meta({
+        description: 'The commentary information for the profile.',
+    }),
 
     /**
      * The information about the profile.
      */
-    profile: z.lazy(() => ApiCommentaryProfileSchema),
+    profile: z.lazy(() => ApiCommentaryProfileSchema).meta({
+        description: 'The information about the profile.',
+    }),
 
     /**
      * The content of the profile.
      */
-    content: z.array(z.string()),
+    content: z.array(z.string()).meta({
+        description: 'The content of the profile. This is an array of strings, where each string is a paragraph of the profile content.',
+    }),
 });
 
 export type ApiCommentaryProfileContent = z.infer<

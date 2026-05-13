@@ -149,7 +149,10 @@ export const BookIdSchema = z.enum([
     'REP',
     '4BA',
     'LAO',
-]);
+]).meta({
+    id: "BookId",
+    description: "IDs for books. Follows the USFM standard (https://ubsicap.github.io/usfm/identification/books.html)"
+});
 
 export type BookId = z.infer<typeof BookIdSchema>;
 
@@ -158,23 +161,36 @@ export type BookId = z.infer<typeof BookIdSchema>;
  */
 export const VerseRefSchema = z.object({
     book: BookIdSchema,
-    chapter: z.number(),
-    verse: z.number(),
+    chapter: z.number().meta({
+        description: 'The chapter number that the reference starts at.'
+    }),
+    verse: z.number().meta({
+        description: 'The verse number that the reference starts at.'
+    }),
 
     /**
      * The rest of the content of the verse.
      */
-    content: z.string().optional(),
+    content: z.string().optional().meta({
+        description: 'The rest of the content of the verse reference. This is the part of the string that comes after the verse reference. For example, in "GEN 1:1 In the beginning, God created the Heavens and the Earth.", the content would be "In the beginning, God created the Heavens and the Earth."',
+    }),
 
     /**
      * The chapter that the verse reference ends at.
      */
-    endChapter: z.number().optional(),
+    endChapter: z.number().optional().meta({
+        description: 'The chapter that the verse reference ends at. This is used for references that span multiple chapters, such as "GEN 1:1-2:3". In this case, the endChapter would be 2.',
+    }),
 
     /**
      * The verse that the verse reference ends at.
      */
-    endVerse: z.number().optional(),
+    endVerse: z.number().optional().meta({
+        description: 'The verse that the verse reference ends at. This is used for references that span multiple verses, such as "GEN 1:1-1:3". In this case, the endVerse would be 3.',
+    }),
+}).meta({
+    id: 'VerseRef',
+    description: 'Defines a schema for verse references. A verse reference is a string that contains a book ID, chapter number, and verse number, such as "GEN 1:1". It can also contain an optional content part that comes after the verse reference, such as "GEN 1:1 In the beginning, God created the Heavens and the Earth." It can also contain optional endChapter and endVerse fields for references that span multiple chapters or verses, such as "GEN 1:1-2:3".',
 });
 
 export type VerseRef = z.infer<typeof VerseRefSchema>;
