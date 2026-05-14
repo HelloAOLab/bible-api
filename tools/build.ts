@@ -74,7 +74,6 @@ async function buildCli() {
         esbuild.build({
             ...esmOptions,
             ...options,
-            entryPoints: [cliIndex],
             external: [...external, '@helloao/tools'],
             bundle: true,
             format: 'esm',

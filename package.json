@@ -13,7 +13,7 @@
         "clean": "jake -f ./jakefile.cjs clean",
         "build:docs": "cd docs && pnpm build",
         "dev:docs": "vuepress dev docs/src",
-        "cli": "npm run build && node ./packages/helloao-cli/dist/esm/index.js",
+        "cli": "npm run build && node ./packages/helloao-cli/dist/esm/cli.js",
         "db:clone": "npm run cli init ./free-use-bible-api.download.db -- --source https://bible.helloao.org/bible.db",
         "db:init": "npm run cli init ./free-use-bible-api.db",
         "db:init:eng": "npm run cli init ./free-use-bible-api.eng.db -- --overwrite --source ./free-use-bible-api.db --language eng",
