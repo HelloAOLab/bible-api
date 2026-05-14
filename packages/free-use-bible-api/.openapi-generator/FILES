@@ -1,4 +1,3 @@
-.openapi-generator-ignore
 apis/DefaultApi.ts
 apis/index.ts
 docs/ApiAvailableCommentaries.md
@@ -31,7 +30,9 @@ docs/ChapterHebrewSubtitleContentInner.md
 docs/ChapterLineBreak.md
 docs/ChapterVerse.md
 docs/ChapterVerseContentInner.md
+docs/CommentaryChapterReference.md
 docs/DatasetChapterData.md
+docs/DatasetChapterReference.md
 docs/DatasetChapterVerseContent.md
 docs/DefaultApi.md
 docs/FormattedText.md
@@ -39,6 +40,7 @@ docs/InlineHeading.md
 docs/InlineLineBreak.md
 docs/ScoredVerseRef.md
 docs/TranslationBookChapter.md
+docs/TranslationChapterReference.md
 docs/VerseFootnoteReference.md
 index.ts
 models/ApiAvailableCommentaries.ts
@@ -71,13 +73,16 @@ models/ChapterHebrewSubtitleContentInner.ts
 models/ChapterLineBreak.ts
 models/ChapterVerse.ts
 models/ChapterVerseContentInner.ts
+models/CommentaryChapterReference.ts
 models/DatasetChapterData.ts
+models/DatasetChapterReference.ts
 models/DatasetChapterVerseContent.ts
 models/FormattedText.ts
 models/InlineHeading.ts
 models/InlineLineBreak.ts
 models/ScoredVerseRef.ts
 models/TranslationBookChapter.ts
+models/TranslationChapterReference.ts
 models/VerseFootnoteReference.ts
 models/index.ts
 runtime.ts

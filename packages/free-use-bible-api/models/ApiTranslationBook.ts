@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from '../runtime';
+import type { TranslationChapterReference } from './TranslationChapterReference';
+import {
+    TranslationChapterReferenceFromJSON,
+    TranslationChapterReferenceFromJSONTyped,
+    TranslationChapterReferenceToJSON,
+    TranslationChapterReferenceToJSONTyped,
+} from './TranslationChapterReference';
 import type { BookId } from './BookId';
 import {
     BookIdFromJSON,
@@ -28,7 +35,7 @@ import {
  */
 export interface ApiTranslationBook {
     /**
-     * 
+     *
      * @type {BookId}
      * @memberof ApiTranslationBook
      */
@@ -76,6 +83,12 @@ export interface ApiTranslationBook {
      */
     firstChapterApiLink: string;
     /**
+     *
+     * @type {TranslationChapterReference}
+     * @memberof ApiTranslationBook
+     */
+    firstChapterReference: TranslationChapterReference;
+    /**
      * The number of the last chapter in the book.
      * @type {number}
      * @memberof ApiTranslationBook
@@ -87,6 +100,12 @@ export interface ApiTranslationBook {
      * @memberof ApiTranslationBook
      */
     lastChapterApiLink: string;
+    /**
+     *
+     * @type {TranslationChapterReference}
+     * @memberof ApiTranslationBook
+     */
+    lastChapterReference: TranslationChapterReference;
     /**
      * The number of chapters that the book contains.
      * @type {number}
@@ -101,23 +120,58 @@ export interface ApiTranslationBook {
     totalNumberOfVerses: number;
 }
 
-
-
 /**
  * Check if a given object implements the ApiTranslationBook interface.
  */
-export function instanceOfApiTranslationBook(value: object): value is ApiTranslationBook {
+export function instanceOfApiTranslationBook(
+    value: object
+): value is ApiTranslationBook {
     if (!('id' in value) || value['id'] === undefined) return false;
     if (!('name' in value) || value['name'] === undefined) return false;
-    if (!('commonName' in value) || value['commonName'] === undefined) return false;
+    if (!('commonName' in value) || value['commonName'] === undefined)
+        return false;
     if (!('title' in value) || value['title'] === undefined) return false;
     if (!('order' in value) || value['order'] === undefined) return false;
-    if (!('firstChapterNumber' in value) || value['firstChapterNumber'] === undefined) return false;
-    if (!('firstChapterApiLink' in value) || value['firstChapterApiLink'] === undefined) return false;
-    if (!('lastChapterNumber' in value) || value['lastChapterNumber'] === undefined) return false;
-    if (!('lastChapterApiLink' in value) || value['lastChapterApiLink'] === undefined) return false;
-    if (!('numberOfChapters' in value) || value['numberOfChapters'] === undefined) return false;
-    if (!('totalNumberOfVerses' in value) || value['totalNumberOfVerses'] === undefined) return false;
+    if (
+        !('firstChapterNumber' in value) ||
+        value['firstChapterNumber'] === undefined
+    )
+        return false;
+    if (
+        !('firstChapterApiLink' in value) ||
+        value['firstChapterApiLink'] === undefined
+    )
+        return false;
+    if (
+        !('firstChapterReference' in value) ||
+        value['firstChapterReference'] === undefined
+    )
+        return false;
+    if (
+        !('lastChapterNumber' in value) ||
+        value['lastChapterNumber'] === undefined
+    )
+        return false;
+    if (
+        !('lastChapterApiLink' in value) ||
+        value['lastChapterApiLink'] === undefined
+    )
+        return false;
+    if (
+        !('lastChapterReference' in value) ||
+        value['lastChapterReference'] === undefined
+    )
+        return false;
+    if (
+        !('numberOfChapters' in value) ||
+        value['numberOfChapters'] === undefined
+    )
+        return false;
+    if (
+        !('totalNumberOfVerses' in value) ||
+        value['totalNumberOfVerses'] === undefined
+    )
+        return false;
     return true;
 }
 
@@ -125,24 +179,33 @@ export function ApiTranslationBookFromJSON(json: any): ApiTranslationBook {
     return ApiTranslationBookFromJSONTyped(json, false);
 }
 
-export function ApiTranslationBookFromJSONTyped(json: any, ignoreDiscriminator: boolean): ApiTranslationBook {
+export function ApiTranslationBookFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean
+): ApiTranslationBook {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': BookIdFromJSON(json['id']),
-        'name': json['name'],
-        'commonName': json['commonName'],
-        'title': json['title'],
-        'order': json['order'],
-        'isApocryphal': json['isApocryphal'] == null ? undefined : json['isApocryphal'],
-        'firstChapterNumber': json['firstChapterNumber'],
-        'firstChapterApiLink': json['firstChapterApiLink'],
-        'lastChapterNumber': json['lastChapterNumber'],
-        'lastChapterApiLink': json['lastChapterApiLink'],
-        'numberOfChapters': json['numberOfChapters'],
-        'totalNumberOfVerses': json['totalNumberOfVerses'],
+        id: BookIdFromJSON(json['id']),
+        name: json['name'],
+        commonName: json['commonName'],
+        title: json['title'],
+        order: json['order'],
+        isApocryphal:
+            json['isApocryphal'] == null ? undefined : json['isApocryphal'],
+        firstChapterNumber: json['firstChapterNumber'],
+        firstChapterApiLink: json['firstChapterApiLink'],
+        firstChapterReference: TranslationChapterReferenceFromJSON(
+            json['firstChapterReference']
+        ),
+        lastChapterNumber: json['lastChapterNumber'],
+        lastChapterApiLink: json['lastChapterApiLink'],
+        lastChapterReference: TranslationChapterReferenceFromJSON(
+            json['lastChapterReference']
+        ),
+        numberOfChapters: json['numberOfChapters'],
+        totalNumberOfVerses: json['totalNumberOfVerses'],
     };
 }
 
@@ -150,25 +213,32 @@ export function ApiTranslationBookToJSON(json: any): ApiTranslationBook {
     return ApiTranslationBookToJSONTyped(json, false);
 }
 
-export function ApiTranslationBookToJSONTyped(value?: ApiTranslationBook | null, ignoreDiscriminator: boolean = false): any {
+export function ApiTranslationBookToJSONTyped(
+    value?: ApiTranslationBook | null,
+    ignoreDiscriminator: boolean = false
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': BookIdToJSON(value['id']),
-        'name': value['name'],
-        'commonName': value['commonName'],
-        'title': value['title'],
-        'order': value['order'],
-        'isApocryphal': value['isApocryphal'],
-        'firstChapterNumber': value['firstChapterNumber'],
-        'firstChapterApiLink': value['firstChapterApiLink'],
-        'lastChapterNumber': value['lastChapterNumber'],
-        'lastChapterApiLink': value['lastChapterApiLink'],
-        'numberOfChapters': value['numberOfChapters'],
-        'totalNumberOfVerses': value['totalNumberOfVerses'],
+        id: BookIdToJSON(value['id']),
+        name: value['name'],
+        commonName: value['commonName'],
+        title: value['title'],
+        order: value['order'],
+        isApocryphal: value['isApocryphal'],
+        firstChapterNumber: value['firstChapterNumber'],
+        firstChapterApiLink: value['firstChapterApiLink'],
+        firstChapterReference: TranslationChapterReferenceToJSON(
+            value['firstChapterReference']
+        ),
+        lastChapterNumber: value['lastChapterNumber'],
+        lastChapterApiLink: value['lastChapterApiLink'],
+        lastChapterReference: TranslationChapterReferenceToJSON(
+            value['lastChapterReference']
+        ),
+        numberOfChapters: value['numberOfChapters'],
+        totalNumberOfVerses: value['totalNumberOfVerses'],
     };
 }
-

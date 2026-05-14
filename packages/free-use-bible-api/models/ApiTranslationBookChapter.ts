@@ -20,6 +20,13 @@ import {
     ApiTranslationBookToJSON,
     ApiTranslationBookToJSONTyped,
 } from './ApiTranslationBook';
+import type { TranslationChapterReference } from './TranslationChapterReference';
+import {
+    TranslationChapterReferenceFromJSON,
+    TranslationChapterReferenceFromJSONTyped,
+    TranslationChapterReferenceToJSON,
+    TranslationChapterReferenceToJSONTyped,
+} from './TranslationChapterReference';
 import type { ApiTranslation } from './ApiTranslation';
 import {
     ApiTranslationFromJSON,
@@ -42,7 +49,7 @@ import {
  */
 export interface ApiTranslationBookChapter {
     /**
-     * 
+     *
      * @type {ApiTranslationBookChapterChapter}
      * @memberof ApiTranslationBookChapter
      */
@@ -52,7 +59,7 @@ export interface ApiTranslationBookChapter {
      * @type {{ [key: string]: string; }}
      * @memberof ApiTranslationBookChapter
      */
-    thisChapterAudioLinks: { [key: string]: string; };
+    thisChapterAudioLinks: { [key: string]: string };
     /**
      * The translation information for the book chapter.
      * @type {ApiTranslation}
@@ -72,17 +79,29 @@ export interface ApiTranslationBookChapter {
      */
     thisChapterLink: string;
     /**
+     *
+     * @type {TranslationChapterReference}
+     * @memberof ApiTranslationBookChapter
+     */
+    thisChapterReference: TranslationChapterReference;
+    /**
      * The API link to the next chapter. Relative to the API origin. Null if this is the last chapter in the translation.
      * @type {string}
      * @memberof ApiTranslationBookChapter
      */
     nextChapterApiLink: string | null;
     /**
+     * The reference for the next chapter. Null if this is the last chapter in the translation.
+     * @type {TranslationChapterReference}
+     * @memberof ApiTranslationBookChapter
+     */
+    nextChapterReference: TranslationChapterReference | null;
+    /**
      * The links to the audio versions for the next chapter. Relative to the API origin. Null if this is the last chapter in the translation.
      * @type {{ [key: string]: string; }}
      * @memberof ApiTranslationBookChapter
      */
-    nextChapterAudioLinks: { [key: string]: string; } | null;
+    nextChapterAudioLinks: { [key: string]: string } | null;
     /**
      * The API link to the previous chapter. Relative to the API origin. Null if this is the first chapter in the translation.
      * @type {string}
@@ -90,11 +109,17 @@ export interface ApiTranslationBookChapter {
      */
     previousChapterApiLink: string | null;
     /**
+     * The reference for the previous chapter. Null if this is the first chapter in the translation.
+     * @type {TranslationChapterReference}
+     * @memberof ApiTranslationBookChapter
+     */
+    previousChapterReference: TranslationChapterReference | null;
+    /**
      * The links to the audio versions for the previous chapter. Relative to the API origin. Null if this is the first chapter in the translation.
      * @type {{ [key: string]: string; }}
      * @memberof ApiTranslationBookChapter
      */
-    previousChapterAudioLinks: { [key: string]: string; } | null;
+    previousChapterAudioLinks: { [key: string]: string } | null;
     /**
      * The number of verses that the chapter contains.
      * @type {number}
@@ -106,64 +131,129 @@ export interface ApiTranslationBookChapter {
 /**
  * Check if a given object implements the ApiTranslationBookChapter interface.
  */
-export function instanceOfApiTranslationBookChapter(value: object): value is ApiTranslationBookChapter {
+export function instanceOfApiTranslationBookChapter(
+    value: object
+): value is ApiTranslationBookChapter {
     if (!('chapter' in value) || value['chapter'] === undefined) return false;
-    if (!('thisChapterAudioLinks' in value) || value['thisChapterAudioLinks'] === undefined) return false;
-    if (!('translation' in value) || value['translation'] === undefined) return false;
+    if (
+        !('thisChapterAudioLinks' in value) ||
+        value['thisChapterAudioLinks'] === undefined
+    )
+        return false;
+    if (!('translation' in value) || value['translation'] === undefined)
+        return false;
     if (!('book' in value) || value['book'] === undefined) return false;
-    if (!('thisChapterLink' in value) || value['thisChapterLink'] === undefined) return false;
-    if (!('nextChapterApiLink' in value) || value['nextChapterApiLink'] === undefined) return false;
-    if (!('nextChapterAudioLinks' in value) || value['nextChapterAudioLinks'] === undefined) return false;
-    if (!('previousChapterApiLink' in value) || value['previousChapterApiLink'] === undefined) return false;
-    if (!('previousChapterAudioLinks' in value) || value['previousChapterAudioLinks'] === undefined) return false;
-    if (!('numberOfVerses' in value) || value['numberOfVerses'] === undefined) return false;
+    if (!('thisChapterLink' in value) || value['thisChapterLink'] === undefined)
+        return false;
+    if (
+        !('thisChapterReference' in value) ||
+        value['thisChapterReference'] === undefined
+    )
+        return false;
+    if (
+        !('nextChapterApiLink' in value) ||
+        value['nextChapterApiLink'] === undefined
+    )
+        return false;
+    if (
+        !('nextChapterReference' in value) ||
+        value['nextChapterReference'] === undefined
+    )
+        return false;
+    if (
+        !('nextChapterAudioLinks' in value) ||
+        value['nextChapterAudioLinks'] === undefined
+    )
+        return false;
+    if (
+        !('previousChapterApiLink' in value) ||
+        value['previousChapterApiLink'] === undefined
+    )
+        return false;
+    if (
+        !('previousChapterReference' in value) ||
+        value['previousChapterReference'] === undefined
+    )
+        return false;
+    if (
+        !('previousChapterAudioLinks' in value) ||
+        value['previousChapterAudioLinks'] === undefined
+    )
+        return false;
+    if (!('numberOfVerses' in value) || value['numberOfVerses'] === undefined)
+        return false;
     return true;
 }
 
-export function ApiTranslationBookChapterFromJSON(json: any): ApiTranslationBookChapter {
+export function ApiTranslationBookChapterFromJSON(
+    json: any
+): ApiTranslationBookChapter {
     return ApiTranslationBookChapterFromJSONTyped(json, false);
 }
 
-export function ApiTranslationBookChapterFromJSONTyped(json: any, ignoreDiscriminator: boolean): ApiTranslationBookChapter {
+export function ApiTranslationBookChapterFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean
+): ApiTranslationBookChapter {
     if (json == null) {
         return json;
     }
     return {
-        
-        'chapter': ApiTranslationBookChapterChapterFromJSON(json['chapter']),
-        'thisChapterAudioLinks': json['thisChapterAudioLinks'],
-        'translation': ApiTranslationFromJSON(json['translation']),
-        'book': ApiTranslationBookFromJSON(json['book']),
-        'thisChapterLink': json['thisChapterLink'],
-        'nextChapterApiLink': json['nextChapterApiLink'],
-        'nextChapterAudioLinks': json['nextChapterAudioLinks'],
-        'previousChapterApiLink': json['previousChapterApiLink'],
-        'previousChapterAudioLinks': json['previousChapterAudioLinks'],
-        'numberOfVerses': json['numberOfVerses'],
+        chapter: ApiTranslationBookChapterChapterFromJSON(json['chapter']),
+        thisChapterAudioLinks: json['thisChapterAudioLinks'],
+        translation: ApiTranslationFromJSON(json['translation']),
+        book: ApiTranslationBookFromJSON(json['book']),
+        thisChapterLink: json['thisChapterLink'],
+        thisChapterReference: TranslationChapterReferenceFromJSON(
+            json['thisChapterReference']
+        ),
+        nextChapterApiLink: json['nextChapterApiLink'],
+        nextChapterReference: TranslationChapterReferenceFromJSON(
+            json['nextChapterReference']
+        ),
+        nextChapterAudioLinks: json['nextChapterAudioLinks'],
+        previousChapterApiLink: json['previousChapterApiLink'],
+        previousChapterReference: TranslationChapterReferenceFromJSON(
+            json['previousChapterReference']
+        ),
+        previousChapterAudioLinks: json['previousChapterAudioLinks'],
+        numberOfVerses: json['numberOfVerses'],
     };
 }
 
-export function ApiTranslationBookChapterToJSON(json: any): ApiTranslationBookChapter {
+export function ApiTranslationBookChapterToJSON(
+    json: any
+): ApiTranslationBookChapter {
     return ApiTranslationBookChapterToJSONTyped(json, false);
 }
 
-export function ApiTranslationBookChapterToJSONTyped(value?: ApiTranslationBookChapter | null, ignoreDiscriminator: boolean = false): any {
+export function ApiTranslationBookChapterToJSONTyped(
+    value?: ApiTranslationBookChapter | null,
+    ignoreDiscriminator: boolean = false
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'chapter': ApiTranslationBookChapterChapterToJSON(value['chapter']),
-        'thisChapterAudioLinks': value['thisChapterAudioLinks'],
-        'translation': ApiTranslationToJSON(value['translation']),
-        'book': ApiTranslationBookToJSON(value['book']),
-        'thisChapterLink': value['thisChapterLink'],
-        'nextChapterApiLink': value['nextChapterApiLink'],
-        'nextChapterAudioLinks': value['nextChapterAudioLinks'],
-        'previousChapterApiLink': value['previousChapterApiLink'],
-        'previousChapterAudioLinks': value['previousChapterAudioLinks'],
-        'numberOfVerses': value['numberOfVerses'],
+        chapter: ApiTranslationBookChapterChapterToJSON(value['chapter']),
+        thisChapterAudioLinks: value['thisChapterAudioLinks'],
+        translation: ApiTranslationToJSON(value['translation']),
+        book: ApiTranslationBookToJSON(value['book']),
+        thisChapterLink: value['thisChapterLink'],
+        thisChapterReference: TranslationChapterReferenceToJSON(
+            value['thisChapterReference']
+        ),
+        nextChapterApiLink: value['nextChapterApiLink'],
+        nextChapterReference: TranslationChapterReferenceToJSON(
+            value['nextChapterReference']
+        ),
+        nextChapterAudioLinks: value['nextChapterAudioLinks'],
+        previousChapterApiLink: value['previousChapterApiLink'],
+        previousChapterReference: TranslationChapterReferenceToJSON(
+            value['previousChapterReference']
+        ),
+        previousChapterAudioLinks: value['previousChapterAudioLinks'],
+        numberOfVerses: value['numberOfVerses'],
     };
 }
-

@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from '../runtime';
+import type { CommentaryChapterReference } from './CommentaryChapterReference';
+import {
+    CommentaryChapterReferenceFromJSON,
+    CommentaryChapterReferenceFromJSONTyped,
+    CommentaryChapterReferenceToJSON,
+    CommentaryChapterReferenceToJSONTyped,
+} from './CommentaryChapterReference';
 import type { ApiCommentary } from './ApiCommentary';
 import {
     ApiCommentaryFromJSON,
@@ -42,7 +49,7 @@ import {
  */
 export interface ApiCommentaryBookChapter {
     /**
-     * 
+     *
      * @type {ApiCommentaryBookChapterChapter}
      * @memberof ApiCommentaryBookChapter
      */
@@ -66,17 +73,35 @@ export interface ApiCommentaryBookChapter {
      */
     thisChapterLink: string;
     /**
+     *
+     * @type {CommentaryChapterReference}
+     * @memberof ApiCommentaryBookChapter
+     */
+    thisChapterReference: CommentaryChapterReference;
+    /**
      * The API link to the next chapter. Relative to the API origin. Null if this is the last chapter in the commentary.
      * @type {string}
      * @memberof ApiCommentaryBookChapter
      */
     nextChapterApiLink: string | null;
     /**
+     * The reference for the next chapter. Null if this is the last chapter in the commentary.
+     * @type {CommentaryChapterReference}
+     * @memberof ApiCommentaryBookChapter
+     */
+    nextChapterReference: CommentaryChapterReference | null;
+    /**
      * The API link to the previous chapter. Relative to the API origin. Null if this is the first chapter in the commentary.
      * @type {string}
      * @memberof ApiCommentaryBookChapter
      */
     previousChapterApiLink: string | null;
+    /**
+     * The reference for the previous chapter. Null if this is the first chapter in the commentary.
+     * @type {CommentaryChapterReference}
+     * @memberof ApiCommentaryBookChapter
+     */
+    previousChapterReference: CommentaryChapterReference | null;
     /**
      * The number of verses that the chapter contains.
      * @type {number}
@@ -88,55 +113,108 @@ export interface ApiCommentaryBookChapter {
 /**
  * Check if a given object implements the ApiCommentaryBookChapter interface.
  */
-export function instanceOfApiCommentaryBookChapter(value: object): value is ApiCommentaryBookChapter {
+export function instanceOfApiCommentaryBookChapter(
+    value: object
+): value is ApiCommentaryBookChapter {
     if (!('chapter' in value) || value['chapter'] === undefined) return false;
-    if (!('commentary' in value) || value['commentary'] === undefined) return false;
+    if (!('commentary' in value) || value['commentary'] === undefined)
+        return false;
     if (!('book' in value) || value['book'] === undefined) return false;
-    if (!('thisChapterLink' in value) || value['thisChapterLink'] === undefined) return false;
-    if (!('nextChapterApiLink' in value) || value['nextChapterApiLink'] === undefined) return false;
-    if (!('previousChapterApiLink' in value) || value['previousChapterApiLink'] === undefined) return false;
-    if (!('numberOfVerses' in value) || value['numberOfVerses'] === undefined) return false;
+    if (!('thisChapterLink' in value) || value['thisChapterLink'] === undefined)
+        return false;
+    if (
+        !('thisChapterReference' in value) ||
+        value['thisChapterReference'] === undefined
+    )
+        return false;
+    if (
+        !('nextChapterApiLink' in value) ||
+        value['nextChapterApiLink'] === undefined
+    )
+        return false;
+    if (
+        !('nextChapterReference' in value) ||
+        value['nextChapterReference'] === undefined
+    )
+        return false;
+    if (
+        !('previousChapterApiLink' in value) ||
+        value['previousChapterApiLink'] === undefined
+    )
+        return false;
+    if (
+        !('previousChapterReference' in value) ||
+        value['previousChapterReference'] === undefined
+    )
+        return false;
+    if (!('numberOfVerses' in value) || value['numberOfVerses'] === undefined)
+        return false;
     return true;
 }
 
-export function ApiCommentaryBookChapterFromJSON(json: any): ApiCommentaryBookChapter {
+export function ApiCommentaryBookChapterFromJSON(
+    json: any
+): ApiCommentaryBookChapter {
     return ApiCommentaryBookChapterFromJSONTyped(json, false);
 }
 
-export function ApiCommentaryBookChapterFromJSONTyped(json: any, ignoreDiscriminator: boolean): ApiCommentaryBookChapter {
+export function ApiCommentaryBookChapterFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean
+): ApiCommentaryBookChapter {
     if (json == null) {
         return json;
     }
     return {
-        
-        'chapter': ApiCommentaryBookChapterChapterFromJSON(json['chapter']),
-        'commentary': ApiCommentaryFromJSON(json['commentary']),
-        'book': ApiCommentaryBookFromJSON(json['book']),
-        'thisChapterLink': json['thisChapterLink'],
-        'nextChapterApiLink': json['nextChapterApiLink'],
-        'previousChapterApiLink': json['previousChapterApiLink'],
-        'numberOfVerses': json['numberOfVerses'],
+        chapter: ApiCommentaryBookChapterChapterFromJSON(json['chapter']),
+        commentary: ApiCommentaryFromJSON(json['commentary']),
+        book: ApiCommentaryBookFromJSON(json['book']),
+        thisChapterLink: json['thisChapterLink'],
+        thisChapterReference: CommentaryChapterReferenceFromJSON(
+            json['thisChapterReference']
+        ),
+        nextChapterApiLink: json['nextChapterApiLink'],
+        nextChapterReference: CommentaryChapterReferenceFromJSON(
+            json['nextChapterReference']
+        ),
+        previousChapterApiLink: json['previousChapterApiLink'],
+        previousChapterReference: CommentaryChapterReferenceFromJSON(
+            json['previousChapterReference']
+        ),
+        numberOfVerses: json['numberOfVerses'],
     };
 }
 
-export function ApiCommentaryBookChapterToJSON(json: any): ApiCommentaryBookChapter {
+export function ApiCommentaryBookChapterToJSON(
+    json: any
+): ApiCommentaryBookChapter {
     return ApiCommentaryBookChapterToJSONTyped(json, false);
 }
 
-export function ApiCommentaryBookChapterToJSONTyped(value?: ApiCommentaryBookChapter | null, ignoreDiscriminator: boolean = false): any {
+export function ApiCommentaryBookChapterToJSONTyped(
+    value?: ApiCommentaryBookChapter | null,
+    ignoreDiscriminator: boolean = false
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'chapter': ApiCommentaryBookChapterChapterToJSON(value['chapter']),
-        'commentary': ApiCommentaryToJSON(value['commentary']),
-        'book': ApiCommentaryBookToJSON(value['book']),
-        'thisChapterLink': value['thisChapterLink'],
-        'nextChapterApiLink': value['nextChapterApiLink'],
-        'previousChapterApiLink': value['previousChapterApiLink'],
-        'numberOfVerses': value['numberOfVerses'],
+        chapter: ApiCommentaryBookChapterChapterToJSON(value['chapter']),
+        commentary: ApiCommentaryToJSON(value['commentary']),
+        book: ApiCommentaryBookToJSON(value['book']),
+        thisChapterLink: value['thisChapterLink'],
+        thisChapterReference: CommentaryChapterReferenceToJSON(
+            value['thisChapterReference']
+        ),
+        nextChapterApiLink: value['nextChapterApiLink'],
+        nextChapterReference: CommentaryChapterReferenceToJSON(
+            value['nextChapterReference']
+        ),
+        previousChapterApiLink: value['previousChapterApiLink'],
+        previousChapterReference: CommentaryChapterReferenceToJSON(
+            value['previousChapterReference']
+        ),
+        numberOfVerses: value['numberOfVerses'],
     };
 }
-

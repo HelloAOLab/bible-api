@@ -20,6 +20,13 @@ import {
     ApiDatasetToJSON,
     ApiDatasetToJSONTyped,
 } from './ApiDataset';
+import type { DatasetChapterReference } from './DatasetChapterReference';
+import {
+    DatasetChapterReferenceFromJSON,
+    DatasetChapterReferenceFromJSONTyped,
+    DatasetChapterReferenceToJSON,
+    DatasetChapterReferenceToJSONTyped,
+} from './DatasetChapterReference';
 import type { ApiDatasetBook } from './ApiDatasetBook';
 import {
     ApiDatasetBookFromJSON,
@@ -66,17 +73,35 @@ export interface ApiDatasetBookChapter {
      */
     thisChapterLink: string;
     /**
+     *
+     * @type {DatasetChapterReference}
+     * @memberof ApiDatasetBookChapter
+     */
+    thisChapterReference: DatasetChapterReference;
+    /**
      * The API link to the next chapter. Relative to the API origin. Null if this is the last chapter in the dataset.
      * @type {string}
      * @memberof ApiDatasetBookChapter
      */
     nextChapterApiLink: string | null;
     /**
+     * The reference for the next chapter. Null if this is the last chapter in the dataset.
+     * @type {DatasetChapterReference}
+     * @memberof ApiDatasetBookChapter
+     */
+    nextChapterReference: DatasetChapterReference | null;
+    /**
      * The API link to the previous chapter. Relative to the API origin. Null if this is the first chapter in the dataset.
      * @type {string}
      * @memberof ApiDatasetBookChapter
      */
     previousChapterApiLink: string | null;
+    /**
+     * The reference for the previous chapter. Null if this is the first chapter in the dataset.
+     * @type {DatasetChapterReference}
+     * @memberof ApiDatasetBookChapter
+     */
+    previousChapterReference: DatasetChapterReference | null;
     /**
      * The number of verses that the chapter contains.
      * @type {number}
@@ -94,36 +119,80 @@ export interface ApiDatasetBookChapter {
 /**
  * Check if a given object implements the ApiDatasetBookChapter interface.
  */
-export function instanceOfApiDatasetBookChapter(value: object): value is ApiDatasetBookChapter {
+export function instanceOfApiDatasetBookChapter(
+    value: object
+): value is ApiDatasetBookChapter {
     if (!('chapter' in value) || value['chapter'] === undefined) return false;
     if (!('dataset' in value) || value['dataset'] === undefined) return false;
     if (!('book' in value) || value['book'] === undefined) return false;
-    if (!('thisChapterLink' in value) || value['thisChapterLink'] === undefined) return false;
-    if (!('nextChapterApiLink' in value) || value['nextChapterApiLink'] === undefined) return false;
-    if (!('previousChapterApiLink' in value) || value['previousChapterApiLink'] === undefined) return false;
-    if (!('numberOfVerses' in value) || value['numberOfVerses'] === undefined) return false;
-    if (!('numberOfReferences' in value) || value['numberOfReferences'] === undefined) return false;
+    if (!('thisChapterLink' in value) || value['thisChapterLink'] === undefined)
+        return false;
+    if (
+        !('thisChapterReference' in value) ||
+        value['thisChapterReference'] === undefined
+    )
+        return false;
+    if (
+        !('nextChapterApiLink' in value) ||
+        value['nextChapterApiLink'] === undefined
+    )
+        return false;
+    if (
+        !('nextChapterReference' in value) ||
+        value['nextChapterReference'] === undefined
+    )
+        return false;
+    if (
+        !('previousChapterApiLink' in value) ||
+        value['previousChapterApiLink'] === undefined
+    )
+        return false;
+    if (
+        !('previousChapterReference' in value) ||
+        value['previousChapterReference'] === undefined
+    )
+        return false;
+    if (!('numberOfVerses' in value) || value['numberOfVerses'] === undefined)
+        return false;
+    if (
+        !('numberOfReferences' in value) ||
+        value['numberOfReferences'] === undefined
+    )
+        return false;
     return true;
 }
 
-export function ApiDatasetBookChapterFromJSON(json: any): ApiDatasetBookChapter {
+export function ApiDatasetBookChapterFromJSON(
+    json: any
+): ApiDatasetBookChapter {
     return ApiDatasetBookChapterFromJSONTyped(json, false);
 }
 
-export function ApiDatasetBookChapterFromJSONTyped(json: any, ignoreDiscriminator: boolean): ApiDatasetBookChapter {
+export function ApiDatasetBookChapterFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean
+): ApiDatasetBookChapter {
     if (json == null) {
         return json;
     }
     return {
-        
-        'chapter': DatasetChapterDataFromJSON(json['chapter']),
-        'dataset': ApiDatasetFromJSON(json['dataset']),
-        'book': ApiDatasetBookFromJSON(json['book']),
-        'thisChapterLink': json['thisChapterLink'],
-        'nextChapterApiLink': json['nextChapterApiLink'],
-        'previousChapterApiLink': json['previousChapterApiLink'],
-        'numberOfVerses': json['numberOfVerses'],
-        'numberOfReferences': json['numberOfReferences'],
+        chapter: DatasetChapterDataFromJSON(json['chapter']),
+        dataset: ApiDatasetFromJSON(json['dataset']),
+        book: ApiDatasetBookFromJSON(json['book']),
+        thisChapterLink: json['thisChapterLink'],
+        thisChapterReference: DatasetChapterReferenceFromJSON(
+            json['thisChapterReference']
+        ),
+        nextChapterApiLink: json['nextChapterApiLink'],
+        nextChapterReference: DatasetChapterReferenceFromJSON(
+            json['nextChapterReference']
+        ),
+        previousChapterApiLink: json['previousChapterApiLink'],
+        previousChapterReference: DatasetChapterReferenceFromJSON(
+            json['previousChapterReference']
+        ),
+        numberOfVerses: json['numberOfVerses'],
+        numberOfReferences: json['numberOfReferences'],
     };
 }
 
@@ -131,21 +200,31 @@ export function ApiDatasetBookChapterToJSON(json: any): ApiDatasetBookChapter {
     return ApiDatasetBookChapterToJSONTyped(json, false);
 }
 
-export function ApiDatasetBookChapterToJSONTyped(value?: ApiDatasetBookChapter | null, ignoreDiscriminator: boolean = false): any {
+export function ApiDatasetBookChapterToJSONTyped(
+    value?: ApiDatasetBookChapter | null,
+    ignoreDiscriminator: boolean = false
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'chapter': DatasetChapterDataToJSON(value['chapter']),
-        'dataset': ApiDatasetToJSON(value['dataset']),
-        'book': ApiDatasetBookToJSON(value['book']),
-        'thisChapterLink': value['thisChapterLink'],
-        'nextChapterApiLink': value['nextChapterApiLink'],
-        'previousChapterApiLink': value['previousChapterApiLink'],
-        'numberOfVerses': value['numberOfVerses'],
-        'numberOfReferences': value['numberOfReferences'],
+        chapter: DatasetChapterDataToJSON(value['chapter']),
+        dataset: ApiDatasetToJSON(value['dataset']),
+        book: ApiDatasetBookToJSON(value['book']),
+        thisChapterLink: value['thisChapterLink'],
+        thisChapterReference: DatasetChapterReferenceToJSON(
+            value['thisChapterReference']
+        ),
+        nextChapterApiLink: value['nextChapterApiLink'],
+        nextChapterReference: DatasetChapterReferenceToJSON(
+            value['nextChapterReference']
+        ),
+        previousChapterApiLink: value['previousChapterApiLink'],
+        previousChapterReference: DatasetChapterReferenceToJSON(
+            value['previousChapterReference']
+        ),
+        numberOfVerses: value['numberOfVerses'],
+        numberOfReferences: value['numberOfReferences'],
     };
 }
-

@@ -20,6 +20,13 @@ import {
     BookIdToJSON,
     BookIdToJSONTyped,
 } from './BookId';
+import type { CommentaryChapterReference } from './CommentaryChapterReference';
+import {
+    CommentaryChapterReferenceFromJSON,
+    CommentaryChapterReferenceFromJSONTyped,
+    CommentaryChapterReferenceToJSON,
+    CommentaryChapterReferenceToJSONTyped,
+} from './CommentaryChapterReference';
 
 /**
  * Defines a schema that contains information about a commentary book.
@@ -28,7 +35,7 @@ import {
  */
 export interface ApiCommentaryBook {
     /**
-     * 
+     *
      * @type {BookId}
      * @memberof ApiCommentaryBook
      */
@@ -76,6 +83,12 @@ export interface ApiCommentaryBook {
      */
     firstChapterApiLink: string | null;
     /**
+     * The reference for the first chapter in the book. Null if the comentary book has no chapters.
+     * @type {CommentaryChapterReference}
+     * @memberof ApiCommentaryBook
+     */
+    firstChapterReference: CommentaryChapterReference | null;
+    /**
      * The number of the last chapter in the book. Null if the comentary book has no chapters.
      * @type {number}
      * @memberof ApiCommentaryBook
@@ -87,6 +100,12 @@ export interface ApiCommentaryBook {
      * @memberof ApiCommentaryBook
      */
     lastChapterApiLink: string | null;
+    /**
+     * The reference for the last chapter in the book. Null if the comentary book has no chapters.
+     * @type {CommentaryChapterReference}
+     * @memberof ApiCommentaryBook
+     */
+    lastChapterReference: CommentaryChapterReference | null;
     /**
      * The number of chapters that the book contains.
      * @type {number}
@@ -101,22 +120,57 @@ export interface ApiCommentaryBook {
     totalNumberOfVerses: number;
 }
 
-
-
 /**
  * Check if a given object implements the ApiCommentaryBook interface.
  */
-export function instanceOfApiCommentaryBook(value: object): value is ApiCommentaryBook {
+export function instanceOfApiCommentaryBook(
+    value: object
+): value is ApiCommentaryBook {
     if (!('id' in value) || value['id'] === undefined) return false;
     if (!('name' in value) || value['name'] === undefined) return false;
-    if (!('commonName' in value) || value['commonName'] === undefined) return false;
+    if (!('commonName' in value) || value['commonName'] === undefined)
+        return false;
     if (!('order' in value) || value['order'] === undefined) return false;
-    if (!('firstChapterNumber' in value) || value['firstChapterNumber'] === undefined) return false;
-    if (!('firstChapterApiLink' in value) || value['firstChapterApiLink'] === undefined) return false;
-    if (!('lastChapterNumber' in value) || value['lastChapterNumber'] === undefined) return false;
-    if (!('lastChapterApiLink' in value) || value['lastChapterApiLink'] === undefined) return false;
-    if (!('numberOfChapters' in value) || value['numberOfChapters'] === undefined) return false;
-    if (!('totalNumberOfVerses' in value) || value['totalNumberOfVerses'] === undefined) return false;
+    if (
+        !('firstChapterNumber' in value) ||
+        value['firstChapterNumber'] === undefined
+    )
+        return false;
+    if (
+        !('firstChapterApiLink' in value) ||
+        value['firstChapterApiLink'] === undefined
+    )
+        return false;
+    if (
+        !('firstChapterReference' in value) ||
+        value['firstChapterReference'] === undefined
+    )
+        return false;
+    if (
+        !('lastChapterNumber' in value) ||
+        value['lastChapterNumber'] === undefined
+    )
+        return false;
+    if (
+        !('lastChapterApiLink' in value) ||
+        value['lastChapterApiLink'] === undefined
+    )
+        return false;
+    if (
+        !('lastChapterReference' in value) ||
+        value['lastChapterReference'] === undefined
+    )
+        return false;
+    if (
+        !('numberOfChapters' in value) ||
+        value['numberOfChapters'] === undefined
+    )
+        return false;
+    if (
+        !('totalNumberOfVerses' in value) ||
+        value['totalNumberOfVerses'] === undefined
+    )
+        return false;
     return true;
 }
 
@@ -124,24 +178,36 @@ export function ApiCommentaryBookFromJSON(json: any): ApiCommentaryBook {
     return ApiCommentaryBookFromJSONTyped(json, false);
 }
 
-export function ApiCommentaryBookFromJSONTyped(json: any, ignoreDiscriminator: boolean): ApiCommentaryBook {
+export function ApiCommentaryBookFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean
+): ApiCommentaryBook {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': BookIdFromJSON(json['id']),
-        'name': json['name'],
-        'commonName': json['commonName'],
-        'introduction': json['introduction'] == null ? undefined : json['introduction'],
-        'introductionSummary': json['introductionSummary'] == null ? undefined : json['introductionSummary'],
-        'order': json['order'],
-        'firstChapterNumber': json['firstChapterNumber'],
-        'firstChapterApiLink': json['firstChapterApiLink'],
-        'lastChapterNumber': json['lastChapterNumber'],
-        'lastChapterApiLink': json['lastChapterApiLink'],
-        'numberOfChapters': json['numberOfChapters'],
-        'totalNumberOfVerses': json['totalNumberOfVerses'],
+        id: BookIdFromJSON(json['id']),
+        name: json['name'],
+        commonName: json['commonName'],
+        introduction:
+            json['introduction'] == null ? undefined : json['introduction'],
+        introductionSummary:
+            json['introductionSummary'] == null
+                ? undefined
+                : json['introductionSummary'],
+        order: json['order'],
+        firstChapterNumber: json['firstChapterNumber'],
+        firstChapterApiLink: json['firstChapterApiLink'],
+        firstChapterReference: CommentaryChapterReferenceFromJSON(
+            json['firstChapterReference']
+        ),
+        lastChapterNumber: json['lastChapterNumber'],
+        lastChapterApiLink: json['lastChapterApiLink'],
+        lastChapterReference: CommentaryChapterReferenceFromJSON(
+            json['lastChapterReference']
+        ),
+        numberOfChapters: json['numberOfChapters'],
+        totalNumberOfVerses: json['totalNumberOfVerses'],
     };
 }
 
@@ -149,25 +215,32 @@ export function ApiCommentaryBookToJSON(json: any): ApiCommentaryBook {
     return ApiCommentaryBookToJSONTyped(json, false);
 }
 
-export function ApiCommentaryBookToJSONTyped(value?: ApiCommentaryBook | null, ignoreDiscriminator: boolean = false): any {
+export function ApiCommentaryBookToJSONTyped(
+    value?: ApiCommentaryBook | null,
+    ignoreDiscriminator: boolean = false
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': BookIdToJSON(value['id']),
-        'name': value['name'],
-        'commonName': value['commonName'],
-        'introduction': value['introduction'],
-        'introductionSummary': value['introductionSummary'],
-        'order': value['order'],
-        'firstChapterNumber': value['firstChapterNumber'],
-        'firstChapterApiLink': value['firstChapterApiLink'],
-        'lastChapterNumber': value['lastChapterNumber'],
-        'lastChapterApiLink': value['lastChapterApiLink'],
-        'numberOfChapters': value['numberOfChapters'],
-        'totalNumberOfVerses': value['totalNumberOfVerses'],
+        id: BookIdToJSON(value['id']),
+        name: value['name'],
+        commonName: value['commonName'],
+        introduction: value['introduction'],
+        introductionSummary: value['introductionSummary'],
+        order: value['order'],
+        firstChapterNumber: value['firstChapterNumber'],
+        firstChapterApiLink: value['firstChapterApiLink'],
+        firstChapterReference: CommentaryChapterReferenceToJSON(
+            value['firstChapterReference']
+        ),
+        lastChapterNumber: value['lastChapterNumber'],
+        lastChapterApiLink: value['lastChapterApiLink'],
+        lastChapterReference: CommentaryChapterReferenceToJSON(
+            value['lastChapterReference']
+        ),
+        numberOfChapters: value['numberOfChapters'],
+        totalNumberOfVerses: value['totalNumberOfVerses'],
     };
 }
-

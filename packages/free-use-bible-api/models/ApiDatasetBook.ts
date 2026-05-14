@@ -20,6 +20,13 @@ import {
     BookIdToJSON,
     BookIdToJSONTyped,
 } from './BookId';
+import type { DatasetChapterReference } from './DatasetChapterReference';
+import {
+    DatasetChapterReferenceFromJSON,
+    DatasetChapterReferenceFromJSONTyped,
+    DatasetChapterReferenceToJSON,
+    DatasetChapterReferenceToJSONTyped,
+} from './DatasetChapterReference';
 
 /**
  * Defines a schema that contains information about a book in a dataset.
@@ -28,7 +35,7 @@ import {
  */
 export interface ApiDatasetBook {
     /**
-     * 
+     *
      * @type {BookId}
      * @memberof ApiDatasetBook
      */
@@ -52,6 +59,12 @@ export interface ApiDatasetBook {
      */
     firstChapterApiLink: string;
     /**
+     *
+     * @type {DatasetChapterReference}
+     * @memberof ApiDatasetBook
+     */
+    firstChapterReference: DatasetChapterReference;
+    /**
      * The number of the last chapter in the book.
      * @type {number}
      * @memberof ApiDatasetBook
@@ -63,6 +76,12 @@ export interface ApiDatasetBook {
      * @memberof ApiDatasetBook
      */
     lastChapterApiLink: string;
+    /**
+     *
+     * @type {DatasetChapterReference}
+     * @memberof ApiDatasetBook
+     */
+    lastChapterReference: DatasetChapterReference;
     /**
      * The number of chapters that the book contains.
      * @type {number}
@@ -83,21 +102,59 @@ export interface ApiDatasetBook {
     totalNumberOfReferences: number;
 }
 
-
-
 /**
  * Check if a given object implements the ApiDatasetBook interface.
  */
-export function instanceOfApiDatasetBook(value: object): value is ApiDatasetBook {
+export function instanceOfApiDatasetBook(
+    value: object
+): value is ApiDatasetBook {
     if (!('id' in value) || value['id'] === undefined) return false;
     if (!('order' in value) || value['order'] === undefined) return false;
-    if (!('firstChapterNumber' in value) || value['firstChapterNumber'] === undefined) return false;
-    if (!('firstChapterApiLink' in value) || value['firstChapterApiLink'] === undefined) return false;
-    if (!('lastChapterNumber' in value) || value['lastChapterNumber'] === undefined) return false;
-    if (!('lastChapterApiLink' in value) || value['lastChapterApiLink'] === undefined) return false;
-    if (!('numberOfChapters' in value) || value['numberOfChapters'] === undefined) return false;
-    if (!('totalNumberOfVerses' in value) || value['totalNumberOfVerses'] === undefined) return false;
-    if (!('totalNumberOfReferences' in value) || value['totalNumberOfReferences'] === undefined) return false;
+    if (
+        !('firstChapterNumber' in value) ||
+        value['firstChapterNumber'] === undefined
+    )
+        return false;
+    if (
+        !('firstChapterApiLink' in value) ||
+        value['firstChapterApiLink'] === undefined
+    )
+        return false;
+    if (
+        !('firstChapterReference' in value) ||
+        value['firstChapterReference'] === undefined
+    )
+        return false;
+    if (
+        !('lastChapterNumber' in value) ||
+        value['lastChapterNumber'] === undefined
+    )
+        return false;
+    if (
+        !('lastChapterApiLink' in value) ||
+        value['lastChapterApiLink'] === undefined
+    )
+        return false;
+    if (
+        !('lastChapterReference' in value) ||
+        value['lastChapterReference'] === undefined
+    )
+        return false;
+    if (
+        !('numberOfChapters' in value) ||
+        value['numberOfChapters'] === undefined
+    )
+        return false;
+    if (
+        !('totalNumberOfVerses' in value) ||
+        value['totalNumberOfVerses'] === undefined
+    )
+        return false;
+    if (
+        !('totalNumberOfReferences' in value) ||
+        value['totalNumberOfReferences'] === undefined
+    )
+        return false;
     return true;
 }
 
@@ -105,21 +162,29 @@ export function ApiDatasetBookFromJSON(json: any): ApiDatasetBook {
     return ApiDatasetBookFromJSONTyped(json, false);
 }
 
-export function ApiDatasetBookFromJSONTyped(json: any, ignoreDiscriminator: boolean): ApiDatasetBook {
+export function ApiDatasetBookFromJSONTyped(
+    json: any,
+    ignoreDiscriminator: boolean
+): ApiDatasetBook {
     if (json == null) {
         return json;
     }
     return {
-        
-        'id': BookIdFromJSON(json['id']),
-        'order': json['order'],
-        'firstChapterNumber': json['firstChapterNumber'],
-        'firstChapterApiLink': json['firstChapterApiLink'],
-        'lastChapterNumber': json['lastChapterNumber'],
-        'lastChapterApiLink': json['lastChapterApiLink'],
-        'numberOfChapters': json['numberOfChapters'],
-        'totalNumberOfVerses': json['totalNumberOfVerses'],
-        'totalNumberOfReferences': json['totalNumberOfReferences'],
+        id: BookIdFromJSON(json['id']),
+        order: json['order'],
+        firstChapterNumber: json['firstChapterNumber'],
+        firstChapterApiLink: json['firstChapterApiLink'],
+        firstChapterReference: DatasetChapterReferenceFromJSON(
+            json['firstChapterReference']
+        ),
+        lastChapterNumber: json['lastChapterNumber'],
+        lastChapterApiLink: json['lastChapterApiLink'],
+        lastChapterReference: DatasetChapterReferenceFromJSON(
+            json['lastChapterReference']
+        ),
+        numberOfChapters: json['numberOfChapters'],
+        totalNumberOfVerses: json['totalNumberOfVerses'],
+        totalNumberOfReferences: json['totalNumberOfReferences'],
     };
 }
 
@@ -127,22 +192,29 @@ export function ApiDatasetBookToJSON(json: any): ApiDatasetBook {
     return ApiDatasetBookToJSONTyped(json, false);
 }
 
-export function ApiDatasetBookToJSONTyped(value?: ApiDatasetBook | null, ignoreDiscriminator: boolean = false): any {
+export function ApiDatasetBookToJSONTyped(
+    value?: ApiDatasetBook | null,
+    ignoreDiscriminator: boolean = false
+): any {
     if (value == null) {
         return value;
     }
 
     return {
-        
-        'id': BookIdToJSON(value['id']),
-        'order': value['order'],
-        'firstChapterNumber': value['firstChapterNumber'],
-        'firstChapterApiLink': value['firstChapterApiLink'],
-        'lastChapterNumber': value['lastChapterNumber'],
-        'lastChapterApiLink': value['lastChapterApiLink'],
-        'numberOfChapters': value['numberOfChapters'],
-        'totalNumberOfVerses': value['totalNumberOfVerses'],
-        'totalNumberOfReferences': value['totalNumberOfReferences'],
+        id: BookIdToJSON(value['id']),
+        order: value['order'],
+        firstChapterNumber: value['firstChapterNumber'],
+        firstChapterApiLink: value['firstChapterApiLink'],
+        firstChapterReference: DatasetChapterReferenceToJSON(
+            value['firstChapterReference']
+        ),
+        lastChapterNumber: value['lastChapterNumber'],
+        lastChapterApiLink: value['lastChapterApiLink'],
+        lastChapterReference: DatasetChapterReferenceToJSON(
+            value['lastChapterReference']
+        ),
+        numberOfChapters: value['numberOfChapters'],
+        totalNumberOfVerses: value['totalNumberOfVerses'],
+        totalNumberOfReferences: value['totalNumberOfReferences'],
     };
 }
-
