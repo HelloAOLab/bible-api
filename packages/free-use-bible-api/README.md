@@ -4,7 +4,7 @@ The Free Use Bible API provides access to over 1000 Bible translations in hundre
 
 This package is a TypeScript and JavaScript client for the public API hosted at:
 
-- https://bible.helloao.org
+-   https://bible.helloao.org
 
 ## Installation
 
@@ -27,13 +27,20 @@ yarn add free-use-bible-api
 Create a client and point it at the production API:
 
 ```ts
-import { Configuration, FreeUseBibleApi } from 'free-use-bible-api';
+import { getAvailableTranslations } from 'free-use-bible-api';
 
-const config = new Configuration({
-	basePath: 'https://bible.helloao.org',
-});
+const availableTranslationsResult = await getAvailableTranslations();
 
-const api = new FreeUseBibleApi(config);
+if (availableTranslationsResult.error) {
+    console.error(
+        'Error while getting available translations:',
+        availableTranslationsResult.error
+    );
+} else {
+    const result = availableTranslationsResult.data;
+    console.log('Total translations:', result.translations.length);
+    console.log('First translation:', result.translations[0]);
+}
 ```
 
 ## Translation Usage Guide
@@ -52,7 +59,7 @@ This section covers the most common translation flow:
 import { Configuration, FreeUseBibleApi } from 'free-use-bible-api';
 
 const api = new FreeUseBibleApi(
-	new Configuration({ basePath: 'https://bible.helloao.org' })
+    new Configuration({ basePath: 'https://bible.helloao.org' })
 );
 
 const result = await api.getAvailableTranslations();
@@ -67,7 +74,7 @@ Use a translation ID from the previous step, for example `BSB`:
 
 ```ts
 const books = await api.getTranslationBooks({
-	translation: 'BSB',
+    translation: 'BSB',
 });
 
 console.log('Books in translation:', books.books.length);
@@ -82,9 +89,9 @@ Use a USFM book ID and chapter number:
 import { BookId } from 'free-use-bible-api';
 
 const chapter = await api.getTranslationBookChapter({
-	translation: 'BSB',
-	book: BookId.GEN,
-	chapter: 1,
+    translation: 'BSB',
+    book: BookId.GEN,
+    chapter: 1,
 });
 
 console.log('Chapter number:', chapter.chapter.number);
@@ -97,7 +104,7 @@ Some workflows need the entire translation document in one call:
 
 ```ts
 const complete = await api.getTranslationComplete({
-	translation: 'BSB',
+    translation: 'BSB',
 });
 
 console.log('Translation:', complete.translation.id);
@@ -108,10 +115,10 @@ console.log('Book count:', complete.books.length);
 
 If you do not want to use the SDK, these translation endpoints are available directly:
 
-- GET `/api/available_translations.json`
-- GET `/api/{translation}/books.json`
-- GET `/api/{translation}/{book}/{chapter}.json`
-- GET `/api/{translation}/complete.json`
+-   GET `/api/available_translations.json`
+-   GET `/api/{translation}/books.json`
+-   GET `/api/{translation}/{book}/{chapter}.json`
+-   GET `/api/{translation}/complete.json`
 
 Example requests:
 
@@ -125,15 +132,14 @@ curl https://bible.helloao.org/api/BSB/GEN/1.json
 
 A 404 response usually means one of these values is invalid:
 
-- translation
-- book
-- chapter
+-   translation
+-   book
+-   chapter
 
 Use available translations and books responses to drive your UI selections and reduce bad requests.
 
 ## Notes
 
-- This client uses fetch under the hood.
-- In modern Node.js versions, fetch is available globally.
-- For custom environments, pass a custom fetch implementation in `Configuration`.
-
+-   This client uses fetch under the hood.
+-   In modern Node.js versions, fetch is available globally.
+-   For custom environments, pass a custom fetch implementation in `Configuration`.

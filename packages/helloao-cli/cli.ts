@@ -277,7 +277,7 @@ async function start() {
             for (const [language, generatorName] of OPENAPI_CLIENT_LANGUAGES) {
                 const outputPath =
                     language === 'typescript'
-                        ? path.resolve(packagesDir, 'free-use-bible-api')
+                        ? path.resolve(packagesDir, 'free-use-bible-api', 'gen')
                         : path.resolve(clientsDir, language);
                 await mkdir(outputPath, { recursive: true });
                 logger.log(
@@ -287,9 +287,36 @@ async function start() {
                     generatorName
                 );
                 if (generatorName === '@hey-api/openapi-ts') {
+                    const tsConfigPath = path.resolve(
+                        packagesDir,
+                        'free-use-bible-api',
+                        'tsconfig.json'
+                    );
                     await createClient({
                         input: openApiPath,
-                        output: outputPath,
+                        output: {
+                            path: outputPath,
+                            tsConfigPath,
+                            module: {
+                                extension: '.js',
+                            },
+                        },
+                        plugins: [
+                            {
+                                name: '@hey-api/sdk',
+                                operations: {
+                                    containerName: 'FreeUseBibleApi',
+                                    strategy: 'single',
+                                    methods: 'instance',
+                                },
+                                responseStyle: 'data',
+                                examples: {
+                                    moduleName: 'free-use-bible-api',
+                                    setupName: 'api',
+                                    enabled: true,
+                                },
+                            },
+                        ],
                     });
                 } else {
                     await runOpenApiGenerator(
