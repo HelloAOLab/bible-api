@@ -26,6 +26,11 @@ const fubaIndex = path.resolve(fuba, 'index.ts');
 const fubaPackageJson = path.resolve(fuba, 'package.json');
 const fubaDist = path.resolve(fuba, 'dist');
 
+const fubaReact = path.resolve(packages, 'free-use-bible-api-react');
+const fubaReactIndex = path.resolve(fubaReact, 'index.ts');
+const fubaReactPackageJson = path.resolve(fubaReact, 'package.json');
+const fubaReactDist = path.resolve(fubaReact, 'dist');
+
 function getExternals(packageJson: string) {
     const packageData = JSON.parse(
         readFileSync(packageJson, { encoding: 'utf-8' })
@@ -139,10 +144,33 @@ async function buildClient() {
     console.log('Client built successfully!');
 }
 
+async function buildReact() {
+    const options: BuildOptions = {
+        entryPoints: await entryPoints('packages/free-use-bible-api-react'),
+    };
+
+    await Promise.all([
+        esbuild.build({
+            ...esmOptions,
+            ...options,
+            outdir: path.resolve(fubaReactDist, 'esm'),
+        }),
+        esbuild.build({
+            ...cjsOptions,
+            ...options,
+            bundle: false,
+            outdir: path.resolve(fubaReactDist, 'cjs'),
+        }),
+    ]);
+
+    console.log('React client built successfully!');
+}
+
 async function build() {
     await buildTools();
     await buildCli();
     await buildClient();
+    await buildReact();
 }
 
 build();
