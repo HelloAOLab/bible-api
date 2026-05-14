@@ -1,7 +1,8 @@
 import { PrismaClient, Prisma } from './prisma-gen/index.js';
 import path from 'path';
 import Sql, { Database } from 'better-sqlite3';
-import { exists, readdir, readFile } from 'fs-extra';
+import fsExtra from 'fs-extra';
+const { exists, readdir, readFile } = fsExtra;
 import { randomUUID } from 'node:crypto';
 import {
     DatasetCommentary,
@@ -37,7 +38,8 @@ import {
     loadTranslationFiles,
     serializeOutputFiles,
 } from './files.js';
-import { sha256 } from 'hash.js';
+import hash from 'hash.js';
+const { sha256 } = hash;
 import type { DOMParser } from 'linkedom';
 import { Readable } from 'stream';
 import { getEnglishName, getNativeName } from 'all-iso-language-codes';

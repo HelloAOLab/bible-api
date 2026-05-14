@@ -1,11 +1,10 @@
 import { log } from '@helloao/tools';
 import { BlobWriter, Entry, ZipReader } from '@zip.js/zip.js';
-import { createWriteStream } from 'fs-extra';
-import { createReadStream } from 'node:fs';
+import fsExtra from 'fs-extra';
+const { createWriteStream, exists } = fsExtra;
 import path from 'node:path';
 import { Readable } from 'node:stream';
 import { finished } from 'node:stream/promises';
-import { exists } from 'fs-extra';
 import { writeFile } from 'node:fs/promises';
 
 export async function downloadFile(

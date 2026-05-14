@@ -15,7 +15,8 @@ import {
     dataset,
     InputTranslationMetadata,
 } from '@helloao/tools/generation/index.js';
-import { exists, readFile } from 'fs-extra';
+import fsExtra from 'fs-extra';
+const { exists, readFile } = fsExtra;
 import { copyFile } from 'node:fs/promises';
 import {
     KNOWN_AUDIO_TRANSLATIONS,

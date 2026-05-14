@@ -8,7 +8,8 @@ import {
 } from 'fs/promises';
 import { basename, extname } from 'path';
 import * as path from 'path';
-import { existsSync } from 'fs-extra';
+import fsExtra from 'fs-extra';
+const { existsSync } = fsExtra;
 import {
     InputFile,
     InputTranslationMetadata,
@@ -21,7 +22,8 @@ import {
 } from '@helloao/tools/generation/common-types.js';
 import { ZipWriter, Writer, TextReader, Reader } from '@zip.js/zip.js';
 import { Readable, Writable } from 'stream';
-import { sha256 } from 'hash.js';
+import hash from 'hash.js';
+const { sha256 } = hash;
 import { PARSER_VERSION } from '@helloao/tools/parser/usx-parser.js';
 import { mergeWith } from 'es-toolkit/compat';
 import { fromByteArray } from 'base64-js';

@@ -1,7 +1,9 @@
-import { parse } from 'papaparse';
+import papaparse from 'papaparse';
+const { parse } = papaparse;
 import { EBibleSource } from './prisma-gen/index.js';
 import { DateTime } from 'luxon';
-import { sha256 } from 'hash.js';
+import hash from 'hash.js';
+const { sha256 } = hash;
 import { getTranslationId } from '@helloao/tools/utils.js';
 
 /**
