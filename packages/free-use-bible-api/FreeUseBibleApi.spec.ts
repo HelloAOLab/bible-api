@@ -6,6 +6,7 @@ import type {
     ApiDatasetBookChapter,
     ApiTranslationBook,
     ApiTranslationBookChapter,
+    ChapterVerse,
 } from './types.gen.js';
 
 describe('FreeUseBibleApi', () => {
@@ -248,6 +249,78 @@ describe('FreeUseBibleApi', () => {
         expect(fetchMock).toHaveBeenNthCalledWith(
             2,
             'https://bible.helloao.org/api/d/cross_refs/JHN/3.json'
+        );
+    });
+
+    it('getVerseText concatenates string parts', () => {
+        const api = new FreeUseBibleApi();
+        const verse = {
+            type: 'verse',
+            number: 1,
+            content: ['In ', 'the ', 'beginning'],
+        } as ChapterVerse;
+
+        const text = api.getVerseText(verse);
+        expect(text).toBe('In the beginning');
+    });
+
+    it('getVerseText supports formatted text parts', () => {
+        const api = new FreeUseBibleApi();
+        const verse = {
+            type: 'verse',
+            number: 1,
+            content: ['Hello ', { text: 'world', wordsOfJesus: true }, '!'],
+        } as ChapterVerse;
+
+        const text = api.getVerseText(verse);
+        expect(text).toBe('Hello world!');
+    });
+
+    it('getVerseText adds new lines for line breaks', () => {
+        const api = new FreeUseBibleApi();
+        const verse = {
+            type: 'verse',
+            number: 1,
+            content: ['Line 1', { lineBreak: true }, 'Line 2'],
+        } as ChapterVerse;
+
+        const text = api.getVerseText(verse);
+        expect(text).toBe('Line 1\nLine 2');
+    });
+
+    it('getVerseText renders poem formatted text on separate indented lines', () => {
+        const api = new FreeUseBibleApi();
+        const verse = {
+            type: 'verse',
+            number: 1,
+            content: [
+                'Prelude',
+                { text: 'Poem line one', poem: 1 },
+                { text: 'Poem line two', poem: 2 },
+            ],
+        } as ChapterVerse;
+
+        const text = api.getVerseText(verse);
+        expect(text).toBe('Prelude\n\tPoem line one\n\t\tPoem line two');
+    });
+
+    it('getVerseText renders proper spacing between notes', () => {
+        const api = new FreeUseBibleApi();
+        const verse = {
+            type: 'verse',
+            number: 1,
+            content: [
+                'And God said, “Let there be an expanse',
+                {
+                    noteId: 2,
+                },
+                'between the waters, to separate the waters from the waters.”',
+            ],
+        } as ChapterVerse;
+
+        const text = api.getVerseText(verse);
+        expect(text).toBe(
+            'And God said, “Let there be an expanse between the waters, to separate the waters from the waters.”'
         );
     });
 });

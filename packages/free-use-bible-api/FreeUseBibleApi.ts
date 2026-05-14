@@ -10,6 +10,7 @@ import type {
     ApiTranslationBookChapter,
     ApiTranslationBooks,
     ApiTranslationComplete,
+    ChapterVerse,
 } from './types.gen.js';
 
 /**
@@ -418,6 +419,31 @@ export class FreeUseBibleApi {
         >(book.lastChapterApiLink, endpoint);
     }
 
+    /**
+     * Gets the text for a verse.
+     * @param verse The verse to get the text for.
+     */
+    getVerseText(verse: ChapterVerse): string {
+        let content = '';
+        for (let part of verse.content) {
+            if (typeof part === 'string') {
+                content += part;
+            } else if (typeof part === 'object' && 'text' in part) {
+                if (part.poem) {
+                    content += '\n';
+                    for (let i = 0; i < part.poem; i++) {
+                        content += '\t';
+                    }
+                }
+                content += part.text;
+            } else if (typeof part === 'object' && 'lineBreak' in part) {
+                content += '\n';
+            } else if (typeof part === 'object') {
+                content += ' ';
+            }
+        }
+        return content.trim();
+    }
     private _getJson<T>(
         path: string,
         endpoint: string | undefined,
