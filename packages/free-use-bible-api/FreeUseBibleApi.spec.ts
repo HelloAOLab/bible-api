@@ -1,0 +1,253 @@
+import { FreeUseBibleApi } from './FreeUseBibleApi.js';
+import type {
+    ApiCommentaryBook,
+    ApiCommentaryBookChapter,
+    ApiDatasetBook,
+    ApiDatasetBookChapter,
+    ApiTranslationBook,
+    ApiTranslationBookChapter,
+} from './types.gen.js';
+
+describe('FreeUseBibleApi', () => {
+    let fetchMock: jest.Mock;
+
+    beforeEach(() => {
+        fetchMock = jest.fn();
+        global.fetch = fetchMock as unknown as typeof fetch;
+    });
+
+    afterEach(() => {
+        jest.resetAllMocks();
+    });
+
+    function jsonResponse(data: unknown, status = 200, statusText = 'OK') {
+        return {
+            status,
+            statusText,
+            json: jest.fn().mockResolvedValue(data),
+        } as unknown as Response;
+    }
+
+    it('requests available translations from the default endpoint', async () => {
+        const payload = { translations: [{ id: 'BSB' }] };
+        fetchMock.mockResolvedValue(jsonResponse(payload));
+
+        const api = new FreeUseBibleApi();
+        const result = await api.getAvailableTranslations();
+
+        expect(result).toEqual(payload);
+        expect(fetchMock).toHaveBeenCalledTimes(1);
+        expect(fetchMock).toHaveBeenCalledWith(
+            'https://bible.helloao.org/api/available_translations.json'
+        );
+    });
+
+    it('builds encoded chapter URLs and supports endpoint override per call', async () => {
+        const payload = { chapter: { number: 1 } };
+        fetchMock.mockResolvedValue(jsonResponse(payload));
+
+        const api = new FreeUseBibleApi();
+        await api.getTranslationBookChapter(
+            'My Translation',
+            'GEN/Intro',
+            '1',
+            'https://example.com/base/'
+        );
+
+        expect(fetchMock).toHaveBeenCalledWith(
+            'https://example.com/base/api/My%20Translation/GEN%2FIntro/1.json'
+        );
+    });
+
+    it('caches repeated requests by default', async () => {
+        const payload = { translations: [{ id: 'KJV' }] };
+        fetchMock.mockResolvedValue(jsonResponse(payload));
+
+        const api = new FreeUseBibleApi();
+        const [first, second] = await Promise.all([
+            api.getAvailableTranslations(),
+            api.getAvailableTranslations(),
+        ]);
+
+        expect(first).toEqual(payload);
+        expect(second).toEqual(payload);
+        expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('disables cache when useCache is false', async () => {
+        fetchMock
+            .mockResolvedValueOnce(
+                jsonResponse({ translations: [{ id: 'A' }] })
+            )
+            .mockResolvedValueOnce(
+                jsonResponse({ translations: [{ id: 'B' }] })
+            );
+
+        const api = new FreeUseBibleApi({ useCache: false });
+        await api.getAvailableTranslations();
+        await api.getAvailableTranslations();
+
+        expect(fetchMock).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not cache complete translation responses', async () => {
+        fetchMock
+            .mockResolvedValueOnce(jsonResponse({ books: [] }))
+            .mockResolvedValueOnce(jsonResponse({ books: [] }));
+
+        const api = new FreeUseBibleApi();
+        await api.getCompleteTranslation('BSB');
+        await api.getCompleteTranslation('BSB');
+
+        expect(fetchMock).toHaveBeenCalledTimes(2);
+        expect(fetchMock).toHaveBeenNthCalledWith(
+            1,
+            'https://bible.helloao.org/api/BSB/complete.json'
+        );
+    });
+
+    it('throws on non-2xx responses and retries after a failure', async () => {
+        fetchMock
+            .mockResolvedValueOnce(
+                jsonResponse({ message: 'fail' }, 500, 'Server Error')
+            )
+            .mockResolvedValueOnce(
+                jsonResponse({ translations: [{ id: 'OK' }] })
+            );
+
+        const api = new FreeUseBibleApi();
+
+        await expect(api.getAvailableTranslations()).rejects.toThrow(
+            'Failed request to https://bible.helloao.org/api/available_translations.json. Status: 500 Server Error'
+        );
+
+        const retry = await api.getAvailableTranslations();
+        expect(retry.translations[0].id).toBe('OK');
+        expect(fetchMock).toHaveBeenCalledTimes(2);
+    });
+
+    it('gets next and previous chapters when links are present', async () => {
+        const nextPayload = { chapter: { number: 2 } };
+        const prevPayload = { chapter: { number: 1 } };
+        fetchMock
+            .mockResolvedValueOnce(jsonResponse(nextPayload))
+            .mockResolvedValueOnce(jsonResponse(prevPayload));
+
+        const api = new FreeUseBibleApi();
+        const chapter = {
+            nextChapterApiLink: 'https://bible.helloao.org/api/BSB/GEN/2.json',
+            previousChapterApiLink:
+                'https://bible.helloao.org/api/BSB/GEN/1.json',
+        } as ApiTranslationBookChapter;
+
+        const next = await api.getNextChapter(chapter);
+        const prev = await api.getPreviousChapter(chapter);
+
+        expect(next).toEqual(nextPayload);
+        expect(prev).toEqual(prevPayload);
+        expect(fetchMock).toHaveBeenNthCalledWith(
+            1,
+            'https://bible.helloao.org/api/BSB/GEN/2.json'
+        );
+        expect(fetchMock).toHaveBeenNthCalledWith(
+            2,
+            'https://bible.helloao.org/api/BSB/GEN/1.json'
+        );
+    });
+
+    it('returns null for next/previous chapter when links are missing', async () => {
+        const api = new FreeUseBibleApi();
+        const chapter = {
+            nextChapterApiLink: null,
+            previousChapterApiLink: null,
+        } as ApiDatasetBookChapter;
+
+        await expect(api.getNextChapter(chapter)).resolves.toBeNull();
+        await expect(api.getPreviousChapter(chapter)).resolves.toBeNull();
+        expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('gets first and last chapter for translation books', async () => {
+        const firstPayload = { chapter: { number: 1 } };
+        const lastPayload = { chapter: { number: 50 } };
+        fetchMock
+            .mockResolvedValueOnce(jsonResponse(firstPayload))
+            .mockResolvedValueOnce(jsonResponse(lastPayload));
+
+        const api = new FreeUseBibleApi();
+        const book = {
+            firstChapterApiLink: 'https://bible.helloao.org/api/BSB/GEN/1.json',
+            lastChapterApiLink: 'https://bible.helloao.org/api/BSB/GEN/50.json',
+        } as ApiTranslationBook;
+
+        const first = await api.getFirstChapter(book);
+        const last = await api.getLastChapter(book);
+
+        expect(first).toEqual(firstPayload);
+        expect(last).toEqual(lastPayload);
+    });
+
+    it('returns null first/last chapter for commentary books with no chapters', async () => {
+        const api = new FreeUseBibleApi();
+        const book = {
+            firstChapterApiLink: null,
+            lastChapterApiLink: null,
+        } as ApiCommentaryBook;
+
+        await expect(api.getFirstChapter(book)).resolves.toBeNull();
+        await expect(api.getLastChapter(book)).resolves.toBeNull();
+        expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('gets first and last chapter for dataset books', async () => {
+        const firstPayload = { chapter: { number: 1 } };
+        const lastPayload = { chapter: { number: 10 } };
+        fetchMock
+            .mockResolvedValueOnce(jsonResponse(firstPayload))
+            .mockResolvedValueOnce(jsonResponse(lastPayload));
+
+        const api = new FreeUseBibleApi();
+        const book = {
+            firstChapterApiLink:
+                'https://bible.helloao.org/api/d/cross_refs/JHN/1.json',
+            lastChapterApiLink:
+                'https://bible.helloao.org/api/d/cross_refs/JHN/10.json',
+        } as ApiDatasetBook;
+
+        const first = await api.getFirstChapter(book);
+        const last = await api.getLastChapter(book);
+
+        expect(first).toEqual(firstPayload);
+        expect(last).toEqual(lastPayload);
+    });
+
+    it('gets a commentary chapter and dataset chapter using dedicated methods', async () => {
+        const commentaryPayload = { chapter: { number: 1 } };
+        const datasetPayload = { chapter: { number: 3 } };
+        fetchMock
+            .mockResolvedValueOnce(jsonResponse(commentaryPayload))
+            .mockResolvedValueOnce(jsonResponse(datasetPayload));
+
+        const api = new FreeUseBibleApi();
+
+        const commentary = await api.getCommentaryBookChapter(
+            'matthew_henry',
+            'GEN',
+            1
+        );
+        const dataset = await api.getDatasetBookChapter('cross_refs', 'JHN', 3);
+
+        expect(commentary).toEqual(
+            commentaryPayload as ApiCommentaryBookChapter
+        );
+        expect(dataset).toEqual(datasetPayload as ApiDatasetBookChapter);
+        expect(fetchMock).toHaveBeenNthCalledWith(
+            1,
+            'https://bible.helloao.org/api/matthew_henry/GEN/1.json'
+        );
+        expect(fetchMock).toHaveBeenNthCalledWith(
+            2,
+            'https://bible.helloao.org/api/d/cross_refs/JHN/3.json'
+        );
+    });
+});
