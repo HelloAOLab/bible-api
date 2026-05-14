@@ -2,7 +2,7 @@ import path, { basename, extname } from 'node:path';
 import * as database from './db.js';
 import Sql, { Database } from 'better-sqlite3';
 import Typesense from 'typesense';
-import { Book, Prisma, PrismaClient } from './prisma-gen/index.js';
+import { Book, Prisma, PrismaClient } from './prisma-gen/client.js';
 import { DOMParser, Element, Node } from 'linkedom';
 import { mkdir, readdir, rm, writeFile } from 'node:fs/promises';
 import {
@@ -51,7 +51,7 @@ import { getHttpUrl } from './s3.js';
 import { input, select, confirm, checkbox } from '@inquirer/prompts';
 import { isValid } from 'all-iso-language-codes';
 import { log } from '@helloao/tools';
-import { EBibleSource } from './prisma-gen/index.js';
+import { EBibleSource } from './prisma-gen/client.js';
 import { DateTime } from 'luxon';
 import { BlobReader, ZipReader } from '@zip.js/zip.js';
 import { tmpdir } from 'node:os';

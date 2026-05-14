@@ -1,17 +1,22 @@
 import { loadDatasets, serializeDatasets, SerializedFile } from './db.js';
 import { defaultProviderForOptions, parseS3Url, S3Uploader } from './s3.js';
 import { extname } from 'path';
-import { FilesUploader, serializeFile, Uploader, ZipUploader } from './files.js';
+import {
+    FilesUploader,
+    serializeFile,
+    Uploader,
+    ZipUploader,
+} from './files.js';
 import { Readable } from 'node:stream';
 import { DatasetOutput } from '@helloao/tools/generation/dataset.js';
-import { PrismaClient } from './prisma-gen/index.js';
+import { PrismaClient } from './prisma-gen/client.js';
 import { GenerateApiOptions } from '@helloao/tools/generation/api.js';
 import { log } from '@helloao/tools';
 import { createFreeUseBibleApiOpenApiDocument } from './openapi.js';
 
 export interface UploadApiFromDatabaseOptions
     extends UploadApiOptions,
-    GenerateApiOptions {
+        GenerateApiOptions {
     /**
      * The number of files to upload in each batch.
      */
@@ -153,11 +158,18 @@ export async function uploadApiFilesFromDatabase(
     }
 }
 
-export async function uploadOpenApiDocument(dest: string, options: UploadApiFromDatabaseOptions) {
+export async function uploadOpenApiDocument(
+    dest: string,
+    options: UploadApiFromDatabaseOptions
+) {
     async function* iterator(): AsyncGenerator<SerializedFile[]> {
-        const file = await serializeFile('/openapi.json', createFreeUseBibleApiOpenApiDocument(), {
-            pretty: true
-        });
+        const file = await serializeFile(
+            '/openapi.json',
+            createFreeUseBibleApiOpenApiDocument(),
+            {
+                pretty: true,
+            }
+        );
         if (file) {
             yield [file];
         } else {
@@ -352,8 +364,8 @@ export async function uploadFilesUsingUploader(
                     await uploader.upload(
                         file,
                         overwrite ||
-                        (overwriteCommonFiles && isCommonFile) ||
-                        (isMergedFile && overwriteMergedFiles)
+                            (overwriteCommonFiles && isCommonFile) ||
+                            (isMergedFile && overwriteMergedFiles)
                     )
                 ) {
                     if (options.verbose) {

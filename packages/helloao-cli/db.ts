@@ -1,4 +1,4 @@
-import { PrismaClient, Prisma } from './prisma-gen/index.js';
+import { PrismaClient, Prisma } from './prisma-gen/client.js';
 import path from 'path';
 import Sql, { Database } from 'better-sqlite3';
 import fsExtra from 'fs-extra';
@@ -46,6 +46,7 @@ import { getEnglishName, getNativeName } from 'all-iso-language-codes';
 import { log } from '@helloao/tools';
 import { ParseMessage } from '@helloao/tools/parser/types.js';
 import { BookId } from '@helloao/tools/utils.js';
+import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 
 let dirname = __dirname;
 if (!dirname) {
@@ -1540,11 +1541,9 @@ export async function getPrismaDb(path?: string | null) {
     const dbPath = getDbPath(path);
     console.log('Opening database at', dbPath);
     const prisma = new PrismaClient({
-        datasources: {
-            db: {
-                url: `file:${dbPath}`,
-            },
-        },
+        adapter: new PrismaBetterSqlite3({
+            url: 'file:' + dbPath,
+        }),
     });
     return prisma;
 }

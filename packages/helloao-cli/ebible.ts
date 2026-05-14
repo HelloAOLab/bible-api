@@ -1,6 +1,6 @@
 import papaparse from 'papaparse';
 const { parse } = papaparse;
-import { EBibleSource } from './prisma-gen/index.js';
+import { EBibleSource } from './prisma-gen/client.js';
 import { DateTime } from 'luxon';
 import hash from 'hash.js';
 const { sha256 } = hash;
