@@ -19,9 +19,6 @@ importers:
             '@types/jest':
                 specifier: ^29.4.0
                 version: 29.5.14
-            '@types/lodash':
-                specifier: 4.14.191
-                version: 4.14.191
             '@types/luxon':
                 specifier: 3.4.2
                 version: 3.4.2
@@ -157,6 +154,9 @@ importers:
             commander:
                 specifier: 12.1.0
                 version: 12.1.0
+            es-toolkit:
+                specifier: 1.46.1
+                version: 1.46.1
             fs-extra:
                 specifier: ^11.2.0
                 version: 11.3.0
@@ -166,9 +166,6 @@ importers:
             linkedom:
                 specifier: 0.18.4
                 version: 0.18.4
-            lodash:
-                specifier: 4.17.21
-                version: 4.17.21
             luxon:
                 specifier: 3.5.0
                 version: 3.5.0
@@ -190,9 +187,9 @@ importers:
 
     packages/helloao-tools:
         dependencies:
-            lodash:
-                specifier: 4.17.21
-                version: 4.17.21
+            es-toolkit:
+                specifier: 1.46.1
+                version: 1.46.1
             papaparse:
                 specifier: 5.4.1
                 version: 5.4.1
@@ -2793,12 +2790,6 @@ packages:
                 integrity: sha512-sVDA58zAw4eWAffKOaQH5/5j3XeayukzDk+ewSsnv3p4yJEZHCCzMDiZM8e0OUrRvmpGZ85jf4yDHkHsgBNr9Q==,
             }
 
-    '@types/lodash@4.14.191':
-        resolution:
-            {
-                integrity: sha512-BdZ5BCCvho3EIXw6wUCXHe7rS53AIDPLE+JzwgT+OsJk53oBfbSmZZ7CX4VaRoN78N+TJpFi9QPlfIVNmJYWxQ==,
-            }
-
     '@types/luxon@3.4.2':
         resolution:
             {
@@ -4142,6 +4133,12 @@ packages:
             }
         engines: { node: '>= 0.4' }
 
+    es-toolkit@1.46.1:
+        resolution:
+            {
+                integrity: sha512-5eNtXOs3tbfxXOj04tjjseeWkRWaoCjdEI+96DgwzZoe6c9juL49pXlzAFTI72aWC9Y8p7168g6XIKjh7k6pyQ==,
+            }
+
     esbuild@0.21.5:
         resolution:
             {
@@ -5247,12 +5244,6 @@ packages:
         resolution:
             {
                 integrity: sha512-t7j+NzmgnQzTAYXcsHYLgimltOV1MXHtlOWf6GjL9Kj8GK5FInw5JotxvbOs+IvV1/Dzo04/fCGfLVs7aXb4Ag==,
-            }
-
-    lodash@4.17.21:
-        resolution:
-            {
-                integrity: sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==,
             }
 
     log-symbols@6.0.0:
@@ -8870,8 +8861,6 @@ snapshots:
 
     '@types/linkify-it@5.0.0': {}
 
-    '@types/lodash@4.14.191': {}
-
     '@types/luxon@3.4.2': {}
 
     '@types/markdown-it-emoji@3.0.1':
@@ -9848,6 +9837,8 @@ snapshots:
             has-tostringtag: 1.0.2
             hasown: 2.0.2
 
+    es-toolkit@1.46.1: {}
+
     esbuild@0.21.5:
         optionalDependencies:
             '@esbuild/aix-ppc64': 0.21.5
@@ -10712,8 +10703,6 @@ snapshots:
             p-locate: 4.1.0
 
     lodash.memoize@4.1.2: {}
-
-    lodash@4.17.21: {}
 
     log-symbols@6.0.0:
         dependencies:

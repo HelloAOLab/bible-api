@@ -23,7 +23,7 @@ import {
     bookOrderMap,
     apocryphaBooks,
 } from './book-order.js';
-import { omit, sortBy, sortedIndexBy } from 'lodash';
+import { omit, sortBy, sortedIndexBy } from 'es-toolkit/compat';
 import { getAudioUrlsForChapter } from './audio.js';
 import { CodexParser } from '../parser/codex-parser.js';
 import { CommentaryCsvParser } from '../parser/commentary-csv-parser.js';

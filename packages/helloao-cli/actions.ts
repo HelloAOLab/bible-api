@@ -62,7 +62,7 @@ import {
 } from './conversion.js';
 import { fetchEBibleMetadata } from './ebible.js';
 import { importDatasetOutput } from './db.js';
-import { groupBy } from 'lodash';
+import { groupBy } from 'es-toolkit/compat';
 
 export interface GetTranslationsItem {
     id: string;

@@ -1,4 +1,4 @@
-import { findLast } from 'lodash';
+import { findLast } from 'es-toolkit/compat';
 import {
     ParseTree,
     Chapter,

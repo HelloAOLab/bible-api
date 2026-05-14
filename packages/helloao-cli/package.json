@@ -42,7 +42,7 @@
         "fs-extra": "^11.2.0",
         "hash.js": "1.1.7",
         "linkedom": "0.18.4",
-        "lodash": "4.17.21",
+        "es-toolkit": "1.46.1",
         "luxon": "3.5.0",
         "papaparse": "5.4.1",
         "prisma": "^5.12.1",

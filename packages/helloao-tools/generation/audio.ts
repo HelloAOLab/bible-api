@@ -1,4 +1,4 @@
-import { padStart } from 'lodash';
+import { padStart } from 'es-toolkit/compat';
 import { bookOrderMap } from './book-order.js';
 import { TranslationBookChapterAudioLinks } from './common-types.js';
 
