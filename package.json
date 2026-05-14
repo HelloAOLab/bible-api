@@ -46,7 +46,7 @@
         "jake": "10.8.5",
         "jest": "29.7.0",
         "jest-raw-loader": "1.0.1",
-        "prisma": "^5.12.1",
+        "prisma": "^7.8.0",
         "ts-jest": "29.2.5",
         "ts-node": "^10.9.1",
         "tsx": "^4.19.1",
@@ -54,7 +54,7 @@
         "typesense": "3.0.5"
     },
     "engines": {
-        "node": "^20.17.0",
+        "node": "^22.19.0",
         "pnpm": "^10.12.1"
     },
     "pnpm": {
@@ -65,8 +65,5 @@
             "prisma"
         ]
     },
-    "packageManager": "pnpm@10.12.1+sha512.f0dda8580f0ee9481c5c79a1d927b9164f2c478e90992ad268bbb2465a736984391d6333d2c327913578b2804af33474ca554ba29c04a8b13060a717675ae3ac",
-    "prisma": {
-        "schema": "./packages/helloao-cli/schema.prisma"
-    }
+    "packageManager": "pnpm@10.12.1+sha512.f0dda8580f0ee9481c5c79a1d927b9164f2c478e90992ad268bbb2465a736984391d6333d2c327913578b2804af33474ca554ba29c04a8b13060a717675ae3ac"
 }

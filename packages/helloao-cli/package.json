@@ -30,7 +30,7 @@
         "@helloao/tools": "workspace:*",
         "@hey-api/openapi-ts": "^0.97.1",
         "@inquirer/prompts": "5.3.8",
-        "@prisma/client": "^5.12.1",
+        "@prisma/client": "^7.8.0",
         "@smithy/config-resolver": "^3.0.10",
         "@smithy/node-config-provider": "^3.1.9",
         "@smithy/types": "^3.3.0",
@@ -45,7 +45,7 @@
         "es-toolkit": "1.46.1",
         "luxon": "3.5.0",
         "papaparse": "5.4.1",
-        "prisma": "^5.12.1",
+        "prisma": "^7.8.0",
         "typesense": "3.0.5",
         "zod": "^4.4.3",
         "zod-openapi": "5.4.6"

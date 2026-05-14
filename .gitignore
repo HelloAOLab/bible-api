@@ -45,3 +45,4 @@ audio
 *.db-journal
 
 openapi.json
+/generated/prisma
