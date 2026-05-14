@@ -1,4 +1,4 @@
-import { FreeUseBibleApi } from './FreeUseBibleApi.js';
+import { FreeUseBibleApi, VerseReference } from './FreeUseBibleApi.js';
 import type {
     ApiCommentaryBook,
     ApiCommentaryBookChapter,
@@ -442,4 +442,84 @@ describe('FreeUseBibleApi', () => {
         const text = api.getChapterVerseText(chapter);
         expect(text).toBe('[1] First line\n[2] Second line');
     });
+
+    const formatReferenceBook = {
+        id: 'GEN',
+        name: 'Genesis',
+        commonName: 'Genesis',
+        title: null,
+        order: 1,
+        numberOfChapters: 50,
+        totalNumberOfVerses: 1533,
+    } as ApiTranslationBook;
+
+    const formatReferenceTestCases: [string, VerseReference, string][] = [
+        [
+            'formats a simple verse reference',
+            {
+                chapter: 1,
+                verse: 1,
+            },
+            'Genesis 1:1',
+        ],
+        [
+            'formats a verse reference with an end verse',
+            {
+                chapter: 1,
+                verse: 3,
+                endVerse: 5,
+            },
+            'Genesis 1:3-5',
+        ],
+        [
+            'formats a verse reference with only a chapter',
+            {
+                chapter: 2,
+            },
+            'Genesis 2',
+        ],
+        [
+            'formats a verse reference with a chapter range',
+            {
+                chapter: 2,
+                endChapter: 3,
+            },
+            'Genesis 2-3',
+        ],
+        [
+            'prefers endChapter over endVerse when both are present',
+            {
+                chapter: 2,
+                endChapter: 3,
+                verse: 6,
+                endVerse: 5,
+            },
+            'Genesis 2-3',
+        ],
+    ];
+
+    it('formatReference should format a verse reference correctly', () => {
+        const api = new FreeUseBibleApi();
+
+        const reference: VerseReference = {
+            chapter: 1,
+            verse: 3,
+            endVerse: 5,
+        };
+
+        const formatted = api.formatReference(formatReferenceBook, reference);
+        expect(formatted).toBe('Genesis 1:3-5');
+    });
+
+    it.each(formatReferenceTestCases)(
+        'formatReference %s',
+        (_description, reference, expected) => {
+            const api = new FreeUseBibleApi();
+            const formatted = api.formatReference(
+                formatReferenceBook,
+                reference
+            );
+            expect(formatted).toBe(expected);
+        }
+    );
 });

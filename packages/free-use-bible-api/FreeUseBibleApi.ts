@@ -39,6 +39,32 @@ export interface GetChapterTextOptions {
      * Defaults to `false`.
      */
     omitVerseNumbers?: boolean;
+
+/**
+ * A reference to a specific verse in a Bible translation, commentary, or dataset.
+ */
+export interface VerseReference {
+    /**
+     * The chapter number of the reference. This should be a positive integer.
+     */
+    chapter: number;
+
+    /**
+     * The verse number of the reference.
+     *
+     * If omitted, then the reference refers to the entire chapter rather than a specific verse.
+     */
+    verse?: number;
+
+    /**
+     * The ending verse number of the reference, for references that span multiple verses. This should be greater than or equal to the `verse` property if it is provided.
+     */
+    endVerse?: number;
+
+    /**
+     * The ending chapter number of the reference, for references that span multiple chapters. This should be greater than or equal to the `chapter` property if it is provided.
+     */
+    endChapter?: number;
 }
 
 /**
@@ -428,6 +454,33 @@ export class FreeUseBibleApi {
             | ApiCommentaryBookChapter
             | ApiDatasetBookChapter
         >(book.lastChapterApiLink, endpoint);
+    }
+
+    /**
+     * Formats a verse reference as a human-readable string.
+     * @param book The book that the reference is for.
+     * @param reference The reference to format.
+     */
+    formatReference(
+        book: ApiTranslationBook,
+        reference: VerseReference
+    ): string {
+        const bookName = book.name;
+        const chapter = reference.chapter;
+        const verse = reference.verse;
+        const endChapter = reference.endChapter;
+        const endVerse = reference.endVerse;
+
+        let referenceStr = `${bookName} ${chapter}`;
+        if (endChapter) {
+            referenceStr += `-${endChapter}`;
+        } else if (verse) {
+            referenceStr += `:${verse}`;
+            if (endVerse) {
+                referenceStr += `-${endVerse}`;
+            }
+        }
+        return referenceStr;
     }
 
     /**
