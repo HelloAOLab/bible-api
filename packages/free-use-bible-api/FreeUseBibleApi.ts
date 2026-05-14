@@ -31,6 +31,17 @@ export interface FreeUseBibleApiOptions {
 }
 
 /**
+ * Options for the `getChapterText` method.
+ */
+export interface GetChapterTextOptions {
+    /**
+     * Whether to omit verse numbers from the returned text.
+     * Defaults to `false`.
+     */
+    omitVerseNumbers?: boolean;
+}
+
+/**
  * A client for interacting with the [Free Use Bible API](https://bible.helloao.org/).
  *
  * This API provides access to a large collection of Bible translations, commentaries, and datasets that are free to use.
@@ -444,6 +455,29 @@ export class FreeUseBibleApi {
         }
         return content.trim();
     }
+
+    /**
+     * Gets the verse text for the given chapter.
+     * @param chapter The chapter to get the text for.
+     */
+    getChapterVerseText(
+        chapter: ApiTranslationBookChapter,
+        options: GetChapterTextOptions = {}
+    ): string {
+        let content = '';
+        for (let chapterContent of chapter.chapter.content) {
+            if (chapterContent.type === 'verse') {
+                if (!options.omitVerseNumbers) {
+                    content += `[${chapterContent.number}] `;
+                }
+                content += this.getVerseText(chapterContent) + ' ';
+            } else if (chapterContent.type === 'line_break') {
+                content = content.trim() + '\n';
+            }
+        }
+        return content.trim();
+    }
+
     private _getJson<T>(
         path: string,
         endpoint: string | undefined,

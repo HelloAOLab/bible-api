@@ -323,4 +323,123 @@ describe('FreeUseBibleApi', () => {
             'And God said, “Let there be an expanse between the waters, to separate the waters from the waters.”'
         );
     });
+
+    it('getChapterVerseText includes verse numbers by default', () => {
+        const api = new FreeUseBibleApi();
+        const chapter = {
+            chapter: {
+                content: [
+                    {
+                        type: 'verse',
+                        number: 1,
+                        content: ['In the beginning'],
+                    },
+                    {
+                        type: 'verse',
+                        number: 2,
+                        content: ['And the earth was formless'],
+                    },
+                ],
+            },
+        } as ApiTranslationBookChapter;
+
+        const text = api.getChapterVerseText(chapter);
+        expect(text).toBe(
+            '[1] In the beginning [2] And the earth was formless'
+        );
+    });
+
+    it('getChapterVerseText omits verse numbers when requested', () => {
+        const api = new FreeUseBibleApi();
+        const chapter = {
+            chapter: {
+                content: [
+                    {
+                        type: 'verse',
+                        number: 3,
+                        content: ['Then God said'],
+                    },
+                ],
+            },
+        } as ApiTranslationBookChapter;
+
+        const text = api.getChapterVerseText(chapter, {
+            omitVerseNumbers: true,
+        });
+        expect(text).toBe('Then God said');
+    });
+
+    it('getChapterVerseText ignores non-verse chapter content', () => {
+        const api = new FreeUseBibleApi();
+        const chapter = {
+            chapter: {
+                content: [
+                    {
+                        type: 'heading',
+                        content: ['The Creation'],
+                    },
+                    {
+                        type: 'line_break',
+                    },
+                    {
+                        type: 'verse',
+                        number: 1,
+                        content: ['In the beginning'],
+                    },
+                ],
+            },
+        } as ApiTranslationBookChapter;
+
+        const text = api.getChapterVerseText(chapter);
+        expect(text).toBe('[1] In the beginning');
+    });
+
+    it('getChapterVerseText keeps per-verse formatting from getVerseText', () => {
+        const api = new FreeUseBibleApi();
+        const chapter = {
+            chapter: {
+                content: [
+                    {
+                        type: 'verse',
+                        number: 1,
+                        content: [
+                            'Prelude',
+                            { text: 'Poem line one', poem: 1 },
+                            { lineBreak: true },
+                            'End',
+                        ],
+                    },
+                ],
+            },
+        } as ApiTranslationBookChapter;
+
+        const text = api.getChapterVerseText(chapter);
+        expect(text).toBe('[1] Prelude\n\tPoem line one\nEnd');
+    });
+
+    it('getChapterVerseText renders line_break objects', () => {
+        const api = new FreeUseBibleApi();
+        const chapter = {
+            chapter: {
+                content: [
+                    {
+                        type: 'verse',
+                        number: 1,
+                        content: ['First line'],
+                    },
+                    {
+                        type: 'line_break',
+                    },
+                    {
+                        type: 'verse',
+                        number: 2,
+                        content: ['Second line'],
+                    },
+                ],
+            },
+        } as ApiTranslationBookChapter;
+
+        const text = api.getChapterVerseText(chapter);
+        expect(text).toBe('[1] First line\n[2] Second line');
+    });
 });
