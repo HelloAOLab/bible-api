@@ -475,6 +475,9 @@ export class FreeUseBibleApi {
 
     /**
      * Formats a verse reference as a human-readable string.
+     *
+     * e.g. Genesis 1:1-2, John 3:16, Exodus 20-22, etc.
+     *
      * @param book The book that the reference is for.
      * @param reference The reference to format.
      */
@@ -529,7 +532,9 @@ export class FreeUseBibleApi {
 
     /**
      * Gets the verse text for the given chapter.
+     * By default, the returned text includes markers for verse numbers and a reference to the chapter, but these can be omitted by passing options to the `options` parameter.
      * @param chapter The chapter to get the text for.
+     * @param options Options for getting the chapter text.
      */
     getChapterVerseText(
         chapter: ApiTranslationBookChapter,
