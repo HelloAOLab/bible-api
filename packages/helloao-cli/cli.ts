@@ -33,6 +33,7 @@ import { getPrismaDb } from './db.js';
 import { confirm, input } from '@inquirer/prompts';
 import { log } from '@helloao/tools';
 import { createFreeUseBibleApiOpenApiDocument } from './openapi.js';
+import { createClient } from '@hey-api/openapi-ts';
 
 const OPENAPI_CLIENT_LANGUAGES = [
     // ['csharp', 'csharp'],
@@ -41,7 +42,7 @@ const OPENAPI_CLIENT_LANGUAGES = [
     // ['python', 'python'],
     // ['dart', 'dart'],
     // ['swift', 'swift6'],
-    ['typescript', 'typescript-fetch'],
+    ['typescript', '@hey-api/openapi-ts'],
 ] as const;
 
 async function findProjectRoot(startDir: string): Promise<string> {
@@ -285,12 +286,19 @@ async function start() {
                     'with generator:',
                     generatorName
                 );
-                await runOpenApiGenerator(
-                    projectRoot,
-                    openApiPath,
-                    generatorName,
-                    outputPath
-                );
+                if (generatorName === '@hey-api/openapi-ts') {
+                    await createClient({
+                        input: openApiPath,
+                        output: outputPath,
+                    });
+                } else {
+                    await runOpenApiGenerator(
+                        projectRoot,
+                        openApiPath,
+                        generatorName,
+                        outputPath
+                    );
+                }
 
                 const patchPath = path.resolve(
                     clientPatchesDir,
