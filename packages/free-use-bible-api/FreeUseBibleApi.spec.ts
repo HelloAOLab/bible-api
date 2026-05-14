@@ -324,10 +324,36 @@ describe('FreeUseBibleApi', () => {
         );
     });
 
+    const getChapterVerseTextBook: ApiTranslationBook = {
+        id: 'GEN',
+        name: 'Genesis',
+        commonName: 'Genesis',
+        title: null,
+        order: 1,
+        numberOfChapters: 50,
+        totalNumberOfVerses: 1533,
+        firstChapterApiLink: 'https://bible.helloao.org/api/BSB/GEN/1.json',
+        firstChapterReference: {
+            translationId: 'BSB',
+            book: 'GEN',
+            chapter: 1,
+        },
+        lastChapterApiLink: 'https://bible.helloao.org/api/BSB/GEN/50.json',
+        lastChapterReference: {
+            translationId: 'BSB',
+            book: 'GEN',
+            chapter: 50,
+        },
+        firstChapterNumber: 1,
+        lastChapterNumber: 50,
+    };
+
     it('getChapterVerseText includes verse numbers by default', () => {
         const api = new FreeUseBibleApi();
         const chapter = {
+            book: getChapterVerseTextBook,
             chapter: {
+                number: 1,
                 content: [
                     {
                         type: 'verse',
@@ -345,14 +371,16 @@ describe('FreeUseBibleApi', () => {
 
         const text = api.getChapterVerseText(chapter);
         expect(text).toBe(
-            '[1] In the beginning [2] And the earth was formless'
+            'Genesis 1\n[1] In the beginning [2] And the earth was formless'
         );
     });
 
     it('getChapterVerseText omits verse numbers when requested', () => {
         const api = new FreeUseBibleApi();
         const chapter = {
+            book: getChapterVerseTextBook,
             chapter: {
+                number: 1,
                 content: [
                     {
                         type: 'verse',
@@ -366,13 +394,15 @@ describe('FreeUseBibleApi', () => {
         const text = api.getChapterVerseText(chapter, {
             omitVerseNumbers: true,
         });
-        expect(text).toBe('Then God said');
+        expect(text).toBe('Genesis 1\nThen God said');
     });
 
     it('getChapterVerseText ignores non-verse chapter content', () => {
         const api = new FreeUseBibleApi();
         const chapter = {
+            book: getChapterVerseTextBook,
             chapter: {
+                number: 1,
                 content: [
                     {
                         type: 'heading',
@@ -391,13 +421,15 @@ describe('FreeUseBibleApi', () => {
         } as ApiTranslationBookChapter;
 
         const text = api.getChapterVerseText(chapter);
-        expect(text).toBe('[1] In the beginning');
+        expect(text).toBe('Genesis 1\n[1] In the beginning');
     });
 
     it('getChapterVerseText keeps per-verse formatting from getVerseText', () => {
         const api = new FreeUseBibleApi();
         const chapter = {
+            book: getChapterVerseTextBook,
             chapter: {
+                number: 1,
                 content: [
                     {
                         type: 'verse',
@@ -414,13 +446,15 @@ describe('FreeUseBibleApi', () => {
         } as ApiTranslationBookChapter;
 
         const text = api.getChapterVerseText(chapter);
-        expect(text).toBe('[1] Prelude\n\tPoem line one\nEnd');
+        expect(text).toBe('Genesis 1\n[1] Prelude\n\tPoem line one\nEnd');
     });
 
     it('getChapterVerseText renders line_break objects', () => {
         const api = new FreeUseBibleApi();
         const chapter = {
+            book: getChapterVerseTextBook,
             chapter: {
+                number: 1,
                 content: [
                     {
                         type: 'verse',
@@ -440,7 +474,66 @@ describe('FreeUseBibleApi', () => {
         } as ApiTranslationBookChapter;
 
         const text = api.getChapterVerseText(chapter);
+        expect(text).toBe('Genesis 1\n[1] First line\n[2] Second line');
+    });
+
+    it('getChapterVerseText omits reference when requested', () => {
+        const api = new FreeUseBibleApi();
+        const chapter = {
+            book: getChapterVerseTextBook,
+            chapter: {
+                number: 1,
+                content: [
+                    {
+                        type: 'verse',
+                        number: 1,
+                        content: ['First line'],
+                    },
+                    {
+                        type: 'line_break',
+                    },
+                    {
+                        type: 'verse',
+                        number: 2,
+                        content: ['Second line'],
+                    },
+                ],
+            },
+        } as ApiTranslationBookChapter;
+
+        const text = api.getChapterVerseText(chapter, { omitReference: true });
         expect(text).toBe('[1] First line\n[2] Second line');
+    });
+
+    it('getChapterVerseText omits both reference and verse numbers when requested', () => {
+        const api = new FreeUseBibleApi();
+        const chapter = {
+            book: getChapterVerseTextBook,
+            chapter: {
+                number: 1,
+                content: [
+                    {
+                        type: 'verse',
+                        number: 1,
+                        content: ['First line'],
+                    },
+                    {
+                        type: 'line_break',
+                    },
+                    {
+                        type: 'verse',
+                        number: 2,
+                        content: ['Second line'],
+                    },
+                ],
+            },
+        } as ApiTranslationBookChapter;
+
+        const text = api.getChapterVerseText(chapter, {
+            omitReference: true,
+            omitVerseNumbers: true,
+        });
+        expect(text).toBe('First line\nSecond line');
     });
 
     const formatReferenceBook = {

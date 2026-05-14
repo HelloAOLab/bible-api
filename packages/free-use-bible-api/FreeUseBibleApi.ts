@@ -11,6 +11,7 @@ import type {
     ApiTranslationBooks,
     ApiTranslationComplete,
     ChapterVerse,
+    TranslationChapterReference,
 } from './types.gen.js';
 
 /**
@@ -39,6 +40,22 @@ export interface GetChapterTextOptions {
      * Defaults to `false`.
      */
     omitVerseNumbers?: boolean;
+
+    /**
+     * Whether to omit the chapter reference from the returned text.
+     */
+    omitReference?: boolean;
+}
+
+/**
+ * Options for the `getVerseText` method.
+ */
+export interface GetVerseTextOptions {
+    /**
+     * Whether to omit the chapter reference from the returned text.
+     */
+    omitReference?: boolean;
+}
 
 /**
  * A reference to a specific verse in a Bible translation, commentary, or dataset.
@@ -486,6 +503,7 @@ export class FreeUseBibleApi {
     /**
      * Gets the text for a verse.
      * @param verse The verse to get the text for.
+     * @param options Options for getting the verse text.
      */
     getVerseText(verse: ChapterVerse): string {
         let content = '';
@@ -528,6 +546,13 @@ export class FreeUseBibleApi {
                 content = content.trim() + '\n';
             }
         }
+
+        if (!options.omitReference) {
+            content = `${this.formatReference(chapter.book, {
+                chapter: chapter.chapter.number,
+            })}\n${content.trim()}`;
+        }
+
         return content.trim();
     }
 
