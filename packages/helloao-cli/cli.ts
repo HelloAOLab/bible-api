@@ -3,10 +3,13 @@
 import { Command } from 'commander';
 import path, { extname } from 'path';
 import { mkdir, stat, writeFile } from 'fs/promises';
-import { exec, spawn } from 'child_process';
+import { exec } from 'child_process';
 import { DOMParser, Element, Node } from 'linkedom';
 import { downloadFile } from './downloads.js';
-import { uploadApiFilesFromDatabase, uploadOpenApiDocument } from './uploads.js';
+import {
+    uploadApiFilesFromDatabase,
+    uploadOpenApiDocument,
+} from './uploads.js';
 import {
     askForMetadata,
     copyOpenBibleAudio,
@@ -30,8 +33,6 @@ import { getPrismaDb } from './db.js';
 import { confirm, input } from '@inquirer/prompts';
 import { log } from '@helloao/tools';
 import { createFreeUseBibleApiOpenApiDocument } from './openapi.js';
-import { PrismaClient } from './prisma-gen/index.js';
-import { DefaultArgs } from './prisma-gen/runtime/library.js';
 
 const OPENAPI_CLIENT_LANGUAGES = [
     // ['csharp', 'csharp'],
@@ -56,7 +57,7 @@ async function findProjectRoot(startDir: string): Promise<string> {
         const parent = path.dirname(currentDir);
         if (parent === currentDir) {
             throw new Error(
-                'Could not find project root (missing openapitools.json).' 
+                'Could not find project root (missing openapitools.json).'
             );
         }
 
@@ -77,7 +78,7 @@ async function runOpenApiGenerator(
             `${executable} generate -i "${inputPath}" -g "${generatorName}" -o "${outputPath}"`,
             {
                 cwd,
-            },
+            }
         );
 
         child.on('error', (error) => {
@@ -107,6 +108,60 @@ async function runOpenApiGenerator(
             );
         });
     });
+}
+
+async function applyClientPatch(
+    outputPath: string,
+    language: string,
+    patchPath: string
+): Promise<boolean> {
+    try {
+        await stat(patchPath);
+    } catch {
+        return false;
+    }
+
+    await new Promise<void>((resolve, reject) => {
+        const child = exec(`git apply "${patchPath}"`, {
+            cwd: outputPath,
+        });
+
+        let stderr = '';
+
+        child.stderr?.on('data', (chunk) => {
+            stderr += String(chunk);
+        });
+
+        child.on('error', (error) => {
+            const err = error as NodeJS.ErrnoException;
+            if (err.code === 'ENOENT') {
+                reject(
+                    new Error(
+                        'git was not found in PATH. Install git first and try again.'
+                    )
+                );
+                return;
+            }
+
+            reject(error);
+        });
+
+        child.on('close', (code) => {
+            if (code === 0) {
+                resolve();
+                return;
+            }
+
+            const details = stderr.trim();
+            reject(
+                new Error(
+                    `Failed to apply client patch for language "${language}" from "${patchPath}".${details ? `\n${details}` : ''}`
+                )
+            );
+        });
+    });
+
+    return true;
 }
 
 async function start() {
@@ -184,7 +239,10 @@ async function start() {
             const document = createFreeUseBibleApiOpenApiDocument();
 
             const logger = log.getLogger();
-            logger.log('Your OpenAPI document:', JSON.stringify(document, null, 2));
+            logger.log(
+                'Your OpenAPI document:',
+                JSON.stringify(document, null, 2)
+            );
         });
 
     program
@@ -198,10 +256,15 @@ async function start() {
             const tempDir = path.resolve(projectRoot, 'temp');
             const clientsDir = path.resolve(projectRoot, 'clients');
             const packagesDir = path.resolve(projectRoot, 'packages');
+            const clientPatchesDir = path.resolve(
+                projectRoot,
+                'client-patches'
+            );
             const openApiPath = path.resolve(tempDir, 'openapi.json');
 
             await mkdir(tempDir, { recursive: true });
             await mkdir(clientsDir, { recursive: true });
+            await mkdir(clientPatchesDir, { recursive: true });
 
             const document = createFreeUseBibleApiOpenApiDocument();
             await writeFile(openApiPath, JSON.stringify(document, null, 2), {
@@ -211,15 +274,39 @@ async function start() {
             logger.log('OpenAPI document written to:', openApiPath);
 
             for (const [language, generatorName] of OPENAPI_CLIENT_LANGUAGES) {
-                const outputPath = language === "typescript" ? path.resolve(packagesDir, "free-use-bible-api") : path.resolve(clientsDir, language);
+                const outputPath =
+                    language === 'typescript'
+                        ? path.resolve(packagesDir, 'free-use-bible-api')
+                        : path.resolve(clientsDir, language);
                 await mkdir(outputPath, { recursive: true });
-                logger.log('Generating client:', language, 'with generator:', generatorName);
+                logger.log(
+                    'Generating client:',
+                    language,
+                    'with generator:',
+                    generatorName
+                );
                 await runOpenApiGenerator(
                     projectRoot,
                     openApiPath,
                     generatorName,
                     outputPath
                 );
+
+                const patchPath = path.resolve(
+                    clientPatchesDir,
+                    `${language}.patch`
+                );
+                const patchApplied = await applyClientPatch(
+                    outputPath,
+                    language,
+                    patchPath
+                );
+
+                if (patchApplied) {
+                    logger.log('Applied client patch for language:', language);
+                } else {
+                    logger.log('No client patch found for language:', language);
+                }
             }
 
             logger.log('OpenAPI client generation complete.');
@@ -612,7 +699,10 @@ async function start() {
             '--no-generate-complete-translation-files',
             'Whether to skip generating complete translation files.'
         )
-        .option('--no-generate-open-api-document', 'Whether to skip generating the OpenAPI document file.')
+        .option(
+            '--no-generate-open-api-document',
+            'Whether to skip generating the OpenAPI document file.'
+        )
         .option(
             '--profile <profile>',
             'The AWS profile to use for uploading to S3.'
@@ -647,7 +737,10 @@ async function start() {
         });
     program
         .command('upload-open-api-document')
-        .argument('<dest>', 'The destination to upload the OpenAPI document to.')
+        .argument(
+            '<dest>',
+            'The destination to upload the OpenAPI document to.'
+        )
         .description(
             'Uploads the OpenAPI document to the specified destination. For S3, use the format s3://bucket-name/path/to/folder.'
         )
@@ -891,4 +984,3 @@ async function start() {
 }
 
 start();
-
