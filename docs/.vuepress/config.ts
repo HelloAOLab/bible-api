@@ -6,13 +6,14 @@ import { defaultTheme } from '@vuepress/theme-default';
 import { viteBundler } from '@vuepress/bundler-vite';
 import { searchPlugin } from '@vuepress/plugin-search';
 import { shikiPlugin } from '@vuepress/plugin-shiki';
+import { markdownIncludePlugin } from '@vuepress/plugin-markdown-include';
 
 export default defineUserConfig({
     base: '/docs/',
 
     title: 'Free Use Bible API',
     description: description,
-    bundler: viteBundler(),
+    bundler: viteBundler() as any,
 
     head: [
         ['link', { rel: 'icon', href: '/docs/favicon.png' }],
@@ -100,5 +101,6 @@ export default defineUserConfig({
         }),
         backToTopPlugin(),
         mediumZoomPlugin(),
+        markdownIncludePlugin({}),
     ],
 });

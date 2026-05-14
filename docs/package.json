@@ -1,29 +1,30 @@
 {
-  "name": "@helloao/bible-api-docs",
-  "version": "0.0.1",
-  "private": true,
-  "description": "An easy-to-use and fully featured JSON API for accessing the Bible",
-  "main": "index.js",
-  "authors": {
-    "name": "Kal Gowdy",
-    "email": "kal@helloao.org"
-  },
-  "repository": "https://github.com/HelloAOLab/bible-api",
-  "scripts": {
-    "dev": "vuepress dev",
-    "build": "vuepress build --dest ../build/docs"
-  },
-  "license": "MIT",
-  "devDependencies": {
-    "vuepress": "^2.0.0-rc.14"
-  },
-  "dependencies": {
-    "@vuepress/bundler-vite": "2.0.0-rc.14",
-    "@vuepress/plugin-back-to-top": "2.0.0-rc.38",
-    "@vuepress/plugin-medium-zoom": "2.0.0-rc.38",
-    "@vuepress/plugin-search": "2.0.0-rc.38",
-    "@vuepress/plugin-shiki": "2.0.0-rc.38",
-    "@vuepress/theme-default": "2.0.0-rc.38",
-    "vue": "^3.4.32"
-  }
+    "name": "@helloao/bible-api-docs",
+    "version": "0.0.1",
+    "private": true,
+    "description": "An easy-to-use and fully featured JSON API for accessing the Bible",
+    "main": "index.js",
+    "authors": {
+        "name": "Kal Gowdy",
+        "email": "kal@helloao.org"
+    },
+    "repository": "https://github.com/HelloAOLab/bible-api",
+    "scripts": {
+        "dev": "vuepress dev",
+        "build": "vuepress build --dest ../build/docs"
+    },
+    "license": "MIT",
+    "devDependencies": {
+        "vuepress": "^2.0.0-rc.14"
+    },
+    "dependencies": {
+        "@vuepress/bundler-vite": "2.0.0-rc.30",
+        "@vuepress/plugin-back-to-top": "2.0.0-rc.130",
+        "@vuepress/plugin-medium-zoom": "2.0.0-rc.130",
+        "@vuepress/plugin-search": "2.0.0-rc.130",
+        "@vuepress/plugin-shiki": "2.0.0-rc.130",
+        "@vuepress/theme-default": "2.0.0-rc.130",
+        "@vuepress/plugin-markdown-include": "2.0.0-rc.130",
+        "vue": "^3.4.32"
+    }
 }
