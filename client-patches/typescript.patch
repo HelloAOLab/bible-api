@@ -1,8 +1,21 @@
-diff --git a/apis/index.ts b/apis/index.ts
---- a/apis/index.ts
-+++ b/apis/index.ts
+From b9447d45abc613b3c3929c34987bedfe91be8082 Mon Sep 17 00:00:00 2001
+From: Kallyn Gowdy <kallyngowdy@gmail.com>
+Date: Thu, 14 May 2026 12:05:27 -0400
+Subject: [PATCH] fix: export the FreeUseBibleAPI class
+
+---
+ packages/free-use-bible-api/apis/index.ts | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/packages/free-use-bible-api/apis/index.ts b/packages/free-use-bible-api/apis/index.ts
+index 69c44c0..08c5846 100644
+--- a/packages/free-use-bible-api/apis/index.ts
++++ b/packages/free-use-bible-api/apis/index.ts
 @@ -1,3 +1,4 @@
  /* tslint:disable */
  /* eslint-disable */
  export * from './DefaultApi';
 +export { FreeUseBibleApi } from './FreeUseBibleApi';
+-- 
+2.51.1.windows.1
+
