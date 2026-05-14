@@ -22,7 +22,10 @@
     "license": "MIT",
     "dependencies": {
         "free-use-bible-api": "workspace:*",
-        "react": "19.2.6"
+        "react": "^19.2.6"
+    },
+    "devDependencies": {
+        "@types/react": "^19.2.14"
     },
     "files": [
         "/README.md",
