@@ -27,7 +27,6 @@ import {
     CommentarySchema,
 } from './common-types.js';
 import { DatasetOutput } from './dataset.js';
-import 'zod-openapi';
 import { BookIdSchema } from '../utils.js';
 
 /**

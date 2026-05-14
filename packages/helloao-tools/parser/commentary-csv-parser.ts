@@ -2,8 +2,8 @@ import {
     CommentaryBookNode,
     CommentaryChapterNode,
     CommentaryParseTree,
-} from './types';
-import { getBookId, parseVerseReference } from '../utils';
+} from './types.js';
+import { getBookId, parseVerseReference } from '../utils.js';
 import { parse } from 'papaparse';
 
 export interface CsvLine {

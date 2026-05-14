@@ -7,8 +7,8 @@ import {
     Text,
     FootnoteReference,
     HebrewSubtitle,
-} from './types';
-import { bookOrderMap } from '../generation/book-order';
+} from './types.js';
+import { bookOrderMap } from '../generation/book-order.js';
 
 export const LOCKMAN_PARSER_VERSION = 3;
 

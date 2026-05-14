@@ -7,7 +7,6 @@ import {
     VerseContent,
 } from './types.js';
 import { getBookId, parseVerseReference, VerseRef } from '../utils.js';
-import { ref } from 'process';
 
 export const chapterHeadingSchema = z.object({
     type: z.literal('chapter-heading'),

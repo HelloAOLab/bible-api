@@ -1,11 +1,11 @@
 import { getLogger } from '../log.js';
-import { parseVerseReference } from '../utils';
+import { parseVerseReference } from '../utils.js';
 import {
     CommentaryBookNode,
     CommentaryChapterNode,
     CommentaryParseTree,
     CommentaryVerseNode,
-} from './types';
+} from './types.js';
 
 enum NodeType {
     Element = 1,
