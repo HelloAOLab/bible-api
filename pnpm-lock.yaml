@@ -104,6 +104,19 @@ importers:
 
     packages/free-use-bible-api: {}
 
+    packages/free-use-bible-api-react:
+        dependencies:
+            free-use-bible-api:
+                specifier: workspace:*
+                version: link:../free-use-bible-api
+            react:
+                specifier: ^19.2.6
+                version: 19.2.6
+        devDependencies:
+            '@types/react':
+                specifier: ^19.2.14
+                version: 19.2.14
+
     packages/free-use-bible-api-test:
         devDependencies:
             free-use-bible-api:
