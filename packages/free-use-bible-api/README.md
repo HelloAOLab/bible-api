@@ -1,14 +1,10 @@
 # Free Use Bible API
 
-The Free Use Bible API provides access to over 1000 Bible translations in hundreds of languages.
+TypeScript and JavaScript client for the public Free Use Bible API:
 
-This package is a TypeScript and JavaScript client for the public API hosted at:
-
--   https://bible.helloao.org
+-   `https://bible.helloao.org`
 
 ## Installation
-
-Install with your preferred package manager:
 
 ```bash
 npm install free-use-bible-api
@@ -24,101 +20,127 @@ yarn add free-use-bible-api
 
 ## Quick Start
 
-Create a client and point it at the production API:
-
 ```ts
-import { getAvailableTranslations } from 'free-use-bible-api';
+import { FreeUseBibleApi } from 'free-use-bible-api';
 
-const availableTranslationsResult = await getAvailableTranslations();
+const api = new FreeUseBibleApi();
 
-if (availableTranslationsResult.error) {
-    console.error(
-        'Error while getting available translations:',
-        availableTranslationsResult.error
-    );
-} else {
-    const result = availableTranslationsResult.data;
-    console.log('Total translations:', result.translations.length);
-    console.log('First translation:', result.translations[0]);
-}
+const available = await api.getAvailableTranslations();
+console.log('Total translations:', available.translations.length);
+
+const books = await api.getTranslationBooks('BSB');
+console.log('Books in BSB:', books.books.length);
+
+const chapter = await api.getTranslationBookChapter('BSB', 'GEN', 1);
+console.log('Verses in Genesis 1:', chapter.numberOfVerses);
 ```
 
-## Translation Usage Guide
+## Client Options
 
-This section covers the most common translation flow:
-
-1. Get available translations.
-2. Pick a translation ID.
-3. Get books for that translation.
-4. Fetch a chapter.
-5. Optionally fetch the full translation payload.
-
-### 1. Get Available Translations
+You can customize the client with `FreeUseBibleApiOptions`:
 
 ```ts
-import { Configuration, FreeUseBibleApi } from 'free-use-bible-api';
+import { FreeUseBibleApi } from 'free-use-bible-api';
 
-const api = new FreeUseBibleApi(
-    new Configuration({ basePath: 'https://bible.helloao.org' })
+const api = new FreeUseBibleApi({
+    endpoint: 'https://bible.helloao.org/',
+    useCache: true,
+});
+```
+
+-   `endpoint`: Base API endpoint.
+-   `useCache`: Enables in-memory response caching (default: `true`).
+
+## API Methods
+
+### Translations
+
+-   `getAvailableTranslations(endpoint?)`
+-   `getTranslationBooks(translation, endpoint?)`
+-   `getTranslationBookChapter(translation, book, chapter, endpoint?)`
+-   `getCompleteTranslation(translation, endpoint?)`
+
+`getCompleteTranslation()` disables per-request cache internally because payloads are typically large.
+
+### Commentaries
+
+-   `getAvailableCommentaries(endpoint?)`
+-   `getCommentaryBooks(commentary, endpoint?)`
+-   `getCommentaryBookChapter(commentary, book, chapter, endpoint?)`
+
+### Datasets
+
+-   `getAvailableDatasets(endpoint?)`
+-   `getDatasetBooks(dataset, endpoint?)`
+-   `getDatasetBookChapter(dataset, book, chapter, endpoint?)`
+
+### Chapter Navigation Helpers
+
+-   `getNextChapter(chapter, endpoint?)`
+-   `getPreviousChapter(chapter, endpoint?)`
+
+These helpers work with translation, commentary, and dataset chapter responses.
+
+## Examples
+
+### Get a complete translation
+
+```ts
+const complete = await api.getCompleteTranslation('BSB');
+console.log(complete.translation.id);
+console.log(complete.books.length);
+```
+
+### Read a commentary chapter
+
+```ts
+const comm = await api.getCommentaryBookChapter('matthew_henry', 'GEN', 1);
+console.log(comm.book.name);
+```
+
+### Read a dataset chapter
+
+```ts
+const dataChapter = await api.getDatasetBookChapter(
+    'cross_references',
+    'JHN',
+    3
 );
-
-const result = await api.getAvailableTranslations();
-
-console.log('Total translations:', result.translations.length);
-console.log('First translation:', result.translations[0]);
+console.log(dataChapter.book.name);
 ```
 
-### 2. Get Books For A Translation
-
-Use a translation ID from the previous step, for example `BSB`:
+### Navigate to next/previous chapter
 
 ```ts
-const books = await api.getTranslationBooks({
-    translation: 'BSB',
-});
+const current = await api.getTranslationBookChapter('BSB', 'GEN', 1);
 
-console.log('Books in translation:', books.books.length);
-console.log('First book:', books.books[0]);
+const next = await api.getNextChapter(current);
+const previous = await api.getPreviousChapter(current);
+
+console.log(next?.chapter.number);
+console.log(previous?.chapter.number);
 ```
 
-### 3. Get A Translation Chapter
+## Direct HTTP Endpoints
 
-Use a USFM book ID and chapter number:
+### Translation endpoints
 
-```ts
-import { BookId } from 'free-use-bible-api';
+-   `GET /api/available_translations.json`
+-   `GET /api/{translation}/books.json`
+-   `GET /api/{translation}/{book}/{chapter}.json`
+-   `GET /api/{translation}/complete.json`
 
-const chapter = await api.getTranslationBookChapter({
-    translation: 'BSB',
-    book: BookId.GEN,
-    chapter: 1,
-});
+### Commentary endpoints
 
-console.log('Chapter number:', chapter.chapter.number);
-console.log('Verse count:', chapter.numberOfVerses);
-```
+-   `GET /api/available_commentaries.json`
+-   `GET /api/{commentary}/books.json`
+-   `GET /api/{commentary}/{book}/{chapter}.json`
 
-### 4. Get A Complete Translation
+### Dataset endpoints
 
-Some workflows need the entire translation document in one call:
-
-```ts
-const complete = await api.getTranslationComplete({
-    translation: 'BSB',
-});
-
-console.log('Translation:', complete.translation.id);
-console.log('Book count:', complete.books.length);
-```
-
-## Direct HTTP Examples For Translations
-
-If you do not want to use the SDK, these translation endpoints are available directly:
-
--   GET `/api/available_translations.json`
--   GET `/api/{translation}/books.json`
--   GET `/api/{translation}/{book}/{chapter}.json`
--   GET `/api/{translation}/complete.json`
+-   `GET /api/available_datasets.json`
+-   `GET /api/d/{dataset}/books.json`
+-   `GET /api/d/{dataset}/{book}/{chapter}.json`
 
 Example requests:
 
@@ -126,20 +148,23 @@ Example requests:
 curl https://bible.helloao.org/api/available_translations.json
 curl https://bible.helloao.org/api/BSB/books.json
 curl https://bible.helloao.org/api/BSB/GEN/1.json
+curl https://bible.helloao.org/api/available_commentaries.json
+curl https://bible.helloao.org/api/available_datasets.json
 ```
 
 ## Error Handling
 
-A 404 response usually means one of these values is invalid:
+Methods throw on non-2xx responses.
+
+A 404 response usually means one of the path values is invalid, for example:
 
 -   translation
+-   commentary
+-   dataset
 -   book
 -   chapter
 
-Use available translations and books responses to drive your UI selections and reduce bad requests.
-
 ## Notes
 
--   This client uses fetch under the hood.
--   In modern Node.js versions, fetch is available globally.
--   For custom environments, pass a custom fetch implementation in `Configuration`.
+-   Uses the global `fetch` API.
+-   For Node.js, use a runtime that provides `fetch` (Node 18+ recommended) or polyfill it.

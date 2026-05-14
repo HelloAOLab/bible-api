@@ -1,6 +1,6 @@
-import { getAvailableTranslations } from './index';
+import { FreeUseBibleApi } from './index.js';
 
-it('should export the getAvailableTranslations function', async () => {
-    expect(getAvailableTranslations).toBeDefined();
-    expect(typeof getAvailableTranslations).toBe('function');
+it('should export the FreeUseBibleApi class', async () => {
+    expect(FreeUseBibleApi).toBeDefined();
+    expect(typeof FreeUseBibleApi).toBe('function');
 });

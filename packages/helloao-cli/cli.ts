@@ -316,6 +316,9 @@ async function start() {
                                     enabled: true,
                                 },
                             },
+                            {
+                                name: '@hey-api/typescript',
+                            },
                         ],
                     });
                 } else {
