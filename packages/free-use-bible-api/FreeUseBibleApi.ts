@@ -1,9 +1,12 @@
 import type {
     ApiAvailableDatasets,
     ApiAvailableTranslations,
+    ApiCommentaryBook,
     ApiCommentaryBookChapter,
+    ApiDatasetBook,
     ApiDatasetBookChapter,
     ApiDatasetBooks,
+    ApiTranslationBook,
     ApiTranslationBookChapter,
     ApiTranslationBooks,
     ApiTranslationComplete,
@@ -315,6 +318,104 @@ export class FreeUseBibleApi {
             | ApiCommentaryBookChapter
             | ApiDatasetBookChapter
         >(chapter.previousChapterApiLink, endpoint);
+    }
+
+    /**
+     * Gets the first chapter for a given book, if available.
+     * @param book The book to get the first chapter for.
+     * @param endpoint The API endpoint to use for the request. If not provided, the default endpoint will be used.
+     * @returns The first chapter, or null if there is no first chapter.
+     */
+    getFirstChapter(
+        book: ApiCommentaryBook,
+        endpoint?: string
+    ): Promise<ApiCommentaryBookChapter | null>;
+    /**
+     * Gets the first chapter for a given book, if available.
+     * @param book The book to get the first chapter for.
+     * @param endpoint The API endpoint to use for the request. If not provided, the default endpoint will be used.
+     * @returns The first chapter, or null if there is no first chapter.
+     */
+    getFirstChapter(
+        book: ApiTranslationBook,
+        endpoint?: string
+    ): Promise<ApiTranslationBookChapter>;
+    /**
+     * Gets the first chapter for a given book, if available.
+     * @param book The book to get the first chapter for.
+     * @param endpoint The API endpoint to use for the request. If not provided, the default endpoint will be used.
+     * @returns The first chapter, or null if there is no first chapter.
+     */
+    getFirstChapter(
+        book: ApiDatasetBook,
+        endpoint?: string
+    ): Promise<ApiDatasetBookChapter>;
+    async getFirstChapter(
+        book: ApiTranslationBook | ApiCommentaryBook | ApiDatasetBook,
+        endpoint?: string
+    ): Promise<
+        | ApiTranslationBookChapter
+        | ApiCommentaryBookChapter
+        | ApiDatasetBookChapter
+        | null
+    > {
+        if (!book.firstChapterApiLink) {
+            return null;
+        }
+        return this._getJson<
+            | ApiTranslationBookChapter
+            | ApiCommentaryBookChapter
+            | ApiDatasetBookChapter
+        >(book.firstChapterApiLink, endpoint);
+    }
+
+    /**
+     * Gets the last chapter for a given book, if available.
+     * @param book The book to get the last chapter for.
+     * @param endpoint The API endpoint to use for the request. If not provided, the default endpoint will be used.
+     * @returns The last chapter, or null if there is no last chapter.
+     */
+    getLastChapter(
+        book: ApiCommentaryBook,
+        endpoint?: string
+    ): Promise<ApiCommentaryBookChapter | null>;
+    /**
+     * Gets the last chapter for a given book, if available.
+     * @param book The book to get the last chapter for.
+     * @param endpoint The API endpoint to use for the request. If not provided, the default endpoint will be used.
+     * @returns The last chapter, or null if there is no last chapter.
+     */
+    getLastChapter(
+        book: ApiTranslationBook,
+        endpoint?: string
+    ): Promise<ApiTranslationBookChapter>;
+    /**
+     * Gets the last chapter for a given book, if available.
+     * @param book The book to get the last chapter for.
+     * @param endpoint The API endpoint to use for the request. If not provided, the default endpoint will be used.
+     * @returns The last chapter, or null if there is no last chapter.
+     */
+    getLastChapter(
+        book: ApiDatasetBook,
+        endpoint?: string
+    ): Promise<ApiDatasetBookChapter>;
+    async getLastChapter(
+        book: ApiTranslationBook | ApiCommentaryBook | ApiDatasetBook,
+        endpoint?: string
+    ): Promise<
+        | ApiTranslationBookChapter
+        | ApiCommentaryBookChapter
+        | ApiDatasetBookChapter
+        | null
+    > {
+        if (!book.lastChapterApiLink) {
+            return null;
+        }
+        return this._getJson<
+            | ApiTranslationBookChapter
+            | ApiCommentaryBookChapter
+            | ApiDatasetBookChapter
+        >(book.lastChapterApiLink, endpoint);
     }
 
     private _getJson<T>(
