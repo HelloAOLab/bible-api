@@ -20,6 +20,10 @@ export class S3Uploader implements Uploader {
         return 75;
     }
 
+    get retryCount() {
+        return 10;
+    }
+
     constructor(
         bucketName: string,
         keyPrefix: string,
@@ -51,6 +55,33 @@ export class S3Uploader implements Uploader {
     }
 
     async upload(file: SerializedFile, overwrite: boolean): Promise<boolean> {
+        const logger = log.getLogger();
+        let lastErr: unknown;
+        for (let attempt = 0; attempt <= this.retryCount; attempt++) {
+            if (attempt > 0) {
+                const delayMs = Math.pow(2, attempt - 1) * 1000;
+                logger.warn(
+                    `[s3] Retrying upload (attempt ${attempt}/${this.retryCount}) for ${file.path} after ${delayMs}ms`
+                );
+                await new Promise((resolve) => setTimeout(resolve, delayMs));
+            }
+            try {
+                return await this._upload(file, overwrite);
+            } catch (err) {
+                lastErr = err;
+                logger.error(
+                    `[s3] Upload attempt ${attempt + 1} failed for file: ${file.path}`,
+                    err
+                );
+            }
+        }
+        throw lastErr;
+    }
+
+    private async _upload(
+        file: SerializedFile,
+        overwrite: boolean
+    ): Promise<boolean> {
         const logger = log.getLogger();
         const path = file.path.startsWith('/')
             ? file.path.substring(1)
