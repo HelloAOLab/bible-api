@@ -18,6 +18,7 @@ const TRANSLATION_ID_MAP: Map<string, string> = new Map([
     ['hin_irv', 'HINIRV'],
     ['hbo_mas', 'HBOMAS'],
     ['eng_drv', 'eng_dra'],
+    ['tam_2017', 'TAM2017'],
 ]);
 
 /**

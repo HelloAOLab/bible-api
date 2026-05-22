@@ -46,3 +46,5 @@ audio
 
 openapi.json
 /generated/prisma
+
+graphify-out

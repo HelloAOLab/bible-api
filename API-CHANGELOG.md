@@ -3,6 +3,16 @@
 This is the log of changes for the Free Use Bible API.
 For information on the API Generator, see [GENERATOR-CHANGELOG.md](./GENERATOR-CHANGELOG.md).
 
+## V1.12.0
+
+#### Date: 2026-05-22
+
+### :rocket: Features
+
+-   Added the Tamil Indian Revised Version (`TAM2017`) translation under CC BY-SA 4.0.
+    -   Language: Tamil (`tam`)
+    -   Source: Bridge Connectivity Solutions © 2017, 2019
+
 ## V1.11.2
 
 #### Date: 2026-05-11

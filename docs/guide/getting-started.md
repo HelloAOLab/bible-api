@@ -11,7 +11,7 @@ We have API clients for the following languages:
 ## API
 The Bible API is structured as a set of JSON files that are available for download from the internet.
 
-Using these files, you can get a list of available translations, the list of books for a particular translation, the list of chapters for a particular book, and the content for each chapter.
+Using these files, you can get a list of available translations (including the Tamil IRV `TAM2017`), the list of books for a particular translation, the list of chapters for a particular book, and the content for each chapter.
 
 These files are available at the following paths:
 

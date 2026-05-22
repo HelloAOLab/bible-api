@@ -1,0 +1,32 @@
+{
+    "id": "TAM2017",
+    "name": {
+        "local": "இண்டியன் ரிவைஸ்டு வெர்ஸன் (IRV) - தமிழ்",
+        "abbrev": "IRV",
+        "english": "Indian Revised Version (IRV) - Tamil"
+    },
+    "language": "tam",
+    "year": 2017,
+    "direction": "ltr",
+    "copyright": {
+        "licenses": [
+            {
+                "license": "cc-by-sa",
+                "url": "https://creativecommons.org/licenses/by-sa/4.0/"
+            }
+        ],
+        "attribution": "Copyright © 2017, 2019 Bridge Connectivity Solutions",
+        "attribution_url": "https://ebible.org/tam2017"
+    },
+    "audio": [],
+    "video": [],
+    "source": {
+        "service": "ebible",
+        "id": "tam2017",
+        "format": "usfm",
+        "url": "https://ebible.org/Scriptures/tam2017_usfm.zip",
+        "updated": "2026-03-12"
+    },
+    "recommended": null,
+    "reviewed": false
+}
