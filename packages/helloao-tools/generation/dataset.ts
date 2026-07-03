@@ -302,6 +302,7 @@ export function generateDataset(
                         id,
                         content.number
                     ),
+                    thisChapterAudioTimings: {},
                 });
             }
         }

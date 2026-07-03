@@ -564,6 +564,75 @@ export async function importApi(
     }
 }
 
+/**
+ * A single chapter's worth of audio timing data to import.
+ */
+export interface AudioTimingRecord {
+    /**
+     * The ID of the translation.
+     */
+    translationId: string;
+
+    /**
+     * The ID of the book.
+     */
+    bookId: string;
+
+    /**
+     * The number of the chapter.
+     */
+    chapterNumber: number;
+
+    /**
+     * The reader that the timings are for.
+     */
+    reader: string;
+
+    /**
+     * The times (in seconds) that each verse starts, in verse order.
+     */
+    verses: number[];
+}
+
+/**
+ * Imports chapter audio timing data from the given JSON file into the database in the
+ * current working directory.
+ *
+ * The file should contain an array of records: `{ translationId, bookId, chapterNumber, reader, verses }`
+ * where `verses` is an array of numbers (seconds) - one per verse in the chapter, in order.
+ * @param file The path to the JSON file to import.
+ * @param options The options.
+ */
+export async function importAudioTimings(
+    file: string,
+    options: ImportTranslationOptions
+): Promise<void> {
+    const logger = log.getLogger();
+    const records: AudioTimingRecord[] = JSON.parse(
+        await readFile(file, 'utf-8')
+    );
+
+    const db = await database.getDb(options.db);
+    try {
+        const importTimings = db.transaction(() => {
+            for (let record of records) {
+                database.upsertChapterAudioTiming(
+                    db,
+                    record.translationId,
+                    record.bookId,
+                    record.chapterNumber,
+                    record.reader,
+                    record.verses
+                );
+            }
+        });
+        importTimings();
+        logger.log(`Imported ${records.length} audio timing records.`);
+    } finally {
+        db.close();
+    }
+}
+
 export interface FetchTranslationsOptions {
     /**
      * Fetch all translations. If omitted, only undownloaded translations will be fetched.

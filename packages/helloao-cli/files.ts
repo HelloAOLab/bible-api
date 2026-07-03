@@ -470,6 +470,11 @@ export async function loadTranslationsFromDirectory(
                         chapter: chapterJson.chapter,
                         thisChapterAudioLinks:
                             chapterJson.thisChapterAudioLinks,
+                        // Audio timings can't be reconstructed from the generated JSON files:
+                        // thisChapterAudioTimings there is a map of reader -> URL, not the
+                        // raw per-verse timing data. Re-importing timings requires the
+                        // `import-audio-timings` CLI command instead.
+                        thisChapterAudioTimings: {},
                     });
                 } else {
                     logger.warn(`Unknown chapter format: ${chapterFile}`);
