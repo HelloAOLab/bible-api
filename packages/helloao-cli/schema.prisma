@@ -28,6 +28,7 @@ model Translation {
     verses       ChapterVerse[]
     footnotes    ChapterFootnote[]
     audioUrls    ChapterAudioUrl[]
+    audioTimings ChapterAudioTiming[]
 }
 
 model Commentary {
@@ -149,6 +150,7 @@ model Book {
     verses ChapterVerse[]
     footnotes ChapterFootnote[]
     audioUrls ChapterAudioUrl[]
+    audioTimings ChapterAudioTiming[]
 
     @@id([translationId, id])
 }
@@ -216,6 +218,7 @@ model Chapter {
     verses ChapterVerse[]
     footnotes ChapterFootnote[]
     audioUrls ChapterAudioUrl[]
+    audioTimings ChapterAudioTiming[]
 
     @@id([translationId, bookId, number])
 }
@@ -252,6 +255,24 @@ model ChapterAudioUrl {
 
     reader String
     url String
+
+    @@id([translationId, bookId, number, reader])
+}
+
+model ChapterAudioTiming {
+    number Int
+    bookId String
+    book Book @relation(fields: [translationId, bookId], references: [translationId, id])
+
+    translationId String
+    translation Translation @relation(fields: [translationId], references: [id])
+
+    chapter Chapter @relation(fields: [translationId, bookId, number], references: [translationId, bookId, number])
+
+    reader String
+
+    // JSON array of numbers: the time (in seconds) that each verse starts, in verse order.
+    timingsJson String
 
     @@id([translationId, bookId, number, reader])
 }

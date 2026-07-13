@@ -559,6 +559,13 @@ export const TranslationBookChapterSchema = z.object({
     thisChapterAudioLinks: z.lazy(() => TranslationBookChapterAudioLinksSchema).meta({
         description: 'The links to different audio versions for the chapter.',
     }),
+
+    /**
+     * The audio timings (per-verse start times, in seconds) for different audio versions for the chapter.
+     */
+    thisChapterAudioTimings: z.lazy(() => TranslationBookChapterAudioTimingsSchema).meta({
+        description: 'The audio timings (per-verse start times, in seconds) for different audio versions for the chapter.',
+    }),
 }).meta({
     id: 'TranslationBookChapter',
     description: 'Defines the schema for information about a book chapter.',
@@ -592,6 +599,17 @@ export const TranslationBookChapterAudioLinksSchema = z.record(z.string(), z.str
 });
 
 export type TranslationBookChapterAudioLinks = z.infer<typeof TranslationBookChapterAudioLinksSchema>;
+
+/**
+ * Defines a Zod schema for the audio timings for a book chapter.
+ * Maps a reader ID to the list of times (in seconds) that each verse starts, in verse order.
+ */
+export const TranslationBookChapterAudioTimingsSchema = z.record(z.string(), z.array(z.number())).meta({
+    id: 'TranslationBookChapterAudioTimings',
+    description: 'Defines the schema for the audio timings for a book chapter. Maps a reader ID to the list of times (in seconds) that each verse starts, in verse order.',
+});
+
+export type TranslationBookChapterAudioTimings = z.infer<typeof TranslationBookChapterAudioTimingsSchema>;
 
 /**
  * Defines a Zod schema for information about data in a chapter.

@@ -6,6 +6,7 @@ import {
     ApiCommentaryBooksSchema,
     ApiDatasetBookChapterSchema,
     ApiDatasetBooksSchema,
+    ApiTranslationBookChapterAudioTimingsSchema,
     ApiTranslationBookChapterSchema,
     ApiTranslationBooksSchema,
     ApiTranslationCompleteBookSchema,
@@ -35,6 +36,11 @@ const book = BookIdSchema;
 const chapter = z.number().positive().meta({
     description:
         'The chapter number to get the content for. This should be a positive integer.',
+});
+
+const reader = z.string().meta({
+    description:
+        'The ID of the reader to get the audio timings for. For example, "hays" for the Hays reading of the Berean Standard Bible.',
 });
 
 export function createFreeUseBibleApiOpenApiDocument(): any {
@@ -155,6 +161,36 @@ export function createFreeUseBibleApiOpenApiDocument(): any {
                     },
                 },
             },
+            '/api/{translation}/{book}/{chapter}.{reader}.audioTimings.json':
+                {
+                    get: {
+                        operationId: 'getTranslationBookChapterAudioTimings',
+                        description:
+                            'Get the audio timings (per-verse start times, in seconds) for a specific chapter of a specific book for a specific translation and reader.',
+                        requestParams: {
+                            path: z.object({
+                                translation,
+                                book,
+                                chapter,
+                                reader,
+                            }),
+                        },
+                        responses: {
+                            '200': {
+                                description: '200 OK',
+                                content: {
+                                    'application/json': {
+                                        schema: ApiTranslationBookChapterAudioTimingsSchema,
+                                    },
+                                },
+                            },
+                            '404': {
+                                description:
+                                    '404 Not Found - The specified translation, book, chapter, or reader was not found.',
+                            },
+                        },
+                    },
+                },
             '/api/{translation}/complete.json': {
                 get: {
                     operationId: 'getTranslationComplete',

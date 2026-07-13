@@ -8,8 +8,8 @@ jobs:
         name: Test and Build
         strategy:
             matrix:
-                os: [ubuntu-latest, macOS-latest, windows-latest]
-                node-version: [20.x]
+                os: [ubuntu-latest, macOS-latest]
+                node-version: [22.x]
         runs-on: ${{ matrix.os }}
         steps:
             - uses: actions/checkout@v1

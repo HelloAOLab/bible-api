@@ -17,6 +17,7 @@ import {
     generateTranslationFiles,
     generateTranslationsFiles,
     importApi,
+    importAudioTimings,
     importCommentaries,
     importCommentary,
     importTranslation,
@@ -408,6 +409,18 @@ async function start() {
         .option('--overwrite', 'Whether to overwrite existing files.')
         .action(async (dir: string, options: any) => {
             await importApi(dir, {
+                ...program.opts(),
+                ...options,
+            });
+        });
+
+    program
+        .command('import-audio-timings <file>')
+        .description(
+            'Imports chapter audio timing data from the given JSON file into the database.\nThe file should contain an array of records: { translationId, bookId, chapterNumber, reader, verses } where verses is an array of numbers (seconds) - one per verse in the chapter, in order.'
+        )
+        .action(async (file: string, options: any) => {
+            await importAudioTimings(file, {
                 ...program.opts(),
                 ...options,
             });

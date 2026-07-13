@@ -24,6 +24,7 @@ import {
     TranslationBookChapter,
     TranslationBookChapterSchema,
     TranslationBookChapterAudioLinks,
+    TranslationBookChapterAudioTimings,
     CommentarySchema,
 } from './common-types.js';
 import { DatasetOutput } from './dataset.js';
@@ -59,6 +60,13 @@ export interface ApiOutput {
      * - /api/:translationId/:bookId/:chapterNumber.:reader.mp3
      */
     translationBookChapterAudio: ApiTranslationBookChapterAudio[];
+
+    /**
+     * The list of audio timings.
+     * This maps to the following endpoints:
+     * - /api/:translationId/:bookId/:chapterNumber.:reader.audioTimings.json
+     */
+    translationBookChapterAudioTimings: ApiTranslationBookChapterAudioTimings[];
 
     /**
      * The list of available commentaries.
@@ -1017,6 +1025,40 @@ export const ApiTranslationBookChapterSchema =
             }),
 
         /**
+         * The links to the audio timings for different audio versions for the chapter.
+         */
+        thisChapterAudioTimings: z
+            .record(z.string(), z.string())
+            .meta({
+                description:
+                    'The links to the audio timings for different audio versions for the chapter. Relative to the API origin.',
+            }),
+
+        /**
+         * The links to the audio timings for different audio versions for the next chapter.
+         * Null if this is the last chapter in the translation.
+         */
+        nextChapterAudioTimings: z
+            .record(z.string(), z.string())
+            .nullable()
+            .meta({
+                description:
+                    'The links to the audio timings for different audio versions for the next chapter. Relative to the API origin. Null if this is the last chapter in the translation.',
+            }),
+
+        /**
+         * The links to the audio timings for different audio versions for the previous chapter.
+         * Null if this is the first chapter in the translation.
+         */
+        previousChapterAudioTimings: z
+            .record(z.string(), z.string())
+            .nullable()
+            .meta({
+                description:
+                    'The links to the audio timings for different audio versions for the previous chapter. Relative to the API origin. Null if this is the first chapter in the translation.',
+            }),
+
+        /**
          * The link to the previous chapter.
          * Null if this is the first chapter in the translation.
          */
@@ -1252,6 +1294,109 @@ export type ApiTranslationBookChapterAudio = z.infer<
     typeof ApiTranslationBookChapterAudioSchema
 >;
 
+export const ApiTranslationBookChapterAudioTimingsSchema = z.object({
+    /**
+     * The ID of the translation.
+     */
+    translationId: z.string().meta({
+        description: 'The ID of the translation.',
+    }),
+
+    /**
+     * The ID of the book.
+     */
+    bookId: z.string().meta({
+        description: 'The ID of the book.',
+    }),
+
+    /**
+     * The number of the chapter.
+     */
+    chapterNumber: z.number().meta({
+        description: 'The number of the chapter.',
+    }),
+
+    /**
+     * The reader for the chapter.
+     */
+    reader: z.string().meta({
+        description: 'The reader for the chapter.',
+    }),
+
+    /**
+     * The link to the audio for these timings.
+     */
+    audioLink: z.string().meta({
+        description: 'The link to the audio for these timings.',
+    }),
+
+    /**
+     * The link to the information for this chapter.
+     */
+    thisChapterLink: z.string().meta({
+        description: 'The link to the information for this chapter.',
+    }),
+
+    /**
+     * The link to the information for the next chapter.
+     * Null if this is the last chapter in the translation.
+     */
+    nextChapterLink: z.string().nullable().meta({
+        description:
+            'The link to the information for the next chapter. Null if this is the last chapter in the translation.',
+    }),
+
+    /**
+     * The link to the information for the previous chapter.
+     * Null if this is the first chapter in the translation.
+     */
+    previousChapterLink: z.string().nullable().meta({
+        description:
+            'The link to the information for the previous chapter. Null if this is the first chapter in the translation.',
+    }),
+
+    /**
+     * The link to this audio timings file.
+     */
+    thisChapterAudioTimingsLink: z.string().meta({
+        description: 'The link to this audio timings file.',
+    }),
+
+    /**
+     * The link to the timings for the next chapter.
+     * Null if this is the last chapter in the translation.
+     */
+    nextChapterAudioTimingsLink: z.string().nullable().meta({
+        description:
+            'The link to the timings for the next chapter. Null if this is the last chapter in the translation.',
+    }),
+
+    /**
+     * The link to the timings for the previous chapter.
+     * Null if this is the first chapter in the translation.
+     */
+    previousChapterAudioTimingsLink: z.string().nullable().meta({
+        description:
+            'The link to the timings for the previous chapter. Null if this is the first chapter in the translation.',
+    }),
+
+    /**
+     * The times in seconds at which each verse starts, in order.
+     */
+    verses: z.array(z.number()).meta({
+        description:
+            'The times in seconds at which each verse starts, in order. The first number (index 0) is the time in the recording at which the first verse starts.',
+    }),
+}).meta({
+    id: 'ApiTranslationBookChapterAudioTimings',
+    description:
+        'Defines an interface that contains the audio timings for a book chapter, for a specific reader.',
+});
+
+export type ApiTranslationBookChapterAudioTimings = z.infer<
+    typeof ApiTranslationBookChapterAudioTimingsSchema
+>;
+
 export const ApiCommentaryProfileContentSchema = z.object({
     /**
      * The commentary information for the profile.
@@ -1346,6 +1491,7 @@ export function generateApiForDataset(
         translationBooks: [],
         translationBookChapters: [],
         translationBookChapterAudio: [],
+        translationBookChapterAudioTimings: [],
         translationComplete: [],
         availableCommentaries: {
             commentaries: [],
@@ -1403,6 +1549,15 @@ export function generateApiForDataset(
         };
 
         let translationChapters: ApiTranslationBookChapter[] = [];
+        let pendingAudioTimings: {
+            reader: string;
+            verses: number[];
+            apiBookChapter: ApiTranslationBookChapter;
+        }[] = [];
+        let rawAudioTimingsByChapter = new Map<
+            ApiTranslationBookChapter,
+            TranslationBookChapterAudioTimings
+        >();
 
         for (let { chapters, ...book } of books) {
             const firstChapterNumber = chapters[0]?.chapter.number;
@@ -1440,8 +1595,13 @@ export function generateApiForDataset(
                 totalNumberOfVerses: 0,
             };
 
-            for (let { chapter, thisChapterAudioLinks } of chapters) {
+            for (let {
+                chapter,
+                thisChapterAudioLinks,
+                thisChapterAudioTimings,
+            } of chapters) {
                 const audio: TranslationBookChapterAudioLinks = {};
+                const audioTimings: Record<string, string> = {};
                 const apiBookChapter: ApiTranslationBookChapter = {
                     translation: apiTranslation,
                     book: apiBook,
@@ -1465,6 +1625,9 @@ export function generateApiForDataset(
                     previousChapterApiLink: null,
                     previousChapterReference: null,
                     previousChapterAudioLinks: null,
+                    thisChapterAudioTimings: audioTimings,
+                    nextChapterAudioTimings: null,
+                    previousChapterAudioTimings: null,
                     numberOfVerses: 0,
                 };
 
@@ -1486,6 +1649,27 @@ export function generateApiForDataset(
                     } else {
                         audio[reader] = thisChapterAudioLinks[reader];
                     }
+                }
+
+                rawAudioTimingsByChapter.set(
+                    apiBookChapter,
+                    thisChapterAudioTimings
+                );
+
+                for (let reader in thisChapterAudioTimings) {
+                    const verses = thisChapterAudioTimings[reader];
+                    audioTimings[reader] = bookChapterAudioTimingsApiLink(
+                        translation.id,
+                        getBookLink(book),
+                        chapter.number,
+                        reader,
+                        apiPathPrefix
+                    );
+                    pendingAudioTimings.push({
+                        reader,
+                        verses,
+                        apiBookChapter,
+                    });
                 }
 
                 for (let c of chapter.content) {
@@ -1539,6 +1723,8 @@ export function generateApiForDataset(
                 };
                 currentChapter.previousChapterAudioLinks =
                     previousChapter.thisChapterAudioLinks;
+                currentChapter.previousChapterAudioTimings =
+                    previousChapter.thisChapterAudioTimings;
             }
 
             if (i < translationChapters.length - 1) {
@@ -1557,7 +1743,31 @@ export function generateApiForDataset(
                 };
                 currentChapter.nextChapterAudioLinks =
                     nextChapter.thisChapterAudioLinks;
+                currentChapter.nextChapterAudioTimings =
+                    nextChapter.thisChapterAudioTimings;
             }
+        }
+
+        for (let { reader, verses, apiBookChapter } of pendingAudioTimings) {
+            api.translationBookChapterAudioTimings.push({
+                translationId: translation.id,
+                bookId: apiBookChapter.book.id,
+                chapterNumber: apiBookChapter.chapter.number,
+                reader,
+                audioLink:
+                    apiBookChapter.thisChapterAudioLinks[reader] ?? '',
+                thisChapterLink: apiBookChapter.thisChapterLink,
+                nextChapterLink: apiBookChapter.nextChapterApiLink,
+                previousChapterLink: apiBookChapter.previousChapterApiLink,
+                thisChapterAudioTimingsLink:
+                    apiBookChapter.thisChapterAudioTimings[reader],
+                nextChapterAudioTimingsLink:
+                    apiBookChapter.nextChapterAudioTimings?.[reader] ?? null,
+                previousChapterAudioTimingsLink:
+                    apiBookChapter.previousChapterAudioTimings?.[reader] ??
+                    null,
+                verses,
+            });
         }
 
         api.availableTranslations.translations.push(apiTranslation);
@@ -1583,6 +1793,8 @@ export function generateApiForDataset(
                         chapters: bookChapters.map((ch) => ({
                             numberOfVerses: ch.numberOfVerses,
                             thisChapterAudioLinks: ch.thisChapterAudioLinks,
+                            thisChapterAudioTimings:
+                                rawAudioTimingsByChapter.get(ch) ?? {},
                             chapter: ch.chapter,
                         })),
                     };
@@ -1991,6 +2203,10 @@ export function generateFilesForApi(api: ApiOutput): OutputFile[] {
         files.push(downloadedFile(audio.link, audio.originalUrl));
     }
 
+    for (let timings of api.translationBookChapterAudioTimings) {
+        files.push(jsonFile(timings.thisChapterAudioTimingsLink, timings));
+    }
+
     // Generate complete translation download files
     for (let complete of api.translationComplete) {
         if (complete.translation.completeTranslationApiLink) {
@@ -2185,6 +2401,18 @@ export function bookChapterAudioApiLink(
     return `${prefix}/api/${translationId}/${replaceSpacesWithUnderscores(
         bookId
     )}/${chapterNumber}.${reader}.mp3`;
+}
+
+export function bookChapterAudioTimingsApiLink(
+    translationId: string,
+    bookId: string,
+    chapterNumber: number,
+    reader: string,
+    prefix: string = ''
+) {
+    return `${prefix}/api/${translationId}/${replaceSpacesWithUnderscores(
+        bookId
+    )}/${chapterNumber}.${reader}.audioTimings.json`;
 }
 
 /**

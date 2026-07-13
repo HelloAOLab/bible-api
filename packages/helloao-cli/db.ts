@@ -489,6 +489,22 @@ export function insertTranslationContent(
         UPDATE SET
             url=excluded.url;`);
 
+    const chapterAudioTimingUpsert = db.prepare(`INSERT INTO ChapterAudioTiming(
+        translationId,
+        bookId,
+        number,
+        reader,
+        timingsJson
+    ) VALUES (
+        @translationId,
+        @bookId,
+        @number,
+        @reader,
+        @timingsJson
+    ) ON CONFLICT(translationId,bookId,number,reader) DO
+        UPDATE SET
+            timingsJson=excluded.timingsJson;`);
+
     const insertChaptersAndVerses = db.transaction(() => {
         for (let chapter of chapters) {
             let verses: {
@@ -594,10 +610,65 @@ export function insertTranslationContent(
                     });
                 }
             }
+
+            for (let reader in chapter.thisChapterAudioTimings) {
+                const verses = chapter.thisChapterAudioTimings[reader];
+                if (verses) {
+                    chapterAudioTimingUpsert.run({
+                        translationId: translation.id,
+                        bookId: book.id,
+                        number: chapter.chapter.number,
+                        reader: reader,
+                        timingsJson: JSON.stringify(verses),
+                    });
+                }
+            }
         }
     });
 
     insertChaptersAndVerses();
+}
+
+/**
+ * Inserts or updates the audio timing (per-verse start times, in seconds) for a chapter and reader.
+ * @param db The database to insert the timing into.
+ * @param translationId The ID of the translation.
+ * @param bookId The ID of the book.
+ * @param chapterNumber The number of the chapter.
+ * @param reader The reader that the timing is for.
+ * @param verses The times (in seconds) that each verse starts, in verse order.
+ */
+export function upsertChapterAudioTiming(
+    db: Database,
+    translationId: string,
+    bookId: string,
+    chapterNumber: number,
+    reader: string,
+    verses: number[]
+) {
+    db.prepare(
+        `INSERT INTO ChapterAudioTiming(
+            translationId,
+            bookId,
+            number,
+            reader,
+            timingsJson
+        ) VALUES (
+            @translationId,
+            @bookId,
+            @number,
+            @reader,
+            @timingsJson
+        ) ON CONFLICT(translationId,bookId,number,reader) DO
+            UPDATE SET
+                timingsJson=excluded.timingsJson;`
+    ).run({
+        translationId,
+        bookId,
+        number: chapterNumber,
+        reader,
+        timingsJson: JSON.stringify(verses),
+    });
 }
 
 /**
@@ -1766,6 +1837,14 @@ export async function* loadTranslationDatasets(
                     orderBy: [{ number: 'asc' }, { reader: 'asc' }],
                 });
 
+                const audioTimings = await db.chapterAudioTiming.findMany({
+                    where: {
+                        translationId: translation.id,
+                        bookId: book.id,
+                    },
+                    orderBy: [{ number: 'asc' }, { reader: 'asc' }],
+                });
+
                 const bookChapters: TranslationBookChapter[] = chapters.map(
                     (chapter) => {
                         return {
@@ -1776,6 +1855,17 @@ export async function* loadTranslationDatasets(
                                 )
                                 .reduce((acc, link) => {
                                     acc[link.reader] = link.url;
+                                    return acc;
+                                }, {} as any),
+                            thisChapterAudioTimings: audioTimings
+                                .filter(
+                                    (timing) =>
+                                        timing.number === chapter.number
+                                )
+                                .reduce((acc, timing) => {
+                                    acc[timing.reader] = JSON.parse(
+                                        timing.timingsJson
+                                    );
                                     return acc;
                                 }, {} as any),
                         };
