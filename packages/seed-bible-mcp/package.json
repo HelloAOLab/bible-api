@@ -1,0 +1,20 @@
+{
+    "name": "free-use-bible-mcp-server",
+    "version": "1.0.0",
+    "description": "MCP server exposing the Free Use Bible API (BSB/WEB/WLC/SBL).",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "start": "tsx server.tsx",
+        "dev": "tsx watch server.tsx"
+    },
+    "dependencies": {
+        "fastmcp": "^3.0.0",
+        "zod": "^3.23.8"
+    },
+    "devDependencies": {
+        "tsx": "^4.19.0",
+        "typescript": "^5.6.0",
+        "@types/node": "^22.0.0"
+    }
+}

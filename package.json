@@ -29,7 +29,9 @@
         "s3:sync:db": "npm run db:init:eng && aws --profile aolabs s3 cp ./free-use-bible-api.db s3://ao-bible-api/bible.db && aws --profile aolabs s3 cp ./free-use-bible-api.eng.db s3://ao-bible-api/bible.eng.db",
         "s3:sync:zip": "aws --profile aolabs s3 cp ./free-use-bible-api.zip s3://ao-bible-api/api.zip",
         "postinstall": "prisma generate",
-        "prepublish": "npm run build"
+        "prepublish": "npm run build",
+        "start:mcp": "tsx ./packages/seed-bible-mcp/server.tsx",
+        "dev:mcp": "tsx watch ./packages/seed-bible-mcp/server.tsx"
     },
     "devDependencies": {
         "@types/better-sqlite3": "^7.6.9",
