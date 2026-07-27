@@ -30,6 +30,7 @@ import { downloadFile, unzipToDirectory } from './downloads.js';
 import { batch, toAsyncIterable } from '@helloao/tools/parser/iterators.js';
 import {
     hashInputFiles,
+    loadCommentariesFromDirectory,
     loadDatasetsFromDirectory,
     loadTranslationFiles,
     loadTranslationsFiles,
@@ -554,8 +555,9 @@ export async function importApi(
     try {
         const datasets = await loadDatasetsFromDirectory(dir);
         const translations = await loadTranslationsFromDirectory(dir);
+        const commentaries = await loadCommentariesFromDirectory(dir);
         importDatasetOutput(db, {
-            commentaries: [],
+            commentaries,
             translations,
             datasets,
         });

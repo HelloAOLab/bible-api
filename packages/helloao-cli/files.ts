@@ -31,6 +31,8 @@ import { log } from '@helloao/tools';
 import { bookOrderMap } from '@helloao/tools/generation/book-order.js';
 import {
     DATASET_VERSION,
+    DatasetCommentary,
+    DatasetCommentaryBook,
     DatasetDataset,
     DatasetDatasetBook,
     DatasetTranslation,
@@ -39,8 +41,14 @@ import {
 import { getBookId } from '@helloao/tools/utils.js';
 import { LOCKMAN_PARSER_VERSION } from '@helloao/tools/parser/lockman-parser.js';
 import {
+    ApiAvailableCommentaries,
     ApiAvailableTranslations,
+    ApiCommentaryBookChapter,
+    ApiCommentaryBooks,
+    ApiCommentaryProfileContent,
+    ApiCommentaryProfiles,
     ApiTranslationBooks,
+    replaceSpacesWithUnderscores,
 } from '@helloao/tools/generation/api.js';
 
 /**
@@ -485,6 +493,142 @@ export async function loadTranslationsFromDirectory(
     }
 
     return translations;
+}
+
+/**
+ * Imports all the commentaries from the given directory into the database in the current working directory.
+ * @param dir The directory that the commentaries are located in.
+ */
+export async function loadCommentariesFromDirectory(
+    dir: string
+): Promise<DatasetCommentary[]> {
+    const logger = log.getLogger();
+
+    let commentaries: DatasetCommentary[] = [];
+
+    const apiDir = path.resolve(dir, 'api');
+
+    const availableCommentariesPath = path.resolve(
+        apiDir,
+        'available_commentaries.json'
+    );
+
+    if (!existsSync(availableCommentariesPath)) {
+        logger.warn(
+            `Could not find available_commentaries.json at ${availableCommentariesPath}, skipping commentary loading.`
+        );
+        return [];
+    }
+
+    const availableCommentaries: ApiAvailableCommentaries = JSON.parse(
+        await readFile(availableCommentariesPath, 'utf-8')
+    );
+    commentaries.push(
+        ...availableCommentaries.commentaries.map((c: any) => ({
+            ...c,
+            books: [],
+            profiles: [],
+        }))
+    );
+
+    for (let commentary of commentaries) {
+        const commentaryDir = path.resolve(apiDir, 'c', commentary.id);
+        const entries = await readdir(commentaryDir);
+
+        const booksPath = path.resolve(commentaryDir, 'books.json');
+        const booksData: ApiCommentaryBooks | null = existsSync(booksPath)
+            ? JSON.parse(await readFile(booksPath, 'utf-8'))
+            : null;
+
+        const profilesPath = path.resolve(commentaryDir, 'profiles.json');
+        const profilesData: ApiCommentaryProfiles | null = existsSync(
+            profilesPath
+        )
+            ? JSON.parse(await readFile(profilesPath, 'utf-8'))
+            : null;
+
+        if (profilesData) {
+            for (let profile of profilesData.profiles) {
+                const profileContentPath = path.resolve(
+                    commentaryDir,
+                    'profiles',
+                    `${replaceSpacesWithUnderscores(profile.id)}.json`
+                );
+
+                if (!existsSync(profileContentPath)) {
+                    logger.warn(
+                        `Could not find profile content for profile ${profile.id} in commentary ${commentary.id}`
+                    );
+                    continue;
+                }
+
+                const profileContent: ApiCommentaryProfileContent = JSON.parse(
+                    await readFile(profileContentPath, 'utf-8')
+                );
+
+                commentary.profiles.push({
+                    id: profile.id,
+                    subject: profile.subject,
+                    reference: profile.reference,
+                    content: profileContent.content,
+                });
+            }
+        }
+
+        for (let entry of entries) {
+            if (
+                entry === 'books.json' ||
+                entry === 'profiles.json' ||
+                entry === 'profiles'
+            ) {
+                continue;
+            }
+            const id = getBookId(entry);
+
+            if (!id) {
+                logger.warn(`Unknown book directory: ${entry}`);
+                continue;
+            }
+
+            const bookData = booksData?.books.find((b) => b.id === id);
+            if (!bookData) {
+                logger.warn(
+                    `Could not find book data for book ${id} in commentary ${commentary.id}`
+                );
+            }
+
+            const book: DatasetCommentaryBook = {
+                id,
+                name: bookData?.name ?? '',
+                commonName: bookData?.commonName ?? '',
+                introduction: bookData?.introduction,
+                introductionSummary: bookData?.introductionSummary,
+                chapters: [],
+                order: bookOrderMap.get(id)!,
+            };
+            commentary.books.push(book);
+
+            const bookDir = path.resolve(commentaryDir, entry);
+            const chapters = await readdir(bookDir);
+
+            for (let chapterFile of chapters) {
+                const chapterJson: ApiCommentaryBookChapter = JSON.parse(
+                    await readFile(path.resolve(bookDir, chapterFile), 'utf-8')
+                );
+
+                if (chapterJson.chapter) {
+                    book.chapters.push({
+                        chapter: chapterJson.chapter,
+                    });
+                } else {
+                    logger.warn(`Unknown chapter format: ${chapterFile}`);
+                    continue;
+                }
+            }
+        }
+    }
+
+    return commentaries;
 }
 
 /**
