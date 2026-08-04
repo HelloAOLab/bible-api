@@ -409,6 +409,7 @@ export const CommentaryBookSchema = z
             .nullable()
             .transform((x) => x ?? undefined)
             .optional()
+            .pipe(z.string().optional())
             .meta({
                 description:
                     "The commentary's introduction for the book. Undefined if the commentary didn't provide an introduction for the book.",
@@ -422,6 +423,7 @@ export const CommentaryBookSchema = z
             .nullable()
             .transform((x) => x ?? undefined)
             .optional()
+            .pipe(z.string().optional())
             .meta({
                 description:
                     "The summary of the commentary's introduction for the book. Undefined if the commentary didn't provide a summary for the book.",
