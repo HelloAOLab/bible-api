@@ -19,6 +19,8 @@ import {
     InputFileMetadata,
     InputTranslationFile,
     TranslationBookChapter,
+    CommentaryBookChapterSchema,
+    CommentaryBookChapter,
 } from '@helloao/tools/generation/common-types.js';
 import { ZipWriter, Writer, TextReader, Reader } from '@zip.js/zip.js';
 import { Readable, Writable } from 'stream';
@@ -42,14 +44,20 @@ import { getBookId } from '@helloao/tools/utils.js';
 import { LOCKMAN_PARSER_VERSION } from '@helloao/tools/parser/lockman-parser.js';
 import {
     ApiAvailableCommentaries,
+    ApiAvailableCommentariesSchema,
     ApiAvailableTranslations,
     ApiCommentaryBookChapter,
+    ApiCommentaryBookChapterSchema,
     ApiCommentaryBooks,
+    ApiCommentaryBooksSchema,
     ApiCommentaryProfileContent,
+    ApiCommentaryProfileContentSchema,
     ApiCommentaryProfiles,
+    ApiCommentaryProfilesSchema,
     ApiTranslationBooks,
     replaceSpacesWithUnderscores,
 } from '@helloao/tools/generation/api.js';
+import { ZodType } from 'zod';
 
 /**
  * Defines an interface that contains information about a serialized file.
@@ -495,6 +503,25 @@ export async function loadTranslationsFromDirectory(
     return translations;
 }
 
+async function tryParseJsonFile<T>(
+    filePath: string,
+    schema: ZodType<T>
+): Promise<T | null> {
+    if (!existsSync(filePath)) {
+        return null;
+    }
+
+    try {
+        const data = JSON.parse(await readFile(filePath, 'utf-8'));
+        return schema.parse(data);
+    } catch (err) {
+        log.getLogger().error(
+            `Failed to parse JSON file at ${filePath}: ${(err as Error).message}`
+        );
+        throw err;
+    }
+}
+
 /**
  * Imports all the commentaries from the given directory into the database in the current working directory.
  * @param dir The directory that the commentaries are located in.
@@ -520,9 +547,11 @@ export async function loadCommentariesFromDirectory(
         return [];
     }
 
-    const availableCommentaries: ApiAvailableCommentaries = JSON.parse(
-        await readFile(availableCommentariesPath, 'utf-8')
-    );
+    const availableCommentaries: ApiAvailableCommentaries =
+        (await tryParseJsonFile(
+            availableCommentariesPath,
+            ApiAvailableCommentariesSchema
+        ))!;
     commentaries.push(
         ...availableCommentaries.commentaries.map((c: any) => ({
             ...c,
@@ -536,16 +565,14 @@ export async function loadCommentariesFromDirectory(
         const entries = await readdir(commentaryDir);
 
         const booksPath = path.resolve(commentaryDir, 'books.json');
-        const booksData: ApiCommentaryBooks | null = existsSync(booksPath)
-            ? JSON.parse(await readFile(booksPath, 'utf-8'))
-            : null;
+        const booksData: ApiCommentaryBooks | null = await tryParseJsonFile(
+            booksPath,
+            ApiCommentaryBooksSchema
+        );
 
         const profilesPath = path.resolve(commentaryDir, 'profiles.json');
-        const profilesData: ApiCommentaryProfiles | null = existsSync(
-            profilesPath
-        )
-            ? JSON.parse(await readFile(profilesPath, 'utf-8'))
-            : null;
+        const profilesData: ApiCommentaryProfiles | null =
+            await tryParseJsonFile(profilesPath, ApiCommentaryProfilesSchema);
 
         if (profilesData) {
             for (let profile of profilesData.profiles) {
@@ -562,9 +589,10 @@ export async function loadCommentariesFromDirectory(
                     continue;
                 }
 
-                const profileContent: ApiCommentaryProfileContent = JSON.parse(
-                    await readFile(profileContentPath, 'utf-8')
-                );
+                const profileContent: ApiCommentaryProfileContent =
+                    ApiCommentaryProfileContentSchema.parse(
+                        JSON.parse(await readFile(profileContentPath, 'utf-8'))
+                    );
 
                 commentary.profiles.push({
                     id: profile.id,
@@ -612,9 +640,16 @@ export async function loadCommentariesFromDirectory(
             const chapters = await readdir(bookDir);
 
             for (let chapterFile of chapters) {
-                const chapterJson: ApiCommentaryBookChapter = JSON.parse(
-                    await readFile(path.resolve(bookDir, chapterFile), 'utf-8')
-                );
+                const chapterJson: CommentaryBookChapter | null =
+                    await tryParseJsonFile(
+                        path.resolve(bookDir, chapterFile),
+                        CommentaryBookChapterSchema
+                    );
+
+                if (!chapterJson) {
+                    logger.warn(`Failed to parse chapter file: ${chapterFile}`);
+                    continue;
+                }
 
                 if (chapterJson.chapter) {
                     book.chapters.push({
