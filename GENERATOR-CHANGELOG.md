@@ -3,6 +3,15 @@
 This is the log of changes for the Bible API Generator and associated tools.
 For information on the API itself, see [API-CHANGELOG.md](./API-CHANGELOG.md).
 
+## Unreleased
+
+### :rocket: Features
+
+-   Added `tools/audio-timings`, a Python tool that generates verse-by-verse audio timings for a chapter using [whisperX](https://github.com/m-bain/whisperX).
+    -   Transcribes a chapter's audio, then aligns the recognized words against the chapter's known verse text from the API to determine when each verse starts.
+    -   Outputs the JSON that `helloao import-audio-timings` already consumes, so the timings flow into `/api/{translation}/{book}/{chapter}.{reader}.audioTimings.json` with no changes to the generator.
+    -   Reports a match rate per chapter and refuses to emit chapters that fail its quality thresholds, so a recording that does not correspond to the text is rejected instead of producing confident but wrong timings.
+
 ## V2.1.1
 
 #### Date: 2026-04-24
