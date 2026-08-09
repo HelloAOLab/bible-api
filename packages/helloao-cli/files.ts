@@ -60,6 +60,13 @@ import {
 import { ZodType } from 'zod';
 
 /**
+ * The pattern that the generated chapter files match.
+ * Used to skip the other files that are generated into the same directory, like the
+ * simplified chapters (1.simple.json) and the audio timings (1.hays.audioTimings.json).
+ */
+const CHAPTER_FILE_REGEX = /^\d+\.json$/;
+
+/**
  * Defines an interface that contains information about a serialized file.
  */
 export interface Uploader {
@@ -477,6 +484,13 @@ export async function loadTranslationsFromDirectory(
             const chapters = await readdir(bookDir);
 
             for (let chapterFile of chapters) {
+                // Book directories also contain files for the other chapter formats
+                // (e.g. 1.simple.json and 1.hays.audioTimings.json), which can't be
+                // imported as chapters.
+                if (!CHAPTER_FILE_REGEX.test(chapterFile)) {
+                    continue;
+                }
+
                 const chapterJson: TranslationBookChapter = JSON.parse(
                     await readFile(path.resolve(bookDir, chapterFile), 'utf-8')
                 );
@@ -640,6 +654,13 @@ export async function loadCommentariesFromDirectory(
             const chapters = await readdir(bookDir);
 
             for (let chapterFile of chapters) {
+                // Book directories also contain files for the other chapter formats
+                // (e.g. 1.simple.json and 1.hays.audioTimings.json), which can't be
+                // imported as chapters.
+                if (!CHAPTER_FILE_REGEX.test(chapterFile)) {
+                    continue;
+                }
+
                 const chapterJson: CommentaryBookChapter | null =
                     await tryParseJsonFile(
                         path.resolve(bookDir, chapterFile),

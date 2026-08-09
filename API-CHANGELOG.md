@@ -3,6 +3,57 @@
 This is the log of changes for the Free Use Bible API.
 For information on the API Generator, see [GENERATOR-CHANGELOG.md](./GENERATOR-CHANGELOG.md).
 
+## V1.12.0
+
+#### Date: 2026-08-09
+
+### :rocket: Features
+
+-   Added support for a simplified chapter format.
+    -   Getting the text of a chapter previously required fetching the chapter and building the text from the formatted JSON yourself, which is non-trivial to get right - especially when it comes to spacing.
+    -   Chapters are now also available in a simplified format, where the content of each verse is a single string and the footnotes are available on the verse that they occur in, along with the offset that they occur at.
+    -   New endpoints:
+        -   `GET /api/{translation}/{book}/{chapter}.simple.json`
+        -   `GET /api/c/{commentary}/{book}/{chapter}.simple.json`
+    -   Anything that can't be represented by a plain string is kept as an offset into the verse text, so nothing is lost:
+        -   `footnotes` include the `offset` that the footnote caller belongs at.
+        -   `wordsOfJesus` and `poem` are lists of `{ start, end }` ranges (`poem` ranges also include the indent `level`).
+        -   `headings` contains the headings that occur in the middle of a verse, with the `offset` that they occur at.
+        -   Lines of poetry and line breaks are separated by newline (`\n`) characters in the text.
+    -   All offsets are measured in UTF-16 code units, so `text.slice(start, end)` returns exactly the range that was marked.
+    -   Example:
+        -   Before (`/api/BSB/GEN/1.json`):
+            ```json
+            {
+                "type": "verse",
+                "number": 6,
+                "content": [
+                    "And God said, “Let there be an expanse",
+                    { "noteId": 2 },
+                    "between the waters, to separate the waters from the waters.”"
+                ]
+            }
+            ```
+        -   After (`/api/BSB/GEN/1.simple.json`):
+            ```json
+            {
+                "type": "verse",
+                "number": 6,
+                "text": "And God said, “Let there be an expanse between the waters, to separate the waters from the waters.”",
+                "footnotes": [
+                    {
+                        "noteId": 2,
+                        "offset": 38,
+                        "text": "Or a firmament",
+                        "caller": "+"
+                    }
+                ]
+            }
+            ```
+-   Added the `simpleChapterApiLink` property to the translation and commentary chapter endpoints.
+    -   It contains the link to the simplified version of the chapter.
+    -   The simplified chapters contain the matching `fullChapterApiLink` property, and their `nextChapterApiLink`/`previousChapterApiLink` properties point at the simplified chapters so that navigation stays inside the format.
+
 ## V1.11.2
 
 #### Date: 2026-05-11

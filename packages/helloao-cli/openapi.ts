@@ -6,6 +6,8 @@ import {
     ApiCommentaryBooksSchema,
     ApiDatasetBookChapterSchema,
     ApiDatasetBooksSchema,
+    ApiSimpleCommentaryBookChapterSchema,
+    ApiSimpleTranslationBookChapterSchema,
     ApiTranslationBookChapterAudioTimingsSchema,
     ApiTranslationBookChapterSchema,
     ApiTranslationBooksSchema,
@@ -161,6 +163,62 @@ export function createFreeUseBibleApiOpenApiDocument(): any {
                     },
                 },
             },
+            '/api/{translation}/{book}/{chapter}.simple.json': {
+                get: {
+                    operationId: 'getSimpleTranslationBookChapter',
+                    description:
+                        'Get the content of a specific chapter of a specific book for a specific translation, using the simplified format. In the simplified format, the content of each verse is a single string instead of a list of formatted content, and the footnotes are available on the verse that they occur in, along with the offset that they occur at.',
+                    requestParams: {
+                        path: z.object({
+                            translation,
+                            book,
+                            chapter,
+                        }),
+                    },
+                    responses: {
+                        '200': {
+                            description: '200 OK',
+                            content: {
+                                'application/json': {
+                                    schema: ApiSimpleTranslationBookChapterSchema,
+                                },
+                            },
+                            links: {
+                                nextChapter: {
+                                    operationId:
+                                        'getSimpleTranslationBookChapter',
+                                    description:
+                                        'Gets the chapter that follows the current chapter in the translation.',
+                                    parameters: {
+                                        translation:
+                                            '$response.body#/nextChapterReference/translationId',
+                                        book: '$response.body#/nextChapterReference/book',
+                                        chapter:
+                                            '$response.body#/nextChapterReference/chapter',
+                                    },
+                                },
+                                previousChapter: {
+                                    operationId:
+                                        'getSimpleTranslationBookChapter',
+                                    description:
+                                        'Gets the chapter that precedes the current chapter in the translation.',
+                                    parameters: {
+                                        translation:
+                                            '$response.body#/previousChapterReference/translationId',
+                                        book: '$response.body#/previousChapterReference/book',
+                                        chapter:
+                                            '$response.body#/previousChapterReference/chapter',
+                                    },
+                                },
+                            },
+                        },
+                        '404': {
+                            description:
+                                '404 Not Found - The specified translation, book, or chapter was not found.',
+                        },
+                    },
+                },
+            },
             '/api/{translation}/{book}/{chapter}.{reader}.audioTimings.json':
                 {
                     get: {
@@ -277,6 +335,34 @@ export function createFreeUseBibleApiOpenApiDocument(): any {
                             content: {
                                 'application/json': {
                                     schema: ApiCommentaryBookChapterSchema,
+                                },
+                            },
+                        },
+                        '404': {
+                            description:
+                                '404 Not Found - The specified commentary, book, or chapter was not found.',
+                        },
+                    },
+                },
+            },
+            '/api/c/{commentary}/{book}/{chapter}.simple.json': {
+                get: {
+                    operationId: 'getSimpleCommentaryBookChapter',
+                    description:
+                        'Get the content of a specific chapter of a specific book for a specific commentary, using the simplified format. In the simplified format, the content of each verse is a single string instead of a list of formatted content.',
+                    requestParams: {
+                        path: z.object({
+                            commentary,
+                            book,
+                            chapter,
+                        }),
+                    },
+                    responses: {
+                        '200': {
+                            description: '200 OK',
+                            content: {
+                                'application/json': {
+                                    schema: ApiSimpleCommentaryBookChapterSchema,
                                 },
                             },
                         },

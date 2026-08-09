@@ -3631,6 +3631,237 @@ describe('generateApiForDataset', () => {
     });
 });
 
+describe('generateApiForDataset() simplified chapters', () => {
+    beforeEach(() => {
+        globalThis.DOMParser = DOMParser as any;
+        globalThis.Element = Element as any;
+        globalThis.Node = Node as any;
+    });
+
+    const translation: InputTranslationMetadata = {
+        id: 'bsb',
+        name: 'Berean Standard Bible',
+        englishName: 'Berean Standard Bible',
+        shortName: 'BSB',
+        language: 'eng',
+        direction: 'ltr',
+        licenseUrl: 'https://berean.bible/terms.htm',
+        website: 'https://berean.bible',
+    };
+
+    const commentary: InputCommentaryMetadata = {
+        id: 'comment',
+        name: 'Commentary',
+        englishName: 'Commentary',
+        language: 'eng',
+        direction: 'ltr',
+        licenseUrl: 'https://example.com/terms.htm',
+        website: 'https://example.com',
+    };
+
+    function generateTree(inputFiles: InputFile[], simple: boolean) {
+        const dataset = generateDataset(inputFiles, new DOMParser() as any);
+        const generated = generateApiForDataset(dataset, {
+            generateSimpleChapterFiles: simple,
+        });
+        return fileTree(generateFilesForApi(generated));
+    }
+
+    const translationFiles: InputFile[] = [
+        {
+            fileType: 'usfm',
+            metadata: translation,
+            content: firstXLines(Genesis, 13),
+        },
+        {
+            fileType: 'usfm',
+            metadata: translation,
+            content: firstXLines(Exodus, 14),
+        },
+    ];
+
+    const commentaryFiles: InputFile[] = [
+        {
+            fileType: 'commentary/csv',
+            content: unparse([
+                {
+                    book: 'Genesis',
+                    chapter: '',
+                    verse: 'Book Introduction',
+                    commentaries: 'Genesis Book Intro',
+                },
+                {
+                    book: '',
+                    chapter: '1',
+                    verse: 'Chapter Introduction',
+                    commentaries: 'Chapter introduction',
+                },
+                {
+                    book: '',
+                    chapter: '',
+                    verse: 'Genesis 1:1',
+                    commentaries: 'This is the commentary for Genesis 1:1.',
+                },
+            ]),
+            metadata: commentary,
+        },
+    ];
+
+    it('should not generate simplified chapters by default', () => {
+        const dataset = generateDataset(
+            translationFiles,
+            new DOMParser() as any
+        );
+        const generated = generateApiForDataset(dataset);
+        const tree = fileTree(generateFilesForApi(generated));
+
+        expect(generated.simpleTranslationBookChapters).toBeUndefined();
+        expect(tree['/api/bsb/GEN/1.simple.json']).toBeUndefined();
+        expect(
+            tree['/api/bsb/GEN/1.json'].simpleChapterApiLink
+        ).toBeUndefined();
+    });
+
+    it('should generate a simplified file for each translation chapter', () => {
+        const tree = generateTree(translationFiles, true);
+
+        expect(Object.keys(tree).sort()).toEqual([
+            '/api/available_commentaries.json',
+            '/api/available_translations.json',
+            '/api/bsb/EXO/1.json',
+            '/api/bsb/EXO/1.simple.json',
+            '/api/bsb/GEN/1.json',
+            '/api/bsb/GEN/1.simple.json',
+            '/api/bsb/books.json',
+        ]);
+
+        const chapter = tree['/api/bsb/GEN/1.simple.json'];
+
+        expect(chapter.thisChapterLink).toBe('/api/bsb/GEN/1.simple.json');
+        expect(chapter.fullChapterApiLink).toBe('/api/bsb/GEN/1.json');
+        expect(chapter.nextChapterApiLink).toBe('/api/bsb/EXO/1.simple.json');
+        expect(chapter.previousChapterApiLink).toBe(null);
+        expect(chapter.simpleChapterApiLink).toBeUndefined();
+        expect(chapter.numberOfVerses).toBe(2);
+        expect(chapter.translation).toEqual(
+            tree['/api/bsb/GEN/1.json'].translation
+        );
+        expect(chapter.book).toEqual(tree['/api/bsb/GEN/1.json'].book);
+        expect(chapter.thisChapterReference).toEqual({
+            translationId: 'bsb',
+            book: 'GEN',
+            chapter: 1,
+        });
+        expect(chapter.chapter).toEqual({
+            number: 1,
+            content: [
+                {
+                    type: 'heading',
+                    text: 'The Creation',
+                },
+                {
+                    type: 'line_break',
+                },
+                {
+                    type: 'verse',
+                    number: 1,
+                    text: 'In the beginning God created the heavens and the earth.',
+                    footnotes: [],
+                },
+                {
+                    type: 'line_break',
+                },
+                {
+                    type: 'verse',
+                    number: 2,
+                    text: 'Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.',
+                    footnotes: [],
+                },
+            ],
+            footnotes: [],
+        });
+    });
+
+    it('should link the regular chapters to their simplified versions', () => {
+        const tree = generateTree(translationFiles, true);
+
+        expect(tree['/api/bsb/GEN/1.json'].simpleChapterApiLink).toBe(
+            '/api/bsb/GEN/1.simple.json'
+        );
+        expect(tree['/api/bsb/EXO/1.json'].simpleChapterApiLink).toBe(
+            '/api/bsb/EXO/1.simple.json'
+        );
+    });
+
+    it('should generate a simplified file for each commentary chapter', () => {
+        const tree = generateTree(commentaryFiles, true);
+
+        expect(tree['/api/c/comment/GEN/1.json'].simpleChapterApiLink).toBe(
+            '/api/c/comment/GEN/1.simple.json'
+        );
+
+        const chapter = tree['/api/c/comment/GEN/1.simple.json'];
+
+        expect(chapter.thisChapterLink).toBe(
+            '/api/c/comment/GEN/1.simple.json'
+        );
+        expect(chapter.fullChapterApiLink).toBe('/api/c/comment/GEN/1.json');
+        expect(chapter.nextChapterApiLink).toBe(null);
+        expect(chapter.previousChapterApiLink).toBe(null);
+        expect(chapter.simpleChapterApiLink).toBeUndefined();
+        expect(chapter.chapter).toEqual({
+            number: 1,
+            introduction: 'Chapter introduction',
+            content: [
+                {
+                    type: 'verse',
+                    number: 1,
+                    text: 'This is the commentary for Genesis 1:1.',
+                    footnotes: [],
+                },
+            ],
+        });
+    });
+
+    it('should use the given path prefix', () => {
+        const dataset = generateDataset(
+            translationFiles,
+            new DOMParser() as any
+        );
+        const generated = generateApiForDataset(dataset, {
+            generateSimpleChapterFiles: true,
+            pathPrefix: '/prefix',
+        });
+        const tree = fileTree(generateFilesForApi(generated));
+
+        expect(tree['/prefix/api/bsb/GEN/1.simple.json'].thisChapterLink).toBe(
+            '/prefix/api/bsb/GEN/1.simple.json'
+        );
+        expect(tree['/prefix/api/bsb/GEN/1.json'].simpleChapterApiLink).toBe(
+            '/prefix/api/bsb/GEN/1.simple.json'
+        );
+    });
+
+    it('should use the common name for the link when requested', () => {
+        const dataset = generateDataset(
+            translationFiles,
+            new DOMParser() as any
+        );
+        const generated = generateApiForDataset(dataset, {
+            generateSimpleChapterFiles: true,
+            useCommonName: true,
+        });
+        const tree = fileTree(generateFilesForApi(generated));
+
+        expect(tree['/api/bsb/Genesis/1.simple.json'].thisChapterLink).toBe(
+            '/api/bsb/Genesis/1.simple.json'
+        );
+        expect(tree['/api/bsb/Genesis/1.simple.json'].nextChapterApiLink).toBe(
+            '/api/bsb/Exodus/1.simple.json'
+        );
+    });
+});
+
 function firstXLines(content: string, x: number) {
     const lines = content.split('\n');
     return lines.slice(0, x).join('\n');

@@ -60,6 +60,27 @@ fetch(`https://bible.helloao.org/api/BSB/GEN/1.json`)
     });
 ```
 
+### Get a Simplified Chapter from a Translation
+
+([reference](../reference/README.md#get-a-simplified-chapter-from-a-translation))
+
+`GET https://bible.helloao.org/api/{translation}/{book}/{chapter}.simple.json`
+
+Use this when you just want the text of a chapter. Each verse contains a single `text` string instead of a list of formatted content, so you don't have to build the text yourself.
+
+```ts:no-line-numbers
+// Get the text of Genesis 1 from the BSB translation
+fetch(`https://bible.helloao.org/api/BSB/GEN/1.simple.json`)
+    .then(request => request.json())
+    .then(chapter => {
+        for (let content of chapter.chapter.content) {
+            if (content.type === 'verse') {
+                console.log(`${content.number}. ${content.text}`);
+            }
+        }
+    });
+```
+
 ### Get the List of Available Commentaries
 
 ([reference](../reference/README.md#available-commentaries))

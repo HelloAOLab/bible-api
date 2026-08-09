@@ -26,8 +26,11 @@ import {
     TranslationBookChapterAudioLinks,
     TranslationBookChapterAudioTimings,
     CommentarySchema,
+    SimpleChapterDataSchema,
+    SimpleCommentaryChapterDataSchema,
 } from './common-types.js';
 import { DatasetOutput } from './dataset.js';
+import { simplifyChapter, simplifyCommentaryChapter } from './simple.js';
 import { BookIdSchema } from '../utils.js';
 
 /**
@@ -53,6 +56,15 @@ export interface ApiOutput {
      * - /api/:translationId/:bookCommonName/:chapterNumber.json
      */
     translationBookChapters: ApiTranslationBookChapter[];
+
+    /**
+     * The list of chapters for each book, in the simplified format.
+     * Omitted unless simplified chapter generation is enabled.
+     * This maps to the following endpoints:
+     * - /api/:translationId/:bookId/:chapterNumber.simple.json
+     * - /api/:translationId/:bookCommonName/:chapterNumber.simple.json
+     */
+    simpleTranslationBookChapters?: ApiSimpleTranslationBookChapter[];
 
     /**
      * The list of audio files.
@@ -92,6 +104,14 @@ export interface ApiOutput {
      * - /api/c/:commentaryId/:bookId/:chapterNumber.json
      */
     commentaryBookChapters: ApiCommentaryBookChapter[];
+
+    /**
+     * The list of chapters for each commentary book, in the simplified format.
+     * Omitted unless simplified chapter generation is enabled.
+     * This maps to the following endpoint:
+     * - /api/c/:commentaryId/:bookId/:chapterNumber.simple.json
+     */
+    simpleCommentaryBookChapters?: ApiSimpleCommentaryBookChapter[];
 
     /**
      * The list of individual profiles for each commentary.
@@ -1095,6 +1115,15 @@ export const ApiTranslationBookChapterSchema =
         numberOfVerses: z.number().meta({
             description: 'The number of verses that the chapter contains.',
         }),
+
+        /**
+         * The link to the simplified version of this chapter.
+         * Omitted if simplified chapters were not generated.
+         */
+        simpleChapterApiLink: z.string().optional().meta({
+            description:
+                'The API link to the simplified version of this chapter. Relative to the API origin. Omitted if simplified chapters are not available.',
+        }),
     }).meta({
         id: 'ApiTranslationBookChapter',
         description:
@@ -1103,6 +1132,44 @@ export const ApiTranslationBookChapterSchema =
 
 export type ApiTranslationBookChapter = z.infer<
     typeof ApiTranslationBookChapterSchema
+>;
+
+/**
+ * Defines an interface that contains information about a book chapter in a translation,
+ * using the simplified chapter format.
+ */
+export const ApiSimpleTranslationBookChapterSchema =
+    ApiTranslationBookChapterSchema.omit({
+        chapter: true,
+        simpleChapterApiLink: true,
+    })
+        .extend({
+            /**
+             * The simplified information for the chapter.
+             */
+            chapter: z
+                .lazy(() => SimpleChapterDataSchema)
+                .meta({
+                    description:
+                        'The simplified information for the chapter. Each verse contains a single text string, and the footnotes and formatting are represented by offsets into that string.',
+                }),
+
+            /**
+             * The link to the regular version of this chapter.
+             */
+            fullChapterApiLink: z.string().meta({
+                description:
+                    'The API link to the regular (non-simplified) version of this chapter. Relative to the API origin.',
+            }),
+        })
+        .meta({
+            id: 'ApiSimpleTranslationBookChapter',
+            description:
+                'Defines an interface that contains information about a book chapter in a translation, using the simplified chapter format.',
+        });
+
+export type ApiSimpleTranslationBookChapter = z.infer<
+    typeof ApiSimpleTranslationBookChapterSchema
 >;
 
 /**
@@ -1173,6 +1240,15 @@ export const ApiCommentaryBookChapterSchema =
         numberOfVerses: z.number().meta({
             description: 'The number of verses that the chapter contains.',
         }),
+
+        /**
+         * The link to the simplified version of this chapter.
+         * Omitted if simplified chapters were not generated.
+         */
+        simpleChapterApiLink: z.string().optional().meta({
+            description:
+                'The API link to the simplified version of this chapter. Relative to the API origin. Omitted if simplified chapters are not available.',
+        }),
     }).meta({
         id: 'ApiCommentaryBookChapter',
         description:
@@ -1181,6 +1257,44 @@ export const ApiCommentaryBookChapterSchema =
 
 export type ApiCommentaryBookChapter = z.infer<
     typeof ApiCommentaryBookChapterSchema
+>;
+
+/**
+ * Defines a schema that contains information about a book chapter in a commentary,
+ * using the simplified chapter format.
+ */
+export const ApiSimpleCommentaryBookChapterSchema =
+    ApiCommentaryBookChapterSchema.omit({
+        chapter: true,
+        simpleChapterApiLink: true,
+    })
+        .extend({
+            /**
+             * The simplified information for the chapter.
+             */
+            chapter: z
+                .lazy(() => SimpleCommentaryChapterDataSchema)
+                .meta({
+                    description:
+                        'The simplified information for the chapter. Each verse contains a single text string, and the footnotes and formatting are represented by offsets into that string.',
+                }),
+
+            /**
+             * The link to the regular version of this chapter.
+             */
+            fullChapterApiLink: z.string().meta({
+                description:
+                    'The API link to the regular (non-simplified) version of this chapter. Relative to the API origin.',
+            }),
+        })
+        .meta({
+            id: 'ApiSimpleCommentaryBookChapter',
+            description:
+                'Defines a schema that contains information about a book chapter in a commentary, using the simplified chapter format.',
+        });
+
+export type ApiSimpleCommentaryBookChapter = z.infer<
+    typeof ApiSimpleCommentaryBookChapterSchema
 >;
 
 /**
@@ -1471,6 +1585,14 @@ export interface GenerateApiOptions {
      * Whether to generate complete translation files for each translation.
      */
     generateCompleteTranslationFiles?: boolean;
+
+    /**
+     * Whether to generate simplified chapter files for each translation and commentary chapter.
+     * In the simplified format, the content of each verse is a single string instead of a list of
+     * formatted content, and the footnotes are available on the verses that they occur in.
+     * Defaults to false.
+     */
+    generateSimpleChapterFiles?: boolean;
 }
 
 /**
@@ -1484,6 +1606,7 @@ export function generateApiForDataset(
 ): ApiOutput {
     const { useCommonName, pathPrefix } = options;
     const apiPathPrefix = pathPrefix ? pathPrefix : '';
+    const generateSimpleChapterFiles = !!options.generateSimpleChapterFiles;
     let api: ApiOutput = {
         availableTranslations: {
             translations: [],
@@ -1502,6 +1625,11 @@ export function generateApiForDataset(
         commentaryProfileContents: [],
         pathPrefix: apiPathPrefix,
     };
+
+    if (generateSimpleChapterFiles) {
+        api.simpleTranslationBookChapters = [];
+        api.simpleCommentaryBookChapters = [];
+    }
 
     const getNativeName = options.getNativeName;
     const getEnglishName = options.getEnglishName;
@@ -1629,6 +1757,15 @@ export function generateApiForDataset(
                     nextChapterAudioTimings: null,
                     previousChapterAudioTimings: null,
                     numberOfVerses: 0,
+                    simpleChapterApiLink: generateSimpleChapterFiles
+                        ? bookChapterApiLink(
+                              translation.id,
+                              getBookLink(book),
+                              chapter.number,
+                              SIMPLE_JSON_EXTENSION,
+                              apiPathPrefix
+                          )
+                        : undefined,
                 };
 
                 for (let reader in thisChapterAudioLinks) {
@@ -1745,6 +1882,37 @@ export function generateApiForDataset(
                     nextChapter.thisChapterAudioLinks;
                 currentChapter.nextChapterAudioTimings =
                     nextChapter.thisChapterAudioTimings;
+            }
+        }
+
+        if (api.simpleTranslationBookChapters) {
+            const simpleChapterLink = (chapter: ApiTranslationBookChapter) =>
+                bookChapterApiLink(
+                    translation.id,
+                    getBookLink(chapter.book),
+                    chapter.chapter.number,
+                    SIMPLE_JSON_EXTENSION,
+                    apiPathPrefix
+                );
+
+            for (let i = 0; i < translationChapters.length; i++) {
+                const { chapter, simpleChapterApiLink, ...currentChapter } =
+                    translationChapters[i];
+                const previousChapter = translationChapters[i - 1];
+                const nextChapter = translationChapters[i + 1];
+
+                api.simpleTranslationBookChapters.push({
+                    ...currentChapter,
+                    chapter: simplifyChapter(chapter),
+                    thisChapterLink: simpleChapterLink(translationChapters[i]),
+                    fullChapterApiLink: currentChapter.thisChapterLink,
+                    previousChapterApiLink: previousChapter
+                        ? simpleChapterLink(previousChapter)
+                        : null,
+                    nextChapterApiLink: nextChapter
+                        ? simpleChapterLink(nextChapter)
+                        : null,
+                });
             }
         }
 
@@ -1907,6 +2075,15 @@ export function generateApiForDataset(
                     previousChapterApiLink: null,
                     previousChapterReference: null,
                     numberOfVerses: 0,
+                    simpleChapterApiLink: generateSimpleChapterFiles
+                        ? bookCommentaryChapterApiLink(
+                              commentary.id,
+                              getBookLink(book),
+                              chapter.number,
+                              SIMPLE_JSON_EXTENSION,
+                              apiPathPrefix
+                          )
+                        : undefined,
                 };
 
                 for (let c of chapter.content) {
@@ -1997,6 +2174,37 @@ export function generateApiForDataset(
                 };
                 // commentaryChapters[i].nextChapterAudioLinks =
                 //     commentaryChapters[i + 1].thisChapterAudioLinks;
+            }
+        }
+
+        if (api.simpleCommentaryBookChapters) {
+            const simpleChapterLink = (chapter: ApiCommentaryBookChapter) =>
+                bookCommentaryChapterApiLink(
+                    commentary.id,
+                    getBookLink(chapter.book),
+                    chapter.chapter.number,
+                    SIMPLE_JSON_EXTENSION,
+                    apiPathPrefix
+                );
+
+            for (let i = 0; i < commentaryChapters.length; i++) {
+                const { chapter, simpleChapterApiLink, ...currentChapter } =
+                    commentaryChapters[i];
+                const previousChapter = commentaryChapters[i - 1];
+                const nextChapter = commentaryChapters[i + 1];
+
+                api.simpleCommentaryBookChapters.push({
+                    ...currentChapter,
+                    chapter: simplifyCommentaryChapter(chapter),
+                    thisChapterLink: simpleChapterLink(commentaryChapters[i]),
+                    fullChapterApiLink: currentChapter.thisChapterLink,
+                    previousChapterApiLink: previousChapter
+                        ? simpleChapterLink(previousChapter)
+                        : null,
+                    nextChapterApiLink: nextChapter
+                        ? simpleChapterLink(nextChapter)
+                        : null,
+                });
             }
         }
 
@@ -2199,6 +2407,10 @@ export function generateFilesForApi(api: ApiOutput): OutputFile[] {
         files.push(jsonFile(bookChapter.thisChapterLink, bookChapter));
     }
 
+    for (let bookChapter of api.simpleTranslationBookChapters ?? []) {
+        files.push(jsonFile(bookChapter.thisChapterLink, bookChapter));
+    }
+
     for (let audio of api.translationBookChapterAudio) {
         files.push(downloadedFile(audio.link, audio.originalUrl));
     }
@@ -2251,6 +2463,10 @@ export function generateFilesForApi(api: ApiOutput): OutputFile[] {
     }
 
     for (let bookChapter of api.commentaryBookChapters) {
+        files.push(jsonFile(bookChapter.thisChapterLink, bookChapter));
+    }
+
+    for (let bookChapter of api.simpleCommentaryBookChapters ?? []) {
         files.push(jsonFile(bookChapter.thisChapterLink, bookChapter));
     }
 
@@ -2352,6 +2568,11 @@ export function listOfDatasetBooksApiLink(
 ): string {
     return `${prefix}/api/d/${datasetId}/books.json`;
 }
+
+/**
+ * The file extension that is used for chapters that are in the simplified format.
+ */
+export const SIMPLE_JSON_EXTENSION = 'simple.json';
 
 /**
  * Getes the API link for a book chapter.

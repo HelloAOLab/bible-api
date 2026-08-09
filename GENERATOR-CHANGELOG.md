@@ -3,6 +3,23 @@
 This is the log of changes for the Bible API Generator and associated tools.
 For information on the API itself, see [API-CHANGELOG.md](./API-CHANGELOG.md).
 
+## V2.2.0
+
+#### Date: 2026-08-09
+
+### :rocket: Features
+
+-   Added the ability to generate simplified chapter files.
+    -   In the simplified format, the content of each verse is a single string, and the footnotes and formatting are represented by offsets into that string.
+    -   Added the `generateSimpleChapterFiles` option to `generateApiForDataset()`. It defaults to `false`.
+    -   Added the `--no-generate-simple-chapter-files` flag to the CLI commands that generate API files. The CLI generates them by default.
+    -   Added the `generation/simple.js` module, which exports `simplifyChapter()`, `simplifyCommentaryChapter()`, `simplifyVerse()`, and `simplifyVerseContent()` for converting chapters into the simplified format.
+
+### :bug: Bug Fixes
+
+-   Fixed an issue where `import-api` would try to import every file in a book directory as a chapter.
+    -   Files like `1.hays.audioTimings.json` (and now `1.simple.json`) are no longer treated as chapters.
+
 ## V2.1.1
 
 #### Date: 2026-04-24

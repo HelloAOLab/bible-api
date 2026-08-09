@@ -384,6 +384,12 @@ export interface TranslationBookChapter {
     numberOfVerses: number;
 
     /**
+     * The link to the simplified version of this chapter.
+     * Omitted if simplified chapters are not available.
+     */
+    simpleChapterApiLink?: string;
+
+    /**
      * The information for the chapter.
      */
     chapter: ChapterData;
@@ -756,6 +762,418 @@ interface TranslationBookChapterAudioLinks {
             }
         ]
     }
+}
+```
+
+## Get a Simplified Chapter from a Translation
+
+`GET https://bible.helloao.org/api/{translation}/{book}/{chapter}.simple.json`
+
+Gets the content of a single chapter for a given book and translation, using the simplified format.
+
+In the simplified format, the content of each verse is a single string instead of a list of formatted content. This means you don't have to build the text of a verse yourself, which can be non-trivial to get right - especially when it comes to spacing. Anything that can't be represented by a plain string - footnotes, the Words of Jesus, poetry, and headings that occur in the middle of a verse - is kept as an offset into that string, so nothing is lost.
+
+Use this endpoint when you want the text of a chapter. Use [the regular chapter endpoint](#get-a-chapter-from-a-translation) when you want to render the chapter with its original formatting.
+
+-   `translation` is the ID of the translation (e.g. `BSB`).
+-   `book` is the ID of the book (e.g. `GEN` for Genesis - you can find a list of book IDs [here](https://ubsicap.github.io/usfm/identification/books.html)).
+-   `chapter` is the numerical chapter (e.g. `1` for the first chapter).
+
+### Code Example
+
+```ts:no-line-numbers title="fetch-simple-chapter.js"
+const translation = 'BSB';
+const book = 'GEN';
+const chapter = 1;
+
+// Get the text of Genesis 1 from the BSB translation
+fetch(`https://bible.helloao.org/api/${translation}/${book}/${chapter}.simple.json`)
+    .then(request => request.json())
+    .then(chapter => {
+        for (let content of chapter.chapter.content) {
+            if (content.type === 'verse') {
+                console.log(`${content.number}. ${content.text}`);
+            }
+        }
+    });
+```
+
+### Offsets
+
+All of the offsets in the simplified format - `offset`, `start`, and `end` - are indexes into the `text` of the verse that contains them. They are measured in UTF-16 code units, which is what JavaScript's `String.prototype.length` and `String.prototype.slice()` use.
+
+`start` is inclusive and `end` is exclusive, so `text.slice(start, end)` returns exactly the range of text that was marked. Footnote offsets are the position that the footnote's caller belongs at, so `text.slice(0, offset)` is the text that comes before it.
+
+### Structure
+
+```typescript:no-line-numbers title="simple-chapter.ts"
+export interface SimpleTranslationBookChapter {
+    /**
+     * The translation information for the book chapter.
+     */
+    translation: Translation;
+
+    /**
+     * The book information for the book chapter.
+     */
+    book: TranslationBook;
+
+    /**
+     * The link to the current chapter.
+     */
+    thisChapterLink: string;
+
+    /**
+     * The link to the regular (non-simplified) version of this chapter.
+     */
+    fullChapterApiLink: string;
+
+    /**
+     * The links to different audio versions for the chapter.
+     */
+    thisChapterAudioLinks: TranslationBookChapterAudioLinks;
+
+    /**
+     * The link to the next chapter, in the simplified format.
+     * Null if this is the last chapter in the translation.
+     */
+    nextChapterApiLink: string | null;
+
+    /**
+     * The links to different audio versions for the next chapter.
+     * Null if this is the last chapter in the translation.
+     */
+    nextChapterAudioLinks: TranslationBookChapterAudioLinks | null;
+
+    /**
+     * The link to the previous chapter, in the simplified format.
+     * Null if this is the first chapter in the translation.
+     */
+    previousChapterApiLink: string | null;
+
+    /**
+     * The links to different audio versions for the previous chapter.
+     * Null if this is the first chapter in the translation.
+     */
+    previousChapterAudioLinks: TranslationBookChapterAudioLinks | null;
+
+    /**
+     * The number of verses that the chapter contains.
+     */
+    numberOfVerses: number;
+
+    /**
+     * The information for the chapter.
+     */
+    chapter: SimpleChapterData;
+}
+
+interface SimpleChapterData {
+    /**
+     * The number of the chapter.
+     */
+    number: number;
+
+    /**
+     * The content of the chapter.
+     */
+    content: SimpleChapterContent[];
+
+    /**
+     * The list of footnotes that could not be associated with a verse.
+     * Footnotes that belong to a verse are included on the verse itself,
+     * so this list is usually empty.
+     */
+    footnotes: ChapterFootnote[];
+}
+
+/**
+ * A union type that represents a single piece of content in a simplified chapter.
+ */
+type SimpleChapterContent = SimpleChapterHeading | ChapterLineBreak | SimpleChapterVerse | SimpleChapterHebrewSubtitle;
+
+/**
+ * A heading in a chapter.
+ */
+interface SimpleChapterHeading {
+    /**
+     * Indicates that the content represents a heading.
+     */
+    type: 'heading';
+
+    /**
+     * The text of the heading.
+     */
+    text: string;
+}
+
+/**
+ * A line break in a chapter.
+ */
+interface ChapterLineBreak {
+    /**
+     * Indicates that the content represents a line break.
+     */
+    type: 'line_break';
+}
+
+/**
+ * A verse in a chapter.
+ */
+interface SimpleChapterVerse {
+    /**
+     * Indicates that the content is a verse.
+     */
+    type: 'verse';
+
+    /**
+     * The number of the verse.
+     */
+    number: number;
+
+    /**
+     * The text of the verse.
+     * Lines of poetry and line breaks are separated by newline (\n) characters.
+     */
+    text: string;
+
+    /**
+     * The footnotes that occur in the verse.
+     */
+    footnotes: SimpleVerseFootnote[];
+
+    /**
+     * The headings that occur in the middle of the verse.
+     * Omitted if the verse contains no inline headings.
+     */
+    headings?: SimpleInlineHeading[];
+
+    /**
+     * The ranges of the verse text that represent the Words of Jesus.
+     * Omitted if the verse contains none.
+     */
+    wordsOfJesus?: SimpleTextRange[];
+
+    /**
+     * The ranges of the verse text that represent lines of poetry.
+     * Omitted if the verse contains none.
+     */
+    poem?: SimplePoemRange[];
+}
+
+/**
+ * A Hebrew Subtitle in a chapter.
+ * These are often included as informational content that appeared in the original manuscripts.
+ * For example, Psalms 49 has the Hebrew Subtitle "To the choirmaster. A Psalm of the Sons of Korah."
+ */
+interface SimpleChapterHebrewSubtitle extends Omit<SimpleChapterVerse, 'type' | 'number'> {
+    /**
+     * Indicates that the content represents a Hebrew Subtitle.
+     */
+    type: 'hebrew_subtitle';
+}
+
+/**
+ * A footnote in a verse.
+ */
+interface SimpleVerseFootnote {
+    /**
+     * The ID of the note.
+     */
+    noteId: number;
+
+    /**
+     * The index in the verse text that the footnote caller should be inserted at.
+     */
+    offset: number;
+
+    /**
+     * The text of the footnote.
+     */
+    text: string;
+
+    /**
+     * The caller that should be used for the footnote.
+     * If "+", then the caller should be autogenerated.
+     * If null, then the caller should be empty.
+     * If a string, then the caller should be that string.
+     */
+    caller: '+' | string | null;
+}
+
+/**
+ * A heading that is embedded in a verse.
+ */
+interface SimpleInlineHeading {
+    /**
+     * The index in the verse text that the heading occurs at.
+     */
+    offset: number;
+
+    /**
+     * The text of the heading.
+     */
+    text: string;
+}
+
+/**
+ * A range of text inside a verse.
+ */
+interface SimpleTextRange {
+    /**
+     * The index of the first character of the range.
+     */
+    start: number;
+
+    /**
+     * The index after the last character of the range.
+     */
+    end: number;
+}
+
+/**
+ * A range of text inside a verse that represents a line of poetry.
+ */
+interface SimplePoemRange extends SimpleTextRange {
+    /**
+     * The level of indent that the line of poetry should be displayed with.
+     */
+    level: number;
+}
+```
+
+### Example
+
+```json:no-line-numbers title="/api/BSB/GEN/1.simple.json"
+{
+    "translation": {
+        "id": "BSB",
+        "name": "Berean Standard Bible",
+        "website": "https://berean.bible/",
+        "licenseUrl": "https://berean.bible/",
+        "shortName": "BSB",
+        "englishName": "Berean Standard Bible",
+        "language": "eng",
+        "textDirection": "ltr",
+        "availableFormats": [
+            "json"
+        ],
+        "listOfBooksApiLink": "/api/BSB/books.json",
+        "numberOfBooks": 66,
+        "totalNumberOfChapters": 1189,
+        "totalNumberOfVerses": 31086,
+        "languageName": "English",
+        "languageEnglishName": "English"
+    },
+    "book": {
+        "id": "GEN",
+        "name": "Genesis",
+        "commonName": "Genesis",
+        "title": "Genesis",
+        "order": 1,
+        "numberOfChapters": 50,
+        "firstChapterApiLink": "/api/BSB/GEN/1.json",
+        "lastChapterApiLink": "/api/BSB/GEN/50.json",
+        "totalNumberOfVerses": 1533
+    },
+    "thisChapterLink": "/api/BSB/GEN/1.simple.json",
+    "fullChapterApiLink": "/api/BSB/GEN/1.json",
+    "thisChapterReference": {
+        "translationId": "BSB",
+        "book": "GEN",
+        "chapter": 1
+    },
+    "thisChapterAudioLinks": {
+        "hays": "https://audio.bible.helloao.org/api/BSB/GEN/1/audio/hays.mp3",
+        "souer": "https://audio.bible.helloao.org/api/BSB/GEN/1/audio/souer.mp3",
+        "david": "https://audio.bible.helloao.org/api/BSB/GEN/1/audio/david.mp3"
+    },
+    "nextChapterApiLink": "/api/BSB/GEN/2.simple.json",
+    "nextChapterReference": {
+        "translationId": "BSB",
+        "book": "GEN",
+        "chapter": 2
+    },
+    "previousChapterApiLink": null,
+    "previousChapterReference": null,
+    "numberOfVerses": 31,
+    "chapter": {
+        "number": 1,
+        "content": [
+            {
+                "type": "heading",
+                "text": "The Creation"
+            },
+            {
+                "type": "line_break"
+            },
+            {
+                "type": "verse",
+                "number": 1,
+                "text": "In the beginning God created the heavens and the earth.",
+                "footnotes": []
+            },
+            {
+                "type": "line_break"
+            },
+            {
+                "type": "verse",
+                "number": 2,
+                "text": "Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.",
+                "footnotes": []
+            },
+            {
+                "type": "heading",
+                "text": "The First Day"
+            },
+            {
+                "type": "line_break"
+            },
+            {
+                "type": "verse",
+                "number": 3,
+                "text": "And God said, “Let there be light,” and there was light.",
+                "footnotes": [
+                    {
+                        "noteId": 0,
+                        "offset": 35,
+                        "text": "Cited in 2 Corinthians 4:6",
+                        "caller": "+"
+                    }
+                ]
+            }
+        ],
+        "footnotes": []
+    }
+}
+```
+
+Poetry and the Words of Jesus are kept as ranges over the verse text. For example, `Matthew 5:3` in the `engwebp` translation looks like this:
+
+```json:no-line-numbers title="/api/engwebp/MAT/5.simple.json"
+{
+    "type": "verse",
+    "number": 3,
+    "text": "“Blessed are the poor in spirit,\nfor theirs is the Kingdom of Heaven.",
+    "footnotes": [],
+    "wordsOfJesus": [
+        {
+            "start": 0,
+            "end": 69
+        }
+    ],
+    "poem": [
+        {
+            "start": 0,
+            "end": 32,
+            "level": 1
+        },
+        {
+            "start": 33,
+            "end": 69,
+            "level": 2
+        }
+    ]
 }
 ```
 
@@ -1218,6 +1636,8 @@ Gets the content of a single chapter for a given book and commentary.
 -   `commentary` the ID of the commentary (e.g. `adam-clarke`).
 -   `book` is the ID of the book (e.g. `GEN` for Genesis).
 -   `chapter` is the numerical chapter number (e.g. `1` for the first chapter).
+
+A simplified version of this endpoint is available at `https://bible.helloao.org/api/c/{commentary}/{book}/{chapter}.simple.json`. It works the same way as [the simplified chapter endpoint for translations](#get-a-simplified-chapter-from-a-translation): the content of each verse is a single string, and the chapter keeps its optional `introduction`. Every regular commentary chapter includes a `simpleChapterApiLink` that points at it.
 
 ### Code Example
 
