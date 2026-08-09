@@ -1,4 +1,6 @@
 import { USXParser } from './usx-parser.js';
+import { Chapter, ChapterWord, ParseTree, Text, Verse } from './types.js';
+import { matchingParent } from './iterators.js';
 import { DOMParser, Element, Node } from 'linkedom';
 import Matthew from '../../../bible/webp_usx/mat.usx';
 import John from '../../../bible/webp_usx/jhn.usx';
@@ -44,7 +46,7 @@ describe('USXParser', () => {
                 </usx>
             `;
             const tree = parser.parse(usx);
-            expect(tree).toEqual({
+            expect(withoutWords(tree)).toEqual({
                 type: 'root',
                 id: 'GEN',
                 header: 'Genesis',
@@ -134,7 +136,7 @@ describe('USXParser', () => {
                 </usx>
             `;
             const tree = parser.parse(usx);
-            expect(tree).toEqual({
+            expect(withoutWords(tree)).toEqual({
                 type: 'root',
                 id: 'GEN',
                 header: 'Genesis',
@@ -202,7 +204,7 @@ describe('USXParser', () => {
                 </usx>
             `;
             const tree = parser.parse(usx);
-            expect(tree).toEqual({
+            expect(withoutWords(tree)).toEqual({
                 type: 'root',
                 id: 'GEN',
                 title: 'The Title of the Book',
@@ -260,7 +262,7 @@ describe('USXParser', () => {
                 </usx>
             `;
             const tree = parser.parse(usx);
-            expect(tree).toEqual({
+            expect(withoutWords(tree)).toEqual({
                 type: 'root',
                 id: 'GEN',
                 title: 'The Title of the Book',
@@ -318,7 +320,7 @@ describe('USXParser', () => {
                 </usx>
             `;
             const tree = parser.parse(usx);
-            expect(tree).toEqual({
+            expect(withoutWords(tree)).toEqual({
                 type: 'root',
                 id: 'GEN',
                 header: 'Genesis',
@@ -400,7 +402,7 @@ describe('USXParser', () => {
                 </usx>
             `;
             const tree = parser.parse(usx);
-            expect(tree).toEqual({
+            expect(withoutWords(tree)).toEqual({
                 type: 'root',
                 id: 'GEN',
                 header: 'Genesis',
@@ -512,7 +514,7 @@ describe('USXParser', () => {
                 </usx>
             `;
             const tree = parser.parse(usx);
-            expect(tree).toEqual({
+            expect(withoutWords(tree)).toEqual({
                 type: 'root',
                 id: 'GEN',
                 header: 'Genesis',
@@ -689,7 +691,7 @@ describe('USXParser', () => {
                 </usx>
             `;
             const tree = parser.parse(usx);
-            expect(tree).toEqual({
+            expect(withoutWords(tree)).toEqual({
                 type: 'root',
                 id: 'GEN',
                 header: 'Genesis',
@@ -778,7 +780,7 @@ describe('USXParser', () => {
                 </usx>
             `;
             const tree = parser.parse(usx);
-            expect(tree).toEqual({
+            expect(withoutWords(tree)).toEqual({
                 type: 'root',
                 id: 'PSA',
                 content: [
@@ -844,7 +846,7 @@ describe('USXParser', () => {
                 </usx>
             `;
             const tree = parser.parse(usx);
-            expect(tree).toEqual({
+            expect(withoutWords(tree)).toEqual({
                 type: 'root',
                 id: 'ZEC',
                 content: [
@@ -914,7 +916,7 @@ describe('USXParser', () => {
                 </usx>
             `;
             const tree = parser.parse(usx);
-            expect(tree).toEqual({
+            expect(withoutWords(tree)).toEqual({
                 type: 'root',
                 id: 'MAT',
                 content: [
@@ -954,7 +956,7 @@ describe('USXParser', () => {
                 </usx>
             `;
             const tree = parser.parse(usx);
-            expect(tree).toEqual({
+            expect(withoutWords(tree)).toEqual({
                 type: 'root',
                 id: 'JHN',
                 content: [
@@ -988,7 +990,7 @@ describe('USXParser', () => {
 
             const tree = parser.parse(usx);
 
-            expect(tree).toEqual({
+            expect(withoutWords(tree)).toEqual({
                 type: 'root',
                 id: 'MAT',
                 content: [
@@ -1029,7 +1031,7 @@ describe('USXParser', () => {
 
             const tree = parser.parse(usx);
 
-            expect(tree).toEqual({
+            expect(withoutWords(tree)).toEqual({
                 type: 'root',
                 id: 'MAT',
                 content: [
@@ -1071,7 +1073,7 @@ describe('USXParser', () => {
 
             const tree = parser.parse(usx);
 
-            expect(tree).toEqual({
+            expect(withoutWords(tree)).toEqual({
                 type: 'root',
                 id: 'MAT',
                 content: [
@@ -1124,7 +1126,7 @@ describe('USXParser', () => {
 
             const tree = parser.parse(usx);
 
-            expect(tree).toEqual({
+            expect(withoutWords(tree)).toEqual({
                 type: 'root',
                 id: 'PSA',
                 content: [
@@ -1217,7 +1219,7 @@ describe('USXParser', () => {
 
             const tree = parser.parse(usx);
 
-            expect(tree).toEqual({
+            expect(withoutWords(tree)).toEqual({
                 type: 'root',
                 id: 'LAM',
                 content: [
@@ -1301,7 +1303,7 @@ describe('USXParser', () => {
                 </usx>
             `;
             const tree = parser.parse(usx);
-            expect(tree).toEqual({
+            expect(withoutWords(tree)).toEqual({
                 type: 'root',
                 id: 'MAT',
                 content: [
@@ -1344,7 +1346,7 @@ describe('USXParser', () => {
             `;
 
             const tree = parser.parse(usx);
-            expect(tree).toEqual({
+            expect(withoutWords(tree)).toEqual({
                 type: 'root',
                 id: 'GET',
                 content: [
@@ -1389,7 +1391,7 @@ describe('USXParser', () => {
             `;
 
             const tree = parser.parse(usx);
-            expect(tree).toEqual({
+            expect(withoutWords(tree)).toEqual({
                 type: 'root',
                 id: 'MAT',
                 content: [
@@ -1456,7 +1458,7 @@ describe('USXParser', () => {
             `;
 
             const tree = parser.parse(usx);
-            expect(tree).toEqual({
+            expect(withoutWords(tree)).toEqual({
                 type: 'root',
                 id: 'ZEC',
                 content: [
@@ -1554,23 +1556,23 @@ describe('USXParser', () => {
 
         it('should be able to parse a whole book', () => {
             const tree = parser.parse(Matthew);
-            expect(tree).toMatchSnapshot();
+            expect(withoutWords(tree)).toMatchSnapshot();
         });
 
         it('should be able to parse John', () => {
             const tree = parser.parse(John);
-            expect(tree).toMatchSnapshot();
+            expect(withoutWords(tree)).toMatchSnapshot();
         });
 
         it('should be able to parse 1SA', () => {
             const tree = parser.parse(Sa);
-            expect(tree).toMatchSnapshot();
+            expect(withoutWords(tree)).toMatchSnapshot();
         });
 
         it('should not ignore the first word of a verse', () => {
             const usx = firstXLines(John, 38) + '\n</usx>';
             const tree = parser.parse(usx);
-            expect(tree).toMatchSnapshot();
+            expect(withoutWords(tree)).toMatchSnapshot();
         });
 
         it('should not ignore the first word of continuation on a verse', () => {
@@ -1582,7 +1584,7 @@ describe('USXParser', () => {
                 <para style="q2"><char style="w" strong="G2532">and</char> <char style="w" strong="G2532">shall</char> <char style="w" strong="G5088">give</char> <char style="w" strong="G5088">birth</char> <char style="w" strong="G2532">to</char> <char style="w" strong="G2192">a</char> <char style="w" strong="G5207">son</char>.</para>
             </usx>`;
             const tree = parser.parse(usx);
-            expect(tree).toEqual({
+            expect(withoutWords(tree)).toEqual({
                 type: 'root',
                 id: 'MAT',
                 content: [
@@ -1672,7 +1674,7 @@ describe('USXParser', () => {
                 </usx>
             `;
             const tree = parser.parse(usx);
-            expect(tree).toEqual({
+            expect(withoutWords(tree)).toEqual({
                 type: 'root',
                 id: 'GEN',
                 header: 'Genesis',
@@ -1770,7 +1772,7 @@ describe('USXParser', () => {
                 </usx>
             `;
             const tree = parser.parse(usx);
-            expect(tree).toEqual({
+            expect(withoutWords(tree)).toEqual({
                 type: 'root',
                 id: 'GEN',
                 header: 'Genesis',
@@ -1821,9 +1823,458 @@ describe('USXParser', () => {
         //     expect(tree).toEqual(usfmTree);
         // })
     });
+
+    describe('word annotations', () => {
+        it('should map words onto the merged text of a verse', () => {
+            const usx = `
+            <usx version="3.0">
+                <book code="GEN" style="id">- Berean Study Bible</book>
+                <chapter number="1" style="c" sid="GEN 1"/>
+                <para style="m">
+                    <verse number="1" style="v" sid="GEN 1:1"/>
+                    <char style="w" strong="H7225">In</char>
+                    <char style="w" strong="H1254">the</char>
+                    <char style="w" strong="H7225">beginning</char>.
+                    <verse eid="GEN 1:1"/>
+                </para>
+            </usx>`;
+            const tree = parser.parse(usx);
+
+            expect(wordsWithText(tree, 1, 1)).toEqual([
+                {
+                    contentIndex: 0,
+                    start: 0,
+                    end: 2,
+                    strongs: ['H7225'],
+                    text: 'In',
+                },
+                {
+                    contentIndex: 0,
+                    start: 3,
+                    end: 6,
+                    strongs: ['H1254'],
+                    text: 'the',
+                },
+                {
+                    contentIndex: 0,
+                    start: 7,
+                    end: 16,
+                    strongs: ['H7225'],
+                    text: 'beginning',
+                },
+            ]);
+        });
+
+        it('should support multiple Strongs numbers on a single word', () => {
+            const usx = `
+            <usx version="3.0">
+                <book code="GEN" style="id">- Berean Study Bible</book>
+                <chapter number="1" style="c" sid="GEN 1"/>
+                <para style="m">
+                    <verse number="1" style="v" sid="GEN 1:1"/>
+                    <char style="w" strong="H1234, H5678">Word</char>
+                    <verse eid="GEN 1:1"/>
+                </para>
+            </usx>`;
+            const tree = parser.parse(usx);
+
+            expect(wordsWithText(tree, 1, 1)).toEqual([
+                {
+                    contentIndex: 0,
+                    start: 0,
+                    end: 4,
+                    strongs: ['H1234', 'H5678'],
+                    text: 'Word',
+                },
+            ]);
+        });
+
+        it('should support all of the word attributes', () => {
+            const usx = `
+            <usx version="3.0">
+                <book code="GEN" style="id">- Berean Study Bible</book>
+                <chapter number="1" style="c" sid="GEN 1"/>
+                <para style="m">
+                    <verse number="1" style="v" sid="GEN 1:1"/>
+                    <char style="w" strong="G1722" lemma="&#x1F10;&#x3BD;" x-morph="Gr,P,,,,,D,,," srcloc="gnt5:51.1.2.1" x-occurrence="1" x-occurrences="3">In</char>
+                    <verse eid="GEN 1:1"/>
+                </para>
+            </usx>`;
+            const tree = parser.parse(usx);
+
+            expect(wordsWithText(tree, 1, 1)).toEqual([
+                {
+                    contentIndex: 0,
+                    start: 0,
+                    end: 2,
+                    strongs: ['G1722'],
+                    lemma: 'ἐν',
+                    morph: 'Gr,P,,,,,D,,,',
+                    srcloc: 'gnt5:51.1.2.1',
+                    occurrence: 1,
+                    occurrences: 3,
+                    text: 'In',
+                },
+            ]);
+        });
+
+        it('should support words that have no Strongs number', () => {
+            const usx = `
+            <usx version="3.0">
+                <book code="GEN" style="id">- Berean Study Bible</book>
+                <chapter number="1" style="c" sid="GEN 1"/>
+                <para style="m">
+                    <verse number="1" style="v" sid="GEN 1:1"/>
+                    <char style="w" srcloc="gnt5:51.1.2.1">In</char>
+                    <verse eid="GEN 1:1"/>
+                </para>
+            </usx>`;
+            const tree = parser.parse(usx);
+
+            expect(wordsWithText(tree, 1, 1)).toEqual([
+                {
+                    contentIndex: 0,
+                    start: 0,
+                    end: 2,
+                    srcloc: 'gnt5:51.1.2.1',
+                    text: 'In',
+                },
+            ]);
+        });
+
+        it('should not include words for chapters that have no annotations', () => {
+            const usx = `
+            <usx version="3.0">
+                <book code="GEN" style="id">- Berean Study Bible</book>
+                <chapter number="1" style="c" sid="GEN 1"/>
+                <para style="m">
+                    <verse number="1" style="v" sid="GEN 1:1"/>
+                    <char style="w">In</char> the beginning.
+                    <verse eid="GEN 1:1"/>
+                </para>
+            </usx>`;
+            const tree = parser.parse(usx);
+            const chapter = tree.content[0] as Chapter;
+
+            expect(chapter.type).toBe('chapter');
+            expect('words' in chapter).toBe(false);
+        });
+
+        it('should anchor words to each poem line', () => {
+            const usx = `
+            <usx version="3.0">
+                <book code="MAT" style="id">- World English Bible</book>
+                <chapter number="1" style="c" sid="MAT 1"/>
+                <para style="q1"><verse number="23" style="v" sid="MAT 1:23"/><char style="w" strong="G2400">Behold</char>, <char style="w" strong="G3933">the</char> <char style="w" strong="G3933">virgin</char></para>
+                <para style="q2"><char style="w" strong="G2532">and</char> <char style="w" strong="G5207">son</char>.</para>
+            </usx>`;
+            const tree = parser.parse(usx);
+
+            expect(wordsWithText(tree, 1, 23)).toEqual([
+                {
+                    contentIndex: 0,
+                    start: 0,
+                    end: 6,
+                    strongs: ['G2400'],
+                    text: 'Behold',
+                },
+                {
+                    contentIndex: 0,
+                    start: 8,
+                    end: 11,
+                    strongs: ['G3933'],
+                    text: 'the',
+                },
+                {
+                    contentIndex: 0,
+                    start: 12,
+                    end: 18,
+                    strongs: ['G3933'],
+                    text: 'virgin',
+                },
+                {
+                    contentIndex: 1,
+                    start: 0,
+                    end: 3,
+                    strongs: ['G2532'],
+                    text: 'and',
+                },
+                {
+                    contentIndex: 1,
+                    start: 4,
+                    end: 7,
+                    strongs: ['G5207'],
+                    text: 'son',
+                },
+            ]);
+        });
+
+        it('should support words that are nested in the words of Jesus', () => {
+            const usx = `
+            <usx version="3.0">
+                <book code="JHN" style="id">- World English Bible</book>
+                <chapter number="1" style="c" sid="JHN 1"/>
+                <para style="p"><verse number="38" style="v" sid="JHN 1:38"/><char style="w" strong="G2424">Jesus</char> <char style="w" strong="G3004">said</char>, <char style="wj">&#8220;<char style="w" strong="G5101">What</char> <char style="w" strong="G2212">are</char> <char style="w" strong="G4771">you</char>?&#8221;</char><verse eid="JHN 1:38"/></para>
+            </usx>`;
+            const tree = parser.parse(usx);
+
+            expect(wordsWithText(tree, 1, 38)).toEqual([
+                {
+                    contentIndex: 0,
+                    start: 0,
+                    end: 5,
+                    strongs: ['G2424'],
+                    text: 'Jesus',
+                },
+                {
+                    contentIndex: 0,
+                    start: 6,
+                    end: 10,
+                    strongs: ['G3004'],
+                    text: 'said',
+                },
+                {
+                    contentIndex: 1,
+                    start: 1,
+                    end: 5,
+                    strongs: ['G5101'],
+                    text: 'What',
+                },
+                {
+                    contentIndex: 1,
+                    start: 6,
+                    end: 9,
+                    strongs: ['G2212'],
+                    text: 'are',
+                },
+                {
+                    contentIndex: 1,
+                    start: 10,
+                    end: 13,
+                    strongs: ['G4771'],
+                    text: 'you',
+                },
+            ]);
+        });
+
+        it('should anchor words around footnotes', () => {
+            const usx = `
+            <usx version="3.0">
+                <book code="GEN" style="id">- Berean Study Bible</book>
+                <chapter number="1" style="c" sid="GEN 1"/>
+                <para style="m">
+                    <verse number="1" style="v" sid="GEN 1:1"/>
+                    <char style="w" strong="H7225">In</char>
+                    <note caller="+" style="f"><char style="fr" closed="false">1:1 </char><char style="ft" closed="false">A note.</char></note>
+                    <char style="w" strong="H1254">the</char>
+                    <char style="w" strong="H7225">beginning</char>
+                    <verse eid="GEN 1:1"/>
+                </para>
+            </usx>`;
+            const tree = parser.parse(usx);
+
+            expect(wordsWithText(tree, 1, 1)).toEqual([
+                {
+                    contentIndex: 0,
+                    start: 0,
+                    end: 2,
+                    strongs: ['H7225'],
+                    text: 'In',
+                },
+                {
+                    contentIndex: 2,
+                    start: 0,
+                    end: 3,
+                    strongs: ['H1254'],
+                    text: 'the',
+                },
+                {
+                    contentIndex: 2,
+                    start: 4,
+                    end: 13,
+                    strongs: ['H7225'],
+                    text: 'beginning',
+                },
+            ]);
+        });
+
+        describe('bundled books', () => {
+            const books = [
+                ['MAT', Matthew],
+                ['JHN', John],
+                ['1SA', Sa],
+            ] as const;
+
+            it.each(books)(
+                'should cover every annotated word in %s',
+                (_name, book) => {
+                    const tree = parser.parse(book);
+                    const expected = wordTextBySourceVerse(book);
+
+                    let total = 0;
+                    for (let content of tree.content) {
+                        if (content.type !== 'chapter') {
+                            continue;
+                        }
+
+                        for (let c of content.content) {
+                            if (c.type !== 'verse') {
+                                continue;
+                            }
+
+                            const key = `${content.number}:${c.number}`;
+                            const words = wordsWithText(
+                                tree,
+                                content.number,
+                                c.number
+                            );
+
+                            // Every range must slice exactly the word that the
+                            // source tagged, in the order that the source tagged
+                            // them.
+                            expect({ [key]: words.map((w) => w.text) }).toEqual(
+                                {
+                                    [key]: expected.get(key) ?? [],
+                                }
+                            );
+
+                            total += words.length;
+                        }
+                    }
+
+                    expect(total).toBeGreaterThan(18000);
+                }
+            );
+        });
+    });
 });
 
 function firstXLines(content: string, x: number) {
     const lines = content.split('\n');
     return lines.slice(0, x).join('\n');
+}
+
+/**
+ * Removes the word annotations from the given parse tree.
+ *
+ * The assertions above describe the content of the parse tree. Word annotations
+ * are an index into that content, so they are asserted separately by the
+ * 'word annotations' tests instead of being repeated in every expected tree.
+ */
+function withoutWords(tree: ParseTree): ParseTree {
+    return {
+        ...tree,
+        content: tree.content.map((content) => {
+            if (content.type !== 'chapter' || !content.words) {
+                return content;
+            }
+            const { words, ...chapter } = content;
+            return chapter;
+        }),
+    };
+}
+
+/**
+ * Walks the given USX content and collects the text of every annotated word,
+ * keyed by the "chapter:verse" that contains it.
+ *
+ * This is deliberately independent of the parser: it reads the expectations
+ * straight out of the source so that the ranges the parser produces can be
+ * checked against it.
+ */
+function wordTextBySourceVerse(usx: string): Map<string, string[]> {
+    const doc = new DOMParser().parseFromString(usx, 'text/xml');
+    const result = new Map<string, string[]>();
+    let chapter = 0;
+    let verse: string | null = null;
+
+    const walk = (node: any) => {
+        for (let child of node.childNodes as any[]) {
+            if (child.nodeType === 1) {
+                if (child.nodeName === 'chapter') {
+                    if (!child.hasAttribute('eid')) {
+                        chapter = parseInt(
+                            child.getAttribute('number') || '0',
+                            10
+                        );
+                        verse = null;
+                    }
+                } else if (child.nodeName === 'verse') {
+                    verse = child.hasAttribute('eid')
+                        ? null
+                        : `${chapter}:${child.getAttribute('number')}`;
+                } else if (
+                    child.nodeName === 'char' &&
+                    child.getAttribute('style') === 'w' &&
+                    child.getAttribute('strong')
+                ) {
+                    // Words inside notes become footnote text, so they are not
+                    // part of the verse content that the ranges point into.
+                    const inNote = !!matchingParent(
+                        child,
+                        (n: any) => n.nodeName === 'note'
+                    );
+                    const text = (child.textContent || '')
+                        .replace(/\s+/g, ' ')
+                        .trim();
+
+                    if (verse && !inNote && text) {
+                        const words = result.get(verse) ?? [];
+                        words.push(text);
+                        result.set(verse, words);
+                    }
+
+                    // Nested words are covered by the outer one.
+                    continue;
+                }
+            }
+
+            walk(child);
+        }
+    };
+
+    walk(doc.documentElement);
+    return result;
+}
+
+/**
+ * Gets the word annotations for the given verse of the given chapter, paired
+ * with the text that each one covers, so that both the annotations and the
+ * ranges can be asserted at once.
+ */
+function wordsWithText(
+    tree: ParseTree,
+    chapterNumber: number,
+    verseNumber: number
+): (ChapterWord & { text: string })[] {
+    const chapter = tree.content.find(
+        (c): c is Chapter => c.type === 'chapter' && c.number === chapterNumber
+    );
+
+    if (!chapter) {
+        throw new Error(`Chapter ${chapterNumber} was not parsed.`);
+    }
+
+    const verse = chapter.content.find(
+        (c): c is Verse => c.type === 'verse' && c.number === verseNumber
+    );
+
+    if (!verse) {
+        throw new Error(
+            `Verse ${chapterNumber}:${verseNumber} was not parsed.`
+        );
+    }
+
+    const words = chapter.words?.[verseNumber.toString()] ?? [];
+
+    return words.map((word) => {
+        const content = verse.content[word.contentIndex];
+        const text =
+            typeof content === 'string' ? content : (content as Text).text;
+
+        return {
+            ...word,
+            text: text.slice(word.start, word.end),
+        };
+    });
 }

@@ -379,6 +379,26 @@ export interface TranslationBookChapter {
     previousChapterAudioLinks: TranslationBookChapterAudioLinks | null;
 
     /**
+     * The link to the word-level annotations for the chapter.
+     * Omitted if the chapter doesn't have any word-level annotations.
+     */
+    thisChapterWordsLink?: string;
+
+    /**
+     * The link to the word-level annotations for the next chapter.
+     * Omitted if this is the last chapter in the translation, or if the next chapter
+     * doesn't have any word-level annotations.
+     */
+    nextChapterWordsLink?: string;
+
+    /**
+     * The link to the word-level annotations for the previous chapter.
+     * Omitted if this is the first chapter in the translation, or if the previous
+     * chapter doesn't have any word-level annotations.
+     */
+    previousChapterWordsLink?: string;
+
+    /**
      * The number of verses that the chapter contains.
      */
     numberOfVerses: number;
@@ -758,6 +778,224 @@ interface TranslationBookChapterAudioLinks {
     }
 }
 ```
+
+## Get the Words of a Chapter
+
+`GET https://bible.helloao.org/api/{translation}/{book}/{chapter}.words.json`
+
+Gets the word-level annotations (Strong's numbers and related source data) for a single chapter.
+
+Only some translations include word-level annotations. A chapter that has them links to this
+file with `thisChapterWordsLink`; when that property is missing, this file does not exist for
+the chapter.
+
+- `translation` is the ID of the translation (e.g. `BSB`).
+- `book` is the ID of the book (e.g. `GEN` for Genesis - you can find a list of book IDs [here](https://ubsicap.github.io/usfm/identification/books.html)).
+- `chapter` is the numerical chapter (e.g. `1` for the first chapter).
+
+Each annotation is anchored to a range of characters in a single item of a verse's `content`
+array: `contentIndex` is the index of the item, and `start`/`end` are character offsets into
+that item's text. `end` is exclusive, so `text.slice(start, end)` is the annotated word.
+
+Anchoring to a content item (instead of to the verse as a whole) means the offsets stay
+correct for verses whose content is split into multiple items, such as poem lines, words of
+Jesus, and footnote references.
+
+### Code Example
+
+```ts:no-line-numbers title="fetch-chapter-words.js"
+const translation = 'BSB';
+const book = 'GEN';
+const chapter = 1;
+
+// Get the words for Genesis 1 from the BSB translation
+fetch(`https://bible.helloao.org/api/${translation}/${book}/${chapter}.words.json`)
+    .then(request => request.json())
+    .then(words => {
+        console.log('Genesis 1 words (BSB):', words);
+    });
+```
+
+### Structure
+
+```typescript:no-line-numbers title="chapter-words.ts"
+export interface TranslationBookChapterWords {
+    /**
+     * The ID of the translation.
+     */
+    translationId: string;
+
+    /**
+     * The ID of the book.
+     */
+    bookId: string;
+
+    /**
+     * The number of the chapter.
+     */
+    chapterNumber: number;
+
+    /**
+     * The link to the information for this chapter.
+     */
+    thisChapterLink: string;
+
+    /**
+     * The link to the information for the next chapter.
+     * Null if this is the last chapter in the translation.
+     */
+    nextChapterLink: string | null;
+
+    /**
+     * The link to the information for the previous chapter.
+     * Null if this is the first chapter in the translation.
+     */
+    previousChapterLink: string | null;
+
+    /**
+     * The link to this words file.
+     */
+    thisChapterWordsLink: string;
+
+    /**
+     * The link to the words for the next chapter.
+     * Null if this is the last chapter in the translation, or if the next chapter
+     * doesn't have any word-level annotations.
+     */
+    nextChapterWordsLink: string | null;
+
+    /**
+     * The link to the words for the previous chapter.
+     * Null if this is the first chapter in the translation, or if the previous chapter
+     * doesn't have any word-level annotations.
+     */
+    previousChapterWordsLink: string | null;
+
+    /**
+     * The annotated words for each verse in the chapter, keyed by verse number.
+     * Each list is in the order that the words occur in the verse.
+     */
+    verses: {
+        [verseNumber: string]: ChapterWord[];
+    };
+}
+
+interface ChapterWord {
+    /**
+     * The index of the item in the verse's content array that the annotation applies to.
+     */
+    contentIndex: number;
+
+    /**
+     * The index of the first character of the annotated word in the content item's text.
+     */
+    start: number;
+
+    /**
+     * The index after the last character of the annotated word in the content item's text.
+     * That is, text.slice(start, end) is the annotated word.
+     */
+    end: number;
+
+    /**
+     * The Strong's number(s) for the word.
+     * Omitted if the translation only provided other annotations for the word.
+     */
+    strongs?: string[];
+
+    /**
+     * The dictionary (citation) form of the word.
+     * Omitted if the translation did not provide one.
+     */
+    lemma?: string;
+
+    /**
+     * The morphology parse code for the word.
+     * Omitted if the translation did not provide one.
+     */
+    morph?: string;
+
+    /**
+     * The pointer to the word in the source text, in the <sourceName>:<location> format.
+     * Omitted if the translation did not provide one.
+     */
+    srcloc?: string;
+
+    /**
+     * Which occurrence of the source word this word is. 1-based.
+     * Omitted if the translation did not provide one.
+     */
+    occurrence?: number;
+
+    /**
+     * The total number of times that the source word occurs.
+     * Omitted if the translation did not provide one.
+     */
+    occurrences?: number;
+}
+```
+
+### Example
+
+Given a chapter whose first verse has a single content item:
+
+```json:no-line-numbers title="/api/engwebp/JHN/1.json"
+{
+    "thisChapterWordsLink": "/api/engwebp/JHN/1.words.json",
+    "chapter": {
+        "number": 1,
+        "content": [
+            {
+                "type": "verse",
+                "number": 1,
+                "content": [
+                    "In the beginning was the Word, and the Word was with God, and the Word was God."
+                ]
+            }
+        ]
+    }
+}
+```
+
+The words file annotates the characters of that item:
+
+```json:no-line-numbers title="/api/engwebp/JHN/1.words.json"
+{
+    "translationId": "engwebp",
+    "bookId": "JHN",
+    "chapterNumber": 1,
+    "thisChapterLink": "/api/engwebp/JHN/1.json",
+    "nextChapterLink": "/api/engwebp/JHN/2.json",
+    "previousChapterLink": "/api/engwebp/MAT/28.json",
+    "thisChapterWordsLink": "/api/engwebp/JHN/1.words.json",
+    "nextChapterWordsLink": "/api/engwebp/JHN/2.words.json",
+    "previousChapterWordsLink": "/api/engwebp/MAT/28.words.json",
+    "verses": {
+        "1": [
+            {
+                "contentIndex": 0,
+                "start": 0,
+                "end": 2,
+                "strongs": ["G1722"]
+            },
+            {
+                "contentIndex": 0,
+                "start": 3,
+                "end": 6,
+                "strongs": ["G1722"]
+            },
+            {
+                "contentIndex": 0,
+                "start": 7,
+                "end": 16,
+                "strongs": ["G0746"]
+            }
+        ]
+    }
+}
+```
+
+That is, `"In the beginning...".slice(0, 2)` is `"In"`, which the source tagged with `G1722`.
 
 ## Get an entire Translation
 

@@ -8,6 +8,7 @@ import {
     ApiDatasetBooksSchema,
     ApiTranslationBookChapterAudioTimingsSchema,
     ApiTranslationBookChapterSchema,
+    ApiTranslationBookChapterWordsSchema,
     ApiTranslationBooksSchema,
     ApiTranslationCompleteBookSchema,
     ApiTranslationCompleteSchema,
@@ -191,6 +192,34 @@ export function createFreeUseBibleApiOpenApiDocument(): any {
                         },
                     },
                 },
+            '/api/{translation}/{book}/{chapter}.words.json': {
+                get: {
+                    operationId: 'getTranslationBookChapterWords',
+                    description:
+                        "Get the word-level annotations (Strong's numbers and related source data) for a specific chapter of a specific book for a specific translation.",
+                    requestParams: {
+                        path: z.object({
+                            translation,
+                            book,
+                            chapter,
+                        }),
+                    },
+                    responses: {
+                        '200': {
+                            description: '200 OK',
+                            content: {
+                                'application/json': {
+                                    schema: ApiTranslationBookChapterWordsSchema,
+                                },
+                            },
+                        },
+                        '404': {
+                            description:
+                                '404 Not Found - The specified translation, book, or chapter was not found, or the chapter does not have any word-level annotations.',
+                        },
+                    },
+                },
+            },
             '/api/{translation}/complete.json': {
                 get: {
                     operationId: 'getTranslationComplete',

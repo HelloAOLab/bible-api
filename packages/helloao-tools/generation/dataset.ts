@@ -303,6 +303,12 @@ export function generateDataset(
                         content.number
                     ),
                     thisChapterAudioTimings: {},
+
+                    // Word annotations are kept out of the chapter itself so
+                    // that they can be published as a separate file.
+                    ...(content.words
+                        ? { thisChapterWords: content.words }
+                        : {}),
                 });
             }
         }
