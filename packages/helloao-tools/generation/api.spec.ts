@@ -1,5 +1,6 @@
 import {
     completeTranslationApiLink,
+    GenerateApiOptions,
     generateApiForDataset,
     generateFilesForApi,
     replaceSpacesWithUnderscores,
@@ -343,6 +344,7 @@ describe('generateApiForDataset', () => {
             availableFormats: ['json'],
             listOfBooksApiLink: '/api/bsb/books.json',
             completeTranslationApiLink: '/api/bsb/complete.json',
+            simpleCompleteTranslationApiLink: '/api/bsb/complete.simple.json',
             numberOfBooks: 2,
             totalNumberOfChapters: 2,
             totalNumberOfVerses: 4,
@@ -648,6 +650,99 @@ describe('generateApiForDataset', () => {
                                             content: [
                                                 'Reuben, Simeon, Levi, and Judah;',
                                             ],
+                                        },
+                                    ],
+                                    footnotes: [],
+                                },
+                            },
+                        ],
+                    },
+                ],
+            },
+            '/api/bsb/complete.simple.json': {
+                translation: expectedTranslation,
+                books: [
+                    {
+                        id: 'GEN',
+                        name: 'Genesis',
+                        commonName: 'Genesis',
+                        title: 'Genesis',
+                        order: 1,
+                        numberOfChapters: 1,
+                        totalNumberOfVerses: 2,
+                        chapters: [
+                            {
+                                thisChapterAudioLinks: {},
+                                thisChapterAudioTimings: {},
+                                numberOfVerses: 2,
+                                chapter: {
+                                    number: 1,
+                                    content: [
+                                        {
+                                            type: 'heading',
+                                            text: 'The Creation',
+                                        },
+                                        {
+                                            type: 'line_break',
+                                        },
+                                        {
+                                            type: 'verse',
+                                            number: 1,
+                                            text: 'In the beginning God created the heavens and the earth.',
+                                            footnotes: [],
+                                        },
+                                        {
+                                            type: 'line_break',
+                                        },
+                                        {
+                                            type: 'verse',
+                                            number: 2,
+                                            text: 'Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.',
+                                            footnotes: [],
+                                        },
+                                    ],
+                                    footnotes: [],
+                                },
+                            },
+                        ],
+                    },
+                    {
+                        id: 'EXO',
+                        name: 'Exodus',
+                        commonName: 'Exodus',
+                        title: 'Exodus',
+                        order: 2,
+                        numberOfChapters: 1,
+                        totalNumberOfVerses: 2,
+                        chapters: [
+                            {
+                                thisChapterAudioLinks: {},
+                                thisChapterAudioTimings: {},
+                                numberOfVerses: 2,
+                                chapter: {
+                                    number: 1,
+                                    content: [
+                                        {
+                                            type: 'heading',
+                                            text: 'The Israelites Multiply in Egypt',
+                                        },
+                                        {
+                                            type: 'line_break',
+                                        },
+                                        {
+                                            type: 'verse',
+                                            number: 1,
+                                            text: 'These are the names of the sons of Israel who went to Egypt with Jacob, each with his family:',
+                                            footnotes: [],
+                                        },
+                                        {
+                                            type: 'line_break',
+                                        },
+                                        {
+                                            type: 'verse',
+                                            number: 2,
+                                            text: 'Reuben, Simeon, Levi, and Judah;',
+                                            footnotes: [],
                                         },
                                     ],
                                     footnotes: [],
@@ -3859,6 +3954,143 @@ describe('generateApiForDataset() simplified chapters', () => {
         expect(tree['/api/bsb/Genesis/1.simple.json'].nextChapterApiLink).toBe(
             '/api/bsb/Exodus/1.simple.json'
         );
+    });
+
+    describe('complete translation files', () => {
+        function generateCompleteTree(options: GenerateApiOptions) {
+            const dataset = generateDataset(
+                translationFiles,
+                new DOMParser() as any
+            );
+            return fileTree(
+                generateFilesForApi(generateApiForDataset(dataset, options))
+            );
+        }
+
+        it('should not generate a simplified complete file by default', () => {
+            const tree = generateCompleteTree({});
+
+            expect(tree['/api/bsb/complete.simple.json']).toBeUndefined();
+            expect(tree['/api/bsb/complete.json']).toBeUndefined();
+            expect(
+                tree['/api/bsb/books.json'].translation
+                    .simpleCompleteTranslationApiLink
+            ).toBeUndefined();
+        });
+
+        it('should generate a simplified complete file alongside the regular one', () => {
+            const tree = generateCompleteTree({
+                generateCompleteTranslationFiles: true,
+            });
+
+            expect(
+                tree['/api/bsb/books.json'].translation
+                    .simpleCompleteTranslationApiLink
+            ).toBe('/api/bsb/complete.simple.json');
+
+            const complete = tree['/api/bsb/complete.simple.json'];
+
+            expect(complete.translation).toEqual(
+                tree['/api/bsb/complete.json'].translation
+            );
+            expect(complete.books.map((b: any) => b.id)).toEqual([
+                'GEN',
+                'EXO',
+            ]);
+            expect(complete.books[0].chapters[0].chapter).toEqual({
+                number: 1,
+                content: [
+                    {
+                        type: 'heading',
+                        text: 'The Creation',
+                    },
+                    {
+                        type: 'line_break',
+                    },
+                    {
+                        type: 'verse',
+                        number: 1,
+                        text: 'In the beginning God created the heavens and the earth.',
+                        footnotes: [],
+                    },
+                    {
+                        type: 'line_break',
+                    },
+                    {
+                        type: 'verse',
+                        number: 2,
+                        text: 'Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.',
+                        footnotes: [],
+                    },
+                ],
+                footnotes: [],
+            });
+        });
+
+        it('should keep the same per-chapter metadata as the regular complete file', () => {
+            const tree = generateCompleteTree({
+                generateCompleteTranslationFiles: true,
+            });
+
+            const simple = tree['/api/bsb/complete.simple.json'];
+            const regular = tree['/api/bsb/complete.json'];
+
+            for (let i = 0; i < regular.books.length; i++) {
+                const { chapters: regularChapters, ...regularBook } =
+                    regular.books[i];
+                const { chapters: simpleChapters, ...simpleBook } =
+                    simple.books[i];
+
+                expect(simpleBook).toEqual(regularBook);
+
+                for (let j = 0; j < regularChapters.length; j++) {
+                    const { chapter: _regular, ...regularMeta } =
+                        regularChapters[j];
+                    const { chapter: _simple, ...simpleMeta } =
+                        simpleChapters[j];
+
+                    expect(simpleMeta).toEqual(regularMeta);
+                }
+            }
+        });
+
+        it('should generate a simplified complete file even when simplified chapters are disabled', () => {
+            const tree = generateCompleteTree({
+                generateCompleteTranslationFiles: true,
+                generateSimpleChapterFiles: false,
+            });
+
+            expect(tree['/api/bsb/complete.simple.json']).toBeDefined();
+            expect(tree['/api/bsb/GEN/1.simple.json']).toBeUndefined();
+        });
+
+        it('should contain the same chapters as the simplified chapter files', () => {
+            const tree = generateCompleteTree({
+                generateCompleteTranslationFiles: true,
+                generateSimpleChapterFiles: true,
+            });
+
+            const complete = tree['/api/bsb/complete.simple.json'];
+
+            expect(complete.books[0].chapters[0].chapter).toEqual(
+                tree['/api/bsb/GEN/1.simple.json'].chapter
+            );
+            expect(complete.books[1].chapters[0].chapter).toEqual(
+                tree['/api/bsb/EXO/1.simple.json'].chapter
+            );
+        });
+
+        it('should use the given path prefix', () => {
+            const tree = generateCompleteTree({
+                generateCompleteTranslationFiles: true,
+                pathPrefix: '/prefix',
+            });
+
+            expect(
+                tree['/prefix/api/bsb/complete.simple.json'].translation
+                    .simpleCompleteTranslationApiLink
+            ).toBe('/prefix/api/bsb/complete.simple.json');
+        });
     });
 });
 

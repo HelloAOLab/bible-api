@@ -8,6 +8,7 @@ import {
     ApiDatasetBooksSchema,
     ApiSimpleCommentaryBookChapterSchema,
     ApiSimpleTranslationBookChapterSchema,
+    ApiSimpleTranslationCompleteSchema,
     ApiTranslationBookChapterAudioTimingsSchema,
     ApiTranslationBookChapterSchema,
     ApiTranslationBooksSchema,
@@ -265,6 +266,32 @@ export function createFreeUseBibleApiOpenApiDocument(): any {
                             content: {
                                 'application/json': {
                                     schema: ApiTranslationCompleteSchema,
+                                },
+                            },
+                        },
+                        '404': {
+                            description:
+                                '404 Not Found - The specified translation was not found, or complete translations are not available.',
+                        },
+                    },
+                },
+            },
+            '/api/{translation}/complete.simple.json': {
+                get: {
+                    operationId: 'getSimpleTranslationComplete',
+                    description:
+                        'Get the complete content of a specific translation, using the simplified format. In the simplified format, the content of each verse is a single string instead of a list of formatted content, and the footnotes are available on the verse that they occur in, along with the offset that they occur at.',
+                    requestParams: {
+                        path: z.object({
+                            translation,
+                        }),
+                    },
+                    responses: {
+                        '200': {
+                            description: '200 OK',
+                            content: {
+                                'application/json': {
+                                    schema: ApiSimpleTranslationCompleteSchema,
                                 },
                             },
                         },

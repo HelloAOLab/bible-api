@@ -1264,7 +1264,17 @@ export interface TranslationCompleteBook {
     /**
      * The complete list of chapters with all content.
      */
-    chapters: TranslationBookChapter[];
+    chapters: TranslationCompleteChapter[];
+}
+
+/**
+ * A chapter in the complete translation download.
+ */
+export interface TranslationCompleteChapter extends TranslationBookChapter {
+    /**
+     * The number of verses that the chapter contains.
+     */
+    numberOfVerses: number;
 }
 ```
 
@@ -1288,6 +1298,7 @@ export interface TranslationCompleteBook {
     ],
     "listOfBooksApiLink": "/api/BSB/books.json",
     "completeTranslationApiLink": "/api/BSB/complete.json",
+    "simpleCompleteTranslationApiLink": "/api/BSB/complete.simple.json",
     "numberOfBooks": 66,
     "totalNumberOfChapters": 1189,
     "totalNumberOfVerses": 31086,
@@ -1343,6 +1354,175 @@ export interface TranslationCompleteBook {
       ]
     }
   ]
+}
+```
+
+## Get an entire Translation in the Simplified Format
+
+`GET https://bible.helloao.org/api/{translation}/complete.simple.json`
+
+Gets the content of an entire translation, using the simplified format. This is the
+[simplified chapter format](#get-a-simplified-chapter-from-a-translation) applied to
+[the complete translation download](#get-an-entire-translation): one file containing the whole
+translation, where the content of each verse is a single string.
+
+Use this when you want the text of an entire translation without making a request per chapter and
+without having to build the text yourself.
+
+-   `translation` is the ID of the translation (e.g. `BSB`).
+
+This file is generated alongside `complete.json`, so a translation either has both or neither. The
+`translation` object in both files contains a `completeTranslationApiLink` and a
+`simpleCompleteTranslationApiLink`, so you can move between the two formats.
+
+### Code Example
+
+```ts:no-line-numbers title="fetch-translation-complete-simple.js"
+const translation = 'BSB';
+
+// Get the text of the entire BSB translation
+fetch(`https://bible.helloao.org/api/${translation}/complete.simple.json`)
+    .then(request => request.json())
+    .then(complete => {
+        for (let book of complete.books) {
+            for (let { chapter } of book.chapters) {
+                for (let content of chapter.content) {
+                    if (content.type === 'verse') {
+                        console.log(`${book.commonName} ${chapter.number}:${content.number} ${content.text}`);
+                    }
+                }
+            }
+        }
+    });
+```
+
+### Structure
+
+The structure matches [the regular complete translation download](#get-an-entire-translation),
+except that each chapter uses the simplified format.
+
+```typescript:no-line-numbers title="complete-simple.ts"
+/**
+ * Defines the complete translation download data, using the simplified chapter format.
+ * Maps to the /api/:translationId/complete.simple.json endpoint.
+ */
+export interface SimpleTranslationComplete {
+    /**
+     * The translation metadata.
+     */
+    translation: Translation;
+
+    /**
+     * The complete list of books with all their chapters.
+     */
+    books: SimpleTranslationCompleteBook[];
+}
+
+/**
+ * A book in the complete translation download, using the simplified chapter format.
+ */
+export interface SimpleTranslationCompleteBook extends Omit<TranslationCompleteBook, 'chapters'> {
+    /**
+     * The complete list of chapters with all content.
+     */
+    chapters: SimpleTranslationCompleteChapter[];
+}
+
+/**
+ * A chapter in the complete translation download, using the simplified chapter format.
+ */
+export interface SimpleTranslationCompleteChapter {
+    /**
+     * The number of verses that the chapter contains.
+     */
+    numberOfVerses: number;
+
+    /**
+     * The links to different audio versions for the chapter.
+     */
+    thisChapterAudioLinks: TranslationBookChapterAudioLinks;
+
+    /**
+     * The audio timings (per-verse start times, in seconds) for the chapter.
+     *
+     * Note that the complete translation files contain the timings themselves,
+     * unlike the individual chapter endpoints, which contain links to them.
+     */
+    thisChapterAudioTimings: TranslationBookChapterAudioTimings;
+
+    /**
+     * The simplified information for the chapter.
+     */
+    chapter: SimpleChapterData;
+}
+```
+
+### Example
+
+```json:no-line-numbers title="/api/BSB/complete.simple.json"
+{
+    "translation": {
+        "id": "BSB",
+        "name": "Berean Standard Bible",
+        "englishName": "Berean Standard Bible",
+        "language": "eng",
+        "licenseUrl": "https://berean.bible/",
+        "shortName": "BSB",
+        "website": "https://berean.bible/",
+        "textDirection": "ltr",
+        "availableFormats": [
+            "json"
+        ],
+        "listOfBooksApiLink": "/api/BSB/books.json",
+        "completeTranslationApiLink": "/api/BSB/complete.json",
+        "simpleCompleteTranslationApiLink": "/api/BSB/complete.simple.json",
+        "numberOfBooks": 66,
+        "totalNumberOfChapters": 1189,
+        "totalNumberOfVerses": 31086,
+        "languageName": "English",
+        "languageEnglishName": "English"
+    },
+    "books": [
+        {
+            "id": "GEN",
+            "name": "Genesis",
+            "commonName": "Genesis",
+            "title": "Genesis",
+            "order": 1,
+            "numberOfChapters": 50,
+            "totalNumberOfVerses": 1533,
+            "chapters": [
+                {
+                    "numberOfVerses": 31,
+                    "thisChapterAudioLinks": {
+                        "hays": "https://audio.bible.helloao.org/api/BSB/GEN/1/audio/hays.mp3",
+                        "souer": "https://audio.bible.helloao.org/api/BSB/GEN/1/audio/souer.mp3",
+                        "david": "https://audio.bible.helloao.org/api/BSB/GEN/1/audio/david.mp3"
+                    },
+                    "thisChapterAudioTimings": {},
+                    "chapter": {
+                        "number": 1,
+                        "content": [
+                            {
+                                "type": "heading",
+                                "text": "The Creation"
+                            },
+                            {
+                                "type": "line_break"
+                            },
+                            {
+                                "type": "verse",
+                                "number": 1,
+                                "text": "In the beginning God created the heavens and the earth.",
+                                "footnotes": []
+                            }
+                        ],
+                        "footnotes": []
+                    }
+                }
+            ]
+        }
+    ]
 }
 ```
 

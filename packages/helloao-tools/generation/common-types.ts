@@ -1381,3 +1381,27 @@ export const SimpleCommentaryChapterDataSchema = z
 export type SimpleCommentaryChapterData = z.infer<
     typeof SimpleCommentaryChapterDataSchema
 >;
+
+/**
+ * Defines a Zod schema for information about a book chapter, using the simplified
+ * chapter format.
+ */
+export const SimpleTranslationBookChapterSchema =
+    TranslationBookChapterSchema.extend({
+        /**
+         * The simplified information for the chapter.
+         */
+        chapter: z
+            .lazy(() => SimpleChapterDataSchema)
+            .meta({
+                description: 'The simplified information for the chapter.',
+            }),
+    }).meta({
+        id: 'SimpleTranslationBookChapter',
+        description:
+            'Defines the schema for information about a book chapter, using the simplified chapter format.',
+    });
+
+export type SimpleTranslationBookChapter = z.infer<
+    typeof SimpleTranslationBookChapterSchema
+>;
