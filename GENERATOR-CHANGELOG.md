@@ -3,6 +3,30 @@
 This is the log of changes for the Bible API Generator and associated tools.
 For information on the API itself, see [API-CHANGELOG.md](./API-CHANGELOG.md).
 
+## V2.2.0
+
+#### Date: 2026-08-09
+
+### :rocket: Features
+
+-   Added support for parsing word-level annotations from USX files.
+    -   The `USXParser` now reads the `strong`, `lemma`, `x-morph`, `srcloc`, `x-occurrence`, and `x-occurrences` attributes off `<char style="w">` elements, including words that are nested inside other characters (like the words of Jesus).
+        -   The misspelled `x-occurence`/`x-occurences` attribute names are read as well, since they are common in real files.
+    -   Annotations are recorded on `Chapter.words`, keyed by verse number. Each entry points at a range of characters in a single item of the verse's content, so the ranges survive the merging and whitespace normalization that the parser applies to verse content.
+        -   `Chapter.words` is omitted entirely when a source has no annotations.
+    -   `TranslationBookChapter` gained an optional `thisChapterWords` property that carries the annotations through to the API generator.
+    -   The USFM parser is unchanged - it still discards word level attributes. USFM sources are converted to USX3 before they are imported, so USX is the ingestion path for word annotations.
+    -   `zaln-s`/`zaln-e` alignment milestones are not supported yet. They align phrases many-to-many rather than word-to-word, which needs milestone pairing that the parser doesn't do today.
+
+### :bug: Bug Fixes
+
+-   `init --source` now copies the `ChapterAudioTiming` table when cloning a database. Previously it was silently dropped from cloned and language-filtered databases.
+
+### Other Changes
+
+-   `PARSER_VERSION` was bumped to `4`, which forces every cached input file to be re-parsed.
+-   Added a `ChapterWords` table (migration `20260809000000_add_chapter_words`) which stores the annotations for a chapter.
+
 ## V2.1.1
 
 #### Date: 2026-04-24

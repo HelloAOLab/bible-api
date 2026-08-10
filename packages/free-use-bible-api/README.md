@@ -58,6 +58,7 @@ const api = new FreeUseBibleApi({
 -   `getAvailableTranslations(endpoint?)`
 -   `getTranslationBooks(translation, endpoint?)`
 -   `getTranslationBookChapter(translation, book, chapter, endpoint?)`
+-   `getTranslationBookChapterWords(translation, book, chapter, endpoint?)`
 -   `getCompleteTranslation(translation, endpoint?)`
 
 `getCompleteTranslation()` disables per-request cache internally because payloads are typically large.
@@ -80,6 +81,18 @@ const api = new FreeUseBibleApi({
 -   `getPreviousChapter(chapter, endpoint?)`
 
 These helpers work with translation, commentary, and dataset chapter responses.
+
+### Word Annotations
+
+Some translations include word-level annotations (Strong's numbers and related source data) for their chapters.
+
+-   `getChapterWords(chapter, endpoint?)` - gets the annotations for a chapter you already loaded, or `null` if it doesn't have any.
+-   `getWordText(verse, word)` - gets the text that a single annotation applies to.
+-   `getVerseWords(verse, words)` - gets the annotations for a verse, each paired with the text it applies to.
+
+Each annotation is anchored to a range of characters in a single item of a verse's `content` array: `contentIndex` is the index of the item, and `start`/`end` are character offsets into that item's text (`end` is exclusive). Anchoring per content item keeps the offsets correct for verses whose content is split into multiple items, such as poem lines and the words of Jesus.
+
+`getWordText()` and `getVerseWords()` resolve those offsets for you, so you don't have to walk the content array yourself.
 
 ## Examples
 
@@ -121,6 +134,33 @@ console.log(next?.chapter.number);
 console.log(previous?.chapter.number);
 ```
 
+### Read the Strong's numbers for a chapter
+
+```ts
+const chapter = await api.getTranslationBookChapter('engwebp', 'JHN', 1);
+const words = await api.getChapterWords(chapter);
+
+if (!words) {
+    // This translation has no word-level annotations for the chapter.
+    return;
+}
+
+for (const content of chapter.chapter.content) {
+    if (content.type !== 'verse') {
+        continue;
+    }
+
+    for (const word of api.getVerseWords(content, words)) {
+        console.log(word.text, word.strongs);
+    }
+}
+
+// In [ 'G1722' ]
+// the [ 'G1722' ]
+// beginning [ 'G0746' ]
+// ...
+```
+
 ## Direct HTTP Endpoints
 
 ### Translation endpoints
@@ -128,6 +168,7 @@ console.log(previous?.chapter.number);
 -   `GET /api/available_translations.json`
 -   `GET /api/{translation}/books.json`
 -   `GET /api/{translation}/{book}/{chapter}.json`
+-   `GET /api/{translation}/{book}/{chapter}.words.json`
 -   `GET /api/{translation}/complete.json`
 
 ### Commentary endpoints

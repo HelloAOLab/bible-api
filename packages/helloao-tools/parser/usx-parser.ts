@@ -1,6 +1,7 @@
 import {
     Chapter,
     ChapterContent,
+    ChapterWord,
     Footnote,
     FootnoteReference,
     ParseTree,
@@ -17,6 +18,18 @@ import {
     RewindableIterator,
     isParent,
 } from './iterators.js';
+import {
+    AnnotatedContent,
+    WordAnnotations,
+    WordRange,
+    addChapterWords,
+    collapseWhitespaceMap,
+    isAnnotatedContent,
+    readWordAnnotations,
+    remapChapterWords,
+    removeChapterWordsForContent,
+    trimWordRange,
+} from './words.js';
 import { KNOWN_SKIPPED_VERSES } from '../utils.js';
 
 enum NodeType {
@@ -27,7 +40,7 @@ enum NodeType {
  * The version of the parser.
  * Used to determine whether input files need to be re-parsed.
  */
-export const PARSER_VERSION = 3;
+export const PARSER_VERSION = 4;
 
 /**
  * Defines a class that is able to parse USX content.
@@ -214,7 +227,13 @@ export class USXParser {
         verse: Verse,
         nodes: RewindableIterator<Node>,
         previousVerse?: Verse | null
-    ): IterableIterator<string | FootnoteReference | Text | InlineLineBreak> {
+    ): IterableIterator<
+        | string
+        | FootnoteReference
+        | Text
+        | InlineLineBreak
+        | AnnotatedContent<string | Text>
+    > {
         let lastParent: Element | null = null;
         while (true) {
             const { done, value: node } = nodes.next();
@@ -289,12 +308,27 @@ export class USXParser {
                 }
             }
 
-            for (let content of this.iterateNodeTextContent(
+            for (let value of this.iterateNodeTextContent(
                 nodes,
                 node,
                 chapter,
                 verse
             )) {
+                // Word annotations travel alongside the content that they apply
+                // to. Unwrap them so that the content is formatted exactly the
+                // same as content that has no annotations, then re-attach them.
+                const words = isAnnotatedContent(value) ? value.words : null;
+                const content = isAnnotatedContent(value)
+                    ? (value.annotatedContent as string | Text)
+                    : value;
+
+                let result:
+                    | string
+                    | InlineLineBreak
+                    | InlineHeading
+                    | FootnoteReference
+                    | Text = content;
+
                 if (poem !== null || descriptive !== null) {
                     if (typeof content === 'string') {
                         let text: Text = {
@@ -309,7 +343,7 @@ export class USXParser {
                             text.descriptive = true;
                         }
 
-                        yield text;
+                        result = text;
                     } else {
                         let text:
                             | InlineLineBreak
@@ -328,10 +362,17 @@ export class USXParser {
                                 text.descriptive = true;
                             }
                         }
-                        yield text;
+                        result = text;
                     }
+                }
+
+                if (words) {
+                    yield {
+                        annotatedContent: result as string | Text,
+                        words,
+                    };
                 } else {
-                    yield content;
+                    yield result;
                 }
             }
         }
@@ -382,16 +423,28 @@ export class USXParser {
                 ? this._lastVerse
                 : null;
 
+        const words: ChapterWord[] = [];
+
         for (let content of this.iterateVerseContent(
             chapter,
             verse,
             nodes,
             previousVerse
         )) {
-            addOrJoin(verse.content, content);
+            if (isAnnotatedContent(content)) {
+                addOrJoin(
+                    verse.content,
+                    content.annotatedContent,
+                    content.words,
+                    words
+                );
+            } else {
+                addOrJoin(verse.content, content);
+            }
         }
 
-        trimContent(verse.content);
+        trimContent(verse.content, words);
+        addChapterWords(chapter, verse.number, words);
         this._lastVerse = verse;
         return verse;
     }
@@ -415,7 +468,13 @@ export class USXParser {
                 yield content;
                 continue;
             }
-            addOrJoin(subtitle.content, content);
+
+            // Hebrew subtitles aren't verses, so there is nowhere to key word
+            // annotations by. Keep the content and drop the annotations.
+            addOrJoin(
+                subtitle.content,
+                isAnnotatedContent(content) ? content.annotatedContent : content
+            );
         }
 
         trimContent(subtitle.content);
@@ -429,7 +488,12 @@ export class USXParser {
         chapter: Chapter,
         nodes: RewindableIterator<Node>
     ): IterableIterator<
-        Verse | string | Text | FootnoteReference | InlineLineBreak
+        | Verse
+        | string
+        | Text
+        | FootnoteReference
+        | InlineLineBreak
+        | AnnotatedContent<string | Text>
     > {
         while (true) {
             const { done, value: node } = nodes.next();
@@ -455,7 +519,13 @@ export class USXParser {
         node: Node,
         chapter: Chapter,
         verse?: Verse
-    ): IterableIterator<string | Text | FootnoteReference | InlineLineBreak> {
+    ): IterableIterator<
+        | string
+        | Text
+        | FootnoteReference
+        | InlineLineBreak
+        | AnnotatedContent<string | Text>
+    > {
         if (node instanceof Element && node.nodeName === 'note') {
             yield* this.iterateNote(nodes, node, chapter, verse);
         } else if (node instanceof Element && node.nodeName === 'char') {
@@ -537,23 +607,65 @@ export class USXParser {
     *iterateChar(
         nodes: RewindableIterator<Node>,
         node: Element
-    ): IterableIterator<string | Text> {
+    ): IterableIterator<string | Text | AnnotatedContent<string | Text>> {
         const style = node.getAttribute('style');
         let text = '';
 
-        for (let char of children(nodes, node)) {
-            if (char.nodeType === NodeType.Text) {
-                text += char.textContent || '';
-            }
-        }
+        // The text of every word element that is contained in this element,
+        // including the element itself. Words can be nested inside other chars
+        // (words of Jesus, in particular), so the ranges are tracked while the
+        // text is being accumulated.
+        const words: WordRange[] = [];
+        let currentWord: Element | null = null;
+        let currentAnnotations: WordAnnotations | null = null;
+        let currentStart = 0;
 
-        if (style === 'wj') {
+        const endCurrentWord = () => {
+            if (currentAnnotations) {
+                const range = trimWordRange(text, currentStart, text.length);
+                if (range) {
+                    words.push({
+                        ...range,
+                        annotations: currentAnnotations,
+                    });
+                }
+            }
+            currentWord = null;
+            currentAnnotations = null;
+        };
+
+        for (let char of children(nodes, node)) {
+            if (char.nodeType !== NodeType.Text) {
+                continue;
+            }
+
+            const word = wordElementFor(char, node);
+            if (word !== currentWord) {
+                endCurrentWord();
+                currentWord = word;
+                currentStart = text.length;
+                currentAnnotations = word ? readWordAnnotations(word) : null;
+            }
+
+            text += char.textContent || '';
+        }
+        endCurrentWord();
+
+        const content: string | Text =
+            style === 'wj'
+                ? {
+                      text,
+                      wordsOfJesus: true,
+                  }
+                : text;
+
+        if (words.length > 0) {
             yield {
-                text,
-                wordsOfJesus: true,
+                annotatedContent: content,
+                words,
             };
         } else {
-            yield text;
+            yield content;
         }
 
         // if (!parentChar(node) && !parentNote(node)) {
@@ -656,43 +768,109 @@ function trimText(text: string): string {
     return text.replace(/\s+/g, ' ');
 }
 
-function trimContent<T extends string | unknown>(content: T[]): T[] {
+/**
+ * Gets the word element that the given node is contained in, or null if it
+ * isn't contained in one. Never looks above the given root element.
+ * @param node The node to find the word element for.
+ * @param root The element to stop the search at.
+ */
+function wordElementFor(node: Node, root: Element): Element | null {
+    let element: Element | null = node.parentElement;
+    while (element) {
+        if (
+            element.nodeName === 'char' &&
+            element.getAttribute('style') === 'w'
+        ) {
+            return element;
+        }
+        if (element === root) {
+            return null;
+        }
+        element = element.parentElement;
+    }
+    return null;
+}
+
+function trimContent<T extends string | unknown>(
+    content: T[],
+    words?: ChapterWord[] | null
+): T[] {
     for (let i = 0; i < content.length; i++) {
         const value = content[i];
+        let text: string | null = null;
+
         if (typeof value === 'string') {
-            content[i] = trimText(value as string).trim() as T;
-            if (content[i] === '') {
-                content.splice(i, 1);
-                i--;
-                continue;
+            const collapsed = collapseWhitespaceMap(value as string);
+            content[i] = collapsed.text as T;
+            text = collapsed.text;
+            if (words) {
+                remapChapterWords(words, i, collapsed.map);
             }
         } else if (isVerseText(value)) {
-            value.text = trimText(value.text).trim();
-            if (value.text === '') {
-                content.splice(i, 1);
-                i--;
-                continue;
+            const collapsed = collapseWhitespaceMap(value.text);
+            value.text = collapsed.text;
+            text = collapsed.text;
+            if (words) {
+                remapChapterWords(words, i, collapsed.map);
             }
+        }
+
+        if (text === '') {
+            content.splice(i, 1);
+            if (words) {
+                removeChapterWordsForContent(words, i);
+            }
+            i--;
+            continue;
         }
     }
     return content;
 }
 
-function addOrJoin(array: (string | unknown)[], value: string | unknown) {
+function addOrJoin(
+    array: (string | unknown)[],
+    value: string | unknown,
+    ranges?: WordRange[] | null,
+    words?: ChapterWord[] | null
+) {
+    // Where the value ended up in the array, and how far into that item's text
+    // it starts. Both are needed to anchor the value's word annotations.
+    let contentIndex: number;
+    let offset: number;
+
     if (array.length === 0) {
+        contentIndex = 0;
+        offset = 0;
         array.push(value);
     } else {
         const last = array[array.length - 1];
         if (typeof last === 'string' && typeof value === 'string') {
+            contentIndex = array.length - 1;
+            offset = last.length;
             array[array.length - 1] = last + value;
         } else if (
             isVerseText(last) &&
             isVerseText(value) &&
             hasSameFormatting(last, value)
         ) {
+            contentIndex = array.length - 1;
+            offset = last.text.length;
             last.text += value.text;
         } else {
+            contentIndex = array.length;
+            offset = 0;
             array.push(value);
+        }
+    }
+
+    if (ranges && words) {
+        for (let range of ranges) {
+            words.push({
+                contentIndex,
+                start: offset + range.start,
+                end: offset + range.end,
+                ...range.annotations,
+            });
         }
     }
 }

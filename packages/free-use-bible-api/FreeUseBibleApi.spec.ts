@@ -6,6 +6,7 @@ import type {
     ApiDatasetBookChapter,
     ApiTranslationBook,
     ApiTranslationBookChapter,
+    ApiTranslationBookChapterWords,
     ChapterVerse,
 } from './types.gen.js';
 
@@ -615,4 +616,168 @@ describe('FreeUseBibleApi', () => {
             expect(formatted).toBe(expected);
         }
     );
+
+    // In the beginning was the Word
+    // 0  3   7             21  25
+    const wordsVerse = {
+        type: 'verse',
+        number: 1,
+        content: ['In the beginning was the Word'],
+    } as ChapterVerse;
+
+    const wordsPayload = {
+        translationId: 'engwebp',
+        bookId: 'JHN',
+        chapterNumber: 1,
+        verses: {
+            '1': [
+                { contentIndex: 0, start: 0, end: 2, strongs: ['G1722'] },
+                { contentIndex: 0, start: 3, end: 6, strongs: ['G1722'] },
+                { contentIndex: 0, start: 7, end: 16, strongs: ['G0746'] },
+            ],
+        },
+    } as unknown as ApiTranslationBookChapterWords;
+
+    it('requests the words for a chapter', async () => {
+        fetchMock.mockResolvedValue(jsonResponse(wordsPayload));
+
+        const api = new FreeUseBibleApi();
+        const result = await api.getTranslationBookChapterWords(
+            'engwebp',
+            'JHN',
+            1
+        );
+
+        expect(result).toEqual(wordsPayload);
+        expect(fetchMock).toHaveBeenCalledWith(
+            'https://bible.helloao.org/api/engwebp/JHN/1.words.json'
+        );
+    });
+
+    it('builds encoded words URLs and supports endpoint override per call', async () => {
+        fetchMock.mockResolvedValue(jsonResponse(wordsPayload));
+
+        const api = new FreeUseBibleApi();
+        await api.getTranslationBookChapterWords(
+            'My Translation',
+            'GEN/Intro',
+            '1',
+            'https://example.com/base/'
+        );
+
+        expect(fetchMock).toHaveBeenCalledWith(
+            'https://example.com/base/api/My%20Translation/GEN%2FIntro/1.words.json'
+        );
+    });
+
+    it('gets the words for a chapter by following its words link', async () => {
+        fetchMock.mockResolvedValue(jsonResponse(wordsPayload));
+
+        const api = new FreeUseBibleApi();
+        const chapter = {
+            thisChapterWordsLink:
+                'https://bible.helloao.org/api/engwebp/JHN/1.words.json',
+        } as ApiTranslationBookChapter;
+
+        const words = await api.getChapterWords(chapter);
+
+        expect(words).toEqual(wordsPayload);
+        expect(fetchMock).toHaveBeenCalledWith(
+            'https://bible.helloao.org/api/engwebp/JHN/1.words.json'
+        );
+    });
+
+    it('returns null words for chapters that have no annotations', async () => {
+        const api = new FreeUseBibleApi();
+        const chapter = {} as ApiTranslationBookChapter;
+
+        await expect(api.getChapterWords(chapter)).resolves.toBeNull();
+        expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('getWordText slices the annotated word out of a string', () => {
+        const api = new FreeUseBibleApi();
+
+        expect(
+            api.getWordText(wordsVerse, {
+                contentIndex: 0,
+                start: 7,
+                end: 16,
+            })
+        ).toBe('beginning');
+    });
+
+    it('getWordText slices the annotated word out of formatted text', () => {
+        const api = new FreeUseBibleApi();
+        const verse = {
+            type: 'verse',
+            number: 38,
+            content: [
+                'Jesus said,',
+                { text: '“What are you looking for?”', wordsOfJesus: true },
+            ],
+        } as ChapterVerse;
+
+        expect(
+            api.getWordText(verse, { contentIndex: 1, start: 1, end: 5 })
+        ).toBe('What');
+    });
+
+    it('getWordText returns an empty string for content that has no text', () => {
+        const api = new FreeUseBibleApi();
+        const verse = {
+            type: 'verse',
+            number: 1,
+            content: [{ noteId: 2 }, { lineBreak: true }],
+        } as ChapterVerse;
+
+        expect(
+            api.getWordText(verse, { contentIndex: 0, start: 0, end: 2 })
+        ).toBe('');
+        expect(
+            api.getWordText(verse, { contentIndex: 1, start: 0, end: 2 })
+        ).toBe('');
+        expect(
+            api.getWordText(verse, { contentIndex: 5, start: 0, end: 2 })
+        ).toBe('');
+    });
+
+    it('getVerseWords pairs each annotation with its text', () => {
+        const api = new FreeUseBibleApi();
+
+        expect(api.getVerseWords(wordsVerse, wordsPayload)).toEqual([
+            {
+                contentIndex: 0,
+                start: 0,
+                end: 2,
+                strongs: ['G1722'],
+                text: 'In',
+            },
+            {
+                contentIndex: 0,
+                start: 3,
+                end: 6,
+                strongs: ['G1722'],
+                text: 'the',
+            },
+            {
+                contentIndex: 0,
+                start: 7,
+                end: 16,
+                strongs: ['G0746'],
+                text: 'beginning',
+            },
+        ]);
+    });
+
+    it('getVerseWords returns an empty list for verses with no annotations', () => {
+        const api = new FreeUseBibleApi();
+        const verse = {
+            type: 'verse',
+            number: 2,
+            content: ['The same was in the beginning with God.'],
+        } as ChapterVerse;
+
+        expect(api.getVerseWords(verse, wordsPayload)).toEqual([]);
+    });
 });
