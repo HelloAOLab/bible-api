@@ -1,4 +1,8 @@
-# API
+---
+description: 'Complete reference for the Free Use Bible API: every endpoint for translations, books, chapters, commentaries, and datasets, with TypeScript types.'
+---
+
+# API Reference
 
 ## Available Translations
 
@@ -167,7 +171,7 @@ interface Translation {
 
 Gets the list of books that are available for the given translation.
 
--   `translation` is the ID of the translation (e.g. `BSB`).
+- `translation` is the ID of the translation (e.g. `BSB`).
 
 ### Code Example
 
@@ -311,9 +315,9 @@ interface TranslationBook {
 
 Gets the content of a single chapter for a given book and translation.
 
--   `translation` is the ID of the translation (e.g. `BSB`).
--   `book` is the ID of the book (e.g. `GEN` for Genesis - you can find a list of book IDs [here](https://ubsicap.github.io/usfm/identification/books.html)).
--   `chapter` is the numerical chapter (e.g. `1` for the first chapter).
+- `translation` is the ID of the translation (e.g. `BSB`).
+- `book` is the ID of the book (e.g. `GEN` for Genesis - you can find a list of book IDs [here](https://ubsicap.github.io/usfm/identification/books.html)).
+- `chapter` is the numerical chapter (e.g. `1` for the first chapter).
 
 ### Code Example
 
@@ -765,7 +769,7 @@ interface TranslationBookChapterAudioLinks {
 
 Gets the content of an entire translation.
 
--   `translation` is the ID of the translation (e.g. `BSB`).
+- `translation` is the ID of the translation (e.g. `BSB`).
 
 ### Code Example
 
@@ -1070,7 +1074,7 @@ export interface Commentary {
 
 Gets the list of books that are available for the given commentary.
 
--   `commentary` the ID of the commentary (e.g. `adam-clarke`).
+- `commentary` the ID of the commentary (e.g. `adam-clarke`).
 
 ### Code Example
 
@@ -1215,9 +1219,9 @@ interface CommentaryBook {
 
 Gets the content of a single chapter for a given book and commentary.
 
--   `commentary` the ID of the commentary (e.g. `adam-clarke`).
--   `book` is the ID of the book (e.g. `GEN` for Genesis).
--   `chapter` is the numerical chapter number (e.g. `1` for the first chapter).
+- `commentary` the ID of the commentary (e.g. `adam-clarke`).
+- `book` is the ID of the book (e.g. `GEN` for Genesis).
+- `chapter` is the numerical chapter number (e.g. `1` for the first chapter).
 
 ### Code Example
 
@@ -1357,7 +1361,7 @@ Profiles are overviews of people or people groups.
 
 Currently, only `tyndale` has any profiles.
 
--   `commentary` the ID of the commentary (e.g. `tyndale`).
+- `commentary` the ID of the commentary (e.g. `tyndale`).
 
 ### Code Example
 
@@ -1505,8 +1509,8 @@ interface CommentaryProfile {
 
 Gets a profile from a commentary.
 
--   `commentary` the ID of the commentary (e.g. `tyndale`).
--   `profile` the ID of the profile (e.g. `aaron`).
+- `commentary` the ID of the commentary (e.g. `tyndale`).
+- `profile` the ID of the profile (e.g. `aaron`).
 
 ### Code Example
 
@@ -1730,7 +1734,7 @@ export interface Dataset {
 
 Gets the list of books that are available for the given dataset.
 
--   `dataset` the ID of the dataset (e.g. `open-cross-ref`).
+- `dataset` the ID of the dataset (e.g. `open-cross-ref`).
 
 ### Code Example
 
@@ -1868,9 +1872,9 @@ interface DatasetBook {
 
 Gets the content of a single chapter for a given book and dataset.
 
--   `dataset` the ID of the dataset (e.g. `open-cross-ref`).
--   `book` is the ID of the book (e.g. `GEN` for Genesis).
--   `chapter` is the numerical chapter number (e.g. `1` for the first chapter).
+- `dataset` the ID of the dataset (e.g. `open-cross-ref`).
+- `book` is the ID of the book (e.g. `GEN` for Genesis).
+- `chapter` is the numerical chapter number (e.g. `1` for the first chapter).
 
 ### Code Example
 

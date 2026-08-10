@@ -1,8 +1,10 @@
 # Free Use Bible API
 
+<!-- #region docs -->
+
 TypeScript and JavaScript client for the public Free Use Bible API:
 
--   `https://bible.helloao.org`
+- `https://bible.helloao.org`
 
 ## Installation
 
@@ -48,36 +50,36 @@ const api = new FreeUseBibleApi({
 });
 ```
 
--   `endpoint`: Base API endpoint.
--   `useCache`: Enables in-memory response caching (default: `true`).
+- `endpoint`: Base API endpoint.
+- `useCache`: Enables in-memory response caching (default: `true`).
 
 ## API Methods
 
 ### Translations
 
--   `getAvailableTranslations(endpoint?)`
--   `getTranslationBooks(translation, endpoint?)`
--   `getTranslationBookChapter(translation, book, chapter, endpoint?)`
--   `getCompleteTranslation(translation, endpoint?)`
+- `getAvailableTranslations(endpoint?)`
+- `getTranslationBooks(translation, endpoint?)`
+- `getTranslationBookChapter(translation, book, chapter, endpoint?)`
+- `getCompleteTranslation(translation, endpoint?)`
 
 `getCompleteTranslation()` disables per-request cache internally because payloads are typically large.
 
 ### Commentaries
 
--   `getAvailableCommentaries(endpoint?)`
--   `getCommentaryBooks(commentary, endpoint?)`
--   `getCommentaryBookChapter(commentary, book, chapter, endpoint?)`
+- `getAvailableCommentaries(endpoint?)`
+- `getCommentaryBooks(commentary, endpoint?)`
+- `getCommentaryBookChapter(commentary, book, chapter, endpoint?)`
 
 ### Datasets
 
--   `getAvailableDatasets(endpoint?)`
--   `getDatasetBooks(dataset, endpoint?)`
--   `getDatasetBookChapter(dataset, book, chapter, endpoint?)`
+- `getAvailableDatasets(endpoint?)`
+- `getDatasetBooks(dataset, endpoint?)`
+- `getDatasetBookChapter(dataset, book, chapter, endpoint?)`
 
 ### Chapter Navigation Helpers
 
--   `getNextChapter(chapter, endpoint?)`
--   `getPreviousChapter(chapter, endpoint?)`
+- `getNextChapter(chapter, endpoint?)`
+- `getPreviousChapter(chapter, endpoint?)`
 
 These helpers work with translation, commentary, and dataset chapter responses.
 
@@ -125,22 +127,22 @@ console.log(previous?.chapter.number);
 
 ### Translation endpoints
 
--   `GET /api/available_translations.json`
--   `GET /api/{translation}/books.json`
--   `GET /api/{translation}/{book}/{chapter}.json`
--   `GET /api/{translation}/complete.json`
+- `GET /api/available_translations.json`
+- `GET /api/{translation}/books.json`
+- `GET /api/{translation}/{book}/{chapter}.json`
+- `GET /api/{translation}/complete.json`
 
 ### Commentary endpoints
 
--   `GET /api/available_commentaries.json`
--   `GET /api/{commentary}/books.json`
--   `GET /api/{commentary}/{book}/{chapter}.json`
+- `GET /api/available_commentaries.json`
+- `GET /api/c/{commentary}/books.json`
+- `GET /api/c/{commentary}/{book}/{chapter}.json`
 
 ### Dataset endpoints
 
--   `GET /api/available_datasets.json`
--   `GET /api/d/{dataset}/books.json`
--   `GET /api/d/{dataset}/{book}/{chapter}.json`
+- `GET /api/available_datasets.json`
+- `GET /api/d/{dataset}/books.json`
+- `GET /api/d/{dataset}/{book}/{chapter}.json`
 
 Example requests:
 
@@ -158,13 +160,15 @@ Methods throw on non-2xx responses.
 
 A 404 response usually means one of the path values is invalid, for example:
 
--   translation
--   commentary
--   dataset
--   book
--   chapter
+- translation
+- commentary
+- dataset
+- book
+- chapter
 
 ## Notes
 
--   Uses the global `fetch` API.
--   For Node.js, use a runtime that provides `fetch` (Node 18+ recommended) or polyfill it.
+- Uses the global `fetch` API.
+- For Node.js, use a runtime that provides `fetch` (Node 18+ recommended) or polyfill it.
+
+<!-- #endregion docs -->

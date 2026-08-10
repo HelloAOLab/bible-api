@@ -1,5 +1,6 @@
 ---
 home: true
+description: 'Free Use Bible API — a free JSON API for the Bible with 1000+ translations in 700+ languages. No API key, no rate limits, no copyright restrictions.'
 heroImage: /seed_bible_logo.png
 tagline: An easy-to-use and fully featured JSON API for accessing the Bible
 actions:

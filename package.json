@@ -24,7 +24,7 @@
         "import:bible:ebible": "npm run cli import-translations -- --db ./free-use-bible-api.db ./sources/ebible",
         "import:bible:commentaries": "npm run cli import-commentaries -- --db ./free-use-bible-api.db ./sources/comment",
         "zip:sync": "npm run cli upload-api-files ./free-use-bible-api.zip",
-        "s3:sync:docs": "aws --profile aolabs s3 sync ./build/docs s3://ao-bible-api/docs --delete",
+        "s3:sync:docs": "aws --profile aolabs s3 sync ./build/docs s3://ao-bible-api/docs --delete && aws --profile aolabs s3 cp ./docs/site-root/robots.txt s3://ao-bible-api/robots.txt",
         "s3:sync:api": "npm run cli -- --db ./free-use-bible-api.db upload-api-files s3://ao-bible-api --profile aolabs --overwrite-common-files --verbose",
         "s3:sync:db": "npm run db:init:eng && aws --profile aolabs s3 cp ./free-use-bible-api.db s3://ao-bible-api/bible.db && aws --profile aolabs s3 cp ./free-use-bible-api.eng.db s3://ao-bible-api/bible.eng.db",
         "s3:sync:zip": "aws --profile aolabs s3 cp ./free-use-bible-api.zip s3://ao-bible-api/api.zip",

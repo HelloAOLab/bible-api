@@ -23,7 +23,9 @@
         "@vuepress/plugin-back-to-top": "2.0.0-rc.130",
         "@vuepress/plugin-medium-zoom": "2.0.0-rc.130",
         "@vuepress/plugin-search": "2.0.0-rc.130",
+        "@vuepress/plugin-seo": "2.0.0-rc.130",
         "@vuepress/plugin-shiki": "2.0.0-rc.130",
+        "@vuepress/plugin-sitemap": "2.0.0-rc.130",
         "@vuepress/theme-default": "2.0.0-rc.130",
         "@vuepress/plugin-markdown-include": "2.0.0-rc.130",
         "vue": "^3.4.32"

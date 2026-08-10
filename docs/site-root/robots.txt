@@ -1,0 +1,20 @@
+# Served from the ROOT of the bible.helloao.org bucket, not from /docs/.
+# Deployed by the `s3:sync:docs` script in the root package.json.
+#
+# This is the only robots.txt crawlers actually read. VuePress's SEO plugin
+# also emits a permissive build/docs/robots.txt that lands at /docs/robots.txt;
+# that one is inert, because robots.txt is only honored at the host root.
+#
+# The docs site lives at /docs/ and is the only part of this host worth
+# crawling. /api/ is a generated tree of millions of JSON files (1000+
+# translations x 66 books x chapters) with no standalone search value, and
+# the bulk downloads are multi-gigabyte. Both are excluded to protect crawl
+# budget and bandwidth.
+
+User-agent: *
+Disallow: /api/
+Disallow: /api.zip
+Disallow: /bible.db
+Disallow: /bible.eng.db
+
+Sitemap: https://bible.helloao.org/docs/sitemap.xml

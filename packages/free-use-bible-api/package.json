@@ -2,6 +2,25 @@
     "name": "free-use-bible-api",
     "version": "0.2.0",
     "description": "Access over 1000 Bible translations in over 700 languages for free",
+    "keywords": [
+        "bible",
+        "bible-api",
+        "scripture",
+        "json",
+        "api-client",
+        "translations",
+        "bsb",
+        "typescript"
+    ],
+    "homepage": "https://bible.helloao.org/docs/",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/HelloAOLab/bible-api.git",
+        "directory": "packages/free-use-bible-api"
+    },
+    "bugs": {
+        "url": "https://github.com/HelloAOLab/bible-api/issues"
+    },
     "main": "./dist/cjs/index.cjs",
     "module": "./dist/esm/index.js",
     "types": "./dist/types/index.d.ts",

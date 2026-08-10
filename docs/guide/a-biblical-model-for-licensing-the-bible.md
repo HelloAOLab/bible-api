@@ -1,6 +1,10 @@
+---
+description: 'Why we publish the Bible without copyright restrictions, and how the Berean Standard Bible makes a freely licensed English translation possible.'
+---
+
 # A Biblical Model for Licensing The Bible
 
-**“...freely you have received; freely give.” - Mathew 10:8**
+**“...freely you have received; freely give.” - Matthew 10:8**
 
 Christians believe that Jesus’ words are the very words of God and were freely given to mankind at great cost to Jesus himself who left behind every comfort to take on human flesh and share in our suffering.
 
@@ -20,7 +24,7 @@ Thank you!
 
 ## Your License to this API
 
-This API, and [the source code behind it](https://github.com/HelloAOLab/bible-api), is freely available for you to use under the MIT license, a copy of which has been included below for your benefit. 
+This API, and [the source code behind it](https://github.com/HelloAOLab/bible-api), is freely available for you to use under the MIT license, a copy of which has been included below for your benefit.
 
 ```:no-line-numbers
 MIT License
@@ -50,7 +54,7 @@ SOFTWARE.
 
 The Berean Bible and Majority Bible texts are officially [dedicated to the public domain](https://creativecommons.org/publicdomain/zero/1.0/) as of April 30, 2023.
 
-*All uses are freely permitted.*
+_All uses are freely permitted._
 
 ### Attribution Notice (appreciated but not required):
 

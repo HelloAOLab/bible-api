@@ -1,7 +1,25 @@
 {
     "name": "@helloao/cli",
     "version": "0.2.0",
-    "description": "A CLI and related tools for managing HelloAO's Free Bible API",
+    "description": "A CLI and related tools for managing HelloAO's Free Use Bible API",
+    "keywords": [
+        "bible",
+        "bible-api",
+        "scripture",
+        "cli",
+        "usfm",
+        "usx",
+        "translations"
+    ],
+    "homepage": "https://bible.helloao.org/docs/",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/HelloAOLab/bible-api.git",
+        "directory": "packages/helloao-cli"
+    },
+    "bugs": {
+        "url": "https://github.com/HelloAOLab/bible-api/issues"
+    },
     "type": "module",
     "main": "./dist/cjs/index.cjs",
     "module": "./dist/esm/index.js",

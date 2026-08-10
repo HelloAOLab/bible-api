@@ -1,3 +1,7 @@
+---
+description: 'Learn about the Free Use Bible API from AO Lab — a non-profit project making 1000+ Bible translations freely available to developers in JSON.'
+---
+
 # Introduction
 
 The Bible, the very inspired word of God, is the most important set of documents in the history of the world. It has been studied for countless generations by cultures from all around the world, and it contains many foundational truths upon which our entire existence is built.
