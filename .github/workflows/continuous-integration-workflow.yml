@@ -26,3 +26,25 @@ jobs:
                   npm run build:docs
               env:
                   CI: true
+
+    audio-timings:
+        name: Audio Timings Tool
+        runs-on: ubuntu-latest
+        env:
+            CI: true
+        defaults:
+            run:
+                working-directory: tools/audio-timings
+        steps:
+            - uses: actions/checkout@v4
+            - name: Install uv
+              uses: astral-sh/setup-uv@v5
+            # The `asr` extra (whisperX and torch) is deliberately left out: the
+            # tests drive the pipeline from recorded ASR word streams, so they
+            # need no model, no GPU and no network.
+            - name: Install dependencies
+              run: uv sync --group dev
+            - name: Lint
+              run: uv run ruff check src tests
+            - name: Test
+              run: uv run pytest -q
