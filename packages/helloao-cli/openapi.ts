@@ -8,6 +8,7 @@ import {
     ApiDatasetBooksSchema,
     ApiSimpleCommentaryBookChapterSchema,
     ApiSimpleTranslationBookChapterSchema,
+    ApiSimpleTranslationBookChapterWordsSchema,
     ApiSimpleTranslationCompleteSchema,
     ApiTranslationBookChapterAudioTimingsSchema,
     ApiTranslationBookChapterSchema,
@@ -269,6 +270,34 @@ export function createFreeUseBibleApiOpenApiDocument(): any {
                             content: {
                                 'application/json': {
                                     schema: ApiTranslationBookChapterWordsSchema,
+                                },
+                            },
+                        },
+                        '404': {
+                            description:
+                                '404 Not Found - The specified translation, book, or chapter was not found, or the chapter does not have any word-level annotations.',
+                        },
+                    },
+                },
+            },
+            '/api/{translation}/{book}/{chapter}.words.simple.json': {
+                get: {
+                    operationId: 'getSimpleTranslationBookChapterWords',
+                    description:
+                        "Get the word-level annotations (Strong's numbers and related source data) for a specific chapter of a specific book for a specific translation, with their offsets remapped onto the text of each simplified verse. Use this with the simplified chapter format, since the offsets in the regular annotations are anchored to a verse's content array.",
+                    requestParams: {
+                        path: z.object({
+                            translation,
+                            book,
+                            chapter,
+                        }),
+                    },
+                    responses: {
+                        '200': {
+                            description: '200 OK',
+                            content: {
+                                'application/json': {
+                                    schema: ApiSimpleTranslationBookChapterWordsSchema,
                                 },
                             },
                         },

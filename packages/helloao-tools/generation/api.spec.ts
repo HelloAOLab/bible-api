@@ -4207,6 +4207,184 @@ describe('generateApiForDataset() simplified chapters', () => {
             ).toBe('/prefix/api/bsb/complete.simple.json');
         });
     });
+
+    describe('word annotations', () => {
+        // Genesis 1 has annotations, Genesis 2 does not.
+        const wordFiles: InputFile[] = [
+            {
+                fileType: 'usx',
+                metadata: translation,
+                content: `
+            <usx version="3.0">
+                    <book code="GEN" style="id">- Berean Study Bible</book>
+                    <para style="h">Genesis</para>
+                    <para style="toc2">Genesis</para>
+                    <para style="toc1">Genesis</para>
+                    <para style="mt1">Genesis</para>
+                    <chapter number="1" style="c" sid="GEN 1"/>
+                    <para style="s1">The Creation</para>
+                    <para style="q1">
+                        <verse number="1" style="v" sid="GEN 1:1"/>
+                        <char style="w" strong="H8064">In</char>
+                        <char style="w" strong="H1254">the</char>
+                        <char style="w" strong="H7225">beginning</char>
+                        <verse eid="GEN 1:1"/>
+                    </para>
+                    <para style="q2">
+                        <verse number="2" style="v" sid="GEN 1:2"/>
+                        <char style="w" strong="H8064">God</char>
+                        <char style="w" strong="H1254">created</char>
+                        <char style="w" strong="H8064">the</char>
+                        <char style="w" strong="H8064">earth</char>.
+                        <verse eid="GEN 1:2"/>
+                    </para>
+                    <chapter eid="GEN 1"/>
+                    <chapter number="2" sid="GEN 2"/>
+                    <para style="m">
+                        <verse number="1" style="v" sid="GEN 2:1"/>
+                        And the earth was formless and void.
+                        <verse eid="GEN 2:1"/>
+                    </para>
+                </usx>`,
+            },
+        ];
+
+        function generateWordTree(options: GenerateApiOptions) {
+            const dataset = generateDataset(wordFiles, new DOMParser() as any);
+            return fileTree(
+                generateFilesForApi(generateApiForDataset(dataset, options))
+            );
+        }
+
+        it('should not generate simplified words by default', () => {
+            const tree = generateWordTree({});
+
+            expect(tree['/api/bsb/GEN/1.words.json']).toBeDefined();
+            expect(tree['/api/bsb/GEN/1.words.simple.json']).toBeUndefined();
+        });
+
+        it('should generate a simplified words file for each annotated chapter', () => {
+            const tree = generateWordTree({
+                generateSimpleChapterFiles: true,
+            });
+
+            const words = tree['/api/bsb/GEN/1.words.simple.json'];
+
+            expect(words.translationId).toBe('bsb');
+            expect(words.bookId).toBe('GEN');
+            expect(words.chapterNumber).toBe(1);
+            expect(words.thisChapterLink).toBe('/api/bsb/GEN/1.simple.json');
+            expect(words.nextChapterLink).toBe('/api/bsb/GEN/2.simple.json');
+            expect(words.previousChapterLink).toBe(null);
+            expect(words.thisChapterWordsLink).toBe(
+                '/api/bsb/GEN/1.words.simple.json'
+            );
+            // Genesis 2 has no annotations.
+            expect(words.nextChapterWordsLink).toBe(null);
+            expect(words.previousChapterWordsLink).toBe(null);
+            expect(Object.keys(words.verses).sort()).toEqual(['1', '2']);
+        });
+
+        it('should link the simplified chapters to the simplified words', () => {
+            const tree = generateWordTree({
+                generateSimpleChapterFiles: true,
+            });
+
+            expect(
+                tree['/api/bsb/GEN/1.simple.json'].thisChapterWordsLink
+            ).toBe('/api/bsb/GEN/1.words.simple.json');
+            expect(
+                tree['/api/bsb/GEN/2.simple.json'].previousChapterWordsLink
+            ).toBe('/api/bsb/GEN/1.words.simple.json');
+        });
+
+        it('should not link to simplified words for chapters that have no annotations', () => {
+            const tree = generateWordTree({
+                generateSimpleChapterFiles: true,
+            });
+
+            const chapter = tree['/api/bsb/GEN/2.simple.json'];
+
+            expect(Object.keys(tree)).not.toContain(
+                '/api/bsb/GEN/2.words.simple.json'
+            );
+            expect('thisChapterWordsLink' in chapter).toBe(false);
+            expect('nextChapterWordsLink' in chapter).toBe(false);
+            expect('thisChapterWords' in chapter).toBe(false);
+        });
+
+        it('should annotate the same words as the regular annotations do', () => {
+            const tree = generateWordTree({
+                generateSimpleChapterFiles: true,
+            });
+
+            const regular = tree['/api/bsb/GEN/1.words.json'];
+            const simple = tree['/api/bsb/GEN/1.words.simple.json'];
+            const regularChapter = tree['/api/bsb/GEN/1.json'].chapter;
+            const simpleChapter = tree['/api/bsb/GEN/1.simple.json'].chapter;
+
+            const verseContent = (chapter: any, number: number) =>
+                chapter.content.find(
+                    (c: any) => c.type === 'verse' && c.number === number
+                );
+
+            for (let verseNumber of Object.keys(regular.verses)) {
+                const regularVerse = verseContent(
+                    regularChapter,
+                    Number(verseNumber)
+                );
+                const simpleVerse = verseContent(
+                    simpleChapter,
+                    Number(verseNumber)
+                );
+
+                const expectedWords = regular.verses[verseNumber].map(
+                    (w: any) => {
+                        const item = regularVerse.content[w.contentIndex];
+                        const itemText =
+                            typeof item === 'string' ? item : item.text;
+                        return itemText.slice(w.start, w.end);
+                    }
+                );
+                const actualWords = simple.verses[verseNumber].map((w: any) =>
+                    simpleVerse.text.slice(w.start, w.end)
+                );
+
+                expect(actualWords).toEqual(expectedWords);
+                expect(actualWords.length).toBeGreaterThan(0);
+            }
+        });
+
+        it('should inline the simplified annotations in the complete file', () => {
+            const tree = generateWordTree({
+                generateSimpleChapterFiles: true,
+                generateCompleteTranslationFiles: true,
+            });
+
+            const complete = tree['/api/bsb/complete.simple.json'];
+            const chapters = complete.books[0].chapters;
+
+            expect(chapters[0].thisChapterWords).toEqual(
+                tree['/api/bsb/GEN/1.words.simple.json'].verses
+            );
+            expect('thisChapterWords' in chapters[1]).toBe(false);
+        });
+
+        it('should inline the simplified annotations even when simplified chapters are disabled', () => {
+            const tree = generateWordTree({
+                generateCompleteTranslationFiles: true,
+                generateSimpleChapterFiles: false,
+            });
+
+            const chapters =
+                tree['/api/bsb/complete.simple.json'].books[0].chapters;
+
+            expect(Object.keys(chapters[0].thisChapterWords)).toEqual([
+                '1',
+                '2',
+            ]);
+        });
+    });
 });
 
 function firstXLines(content: string, x: number) {

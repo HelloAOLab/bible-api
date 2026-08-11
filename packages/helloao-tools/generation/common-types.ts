@@ -1513,6 +1513,17 @@ export const SimpleTranslationBookChapterSchema =
             .meta({
                 description: 'The simplified information for the chapter.',
             }),
+
+        /**
+         * The word-level annotations for the chapter's verses, using the simplified format.
+         */
+        thisChapterWords: z
+            .lazy(() => SimpleTranslationBookChapterWordsSchema)
+            .optional()
+            .meta({
+                description:
+                    "The word-level annotations (Strong's numbers and related source data) for the chapter's verses, with their offsets remapped onto the simplified verse text. Omitted if the translation doesn't have any word-level annotations for the chapter.",
+            }),
     }).meta({
         id: 'SimpleTranslationBookChapter',
         description:
@@ -1521,4 +1532,38 @@ export const SimpleTranslationBookChapterSchema =
 
 export type SimpleTranslationBookChapter = z.infer<
     typeof SimpleTranslationBookChapterSchema
+>;
+
+/**
+ * A Zod schema for a word-level annotation in a simplified chapter.
+ *
+ * Unlike the regular annotations, these are anchored to a range of characters in the
+ * text of a verse, since the simplified format replaces the verse's content array with
+ * a single string.
+ */
+export const SimpleChapterWordSchema = ChapterWordSchema.omit({
+    contentIndex: true,
+}).meta({
+    id: 'SimpleChapterWord',
+    description:
+        "Defines the schema for a word-level annotation in a simplified chapter. The annotation is anchored to a range of characters in the verse's text.",
+});
+
+export type SimpleChapterWord = z.infer<typeof SimpleChapterWordSchema>;
+
+/**
+ * Defines a Zod schema for the word-level annotations for a book chapter, using the
+ * simplified format.
+ * Maps a verse number to the list of annotated words in the verse, in order.
+ */
+export const SimpleTranslationBookChapterWordsSchema = z
+    .record(z.string(), z.array(z.lazy(() => SimpleChapterWordSchema)))
+    .meta({
+        id: 'SimpleTranslationBookChapterWords',
+        description:
+            'Defines the schema for the word-level annotations for a book chapter, using the simplified format. Maps a verse number to the list of annotated words in the verse, in order.',
+    });
+
+export type SimpleTranslationBookChapterWords = z.infer<
+    typeof SimpleTranslationBookChapterWordsSchema
 >;

@@ -218,7 +218,7 @@ describe('simplifyChapter()', () => {
             footnotes: [],
         };
 
-        expect(simplifyChapter(chapter)).toEqual({
+        expect(simplifyChapter(chapter).chapter).toEqual({
             number: 1,
             content: [
                 {
@@ -268,7 +268,7 @@ describe('simplifyChapter()', () => {
             ],
         };
 
-        const simplified = simplifyChapter(chapter);
+        const { chapter: simplified } = simplifyChapter(chapter);
         const verse = simplified.content[0];
 
         if (verse.type !== 'verse') {
@@ -311,7 +311,7 @@ describe('simplifyChapter()', () => {
             ],
         };
 
-        const simplified = simplifyChapter(chapter);
+        const { chapter: simplified } = simplifyChapter(chapter);
         const verse = simplified.content[0];
 
         if (verse.type !== 'verse') {
@@ -352,7 +352,7 @@ describe('simplifyChapter()', () => {
             ],
         };
 
-        const simplified = simplifyChapter(chapter);
+        const { chapter: simplified } = simplifyChapter(chapter);
         const verse = simplified.content[0];
 
         if (verse.type !== 'verse') {
@@ -389,7 +389,7 @@ describe('simplifyChapter()', () => {
             ],
         };
 
-        const simplified = simplifyChapter(chapter);
+        const { chapter: simplified } = simplifyChapter(chapter);
         const verse = simplified.content[0];
 
         if (verse.type !== 'verse') {
@@ -420,7 +420,7 @@ describe('simplifyChapter()', () => {
             footnotes: [],
         };
 
-        expect(simplifyChapter(chapter).content).toEqual([
+        expect(simplifyChapter(chapter).chapter.content).toEqual([
             {
                 type: 'hebrew_subtitle',
                 text: 'A Psalm of David, when he fled from Absalom his son.',
@@ -452,7 +452,7 @@ describe('simplifyChapter()', () => {
             ],
         };
 
-        const simplified = simplifyChapter(chapter);
+        const { chapter: simplified } = simplifyChapter(chapter);
         const verse = simplified.content[0];
 
         if (verse.type !== 'verse') {
@@ -461,6 +461,241 @@ describe('simplifyChapter()', () => {
 
         expect(verse.text).toBe('In the beginning.');
         expect(verse.footnotes[0].offset).toBe(17);
+    });
+});
+
+describe('simplifyChapter() word annotations', () => {
+    it('should remap the offsets of a word in a single-string verse', () => {
+        const chapter: ChapterData = {
+            number: 1,
+            content: [
+                {
+                    type: 'verse',
+                    number: 1,
+                    content: [
+                        'In the beginning was the Word, and the Word was with God.',
+                    ],
+                },
+            ],
+            footnotes: [],
+        };
+
+        const simplified = simplifyChapter(chapter, {
+            '1': [
+                {
+                    contentIndex: 0,
+                    start: 7,
+                    end: 16,
+                    strongs: ['G0746'],
+                },
+            ],
+        });
+
+        expect(simplified.words).toEqual({
+            '1': [
+                {
+                    start: 7,
+                    end: 16,
+                    strongs: ['G0746'],
+                },
+            ],
+        });
+
+        const verse = simplified.chapter.content[0];
+        if (verse.type !== 'verse') {
+            throw new Error('Expected a verse');
+        }
+        expect(verse.text.slice(7, 16)).toBe('beginning');
+    });
+
+    it('should remap words that are anchored to later content items', () => {
+        const chapter: ChapterData = {
+            number: 3,
+            content: [
+                {
+                    type: 'verse',
+                    number: 3,
+                    content: [
+                        {
+                            text: '“Blessed are the poor in spirit,',
+                            poem: 1,
+                            wordsOfJesus: true,
+                        },
+                        {
+                            text: 'for theirs is the Kingdom of Heaven.',
+                            poem: 2,
+                            wordsOfJesus: true,
+                        },
+                    ],
+                },
+            ],
+            footnotes: [],
+        };
+
+        const simplified = simplifyChapter(chapter, {
+            // "Blessed" in the first line, and "Kingdom" in the second.
+            '3': [
+                { contentIndex: 0, start: 1, end: 8, strongs: ['G3107'] },
+                { contentIndex: 1, start: 18, end: 25, strongs: ['G0932'] },
+            ],
+        });
+
+        const verse = simplified.chapter.content[0];
+        if (verse.type !== 'verse') {
+            throw new Error('Expected a verse');
+        }
+
+        expect(
+            simplified.words['3'].map((w) => verse.text.slice(w.start, w.end))
+        ).toEqual(['Blessed', 'Kingdom']);
+    });
+
+    it('should remap words across the space that replaces a footnote marker', () => {
+        const chapter: ChapterData = {
+            number: 1,
+            content: [
+                {
+                    type: 'verse',
+                    number: 6,
+                    content: [
+                        'And God said, “Let there be an expanse',
+                        { noteId: 2 },
+                        'between the waters.”',
+                    ],
+                },
+            ],
+            footnotes: [
+                {
+                    noteId: 2,
+                    text: 'Or a firmament',
+                    caller: '+',
+                },
+            ],
+        };
+
+        const simplified = simplifyChapter(chapter, {
+            '6': [
+                // "expanse" in the first item, "waters" in the third.
+                { contentIndex: 0, start: 31, end: 38, strongs: ['H7549'] },
+                { contentIndex: 2, start: 12, end: 18, strongs: ['H4325'] },
+            ],
+        });
+
+        const verse = simplified.chapter.content[0];
+        if (verse.type !== 'verse') {
+            throw new Error('Expected a verse');
+        }
+
+        expect(
+            simplified.words['6'].map((w) => verse.text.slice(w.start, w.end))
+        ).toEqual(['expanse', 'waters']);
+    });
+
+    it('should keep word offsets inside the text when trailing whitespace is trimmed', () => {
+        const chapter: ChapterData = {
+            number: 1,
+            content: [
+                {
+                    type: 'verse',
+                    number: 1,
+                    content: ['In the beginning.', { lineBreak: true }],
+                },
+            ],
+            footnotes: [],
+        };
+
+        const simplified = simplifyChapter(chapter, {
+            '1': [{ contentIndex: 0, start: 7, end: 16, strongs: ['H7225'] }],
+        });
+
+        const verse = simplified.chapter.content[0];
+        if (verse.type !== 'verse') {
+            throw new Error('Expected a verse');
+        }
+
+        expect(verse.text).toBe('In the beginning.');
+        expect(simplified.words['1']).toEqual([
+            { start: 7, end: 16, strongs: ['H7225'] },
+        ]);
+    });
+
+    it('should drop words that are anchored to content that has no text', () => {
+        const chapter: ChapterData = {
+            number: 1,
+            content: [
+                {
+                    type: 'verse',
+                    number: 1,
+                    content: ['In the beginning.', { lineBreak: true }],
+                },
+            ],
+            footnotes: [],
+        };
+
+        const simplified = simplifyChapter(chapter, {
+            '1': [{ contentIndex: 1, start: 0, end: 5, strongs: ['H7225'] }],
+        });
+
+        expect(simplified.words).toEqual({});
+    });
+
+    it('should carry all of the annotation properties through', () => {
+        const chapter: ChapterData = {
+            number: 1,
+            content: [
+                {
+                    type: 'verse',
+                    number: 1,
+                    content: ['In the beginning.'],
+                },
+            ],
+            footnotes: [],
+        };
+
+        const simplified = simplifyChapter(chapter, {
+            '1': [
+                {
+                    contentIndex: 0,
+                    start: 7,
+                    end: 16,
+                    strongs: ['H7225'],
+                    lemma: 'רֵאשִׁית',
+                    morph: 'He,Ncfsa',
+                    srcloc: 'wlc/1:1.2',
+                    occurrence: 1,
+                    occurrences: 1,
+                },
+            ],
+        });
+
+        expect(simplified.words['1']).toEqual([
+            {
+                start: 7,
+                end: 16,
+                strongs: ['H7225'],
+                lemma: 'רֵאשִׁית',
+                morph: 'He,Ncfsa',
+                srcloc: 'wlc/1:1.2',
+                occurrence: 1,
+                occurrences: 1,
+            },
+        ]);
+    });
+
+    it('should return no words when the chapter has no annotations', () => {
+        const chapter: ChapterData = {
+            number: 1,
+            content: [
+                {
+                    type: 'verse',
+                    number: 1,
+                    content: ['In the beginning.'],
+                },
+            ],
+            footnotes: [],
+        };
+
+        expect(simplifyChapter(chapter).words).toEqual({});
     });
 });
 

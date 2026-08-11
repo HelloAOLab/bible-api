@@ -40,6 +40,7 @@ For information on the API itself, see [API-CHANGELOG.md](./API-CHANGELOG.md).
     -   Files like `1.simple.json` are no longer treated as chapters. The equivalent fix for translations was made along with the word annotations.
 -   Fixed the schema for the complete translation endpoint, which did not declare the `numberOfVerses` property that the generator has always emitted on each chapter.
     -   This only affects the generated OpenAPI document and clients. The files themselves are unchanged.
+-   Fixed an issue where `import-api` warned about the files in a translation's directory that aren't book directories, like `complete.json`.
 
 ### Other Changes
 

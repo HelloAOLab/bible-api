@@ -440,17 +440,21 @@ export async function loadTranslationsFromDirectory(
 
     for (let dataset of translations) {
         const datasetDir = path.resolve(apiDir, dataset.id);
-        const booksList = await readdir(datasetDir);
+        const booksList = await readdir(datasetDir, { withFileTypes: true });
 
         const booksPath = path.resolve(datasetDir, 'books.json');
         const booksData: ApiTranslationBooks | null = existsSync(booksPath)
             ? JSON.parse(await readFile(booksPath, 'utf-8'))
             : null;
 
-        for (let bookId of booksList) {
-            if (bookId === 'books.json') {
+        for (let entry of booksList) {
+            // The translation directory also contains the files that aren't scoped to a
+            // book, like books.json and the complete translation downloads.
+            if (!entry.isDirectory()) {
                 continue;
             }
+
+            const bookId = entry.name;
             const id = getBookId(bookId);
 
             if (!id) {

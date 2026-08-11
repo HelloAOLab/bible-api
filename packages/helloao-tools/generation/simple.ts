@@ -3,16 +3,20 @@ import {
     ChapterFootnote,
     ChapterHebrewSubtitle,
     ChapterVerse,
+    ChapterWord,
     CommentaryChapterData,
     SimpleChapterContent,
     SimpleChapterData,
     SimpleChapterHebrewSubtitle,
     SimpleChapterVerse,
+    SimpleChapterWord,
     SimpleCommentaryChapterData,
     SimpleInlineHeading,
     SimplePoemRange,
     SimpleTextRange,
     SimpleVerseFootnote,
+    TranslationBookChapterWords,
+    SimpleTranslationBookChapterWords,
 } from './common-types.js';
 
 /**
@@ -50,6 +54,11 @@ export interface SimplifiedVerseContent {
      * The ranges of text that represent lines of poetry.
      */
     poem: SimplePoemRange[];
+
+    /**
+     * The word-level annotations for the verse, with their offsets remapped onto the text.
+     */
+    words: SimpleChapterWord[];
 }
 
 /**
@@ -66,20 +75,37 @@ export interface SimplifiedVerseContent {
  * All of the recorded offsets are measured in UTF-16 code units, which is what
  * `String.prototype.slice()` and `String.prototype.length` use.
  *
+ * Word-level annotations are anchored to a range of characters in a single item of the
+ * content array. Since the simplified format replaces that array with a single string,
+ * their offsets are remapped onto the text that is built here.
+ *
  * @param content The content of the verse.
  * @param footnotes The footnotes for the chapter, keyed by note ID.
  * @param usedFootnotes A set that the IDs of the referenced footnotes are added to.
+ * @param words The word-level annotations for the verse.
  */
 export function simplifyVerseContent(
     content: readonly VerseContent[],
     footnotes: Map<number, ChapterFootnote> = new Map(),
-    usedFootnotes: Set<number> = new Set()
+    usedFootnotes: Set<number> = new Set(),
+    words: readonly ChapterWord[] = []
 ): SimplifiedVerseContent {
     let text = '';
     const verseFootnotes: SimpleVerseFootnote[] = [];
     const headings: SimpleInlineHeading[] = [];
     const wordsOfJesus: SimpleTextRange[] = [];
     const poem: SimplePoemRange[] = [];
+    const verseWords: SimpleChapterWord[] = [];
+
+    const wordsByContentIndex = new Map<number, ChapterWord[]>();
+    for (let word of words) {
+        let arr = wordsByContentIndex.get(word.contentIndex);
+        if (!arr) {
+            arr = [];
+            wordsByContentIndex.set(word.contentIndex, arr);
+        }
+        arr.push(word);
+    }
 
     /**
      * Removes the given number of characters from the end of the text and moves any
@@ -96,9 +122,32 @@ export function simplifyVerseContent(
         for (let heading of headings) {
             heading.offset = Math.min(heading.offset, length);
         }
-        for (let range of [...wordsOfJesus, ...poem]) {
+        for (let range of [...wordsOfJesus, ...poem, ...verseWords]) {
             range.start = Math.min(range.start, length);
             range.end = Math.min(range.end, length);
+        }
+    };
+
+    /**
+     * Moves the annotations for the content item at the given index onto the text that
+     * the item was appended to.
+     */
+    const addWordsForContent = (
+        contentIndex: number,
+        contentStart: number,
+        contentLength: number
+    ) => {
+        const contentWords = wordsByContentIndex.get(contentIndex);
+        if (!contentWords) {
+            return;
+        }
+
+        for (let { contentIndex: _index, ...word } of contentWords) {
+            verseWords.push({
+                ...word,
+                start: contentStart + Math.min(word.start, contentLength),
+                end: contentStart + Math.min(word.end, contentLength),
+            });
         }
     };
 
@@ -139,6 +188,7 @@ export function simplifyVerseContent(
         const part = content[i];
 
         if (typeof part === 'string') {
+            addWordsForContent(i, text.length, part.length);
             text += part;
             continue;
         }
@@ -153,6 +203,7 @@ export function simplifyVerseContent(
             }
 
             const start = text.length;
+            addWordsForContent(i, start, part.text.length);
             text += part.text;
             const end = text.length;
 
@@ -205,7 +256,7 @@ export function simplifyVerseContent(
         for (let heading of headings) {
             heading.offset = Math.max(0, heading.offset - leading);
         }
-        for (let range of [...wordsOfJesus, ...poem]) {
+        for (let range of [...wordsOfJesus, ...poem, ...verseWords]) {
             range.start = Math.max(0, range.start - leading);
             range.end = Math.max(0, range.end - leading);
         }
@@ -217,6 +268,7 @@ export function simplifyVerseContent(
         headings,
         wordsOfJesus: mergeAdjacentRanges(wordsOfJesus, text),
         poem: poem.filter((range) => range.start < range.end),
+        words: verseWords.filter((word) => word.start < word.end),
     };
 }
 
@@ -253,17 +305,26 @@ function mergeAdjacentRanges(
  * @param verse The verse to convert.
  * @param footnotes The footnotes for the chapter, keyed by note ID.
  * @param usedFootnotes A set that the IDs of the referenced footnotes are added to.
+ * @param words The word-level annotations for the verse.
+ * @param remappedWords An array that the remapped word-level annotations are added to.
  */
 export function simplifyVerse(
     verse: ChapterVerse,
     footnotes?: Map<number, ChapterFootnote>,
-    usedFootnotes?: Set<number>
+    usedFootnotes?: Set<number>,
+    words?: readonly ChapterWord[],
+    remappedWords?: SimpleChapterWord[]
 ): SimpleChapterVerse {
     const simplified = simplifyVerseContent(
         verse.content,
         footnotes,
-        usedFootnotes
+        usedFootnotes,
+        words
     );
+
+    if (remappedWords) {
+        remappedWords.push(...simplified.words);
+    }
 
     return {
         type: 'verse',
@@ -312,15 +373,39 @@ function omitEmptyProperties(content: SimplifiedVerseContent) {
 }
 
 /**
+ * The result of converting a chapter into the simplified chapter format.
+ */
+export interface SimplifiedChapter {
+    /**
+     * The simplified chapter.
+     */
+    chapter: SimpleChapterData;
+
+    /**
+     * The word-level annotations for the chapter, with their offsets remapped onto the
+     * text of each simplified verse. Empty if the chapter has no annotations.
+     */
+    words: SimpleTranslationBookChapterWords;
+}
+
+/**
  * Converts the given chapter into the simplified chapter format.
  *
  * In the simplified format, the content of each verse is a single string instead of a list
  * of formatted content, and the footnotes are available on the verse that they occur in,
  * along with the offset that they occur at.
  *
+ * The word-level annotations are returned separately, since they are published in their
+ * own file. They are converted here because their offsets have to be remapped onto the
+ * text that is built for each verse.
+ *
  * @param chapter The chapter to convert.
+ * @param words The word-level annotations for the chapter, keyed by verse number.
  */
-export function simplifyChapter(chapter: ChapterData): SimpleChapterData {
+export function simplifyChapter(
+    chapter: ChapterData,
+    words?: TranslationBookChapterWords
+): SimplifiedChapter {
     const footnotes = new Map<number, ChapterFootnote>();
     for (let footnote of chapter.footnotes) {
         footnotes.set(footnote.noteId, footnote);
@@ -329,10 +414,22 @@ export function simplifyChapter(chapter: ChapterData): SimpleChapterData {
     const usedFootnotes = new Set<number>();
     const content: SimpleChapterContent[] = [];
     const versesByNumber = new Map<number, SimpleChapterVerse>();
+    const simpleWords: SimpleTranslationBookChapterWords = {};
 
     for (let c of chapter.content) {
         if (c.type === 'verse') {
-            const verse = simplifyVerse(c, footnotes, usedFootnotes);
+            const verseWords = words?.[String(c.number)];
+            const remappedWords: SimpleChapterWord[] = [];
+            const verse = simplifyVerse(
+                c,
+                footnotes,
+                usedFootnotes,
+                verseWords,
+                remappedWords
+            );
+            if (remappedWords.length > 0) {
+                simpleWords[String(c.number)] = remappedWords;
+            }
             versesByNumber.set(verse.number, verse);
             content.push(verse);
         } else if (c.type === 'hebrew_subtitle') {
@@ -374,9 +471,12 @@ export function simplifyChapter(chapter: ChapterData): SimpleChapterData {
     }
 
     return {
-        number: chapter.number,
-        content,
-        footnotes: unreferencedFootnotes,
+        chapter: {
+            number: chapter.number,
+            content,
+            footnotes: unreferencedFootnotes,
+        },
+        words: simpleWords,
     };
 }
 

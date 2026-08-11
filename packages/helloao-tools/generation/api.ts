@@ -28,13 +28,17 @@ import {
     TranslationBookChapterWords,
     ChapterWordSchema,
     CommentarySchema,
-    SimpleChapterData,
     SimpleChapterDataSchema,
+    SimpleChapterWordSchema,
     SimpleCommentaryChapterDataSchema,
     SimpleTranslationBookChapterSchema,
 } from './common-types.js';
 import { DatasetOutput } from './dataset.js';
-import { simplifyChapter, simplifyCommentaryChapter } from './simple.js';
+import {
+    SimplifiedChapter,
+    simplifyChapter,
+    simplifyCommentaryChapter,
+} from './simple.js';
 import { BookIdSchema } from '../utils.js';
 
 /**
@@ -69,6 +73,14 @@ export interface ApiOutput {
      * - /api/:translationId/:bookCommonName/:chapterNumber.simple.json
      */
     simpleTranslationBookChapters?: ApiSimpleTranslationBookChapter[];
+
+    /**
+     * The list of word-level annotations for chapters, in the simplified format.
+     * Omitted unless simplified chapter generation is enabled.
+     * This maps to the following endpoints:
+     * - /api/:translationId/:bookId/:chapterNumber.words.simple.json
+     */
+    simpleTranslationBookChapterWords?: ApiSimpleTranslationBookChapterWords[];
 
     /**
      * The list of audio files.
@@ -1758,6 +1770,31 @@ export const ApiTranslationBookChapterWordsSchema = z.object({
         'Defines an interface that contains the word-level annotations for a book chapter.',
 });
 
+/**
+ * Defines an interface that contains the word-level annotations for a book chapter,
+ * with their offsets remapped onto the text of each simplified verse.
+ */
+export const ApiSimpleTranslationBookChapterWordsSchema =
+    ApiTranslationBookChapterWordsSchema.extend({
+        /**
+         * The annotated words for each verse in the chapter.
+         */
+        verses: z
+            .record(z.string(), z.array(z.lazy(() => SimpleChapterWordSchema)))
+            .meta({
+                description:
+                    'The annotated words for each verse in the chapter, keyed by verse number. Each list is in the order that the words occur in the verse. The offsets are into the text of the simplified verse.',
+            }),
+    }).meta({
+        id: 'ApiSimpleTranslationBookChapterWords',
+        description:
+            'Defines an interface that contains the word-level annotations for a book chapter, with their offsets remapped onto the text of each simplified verse.',
+    });
+
+export type ApiSimpleTranslationBookChapterWords = z.infer<
+    typeof ApiSimpleTranslationBookChapterWordsSchema
+>;
+
 export type ApiTranslationBookChapterWords = z.infer<
     typeof ApiTranslationBookChapterWordsSchema
 >;
@@ -1881,6 +1918,7 @@ export function generateApiForDataset(
 
     if (generateSimpleChapterFiles) {
         api.simpleTranslationBookChapters = [];
+        api.simpleTranslationBookChapterWords = [];
         api.simpleCommentaryBookChapters = [];
     }
 
@@ -2178,7 +2216,7 @@ export function generateApiForDataset(
         // work twice or keep two copies of the result in memory.
         const simplifiedChapters = new Map<
             ApiTranslationBookChapter,
-            SimpleChapterData
+            SimplifiedChapter
         >();
         if (
             generateSimpleChapterFiles ||
@@ -2187,7 +2225,10 @@ export function generateApiForDataset(
             for (let chapter of translationChapters) {
                 simplifiedChapters.set(
                     chapter,
-                    simplifyChapter(chapter.chapter)
+                    simplifyChapter(
+                        chapter.chapter,
+                        rawWordsByChapter.get(chapter)
+                    )
                 );
             }
         }
@@ -2202,24 +2243,89 @@ export function generateApiForDataset(
                     apiPathPrefix
                 );
 
+            // The words for a simplified chapter are only published when the chapter
+            // itself is, since their offsets are anchored to the simplified text.
+            const simpleWordsLink = (chapter: ApiTranslationBookChapter) =>
+                hasSimpleWords(chapter)
+                    ? bookChapterWordsApiLink(
+                          translation.id,
+                          getBookLink(chapter.book),
+                          chapter.chapter.number,
+                          apiPathPrefix,
+                          SIMPLE_JSON_EXTENSION
+                      )
+                    : undefined;
+
+            function hasSimpleWords(chapter: ApiTranslationBookChapter) {
+                const words = simplifiedChapters.get(chapter)?.words;
+                return !!words && Object.keys(words).length > 0;
+            }
+
             for (let i = 0; i < translationChapters.length; i++) {
-                const { chapter, simpleChapterApiLink, ...currentChapter } =
-                    translationChapters[i];
+                const currentChapter = translationChapters[i];
+                const {
+                    chapter,
+                    simpleChapterApiLink,
+                    thisChapterWordsLink,
+                    nextChapterWordsLink,
+                    previousChapterWordsLink,
+                    ...rest
+                } = currentChapter;
                 const previousChapter = translationChapters[i - 1];
                 const nextChapter = translationChapters[i + 1];
+                const simplified = simplifiedChapters.get(currentChapter)!;
 
-                api.simpleTranslationBookChapters.push({
-                    ...currentChapter,
-                    chapter: simplifiedChapters.get(translationChapters[i])!,
-                    thisChapterLink: simpleChapterLink(translationChapters[i]),
-                    fullChapterApiLink: currentChapter.thisChapterLink,
+                const simpleChapter: ApiSimpleTranslationBookChapter = {
+                    ...rest,
+                    chapter: simplified.chapter,
+                    thisChapterLink: simpleChapterLink(currentChapter),
+                    fullChapterApiLink: rest.thisChapterLink,
                     previousChapterApiLink: previousChapter
                         ? simpleChapterLink(previousChapter)
                         : null,
                     nextChapterApiLink: nextChapter
                         ? simpleChapterLink(nextChapter)
                         : null,
-                });
+                };
+
+                const thisWordsLink = simpleWordsLink(currentChapter);
+                if (thisWordsLink) {
+                    simpleChapter.thisChapterWordsLink = thisWordsLink;
+
+                    api.simpleTranslationBookChapterWords?.push({
+                        translationId: translation.id,
+                        bookId: currentChapter.book.id,
+                        chapterNumber: currentChapter.chapter.number,
+                        thisChapterLink: simpleChapter.thisChapterLink,
+                        nextChapterLink: simpleChapter.nextChapterApiLink,
+                        previousChapterLink:
+                            simpleChapter.previousChapterApiLink,
+                        thisChapterWordsLink: thisWordsLink,
+                        nextChapterWordsLink: nextChapter
+                            ? (simpleWordsLink(nextChapter) ?? null)
+                            : null,
+                        previousChapterWordsLink: previousChapter
+                            ? (simpleWordsLink(previousChapter) ?? null)
+                            : null,
+                        verses: simplified.words,
+                    });
+                }
+
+                const nextWordsLink = nextChapter
+                    ? simpleWordsLink(nextChapter)
+                    : undefined;
+                if (nextWordsLink) {
+                    simpleChapter.nextChapterWordsLink = nextWordsLink;
+                }
+
+                const previousWordsLink = previousChapter
+                    ? simpleWordsLink(previousChapter)
+                    : undefined;
+                if (previousWordsLink) {
+                    simpleChapter.previousChapterWordsLink = previousWordsLink;
+                }
+
+                api.simpleTranslationBookChapters.push(simpleChapter);
             }
         }
 
@@ -2330,10 +2436,18 @@ export function generateApiForDataset(
                 books: completeBooks.map(({ book, chapters }) =>
                     completeBook(
                         book,
-                        chapters.map((ch) => ({
-                            ...completeChapter(ch),
-                            chapter: simplifiedChapters.get(ch)!,
-                        }))
+                        chapters.map((ch) => {
+                            const simplified = simplifiedChapters.get(ch)!;
+                            const hasWords =
+                                Object.keys(simplified.words).length > 0;
+                            return {
+                                ...completeChapter(ch),
+                                ...(hasWords
+                                    ? { thisChapterWords: simplified.words }
+                                    : {}),
+                                chapter: simplified.chapter,
+                            };
+                        })
                     )
                 ),
             };
@@ -2792,6 +2906,10 @@ export function generateFilesForApi(api: ApiOutput): OutputFile[] {
         files.push(jsonFile(words.thisChapterWordsLink, words));
     }
 
+    for (let words of api.simpleTranslationBookChapterWords ?? []) {
+        files.push(jsonFile(words.thisChapterWordsLink, words));
+    }
+
     // Generate complete translation download files
     for (let complete of api.translationComplete) {
         if (complete.translation.completeTranslationApiLink) {
@@ -3028,16 +3146,18 @@ export function bookChapterAudioTimingsApiLink(
  * @param bookId The ID of the book.
  * @param chapterNumber The number of the chapter.
  * @param prefix The prefix that should be added to the link.
+ * @param extension The extension of the file. Use SIMPLE_JSON_EXTENSION for the simplified format.
  */
 export function bookChapterWordsApiLink(
     translationId: string,
     bookId: string,
     chapterNumber: number,
-    prefix: string = ''
+    prefix: string = '',
+    extension: string = 'json'
 ) {
     return `${prefix}/api/${translationId}/${replaceSpacesWithUnderscores(
         bookId
-    )}/${chapterNumber}.words.json`;
+    )}/${chapterNumber}.words.${extension}`;
 }
 
 /**

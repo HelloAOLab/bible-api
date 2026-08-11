@@ -799,6 +799,8 @@ Use this endpoint when you want the text of a chapter. Use [the regular chapter 
 -   `book` is the ID of the book (e.g. `GEN` for Genesis - you can find a list of book IDs [here](https://ubsicap.github.io/usfm/identification/books.html)).
 -   `chapter` is the numerical chapter (e.g. `1` for the first chapter).
 
+Chapters that have word-level annotations link to them with `thisChapterWordsLink`, which points at [the simplified annotations](#get-the-words-of-a-chapter-in-the-simplified-format) - the ones whose offsets match the text in this file.
+
 ### Code Example
 
 ```ts:no-line-numbers title="fetch-simple-chapter.js"
@@ -1414,6 +1416,194 @@ The words file annotates the characters of that item:
 ```
 
 That is, `"In the beginning...".slice(0, 2)` is `"In"`, which the source tagged with `G1722`.
+
+## Get the Words of a Chapter in the Simplified Format
+
+`GET https://bible.helloao.org/api/{translation}/{book}/{chapter}.words.simple.json`
+
+Gets the word-level annotations for a single chapter, with their offsets remapped onto the text of each [simplified verse](#get-a-simplified-chapter-from-a-translation).
+
+The offsets in [the regular annotations](#get-the-words-of-a-chapter) are anchored to items of a verse's `content` array, which the simplified format replaces with a single string - so they can't be used with it. Use this file instead when you are working with the simplified chapters.
+
+-   `translation` is the ID of the translation (e.g. `BSB`).
+-   `book` is the ID of the book (e.g. `GEN` for Genesis - you can find a list of book IDs [here](https://ubsicap.github.io/usfm/identification/books.html)).
+-   `chapter` is the numerical chapter (e.g. `1` for the first chapter).
+
+These entries have no `contentIndex`. `start` and `end` are offsets into the `text` of the verse, exactly like the footnote, poem, and Words of Jesus offsets in the simplified chapters, so `text.slice(start, end)` is the annotated word.
+
+As with the regular annotations, only some translations have them. A simplified chapter that has them links to this file with `thisChapterWordsLink`; when that property is missing, this file does not exist for the chapter.
+
+### Code Example
+
+```ts:no-line-numbers title="fetch-simple-chapter-words.js"
+const translation = 'BSB';
+const book = 'GEN';
+const chapter = 1;
+
+// Get the text of Genesis 1 and the words that are annotated in it
+Promise.all([
+    fetch(`https://bible.helloao.org/api/${translation}/${book}/${chapter}.simple.json`).then(r => r.json()),
+    fetch(`https://bible.helloao.org/api/${translation}/${book}/${chapter}.words.simple.json`).then(r => r.json()),
+]).then(([chapter, words]) => {
+    for (let content of chapter.chapter.content) {
+        if (content.type !== 'verse') {
+            continue;
+        }
+        for (let word of words.verses[content.number] ?? []) {
+            console.log(content.text.slice(word.start, word.end), word.strongs);
+        }
+    }
+});
+```
+
+### Structure
+
+The structure matches [the regular annotations](#get-the-words-of-a-chapter), except that the links point at the simplified files and the entries have no `contentIndex`.
+
+```typescript:no-line-numbers title="simple-words.ts"
+export interface SimpleTranslationBookChapterWords {
+    /**
+     * The ID of the translation.
+     */
+    translationId: string;
+
+    /**
+     * The ID of the book.
+     */
+    bookId: string;
+
+    /**
+     * The number of the chapter.
+     */
+    chapterNumber: number;
+
+    /**
+     * The link to the simplified chapter that these annotations are for.
+     */
+    thisChapterLink: string;
+
+    /**
+     * The link to the next simplified chapter.
+     * Null if this is the last chapter in the translation.
+     */
+    nextChapterLink: string | null;
+
+    /**
+     * The link to the previous simplified chapter.
+     * Null if this is the first chapter in the translation.
+     */
+    previousChapterLink: string | null;
+
+    /**
+     * The link to these annotations.
+     */
+    thisChapterWordsLink: string;
+
+    /**
+     * The link to the annotations for the next chapter.
+     * Null if this is the last chapter in the translation, or if the next chapter
+     * doesn't have any word-level annotations.
+     */
+    nextChapterWordsLink: string | null;
+
+    /**
+     * The link to the annotations for the previous chapter.
+     * Null if this is the first chapter in the translation, or if the previous
+     * chapter doesn't have any word-level annotations.
+     */
+    previousChapterWordsLink: string | null;
+
+    /**
+     * The annotated words for each verse in the chapter, keyed by verse number.
+     * Each list is in the order that the words occur in the verse.
+     */
+    verses: {
+        [verseNumber: string]: SimpleChapterWord[];
+    };
+}
+
+/**
+ * A word-level annotation in a simplified chapter.
+ */
+export interface SimpleChapterWord {
+    /**
+     * The index of the first character of the annotated word in the verse text.
+     */
+    start: number;
+
+    /**
+     * The index after the last character of the annotated word in the verse text.
+     */
+    end: number;
+
+    /**
+     * The Strong's numbers for the word.
+     */
+    strongs?: string[];
+
+    /**
+     * The lemma (dictionary form) of the word in the source language.
+     */
+    lemma?: string;
+
+    /**
+     * The morphology of the word in the source language.
+     */
+    morph?: string;
+
+    /**
+     * The location of the word in the source text.
+     */
+    srcloc?: string;
+
+    /**
+     * Which occurrence of the word in the verse this is.
+     */
+    occurrence?: number;
+
+    /**
+     * The number of times that the word occurs in the verse.
+     */
+    occurrences?: number;
+}
+```
+
+### Example
+
+```json:no-line-numbers title="/api/engwebp/JHN/1.words.simple.json"
+{
+    "translationId": "engwebp",
+    "bookId": "JHN",
+    "chapterNumber": 1,
+    "thisChapterLink": "/api/engwebp/JHN/1.simple.json",
+    "nextChapterLink": "/api/engwebp/JHN/2.simple.json",
+    "previousChapterLink": "/api/engwebp/MAT/28.simple.json",
+    "thisChapterWordsLink": "/api/engwebp/JHN/1.words.simple.json",
+    "nextChapterWordsLink": "/api/engwebp/JHN/2.words.simple.json",
+    "previousChapterWordsLink": "/api/engwebp/MAT/28.words.simple.json",
+    "verses": {
+        "1": [
+            {
+                "start": 0,
+                "end": 2,
+                "strongs": ["G1722"]
+            },
+            {
+                "start": 3,
+                "end": 6,
+                "strongs": ["G1722"]
+            },
+            {
+                "start": 7,
+                "end": 16,
+                "strongs": ["G0746"]
+            }
+        ]
+    }
+}
+```
+
+Verse 1 of that chapter has the text `"In the beginning was the Word, and the Word was with God, and the Word was God."`, so `text.slice(7, 16)` is `"beginning"`.
 
 ## Get an entire Translation
 
