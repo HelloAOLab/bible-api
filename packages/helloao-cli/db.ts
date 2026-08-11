@@ -505,6 +505,20 @@ export function insertTranslationContent(
         UPDATE SET
             timingsJson=excluded.timingsJson;`);
 
+    const chapterWordsUpsert = db.prepare(`INSERT INTO ChapterWords(
+        translationId,
+        bookId,
+        number,
+        wordsJson
+    ) VALUES (
+        @translationId,
+        @bookId,
+        @number,
+        @wordsJson
+    ) ON CONFLICT(translationId,bookId,number) DO
+        UPDATE SET
+            wordsJson=excluded.wordsJson;`);
+
     const insertChaptersAndVerses = db.transaction(() => {
         for (let chapter of chapters) {
             let verses: {
@@ -622,6 +636,15 @@ export function insertTranslationContent(
                         timingsJson: JSON.stringify(verses),
                     });
                 }
+            }
+
+            if (chapter.thisChapterWords) {
+                chapterWordsUpsert.run({
+                    translationId: translation.id,
+                    bookId: book.id,
+                    number: chapter.chapter.number,
+                    wordsJson: JSON.stringify(chapter.thisChapterWords),
+                });
             }
         }
     });
@@ -1845,8 +1868,20 @@ export async function* loadTranslationDatasets(
                     orderBy: [{ number: 'asc' }, { reader: 'asc' }],
                 });
 
+                const chapterWords = await db.chapterWords.findMany({
+                    where: {
+                        translationId: translation.id,
+                        bookId: book.id,
+                    },
+                    orderBy: [{ number: 'asc' }],
+                });
+
                 const bookChapters: TranslationBookChapter[] = chapters.map(
                     (chapter) => {
+                        const words = chapterWords.find(
+                            (words) => words.number === chapter.number
+                        );
+
                         return {
                             chapter: JSON.parse(chapter.json),
                             thisChapterAudioLinks: audioLinks
@@ -1868,6 +1903,13 @@ export async function* loadTranslationDatasets(
                                     );
                                     return acc;
                                 }, {} as any),
+                            ...(words
+                                ? {
+                                      thisChapterWords: JSON.parse(
+                                          words.wordsJson
+                                      ),
+                                  }
+                                : {}),
                         };
                     }
                 );

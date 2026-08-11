@@ -18,7 +18,7 @@ import {
     InputCommentaryMetadata,
     InputFileMetadata,
     InputTranslationFile,
-    TranslationBookChapter,
+    TranslationBookChapterWords,
     CommentaryBookChapterSchema,
     CommentaryBookChapter,
 } from '@helloao/tools/generation/common-types.js';
@@ -55,6 +55,8 @@ import {
     ApiCommentaryProfiles,
     ApiCommentaryProfilesSchema,
     ApiTranslationBooks,
+    ApiTranslationBookChapter,
+    ApiTranslationBookChapterWords,
     replaceSpacesWithUnderscores,
 } from '@helloao/tools/generation/api.js';
 import { ZodType } from 'zod';
@@ -477,11 +479,25 @@ export async function loadTranslationsFromDirectory(
             const chapters = await readdir(bookDir);
 
             for (let chapterFile of chapters) {
-                const chapterJson: TranslationBookChapter = JSON.parse(
+                // Book directories also contain the sidecar files for a chapter
+                // (audio timings and words). They are loaded through the chapter
+                // that links to them, not on their own.
+                if (!isChapterFile(chapterFile)) {
+                    continue;
+                }
+
+                const chapterJson: ApiTranslationBookChapter = JSON.parse(
                     await readFile(path.resolve(bookDir, chapterFile), 'utf-8')
                 );
 
                 if (chapterJson.chapter) {
+                    const words = chapterJson.thisChapterWordsLink
+                        ? await readChapterWords(
+                              bookDir,
+                              chapterJson.chapter.number
+                          )
+                        : null;
+
                     book.chapters.push({
                         chapter: chapterJson.chapter,
                         thisChapterAudioLinks:
@@ -491,6 +507,7 @@ export async function loadTranslationsFromDirectory(
                         // raw per-verse timing data. Re-importing timings requires the
                         // `import-audio-timings` CLI command instead.
                         thisChapterAudioTimings: {},
+                        ...(words ? { thisChapterWords: words } : {}),
                     });
                 } else {
                     logger.warn(`Unknown chapter format: ${chapterFile}`);
@@ -501,6 +518,41 @@ export async function loadTranslationsFromDirectory(
     }
 
     return translations;
+}
+
+/**
+ * Determines whether the given file name in a book directory is a chapter file,
+ * as opposed to one of the sidecar files that a chapter links to.
+ * @param fileName The name of the file.
+ */
+function isChapterFile(fileName: string): boolean {
+    return /^[0-9]+\.json$/.test(fileName);
+}
+
+/**
+ * Reads the word-level annotations for the given chapter from the book directory.
+ * Returns null if they could not be read.
+ * @param bookDir The directory that the book's files are in.
+ * @param chapterNumber The number of the chapter.
+ */
+async function readChapterWords(
+    bookDir: string,
+    chapterNumber: number
+): Promise<TranslationBookChapterWords | null> {
+    const wordsPath = path.resolve(bookDir, `${chapterNumber}.words.json`);
+
+    if (!existsSync(wordsPath)) {
+        log.getLogger().warn(
+            `Chapter links to word annotations, but ${wordsPath} does not exist.`
+        );
+        return null;
+    }
+
+    const words: ApiTranslationBookChapterWords = JSON.parse(
+        await readFile(wordsPath, 'utf-8')
+    );
+
+    return words.verses ?? null;
 }
 
 async function tryParseJsonFile<T>(

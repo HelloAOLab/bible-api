@@ -748,6 +748,15 @@ describe('generateApiForDataset', () => {
             totalNumberOfVerses: 2,
         };
 
+        // Each range slices the word out of the single string that the verse's
+        // content was merged into.
+        const word = (start: number, end: number, strong: string) => ({
+            contentIndex: 0,
+            start,
+            end,
+            strongs: [strong],
+        });
+
         expect(tree).toEqual({
             '/api/available_translations.json': {
                 translations: [expectedTranslation],
@@ -828,6 +837,8 @@ describe('generateApiForDataset', () => {
                 previousChapterReference: null,
                 previousChapterAudioLinks: null,
                 previousChapterAudioTimings: null,
+                thisChapterWordsLink: '/api/bsb/GEN/5.words.json',
+                nextChapterWordsLink: '/api/bsb/GEN/6.words.json',
                 numberOfVerses: 1,
                 chapter: {
                     number: 5,
@@ -845,6 +856,32 @@ describe('generateApiForDataset', () => {
                         },
                     ],
                     footnotes: [],
+                },
+            },
+            '/api/bsb/GEN/5.words.json': {
+                translationId: 'bsb',
+                bookId: 'GEN',
+                chapterNumber: 5,
+                thisChapterLink: '/api/bsb/GEN/5.json',
+                nextChapterLink: '/api/bsb/GEN/6.json',
+                previousChapterLink: null,
+                thisChapterWordsLink: '/api/bsb/GEN/5.words.json',
+                nextChapterWordsLink: '/api/bsb/GEN/6.words.json',
+                previousChapterWordsLink: null,
+                verses: {
+                    // In the beginning God created the heavens and the earth.
+                    '1': [
+                        word(0, 2, 'H8064'),
+                        word(3, 6, 'H1254'),
+                        word(7, 16, 'H7225'),
+                        word(17, 20, 'H8064'),
+                        word(21, 28, 'H1254'),
+                        word(29, 32, 'H1254'),
+                        word(33, 40, 'H8064'),
+                        word(41, 44, 'H8064'),
+                        word(45, 48, 'H1254'),
+                        word(49, 54, 'H8064'),
+                    ],
                 },
             },
             '/api/bsb/GEN/6.json': {
@@ -892,6 +929,8 @@ describe('generateApiForDataset', () => {
                 },
                 previousChapterAudioLinks: {},
                 previousChapterAudioTimings: {},
+                thisChapterWordsLink: '/api/bsb/GEN/6.words.json',
+                previousChapterWordsLink: '/api/bsb/GEN/5.words.json',
                 numberOfVerses: 1,
                 chapter: {
                     number: 6,
@@ -911,6 +950,35 @@ describe('generateApiForDataset', () => {
                     footnotes: [],
                 },
             },
+            '/api/bsb/GEN/6.words.json': {
+                translationId: 'bsb',
+                bookId: 'GEN',
+                chapterNumber: 6,
+                thisChapterLink: '/api/bsb/GEN/6.json',
+                nextChapterLink: null,
+                previousChapterLink: '/api/bsb/GEN/5.json',
+                thisChapterWordsLink: '/api/bsb/GEN/6.words.json',
+                nextChapterWordsLink: null,
+                previousChapterWordsLink: '/api/bsb/GEN/5.words.json',
+                verses: {
+                    // Thus the heavens and the earth were completed in all their vast array.
+                    '1': [
+                        word(0, 4, 'H3541'),
+                        word(5, 8, 'H3605'),
+                        word(9, 16, 'H8064'),
+                        word(17, 20, 'H8064'),
+                        word(21, 24, 'H3605'),
+                        word(25, 30, 'H8064'),
+                        word(31, 35, 'H8064'),
+                        word(36, 45, 'H3615'),
+                        word(46, 48, 'H6635'),
+                        word(49, 52, 'H3605'),
+                        word(53, 58, 'H3605'),
+                        word(59, 63, 'H6635'),
+                        word(64, 69, 'H6635'),
+                    ],
+                },
+            },
         });
 
         // expect(availableTranslations).toEqual({
@@ -918,6 +986,53 @@ describe('generateApiForDataset', () => {
         //         expectedTranslation
         //     ]
         // });
+    });
+
+    it('should not link to words for chapters that have no annotations', () => {
+        let translation1: InputTranslationMetadata = {
+            id: 'bsb',
+            name: 'Berean Standard Bible',
+            englishName: 'Berean Standard Bible',
+            shortName: 'BSB',
+            language: 'eng',
+            direction: 'ltr',
+            licenseUrl: 'https://berean.bible/terms.htm',
+            website: 'https://berean.bible',
+        };
+
+        let inputFiles: InputFile[] = [
+            {
+                fileType: 'usx',
+                metadata: translation1,
+                content: `
+            <usx version="3.0">
+                    <book code="GEN" style="id">- Berean Study Bible</book>
+                    <para style="h">Genesis</para>
+                    <para style="mt1">Genesis</para>
+                    <chapter number="1" style="c" sid="GEN 1"/>
+                    <para style="m">
+                        <verse number="1" style="v" sid="GEN 1:1"/>
+                        In the beginning God created the heavens and the earth.
+                        <verse eid="GEN 1:1"/>
+                    </para>
+                </usx>`,
+            },
+        ];
+
+        const dataset = generateDataset(inputFiles, new DOMParser() as any);
+        const generated = generateApiForDataset(dataset);
+        const files = generateFilesForApi(generated);
+
+        const tree = fileTree(files);
+
+        expect(Object.keys(tree)).not.toContain('/api/bsb/GEN/1.words.json');
+        expect(generated.translationBookChapterWords).toEqual([]);
+
+        const chapter = tree['/api/bsb/GEN/1.json'];
+        expect('thisChapterWordsLink' in chapter).toBe(false);
+        expect('nextChapterWordsLink' in chapter).toBe(false);
+        expect('previousChapterWordsLink' in chapter).toBe(false);
+        expect('thisChapterWords' in chapter).toBe(false);
     });
 
     it('should use the given path prefix', () => {

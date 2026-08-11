@@ -62,6 +62,80 @@ export interface Chapter {
      * The list of footnotes for the chapter.
      */
     footnotes: Footnote[];
+
+    /**
+     * The word-level annotations for the chapter's verses.
+     * Undefined if the source didn't contain any word-level annotations.
+     */
+    words?: ChapterWords;
+}
+
+/**
+ * Defines the word-level annotations for a chapter, keyed by verse number.
+ */
+export type ChapterWords = {
+    [verseNumber: string]: ChapterWord[];
+};
+
+/**
+ * Defines an interface that represents the annotations that a source associated
+ * with a specific range of characters in a verse.
+ *
+ * The range is anchored to a single item of the verse's content array, so that
+ * consumers can highlight the exact characters that an annotation applies to.
+ */
+export interface ChapterWord {
+    /**
+     * The index of the item in the verse's content array that the annotation applies to.
+     */
+    contentIndex: number;
+
+    /**
+     * The index of the first character of the annotated word in the content item's text.
+     */
+    start: number;
+
+    /**
+     * The index after the last character of the annotated word in the content item's text.
+     * That is, `text.slice(start, end)` is the annotated word.
+     */
+    end: number;
+
+    /**
+     * The Strong's number(s) for the word.
+     * Undefined if the source only provided other annotations for the word.
+     */
+    strongs?: string[];
+
+    /**
+     * The dictionary (citation) form of the word.
+     * Taken from the `lemma` attribute.
+     */
+    lemma?: string;
+
+    /**
+     * The morphology parse code for the word.
+     * Taken from the `x-morph` attribute.
+     */
+    morph?: string;
+
+    /**
+     * The pointer to the word in the source text, in the `<sourceName>:<location>` format.
+     * Taken from the `srcloc` attribute.
+     */
+    srcloc?: string;
+
+    /**
+     * Which occurrence of the source word this word is. 1-based.
+     * Taken from the `x-occurrence` attribute.
+     */
+    occurrence?: number;
+
+    /**
+     * The total number of times that the source word occurs.
+     * Taken from the `x-occurrences` attribute.
+     */
+    occurrences?: number;
 }
 
 /**

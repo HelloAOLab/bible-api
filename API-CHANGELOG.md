@@ -3,6 +3,37 @@
 This is the log of changes for the Free Use Bible API.
 For information on the API Generator, see [GENERATOR-CHANGELOG.md](./GENERATOR-CHANGELOG.md).
 
+## V1.12.0
+
+#### Date: 2026-08-09
+
+### :rocket: Features
+
+-   Added support for word-level annotations (Strong's numbers and related source data).
+    -   Annotations are published in a new file per chapter: `/api/{translation}/{book}/{chapter}.words.json`
+        -   See the [reference documentation](https://bible.helloao.org/docs/reference/#get-the-words-of-a-chapter) for the full structure.
+    -   Chapters that have annotations gain three new optional properties that link to the new files:
+        -   `thisChapterWordsLink`
+        -   `nextChapterWordsLink`
+        -   `previousChapterWordsLink`
+        -   These properties are omitted entirely for chapters that have no annotations, so the output for translations without word-level data is unchanged.
+    -   Each annotation is anchored to a range of characters in a single item of a verse's `content` array. `contentIndex` is the index of the item, and `start`/`end` are character offsets into that item's text (`end` is exclusive).
+        -   Anchoring per content item keeps the offsets correct for verses that are split into multiple items, such as poem lines and words of Jesus.
+        -   Example - given the following verse:
+            ```json
+            {
+                "type": "verse",
+                "number": 1,
+                "content": [
+                    "In the beginning was the Word, and the Word was with God, and the Word was God."
+                ]
+            }
+            ```
+        -   The entry `{ "contentIndex": 0, "start": 7, "end": 16, "strongs": ["G0746"] }` annotates `"beginning"`, since `content[0].slice(7, 16)` is `"beginning"`.
+    -   Along with `strongs`, an annotation can carry `lemma`, `morph`, `srcloc`, `occurrence`, and `occurrences`. Each property is omitted when the translation did not provide it.
+        -   No translation that is currently published provides anything other than `strongs`.
+    -   `/api/{translation}/complete.json` includes the annotations inline as `thisChapterWords` on each chapter.
+
 ## V1.11.2
 
 #### Date: 2026-05-11
