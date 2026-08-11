@@ -3,9 +3,7 @@
 This is the log of changes for the Free Use Bible API.
 For information on the API Generator, see [GENERATOR-CHANGELOG.md](./GENERATOR-CHANGELOG.md).
 
-## V1.12.0
-
-#### Date: 2026-08-09
+## Unreleased
 
 ### :rocket: Features
 
@@ -60,6 +58,36 @@ For information on the API Generator, see [GENERATOR-CHANGELOG.md](./GENERATOR-C
 -   Added the `simpleCompleteTranslationApiLink` property to the translation metadata.
     -   It contains the link to the simplified complete translation file, next to the existing `completeTranslationApiLink`.
     -   Because the translation metadata is included in the available translations, books, and chapter endpoints, the simplified complete file is discoverable from all of them.
+-   Added support for word-level annotations (Strong's numbers and related source data).
+    -   Annotations are published in a new file per chapter: `/api/{translation}/{book}/{chapter}.words.json`
+        -   See the [reference documentation](https://bible.helloao.org/docs/reference/#get-the-words-of-a-chapter) for the full structure.
+    -   Chapters that have annotations gain three new optional properties that link to the new files:
+        -   `thisChapterWordsLink`
+        -   `nextChapterWordsLink`
+        -   `previousChapterWordsLink`
+        -   These properties are omitted entirely for chapters that have no annotations, so the output for translations without word-level data is unchanged.
+    -   Each annotation is anchored to a range of characters in a single item of a verse's `content` array. `contentIndex` is the index of the item, and `start`/`end` are character offsets into that item's text (`end` is exclusive).
+        -   Anchoring per content item keeps the offsets correct for verses that are split into multiple items, such as poem lines and words of Jesus.
+        -   Example - given the following verse:
+            ```json
+            {
+                "type": "verse",
+                "number": 1,
+                "content": [
+                    "In the beginning was the Word, and the Word was with God, and the Word was God."
+                ]
+            }
+            ```
+        -   The entry `{ "contentIndex": 0, "start": 7, "end": 16, "strongs": ["G0746"] }` annotates `"beginning"`, since `content[0].slice(7, 16)` is `"beginning"`.
+    -   Along with `strongs`, an annotation can carry `lemma`, `morph`, `srcloc`, `occurrence`, and `occurrences`. Each property is omitted when the translation did not provide it.
+        -   No translation that is currently published provides anything other than `strongs`.
+    -   `/api/{translation}/complete.json` includes the annotations inline as `thisChapterWords` on each chapter.
+-   Added word-level annotations for the simplified format.
+    -   The offsets in `/api/{translation}/{book}/{chapter}.words.json` are anchored to items of a verse's `content` array, which the simplified format replaces with a single string. So the annotations are also published with their offsets remapped onto the simplified text: `GET /api/{translation}/{book}/{chapter}.words.simple.json`
+    -   These entries have no `contentIndex` - `start` and `end` are offsets into the `text` of the verse, just like the footnote, poem, and Words of Jesus offsets in the simplified chapters.
+        -   For the example above, the simplified entry is `{ "start": 7, "end": 16, "strongs": ["G0746"] }`, since `text.slice(7, 16)` is `"beginning"`.
+    -   Simplified chapters that have annotations link to them with the same `thisChapterWordsLink`/`nextChapterWordsLink`/`previousChapterWordsLink` properties, pointing at the simplified files.
+    -   `/api/{translation}/complete.simple.json` includes the remapped annotations inline as `thisChapterWords` on each chapter.
 
 ## V1.11.2
 

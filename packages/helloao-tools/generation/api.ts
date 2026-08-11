@@ -25,6 +25,8 @@ import {
     TranslationBookChapterSchema,
     TranslationBookChapterAudioLinks,
     TranslationBookChapterAudioTimings,
+    TranslationBookChapterWords,
+    ChapterWordSchema,
     CommentarySchema,
     SimpleChapterData,
     SimpleChapterDataSchema,
@@ -81,6 +83,13 @@ export interface ApiOutput {
      * - /api/:translationId/:bookId/:chapterNumber.:reader.audioTimings.json
      */
     translationBookChapterAudioTimings: ApiTranslationBookChapterAudioTimings[];
+
+    /**
+     * The list of word-level annotations for chapters.
+     * This maps to the following endpoints:
+     * - /api/:translationId/:bookId/:chapterNumber.words.json
+     */
+    translationBookChapterWords: ApiTranslationBookChapterWords[];
 
     /**
      * The list of available commentaries.
@@ -1094,8 +1103,14 @@ export type ApiDatasetBook = z.infer<typeof ApiDatasetBookSchema>;
 /**
  * Defines an interface that contains information about a book chapter.
  */
+// The word annotations are published as a separate file, and are linked to by
+// thisChapterWordsLink instead of being included inline.
+const ApiTranslationBookChapterBaseSchema = TranslationBookChapterSchema.omit({
+    thisChapterWords: true,
+});
+
 export const ApiTranslationBookChapterSchema =
-    TranslationBookChapterSchema.extend({
+    ApiTranslationBookChapterBaseSchema.extend({
         /**
          * The translation information for the book chapter.
          */
@@ -1224,6 +1239,35 @@ export const ApiTranslationBookChapterSchema =
                 description:
                     'The links to the audio versions for the previous chapter. Relative to the API origin. Null if this is the first chapter in the translation.',
             }),
+
+        /**
+         * The link to the word-level annotations for the chapter.
+         * Omitted if the chapter doesn't have any word-level annotations.
+         */
+        thisChapterWordsLink: z.string().optional().meta({
+            description:
+                "The link to the word-level annotations for this chapter. Relative to the API origin. Omitted if the chapter doesn't have any word-level annotations.",
+        }),
+
+        /**
+         * The link to the word-level annotations for the next chapter.
+         * Omitted if this is the last chapter in the translation, or if the next
+         * chapter doesn't have any word-level annotations.
+         */
+        nextChapterWordsLink: z.string().optional().meta({
+            description:
+                "The link to the word-level annotations for the next chapter. Relative to the API origin. Omitted if this is the last chapter in the translation, or if the next chapter doesn't have any word-level annotations.",
+        }),
+
+        /**
+         * The link to the word-level annotations for the previous chapter.
+         * Omitted if this is the first chapter in the translation, or if the
+         * previous chapter doesn't have any word-level annotations.
+         */
+        previousChapterWordsLink: z.string().optional().meta({
+            description:
+                "The link to the word-level annotations for the previous chapter. Relative to the API origin. Omitted if this is the first chapter in the translation, or if the previous chapter doesn't have any word-level annotations.",
+        }),
 
         /**
          * The number of verses that the chapter contains.
@@ -1627,6 +1671,97 @@ export type ApiTranslationBookChapterAudioTimings = z.infer<
     typeof ApiTranslationBookChapterAudioTimingsSchema
 >;
 
+export const ApiTranslationBookChapterWordsSchema = z.object({
+    /**
+     * The ID of the translation.
+     */
+    translationId: z.string().meta({
+        description: 'The ID of the translation.',
+    }),
+
+    /**
+     * The ID of the book.
+     */
+    bookId: z.string().meta({
+        description: 'The ID of the book.',
+    }),
+
+    /**
+     * The number of the chapter.
+     */
+    chapterNumber: z.number().meta({
+        description: 'The number of the chapter.',
+    }),
+
+    /**
+     * The link to the information for this chapter.
+     */
+    thisChapterLink: z.string().meta({
+        description: 'The link to the information for this chapter.',
+    }),
+
+    /**
+     * The link to the information for the next chapter.
+     * Null if this is the last chapter in the translation.
+     */
+    nextChapterLink: z.string().nullable().meta({
+        description:
+            'The link to the information for the next chapter. Null if this is the last chapter in the translation.',
+    }),
+
+    /**
+     * The link to the information for the previous chapter.
+     * Null if this is the first chapter in the translation.
+     */
+    previousChapterLink: z.string().nullable().meta({
+        description:
+            'The link to the information for the previous chapter. Null if this is the first chapter in the translation.',
+    }),
+
+    /**
+     * The link to this words file.
+     */
+    thisChapterWordsLink: z.string().meta({
+        description: 'The link to this words file.',
+    }),
+
+    /**
+     * The link to the words for the next chapter.
+     * Null if this is the last chapter in the translation, or if the next chapter
+     * doesn't have any word-level annotations.
+     */
+    nextChapterWordsLink: z.string().nullable().meta({
+        description:
+            "The link to the words for the next chapter. Null if this is the last chapter in the translation, or if the next chapter doesn't have any word-level annotations.",
+    }),
+
+    /**
+     * The link to the words for the previous chapter.
+     * Null if this is the first chapter in the translation, or if the previous
+     * chapter doesn't have any word-level annotations.
+     */
+    previousChapterWordsLink: z.string().nullable().meta({
+        description:
+            "The link to the words for the previous chapter. Null if this is the first chapter in the translation, or if the previous chapter doesn't have any word-level annotations.",
+    }),
+
+    /**
+     * The annotated words for each verse in the chapter.
+     */
+    verses: z.record(z.string(), z.array(z.lazy(() => ChapterWordSchema))).meta({
+        description:
+            'The annotated words for each verse in the chapter, keyed by verse number. Each list is in the order that the words occur in the verse.',
+    }),
+}).meta({
+    id: 'ApiTranslationBookChapterWords',
+    description:
+        'Defines an interface that contains the word-level annotations for a book chapter.',
+});
+
+export type ApiTranslationBookChapterWords = z.infer<
+    typeof ApiTranslationBookChapterWordsSchema
+>;
+
 export const ApiCommentaryProfileContentSchema = z.object({
     /**
      * The commentary information for the profile.
@@ -1731,6 +1866,7 @@ export function generateApiForDataset(
         translationBookChapters: [],
         translationBookChapterAudio: [],
         translationBookChapterAudioTimings: [],
+        translationBookChapterWords: [],
         translationComplete: [],
         simpleTranslationComplete: [],
         availableCommentaries: {
@@ -1811,6 +1947,10 @@ export function generateApiForDataset(
             ApiTranslationBookChapter,
             TranslationBookChapterAudioTimings
         >();
+        let rawWordsByChapter = new Map<
+            ApiTranslationBookChapter,
+            TranslationBookChapterWords
+        >();
 
         for (let { chapters, ...book } of books) {
             const firstChapterNumber = chapters[0]?.chapter.number;
@@ -1852,6 +1992,7 @@ export function generateApiForDataset(
                 chapter,
                 thisChapterAudioLinks,
                 thisChapterAudioTimings,
+                thisChapterWords,
             } of chapters) {
                 const audio: TranslationBookChapterAudioLinks = {};
                 const audioTimings: Record<string, string> = {};
@@ -1917,6 +2058,17 @@ export function generateApiForDataset(
                     apiBookChapter,
                     thisChapterAudioTimings
                 );
+
+                if (thisChapterWords) {
+                    apiBookChapter.thisChapterWordsLink =
+                        bookChapterWordsApiLink(
+                            translation.id,
+                            getBookLink(book),
+                            chapter.number,
+                            apiPathPrefix
+                        );
+                    rawWordsByChapter.set(apiBookChapter, thisChapterWords);
+                }
 
                 for (let reader in thisChapterAudioTimings) {
                     const verses = thisChapterAudioTimings[reader];
@@ -1987,6 +2139,11 @@ export function generateApiForDataset(
                     previousChapter.thisChapterAudioLinks;
                 currentChapter.previousChapterAudioTimings =
                     previousChapter.thisChapterAudioTimings;
+
+                if (previousChapter.thisChapterWordsLink) {
+                    currentChapter.previousChapterWordsLink =
+                        previousChapter.thisChapterWordsLink;
+                }
             }
 
             if (i < translationChapters.length - 1) {
@@ -2007,6 +2164,11 @@ export function generateApiForDataset(
                     nextChapter.thisChapterAudioLinks;
                 currentChapter.nextChapterAudioTimings =
                     nextChapter.thisChapterAudioTimings;
+
+                if (nextChapter.thisChapterWordsLink) {
+                    currentChapter.nextChapterWordsLink =
+                        nextChapter.thisChapterWordsLink;
+                }
             }
         }
 
@@ -2083,6 +2245,28 @@ export function generateApiForDataset(
             });
         }
 
+        for (let apiBookChapter of translationChapters) {
+            const words = rawWordsByChapter.get(apiBookChapter);
+            if (!words || !apiBookChapter.thisChapterWordsLink) {
+                continue;
+            }
+
+            api.translationBookChapterWords.push({
+                translationId: translation.id,
+                bookId: apiBookChapter.book.id,
+                chapterNumber: apiBookChapter.chapter.number,
+                thisChapterLink: apiBookChapter.thisChapterLink,
+                nextChapterLink: apiBookChapter.nextChapterApiLink,
+                previousChapterLink: apiBookChapter.previousChapterApiLink,
+                thisChapterWordsLink: apiBookChapter.thisChapterWordsLink,
+                nextChapterWordsLink:
+                    apiBookChapter.nextChapterWordsLink ?? null,
+                previousChapterWordsLink:
+                    apiBookChapter.previousChapterWordsLink ?? null,
+                verses: words,
+            });
+        }
+
         api.availableTranslations.translations.push(apiTranslation);
         api.translationBooks.push(translationBooks);
 
@@ -2126,10 +2310,16 @@ export function generateApiForDataset(
                 books: completeBooks.map(({ book, chapters }) =>
                     completeBook(
                         book,
-                        chapters.map((ch) => ({
-                            ...completeChapter(ch),
-                            chapter: ch.chapter,
-                        }))
+                        chapters.map((ch) => {
+                            const words = rawWordsByChapter.get(ch);
+                            return {
+                                ...completeChapter(ch),
+                                // The complete files also contain the word annotations
+                                // themselves rather than links to them.
+                                ...(words ? { thisChapterWords: words } : {}),
+                                chapter: ch.chapter,
+                            };
+                        })
                     )
                 ),
             };
@@ -2598,6 +2788,10 @@ export function generateFilesForApi(api: ApiOutput): OutputFile[] {
         files.push(jsonFile(timings.thisChapterAudioTimingsLink, timings));
     }
 
+    for (let words of api.translationBookChapterWords) {
+        files.push(jsonFile(words.thisChapterWordsLink, words));
+    }
+
     // Generate complete translation download files
     for (let complete of api.translationComplete) {
         if (complete.translation.completeTranslationApiLink) {
@@ -2826,6 +3020,24 @@ export function bookChapterAudioTimingsApiLink(
     return `${prefix}/api/${translationId}/${replaceSpacesWithUnderscores(
         bookId
     )}/${chapterNumber}.${reader}.audioTimings.json`;
+}
+
+/**
+ * Gets the API link for the word-level annotations of a book chapter.
+ * @param translationId The ID of the translation.
+ * @param bookId The ID of the book.
+ * @param chapterNumber The number of the chapter.
+ * @param prefix The prefix that should be added to the link.
+ */
+export function bookChapterWordsApiLink(
+    translationId: string,
+    bookId: string,
+    chapterNumber: number,
+    prefix: string = ''
+) {
+    return `${prefix}/api/${translationId}/${replaceSpacesWithUnderscores(
+        bookId
+    )}/${chapterNumber}.words.json`;
 }
 
 /**

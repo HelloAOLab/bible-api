@@ -315,6 +315,12 @@ export type ApiTranslationBookChapter = {
      */
     thisChapterAudioLinks: TranslationBookChapterAudioLinks;
     /**
+     * The links to the audio timings for different audio versions for the chapter. Relative to the API origin.
+     */
+    thisChapterAudioTimings: {
+        [key: string]: string;
+    };
+    /**
      * The translation information for the book chapter.
      */
     translation: ApiTranslation;
@@ -342,6 +348,18 @@ export type ApiTranslationBookChapter = {
         [key: string]: string;
     } | null;
     /**
+     * The links to the audio timings for different audio versions for the next chapter. Relative to the API origin. Null if this is the last chapter in the translation.
+     */
+    nextChapterAudioTimings: {
+        [key: string]: string;
+    } | null;
+    /**
+     * The links to the audio timings for different audio versions for the previous chapter. Relative to the API origin. Null if this is the first chapter in the translation.
+     */
+    previousChapterAudioTimings: {
+        [key: string]: string;
+    } | null;
+    /**
      * The API link to the previous chapter. Relative to the API origin. Null if this is the first chapter in the translation.
      */
     previousChapterApiLink: string | null;
@@ -355,6 +373,18 @@ export type ApiTranslationBookChapter = {
     previousChapterAudioLinks: {
         [key: string]: string;
     } | null;
+    /**
+     * The link to the word-level annotations for this chapter. Relative to the API origin. Omitted if the chapter doesn't have any word-level annotations.
+     */
+    thisChapterWordsLink?: string;
+    /**
+     * The link to the word-level annotations for the next chapter. Relative to the API origin. Omitted if this is the last chapter in the translation, or if the next chapter doesn't have any word-level annotations.
+     */
+    nextChapterWordsLink?: string;
+    /**
+     * The link to the word-level annotations for the previous chapter. Relative to the API origin. Omitted if this is the first chapter in the translation, or if the previous chapter doesn't have any word-level annotations.
+     */
+    previousChapterWordsLink?: string;
     /**
      * The number of verses that the chapter contains.
      */
@@ -506,6 +536,150 @@ export type TranslationBookChapterAudioLinks = {
 };
 
 /**
+ * Defines an interface that contains the audio timings for a book chapter, for a specific reader.
+ */
+export type ApiTranslationBookChapterAudioTimings = {
+    /**
+     * The ID of the translation.
+     */
+    translationId: string;
+    /**
+     * The ID of the book.
+     */
+    bookId: string;
+    /**
+     * The number of the chapter.
+     */
+    chapterNumber: number;
+    /**
+     * The reader for the chapter.
+     */
+    reader: string;
+    /**
+     * The link to the audio for these timings.
+     */
+    audioLink: string;
+    /**
+     * The link to the information for this chapter.
+     */
+    thisChapterLink: string;
+    /**
+     * The link to the information for the next chapter. Null if this is the last chapter in the translation.
+     */
+    nextChapterLink: string | null;
+    /**
+     * The link to the information for the previous chapter. Null if this is the first chapter in the translation.
+     */
+    previousChapterLink: string | null;
+    /**
+     * The link to this audio timings file.
+     */
+    thisChapterAudioTimingsLink: string;
+    /**
+     * The link to the timings for the next chapter. Null if this is the last chapter in the translation.
+     */
+    nextChapterAudioTimingsLink: string | null;
+    /**
+     * The link to the timings for the previous chapter. Null if this is the first chapter in the translation.
+     */
+    previousChapterAudioTimingsLink: string | null;
+    /**
+     * The times in seconds at which each verse starts, in order. The first number (index 0) is the time in the recording at which the first verse starts.
+     */
+    verses: Array<number>;
+};
+
+/**
+ * Defines an interface that contains the word-level annotations for a book chapter.
+ */
+export type ApiTranslationBookChapterWords = {
+    /**
+     * The ID of the translation.
+     */
+    translationId: string;
+    /**
+     * The ID of the book.
+     */
+    bookId: string;
+    /**
+     * The number of the chapter.
+     */
+    chapterNumber: number;
+    /**
+     * The link to the information for this chapter.
+     */
+    thisChapterLink: string;
+    /**
+     * The link to the information for the next chapter. Null if this is the last chapter in the translation.
+     */
+    nextChapterLink: string | null;
+    /**
+     * The link to the information for the previous chapter. Null if this is the first chapter in the translation.
+     */
+    previousChapterLink: string | null;
+    /**
+     * The link to this words file.
+     */
+    thisChapterWordsLink: string;
+    /**
+     * The link to the words for the next chapter. Null if this is the last chapter in the translation, or if the next chapter doesn't have any word-level annotations.
+     */
+    nextChapterWordsLink: string | null;
+    /**
+     * The link to the words for the previous chapter. Null if this is the first chapter in the translation, or if the previous chapter doesn't have any word-level annotations.
+     */
+    previousChapterWordsLink: string | null;
+    /**
+     * The annotated words for each verse in the chapter, keyed by verse number. Each list is in the order that the words occur in the verse.
+     */
+    verses: {
+        [key: string]: Array<ChapterWord>;
+    };
+};
+
+/**
+ * Defines the schema for a word-level annotation in a chapter. The annotation is anchored to a range of characters in a single item of a verse's content.
+ */
+export type ChapterWord = {
+    /**
+     * The index of the item in the verse's content array that the annotation applies to.
+     */
+    contentIndex: number;
+    /**
+     * The index of the first character of the annotated word in the content item's text.
+     */
+    start: number;
+    /**
+     * The index after the last character of the annotated word in the content item's text. That is, text.slice(start, end) is the annotated word.
+     */
+    end: number;
+    /**
+     * The Strong's number(s) for the word. Omitted if the translation only provided other annotations for the word.
+     */
+    strongs?: Array<string>;
+    /**
+     * The dictionary (citation) form of the word. Omitted if the translation did not provide one.
+     */
+    lemma?: string;
+    /**
+     * The morphology parse code for the word. Omitted if the translation did not provide one.
+     */
+    morph?: string;
+    /**
+     * The pointer to the word in the source text, in the <sourceName>:<location> format. Omitted if the translation did not provide one.
+     */
+    srcloc?: string;
+    /**
+     * Which occurrence of the source word this word is. 1-based. Omitted if the translation did not provide one.
+     */
+    occurrence?: number;
+    /**
+     * The total number of times that the source word occurs. Omitted if the translation did not provide one.
+     */
+    occurrences?: number;
+};
+
+/**
  * Defines the complete translation download data. Maps to the /api/:translationId/complete.json endpoint.
  */
 export type ApiTranslationComplete = {
@@ -583,6 +757,28 @@ export type TranslationBookChapter = {
      * The links to different audio versions for the chapter.
      */
     thisChapterAudioLinks: TranslationBookChapterAudioLinks;
+    /**
+     * The audio timings (per-verse start times, in seconds) for different audio versions for the chapter.
+     */
+    thisChapterAudioTimings: TranslationBookChapterAudioTimings;
+    /**
+     * The word-level annotations (Strong's numbers and related source data) for the chapter's verses. Omitted if the translation doesn't have any word-level annotations for the chapter.
+     */
+    thisChapterWords?: TranslationBookChapterWords;
+};
+
+/**
+ * Defines the schema for the audio timings for a book chapter. Maps a reader ID to the list of times (in seconds) that each verse starts, in verse order.
+ */
+export type TranslationBookChapterAudioTimings = {
+    [key: string]: Array<number>;
+};
+
+/**
+ * Defines the schema for the word-level annotations for a book chapter. Maps a verse number to the list of annotated words in the verse, in order.
+ */
+export type TranslationBookChapterWords = {
+    [key: string]: Array<ChapterWord>;
 };
 
 /**
@@ -1145,6 +1341,84 @@ export type GetTranslationBookChapterResponses = {
 
 export type GetTranslationBookChapterResponse =
     GetTranslationBookChapterResponses[keyof GetTranslationBookChapterResponses];
+
+export type GetTranslationBookChapterAudioTimingsData = {
+    body?: never;
+    path: {
+        /**
+         * The translation ID of the Bible translation to get the books for. For example, "eng_kjv" for the King James Version.
+         */
+        translation: string;
+        /**
+         * IDs for books. Follows the USFM standard (https://ubsicap.github.io/usfm/identification/books.html)
+         */
+        book: BookId;
+        /**
+         * The chapter number to get the content for. This should be a positive integer.
+         */
+        chapter: number;
+        /**
+         * The ID of the reader to get the audio timings for. For example, "hays" for the Hays reading of the Berean Standard Bible.
+         */
+        reader: string;
+    };
+    query?: never;
+    url: '/api/{translation}/{book}/{chapter}.{reader}.audioTimings.json';
+};
+
+export type GetTranslationBookChapterAudioTimingsErrors = {
+    /**
+     * 404 Not Found - The specified translation, book, chapter, or reader was not found.
+     */
+    404: unknown;
+};
+
+export type GetTranslationBookChapterAudioTimingsResponses = {
+    /**
+     * 200 OK
+     */
+    200: ApiTranslationBookChapterAudioTimings;
+};
+
+export type GetTranslationBookChapterAudioTimingsResponse =
+    GetTranslationBookChapterAudioTimingsResponses[keyof GetTranslationBookChapterAudioTimingsResponses];
+
+export type GetTranslationBookChapterWordsData = {
+    body?: never;
+    path: {
+        /**
+         * The translation ID of the Bible translation to get the books for. For example, "eng_kjv" for the King James Version.
+         */
+        translation: string;
+        /**
+         * IDs for books. Follows the USFM standard (https://ubsicap.github.io/usfm/identification/books.html)
+         */
+        book: BookId;
+        /**
+         * The chapter number to get the content for. This should be a positive integer.
+         */
+        chapter: number;
+    };
+    query?: never;
+    url: '/api/{translation}/{book}/{chapter}.words.json';
+};
+
+export type GetTranslationBookChapterWordsErrors = {
+    /**
+     * 404 Not Found - The specified translation, book, or chapter was not found, or the chapter does not have any word-level annotations.
+     */
+    404: unknown;
+};
+
+export type GetTranslationBookChapterWordsResponses = {
+    /**
+     * 200 OK
+     */
+    200: ApiTranslationBookChapterWords;
+};
+
+export type GetTranslationBookChapterWordsResponse =
+    GetTranslationBookChapterWordsResponses[keyof GetTranslationBookChapterWordsResponses];
 
 export type GetTranslationCompleteData = {
     body?: never;

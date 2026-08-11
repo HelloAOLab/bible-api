@@ -1,0 +1,36 @@
+[project]
+name = "bible-audio-timings"
+version = "0.1.0"
+description = "Generate verse-by-verse audio timings for Free Use Bible API chapters using whisperX."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = ["httpx>=0.27"]
+
+[project.optional-dependencies]
+# whisperX pulls in torch/CUDA, so it is opt-in. Everything except
+# bible_audio_timings.transcribe imports and tests without it.
+asr = ["whisperx>=3.1"]
+
+[project.scripts]
+bible-audio-timings = "bible_audio_timings.cli:main"
+
+[dependency-groups]
+dev = ["pytest>=8.0", "ruff>=0.6"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/bible_audio_timings"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]

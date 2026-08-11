@@ -8,9 +8,11 @@ import type {
     ApiDatasetBooks,
     ApiTranslationBook,
     ApiTranslationBookChapter,
+    ApiTranslationBookChapterWords,
     ApiTranslationBooks,
     ApiTranslationComplete,
     ChapterVerse,
+    ChapterWord,
     TranslationChapterReference,
 } from './types.gen.js';
 
@@ -55,6 +57,16 @@ export interface GetVerseTextOptions {
      * Whether to omit the chapter reference from the returned text.
      */
     omitReference?: boolean;
+}
+
+/**
+ * A word-level annotation, paired with the text of the verse that it covers.
+ */
+export interface AnnotatedWord extends ChapterWord {
+    /**
+     * The text that the annotation applies to.
+     */
+    text: string;
 }
 
 /**
@@ -223,6 +235,50 @@ export class FreeUseBibleApi {
         const encodedChapter = encodeURIComponent(String(chapter));
         return this._getJson<ApiTranslationBookChapter>(
             `api/${encodedTranslation}/${encodedBook}/${encodedChapter}.json`,
+            endpoint
+        );
+    }
+
+    /**
+     * Gets the word-level annotations (Strong's numbers and related source data) for a specific chapter of a specific book for a specific Bible translation.
+     *
+     * Only some translations have word-level annotations. This request will fail for chapters that don't have any.
+     * Use `getChapterWords()` to get the annotations for a chapter that you have already loaded, which returns null instead of failing.
+     * @param translation The ID of the translation to get the annotations for.
+     * @param book The ID of the book to get the annotations for.
+     * @param chapter The chapter number to get the annotations for.
+     * @param endpoint The API endpoint to use for the request. If not provided, the default endpoint will be used.
+     */
+    async getTranslationBookChapterWords(
+        translation: string,
+        book: string,
+        chapter: number | string,
+        endpoint?: string
+    ): Promise<ApiTranslationBookChapterWords> {
+        const encodedTranslation = encodeURIComponent(translation);
+        const encodedBook = encodeURIComponent(book);
+        const encodedChapter = encodeURIComponent(String(chapter));
+        return this._getJson<ApiTranslationBookChapterWords>(
+            `api/${encodedTranslation}/${encodedBook}/${encodedChapter}.words.json`,
+            endpoint
+        );
+    }
+
+    /**
+     * Gets the word-level annotations for the given chapter, if it has any.
+     * @param chapter The chapter to get the annotations for.
+     * @param endpoint The API endpoint to use for the request. If not provided, the default endpoint will be used.
+     * @returns The annotations for the chapter, or null if the chapter doesn't have any.
+     */
+    async getChapterWords(
+        chapter: ApiTranslationBookChapter,
+        endpoint?: string
+    ): Promise<ApiTranslationBookChapterWords | null> {
+        if (!chapter.thisChapterWordsLink) {
+            return null;
+        }
+        return this._getJson<ApiTranslationBookChapterWords>(
+            chapter.thisChapterWordsLink,
             endpoint
         );
     }
@@ -559,6 +615,51 @@ export class FreeUseBibleApi {
         }
 
         return content.trim();
+    }
+
+    /**
+     * Gets the text that the given word-level annotation applies to.
+     *
+     * Annotations are anchored to a range of characters in a single item of the verse's content,
+     * so that the ranges stay correct for verses whose content is split into multiple items,
+     * such as poem lines and the words of Jesus.
+     * @param verse The verse that the annotation is in.
+     * @param word The annotation to get the text for.
+     * @returns The annotated text, or an empty string if the annotation doesn't point at any text.
+     */
+    getWordText(verse: ChapterVerse, word: ChapterWord): string {
+        const content = verse.content[word.contentIndex];
+
+        if (typeof content === 'string') {
+            return content.slice(word.start, word.end);
+        } else if (
+            typeof content === 'object' &&
+            content !== null &&
+            'text' in content
+        ) {
+            return content.text.slice(word.start, word.end);
+        }
+
+        // Line breaks, inline headings, and footnote references have no text of their own.
+        return '';
+    }
+
+    /**
+     * Gets the word-level annotations for the given verse, paired with the text that each one applies to.
+     * @param verse The verse to get the annotations for.
+     * @param words The annotations for the chapter that the verse is in.
+     * @returns The annotations for the verse, in the order that they occur. Empty if the verse has no annotations.
+     */
+    getVerseWords(
+        verse: ChapterVerse,
+        words: ApiTranslationBookChapterWords
+    ): AnnotatedWord[] {
+        const verseWords = words.verses[verse.number.toString()] ?? [];
+
+        return verseWords.map((word) => ({
+            ...word,
+            text: this.getWordText(verse, word),
+        }));
     }
 
     private _getJson<T>(

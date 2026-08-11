@@ -342,6 +342,14 @@ export async function initDb(
                         INNER JOIN source.Translation ON source.Translation.id = source.ChapterAudioUrl.translationId
                         WHERE source.Translation.language IN ${languages};
 
+                        CREATE TABLE "ChapterAudioTiming" AS SELECT * FROM source.ChapterAudioTiming
+                        INNER JOIN source.Translation ON source.Translation.id = source.ChapterAudioTiming.translationId
+                        WHERE source.Translation.language IN ${languages};
+
+                        CREATE TABLE "ChapterWords" AS SELECT * FROM source.ChapterWords
+                        INNER JOIN source.Translation ON source.Translation.id = source.ChapterWords.translationId
+                        WHERE source.Translation.language IN ${languages};
+
                         CREATE TABLE "Commentary" AS SELECT * FROM source.Commentary
                         WHERE language IN ${languages};
 
@@ -387,6 +395,8 @@ export async function initDb(
                         CREATE TABLE "ChapterVerse" AS SELECT * FROM source.ChapterVerse;
                         CREATE TABLE "ChapterFootnote" AS SELECT * FROM source.ChapterFootnote;
                         CREATE TABLE "ChapterAudioUrl" AS SELECT * FROM source.ChapterAudioUrl;
+                        CREATE TABLE "ChapterAudioTiming" AS SELECT * FROM source.ChapterAudioTiming;
+                        CREATE TABLE "ChapterWords" AS SELECT * FROM source.ChapterWords;
                         CREATE TABLE "Commentary" AS SELECT * FROM source.Commentary;
                         CREATE TABLE "CommentaryBook" AS SELECT * FROM source.CommentaryBook;
                         CREATE TABLE "CommentaryChapter" AS SELECT * FROM source.CommentaryChapter;

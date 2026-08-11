@@ -622,6 +622,18 @@ export const TranslationBookChapterSchema = z
                 description:
                     'The audio timings (per-verse start times, in seconds) for different audio versions for the chapter.',
             }),
+
+        /**
+         * The word-level annotations for the chapter's verses.
+         * Omitted if the translation doesn't have any word-level annotations for the chapter.
+         */
+        thisChapterWords: z
+            .lazy(() => TranslationBookChapterWordsSchema)
+            .optional()
+            .meta({
+                description:
+                    "The word-level annotations (Strong's numbers and related source data) for the chapter's verses. Omitted if the translation doesn't have any word-level annotations for the chapter.",
+            }),
     })
     .meta({
         id: 'TranslationBookChapter',
@@ -683,6 +695,111 @@ export const TranslationBookChapterAudioTimingsSchema = z
 
 export type TranslationBookChapterAudioTimings = z.infer<
     typeof TranslationBookChapterAudioTimingsSchema
+>;
+
+/**
+ * Defines a Zod schema for a word-level annotation in a chapter.
+ *
+ * The annotation is anchored to a range of characters in a single item of a
+ * verse's content, so that consumers can highlight exactly the characters that
+ * it applies to.
+ */
+export const ChapterWordSchema = z
+    .object({
+        /**
+         * The index of the item in the verse's content array that the annotation applies to.
+         */
+        contentIndex: z.number().meta({
+            description:
+                "The index of the item in the verse's content array that the annotation applies to.",
+        }),
+
+        /**
+         * The index of the first character of the annotated word.
+         */
+        start: z.number().meta({
+            description:
+                "The index of the first character of the annotated word in the content item's text.",
+        }),
+
+        /**
+         * The index after the last character of the annotated word.
+         */
+        end: z.number().meta({
+            description:
+                "The index after the last character of the annotated word in the content item's text. That is, text.slice(start, end) is the annotated word.",
+        }),
+
+        /**
+         * The Strong's number(s) for the word.
+         */
+        strongs: z.array(z.string()).optional().meta({
+            description:
+                "The Strong's number(s) for the word. Omitted if the translation only provided other annotations for the word.",
+        }),
+
+        /**
+         * The dictionary (citation) form of the word.
+         */
+        lemma: z.string().optional().meta({
+            description:
+                'The dictionary (citation) form of the word. Omitted if the translation did not provide one.',
+        }),
+
+        /**
+         * The morphology parse code for the word.
+         */
+        morph: z.string().optional().meta({
+            description:
+                'The morphology parse code for the word. Omitted if the translation did not provide one.',
+        }),
+
+        /**
+         * The pointer to the word in the source text.
+         */
+        srcloc: z.string().optional().meta({
+            description:
+                'The pointer to the word in the source text, in the <sourceName>:<location> format. Omitted if the translation did not provide one.',
+        }),
+
+        /**
+         * Which occurrence of the source word this word is.
+         */
+        occurrence: z.number().optional().meta({
+            description:
+                'Which occurrence of the source word this word is. 1-based. Omitted if the translation did not provide one.',
+        }),
+
+        /**
+         * The total number of times that the source word occurs.
+         */
+        occurrences: z.number().optional().meta({
+            description:
+                'The total number of times that the source word occurs. Omitted if the translation did not provide one.',
+        }),
+    })
+    .meta({
+        id: 'ChapterWord',
+        description:
+            "Defines the schema for a word-level annotation in a chapter. The annotation is anchored to a range of characters in a single item of a verse's content.",
+    });
+
+export type ChapterWord = z.infer<typeof ChapterWordSchema>;
+
+/**
+ * Defines a Zod schema for the word-level annotations for a book chapter.
+ * Maps a verse number to the list of annotated words in the verse, in order.
+ */
+export const TranslationBookChapterWordsSchema = z
+    .record(z.string(), z.array(z.lazy(() => ChapterWordSchema)))
+    .meta({
+        id: 'TranslationBookChapterWords',
+        description:
+            'Defines the schema for the word-level annotations for a book chapter. Maps a verse number to the list of annotated words in the verse, in order.',
+    });
+
+export type TranslationBookChapterWords = z.infer<
+    typeof TranslationBookChapterWordsSchema
 >;
 
 /**

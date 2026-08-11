@@ -47,6 +47,8 @@ Commands:
   help [command]                                         display help for command
 ```
 
+> **Audio timings.** The `import-audio-timings <file>` command loads per-verse start times for a chapter's audio into the database, from a JSON array of `{ translationId, bookId, chapterNumber, reader, verses }` records. To generate that file from the audio itself, see [`tools/audio-timings`](../../tools/audio-timings/README.md), which transcribes a chapter with whisperX and aligns the result against the chapter's known verse text.
+
 The `@helloao/cli` package can also be used as a library.
 
 The library exports a variety of actions, utilities, and supporting classes designed to assist with generating and managing a Free Use Bible API.

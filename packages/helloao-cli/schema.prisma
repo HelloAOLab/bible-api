@@ -29,6 +29,7 @@ model Translation {
     footnotes    ChapterFootnote[]
     audioUrls    ChapterAudioUrl[]
     audioTimings ChapterAudioTiming[]
+    words        ChapterWords[]
 }
 
 model Commentary {
@@ -151,6 +152,7 @@ model Book {
     footnotes ChapterFootnote[]
     audioUrls ChapterAudioUrl[]
     audioTimings ChapterAudioTiming[]
+    words ChapterWords[]
 
     @@id([translationId, id])
 }
@@ -219,6 +221,7 @@ model Chapter {
     footnotes ChapterFootnote[]
     audioUrls ChapterAudioUrl[]
     audioTimings ChapterAudioTiming[]
+    words ChapterWords[]
 
     @@id([translationId, bookId, number])
 }
@@ -275,6 +278,22 @@ model ChapterAudioTiming {
     timingsJson String
 
     @@id([translationId, bookId, number, reader])
+}
+
+model ChapterWords {
+    number Int
+    bookId String
+    book Book @relation(fields: [translationId, bookId], references: [translationId, id])
+
+    translationId String
+    translation Translation @relation(fields: [translationId], references: [id])
+
+    chapter Chapter @relation(fields: [translationId, bookId, number], references: [translationId, bookId, number])
+
+    // JSON object that maps a verse number to the list of annotated words in the verse.
+    wordsJson String
+
+    @@id([translationId, bookId, number])
 }
 
 model ChapterVerse {
