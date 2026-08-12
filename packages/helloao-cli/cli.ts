@@ -462,6 +462,10 @@ async function start() {
             'Whether to skip generating complete translation files.'
         )
         .option(
+            '--no-generate-simple-chapter-files',
+            'Whether to skip generating simplified chapter files.'
+        )
+        .option(
             '--profile <profile>',
             'The AWS profile to use for uploading to S3.'
         )
@@ -545,6 +549,10 @@ async function start() {
         .option(
             '--no-generate-complete-translation-files',
             'Whether to skip generating complete translation files.'
+        )
+        .option(
+            '--no-generate-simple-chapter-files',
+            'Whether to skip generating simplified chapter files.'
         )
         .option(
             '--profile <profile>',
@@ -646,6 +654,10 @@ async function start() {
             '--no-generate-complete-translation-files',
             'Whether to skip generating complete translation files.'
         )
+        .option(
+            '--no-generate-simple-chapter-files',
+            'Whether to skip generating simplified chapter files.'
+        )
         .action(async (input: string, dest: string, options: any) => {
             await generateTranslationFiles(input, dest, {
                 ...program.opts(),
@@ -685,6 +697,10 @@ async function start() {
         .option(
             '--no-generate-complete-translation-files',
             'Whether to skip generating complete translation files.'
+        )
+        .option(
+            '--no-generate-simple-chapter-files',
+            'Whether to skip generating simplified chapter files.'
         )
         .option(
             '--profile <profile>',
@@ -749,6 +765,10 @@ async function start() {
         .option(
             '--no-generate-complete-translation-files',
             'Whether to skip generating complete translation files.'
+        )
+        .option(
+            '--no-generate-simple-chapter-files',
+            'Whether to skip generating simplified chapter files.'
         )
         .option(
             '--no-generate-open-api-document',

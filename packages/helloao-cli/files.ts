@@ -440,17 +440,21 @@ export async function loadTranslationsFromDirectory(
 
     for (let dataset of translations) {
         const datasetDir = path.resolve(apiDir, dataset.id);
-        const booksList = await readdir(datasetDir);
+        const booksList = await readdir(datasetDir, { withFileTypes: true });
 
         const booksPath = path.resolve(datasetDir, 'books.json');
         const booksData: ApiTranslationBooks | null = existsSync(booksPath)
             ? JSON.parse(await readFile(booksPath, 'utf-8'))
             : null;
 
-        for (let bookId of booksList) {
-            if (bookId === 'books.json') {
+        for (let entry of booksList) {
+            // The translation directory also contains the files that aren't scoped to a
+            // book, like books.json and the complete translation downloads.
+            if (!entry.isDirectory()) {
                 continue;
             }
+
+            const bookId = entry.name;
             const id = getBookId(bookId);
 
             if (!id) {
@@ -480,7 +484,8 @@ export async function loadTranslationsFromDirectory(
 
             for (let chapterFile of chapters) {
                 // Book directories also contain the sidecar files for a chapter
-                // (audio timings and words). They are loaded through the chapter
+                // (audio timings and words) and the other chapter formats
+                // (the simplified chapters). They are loaded through the chapter
                 // that links to them, not on their own.
                 if (!isChapterFile(chapterFile)) {
                     continue;
@@ -692,6 +697,12 @@ export async function loadCommentariesFromDirectory(
             const chapters = await readdir(bookDir);
 
             for (let chapterFile of chapters) {
+                // Book directories also contain the other chapter formats
+                // (the simplified chapters), which can't be imported as chapters.
+                if (!isChapterFile(chapterFile)) {
+                    continue;
+                }
+
                 const chapterJson: CommentaryBookChapter | null =
                     await tryParseJsonFile(
                         path.resolve(bookDir, chapterFile),
