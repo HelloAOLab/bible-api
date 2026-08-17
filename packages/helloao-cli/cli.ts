@@ -735,7 +735,7 @@ async function start() {
         .option(
             '--batch-size <size>',
             'The number of translations to generate API files for in each batch.',
-            '50'
+            '25'
         )
         .option(
             '--translations <translations...>',

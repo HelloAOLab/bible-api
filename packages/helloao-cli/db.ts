@@ -1894,8 +1894,7 @@ export async function* loadTranslationDatasets(
                                 }, {} as any),
                             thisChapterAudioTimings: audioTimings
                                 .filter(
-                                    (timing) =>
-                                        timing.number === chapter.number
+                                    (timing) => timing.number === chapter.number
                                 )
                                 .reduce((acc, timing) => {
                                     acc[timing.reader] = JSON.parse(
@@ -2179,7 +2178,7 @@ export interface SerializeApiOptions extends GenerateApiOptions {
 export function serializeFilesFromDatabase(
     db: PrismaClient,
     options: SerializeApiOptions = {},
-    translationsPerBatch: number = 50,
+    translationsPerBatch: number = 25,
     translations?: string[]
 ): AsyncGenerator<SerializedFile[]> {
     return serializeDatasets(
