@@ -986,7 +986,7 @@ export class FilesUploader implements Uploader {
     }
 
     get idealBatchSize(): number | null {
-        return 50;
+        return null;
     }
 
     async upload(file: SerializedFile, overwrite: boolean): Promise<boolean> {

@@ -1807,6 +1807,11 @@ export async function* loadTranslationDatasets(
             break;
         }
 
+        const dataset: DatasetOutput = {
+            translations: [],
+            commentaries: [],
+        };
+
         const optionalTranslationKeys: (keyof DatasetTranslation)[] = [
             'licenseNotes',
             'licenseNotice',
@@ -1824,6 +1829,8 @@ export async function* loadTranslationDatasets(
                     delete datasetTranslation[key];
                 }
             }
+
+            dataset.translations.push(datasetTranslation);
 
             const books = await db.book.findMany({
                 where: {
@@ -1887,7 +1894,8 @@ export async function* loadTranslationDatasets(
                                 }, {} as any),
                             thisChapterAudioTimings: audioTimings
                                 .filter(
-                                    (timing) => timing.number === chapter.number
+                                    (timing) =>
+                                        timing.number === chapter.number
                                 )
                                 .reduce((acc, timing) => {
                                     acc[timing.reader] = JSON.parse(
@@ -1917,12 +1925,9 @@ export async function* loadTranslationDatasets(
                 }
                 datasetTranslation.books.push(datasetBook);
             }
-
-            yield {
-                translations: [datasetTranslation],
-                commentaries: [],
-            } as DatasetOutput;
         }
+
+        yield dataset;
 
         offset += pageSize;
     }
@@ -1976,6 +1981,11 @@ export async function* loadCommentaryDatasets(
             break;
         }
 
+        const dataset: DatasetOutput = {
+            translations: [],
+            commentaries: [],
+        };
+
         for (let commentary of commentaries) {
             const datasetCommentary: DatasetCommentary = {
                 ...commentary,
@@ -1983,6 +1993,7 @@ export async function* loadCommentaryDatasets(
                 books: [],
                 profiles: [],
             };
+            dataset.commentaries.push(datasetCommentary);
 
             const books = await db.commentaryBook.findMany({
                 where: {
@@ -2035,12 +2046,9 @@ export async function* loadCommentaryDatasets(
                 const json = profile.json;
                 datasetCommentary.profiles.push(JSON.parse(json));
             }
-
-            yield {
-                translations: [],
-                commentaries: [datasetCommentary],
-            } as DatasetOutput;
         }
+
+        yield dataset;
 
         offset += pageSize;
     }
@@ -2089,12 +2097,19 @@ export async function* loadDatasetDatasets(
             break;
         }
 
+        const output: DatasetOutput = {
+            translations: [],
+            commentaries: [],
+            datasets: [],
+        };
+
         for (let dataset of datasets) {
             const datasetDataset: DatasetDataset = {
                 ...dataset,
                 textDirection: dataset.textDirection! as any,
                 books: [],
             };
+            output.datasets!.push(datasetDataset);
 
             const books = await db.datasetBook.findMany({
                 where: {
@@ -2137,13 +2152,9 @@ export async function* loadDatasetDatasets(
                 };
                 datasetDataset.books.push(datasetBook);
             }
-
-            yield {
-                translations: [],
-                commentaries: [],
-                datasets: [datasetDataset],
-            } as DatasetOutput;
         }
+
+        yield output;
 
         offset += pageSize;
     }

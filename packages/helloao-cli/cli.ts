@@ -734,7 +734,7 @@ async function start() {
         )
         .option(
             '--batch-size <size>',
-            'The number of translations/commentaries/datasets to fetch from the database per page. Each translation is still generated, serialized, and uploaded one at a time, so this only affects how many rows are fetched per database round trip.',
+            'The number of translations to generate API files for in each batch.',
             '50'
         )
         .option(
