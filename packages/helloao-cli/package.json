@@ -39,7 +39,7 @@
         "@zip.js/zip.js": "^2.6.40",
         "all-iso-language-codes": "1.0.17",
         "base64-js": "1.5.1",
-        "better-sqlite3": "^9.5.0",
+        "better-sqlite3": "^13.0.3",
         "commander": "12.1.0",
         "fs-extra": "^11.2.0",
         "hash.js": "1.1.7",

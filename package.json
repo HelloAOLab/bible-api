@@ -34,7 +34,7 @@
         "dev:mcp": "tsx watch ./packages/seed-bible-mcp/server.tsx"
     },
     "devDependencies": {
-        "@types/better-sqlite3": "^7.6.9",
+        "@types/better-sqlite3": "^9.6.0",
         "@types/fs-extra": "^11.0.4",
         "@types/jest": "^29.4.0",
         "@types/markdown-it": "^12.2.3",
