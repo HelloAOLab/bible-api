@@ -205,6 +205,10 @@ export type ApiTranslation = {
      * The API link for downloading the complete translation as a single JSON file. Relative to the API origin. Undefined if complete translation files are not available.
      */
     completeTranslationApiLink?: string;
+    /**
+     * The API link for downloading the complete translation as a single JSON file, using the simplified chapter format. Relative to the API origin. Undefined if complete translation files are not available.
+     */
+    simpleCompleteTranslationApiLink?: string;
 };
 
 /**
@@ -389,6 +393,10 @@ export type ApiTranslationBookChapter = {
      * The number of verses that the chapter contains.
      */
     numberOfVerses: number;
+    /**
+     * The API link to the simplified version of this chapter. Relative to the API origin. Omitted if simplified chapters are not available.
+     */
+    simpleChapterApiLink?: string;
 };
 
 /**
@@ -536,6 +544,271 @@ export type TranslationBookChapterAudioLinks = {
 };
 
 /**
+ * Defines an interface that contains information about a book chapter in a translation, using the simplified chapter format.
+ */
+export type ApiSimpleTranslationBookChapter = {
+    /**
+     * The links to different audio versions for the chapter.
+     */
+    thisChapterAudioLinks: TranslationBookChapterAudioLinks;
+    /**
+     * The links to the audio timings for different audio versions for the chapter. Relative to the API origin.
+     */
+    thisChapterAudioTimings: {
+        [key: string]: string;
+    };
+    /**
+     * The translation information for the book chapter.
+     */
+    translation: ApiTranslation;
+    /**
+     * The book information for the book chapter.
+     */
+    book: ApiTranslationBook;
+    /**
+     * The API link for this chapter. Relative to the API origin.
+     */
+    thisChapterLink: string;
+    thisChapterReference: TranslationChapterReference;
+    /**
+     * The API link to the next chapter. Relative to the API origin. Null if this is the last chapter in the translation.
+     */
+    nextChapterApiLink: string | null;
+    /**
+     * The reference for the next chapter. Null if this is the last chapter in the translation.
+     */
+    nextChapterReference: TranslationChapterReference | null;
+    /**
+     * The links to the audio versions for the next chapter. Relative to the API origin. Null if this is the last chapter in the translation.
+     */
+    nextChapterAudioLinks: {
+        [key: string]: string;
+    } | null;
+    /**
+     * The links to the audio timings for different audio versions for the next chapter. Relative to the API origin. Null if this is the last chapter in the translation.
+     */
+    nextChapterAudioTimings: {
+        [key: string]: string;
+    } | null;
+    /**
+     * The links to the audio timings for different audio versions for the previous chapter. Relative to the API origin. Null if this is the first chapter in the translation.
+     */
+    previousChapterAudioTimings: {
+        [key: string]: string;
+    } | null;
+    /**
+     * The API link to the previous chapter. Relative to the API origin. Null if this is the first chapter in the translation.
+     */
+    previousChapterApiLink: string | null;
+    /**
+     * The reference for the previous chapter. Null if this is the first chapter in the translation.
+     */
+    previousChapterReference: TranslationChapterReference | null;
+    /**
+     * The links to the audio versions for the previous chapter. Relative to the API origin. Null if this is the first chapter in the translation.
+     */
+    previousChapterAudioLinks: {
+        [key: string]: string;
+    } | null;
+    /**
+     * The link to the word-level annotations for this chapter. Relative to the API origin. Omitted if the chapter doesn't have any word-level annotations.
+     */
+    thisChapterWordsLink?: string;
+    /**
+     * The link to the word-level annotations for the next chapter. Relative to the API origin. Omitted if this is the last chapter in the translation, or if the next chapter doesn't have any word-level annotations.
+     */
+    nextChapterWordsLink?: string;
+    /**
+     * The link to the word-level annotations for the previous chapter. Relative to the API origin. Omitted if this is the first chapter in the translation, or if the previous chapter doesn't have any word-level annotations.
+     */
+    previousChapterWordsLink?: string;
+    /**
+     * The number of verses that the chapter contains.
+     */
+    numberOfVerses: number;
+    /**
+     * The simplified information for the chapter. Each verse contains a single text string, and the footnotes and formatting are represented by offsets into that string.
+     */
+    chapter: SimpleChapterData;
+    /**
+     * The API link to the regular (non-simplified) version of this chapter. Relative to the API origin.
+     */
+    fullChapterApiLink: string;
+};
+
+/**
+ * Defines the schema for the data in a simplified chapter. Unlike the regular chapter format, each verse contains a single text string and the footnotes/formatting are represented by offsets into that string.
+ */
+export type SimpleChapterData = {
+    /**
+     * The number of the chapter.
+     */
+    number: number;
+    /**
+     * The content of the chapter.
+     */
+    content: Array<SimpleChapterContent>;
+    /**
+     * The list of footnotes that could not be associated with a verse. Footnotes that belong to a verse are included on the verse itself, so this list is usually empty.
+     */
+    footnotes: Array<ChapterFootnote>;
+};
+
+/**
+ * Defines a union type that represents a single piece of content in a simplified chapter. A piece of chapter content can be one of the following things: A heading, a line break, a verse, or a Hebrew Subtitle.
+ */
+export type SimpleChapterContent =
+    | ({
+          type: 'heading';
+      } & SimpleChapterHeading)
+    | ({
+          type: 'line_break';
+      } & ChapterLineBreak)
+    | ({
+          type: 'verse';
+      } & SimpleChapterVerse)
+    | ({
+          type: 'hebrew_subtitle';
+      } & SimpleChapterHebrewSubtitle);
+
+/**
+ * Defines the schema for a heading in a simplified chapter.
+ */
+export type SimpleChapterHeading = {
+    type: 'heading';
+    /**
+     * The text of the heading.
+     */
+    text: string;
+};
+
+/**
+ * Defines the schema for a verse in a simplified chapter.
+ */
+export type SimpleChapterVerse = {
+    type: 'verse';
+    /**
+     * The number of the verse.
+     */
+    number: number;
+    /**
+     * The text of the verse. Lines of poetry and line breaks are separated by newline (\n) characters.
+     */
+    text: string;
+    /**
+     * The footnotes that occur in the verse.
+     */
+    footnotes: Array<SimpleVerseFootnote>;
+    /**
+     * The headings that occur in the middle of the verse. Omitted if the verse contains no inline headings.
+     */
+    headings?: Array<SimpleInlineHeading>;
+    /**
+     * The ranges of the verse text that represent the Words of Jesus. Omitted if the verse contains none.
+     */
+    wordsOfJesus?: Array<SimpleTextRange>;
+    /**
+     * The ranges of the verse text that represent lines of poetry. Omitted if the verse contains none.
+     */
+    poem?: Array<SimplePoemRange>;
+};
+
+/**
+ * Defines the schema for a footnote in a simplified verse. Unlike the footnotes in the regular chapter format, simplified footnotes include the position that they occur at in the verse text.
+ */
+export type SimpleVerseFootnote = {
+    /**
+     * The ID of the note.
+     */
+    noteId: number;
+    /**
+     * The index in the verse text that the footnote caller should be inserted at. Measured in UTF-16 code units.
+     */
+    offset: number;
+    /**
+     * The text of the footnote.
+     */
+    text: string;
+    /**
+     * The caller that should be used for the footnote. If "+", then the caller should be autogenerated. If null, then the caller should be empty. If a string, then the caller should be that string.
+     */
+    caller: '+' | string | null;
+};
+
+/**
+ * Defines the schema for a heading that is embedded in a simplified verse.
+ */
+export type SimpleInlineHeading = {
+    /**
+     * The index in the verse text that the heading occurs at. Measured in UTF-16 code units.
+     */
+    offset: number;
+    /**
+     * The text of the heading.
+     */
+    text: string;
+};
+
+/**
+ * Defines the schema for a range of text inside a simplified verse. Ranges are expressed as offsets into the text of the verse that contains them, measured in UTF-16 code units.
+ */
+export type SimpleTextRange = {
+    /**
+     * The index of the first character of the range in the verse text. Measured in UTF-16 code units.
+     */
+    start: number;
+    /**
+     * The index after the last character of the range in the verse text. Measured in UTF-16 code units.
+     */
+    end: number;
+};
+
+/**
+ * Defines the schema for a range of text inside a simplified verse that represents a line of poetry.
+ */
+export type SimplePoemRange = {
+    /**
+     * The index of the first character of the range in the verse text. Measured in UTF-16 code units.
+     */
+    start: number;
+    /**
+     * The index after the last character of the range in the verse text. Measured in UTF-16 code units.
+     */
+    end: number;
+    /**
+     * The level of indent that the line of poetry should be displayed with.
+     */
+    level: number;
+};
+
+/**
+ * Defines the schema for a Hebrew Subtitle in a simplified chapter.
+ */
+export type SimpleChapterHebrewSubtitle = {
+    /**
+     * The text of the verse. Lines of poetry and line breaks are separated by newline (\n) characters.
+     */
+    text: string;
+    /**
+     * The footnotes that occur in the verse.
+     */
+    footnotes: Array<SimpleVerseFootnote>;
+    /**
+     * The headings that occur in the middle of the verse. Omitted if the verse contains no inline headings.
+     */
+    headings?: Array<SimpleInlineHeading>;
+    /**
+     * The ranges of the verse text that represent the Words of Jesus. Omitted if the verse contains none.
+     */
+    wordsOfJesus?: Array<SimpleTextRange>;
+    /**
+     * The ranges of the verse text that represent lines of poetry. Omitted if the verse contains none.
+     */
+    poem?: Array<SimplePoemRange>;
+    type: 'hebrew_subtitle';
+};
+
+/**
  * Defines an interface that contains the audio timings for a book chapter, for a specific reader.
  */
 export type ApiTranslationBookChapterAudioTimings = {
@@ -680,6 +953,92 @@ export type ChapterWord = {
 };
 
 /**
+ * Defines an interface that contains the word-level annotations for a book chapter, with their offsets remapped onto the text of each simplified verse.
+ */
+export type ApiSimpleTranslationBookChapterWords = {
+    /**
+     * The ID of the translation.
+     */
+    translationId: string;
+    /**
+     * The ID of the book.
+     */
+    bookId: string;
+    /**
+     * The number of the chapter.
+     */
+    chapterNumber: number;
+    /**
+     * The link to the information for this chapter.
+     */
+    thisChapterLink: string;
+    /**
+     * The link to the information for the next chapter. Null if this is the last chapter in the translation.
+     */
+    nextChapterLink: string | null;
+    /**
+     * The link to the information for the previous chapter. Null if this is the first chapter in the translation.
+     */
+    previousChapterLink: string | null;
+    /**
+     * The link to this words file.
+     */
+    thisChapterWordsLink: string;
+    /**
+     * The link to the words for the next chapter. Null if this is the last chapter in the translation, or if the next chapter doesn't have any word-level annotations.
+     */
+    nextChapterWordsLink: string | null;
+    /**
+     * The link to the words for the previous chapter. Null if this is the first chapter in the translation, or if the previous chapter doesn't have any word-level annotations.
+     */
+    previousChapterWordsLink: string | null;
+    /**
+     * The annotated words for each verse in the chapter, keyed by verse number. Each list is in the order that the words occur in the verse. The offsets are into the text of the simplified verse.
+     */
+    verses: {
+        [key: string]: Array<SimpleChapterWord>;
+    };
+};
+
+/**
+ * Defines the schema for a word-level annotation in a simplified chapter. The annotation is anchored to a range of characters in the verse's text.
+ */
+export type SimpleChapterWord = {
+    /**
+     * The index of the first character of the annotated word in the content item's text.
+     */
+    start: number;
+    /**
+     * The index after the last character of the annotated word in the content item's text. That is, text.slice(start, end) is the annotated word.
+     */
+    end: number;
+    /**
+     * The Strong's number(s) for the word. Omitted if the translation only provided other annotations for the word.
+     */
+    strongs?: Array<string>;
+    /**
+     * The dictionary (citation) form of the word. Omitted if the translation did not provide one.
+     */
+    lemma?: string;
+    /**
+     * The morphology parse code for the word. Omitted if the translation did not provide one.
+     */
+    morph?: string;
+    /**
+     * The pointer to the word in the source text, in the <sourceName>:<location> format. Omitted if the translation did not provide one.
+     */
+    srcloc?: string;
+    /**
+     * Which occurrence of the source word this word is. 1-based. Omitted if the translation did not provide one.
+     */
+    occurrence?: number;
+    /**
+     * The total number of times that the source word occurs. Omitted if the translation did not provide one.
+     */
+    occurrences?: number;
+};
+
+/**
  * Defines the complete translation download data. Maps to the /api/:translationId/complete.json endpoint.
  */
 export type ApiTranslationComplete = {
@@ -729,13 +1088,13 @@ export type ApiTranslationCompleteBook = {
     /**
      * The complete list of chapters with all content.
      */
-    chapters: Array<TranslationBookChapter>;
+    chapters: Array<TranslationCompleteChapter>;
 };
 
 /**
- * Defines the schema for information about a book chapter.
+ * A chapter in the complete translation download.
  */
-export type TranslationBookChapter = {
+export type TranslationCompleteChapter = {
     /**
      * The information for the chapter.
      */
@@ -765,6 +1124,10 @@ export type TranslationBookChapter = {
      * The word-level annotations (Strong's numbers and related source data) for the chapter's verses. Omitted if the translation doesn't have any word-level annotations for the chapter.
      */
     thisChapterWords?: TranslationBookChapterWords;
+    /**
+     * The number of verses that the chapter contains.
+     */
+    numberOfVerses: number;
 };
 
 /**
@@ -779,6 +1142,92 @@ export type TranslationBookChapterAudioTimings = {
  */
 export type TranslationBookChapterWords = {
     [key: string]: Array<ChapterWord>;
+};
+
+/**
+ * Defines the complete translation download data, using the simplified chapter format. Maps to the /api/:translationId/complete.simple.json endpoint.
+ */
+export type ApiSimpleTranslationComplete = {
+    /**
+     * The translation metadata.
+     */
+    translation: ApiTranslation;
+    /**
+     * The complete list of books with all their chapters.
+     */
+    books: Array<ApiSimpleTranslationCompleteBook>;
+};
+
+/**
+ * A book in the complete translation download, using the simplified chapter format.
+ */
+export type ApiSimpleTranslationCompleteBook = {
+    id: BookId;
+    /**
+     * The name that the translation provided for the book.
+     */
+    name: string;
+    /**
+     * The common name for the book.
+     */
+    commonName: string;
+    /**
+     * The title of the book. This is usually a more descriptive version of the book name. If not available, then one was not provided by the translation.
+     */
+    title: string | null;
+    /**
+     * The numerical order of the book in the translation.
+     */
+    order: number;
+    /**
+     * Whether the book is an apocryphal book.
+     */
+    isApocryphal?: boolean;
+    /**
+     * The number of chapters in the book.
+     */
+    numberOfChapters: number;
+    /**
+     * The total number of verses in the book.
+     */
+    totalNumberOfVerses: number;
+    /**
+     * The complete list of chapters with all content.
+     */
+    chapters: Array<SimpleTranslationCompleteChapter>;
+};
+
+/**
+ * A chapter in the complete translation download, using the simplified chapter format.
+ */
+export type SimpleTranslationCompleteChapter = {
+    /**
+     * The simplified information for the chapter.
+     */
+    chapter: SimpleChapterData;
+    /**
+     * The links to different audio versions for the chapter.
+     */
+    thisChapterAudioLinks: TranslationBookChapterAudioLinks;
+    /**
+     * The audio timings (per-verse start times, in seconds) for different audio versions for the chapter.
+     */
+    thisChapterAudioTimings: TranslationBookChapterAudioTimings;
+    /**
+     * The word-level annotations (Strong's numbers and related source data) for the chapter's verses, with their offsets remapped onto the simplified verse text. Omitted if the translation doesn't have any word-level annotations for the chapter.
+     */
+    thisChapterWords?: SimpleTranslationBookChapterWords;
+    /**
+     * The number of verses that the chapter contains.
+     */
+    numberOfVerses: number;
+};
+
+/**
+ * Defines the schema for the word-level annotations for a book chapter, using the simplified format. Maps a verse number to the list of annotated words in the verse, in order.
+ */
+export type SimpleTranslationBookChapterWords = {
+    [key: string]: Array<SimpleChapterWord>;
 };
 
 /**
@@ -1004,6 +1453,75 @@ export type ApiCommentaryBookChapter = {
      * The number of verses that the chapter contains.
      */
     numberOfVerses: number;
+    /**
+     * The API link to the simplified version of this chapter. Relative to the API origin. Omitted if simplified chapters are not available.
+     */
+    simpleChapterApiLink?: string;
+};
+
+/**
+ * Defines a schema that contains information about a book chapter in a commentary, using the simplified chapter format.
+ */
+export type ApiSimpleCommentaryBookChapter = {
+    /**
+     * The commentary information for the book chapter.
+     */
+    commentary: ApiCommentary;
+    /**
+     * The book information for the book chapter.
+     */
+    book: ApiCommentaryBook;
+    /**
+     * The API link for this chapter. Relative to the API origin.
+     */
+    thisChapterLink: string;
+    thisChapterReference: CommentaryChapterReference;
+    /**
+     * The API link to the next chapter. Relative to the API origin. Null if this is the last chapter in the commentary.
+     */
+    nextChapterApiLink: string | null;
+    /**
+     * The reference for the next chapter. Null if this is the last chapter in the commentary.
+     */
+    nextChapterReference: CommentaryChapterReference | null;
+    /**
+     * The API link to the previous chapter. Relative to the API origin. Null if this is the first chapter in the commentary.
+     */
+    previousChapterApiLink: string | null;
+    /**
+     * The reference for the previous chapter. Null if this is the first chapter in the commentary.
+     */
+    previousChapterReference: CommentaryChapterReference | null;
+    /**
+     * The number of verses that the chapter contains.
+     */
+    numberOfVerses: number;
+    /**
+     * The simplified information for the chapter. Each verse contains a single text string, and the footnotes and formatting are represented by offsets into that string.
+     */
+    chapter: SimpleCommentaryChapterData;
+    /**
+     * The API link to the regular (non-simplified) version of this chapter. Relative to the API origin.
+     */
+    fullChapterApiLink: string;
+};
+
+/**
+ * Defines the schema for the data in a simplified commentary chapter.
+ */
+export type SimpleCommentaryChapterData = {
+    /**
+     * The number of the chapter.
+     */
+    number: number;
+    /**
+     * The introduction that the commentary provided to the chapter. Not all commentaries provide an introduction to a chapter.
+     */
+    introduction?: string;
+    /**
+     * The content of the chapter.
+     */
+    content: Array<SimpleChapterVerse>;
 };
 
 /**
@@ -1342,6 +1860,43 @@ export type GetTranslationBookChapterResponses = {
 export type GetTranslationBookChapterResponse =
     GetTranslationBookChapterResponses[keyof GetTranslationBookChapterResponses];
 
+export type GetSimpleTranslationBookChapterData = {
+    body?: never;
+    path: {
+        /**
+         * The translation ID of the Bible translation to get the books for. For example, "eng_kjv" for the King James Version.
+         */
+        translation: string;
+        /**
+         * IDs for books. Follows the USFM standard (https://ubsicap.github.io/usfm/identification/books.html)
+         */
+        book: BookId;
+        /**
+         * The chapter number to get the content for. This should be a positive integer.
+         */
+        chapter: number;
+    };
+    query?: never;
+    url: '/api/{translation}/{book}/{chapter}.simple.json';
+};
+
+export type GetSimpleTranslationBookChapterErrors = {
+    /**
+     * 404 Not Found - The specified translation, book, or chapter was not found.
+     */
+    404: unknown;
+};
+
+export type GetSimpleTranslationBookChapterResponses = {
+    /**
+     * 200 OK
+     */
+    200: ApiSimpleTranslationBookChapter;
+};
+
+export type GetSimpleTranslationBookChapterResponse =
+    GetSimpleTranslationBookChapterResponses[keyof GetSimpleTranslationBookChapterResponses];
+
 export type GetTranslationBookChapterAudioTimingsData = {
     body?: never;
     path: {
@@ -1420,6 +1975,43 @@ export type GetTranslationBookChapterWordsResponses = {
 export type GetTranslationBookChapterWordsResponse =
     GetTranslationBookChapterWordsResponses[keyof GetTranslationBookChapterWordsResponses];
 
+export type GetSimpleTranslationBookChapterWordsData = {
+    body?: never;
+    path: {
+        /**
+         * The translation ID of the Bible translation to get the books for. For example, "eng_kjv" for the King James Version.
+         */
+        translation: string;
+        /**
+         * IDs for books. Follows the USFM standard (https://ubsicap.github.io/usfm/identification/books.html)
+         */
+        book: BookId;
+        /**
+         * The chapter number to get the content for. This should be a positive integer.
+         */
+        chapter: number;
+    };
+    query?: never;
+    url: '/api/{translation}/{book}/{chapter}.words.simple.json';
+};
+
+export type GetSimpleTranslationBookChapterWordsErrors = {
+    /**
+     * 404 Not Found - The specified translation, book, or chapter was not found, or the chapter does not have any word-level annotations.
+     */
+    404: unknown;
+};
+
+export type GetSimpleTranslationBookChapterWordsResponses = {
+    /**
+     * 200 OK
+     */
+    200: ApiSimpleTranslationBookChapterWords;
+};
+
+export type GetSimpleTranslationBookChapterWordsResponse =
+    GetSimpleTranslationBookChapterWordsResponses[keyof GetSimpleTranslationBookChapterWordsResponses];
+
 export type GetTranslationCompleteData = {
     body?: never;
     path: {
@@ -1448,6 +2040,35 @@ export type GetTranslationCompleteResponses = {
 
 export type GetTranslationCompleteResponse =
     GetTranslationCompleteResponses[keyof GetTranslationCompleteResponses];
+
+export type GetSimpleTranslationCompleteData = {
+    body?: never;
+    path: {
+        /**
+         * The translation ID of the Bible translation to get the books for. For example, "eng_kjv" for the King James Version.
+         */
+        translation: string;
+    };
+    query?: never;
+    url: '/api/{translation}/complete.simple.json';
+};
+
+export type GetSimpleTranslationCompleteErrors = {
+    /**
+     * 404 Not Found - The specified translation was not found, or complete translations are not available.
+     */
+    404: unknown;
+};
+
+export type GetSimpleTranslationCompleteResponses = {
+    /**
+     * 200 OK
+     */
+    200: ApiSimpleTranslationComplete;
+};
+
+export type GetSimpleTranslationCompleteResponse =
+    GetSimpleTranslationCompleteResponses[keyof GetSimpleTranslationCompleteResponses];
 
 export type GetAvailableCommentariesData = {
     body?: never;
@@ -1531,6 +2152,43 @@ export type GetCommentaryBookChapterResponses = {
 
 export type GetCommentaryBookChapterResponse =
     GetCommentaryBookChapterResponses[keyof GetCommentaryBookChapterResponses];
+
+export type GetSimpleCommentaryBookChapterData = {
+    body?: never;
+    path: {
+        /**
+         * The commentary ID of the commentary to get the books or chapter content for.
+         */
+        commentary: string;
+        /**
+         * IDs for books. Follows the USFM standard (https://ubsicap.github.io/usfm/identification/books.html)
+         */
+        book: BookId;
+        /**
+         * The chapter number to get the content for. This should be a positive integer.
+         */
+        chapter: number;
+    };
+    query?: never;
+    url: '/api/c/{commentary}/{book}/{chapter}.simple.json';
+};
+
+export type GetSimpleCommentaryBookChapterErrors = {
+    /**
+     * 404 Not Found - The specified commentary, book, or chapter was not found.
+     */
+    404: unknown;
+};
+
+export type GetSimpleCommentaryBookChapterResponses = {
+    /**
+     * 200 OK
+     */
+    200: ApiSimpleCommentaryBookChapter;
+};
+
+export type GetSimpleCommentaryBookChapterResponse =
+    GetSimpleCommentaryBookChapterResponses[keyof GetSimpleCommentaryBookChapterResponses];
 
 export type GetAvailableDatasetsData = {
     body?: never;

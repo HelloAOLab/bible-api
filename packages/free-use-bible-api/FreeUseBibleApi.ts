@@ -6,6 +6,10 @@ import type {
     ApiDatasetBook,
     ApiDatasetBookChapter,
     ApiDatasetBooks,
+    ApiSimpleCommentaryBookChapter,
+    ApiSimpleTranslationBookChapter,
+    ApiSimpleTranslationBookChapterWords,
+    ApiSimpleTranslationComplete,
     ApiTranslationBook,
     ApiTranslationBookChapter,
     ApiTranslationBookChapterWords,
@@ -13,6 +17,8 @@ import type {
     ApiTranslationComplete,
     ChapterVerse,
     ChapterWord,
+    SimpleChapterVerse,
+    SimpleChapterWord,
     TranslationChapterReference,
 } from './types.gen.js';
 
@@ -63,6 +69,16 @@ export interface GetVerseTextOptions {
  * A word-level annotation, paired with the text of the verse that it covers.
  */
 export interface AnnotatedWord extends ChapterWord {
+    /**
+     * The text that the annotation applies to.
+     */
+    text: string;
+}
+
+/**
+ * A word-level annotation in a simplified chapter, paired with the text of the verse that it covers.
+ */
+export interface SimpleAnnotatedWord extends SimpleChapterWord {
     /**
      * The text that the annotation applies to.
      */
@@ -144,6 +160,25 @@ export class FreeUseBibleApi {
     }
 
     /**
+     * Gets the complete content of a specific Bible translation, using the simplified chapter format.
+     *
+     * The results of this endpoint are very large, so the response is not cached.
+     * @param translation The ID of the translation to get the complete content for.
+     * @param endpoint The API endpoint to use for the request. If not provided, the default endpoint will be used.
+     */
+    async getSimpleCompleteTranslation(
+        translation: string,
+        endpoint?: string
+    ): Promise<ApiSimpleTranslationComplete> {
+        const encodedTranslation = encodeURIComponent(translation);
+        return this._getJson<ApiSimpleTranslationComplete>(
+            `api/${encodedTranslation}/complete.simple.json`,
+            endpoint,
+            false
+        );
+    }
+
+    /**
      * Gets the list of available Bible commentaries from the API.
      * @param endpoint The API endpoint to use for the request. If not provided, the default endpoint will be used.
      */
@@ -196,7 +231,7 @@ export class FreeUseBibleApi {
     ): Promise<ApiTranslationBooks> {
         const encodedCommentary = encodeURIComponent(commentary);
         return this._getJson<ApiTranslationBooks>(
-            `api/${encodedCommentary}/books.json`,
+            `api/c/${encodedCommentary}/books.json`,
             endpoint
         );
     }
@@ -284,6 +319,108 @@ export class FreeUseBibleApi {
     }
 
     /**
+     * Gets the content of a specific chapter of a specific book for a specific Bible translation, using the simplified chapter format.
+     *
+     * In the simplified format, each verse's content is a single string instead of a list of formatted content, and footnotes, inline headings, the Words of Jesus, and poetry are represented as offset ranges into that string.
+     * @param translation The ID of the translation to get the chapter for.
+     * @param book The ID of the book to get the chapter for.
+     * @param chapter The chapter number to get.
+     * @param endpoint The API endpoint to use for the request. If not provided, the default endpoint will be used.
+     */
+    async getSimpleTranslationBookChapter(
+        translation: string,
+        book: string,
+        chapter: number | string,
+        endpoint?: string
+    ): Promise<ApiSimpleTranslationBookChapter> {
+        const encodedTranslation = encodeURIComponent(translation);
+        const encodedBook = encodeURIComponent(book);
+        const encodedChapter = encodeURIComponent(String(chapter));
+        return this._getJson<ApiSimpleTranslationBookChapter>(
+            `api/${encodedTranslation}/${encodedBook}/${encodedChapter}.simple.json`,
+            endpoint
+        );
+    }
+
+    /**
+     * Gets the word-level annotations (Strong's numbers and related source data) for a specific chapter of a specific book for a specific Bible translation, with their offsets remapped onto the text of each simplified verse.
+     *
+     * Use this instead of `getTranslationBookChapterWords()` when working with the simplified chapter format, since the offsets in the regular annotations are anchored to a verse's content array instead of its plain text.
+     * Use `getSimpleChapterWords()` to get the annotations for a simplified chapter that you have already loaded, which returns null instead of failing.
+     * @param translation The ID of the translation to get the annotations for.
+     * @param book The ID of the book to get the annotations for.
+     * @param chapter The chapter number to get the annotations for.
+     * @param endpoint The API endpoint to use for the request. If not provided, the default endpoint will be used.
+     */
+    async getSimpleTranslationBookChapterWords(
+        translation: string,
+        book: string,
+        chapter: number | string,
+        endpoint?: string
+    ): Promise<ApiSimpleTranslationBookChapterWords> {
+        const encodedTranslation = encodeURIComponent(translation);
+        const encodedBook = encodeURIComponent(book);
+        const encodedChapter = encodeURIComponent(String(chapter));
+        return this._getJson<ApiSimpleTranslationBookChapterWords>(
+            `api/${encodedTranslation}/${encodedBook}/${encodedChapter}.words.simple.json`,
+            endpoint
+        );
+    }
+
+    /**
+     * Gets the simplified version of a given chapter, if available.
+     * @param chapter The chapter to get the simplified version of.
+     * @param endpoint The API endpoint to use for the request. If not provided, the default endpoint will be used.
+     * @returns The simplified chapter, or null if simplified chapters aren't available for it.
+     */
+    getSimpleChapter(
+        chapter: ApiCommentaryBookChapter,
+        endpoint?: string
+    ): Promise<ApiSimpleCommentaryBookChapter | null>;
+    /**
+     * Gets the simplified version of a given chapter, if available.
+     * @param chapter The chapter to get the simplified version of.
+     * @param endpoint The API endpoint to use for the request. If not provided, the default endpoint will be used.
+     * @returns The simplified chapter, or null if simplified chapters aren't available for it.
+     */
+    getSimpleChapter(
+        chapter: ApiTranslationBookChapter,
+        endpoint?: string
+    ): Promise<ApiSimpleTranslationBookChapter | null>;
+    async getSimpleChapter(
+        chapter: ApiTranslationBookChapter | ApiCommentaryBookChapter,
+        endpoint?: string
+    ): Promise<
+        ApiSimpleTranslationBookChapter | ApiSimpleCommentaryBookChapter | null
+    > {
+        if (!chapter.simpleChapterApiLink) {
+            return null;
+        }
+        return this._getJson<
+            ApiSimpleTranslationBookChapter | ApiSimpleCommentaryBookChapter
+        >(chapter.simpleChapterApiLink, endpoint);
+    }
+
+    /**
+     * Gets the word-level annotations for the given simplified chapter, if it has any.
+     * @param chapter The simplified chapter to get the annotations for.
+     * @param endpoint The API endpoint to use for the request. If not provided, the default endpoint will be used.
+     * @returns The annotations for the chapter, or null if the chapter doesn't have any.
+     */
+    async getSimpleChapterWords(
+        chapter: ApiSimpleTranslationBookChapter,
+        endpoint?: string
+    ): Promise<ApiSimpleTranslationBookChapterWords | null> {
+        if (!chapter.thisChapterWordsLink) {
+            return null;
+        }
+        return this._getJson<ApiSimpleTranslationBookChapterWords>(
+            chapter.thisChapterWordsLink,
+            endpoint
+        );
+    }
+
+    /**
      * Gets the content of a specific chapter of a specific book for a specific Bible commentary.
      * @param commentary The ID of the commentary to get the chapter for.
      * @param book The ID of the book to get the chapter for.
@@ -300,7 +437,29 @@ export class FreeUseBibleApi {
         const encodedBook = encodeURIComponent(book);
         const encodedChapter = encodeURIComponent(String(chapter));
         return this._getJson<ApiTranslationBookChapter>(
-            `api/${encodedCommentary}/${encodedBook}/${encodedChapter}.json`,
+            `api/c/${encodedCommentary}/${encodedBook}/${encodedChapter}.json`,
+            endpoint
+        );
+    }
+
+    /**
+     * Gets the content of a specific chapter of a specific book for a specific Bible commentary, using the simplified chapter format.
+     * @param commentary The ID of the commentary to get the chapter for.
+     * @param book The ID of the book to get the chapter for.
+     * @param chapter The chapter number to get.
+     * @param endpoint The API endpoint to use for the request. If not provided, the default endpoint will be used.
+     */
+    async getSimpleCommentaryBookChapter(
+        commentary: string,
+        book: string,
+        chapter: number | string,
+        endpoint?: string
+    ): Promise<ApiSimpleCommentaryBookChapter> {
+        const encodedCommentary = encodeURIComponent(commentary);
+        const encodedBook = encodeURIComponent(book);
+        const encodedChapter = encodeURIComponent(String(chapter));
+        return this._getJson<ApiSimpleCommentaryBookChapter>(
+            `api/c/${encodedCommentary}/${encodedBook}/${encodedChapter}.simple.json`,
             endpoint
         );
     }
@@ -357,16 +516,40 @@ export class FreeUseBibleApi {
         chapter: ApiDatasetBookChapter,
         endpoint?: string
     ): Promise<ApiDatasetBookChapter | null>;
+    /**
+     * Gets the next chapter for a given chapter, if available.
+     * @param chapter The chapter to get the next chapter for.
+     * @param endpoint The API endpoint to use for the request. If not provided, the default endpoint will be used.
+     * @returns The next chapter, or null if there is no next chapter.
+     */
+    getNextChapter(
+        chapter: ApiSimpleCommentaryBookChapter,
+        endpoint?: string
+    ): Promise<ApiSimpleCommentaryBookChapter | null>;
+    /**
+     * Gets the next chapter for a given chapter, if available.
+     * @param chapter The chapter to get the next chapter for.
+     * @param endpoint The API endpoint to use for the request. If not provided, the default endpoint will be used.
+     * @returns The next chapter, or null if there is no next chapter.
+     */
+    getNextChapter(
+        chapter: ApiSimpleTranslationBookChapter,
+        endpoint?: string
+    ): Promise<ApiSimpleTranslationBookChapter | null>;
     async getNextChapter(
         chapter:
             | ApiTranslationBookChapter
             | ApiCommentaryBookChapter
-            | ApiDatasetBookChapter,
+            | ApiDatasetBookChapter
+            | ApiSimpleTranslationBookChapter
+            | ApiSimpleCommentaryBookChapter,
         endpoint?: string
     ): Promise<
         | ApiTranslationBookChapter
         | ApiCommentaryBookChapter
         | ApiDatasetBookChapter
+        | ApiSimpleTranslationBookChapter
+        | ApiSimpleCommentaryBookChapter
         | null
     > {
         if (!chapter.nextChapterApiLink) {
@@ -376,6 +559,8 @@ export class FreeUseBibleApi {
             | ApiTranslationBookChapter
             | ApiCommentaryBookChapter
             | ApiDatasetBookChapter
+            | ApiSimpleTranslationBookChapter
+            | ApiSimpleCommentaryBookChapter
         >(chapter.nextChapterApiLink, endpoint);
     }
 
@@ -409,16 +594,40 @@ export class FreeUseBibleApi {
         chapter: ApiDatasetBookChapter,
         endpoint?: string
     ): Promise<ApiDatasetBookChapter | null>;
+    /**
+     * Gets the previous chapter for a given chapter, if available.
+     * @param chapter The chapter to get the previous chapter for.
+     * @param endpoint The API endpoint to use for the request. If not provided, the default endpoint will be used.
+     * @returns The previous chapter, or null if there is no previous chapter.
+     */
+    getPreviousChapter(
+        chapter: ApiSimpleCommentaryBookChapter,
+        endpoint?: string
+    ): Promise<ApiSimpleCommentaryBookChapter | null>;
+    /**
+     * Gets the previous chapter for a given chapter, if available.
+     * @param chapter The chapter to get the previous chapter for.
+     * @param endpoint The API endpoint to use for the request. If not provided, the default endpoint will be used.
+     * @returns The previous chapter, or null if there is no previous chapter.
+     */
+    getPreviousChapter(
+        chapter: ApiSimpleTranslationBookChapter,
+        endpoint?: string
+    ): Promise<ApiSimpleTranslationBookChapter | null>;
     async getPreviousChapter(
         chapter:
             | ApiTranslationBookChapter
             | ApiCommentaryBookChapter
-            | ApiDatasetBookChapter,
+            | ApiDatasetBookChapter
+            | ApiSimpleTranslationBookChapter
+            | ApiSimpleCommentaryBookChapter,
         endpoint?: string
     ): Promise<
         | ApiTranslationBookChapter
         | ApiCommentaryBookChapter
         | ApiDatasetBookChapter
+        | ApiSimpleTranslationBookChapter
+        | ApiSimpleCommentaryBookChapter
         | null
     > {
         if (!chapter.previousChapterApiLink) {
@@ -428,6 +637,8 @@ export class FreeUseBibleApi {
             | ApiTranslationBookChapter
             | ApiCommentaryBookChapter
             | ApiDatasetBookChapter
+            | ApiSimpleTranslationBookChapter
+            | ApiSimpleCommentaryBookChapter
         >(chapter.previousChapterApiLink, endpoint);
     }
 
@@ -618,6 +829,37 @@ export class FreeUseBibleApi {
     }
 
     /**
+     * Gets the verse text for the given simplified chapter.
+     * By default, the returned text includes markers for verse numbers and a reference to the chapter, but these can be omitted by passing options to the `options` parameter.
+     * @param chapter The simplified chapter to get the text for.
+     * @param options Options for getting the chapter text.
+     */
+    getSimpleChapterVerseText(
+        chapter: ApiSimpleTranslationBookChapter,
+        options: GetChapterTextOptions = {}
+    ): string {
+        let content = '';
+        for (let chapterContent of chapter.chapter.content) {
+            if (chapterContent.type === 'verse') {
+                if (!options.omitVerseNumbers) {
+                    content += `[${chapterContent.number}] `;
+                }
+                content += chapterContent.text.trim() + ' ';
+            } else if (chapterContent.type === 'line_break') {
+                content = content.trim() + '\n';
+            }
+        }
+
+        if (!options.omitReference) {
+            content = `${this.formatReference(chapter.book, {
+                chapter: chapter.chapter.number,
+            })}\n${content.trim()}`;
+        }
+
+        return content.trim();
+    }
+
+    /**
      * Gets the text that the given word-level annotation applies to.
      *
      * Annotations are anchored to a range of characters in a single item of the verse's content,
@@ -659,6 +901,37 @@ export class FreeUseBibleApi {
         return verseWords.map((word) => ({
             ...word,
             text: this.getWordText(verse, word),
+        }));
+    }
+
+    /**
+     * Gets the text that the given simplified word-level annotation applies to.
+     * @param verse The simplified verse that the annotation is in.
+     * @param word The annotation to get the text for.
+     * @returns The annotated text.
+     */
+    getSimpleWordText(
+        verse: SimpleChapterVerse,
+        word: SimpleChapterWord
+    ): string {
+        return verse.text.slice(word.start, word.end);
+    }
+
+    /**
+     * Gets the word-level annotations for the given simplified verse, paired with the text that each one applies to.
+     * @param verse The simplified verse to get the annotations for.
+     * @param words The simplified annotations for the chapter that the verse is in.
+     * @returns The annotations for the verse, in the order that they occur. Empty if the verse has no annotations.
+     */
+    getSimpleVerseWords(
+        verse: SimpleChapterVerse,
+        words: ApiSimpleTranslationBookChapterWords
+    ): SimpleAnnotatedWord[] {
+        const verseWords = words.verses[verse.number.toString()] ?? [];
+
+        return verseWords.map((word) => ({
+            ...word,
+            text: this.getSimpleWordText(verse, word),
         }));
     }
 
