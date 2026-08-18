@@ -20,6 +20,7 @@
     "scripts": {},
     "author": "Kallyn Gowdy <kal@helloao.org>",
     "license": "MIT",
+    "sideEffects": false,
     "dependencies": {},
     "files": [
         "/README.md",
