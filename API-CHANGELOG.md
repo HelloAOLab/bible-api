@@ -3,7 +3,9 @@
 This is the log of changes for the Free Use Bible API.
 For information on the API Generator, see [GENERATOR-CHANGELOG.md](./GENERATOR-CHANGELOG.md).
 
-## Unreleased
+## V1.13.0
+
+### Date: 2026-08-19
 
 ### :rocket: Features
 
