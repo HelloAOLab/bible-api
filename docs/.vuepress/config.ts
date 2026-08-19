@@ -26,6 +26,13 @@ export default defineUserConfig({
     ],
 
     theme: defaultTheme({
+        themePlugins: {
+            // Disable the default theme's built-in prismjs highlighter since
+            // shikiPlugin (registered below) already highlights code blocks.
+            // Having both enabled caused code fences (and their titles) to be
+            // rendered twice.
+            prismjs: false,
+        },
         repo: '',
         editLink: false,
         docsDir: '',
@@ -79,7 +86,28 @@ export default defineUserConfig({
                 {
                     text: 'Reference',
                     collapsible: false,
-                    children: [''],
+                    children: [
+                        '',
+                        {
+                            text: 'Translations, Books, & Chapters',
+                            collapsible: true,
+                            children: [
+                                'translations/',
+                                'translations/standard',
+                                'translations/simplified',
+                            ],
+                        },
+                        {
+                            text: 'Commentaries',
+                            collapsible: true,
+                            children: ['commentaries/'],
+                        },
+                        {
+                            text: 'Datasets',
+                            collapsible: true,
+                            children: ['datasets/'],
+                        },
+                    ],
                 },
             ],
             '/sdks/': [
