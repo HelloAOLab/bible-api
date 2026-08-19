@@ -60,14 +60,18 @@ const api = new FreeUseBibleApi({
 -   `getTranslationBookChapter(translation, book, chapter, endpoint?)`
 -   `getTranslationBookChapterWords(translation, book, chapter, endpoint?)`
 -   `getCompleteTranslation(translation, endpoint?)`
+-   `getSimpleTranslationBookChapter(translation, book, chapter, endpoint?)`
+-   `getSimpleTranslationBookChapterWords(translation, book, chapter, endpoint?)`
+-   `getSimpleCompleteTranslation(translation, endpoint?)`
 
-`getCompleteTranslation()` disables per-request cache internally because payloads are typically large.
+`getCompleteTranslation()` and `getSimpleCompleteTranslation()` disable per-request cache internally because payloads are typically large.
 
 ### Commentaries
 
 -   `getAvailableCommentaries(endpoint?)`
 -   `getCommentaryBooks(commentary, endpoint?)`
 -   `getCommentaryBookChapter(commentary, book, chapter, endpoint?)`
+-   `getSimpleCommentaryBookChapter(commentary, book, chapter, endpoint?)`
 
 ### Datasets
 
@@ -80,7 +84,7 @@ const api = new FreeUseBibleApi({
 -   `getNextChapter(chapter, endpoint?)`
 -   `getPreviousChapter(chapter, endpoint?)`
 
-These helpers work with translation, commentary, and dataset chapter responses.
+These helpers work with translation, commentary, and dataset chapter responses, as well as simplified translation and commentary chapter responses.
 
 ### Word Annotations
 
@@ -93,6 +97,22 @@ Some translations include word-level annotations (Strong's numbers and related s
 Each annotation is anchored to a range of characters in a single item of a verse's `content` array: `contentIndex` is the index of the item, and `start`/`end` are character offsets into that item's text (`end` is exclusive). Anchoring per content item keeps the offsets correct for verses whose content is split into multiple items, such as poem lines and the words of Jesus.
 
 `getWordText()` and `getVerseWords()` resolve those offsets for you, so you don't have to walk the content array yourself.
+
+### Simplified Chapters
+
+Every translation and commentary chapter can also be fetched in a simplified format, where each verse's content is a single string instead of a list of formatted content. Footnotes, inline headings, the Words of Jesus, and poetry are represented as offset ranges into that string instead of being split across multiple content items.
+
+-   `getSimpleTranslationBookChapter(translation, book, chapter, endpoint?)`
+-   `getSimpleCommentaryBookChapter(commentary, book, chapter, endpoint?)`
+-   `getSimpleCompleteTranslation(translation, endpoint?)`
+-   `getSimpleChapter(chapter, endpoint?)` - follows a chapter's `simpleChapterApiLink`, or `null` if simplified chapters aren't available for it.
+-   `getSimpleTranslationBookChapterWords(translation, book, chapter, endpoint?)` / `getSimpleChapterWords(chapter, endpoint?)` - the same as the regular word annotations, but with offsets into the simplified verse text instead of a verse's content array.
+-   `getSimpleWordText(verse, word)` / `getSimpleVerseWords(verse, words)` - the same as `getWordText()`/`getVerseWords()`, but for simplified verses and annotations.
+-   `getSimpleChapterVerseText(chapter, options?)` - the same as `getChapterVerseText()`, but for a simplified chapter.
+
+`getNextChapter()` and `getPreviousChapter()` also accept simplified chapters, returning the next/previous simplified chapter.
+
+Datasets don't have a simplified format.
 
 ## Examples
 
@@ -161,6 +181,19 @@ for (const content of chapter.chapter.content) {
 // ...
 ```
 
+### Read a simplified chapter
+
+```ts
+const chapter = await api.getSimpleTranslationBookChapter('BSB', 'JHN', 1);
+
+for (const content of chapter.chapter.content) {
+    if (content.type !== 'verse') {
+        continue;
+    }
+    console.log(content.number, content.text);
+}
+```
+
 ## Direct HTTP Endpoints
 
 ### Translation endpoints
@@ -170,12 +203,16 @@ for (const content of chapter.chapter.content) {
 -   `GET /api/{translation}/{book}/{chapter}.json`
 -   `GET /api/{translation}/{book}/{chapter}.words.json`
 -   `GET /api/{translation}/complete.json`
+-   `GET /api/{translation}/{book}/{chapter}.simple.json`
+-   `GET /api/{translation}/{book}/{chapter}.words.simple.json`
+-   `GET /api/{translation}/complete.simple.json`
 
 ### Commentary endpoints
 
 -   `GET /api/available_commentaries.json`
--   `GET /api/{commentary}/books.json`
--   `GET /api/{commentary}/{book}/{chapter}.json`
+-   `GET /api/c/{commentary}/books.json`
+-   `GET /api/c/{commentary}/{book}/{chapter}.json`
+-   `GET /api/c/{commentary}/{book}/{chapter}.simple.json`
 
 ### Dataset endpoints
 
