@@ -84,6 +84,11 @@ const api = new FreeUseBibleApi({
 -   `getNextChapter(chapter, endpoint?)`
 -   `getPreviousChapter(chapter, endpoint?)`
 
+### Chapter & Verse Helpers
+
+-   `getVerseText(verse)`
+-   `getChapterVerseText(chapter)`
+
 These helpers work with translation, commentary, and dataset chapter responses, as well as simplified translation and commentary chapter responses.
 
 ### Word Annotations
