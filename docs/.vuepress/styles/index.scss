@@ -8,6 +8,11 @@
     // --c-text: #2c3e50;
     // --c-text-accent: #3eaf7c;
     // --c-
+    --code-title-c-bg: #bdbdbd;
+}
+
+html[data-theme='dark'] {
+    --code-title-c-bg: #1e1e1e;
 }
 
 .vp-hero > .vp-hero-image {

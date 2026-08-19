@@ -12,7 +12,7 @@
         "esbuild": "tsx ./tools/build.ts",
         "clean": "jake -f ./jakefile.cjs clean",
         "build:docs": "cd docs && pnpm build",
-        "dev:docs": "vuepress dev docs/src",
+        "dev:docs": "cd docs && pnpm dev",
         "cli": "npm run build && node --max-old-space-size=8192 ./packages/helloao-cli/dist/esm/cli.js",
         "db:clone": "npm run cli init ./free-use-bible-api.download.db -- --source https://bible.helloao.org/bible.db",
         "db:init": "npm run cli init ./free-use-bible-api.db",
@@ -37,10 +37,10 @@
         "@types/better-sqlite3": "^9.6.0",
         "@types/fs-extra": "^11.0.4",
         "@types/jest": "^29.4.0",
+        "@types/luxon": "3.4.2",
         "@types/markdown-it": "^12.2.3",
         "@types/node": "^22.7.4",
         "@types/papaparse": "5.3.15",
-        "@types/luxon": "3.4.2",
         "del": "7.0.0",
         "esbuild": "0.24.0",
         "fast-glob": "^3.3.2",
@@ -65,6 +65,9 @@
             "@prisma/client",
             "@prisma/engines",
             "prisma"
+        ],
+        "ignoredBuiltDependencies": [
+            "@parcel/watcher"
         ]
     },
     "packageManager": "pnpm@10.12.1+sha512.f0dda8580f0ee9481c5c79a1d927b9164f2c478e90992ad268bbb2465a736984391d6333d2c327913578b2804af33474ca554ba29c04a8b13060a717675ae3ac"

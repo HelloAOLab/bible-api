@@ -26,6 +26,13 @@ export default defineUserConfig({
     ],
 
     theme: defaultTheme({
+        themePlugins: {
+            // Disable the default theme's built-in prismjs highlighter since
+            // shikiPlugin (registered below) already highlights code blocks.
+            // Having both enabled caused code fences (and their titles) to be
+            // rendered twice.
+            prismjs: false,
+        },
         repo: '',
         editLink: false,
         docsDir: '',
