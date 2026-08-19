@@ -1,6 +1,6 @@
 {
     "name": "@helloao/cli",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "description": "A CLI and related tools for managing HelloAO's Free Bible API",
     "type": "module",
     "main": "./dist/cjs/index.cjs",
