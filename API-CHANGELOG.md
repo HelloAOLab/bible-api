@@ -60,7 +60,7 @@ For information on the API Generator, see [GENERATOR-CHANGELOG.md](./GENERATOR-C
     -   Because the translation metadata is included in the available translations, books, and chapter endpoints, the simplified complete file is discoverable from all of them.
 -   Added support for word-level annotations (Strong's numbers and related source data).
     -   Annotations are published in a new file per chapter: `/api/{translation}/{book}/{chapter}.words.json`
-        -   See the [reference documentation](https://bible.helloao.org/docs/reference/#get-the-words-of-a-chapter) for the full structure.
+        -   See the [reference documentation](https://bible.helloao.org/docs/reference/translations/standard.html#get-the-words-of-a-chapter) for the full structure.
     -   Chapters that have annotations gain three new optional properties that link to the new files:
         -   `thisChapterWordsLink`
         -   `nextChapterWordsLink`
@@ -304,7 +304,7 @@ For information on the API Generator, see [GENERATOR-CHANGELOG.md](./GENERATOR-C
 ### :rocket: Features
 
 -   Added support for Bible commentaries.
-    -   See the the [API Reference](https://bible.helloao.org/docs/reference/#available-commentaries) for more info.
+    -   See the the [API Reference](https://bible.helloao.org/docs/reference/commentaries/#available-commentaries) for more info.
 
 ## V1.2.0
 

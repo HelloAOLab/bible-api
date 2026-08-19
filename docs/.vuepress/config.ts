@@ -79,7 +79,28 @@ export default defineUserConfig({
                 {
                     text: 'Reference',
                     collapsible: false,
-                    children: [''],
+                    children: [
+                        '',
+                        {
+                            text: 'Translations, Books, & Chapters',
+                            collapsible: true,
+                            children: [
+                                'translations/',
+                                'translations/standard',
+                                'translations/simplified',
+                            ],
+                        },
+                        {
+                            text: 'Commentaries',
+                            collapsible: true,
+                            children: ['commentaries/'],
+                        },
+                        {
+                            text: 'Datasets',
+                            collapsible: true,
+                            children: ['datasets/'],
+                        },
+                    ],
                 },
             ],
             '/sdks/': [

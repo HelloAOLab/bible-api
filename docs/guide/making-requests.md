@@ -18,7 +18,7 @@ Below, you can find a list of examples. For more complete documentation, see the
 
 ### Get the List of Available Translations
 
-([reference](../reference/README.md#available-translations))
+([reference](../reference/translations/README.md#available-translations))
 
 `GET https://bible.helloao.org/api/available_translations.json`
 
@@ -32,7 +32,7 @@ fetch(`https://bible.helloao.org/api/available_translations.json`)
 
 ### List Books in a Translation
 
-([reference](../reference/README.md#list-books-in-a-translation))
+([reference](../reference/translations/README.md#list-books-in-a-translation))
 
 `GET https://bible.helloao.org/api/{translation}/books.json`
 
@@ -47,7 +47,7 @@ fetch(`https://bible.helloao.org/api/BSB/books.json`)
 
 ### Get a Chapter from a Translation
 
-([reference](../reference/README.md#get-a-chapter-from-a-translation))
+([reference](../reference/translations/standard.md#get-a-chapter-from-a-translation))
 
 `GET https://bible.helloao.org/api/{translation}/{book}/{chapter}.json`
 
@@ -62,7 +62,7 @@ fetch(`https://bible.helloao.org/api/BSB/GEN/1.json`)
 
 ### Get a Simplified Chapter from a Translation
 
-([reference](../reference/README.md#get-a-simplified-chapter-from-a-translation))
+([reference](../reference/translations/simplified.md#get-a-simplified-chapter-from-a-translation))
 
 `GET https://bible.helloao.org/api/{translation}/{book}/{chapter}.simple.json`
 
@@ -83,7 +83,7 @@ fetch(`https://bible.helloao.org/api/BSB/GEN/1.simple.json`)
 
 ### Get the List of Available Commentaries
 
-([reference](../reference/README.md#available-commentaries))
+([reference](../reference/commentaries/README.md#available-commentaries))
 
 ```ts:no-line-numbers title="fetch-commentaries.js"
 fetch(`https://bible.helloao.org/api/available_commentaries.json`)
@@ -95,7 +95,7 @@ fetch(`https://bible.helloao.org/api/available_commentaries.json`)
 
 ### List Books in a Commentary
 
-([reference](../reference/README.md#list-books-in-a-commentary))
+([reference](../reference/commentaries/README.md#list-books-in-a-commentary))
 
 ```ts:no-line-numbers title="fetch-commentary-books.js"
 const commentary = 'adam-clarke';
@@ -110,7 +110,7 @@ fetch(`https://bible.helloao.org/api/c/${commentary}/books.json`)
 
 ### Get a Chapter from a Commentary
 
-([reference](../reference/README.md#get-a-chapter-from-a-commentary))
+([reference](../reference/commentaries/README.md#get-a-chapter-from-a-commentary))
 
 ```ts:no-line-numbers title="fetch-commentary-chapter.js"
 const commentary = 'adam-clarke';
@@ -127,7 +127,7 @@ fetch(`https://bible.helloao.org/api/c/${commentary}/${book}/${chapter}.json`)
 
 ### List Profiles in a Commentary
 
-([reference](../reference/README.md#list-profiles-in-a-commentary))
+([reference](../reference/commentaries/README.md#list-profiles-in-a-commentary))
 
 ```ts:no-line-numbers title="fetch-commentary-profiles.js"
 const commentary = 'tyndale';
@@ -142,7 +142,7 @@ fetch(`https://bible.helloao.org/api/c/${commentary}/profiles.json`)
 
 ### Get a Profile in a Commentary
 
-([reference](../reference/README.md#get-a-profile-in-a-commentary))
+([reference](../reference/commentaries/README.md#get-a-profile-in-a-commentary))
 
 ```ts:no-line-numbers title="fetch-commentary-profile.js"
 const commentary = 'tyndale';
@@ -158,7 +158,7 @@ fetch(`https://bible.helloao.org/api/c/${commentary}/profiles/${profile}.json`)
 
 ### Get the list of Available Datasets
 
-([reference](../reference/README.md#available-datasets))
+([reference](../reference/datasets/README.md#available-datasets))
 
 ```ts:no-line-numbers title="fetch-datasets.js"
 fetch(`https://bible.helloao.org/api/available_datasets.json`)
@@ -170,7 +170,7 @@ fetch(`https://bible.helloao.org/api/available_datasets.json`)
 
 ### Get the list of books in a dataset
 
-([reference](../reference/README.md#list-books-in-a-dataset))
+([reference](../reference/datasets/README.md#list-books-in-a-dataset))
 
 ```ts:no-line-numbers title="fetch-dataset-books.js"
 const dataset = 'open-cross-ref';
@@ -185,7 +185,7 @@ fetch(`https://bible.helloao.org/api/d/${dataset}/books.json`)
 
 ### Get a Chapter from a Dataset
 
-([reference](../reference/README.md#get-a-chapter-from-a-dataset))
+([reference](../reference/datasets/README.md#get-a-chapter-from-a-dataset))
 
 ```ts:no-line-numbers title="fetch-dataset-chapter.js"
 const dataset = 'open-cross-ref';
