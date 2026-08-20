@@ -19,7 +19,9 @@ import type {
     ChapterWord,
     SimpleChapterVerse,
     SimpleChapterWord,
+    SimpleTranslationCompleteChapter,
     TranslationChapterReference,
+    TranslationCompleteChapter,
 } from './types.gen.js';
 
 /**
@@ -305,8 +307,22 @@ export class FreeUseBibleApi {
      * @param endpoint The API endpoint to use for the request. If not provided, the default endpoint will be used.
      * @returns The annotations for the chapter, or null if the chapter doesn't have any.
      */
-    async getChapterWords(
+    getChapterWords(
         chapter: ApiTranslationBookChapter,
+        endpoint?: string
+    ): Promise<ApiTranslationBookChapterWords | null>;
+    /**
+     * Gets the word-level annotations for the given chapter of a complete translation download, if it has any.
+     * @param chapter The chapter to get the annotations for.
+     * @param endpoint The API endpoint to use for the request. If not provided, the default endpoint will be used.
+     * @returns The annotations for the chapter, or null if the chapter doesn't have any.
+     */
+    getChapterWords(
+        chapter: TranslationCompleteChapter,
+        endpoint?: string
+    ): Promise<ApiTranslationBookChapterWords | null>;
+    async getChapterWords(
+        chapter: ApiTranslationBookChapter | TranslationCompleteChapter,
         endpoint?: string
     ): Promise<ApiTranslationBookChapterWords | null> {
         if (!chapter.thisChapterWordsLink) {
@@ -407,8 +423,24 @@ export class FreeUseBibleApi {
      * @param endpoint The API endpoint to use for the request. If not provided, the default endpoint will be used.
      * @returns The annotations for the chapter, or null if the chapter doesn't have any.
      */
-    async getSimpleChapterWords(
+    getSimpleChapterWords(
         chapter: ApiSimpleTranslationBookChapter,
+        endpoint?: string
+    ): Promise<ApiSimpleTranslationBookChapterWords | null>;
+    /**
+     * Gets the word-level annotations for the given chapter of a simplified complete translation download, if it has any.
+     * @param chapter The chapter to get the annotations for.
+     * @param endpoint The API endpoint to use for the request. If not provided, the default endpoint will be used.
+     * @returns The annotations for the chapter, or null if the chapter doesn't have any.
+     */
+    getSimpleChapterWords(
+        chapter: SimpleTranslationCompleteChapter,
+        endpoint?: string
+    ): Promise<ApiSimpleTranslationBookChapterWords | null>;
+    async getSimpleChapterWords(
+        chapter:
+            | ApiSimpleTranslationBookChapter
+            | SimpleTranslationCompleteChapter,
         endpoint?: string
     ): Promise<ApiSimpleTranslationBookChapterWords | null> {
         if (!chapter.thisChapterWordsLink) {
