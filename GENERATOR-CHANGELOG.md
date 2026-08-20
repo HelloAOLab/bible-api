@@ -3,6 +3,14 @@
 This is the log of changes for the Bible API Generator and associated tools.
 For information on the API itself, see [API-CHANGELOG.md](./API-CHANGELOG.md).
 
+## Unreleased
+
+### :bug: Bug Fixes
+
+-   `generateApiForDataset()` no longer embeds `thisChapterWords` on the chapters of `translationComplete`/`simpleTranslationComplete`.
+    -   Each chapter now gets an optional `thisChapterWordsLink` instead, reusing the chapter's existing words link (or the simplified equivalent) rather than the raw annotation data.
+    -   `generateSimpleChapterFiles: false` no longer prevents `{chapter}.words.simple.json` files from being generated when `generateCompleteTranslationFiles` is `true` - they're now generated whenever either option needs them, so `complete.simple.json` always links to a file that actually exists.
+
 ## V2.2.0
 
 ### Date: 2026-08-19
