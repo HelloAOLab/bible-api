@@ -29,6 +29,8 @@ Commands:
   import-translations [options] <dir>                    Imports all translations from the given directory into the database.
   import-commentary [options] <dir> [dirs...]            Imports a commentary from the given directory into the database.
   import-commentaries [options] <dir>                    Imports all commentaries from the given directory into the database.
+  import-bible-metadata <dir>                            Imports the Theographic bible metadata (people, places, events, and people groups) from the given directory into the database.
+                                                         The directory should contain the JSON files downloaded by the fetch-bible-metadata command.
   upload-test-translation [options] <input>              Uploads a translation to the HelloAO Free Bible API test S3 bucket.
                                                          Requires access to the HelloAO Free Bible API test S3 bucket.
                                                          For inquiries, please contact hello@helloao.org.

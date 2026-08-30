@@ -6,6 +6,14 @@ import type {
     ApiDatasetBook,
     ApiDatasetBookChapter,
     ApiDatasetBooks,
+    ApiDatasetEvent,
+    ApiDatasetEvents,
+    ApiDatasetPeople,
+    ApiDatasetPeopleGroup,
+    ApiDatasetPeopleGroups,
+    ApiDatasetPerson,
+    ApiDatasetPlace,
+    ApiDatasetPlaces,
     ApiSimpleCommentaryBookChapter,
     ApiSimpleTranslationBookChapter,
     ApiSimpleTranslationBookChapterWords,
@@ -248,6 +256,151 @@ export class FreeUseBibleApi {
         const encodedDataset = encodeURIComponent(dataset);
         return this._getJson<ApiDatasetBooks>(
             `api/d/${encodedDataset}/books.json`,
+            endpoint
+        );
+    }
+
+    /**
+     * Gets the list of people for a given dataset.
+     * @param dataset The ID of the dataset to get the people for.
+     * @param endpoint The endpoint to use for the request. If not provided, then the default endpoint will be used.
+     */
+    async getDatasetPeople(
+        dataset: string,
+        endpoint?: string
+    ): Promise<ApiDatasetPeople> {
+        const encodedDataset = encodeURIComponent(dataset);
+        return this._getJson<ApiDatasetPeople>(
+            `api/d/${encodedDataset}/people.json`,
+            endpoint
+        );
+    }
+
+    /**
+     * Gets the information about a specific person for a given dataset.
+     * Includes the Bible references that mention the person and their relationships
+     * to other people, places, events, and people groups.
+     * @param dataset The ID of the dataset to get the person for.
+     * @param person The ID of the person to get.
+     * @param endpoint The endpoint to use for the request. If not provided, then the default endpoint will be used.
+     */
+    async getDatasetPerson(
+        dataset: string,
+        person: string,
+        endpoint?: string
+    ): Promise<ApiDatasetPerson> {
+        const encodedDataset = encodeURIComponent(dataset);
+        const encodedPerson = encodeURIComponent(person);
+        return this._getJson<ApiDatasetPerson>(
+            `api/d/${encodedDataset}/people/${encodedPerson}.json`,
+            endpoint
+        );
+    }
+
+    /**
+     * Gets the list of places for a given dataset.
+     * @param dataset The ID of the dataset to get the places for.
+     * @param endpoint The endpoint to use for the request. If not provided, then the default endpoint will be used.
+     */
+    async getDatasetPlaces(
+        dataset: string,
+        endpoint?: string
+    ): Promise<ApiDatasetPlaces> {
+        const encodedDataset = encodeURIComponent(dataset);
+        return this._getJson<ApiDatasetPlaces>(
+            `api/d/${encodedDataset}/places.json`,
+            endpoint
+        );
+    }
+
+    /**
+     * Gets the information about a specific place for a given dataset.
+     * Includes the Bible references that mention the place and its related people and events.
+     * @param dataset The ID of the dataset to get the place for.
+     * @param place The ID of the place to get.
+     * @param endpoint The endpoint to use for the request. If not provided, then the default endpoint will be used.
+     */
+    async getDatasetPlace(
+        dataset: string,
+        place: string,
+        endpoint?: string
+    ): Promise<ApiDatasetPlace> {
+        const encodedDataset = encodeURIComponent(dataset);
+        const encodedPlace = encodeURIComponent(place);
+        return this._getJson<ApiDatasetPlace>(
+            `api/d/${encodedDataset}/places/${encodedPlace}.json`,
+            endpoint
+        );
+    }
+
+    /**
+     * Gets the list of events for a given dataset.
+     * @param dataset The ID of the dataset to get the events for.
+     * @param endpoint The endpoint to use for the request. If not provided, then the default endpoint will be used.
+     */
+    async getDatasetEvents(
+        dataset: string,
+        endpoint?: string
+    ): Promise<ApiDatasetEvents> {
+        const encodedDataset = encodeURIComponent(dataset);
+        return this._getJson<ApiDatasetEvents>(
+            `api/d/${encodedDataset}/events.json`,
+            endpoint
+        );
+    }
+
+    /**
+     * Gets the information about a specific event for a given dataset.
+     * Includes the Bible references that describe the event and its related people, places, and people groups.
+     * @param dataset The ID of the dataset to get the event for.
+     * @param event The ID of the event to get.
+     * @param endpoint The endpoint to use for the request. If not provided, then the default endpoint will be used.
+     */
+    async getDatasetEvent(
+        dataset: string,
+        event: string,
+        endpoint?: string
+    ): Promise<ApiDatasetEvent> {
+        const encodedDataset = encodeURIComponent(dataset);
+        const encodedEvent = encodeURIComponent(event);
+        return this._getJson<ApiDatasetEvent>(
+            `api/d/${encodedDataset}/events/${encodedEvent}.json`,
+            endpoint
+        );
+    }
+
+    /**
+     * Gets the list of people groups for a given dataset.
+     * @param dataset The ID of the dataset to get the people groups for.
+     * @param endpoint The endpoint to use for the request. If not provided, then the default endpoint will be used.
+     */
+    async getDatasetPeopleGroups(
+        dataset: string,
+        endpoint?: string
+    ): Promise<ApiDatasetPeopleGroups> {
+        const encodedDataset = encodeURIComponent(dataset);
+        return this._getJson<ApiDatasetPeopleGroups>(
+            `api/d/${encodedDataset}/groups.json`,
+            endpoint
+        );
+    }
+
+    /**
+     * Gets the information about a specific people group for a given dataset.
+     * Includes the members of the group and the events that the group participated in.
+     * @param dataset The ID of the dataset to get the people group for.
+     * @param group The ID of the people group to get.
+     * @param endpoint The endpoint to use for the request. If not provided, then the default endpoint will be used.
+     */
+    async getDatasetPeopleGroup(
+        dataset: string,
+        group: string,
+        endpoint?: string
+    ): Promise<ApiDatasetPeopleGroup> {
+        const encodedDataset = encodeURIComponent(dataset);
+        const encodedGroup = encodeURIComponent(group);
+        return this._getJson<ApiDatasetPeopleGroup>(
+            `api/d/${encodedDataset}/groups/${encodedGroup}.json`,
             endpoint
         );
     }

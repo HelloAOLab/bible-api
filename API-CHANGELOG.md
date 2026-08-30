@@ -3,6 +3,26 @@
 This is the log of changes for the Free Use Bible API.
 For information on the API Generator, see [GENERATOR-CHANGELOG.md](./GENERATOR-CHANGELOG.md).
 
+## V1.14.0
+
+### Date: 2026-08-29
+
+### :rocket: Features
+
+-   Added the [Theographic Bible Metadata](https://github.com/robertrouse/theographic-bible-metadata) dataset (`theographic`), which contains biblical people, places, events, and people groups, along with the relationships between them and the Bible verses that mention them.
+    -   Datasets can now contain entities. Datasets that do include `listOfPeopleApiLink`, `listOfPlacesApiLink`, `listOfEventsApiLink`, and `listOfPeopleGroupsApiLink` (and the corresponding `totalNumberOf*` counts) in their entry in `/api/available_datasets.json`.
+    -   New endpoints:
+        -   `GET /api/d/{dataset}/people.json`
+        -   `GET /api/d/{dataset}/people/{person}.json`
+        -   `GET /api/d/{dataset}/places.json`
+        -   `GET /api/d/{dataset}/places/{place}.json`
+        -   `GET /api/d/{dataset}/events.json`
+        -   `GET /api/d/{dataset}/events/{event}.json`
+        -   `GET /api/d/{dataset}/groups.json`
+        -   `GET /api/d/{dataset}/groups/{group}.json`
+    -   Entities reference Bible passages using the same book IDs, chapter numbers, and verse numbers as the rest of the API, so they can be combined with any translation. Consecutive verses are collapsed into a single reference using `endVerse`.
+    -   Entities reference each other (e.g. a person's `father`, `birthPlace`, and `events`; a place's `events`; an event's `participants` and `locations`; a group's `members`) using `{ id, name, apiLink }` references that link to the related entity's endpoint.
+
 ## V1.13.0
 
 ### Date: 2026-08-19

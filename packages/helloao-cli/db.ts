@@ -1353,7 +1353,62 @@ export function insertDatasets(db: Database, datasets: DatasetDataset[]) {
             datasetId: dataset.id,
         });
         insertDatasetBooks(db, dataset, dataset.books);
+        insertDatasetEntities(db, dataset);
     }
+}
+
+/**
+ * Inserts the entities (people, places, events, and people groups) for the given dataset into the database.
+ * Any entities that are no longer present in the dataset are deleted.
+ * @param db The database to insert the entities into.
+ * @param dataset The dataset that the entities belong to.
+ */
+export function insertDatasetEntities(db: Database, dataset: DatasetDataset) {
+    const deleteEntities = db.prepare(`DELETE FROM DatasetEntity
+        WHERE datasetId = @datasetId;`);
+
+    const entityUpsert = db.prepare(`INSERT INTO DatasetEntity(
+        id,
+        datasetId,
+        type,
+        name,
+        json
+    ) VALUES (
+        @id,
+        @datasetId,
+        @type,
+        @name,
+        @json
+    ) ON CONFLICT(datasetId,type,id) DO
+        UPDATE SET
+            name=excluded.name,
+            json=excluded.json;`);
+
+    const collections = [
+        ['person', dataset.people],
+        ['place', dataset.places],
+        ['event', dataset.events],
+        ['peopleGroup', dataset.peopleGroups],
+    ] as const;
+
+    const insertAll = db.transaction(() => {
+        deleteEntities.run({
+            datasetId: dataset.id,
+        });
+        for (let [type, entities] of collections) {
+            for (let entity of entities ?? []) {
+                entityUpsert.run({
+                    id: entity.id,
+                    datasetId: dataset.id,
+                    type,
+                    name: entity.name,
+                    json: JSON.stringify(entity),
+                });
+            }
+        }
+    });
+
+    insertAll();
 }
 
 export function insertDatasetBooks(
@@ -1518,6 +1573,12 @@ function updateDatasetHashes(db: Database, datasets: Dataset[]) {
     const getChapters = db.prepare(
         'SELECT * FROM DatasetChapter WHERE datasetId = @datasetId AND bookId = @bookId;'
     );
+    const getEntities = db.prepare(
+        'SELECT * FROM DatasetEntity WHERE datasetId = ? ORDER BY type ASC, id ASC;'
+    );
+    const updateEntityHash = db.prepare(
+        `UPDATE DatasetEntity SET sha256 = @sha256 WHERE datasetId = @datasetId AND type = @type AND id = @entityId;`
+    );
 
     for (let dataset of datasets) {
         const commentarySha = sha256()
@@ -1598,6 +1659,40 @@ function updateDatasetHashes(db: Database, datasets: Dataset[]) {
         });
 
         updateBooks();
+
+        const entities = getEntities.all(dataset.id) as {
+            id: string;
+            datasetId: string;
+            type: string;
+            name: string;
+            json: string;
+            sha256: string;
+        }[];
+
+        for (let entity of entities) {
+            const entityHash = sha256()
+                .update(entity.datasetId)
+                .update(entity.type)
+                .update(entity.id)
+                .update(entity.json)
+                .digest('hex');
+
+            entity.sha256 = entityHash;
+            commentarySha.update(entityHash);
+        }
+
+        const updateEntities = db.transaction(() => {
+            for (let entity of entities) {
+                updateEntityHash.run({
+                    sha256: entity.sha256,
+                    datasetId: entity.datasetId,
+                    type: entity.type,
+                    entityId: entity.id,
+                });
+            }
+        });
+
+        updateEntities();
 
         const hash = commentarySha.digest('hex');
         (dataset as any).sha256 = hash;
@@ -2150,6 +2245,31 @@ export async function* loadDatasetDatasets(
                     chapters: bookChapters,
                 };
                 datasetDataset.books.push(datasetBook);
+            }
+
+            const entities = await db.datasetEntity.findMany({
+                where: {
+                    datasetId: dataset.id,
+                },
+                orderBy: [{ type: 'asc' }, { id: 'asc' }],
+            });
+
+            for (let entity of entities) {
+                const parsed = JSON.parse(entity.json);
+                if (entity.type === 'person') {
+                    (datasetDataset.people ??= []).push(parsed);
+                } else if (entity.type === 'place') {
+                    (datasetDataset.places ??= []).push(parsed);
+                } else if (entity.type === 'event') {
+                    (datasetDataset.events ??= []).push(parsed);
+                } else if (entity.type === 'peopleGroup') {
+                    (datasetDataset.peopleGroups ??= []).push(parsed);
+                } else {
+                    logger.warn(
+                        '[loadDatasetDatasets] Unknown entity type!',
+                        entity.type
+                    );
+                }
             }
         }
 

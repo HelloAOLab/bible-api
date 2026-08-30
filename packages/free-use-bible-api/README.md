@@ -78,6 +78,14 @@ const api = new FreeUseBibleApi({
 -   `getAvailableDatasets(endpoint?)`
 -   `getDatasetBooks(dataset, endpoint?)`
 -   `getDatasetBookChapter(dataset, book, chapter, endpoint?)`
+-   `getDatasetPeople(dataset, endpoint?)`
+-   `getDatasetPerson(dataset, person, endpoint?)`
+-   `getDatasetPlaces(dataset, endpoint?)`
+-   `getDatasetPlace(dataset, place, endpoint?)`
+-   `getDatasetEvents(dataset, endpoint?)`
+-   `getDatasetEvent(dataset, event, endpoint?)`
+-   `getDatasetPeopleGroups(dataset, endpoint?)`
+-   `getDatasetPeopleGroup(dataset, group, endpoint?)`
 
 ### Chapter Navigation Helpers
 
@@ -224,6 +232,14 @@ for (const content of chapter.chapter.content) {
 -   `GET /api/available_datasets.json`
 -   `GET /api/d/{dataset}/books.json`
 -   `GET /api/d/{dataset}/{book}/{chapter}.json`
+-   `GET /api/d/{dataset}/people.json`
+-   `GET /api/d/{dataset}/people/{person}.json`
+-   `GET /api/d/{dataset}/places.json`
+-   `GET /api/d/{dataset}/places/{place}.json`
+-   `GET /api/d/{dataset}/events.json`
+-   `GET /api/d/{dataset}/events/{event}.json`
+-   `GET /api/d/{dataset}/groups.json`
+-   `GET /api/d/{dataset}/groups/{group}.json`
 
 Example requests:
 
