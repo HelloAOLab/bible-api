@@ -6,6 +6,15 @@ import {
     ApiCommentaryBooksSchema,
     ApiDatasetBookChapterSchema,
     ApiDatasetBooksSchema,
+    ApiDatasetEntityBookChapterSchema,
+    ApiDatasetEventSchema,
+    ApiDatasetEventsSchema,
+    ApiDatasetPeopleGroupSchema,
+    ApiDatasetPeopleGroupsSchema,
+    ApiDatasetPeopleSchema,
+    ApiDatasetPersonSchema,
+    ApiDatasetPlaceSchema,
+    ApiDatasetPlacesSchema,
     ApiSimpleCommentaryBookChapterSchema,
     ApiSimpleTranslationBookChapterSchema,
     ApiSimpleTranslationBookChapterWordsSchema,
@@ -46,6 +55,26 @@ const chapter = z.number().positive().meta({
 const reader = z.string().meta({
     description:
         'The ID of the reader to get the audio timings for. For example, "hays" for the Hays reading of the Berean Standard Bible.',
+});
+
+const person = z.string().meta({
+    description:
+        'The ID of the person to get the information for. For example, "paul_2479" for the apostle Paul.',
+});
+
+const place = z.string().meta({
+    description:
+        'The ID of the place to get the information for. For example, "jerusalem_636" for Jerusalem.',
+});
+
+const event = z.string().meta({
+    description:
+        'The ID of the event to get the information for. For example, "saul-is-converted_326" for the conversion of Saul.',
+});
+
+const group = z.string().meta({
+    description:
+        'The ID of the people group to get the information for. For example, "tribe-of-benjamin" for the tribe of Benjamin.',
 });
 
 export function createFreeUseBibleApiOpenApiDocument(): any {
@@ -504,7 +533,7 @@ export function createFreeUseBibleApiOpenApiDocument(): any {
                 get: {
                     operationId: 'getDatasetBookChapter',
                     description:
-                        'Get the content of a specific chapter of a specific book for a specific dataset.',
+                        'Get the content of a specific chapter of a specific book for a specific dataset. For cross reference datasets, this is the list of cross references for each verse in the chapter. For entity datasets (such as "theographic"), this is the people, places, and events that appear in the chapter.',
                     requestParams: {
                         path: z.object({
                             dataset,
@@ -517,13 +546,228 @@ export function createFreeUseBibleApiOpenApiDocument(): any {
                             description: '200 OK',
                             content: {
                                 'application/json': {
-                                    schema: ApiDatasetBookChapterSchema,
+                                    schema: z.union([
+                                        ApiDatasetBookChapterSchema,
+                                        ApiDatasetEntityBookChapterSchema,
+                                    ]),
                                 },
                             },
                         },
                         '404': {
                             description:
                                 '404 Not Found - The specified dataset, book, or chapter was not found.',
+                        },
+                    },
+                },
+            },
+            '/api/d/{dataset}/people.json': {
+                get: {
+                    operationId: 'getDatasetPeople',
+                    description:
+                        'Get the list of people that are available for a specific dataset.',
+                    requestParams: {
+                        path: z.object({
+                            dataset,
+                        }),
+                    },
+                    responses: {
+                        '200': {
+                            description: '200 OK',
+                            content: {
+                                'application/json': {
+                                    schema: ApiDatasetPeopleSchema,
+                                },
+                            },
+                        },
+                        '404': {
+                            description:
+                                "404 Not Found - The specified dataset was not found or doesn't contain people.",
+                        },
+                    },
+                },
+            },
+            '/api/d/{dataset}/people/{person}.json': {
+                get: {
+                    operationId: 'getDatasetPerson',
+                    description:
+                        'Get the information about a specific person for a specific dataset. Includes the Bible references that mention the person and their relationships to other people, places, events, and people groups.',
+                    requestParams: {
+                        path: z.object({
+                            dataset,
+                            person,
+                        }),
+                    },
+                    responses: {
+                        '200': {
+                            description: '200 OK',
+                            content: {
+                                'application/json': {
+                                    schema: ApiDatasetPersonSchema,
+                                },
+                            },
+                        },
+                        '404': {
+                            description:
+                                '404 Not Found - The specified dataset or person was not found.',
+                        },
+                    },
+                },
+            },
+            '/api/d/{dataset}/places.json': {
+                get: {
+                    operationId: 'getDatasetPlaces',
+                    description:
+                        'Get the list of places that are available for a specific dataset.',
+                    requestParams: {
+                        path: z.object({
+                            dataset,
+                        }),
+                    },
+                    responses: {
+                        '200': {
+                            description: '200 OK',
+                            content: {
+                                'application/json': {
+                                    schema: ApiDatasetPlacesSchema,
+                                },
+                            },
+                        },
+                        '404': {
+                            description:
+                                "404 Not Found - The specified dataset was not found or doesn't contain places.",
+                        },
+                    },
+                },
+            },
+            '/api/d/{dataset}/places/{place}.json': {
+                get: {
+                    operationId: 'getDatasetPlace',
+                    description:
+                        'Get the information about a specific place for a specific dataset. Includes the Bible references that mention the place and its related people and events.',
+                    requestParams: {
+                        path: z.object({
+                            dataset,
+                            place,
+                        }),
+                    },
+                    responses: {
+                        '200': {
+                            description: '200 OK',
+                            content: {
+                                'application/json': {
+                                    schema: ApiDatasetPlaceSchema,
+                                },
+                            },
+                        },
+                        '404': {
+                            description:
+                                '404 Not Found - The specified dataset or place was not found.',
+                        },
+                    },
+                },
+            },
+            '/api/d/{dataset}/events.json': {
+                get: {
+                    operationId: 'getDatasetEvents',
+                    description:
+                        'Get the list of events that are available for a specific dataset.',
+                    requestParams: {
+                        path: z.object({
+                            dataset,
+                        }),
+                    },
+                    responses: {
+                        '200': {
+                            description: '200 OK',
+                            content: {
+                                'application/json': {
+                                    schema: ApiDatasetEventsSchema,
+                                },
+                            },
+                        },
+                        '404': {
+                            description:
+                                "404 Not Found - The specified dataset was not found or doesn't contain events.",
+                        },
+                    },
+                },
+            },
+            '/api/d/{dataset}/events/{event}.json': {
+                get: {
+                    operationId: 'getDatasetEvent',
+                    description:
+                        'Get the information about a specific event for a specific dataset. Includes the Bible references that describe the event and its related people, places, and people groups.',
+                    requestParams: {
+                        path: z.object({
+                            dataset,
+                            event,
+                        }),
+                    },
+                    responses: {
+                        '200': {
+                            description: '200 OK',
+                            content: {
+                                'application/json': {
+                                    schema: ApiDatasetEventSchema,
+                                },
+                            },
+                        },
+                        '404': {
+                            description:
+                                '404 Not Found - The specified dataset or event was not found.',
+                        },
+                    },
+                },
+            },
+            '/api/d/{dataset}/groups.json': {
+                get: {
+                    operationId: 'getDatasetPeopleGroups',
+                    description:
+                        'Get the list of people groups that are available for a specific dataset.',
+                    requestParams: {
+                        path: z.object({
+                            dataset,
+                        }),
+                    },
+                    responses: {
+                        '200': {
+                            description: '200 OK',
+                            content: {
+                                'application/json': {
+                                    schema: ApiDatasetPeopleGroupsSchema,
+                                },
+                            },
+                        },
+                        '404': {
+                            description:
+                                "404 Not Found - The specified dataset was not found or doesn't contain people groups.",
+                        },
+                    },
+                },
+            },
+            '/api/d/{dataset}/groups/{group}.json': {
+                get: {
+                    operationId: 'getDatasetPeopleGroup',
+                    description:
+                        'Get the information about a specific people group for a specific dataset. Includes the members of the group and the events that the group participated in.',
+                    requestParams: {
+                        path: z.object({
+                            dataset,
+                            group,
+                        }),
+                    },
+                    responses: {
+                        '200': {
+                            description: '200 OK',
+                            content: {
+                                'application/json': {
+                                    schema: ApiDatasetPeopleGroupSchema,
+                                },
+                            },
+                        },
+                        '404': {
+                            description:
+                                '404 Not Found - The specified dataset or people group was not found.',
                         },
                     },
                 },

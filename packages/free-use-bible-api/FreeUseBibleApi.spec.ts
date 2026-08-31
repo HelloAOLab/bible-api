@@ -227,6 +227,129 @@ describe('FreeUseBibleApi', () => {
         expect(last).toEqual(lastPayload);
     });
 
+    it('gets an entity chapter through getDatasetBookChapter', async () => {
+        const payload = {
+            chapter: {
+                number: 1,
+                people: [
+                    {
+                        id: 'god_1324',
+                        name: 'God',
+                        isProperName: true,
+                        gender: 'Male',
+                        apiLink: '/api/d/theographic/people/god_1324.json',
+                        verses: [1, 3, 5],
+                    },
+                ],
+                places: [],
+                events: [],
+            },
+            numberOfPeople: 1,
+            numberOfPlaces: 0,
+            numberOfEvents: 0,
+        };
+        fetchMock.mockResolvedValue(jsonResponse(payload));
+
+        const api = new FreeUseBibleApi();
+
+        const chapter = await api.getDatasetBookChapter(
+            'theographic',
+            'GEN',
+            1
+        );
+
+        expect(chapter).toEqual(payload);
+        expect(fetchMock).toHaveBeenCalledWith(
+            'https://bible.helloao.org/api/d/theographic/GEN/1.json'
+        );
+    });
+
+    it('gets dataset entity lists using dedicated methods', async () => {
+        const peoplePayload = { people: [{ id: 'paul_2479' }] };
+        const placesPayload = { places: [{ id: 'jerusalem_636' }] };
+        const eventsPayload = { events: [{ id: 'saul-is-converted_326' }] };
+        const groupsPayload = { groups: [{ id: 'tribe-of-benjamin' }] };
+        fetchMock
+            .mockResolvedValueOnce(jsonResponse(peoplePayload))
+            .mockResolvedValueOnce(jsonResponse(placesPayload))
+            .mockResolvedValueOnce(jsonResponse(eventsPayload))
+            .mockResolvedValueOnce(jsonResponse(groupsPayload));
+
+        const api = new FreeUseBibleApi();
+
+        const people = await api.getDatasetPeople('theographic');
+        const places = await api.getDatasetPlaces('theographic');
+        const events = await api.getDatasetEvents('theographic');
+        const groups = await api.getDatasetPeopleGroups('theographic');
+
+        expect(people).toEqual(peoplePayload);
+        expect(places).toEqual(placesPayload);
+        expect(events).toEqual(eventsPayload);
+        expect(groups).toEqual(groupsPayload);
+        expect(fetchMock).toHaveBeenNthCalledWith(
+            1,
+            'https://bible.helloao.org/api/d/theographic/people.json'
+        );
+        expect(fetchMock).toHaveBeenNthCalledWith(
+            2,
+            'https://bible.helloao.org/api/d/theographic/places.json'
+        );
+        expect(fetchMock).toHaveBeenNthCalledWith(
+            3,
+            'https://bible.helloao.org/api/d/theographic/events.json'
+        );
+        expect(fetchMock).toHaveBeenNthCalledWith(
+            4,
+            'https://bible.helloao.org/api/d/theographic/groups.json'
+        );
+    });
+
+    it('gets individual dataset entities using dedicated methods', async () => {
+        const personPayload = { person: { id: 'paul_2479' } };
+        const placePayload = { place: { id: 'jerusalem_636' } };
+        const eventPayload = { event: { id: 'saul-is-converted_326' } };
+        const groupPayload = { group: { id: 'tribe-of-benjamin' } };
+        fetchMock
+            .mockResolvedValueOnce(jsonResponse(personPayload))
+            .mockResolvedValueOnce(jsonResponse(placePayload))
+            .mockResolvedValueOnce(jsonResponse(eventPayload))
+            .mockResolvedValueOnce(jsonResponse(groupPayload));
+
+        const api = new FreeUseBibleApi();
+
+        const person = await api.getDatasetPerson('theographic', 'paul_2479');
+        const place = await api.getDatasetPlace('theographic', 'jerusalem_636');
+        const event = await api.getDatasetEvent(
+            'theographic',
+            'saul-is-converted_326'
+        );
+        const group = await api.getDatasetPeopleGroup(
+            'theographic',
+            'tribe-of-benjamin'
+        );
+
+        expect(person).toEqual(personPayload);
+        expect(place).toEqual(placePayload);
+        expect(event).toEqual(eventPayload);
+        expect(group).toEqual(groupPayload);
+        expect(fetchMock).toHaveBeenNthCalledWith(
+            1,
+            'https://bible.helloao.org/api/d/theographic/people/paul_2479.json'
+        );
+        expect(fetchMock).toHaveBeenNthCalledWith(
+            2,
+            'https://bible.helloao.org/api/d/theographic/places/jerusalem_636.json'
+        );
+        expect(fetchMock).toHaveBeenNthCalledWith(
+            3,
+            'https://bible.helloao.org/api/d/theographic/events/saul-is-converted_326.json'
+        );
+        expect(fetchMock).toHaveBeenNthCalledWith(
+            4,
+            'https://bible.helloao.org/api/d/theographic/groups/tribe-of-benjamin.json'
+        );
+    });
+
     it('gets a commentary chapter and dataset chapter using dedicated methods', async () => {
         const commentaryPayload = { chapter: { number: 1 } };
         const datasetPayload = { chapter: { number: 3 } };

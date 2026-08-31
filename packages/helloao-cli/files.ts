@@ -27,7 +27,7 @@ import { Readable, Writable } from 'stream';
 import hash from 'hash.js';
 const { sha256 } = hash;
 import { PARSER_VERSION } from '@helloao/tools/parser/usx-parser.js';
-import { mergeWith } from 'es-toolkit/compat';
+import { mergeWith, sortBy } from 'es-toolkit/compat';
 import { fromByteArray } from 'base64-js';
 import { log } from '@helloao/tools';
 import { bookOrderMap } from '@helloao/tools/generation/book-order.js';
@@ -765,12 +765,30 @@ export async function loadDatasetsFromDirectory(
         }))
     );
 
+    const entityCollections = [
+        ['people', 'people'],
+        ['places', 'places'],
+        ['events', 'events'],
+        ['groups', 'peopleGroups'],
+    ] as const;
+    const entityListFiles = new Set([
+        'people.json',
+        'places.json',
+        'events.json',
+        'groups.json',
+    ]);
+    const entityDirs = new Set(['people', 'places', 'events', 'groups']);
+
     for (let dataset of datasets) {
         const datasetDir = path.resolve(apiDir, 'd', dataset.id);
         const booksList = await readdir(datasetDir);
 
         for (let bookId of booksList) {
-            if (bookId === 'books.json') {
+            if (
+                bookId === 'books.json' ||
+                entityListFiles.has(bookId) ||
+                entityDirs.has(bookId)
+            ) {
                 continue;
             }
             const id = getBookId(bookId);
@@ -785,7 +803,6 @@ export async function loadDatasetsFromDirectory(
                 chapters: [],
                 order: bookOrderMap.get(id)!,
             };
-            dataset.books.push(book);
 
             const bookDir = path.resolve(datasetDir, bookId);
             const chapters = await readdir(bookDir);
@@ -795,7 +812,18 @@ export async function loadDatasetsFromDirectory(
                     await readFile(path.resolve(bookDir, chapterFile), 'utf-8')
                 );
 
-                if (chapterJson.chapter) {
+                if (
+                    chapterJson.chapter &&
+                    (chapterJson.numberOfPeople !== undefined ||
+                        chapterJson.numberOfPlaces !== undefined ||
+                        chapterJson.numberOfEvents !== undefined)
+                ) {
+                    // Entity chapters (people, places, and events that appear
+                    // in a chapter) are derived from the dataset's entities
+                    // when the API files are generated, so they shouldn't be
+                    // imported as chapter data.
+                    continue;
+                } else if (chapterJson.chapter) {
                     book.chapters.push({
                         chapter: chapterJson.chapter,
                     });
@@ -831,10 +859,74 @@ export async function loadDatasetsFromDirectory(
                     continue;
                 }
             }
+
+            // Books that only contain derived entity chapters have no
+            // chapter data of their own, so they shouldn't be imported.
+            if (book.chapters.length > 0) {
+                dataset.books.push(book);
+            }
+        }
+
+        // Load the entities (people, places, events, and people groups)
+        // for the dataset, if they exist.
+        for (let [collection, property] of entityCollections) {
+            const collectionDir = path.resolve(datasetDir, collection);
+            if (!existsSync(collectionDir)) {
+                continue;
+            }
+
+            const entities: any[] = [];
+            const entityFiles = await readdir(collectionDir);
+            for (let entityFile of entityFiles) {
+                const entityJson = JSON.parse(
+                    await readFile(
+                        path.resolve(collectionDir, entityFile),
+                        'utf-8'
+                    )
+                );
+
+                const entity =
+                    entityJson.person ??
+                    entityJson.place ??
+                    entityJson.event ??
+                    entityJson.group;
+
+                if (!entity) {
+                    logger.warn(`Unknown entity format: ${entityFile}`);
+                    continue;
+                }
+
+                entities.push(stripEntityRefApiLinks(entity));
+            }
+
+            if (entities.length > 0) {
+                (dataset as any)[property] = sortBy(entities, (e) => e.id);
+            }
         }
     }
 
     return datasets;
+}
+
+/**
+ * Removes the API links from any entity references in the given entity.
+ * API links are added when the API files are generated, so they shouldn't be
+ * stored in the database.
+ * @param entity The entity to strip the API links from.
+ */
+function stripEntityRefApiLinks(entity: any): any {
+    for (let value of Object.values(entity)) {
+        if (Array.isArray(value)) {
+            for (let item of value) {
+                if (item && typeof item === 'object' && 'apiLink' in item) {
+                    delete item.apiLink;
+                }
+            }
+        } else if (value && typeof value === 'object' && 'apiLink' in value) {
+            delete (value as any).apiLink;
+        }
+    }
+    return entity;
 }
 
 /**
