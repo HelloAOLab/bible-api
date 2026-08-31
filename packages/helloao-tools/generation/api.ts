@@ -16,6 +16,7 @@ import {
     DatasetBookSchema,
     DatasetBookChapter,
     DatasetEntityRef,
+    DatasetEntityType,
     DatasetEvent,
     DatasetEventSchema,
     DatasetPeopleGroup,
@@ -3864,6 +3865,7 @@ export function generateApiForDataset(
             ref
                 ? {
                       ...ref,
+                      type: collection,
                       apiLink: datasetEntityApiLink(
                           datasetInfo.id,
                           collection,
@@ -4670,7 +4672,7 @@ export function listOfDatasetBooksApiLink(
 /**
  * The collections of entities that a dataset can contain.
  */
-export type DatasetEntityCollection = 'people' | 'places' | 'events' | 'groups';
+export type DatasetEntityCollection = DatasetEntityType;
 
 /**
  * Gets the API Link for the list of entities in a collection for a dataset.

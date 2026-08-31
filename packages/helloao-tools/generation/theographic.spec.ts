@@ -207,11 +207,14 @@ describe('generateDatasetFromTheographic()', () => {
                 isProperName: true,
                 gender: 'Male',
                 description: ['The first man (Gen. 1:26).'],
-                children: [{ id: 'seth_10', name: 'Seth' }],
-                memberOf: [{ id: 'humanity', name: 'Humanity' }],
+                children: [{ id: 'seth_10', type: 'people', name: 'Seth' }],
+                memberOf: [
+                    { id: 'humanity', type: 'groups', name: 'Humanity' },
+                ],
                 events: [
                     {
                         id: 'creation-of-adam-and-eve_1',
+                        type: 'events',
                         name: 'Creation of Adam and Eve',
                     },
                 ],
@@ -225,8 +228,8 @@ describe('generateDatasetFromTheographic()', () => {
                 name: 'Seth',
                 gender: 'Male',
                 birthYear: -3874,
-                birthPlace: { id: 'eden_1', name: 'Eden' },
-                father: [{ id: 'adam_2', name: 'Adam' }],
+                birthPlace: { id: 'eden_1', type: 'places', name: 'Eden' },
+                father: [{ id: 'adam_2', type: 'people', name: 'Adam' }],
                 references: [{ book: 'GEN', chapter: 2, verse: 1 }],
             },
         ]);
@@ -245,11 +248,12 @@ describe('generateDatasetFromTheographic()', () => {
                 featureType: 'Region',
                 latitude: 31.777444,
                 longitude: 35.234935,
-                people: [{ id: 'adam_2', name: 'Adam' }],
-                peopleBorn: [{ id: 'seth_10', name: 'Seth' }],
+                people: [{ id: 'adam_2', type: 'people', name: 'Adam' }],
+                peopleBorn: [{ id: 'seth_10', type: 'people', name: 'Seth' }],
                 events: [
                     {
                         id: 'creation-of-adam-and-eve_1',
+                        type: 'events',
                         name: 'Creation of Adam and Eve',
                     },
                 ],
@@ -270,9 +274,9 @@ describe('generateDatasetFromTheographic()', () => {
                 name: 'Creation of Adam and Eve',
                 startDate: '-4003',
                 duration: '1D',
-                participants: [{ id: 'adam_2', name: 'Adam' }],
-                locations: [{ id: 'eden_1', name: 'Eden' }],
-                groups: [{ id: 'humanity', name: 'Humanity' }],
+                participants: [{ id: 'adam_2', type: 'people', name: 'Adam' }],
+                locations: [{ id: 'eden_1', type: 'places', name: 'Eden' }],
+                groups: [{ id: 'humanity', type: 'groups', name: 'Humanity' }],
                 references: [
                     { book: 'GEN', chapter: 1, verse: 1 },
                     { book: 'GEN', chapter: 2, verse: 1 },
@@ -286,6 +290,7 @@ describe('generateDatasetFromTheographic()', () => {
                 duration: '1D',
                 predecessor: {
                     id: 'creation-of-adam-and-eve_1',
+                    type: 'events',
                     name: 'Creation of Adam and Eve',
                 },
                 references: [
@@ -303,12 +308,13 @@ describe('generateDatasetFromTheographic()', () => {
                 id: 'humanity',
                 name: 'Humanity',
                 members: [
-                    { id: 'adam_2', name: 'Adam' },
-                    { id: 'seth_10', name: 'Seth' },
+                    { id: 'adam_2', type: 'people', name: 'Adam' },
+                    { id: 'seth_10', type: 'people', name: 'Seth' },
                 ],
                 events: [
                     {
                         id: 'creation-of-adam-and-eve_1',
+                        type: 'events',
                         name: 'Creation of Adam and Eve',
                     },
                 ],
@@ -391,12 +397,14 @@ describe('generateDatasetFromTheographic()', () => {
             expect(seth.person.father).toEqual([
                 {
                     id: 'adam_2',
+                    type: 'people',
                     name: 'Adam',
                     apiLink: '/api/d/theographic/people/adam_2.json',
                 },
             ]);
             expect(seth.person.birthPlace).toEqual({
                 id: 'eden_1',
+                type: 'places',
                 name: 'Eden',
                 apiLink: '/api/d/theographic/places/eden_1.json',
             });
@@ -422,6 +430,7 @@ describe('generateDatasetFromTheographic()', () => {
             expect(eden.place.events).toEqual([
                 {
                     id: 'creation-of-adam-and-eve_1',
+                    type: 'events',
                     name: 'Creation of Adam and Eve',
                     apiLink:
                         '/api/d/theographic/events/creation-of-adam-and-eve_1.json',
@@ -455,6 +464,7 @@ describe('generateDatasetFromTheographic()', () => {
             const fall = api.datasetEventContents![1];
             expect(fall.event.predecessor).toEqual({
                 id: 'creation-of-adam-and-eve_1',
+                type: 'events',
                 name: 'Creation of Adam and Eve',
                 apiLink:
                     '/api/d/theographic/events/creation-of-adam-and-eve_1.json',
@@ -479,11 +489,13 @@ describe('generateDatasetFromTheographic()', () => {
             expect(humanity.group.members).toEqual([
                 {
                     id: 'adam_2',
+                    type: 'people',
                     name: 'Adam',
                     apiLink: '/api/d/theographic/people/adam_2.json',
                 },
                 {
                     id: 'seth_10',
+                    type: 'people',
                     name: 'Seth',
                     apiLink: '/api/d/theographic/people/seth_10.json',
                 },
@@ -501,6 +513,45 @@ describe('generateDatasetFromTheographic()', () => {
             expect(api.datasetPeopleContents![0].thisPersonApiLink).toBe(
                 '/hello/api/d/theographic/people/adam_2.json'
             );
+        });
+
+        it('should include the entity type in every emitted entity reference', () => {
+            const api = generateApiForDataset(createDatasetOutput());
+
+            const contents = [
+                ...api.datasetPeopleContents!.map((p) => p.person),
+                ...api.datasetPlaceContents!.map((p) => p.place),
+                ...api.datasetEventContents!.map((e) => e.event),
+                ...api.datasetPeopleGroupContents!.map((g) => g.group),
+            ];
+
+            let refs = 0;
+            for (let content of contents) {
+                for (let value of Object.values(content)) {
+                    const list = Array.isArray(value) ? value : [value];
+                    for (let item of list) {
+                        if (
+                            item &&
+                            typeof item === 'object' &&
+                            'apiLink' in item
+                        ) {
+                            refs++;
+                            const ref = item as any;
+                            expect([
+                                'people',
+                                'places',
+                                'events',
+                                'groups',
+                            ]).toContain(ref.type);
+                            expect(ref.apiLink).toBe(
+                                `/api/d/theographic/${ref.type}/${ref.id}.json`
+                            );
+                        }
+                    }
+                }
+            }
+
+            expect(refs).toBeGreaterThan(0);
         });
 
         it('should generate files for the entity endpoints', () => {

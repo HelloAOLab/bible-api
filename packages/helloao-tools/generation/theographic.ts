@@ -229,6 +229,7 @@ export function generateDatasetFromTheographic(
         }
         peopleMap.set(person.id, {
             id,
+            type: 'people',
             name: person.fields.displayTitle ?? person.fields.name,
         });
     }
@@ -242,6 +243,7 @@ export function generateDatasetFromTheographic(
         }
         placesMap.set(place.id, {
             id,
+            type: 'places',
             name:
                 place.fields.displayTitle ??
                 place.fields.kjvName ??
@@ -262,6 +264,7 @@ export function generateDatasetFromTheographic(
         }
         eventsMap.set(event.id, {
             id: `${slugify(title)}_${eventID}`,
+            type: 'events',
             name: title,
         });
     }
@@ -278,6 +281,7 @@ export function generateDatasetFromTheographic(
         }
         groupsMap.set(group.id, {
             id: slugify(name),
+            type: 'groups',
             name,
         });
     }

@@ -2054,6 +2054,10 @@ export type DatasetEntityRef = {
      */
     id: string;
     /**
+     * The type of the entity that is being referenced. Matches the collection segment of the entity's API link, so the link can be constructed as `/api/d/{dataset}/{type}/{id}.json`.
+     */
+    type: DatasetEntityType;
+    /**
      * The name of the entity that is being referenced.
      */
     name?: string;
@@ -2062,6 +2066,11 @@ export type DatasetEntityRef = {
      */
     apiLink?: string;
 };
+
+/**
+ * The type of an entity in a dataset. Matches the collection segment of the entity API paths, so the API link for an entity can be constructed as `/api/d/{dataset}/{type}/{id}.json`.
+ */
+export type DatasetEntityType = 'people' | 'places' | 'events' | 'groups';
 
 /**
  * Defines a schema for verse references. A verse reference is a string that contains a book ID, chapter number, and verse number, such as "GEN 1:1". It can also contain an optional content part that comes after the verse reference, such as "GEN 1:1 In the beginning, God created the Heavens and the Earth." It can also contain optional endChapter and endVerse fields for references that span multiple chapters or verses, such as "GEN 1:1-2:3".

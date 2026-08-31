@@ -563,6 +563,20 @@ export type ScoredVerseRef = z.infer<typeof ScoredVerseRefSchema>;
 /**
  * Defines a Zod schema for a reference to another entity (person, place, event, or people group) in a dataset.
  */
+/**
+ * Defines a Zod schema for the type of an entity in a dataset.
+ * Matches the collection segment of the entity API paths.
+ */
+export const DatasetEntityTypeSchema = z
+    .enum(['people', 'places', 'events', 'groups'])
+    .meta({
+        id: 'DatasetEntityType',
+        description:
+            'The type of an entity in a dataset. Matches the collection segment of the entity API paths, so the API link for an entity can be constructed as `/api/d/{dataset}/{type}/{id}.json`.',
+    });
+
+export type DatasetEntityType = z.infer<typeof DatasetEntityTypeSchema>;
+
 export const DatasetEntityRefSchema = z
     .object({
         /**
@@ -570,6 +584,16 @@ export const DatasetEntityRefSchema = z
          */
         id: z.string().meta({
             description: 'The ID of the entity that is being referenced.',
+        }),
+
+        /**
+         * The type of the entity that is being referenced.
+         * Matches the collection segment of the entity's API link,
+         * so the link can be constructed as `/api/d/{dataset}/{type}/{id}.json`.
+         */
+        type: DatasetEntityTypeSchema.meta({
+            description:
+                "The type of the entity that is being referenced. Matches the collection segment of the entity's API link, so the link can be constructed as `/api/d/{dataset}/{type}/{id}.json`.",
         }),
 
         /**

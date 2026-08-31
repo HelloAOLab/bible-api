@@ -555,6 +555,13 @@ export interface DatasetEntityRef {
     id: string;
 
     /**
+     * The type of the entity that is being referenced.
+     * Matches the collection segment of the entity's API link,
+     * so the link can be constructed as `/api/d/{dataset}/{type}/{id}.json`.
+     */
+    type: 'people' | 'places' | 'events' | 'groups';
+
+    /**
      * The name of the entity that is being referenced.
      */
     name?: string;
@@ -1112,6 +1119,7 @@ interface DatasetPerson {
         "events": [
             {
                 "id": "saul-is-converted_326",
+                "type": "events",
                 "name": "Saul is converted",
                 "apiLink": "/api/d/theographic/events/saul-is-converted_326.json"
             }
@@ -1314,6 +1322,7 @@ interface DatasetPlace {
         "events": [
             {
                 "id": "saul-is-converted_326",
+                "type": "events",
                 "name": "Saul is converted",
                 "apiLink": "/api/d/theographic/events/saul-is-converted_326.json"
             }
@@ -1481,16 +1490,19 @@ interface DatasetEvent {
         "participants": [
             {
                 "id": "holy_spirit_7400",
+                "type": "people",
                 "name": "Holy Spirit",
                 "apiLink": "/api/d/theographic/people/holy_spirit_7400.json"
             },
             {
                 "id": "ananias_259",
+                "type": "people",
                 "name": "Ananias (Disciple at Damascus)",
                 "apiLink": "/api/d/theographic/people/ananias_259.json"
             },
             {
                 "id": "paul_2479",
+                "type": "people",
                 "name": "Paul",
                 "apiLink": "/api/d/theographic/people/paul_2479.json"
             }
@@ -1498,12 +1510,14 @@ interface DatasetEvent {
         "locations": [
             {
                 "id": "damascus_322",
+                "type": "places",
                 "name": "Damascus",
                 "apiLink": "/api/d/theographic/places/damascus_322.json"
             }
         ],
         "predecessor": {
             "id": "conversion-of-ethiopian-eunuch_325",
+            "type": "events",
             "name": "Conversion of Ethiopian Eunuch",
             "apiLink": "/api/d/theographic/events/conversion-of-ethiopian-eunuch_325.json"
         },
@@ -1634,11 +1648,13 @@ interface DatasetPeopleGroup {
         "members": [
             {
                 "id": "abiah_17",
+                "type": "people",
                 "name": "Abiah",
                 "apiLink": "/api/d/theographic/people/abiah_17.json"
             },
             {
                 "id": "abihud_34",
+                "type": "people",
                 "name": "Abihud",
                 "apiLink": "/api/d/theographic/people/abihud_34.json"
             }
