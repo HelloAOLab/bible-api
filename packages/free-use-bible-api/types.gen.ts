@@ -1585,6 +1585,38 @@ export type ApiDataset = {
      * Gets the name of the language in English. Null or undefined if the language doesn't have an english name.
      */
     languageEnglishName?: string;
+    /**
+     * The API link for the list of people for this dataset. Relative to the API origin. Omitted if the dataset doesn't contain people.
+     */
+    listOfPeopleApiLink?: string;
+    /**
+     * The API link for the list of places for this dataset. Relative to the API origin. Omitted if the dataset doesn't contain places.
+     */
+    listOfPlacesApiLink?: string;
+    /**
+     * The API link for the list of events for this dataset. Relative to the API origin. Omitted if the dataset doesn't contain events.
+     */
+    listOfEventsApiLink?: string;
+    /**
+     * The API link for the list of people groups for this dataset. Relative to the API origin. Omitted if the dataset doesn't contain people groups.
+     */
+    listOfPeopleGroupsApiLink?: string;
+    /**
+     * The total number of people that are contained in this dataset. Omitted if the dataset doesn't contain people.
+     */
+    totalNumberOfPeople?: number;
+    /**
+     * The total number of places that are contained in this dataset. Omitted if the dataset doesn't contain places.
+     */
+    totalNumberOfPlaces?: number;
+    /**
+     * The total number of events that are contained in this dataset. Omitted if the dataset doesn't contain events.
+     */
+    totalNumberOfEvents?: number;
+    /**
+     * The total number of people groups that are contained in this dataset. Omitted if the dataset doesn't contain people groups.
+     */
+    totalNumberOfPeopleGroups?: number;
 };
 
 /**
@@ -1761,6 +1793,722 @@ export type ScoredVerseRef = {
      * The score for the verse reference. The meaning of the score is arbitrary and is determined by the dataset.
      */
     score: number;
+};
+
+/**
+ * The entities (people, places, and events) that appear in a chapter of a book for a dataset. Maps to the /api/d/:datasetId/:bookId/:chapterNumber.json endpoint for datasets that contain entities.
+ */
+export type ApiDatasetEntityBookChapter = {
+    /**
+     * The dataset information for the book chapter.
+     */
+    dataset: ApiDataset;
+    /**
+     * The book information for the book chapter.
+     */
+    book: ApiDatasetBook;
+    /**
+     * The entity data for the chapter.
+     */
+    chapter: ApiDatasetEntityChapterData;
+    /**
+     * The link to this chapter. Relative to the API origin.
+     */
+    thisChapterLink: string;
+    /**
+     * The reference for this chapter.
+     */
+    thisChapterReference: DatasetChapterReference;
+    /**
+     * The link to the next chapter. Relative to the API origin. Null if this is the last chapter in the dataset.
+     */
+    nextChapterApiLink: string | null;
+    /**
+     * The reference for the next chapter. Null if this is the last chapter in the dataset.
+     */
+    nextChapterReference: DatasetChapterReference | null;
+    /**
+     * The link to the previous chapter. Relative to the API origin. Null if this is the first chapter in the dataset.
+     */
+    previousChapterApiLink: string | null;
+    /**
+     * The reference for the previous chapter. Null if this is the first chapter in the dataset.
+     */
+    previousChapterReference: DatasetChapterReference | null;
+    /**
+     * The number of people that appear in the chapter.
+     */
+    numberOfPeople: number;
+    /**
+     * The number of places that appear in the chapter.
+     */
+    numberOfPlaces: number;
+    /**
+     * The number of events that appear in the chapter.
+     */
+    numberOfEvents: number;
+};
+
+/**
+ * Defines a person that appears in a chapter of a dataset.
+ */
+export type ApiDatasetChapterPerson = {
+    /**
+     * The ID of the person.
+     */
+    id: string;
+    /**
+     * The name of the person.
+     */
+    name: string;
+    /**
+     * Whether the name of the person is a proper name.
+     */
+    isProperName?: boolean;
+    /**
+     * The gender of the person.
+     */
+    gender?: string;
+    /**
+     * The year that the person was born. Negative numbers are years BC. Positive numbers are years AD.
+     */
+    birthYear?: number;
+    /**
+     * The year that the person died. Negative numbers are years BC. Positive numbers are years AD.
+     */
+    deathYear?: number;
+    /**
+     * The API link for the person. Relative to the API origin.
+     */
+    apiLink: string;
+    /**
+     * The numbers of the verses in the chapter that mention the person. Sorted in ascending order.
+     */
+    verses: Array<number>;
+};
+
+/**
+ * Defines a place that appears in a chapter of a dataset.
+ */
+export type ApiDatasetChapterPlace = {
+    /**
+     * The ID of the place.
+     */
+    id: string;
+    /**
+     * The name of the place.
+     */
+    name: string;
+    /**
+     * The type of geographical feature that the place is. For example, "City", "Region", "Mountain", "Water", etc.
+     */
+    featureType?: string;
+    /**
+     * The latitude of the place.
+     */
+    latitude?: number;
+    /**
+     * The longitude of the place.
+     */
+    longitude?: number;
+    /**
+     * The API link for the place. Relative to the API origin.
+     */
+    apiLink: string;
+    /**
+     * The numbers of the verses in the chapter that mention the place. Sorted in ascending order.
+     */
+    verses: Array<number>;
+};
+
+/**
+ * Defines an event that appears in a chapter of a dataset.
+ */
+export type ApiDatasetChapterEvent = {
+    /**
+     * The ID of the event.
+     */
+    id: string;
+    /**
+     * The name of the event.
+     */
+    name: string;
+    /**
+     * The date that the event started at. Negative numbers are years BC. Positive numbers are years AD. More specific dates use the `YYYY-MM-DD` format.
+     */
+    startDate?: string;
+    /**
+     * The API link for the event. Relative to the API origin.
+     */
+    apiLink: string;
+    /**
+     * The numbers of the verses in the chapter that describe the event. Sorted in ascending order.
+     */
+    verses: Array<number>;
+};
+
+/**
+ * Defines the entity data for a chapter in a dataset. Contains the people, places, and events that appear in the chapter.
+ */
+export type ApiDatasetEntityChapterData = {
+    /**
+     * The number of the chapter.
+     */
+    number: number;
+    /**
+     * The people that appear in the chapter. Sorted by the first verse that they appear in.
+     */
+    people: Array<ApiDatasetChapterPerson>;
+    /**
+     * The places that appear in the chapter. Sorted by the first verse that they appear in.
+     */
+    places: Array<ApiDatasetChapterPlace>;
+    /**
+     * The events that appear in the chapter. Sorted by the first verse that they appear in.
+     */
+    events: Array<ApiDatasetChapterEvent>;
+};
+
+/**
+ * The list of people in a dataset. Maps to the /api/d/:datasetId/people.json endpoint.
+ */
+export type ApiDatasetPeople = {
+    /**
+     * The dataset information for the people.
+     */
+    dataset: ApiDataset;
+    /**
+     * The list of people that are available for the dataset.
+     */
+    people: Array<ApiDatasetPersonSummary>;
+};
+
+/**
+ * Defines a summary of a person in a dataset.
+ */
+export type ApiDatasetPersonSummary = {
+    /**
+     * The ID of the person.
+     */
+    id: string;
+    /**
+     * The name of the person.
+     */
+    name: string;
+    /**
+     * Whether the name of the person is a proper name.
+     */
+    isProperName?: boolean;
+    /**
+     * The gender of the person.
+     */
+    gender?: string;
+    /**
+     * The number of Bible references that mention the person.
+     */
+    numberOfReferences: number;
+    /**
+     * The API link for the person. Relative to the API origin.
+     */
+    thisPersonApiLink: string;
+};
+
+/**
+ * The information about a person in a dataset. Maps to the /api/d/:datasetId/people/:personId.json endpoint.
+ */
+export type ApiDatasetPerson = {
+    /**
+     * The dataset information for the person.
+     */
+    dataset: ApiDataset;
+    /**
+     * The information about the person.
+     */
+    person: DatasetPerson;
+    /**
+     * The API link for this person. Relative to the API origin.
+     */
+    thisPersonApiLink: string;
+};
+
+/**
+ * Defines the schema for a reference to another entity (person, place, event, or people group) in a dataset.
+ */
+export type DatasetEntityRef = {
+    /**
+     * The ID of the entity that is being referenced.
+     */
+    id: string;
+    /**
+     * The type of the entity that is being referenced. Matches the collection segment of the entity's API link, so the link can be constructed as `/api/d/{dataset}/{type}/{id}.json`.
+     */
+    type: DatasetEntityType;
+    /**
+     * The name of the entity that is being referenced.
+     */
+    name?: string;
+    /**
+     * The API link for the entity that is being referenced. Relative to the API origin. Only present in API responses.
+     */
+    apiLink?: string;
+};
+
+/**
+ * The type of an entity in a dataset. Matches the collection segment of the entity API paths, so the API link for an entity can be constructed as `/api/d/{dataset}/{type}/{id}.json`.
+ */
+export type DatasetEntityType = 'people' | 'places' | 'events' | 'groups';
+
+/**
+ * Defines a schema for verse references. A verse reference is a string that contains a book ID, chapter number, and verse number, such as "GEN 1:1". It can also contain an optional content part that comes after the verse reference, such as "GEN 1:1 In the beginning, God created the Heavens and the Earth." It can also contain optional endChapter and endVerse fields for references that span multiple chapters or verses, such as "GEN 1:1-2:3".
+ */
+export type VerseRef = {
+    book: BookId;
+    /**
+     * The chapter number that the reference starts at.
+     */
+    chapter: number;
+    /**
+     * The verse number that the reference starts at.
+     */
+    verse: number;
+    /**
+     * The rest of the content of the verse reference. This is the part of the string that comes after the verse reference. For example, in "GEN 1:1 In the beginning, God created the Heavens and the Earth.", the content would be "In the beginning, God created the Heavens and the Earth."
+     */
+    content?: string;
+    /**
+     * The chapter that the verse reference ends at. This is used for references that span multiple chapters, such as "GEN 1:1-2:3". In this case, the endChapter would be 2.
+     */
+    endChapter?: number;
+    /**
+     * The verse that the verse reference ends at. This is used for references that span multiple verses, such as "GEN 1:1-1:3". In this case, the endVerse would be 3.
+     */
+    endVerse?: number;
+};
+
+/**
+ * Defines the schema for information about a person in a dataset.
+ */
+export type DatasetPerson = {
+    /**
+     * The ID of the person.
+     */
+    id: string;
+    /**
+     * The name of the person.
+     */
+    name: string;
+    /**
+     * Other names that the person is called by.
+     */
+    alsoCalled?: Array<string>;
+    /**
+     * Whether the name of the person is a proper name.
+     */
+    isProperName?: boolean;
+    /**
+     * The gender of the person.
+     */
+    gender?: string;
+    /**
+     * The description of the person. Each string is a paragraph.
+     */
+    description?: Array<string>;
+    /**
+     * The year that the person was born. Negative numbers are years BC. Positive numbers are years AD.
+     */
+    birthYear?: number;
+    /**
+     * The year that the person died. Negative numbers are years BC. Positive numbers are years AD.
+     */
+    deathYear?: number;
+    /**
+     * The earliest year that the person is mentioned in. Negative numbers are years BC. Positive numbers are years AD.
+     */
+    minYear?: number;
+    /**
+     * The latest year that the person is mentioned in. Negative numbers are years BC. Positive numbers are years AD.
+     */
+    maxYear?: number;
+    /**
+     * The place that the person was born in.
+     */
+    birthPlace?: DatasetEntityRef;
+    /**
+     * The place that the person died in.
+     */
+    deathPlace?: DatasetEntityRef;
+    /**
+     * The father(s) of the person.
+     */
+    father?: Array<DatasetEntityRef>;
+    /**
+     * The mother(s) of the person.
+     */
+    mother?: Array<DatasetEntityRef>;
+    /**
+     * The partners (spouses) of the person.
+     */
+    partners?: Array<DatasetEntityRef>;
+    /**
+     * The children of the person.
+     */
+    children?: Array<DatasetEntityRef>;
+    /**
+     * The siblings of the person.
+     */
+    siblings?: Array<DatasetEntityRef>;
+    /**
+     * The half-siblings of the person that share the same mother.
+     */
+    halfSiblingsSameMother?: Array<DatasetEntityRef>;
+    /**
+     * The half-siblings of the person that share the same father.
+     */
+    halfSiblingsSameFather?: Array<DatasetEntityRef>;
+    /**
+     * The people groups that the person is a member of.
+     */
+    memberOf?: Array<DatasetEntityRef>;
+    /**
+     * The events that the person participated in.
+     */
+    events?: Array<DatasetEntityRef>;
+    /**
+     * The list of Bible references that mention the person. Sorted by book order, chapter, and verse. Consecutive verses in the same chapter are collapsed into a single reference using `endVerse`.
+     */
+    references: Array<VerseRef>;
+};
+
+/**
+ * The list of places in a dataset. Maps to the /api/d/:datasetId/places.json endpoint.
+ */
+export type ApiDatasetPlaces = {
+    /**
+     * The dataset information for the places.
+     */
+    dataset: ApiDataset;
+    /**
+     * The list of places that are available for the dataset.
+     */
+    places: Array<ApiDatasetPlaceSummary>;
+};
+
+/**
+ * Defines a summary of a place in a dataset.
+ */
+export type ApiDatasetPlaceSummary = {
+    /**
+     * The ID of the place.
+     */
+    id: string;
+    /**
+     * The name of the place.
+     */
+    name: string;
+    /**
+     * The type of geographical feature that the place is. For example, "City", "Region", "Mountain", "Water", etc.
+     */
+    featureType?: string;
+    /**
+     * The latitude of the place.
+     */
+    latitude?: number;
+    /**
+     * The longitude of the place.
+     */
+    longitude?: number;
+    /**
+     * The number of Bible references that mention the place.
+     */
+    numberOfReferences: number;
+    /**
+     * The API link for the place. Relative to the API origin.
+     */
+    thisPlaceApiLink: string;
+};
+
+/**
+ * The information about a place in a dataset. Maps to the /api/d/:datasetId/places/:placeId.json endpoint.
+ */
+export type ApiDatasetPlace = {
+    /**
+     * The dataset information for the place.
+     */
+    dataset: ApiDataset;
+    /**
+     * The information about the place.
+     */
+    place: DatasetPlace;
+    /**
+     * The API link for this place. Relative to the API origin.
+     */
+    thisPlaceApiLink: string;
+};
+
+/**
+ * Defines the schema for information about a place in a dataset.
+ */
+export type DatasetPlace = {
+    /**
+     * The ID of the place.
+     */
+    id: string;
+    /**
+     * The name of the place.
+     */
+    name: string;
+    /**
+     * The name of the place as it appears in the King James Version.
+     */
+    kjvName?: string;
+    /**
+     * The name of the place as it appears in the English Standard Version.
+     */
+    esvName?: string;
+    /**
+     * Other names that the place is called by.
+     */
+    aliases?: Array<string>;
+    /**
+     * The type of geographical feature that the place is. For example, "City", "Region", "Mountain", "Water", etc.
+     */
+    featureType?: string;
+    /**
+     * The sub-type of geographical feature that the place is.
+     */
+    featureSubType?: string;
+    /**
+     * The latitude of the place.
+     */
+    latitude?: number;
+    /**
+     * The longitude of the place.
+     */
+    longitude?: number;
+    /**
+     * How precise the latitude and longitude of the place are.
+     */
+    precision?: string;
+    /**
+     * The description of the place. Each string is a paragraph.
+     */
+    description?: Array<string>;
+    /**
+     * The comment on the place from the dataset authors.
+     */
+    comment?: string;
+    /**
+     * The root place for this place. Different names for the same geographical location share the same root place.
+     */
+    rootPlace?: DatasetEntityRef;
+    /**
+     * The place that this place is a duplicate of.
+     */
+    duplicateOf?: DatasetEntityRef;
+    /**
+     * The people that have been at the place.
+     */
+    people?: Array<DatasetEntityRef>;
+    /**
+     * The people that were born at the place.
+     */
+    peopleBorn?: Array<DatasetEntityRef>;
+    /**
+     * The people that died at the place.
+     */
+    peopleDied?: Array<DatasetEntityRef>;
+    /**
+     * The events that happened at the place.
+     */
+    events?: Array<DatasetEntityRef>;
+    /**
+     * The list of Bible references that mention the place. Sorted by book order, chapter, and verse. Consecutive verses in the same chapter are collapsed into a single reference using `endVerse`.
+     */
+    references: Array<VerseRef>;
+};
+
+/**
+ * The list of events in a dataset. Maps to the /api/d/:datasetId/events.json endpoint.
+ */
+export type ApiDatasetEvents = {
+    /**
+     * The dataset information for the events.
+     */
+    dataset: ApiDataset;
+    /**
+     * The list of events that are available for the dataset.
+     */
+    events: Array<ApiDatasetEventSummary>;
+};
+
+/**
+ * Defines a summary of an event in a dataset.
+ */
+export type ApiDatasetEventSummary = {
+    /**
+     * The ID of the event.
+     */
+    id: string;
+    /**
+     * The name of the event.
+     */
+    name: string;
+    /**
+     * The date that the event started at. Negative numbers are years BC. Positive numbers are years AD. More specific dates use the `YYYY-MM-DD` format.
+     */
+    startDate?: string;
+    /**
+     * The number of Bible references that describe the event.
+     */
+    numberOfReferences: number;
+    /**
+     * The API link for the event. Relative to the API origin.
+     */
+    thisEventApiLink: string;
+};
+
+/**
+ * The information about an event in a dataset. Maps to the /api/d/:datasetId/events/:eventId.json endpoint.
+ */
+export type ApiDatasetEvent = {
+    /**
+     * The dataset information for the event.
+     */
+    dataset: ApiDataset;
+    /**
+     * The information about the event.
+     */
+    event: DatasetEvent;
+    /**
+     * The API link for this event. Relative to the API origin.
+     */
+    thisEventApiLink: string;
+};
+
+/**
+ * Defines the schema for information about an event in a dataset.
+ */
+export type DatasetEvent = {
+    /**
+     * The ID of the event.
+     */
+    id: string;
+    /**
+     * The name of the event.
+     */
+    name: string;
+    /**
+     * The date that the event started at. Negative numbers are years BC. Positive numbers are years AD. More specific dates use the `YYYY-MM-DD` format.
+     */
+    startDate?: string;
+    /**
+     * The duration of the event. For example, "1D" is one day and "40Y" is fourty years.
+     */
+    duration?: string;
+    /**
+     * The people that participated in the event.
+     */
+    participants?: Array<DatasetEntityRef>;
+    /**
+     * The places that the event happened at.
+     */
+    locations?: Array<DatasetEntityRef>;
+    /**
+     * The people groups that participated in the event.
+     */
+    groups?: Array<DatasetEntityRef>;
+    /**
+     * The event that this event is a part of.
+     */
+    partOf?: DatasetEntityRef;
+    /**
+     * The event that happened before this event.
+     */
+    predecessor?: DatasetEntityRef;
+    /**
+     * The list of Bible references that describe the event. Sorted by book order, chapter, and verse. Consecutive verses in the same chapter are collapsed into a single reference using `endVerse`.
+     */
+    references: Array<VerseRef>;
+};
+
+/**
+ * The list of people groups in a dataset. Maps to the /api/d/:datasetId/groups.json endpoint.
+ */
+export type ApiDatasetPeopleGroups = {
+    /**
+     * The dataset information for the people groups.
+     */
+    dataset: ApiDataset;
+    /**
+     * The list of people groups that are available for the dataset.
+     */
+    groups: Array<ApiDatasetPeopleGroupSummary>;
+};
+
+/**
+ * Defines a summary of a people group in a dataset.
+ */
+export type ApiDatasetPeopleGroupSummary = {
+    /**
+     * The ID of the people group.
+     */
+    id: string;
+    /**
+     * The name of the people group.
+     */
+    name: string;
+    /**
+     * The number of people that are members of the people group.
+     */
+    numberOfMembers: number;
+    /**
+     * The API link for the people group. Relative to the API origin.
+     */
+    thisPeopleGroupApiLink: string;
+};
+
+/**
+ * The information about a people group in a dataset. Maps to the /api/d/:datasetId/groups/:groupId.json endpoint.
+ */
+export type ApiDatasetPeopleGroup = {
+    /**
+     * The dataset information for the people group.
+     */
+    dataset: ApiDataset;
+    /**
+     * The information about the people group.
+     */
+    group: DatasetPeopleGroup;
+    /**
+     * The API link for this people group. Relative to the API origin.
+     */
+    thisPeopleGroupApiLink: string;
+};
+
+/**
+ * Defines the schema for information about a people group in a dataset.
+ */
+export type DatasetPeopleGroup = {
+    /**
+     * The ID of the people group.
+     */
+    id: string;
+    /**
+     * The name of the people group.
+     */
+    name: string;
+    /**
+     * The people that are members of the people group.
+     */
+    members?: Array<DatasetEntityRef>;
+    /**
+     * The events that the people group participated in.
+     */
+    events?: Array<DatasetEntityRef>;
+    /**
+     * The list of Bible references that mention the people group. Sorted by book order, chapter, and verse. Consecutive verses in the same chapter are collapsed into a single reference using `endVerse`.
+     */
+    references: Array<VerseRef>;
 };
 
 export type GetAvailableTranslationsData = {
@@ -2253,8 +3001,256 @@ export type GetDatasetBookChapterResponses = {
     /**
      * 200 OK
      */
-    200: ApiDatasetBookChapter;
+    200: ApiDatasetBookChapter | ApiDatasetEntityBookChapter;
 };
 
 export type GetDatasetBookChapterResponse =
     GetDatasetBookChapterResponses[keyof GetDatasetBookChapterResponses];
+
+export type GetDatasetPeopleData = {
+    body?: never;
+    path: {
+        /**
+         * The dataset ID of the dataset to get the books or chapter content for.
+         */
+        dataset: string;
+    };
+    query?: never;
+    url: '/api/d/{dataset}/people.json';
+};
+
+export type GetDatasetPeopleErrors = {
+    /**
+     * 404 Not Found - The specified dataset was not found or doesn't contain people.
+     */
+    404: unknown;
+};
+
+export type GetDatasetPeopleResponses = {
+    /**
+     * 200 OK
+     */
+    200: ApiDatasetPeople;
+};
+
+export type GetDatasetPeopleResponse =
+    GetDatasetPeopleResponses[keyof GetDatasetPeopleResponses];
+
+export type GetDatasetPersonData = {
+    body?: never;
+    path: {
+        /**
+         * The dataset ID of the dataset to get the books or chapter content for.
+         */
+        dataset: string;
+        /**
+         * The ID of the person to get the information for. For example, "paul_2479" for the apostle Paul.
+         */
+        person: string;
+    };
+    query?: never;
+    url: '/api/d/{dataset}/people/{person}.json';
+};
+
+export type GetDatasetPersonErrors = {
+    /**
+     * 404 Not Found - The specified dataset or person was not found.
+     */
+    404: unknown;
+};
+
+export type GetDatasetPersonResponses = {
+    /**
+     * 200 OK
+     */
+    200: ApiDatasetPerson;
+};
+
+export type GetDatasetPersonResponse =
+    GetDatasetPersonResponses[keyof GetDatasetPersonResponses];
+
+export type GetDatasetPlacesData = {
+    body?: never;
+    path: {
+        /**
+         * The dataset ID of the dataset to get the books or chapter content for.
+         */
+        dataset: string;
+    };
+    query?: never;
+    url: '/api/d/{dataset}/places.json';
+};
+
+export type GetDatasetPlacesErrors = {
+    /**
+     * 404 Not Found - The specified dataset was not found or doesn't contain places.
+     */
+    404: unknown;
+};
+
+export type GetDatasetPlacesResponses = {
+    /**
+     * 200 OK
+     */
+    200: ApiDatasetPlaces;
+};
+
+export type GetDatasetPlacesResponse =
+    GetDatasetPlacesResponses[keyof GetDatasetPlacesResponses];
+
+export type GetDatasetPlaceData = {
+    body?: never;
+    path: {
+        /**
+         * The dataset ID of the dataset to get the books or chapter content for.
+         */
+        dataset: string;
+        /**
+         * The ID of the place to get the information for. For example, "jerusalem_636" for Jerusalem.
+         */
+        place: string;
+    };
+    query?: never;
+    url: '/api/d/{dataset}/places/{place}.json';
+};
+
+export type GetDatasetPlaceErrors = {
+    /**
+     * 404 Not Found - The specified dataset or place was not found.
+     */
+    404: unknown;
+};
+
+export type GetDatasetPlaceResponses = {
+    /**
+     * 200 OK
+     */
+    200: ApiDatasetPlace;
+};
+
+export type GetDatasetPlaceResponse =
+    GetDatasetPlaceResponses[keyof GetDatasetPlaceResponses];
+
+export type GetDatasetEventsData = {
+    body?: never;
+    path: {
+        /**
+         * The dataset ID of the dataset to get the books or chapter content for.
+         */
+        dataset: string;
+    };
+    query?: never;
+    url: '/api/d/{dataset}/events.json';
+};
+
+export type GetDatasetEventsErrors = {
+    /**
+     * 404 Not Found - The specified dataset was not found or doesn't contain events.
+     */
+    404: unknown;
+};
+
+export type GetDatasetEventsResponses = {
+    /**
+     * 200 OK
+     */
+    200: ApiDatasetEvents;
+};
+
+export type GetDatasetEventsResponse =
+    GetDatasetEventsResponses[keyof GetDatasetEventsResponses];
+
+export type GetDatasetEventData = {
+    body?: never;
+    path: {
+        /**
+         * The dataset ID of the dataset to get the books or chapter content for.
+         */
+        dataset: string;
+        /**
+         * The ID of the event to get the information for. For example, "saul-is-converted_326" for the conversion of Saul.
+         */
+        event: string;
+    };
+    query?: never;
+    url: '/api/d/{dataset}/events/{event}.json';
+};
+
+export type GetDatasetEventErrors = {
+    /**
+     * 404 Not Found - The specified dataset or event was not found.
+     */
+    404: unknown;
+};
+
+export type GetDatasetEventResponses = {
+    /**
+     * 200 OK
+     */
+    200: ApiDatasetEvent;
+};
+
+export type GetDatasetEventResponse =
+    GetDatasetEventResponses[keyof GetDatasetEventResponses];
+
+export type GetDatasetPeopleGroupsData = {
+    body?: never;
+    path: {
+        /**
+         * The dataset ID of the dataset to get the books or chapter content for.
+         */
+        dataset: string;
+    };
+    query?: never;
+    url: '/api/d/{dataset}/groups.json';
+};
+
+export type GetDatasetPeopleGroupsErrors = {
+    /**
+     * 404 Not Found - The specified dataset was not found or doesn't contain people groups.
+     */
+    404: unknown;
+};
+
+export type GetDatasetPeopleGroupsResponses = {
+    /**
+     * 200 OK
+     */
+    200: ApiDatasetPeopleGroups;
+};
+
+export type GetDatasetPeopleGroupsResponse =
+    GetDatasetPeopleGroupsResponses[keyof GetDatasetPeopleGroupsResponses];
+
+export type GetDatasetPeopleGroupData = {
+    body?: never;
+    path: {
+        /**
+         * The dataset ID of the dataset to get the books or chapter content for.
+         */
+        dataset: string;
+        /**
+         * The ID of the people group to get the information for. For example, "tribe-of-benjamin" for the tribe of Benjamin.
+         */
+        group: string;
+    };
+    query?: never;
+    url: '/api/d/{dataset}/groups/{group}.json';
+};
+
+export type GetDatasetPeopleGroupErrors = {
+    /**
+     * 404 Not Found - The specified dataset or people group was not found.
+     */
+    404: unknown;
+};
+
+export type GetDatasetPeopleGroupResponses = {
+    /**
+     * 200 OK
+     */
+    200: ApiDatasetPeopleGroup;
+};
+
+export type GetDatasetPeopleGroupResponse =
+    GetDatasetPeopleGroupResponses[keyof GetDatasetPeopleGroupResponses];

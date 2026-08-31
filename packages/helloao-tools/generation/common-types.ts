@@ -561,6 +561,555 @@ export const ScoredVerseRefSchema = VerseRefSchema.extend({
 export type ScoredVerseRef = z.infer<typeof ScoredVerseRefSchema>;
 
 /**
+ * Defines a Zod schema for a reference to another entity (person, place, event, or people group) in a dataset.
+ */
+/**
+ * Defines a Zod schema for the type of an entity in a dataset.
+ * Matches the collection segment of the entity API paths.
+ */
+export const DatasetEntityTypeSchema = z
+    .enum(['people', 'places', 'events', 'groups'])
+    .meta({
+        id: 'DatasetEntityType',
+        description:
+            'The type of an entity in a dataset. Matches the collection segment of the entity API paths, so the API link for an entity can be constructed as `/api/d/{dataset}/{type}/{id}.json`.',
+    });
+
+export type DatasetEntityType = z.infer<typeof DatasetEntityTypeSchema>;
+
+export const DatasetEntityRefSchema = z
+    .object({
+        /**
+         * The ID of the entity that is being referenced.
+         */
+        id: z.string().meta({
+            description: 'The ID of the entity that is being referenced.',
+        }),
+
+        /**
+         * The type of the entity that is being referenced.
+         * Matches the collection segment of the entity's API link,
+         * so the link can be constructed as `/api/d/{dataset}/{type}/{id}.json`.
+         */
+        type: DatasetEntityTypeSchema.meta({
+            description:
+                "The type of the entity that is being referenced. Matches the collection segment of the entity's API link, so the link can be constructed as `/api/d/{dataset}/{type}/{id}.json`.",
+        }),
+
+        /**
+         * The name of the entity that is being referenced.
+         */
+        name: z.string().optional().meta({
+            description: 'The name of the entity that is being referenced.',
+        }),
+
+        /**
+         * The API link for the entity that is being referenced.
+         * Only present in API responses.
+         */
+        apiLink: z.string().optional().meta({
+            description:
+                'The API link for the entity that is being referenced. Relative to the API origin. Only present in API responses.',
+        }),
+    })
+    .meta({
+        id: 'DatasetEntityRef',
+        description:
+            'Defines the schema for a reference to another entity (person, place, event, or people group) in a dataset.',
+    });
+
+export type DatasetEntityRef = z.infer<typeof DatasetEntityRefSchema>;
+
+/**
+ * Defines a Zod schema for information about a person in a dataset.
+ */
+export const DatasetPersonSchema = z
+    .object({
+        /**
+         * The ID of the person.
+         */
+        id: z.string().meta({
+            description: 'The ID of the person.',
+        }),
+
+        /**
+         * The name of the person.
+         */
+        name: z.string().meta({
+            description: 'The name of the person.',
+        }),
+
+        /**
+         * Other names that the person is called by.
+         */
+        alsoCalled: z.array(z.string()).optional().meta({
+            description: 'Other names that the person is called by.',
+        }),
+
+        /**
+         * Whether the name of the person is a proper name.
+         */
+        isProperName: z.boolean().optional().meta({
+            description: 'Whether the name of the person is a proper name.',
+        }),
+
+        /**
+         * The gender of the person.
+         */
+        gender: z.string().optional().meta({
+            description: 'The gender of the person.',
+        }),
+
+        /**
+         * The description of the person.
+         * Each string is a paragraph.
+         */
+        description: z.array(z.string()).optional().meta({
+            description:
+                'The description of the person. Each string is a paragraph.',
+        }),
+
+        /**
+         * The year that the person was born.
+         * Negative numbers are years BC. Positive numbers are years AD.
+         */
+        birthYear: z.number().optional().meta({
+            description:
+                'The year that the person was born. Negative numbers are years BC. Positive numbers are years AD.',
+        }),
+
+        /**
+         * The year that the person died.
+         * Negative numbers are years BC. Positive numbers are years AD.
+         */
+        deathYear: z.number().optional().meta({
+            description:
+                'The year that the person died. Negative numbers are years BC. Positive numbers are years AD.',
+        }),
+
+        /**
+         * The earliest year that the person is mentioned in.
+         * Negative numbers are years BC. Positive numbers are years AD.
+         */
+        minYear: z.number().optional().meta({
+            description:
+                'The earliest year that the person is mentioned in. Negative numbers are years BC. Positive numbers are years AD.',
+        }),
+
+        /**
+         * The latest year that the person is mentioned in.
+         * Negative numbers are years BC. Positive numbers are years AD.
+         */
+        maxYear: z.number().optional().meta({
+            description:
+                'The latest year that the person is mentioned in. Negative numbers are years BC. Positive numbers are years AD.',
+        }),
+
+        /**
+         * The place that the person was born in.
+         */
+        birthPlace: DatasetEntityRefSchema.optional().meta({
+            description: 'The place that the person was born in.',
+        }),
+
+        /**
+         * The place that the person died in.
+         */
+        deathPlace: DatasetEntityRefSchema.optional().meta({
+            description: 'The place that the person died in.',
+        }),
+
+        /**
+         * The father(s) of the person.
+         */
+        father: z.array(DatasetEntityRefSchema).optional().meta({
+            description: 'The father(s) of the person.',
+        }),
+
+        /**
+         * The mother(s) of the person.
+         */
+        mother: z.array(DatasetEntityRefSchema).optional().meta({
+            description: 'The mother(s) of the person.',
+        }),
+
+        /**
+         * The partners (spouses) of the person.
+         */
+        partners: z.array(DatasetEntityRefSchema).optional().meta({
+            description: 'The partners (spouses) of the person.',
+        }),
+
+        /**
+         * The children of the person.
+         */
+        children: z.array(DatasetEntityRefSchema).optional().meta({
+            description: 'The children of the person.',
+        }),
+
+        /**
+         * The siblings of the person.
+         */
+        siblings: z.array(DatasetEntityRefSchema).optional().meta({
+            description: 'The siblings of the person.',
+        }),
+
+        /**
+         * The half-siblings of the person that share the same mother.
+         */
+        halfSiblingsSameMother: z
+            .array(DatasetEntityRefSchema)
+            .optional()
+            .meta({
+                description:
+                    'The half-siblings of the person that share the same mother.',
+            }),
+
+        /**
+         * The half-siblings of the person that share the same father.
+         */
+        halfSiblingsSameFather: z
+            .array(DatasetEntityRefSchema)
+            .optional()
+            .meta({
+                description:
+                    'The half-siblings of the person that share the same father.',
+            }),
+
+        /**
+         * The people groups that the person is a member of.
+         */
+        memberOf: z.array(DatasetEntityRefSchema).optional().meta({
+            description: 'The people groups that the person is a member of.',
+        }),
+
+        /**
+         * The events that the person participated in.
+         */
+        events: z.array(DatasetEntityRefSchema).optional().meta({
+            description: 'The events that the person participated in.',
+        }),
+
+        /**
+         * The list of Bible references that mention the person.
+         * Sorted by book order, chapter, and verse.
+         * Consecutive verses in the same chapter are collapsed into a single reference using `endVerse`.
+         */
+        references: z.array(VerseRefSchema).meta({
+            description:
+                'The list of Bible references that mention the person. Sorted by book order, chapter, and verse. Consecutive verses in the same chapter are collapsed into a single reference using `endVerse`.',
+        }),
+    })
+    .meta({
+        id: 'DatasetPerson',
+        description:
+            'Defines the schema for information about a person in a dataset.',
+    });
+
+export type DatasetPerson = z.infer<typeof DatasetPersonSchema>;
+
+/**
+ * Defines a Zod schema for information about a place in a dataset.
+ */
+export const DatasetPlaceSchema = z
+    .object({
+        /**
+         * The ID of the place.
+         */
+        id: z.string().meta({
+            description: 'The ID of the place.',
+        }),
+
+        /**
+         * The name of the place.
+         */
+        name: z.string().meta({
+            description: 'The name of the place.',
+        }),
+
+        /**
+         * The name of the place as it appears in the King James Version.
+         */
+        kjvName: z.string().optional().meta({
+            description:
+                'The name of the place as it appears in the King James Version.',
+        }),
+
+        /**
+         * The name of the place as it appears in the English Standard Version.
+         */
+        esvName: z.string().optional().meta({
+            description:
+                'The name of the place as it appears in the English Standard Version.',
+        }),
+
+        /**
+         * Other names that the place is called by.
+         */
+        aliases: z.array(z.string()).optional().meta({
+            description: 'Other names that the place is called by.',
+        }),
+
+        /**
+         * The type of geographical feature that the place is.
+         * For example, "City", "Region", "Mountain", "Water", etc.
+         */
+        featureType: z.string().optional().meta({
+            description:
+                'The type of geographical feature that the place is. For example, "City", "Region", "Mountain", "Water", etc.',
+        }),
+
+        /**
+         * The sub-type of geographical feature that the place is.
+         */
+        featureSubType: z.string().optional().meta({
+            description:
+                'The sub-type of geographical feature that the place is.',
+        }),
+
+        /**
+         * The latitude of the place.
+         */
+        latitude: z.number().optional().meta({
+            description: 'The latitude of the place.',
+        }),
+
+        /**
+         * The longitude of the place.
+         */
+        longitude: z.number().optional().meta({
+            description: 'The longitude of the place.',
+        }),
+
+        /**
+         * How precise the latitude and longitude of the place are.
+         */
+        precision: z.string().optional().meta({
+            description:
+                'How precise the latitude and longitude of the place are.',
+        }),
+
+        /**
+         * The description of the place.
+         * Each string is a paragraph.
+         */
+        description: z.array(z.string()).optional().meta({
+            description:
+                'The description of the place. Each string is a paragraph.',
+        }),
+
+        /**
+         * The comment on the place from the dataset authors.
+         */
+        comment: z.string().optional().meta({
+            description: 'The comment on the place from the dataset authors.',
+        }),
+
+        /**
+         * The root place for this place.
+         * For example, the root place of "Sea of Galilee" and "Sea of Tiberias" is the same body of water.
+         */
+        rootPlace: DatasetEntityRefSchema.optional().meta({
+            description:
+                'The root place for this place. Different names for the same geographical location share the same root place.',
+        }),
+
+        /**
+         * The place that this place is a duplicate of.
+         */
+        duplicateOf: DatasetEntityRefSchema.optional().meta({
+            description: 'The place that this place is a duplicate of.',
+        }),
+
+        /**
+         * The people that have been at the place.
+         */
+        people: z.array(DatasetEntityRefSchema).optional().meta({
+            description: 'The people that have been at the place.',
+        }),
+
+        /**
+         * The people that were born at the place.
+         */
+        peopleBorn: z.array(DatasetEntityRefSchema).optional().meta({
+            description: 'The people that were born at the place.',
+        }),
+
+        /**
+         * The people that died at the place.
+         */
+        peopleDied: z.array(DatasetEntityRefSchema).optional().meta({
+            description: 'The people that died at the place.',
+        }),
+
+        /**
+         * The events that happened at the place.
+         */
+        events: z.array(DatasetEntityRefSchema).optional().meta({
+            description: 'The events that happened at the place.',
+        }),
+
+        /**
+         * The list of Bible references that mention the place.
+         * Sorted by book order, chapter, and verse.
+         * Consecutive verses in the same chapter are collapsed into a single reference using `endVerse`.
+         */
+        references: z.array(VerseRefSchema).meta({
+            description:
+                'The list of Bible references that mention the place. Sorted by book order, chapter, and verse. Consecutive verses in the same chapter are collapsed into a single reference using `endVerse`.',
+        }),
+    })
+    .meta({
+        id: 'DatasetPlace',
+        description:
+            'Defines the schema for information about a place in a dataset.',
+    });
+
+export type DatasetPlace = z.infer<typeof DatasetPlaceSchema>;
+
+/**
+ * Defines a Zod schema for information about an event in a dataset.
+ */
+export const DatasetEventSchema = z
+    .object({
+        /**
+         * The ID of the event.
+         */
+        id: z.string().meta({
+            description: 'The ID of the event.',
+        }),
+
+        /**
+         * The name of the event.
+         */
+        name: z.string().meta({
+            description: 'The name of the event.',
+        }),
+
+        /**
+         * The date that the event started at.
+         * Negative numbers are years BC. Positive numbers are years AD.
+         * More specific dates use the `YYYY-MM-DD` format.
+         */
+        startDate: z.string().optional().meta({
+            description:
+                'The date that the event started at. Negative numbers are years BC. Positive numbers are years AD. More specific dates use the `YYYY-MM-DD` format.',
+        }),
+
+        /**
+         * The duration of the event.
+         * For example, "1D" is one day and "40Y" is fourty years.
+         */
+        duration: z.string().optional().meta({
+            description:
+                'The duration of the event. For example, "1D" is one day and "40Y" is fourty years.',
+        }),
+
+        /**
+         * The people that participated in the event.
+         */
+        participants: z.array(DatasetEntityRefSchema).optional().meta({
+            description: 'The people that participated in the event.',
+        }),
+
+        /**
+         * The places that the event happened at.
+         */
+        locations: z.array(DatasetEntityRefSchema).optional().meta({
+            description: 'The places that the event happened at.',
+        }),
+
+        /**
+         * The people groups that participated in the event.
+         */
+        groups: z.array(DatasetEntityRefSchema).optional().meta({
+            description: 'The people groups that participated in the event.',
+        }),
+
+        /**
+         * The event that this event is a part of.
+         */
+        partOf: DatasetEntityRefSchema.optional().meta({
+            description: 'The event that this event is a part of.',
+        }),
+
+        /**
+         * The event that happened before this event.
+         */
+        predecessor: DatasetEntityRefSchema.optional().meta({
+            description: 'The event that happened before this event.',
+        }),
+
+        /**
+         * The list of Bible references that describe the event.
+         * Sorted by book order, chapter, and verse.
+         * Consecutive verses in the same chapter are collapsed into a single reference using `endVerse`.
+         */
+        references: z.array(VerseRefSchema).meta({
+            description:
+                'The list of Bible references that describe the event. Sorted by book order, chapter, and verse. Consecutive verses in the same chapter are collapsed into a single reference using `endVerse`.',
+        }),
+    })
+    .meta({
+        id: 'DatasetEvent',
+        description:
+            'Defines the schema for information about an event in a dataset.',
+    });
+
+export type DatasetEvent = z.infer<typeof DatasetEventSchema>;
+
+/**
+ * Defines a Zod schema for information about a people group in a dataset.
+ */
+export const DatasetPeopleGroupSchema = z
+    .object({
+        /**
+         * The ID of the people group.
+         */
+        id: z.string().meta({
+            description: 'The ID of the people group.',
+        }),
+
+        /**
+         * The name of the people group.
+         */
+        name: z.string().meta({
+            description: 'The name of the people group.',
+        }),
+
+        /**
+         * The people that are members of the people group.
+         */
+        members: z.array(DatasetEntityRefSchema).optional().meta({
+            description: 'The people that are members of the people group.',
+        }),
+
+        /**
+         * The events that the people group participated in.
+         */
+        events: z.array(DatasetEntityRefSchema).optional().meta({
+            description: 'The events that the people group participated in.',
+        }),
+
+        /**
+         * The list of Bible references that mention the people group.
+         * Sorted by book order, chapter, and verse.
+         * Consecutive verses in the same chapter are collapsed into a single reference using `endVerse`.
+         */
+        references: z.array(VerseRefSchema).meta({
+            description:
+                'The list of Bible references that mention the people group. Sorted by book order, chapter, and verse. Consecutive verses in the same chapter are collapsed into a single reference using `endVerse`.',
+        }),
+    })
+    .meta({
+        id: 'DatasetPeopleGroup',
+        description:
+            'Defines the schema for information about a people group in a dataset.',
+    });
+
+export type DatasetPeopleGroup = z.infer<typeof DatasetPeopleGroupSchema>;
+
+/**
  * Defines a Zod schema for information about a profile in a commentary.
  */
 export const CommentaryProfileSchema = z.object({

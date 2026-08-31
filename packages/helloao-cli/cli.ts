@@ -17,6 +17,7 @@ import {
     generateTranslationFiles,
     generateTranslationsFiles,
     importApi,
+    importBibleMetadata,
     importAudioTimings,
     importCommentaries,
     importCommentary,
@@ -409,6 +410,18 @@ async function start() {
         .option('--overwrite', 'Whether to overwrite existing files.')
         .action(async (dir: string, options: any) => {
             await importApi(dir, {
+                ...program.opts(),
+                ...options,
+            });
+        });
+
+    program
+        .command('import-bible-metadata <dir>')
+        .description(
+            'Imports the Theographic bible metadata (people, places, events, and people groups) from the given directory into the database.\nThe directory should contain the JSON files downloaded by the fetch-bible-metadata command.'
+        )
+        .action(async (dir: string, options: any) => {
+            await importBibleMetadata(dir, {
                 ...program.opts(),
                 ...options,
             });
@@ -918,7 +931,6 @@ async function start() {
                 'events.json',
                 'people.json',
                 'peopleGroups.json',
-                'periods.json',
                 'places.json',
                 'verses.json',
             ];

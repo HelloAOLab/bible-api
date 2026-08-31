@@ -5,6 +5,20 @@ For information on the API itself, see [API-CHANGELOG.md](./API-CHANGELOG.md).
 
 ## Unreleased
 
+### :rocket: Features
+
+-   Added support for dataset entities (people, places, events, and people groups).
+    -   Added `@helloao/tools/generation/theographic.js`, which deterministically converts the raw [Theographic Bible Metadata](https://github.com/robertrouse/theographic-bible-metadata) JSON files into the repository's dataset format. Airtable record IDs are resolved into entity IDs and Bible verse references, and Easton's dictionary text is cleaned of Theographic-internal markdown links.
+    -   Added the `import-bible-metadata <dir>` CLI command, which imports the Theographic JSON files (downloaded by `fetch-bible-metadata`) into the database. Rerun `fetch-bible-metadata` and `import-bible-metadata` to pick up upstream Theographic updates.
+    -   Added the `DatasetEntity` table to the database schema for storing dataset entities.
+    -   `upload-api-files` now generates the entity API files for datasets that contain entities, and `import-api` imports them.
+    -   `generateApiForDataset()` now generates entity lists and individual entity files for datasets that contain entities.
+    -   `generateApiForDataset()` also derives chapter-aligned entity files (the people, places, and events that appear in each chapter) and the dataset books index from the entities' Bible references, for datasets that contain entities but no chapter books of their own. The derived chapter files are not stored in the database and are skipped by `import-api`.
+
+### :bug: Bug Fixes
+
+-   `fetch-bible-metadata` no longer downloads `periods.json`, which no longer exists in the Theographic repository, and `downloadFile()` now fails on HTTP error responses instead of writing the error page to the output file.
+
 ### :bug: Bug Fixes
 
 -   `generateApiForDataset()` no longer embeds `thisChapterWords` on the chapters of `translationComplete`/`simpleTranslationComplete`.

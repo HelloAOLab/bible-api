@@ -380,6 +380,30 @@ model Dataset {
     chapters DatasetChapter[]
     verses DatasetChapterVerse[]
     references DatasetReference[]
+    entities DatasetEntity[]
+}
+
+// An entity (person, place, event, or people group) that is contained in a dataset.
+model DatasetEntity {
+    id String
+
+    datasetId String
+    dataset Dataset @relation(fields: [datasetId], references: [id])
+
+    // The type of the entity.
+    // One of "person", "place", "event", or "peopleGroup".
+    type String
+
+    // The name of the entity.
+    name String
+
+    // The JSON of the entity.
+    json String
+
+    // The SHA-256 hash of the entity
+    sha256 String?
+
+    @@id([datasetId, type, id])
 }
 
 model DatasetBook {
