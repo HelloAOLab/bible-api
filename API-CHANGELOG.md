@@ -3,9 +3,7 @@
 This is the log of changes for the Free Use Bible API.
 For information on the API Generator, see [GENERATOR-CHANGELOG.md](./GENERATOR-CHANGELOG.md).
 
-## V1.14.0
-
-### Date: 2026-08-29
+## Unreleased
 
 ### :rocket: Features
 
@@ -26,6 +24,13 @@ For information on the API Generator, see [GENERATOR-CHANGELOG.md](./GENERATOR-C
         -   `GET /api/d/{dataset}/books.json` lists the books whose chapters contain entity data, following the same structure as the other dataset books endpoints.
         -   `GET /api/d/{dataset}/{book}/{chapter}.json` (e.g. `/api/d/theographic/GEN/1.json`) returns the people, places, and events that appear in that chapter, each with its basic info, an `apiLink` to its detail endpoint, and the list of verse numbers in the chapter where it's mentioned.
     -   People include the `isProperName` field, which indicates whether the person's name is a proper name.
+
+### :bug: Bug Fixes
+
+-   `/api/{translation}/complete.json` and `/api/{translation}/complete.simple.json` no longer inline word-level annotations as `thisChapterWords` on each chapter.
+    -   Each chapter now has an optional `thisChapterWordsLink` property instead, pointing at the same per-chapter words file (`{chapter}.words.json`/`{chapter}.words.simple.json`) that the regular chapter endpoints link to. It's omitted for chapters that have no annotations, same as `thisChapterWordsLink` on those endpoints.
+    -   This keeps the complete translation files focused on chapter/verse content, footnotes, and audio, matching how word annotations are already handled everywhere else in the API.
+    -   `/api/{translation}/{book}/{chapter}.words.simple.json` is now generated whenever `complete.simple.json` is, even if simplified per-chapter files aren't otherwise being generated, so the link is always valid.
 
 ## V1.13.0
 

@@ -700,6 +700,13 @@ export interface SimpleTranslationCompleteChapter {
     thisChapterAudioTimings: TranslationBookChapterAudioTimings;
 
     /**
+     * The link to the word-level annotations for the chapter, using the
+     * simplified format. Omitted if the chapter doesn't have any
+     * word-level annotations.
+     */
+    thisChapterWordsLink?: string;
+
+    /**
      * The simplified information for the chapter.
      */
     chapter: SimpleChapterData;

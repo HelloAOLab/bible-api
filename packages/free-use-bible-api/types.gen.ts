@@ -1121,13 +1121,13 @@ export type TranslationCompleteChapter = {
      */
     thisChapterAudioTimings: TranslationBookChapterAudioTimings;
     /**
-     * The word-level annotations (Strong's numbers and related source data) for the chapter's verses. Omitted if the translation doesn't have any word-level annotations for the chapter.
-     */
-    thisChapterWords?: TranslationBookChapterWords;
-    /**
      * The number of verses that the chapter contains.
      */
     numberOfVerses: number;
+    /**
+     * The link to the word-level annotations for this chapter. Relative to the API origin. Omitted if the chapter doesn't have any word-level annotations.
+     */
+    thisChapterWordsLink?: string;
 };
 
 /**
@@ -1135,13 +1135,6 @@ export type TranslationCompleteChapter = {
  */
 export type TranslationBookChapterAudioTimings = {
     [key: string]: Array<number>;
-};
-
-/**
- * Defines the schema for the word-level annotations for a book chapter. Maps a verse number to the list of annotated words in the verse, in order.
- */
-export type TranslationBookChapterWords = {
-    [key: string]: Array<ChapterWord>;
 };
 
 /**
@@ -1214,20 +1207,13 @@ export type SimpleTranslationCompleteChapter = {
      */
     thisChapterAudioTimings: TranslationBookChapterAudioTimings;
     /**
-     * The word-level annotations (Strong's numbers and related source data) for the chapter's verses, with their offsets remapped onto the simplified verse text. Omitted if the translation doesn't have any word-level annotations for the chapter.
-     */
-    thisChapterWords?: SimpleTranslationBookChapterWords;
-    /**
      * The number of verses that the chapter contains.
      */
     numberOfVerses: number;
-};
-
-/**
- * Defines the schema for the word-level annotations for a book chapter, using the simplified format. Maps a verse number to the list of annotated words in the verse, in order.
- */
-export type SimpleTranslationBookChapterWords = {
-    [key: string]: Array<SimpleChapterWord>;
+    /**
+     * The link to the word-level annotations for this chapter. Relative to the API origin. Omitted if the chapter doesn't have any word-level annotations.
+     */
+    thisChapterWordsLink?: string;
 };
 
 /**

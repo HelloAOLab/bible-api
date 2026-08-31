@@ -4355,7 +4355,7 @@ describe('generateApiForDataset() simplified chapters', () => {
             }
         });
 
-        it('should inline the simplified annotations in the complete file', () => {
+        it('should link to the simplified annotations in the complete file instead of inlining them', () => {
             const tree = generateWordTree({
                 generateSimpleChapterFiles: true,
                 generateCompleteTranslationFiles: true,
@@ -4364,13 +4364,17 @@ describe('generateApiForDataset() simplified chapters', () => {
             const complete = tree['/api/bsb/complete.simple.json'];
             const chapters = complete.books[0].chapters;
 
-            expect(chapters[0].thisChapterWords).toEqual(
-                tree['/api/bsb/GEN/1.words.simple.json'].verses
+            expect(chapters[0].thisChapterWordsLink).toBe(
+                '/api/bsb/GEN/1.words.simple.json'
             );
+            expect('thisChapterWords' in chapters[0]).toBe(false);
+            expect(tree['/api/bsb/GEN/1.words.simple.json']).toBeDefined();
+            // Genesis 2 has no annotations.
+            expect('thisChapterWordsLink' in chapters[1]).toBe(false);
             expect('thisChapterWords' in chapters[1]).toBe(false);
         });
 
-        it('should inline the simplified annotations even when simplified chapters are disabled', () => {
+        it('should still generate and link to the simplified words file when simplified chapters are disabled', () => {
             const tree = generateWordTree({
                 generateCompleteTranslationFiles: true,
                 generateSimpleChapterFiles: false,
@@ -4379,10 +4383,33 @@ describe('generateApiForDataset() simplified chapters', () => {
             const chapters =
                 tree['/api/bsb/complete.simple.json'].books[0].chapters;
 
-            expect(Object.keys(chapters[0].thisChapterWords)).toEqual([
-                '1',
-                '2',
-            ]);
+            expect(chapters[0].thisChapterWordsLink).toBe(
+                '/api/bsb/GEN/1.words.simple.json'
+            );
+            expect('thisChapterWords' in chapters[0]).toBe(false);
+            expect(
+                Object.keys(tree['/api/bsb/GEN/1.words.simple.json'].verses)
+            ).toEqual(['1', '2']);
+            // Per-chapter simplified files should still not be generated.
+            expect(tree['/api/bsb/GEN/1.simple.json']).toBeUndefined();
+        });
+
+        it('should link to the regular annotations in the complete file instead of inlining them', () => {
+            const tree = generateWordTree({
+                generateCompleteTranslationFiles: true,
+            });
+
+            const complete = tree['/api/bsb/complete.json'];
+            const chapters = complete.books[0].chapters;
+
+            expect(chapters[0].thisChapterWordsLink).toBe(
+                '/api/bsb/GEN/1.words.json'
+            );
+            expect('thisChapterWords' in chapters[0]).toBe(false);
+            expect(tree['/api/bsb/GEN/1.words.json']).toBeDefined();
+            // Genesis 2 has no annotations.
+            expect('thisChapterWordsLink' in chapters[1]).toBe(false);
+            expect('thisChapterWords' in chapters[1]).toBe(false);
         });
     });
 });

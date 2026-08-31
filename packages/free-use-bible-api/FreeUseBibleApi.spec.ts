@@ -12,6 +12,8 @@ import type {
     ApiTranslationBookChapterWords,
     ChapterVerse,
     SimpleChapterVerse,
+    SimpleTranslationCompleteChapter,
+    TranslationCompleteChapter,
 } from './types.gen.js';
 
 describe('FreeUseBibleApi', () => {
@@ -822,6 +824,31 @@ describe('FreeUseBibleApi', () => {
         expect(fetchMock).not.toHaveBeenCalled();
     });
 
+    it('gets the words for a complete translation chapter by following its words link', async () => {
+        fetchMock.mockResolvedValue(jsonResponse(wordsPayload));
+
+        const api = new FreeUseBibleApi();
+        const chapter = {
+            thisChapterWordsLink:
+                'https://bible.helloao.org/api/engwebp/JHN/1.words.json',
+        } as TranslationCompleteChapter;
+
+        const words = await api.getChapterWords(chapter);
+
+        expect(words).toEqual(wordsPayload);
+        expect(fetchMock).toHaveBeenCalledWith(
+            'https://bible.helloao.org/api/engwebp/JHN/1.words.json'
+        );
+    });
+
+    it('returns null words for complete translation chapters that have no annotations', async () => {
+        const api = new FreeUseBibleApi();
+        const chapter = {} as TranslationCompleteChapter;
+
+        await expect(api.getChapterWords(chapter)).resolves.toBeNull();
+        expect(fetchMock).not.toHaveBeenCalled();
+    });
+
     it('getWordText slices the annotated word out of a string', () => {
         const api = new FreeUseBibleApi();
 
@@ -1057,6 +1084,32 @@ describe('FreeUseBibleApi', () => {
     it('returns null simplified words for chapters that have no annotations', async () => {
         const api = new FreeUseBibleApi();
         const chapter = {} as ApiSimpleTranslationBookChapter;
+
+        await expect(api.getSimpleChapterWords(chapter)).resolves.toBeNull();
+        expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('gets the words for a simplified complete translation chapter by following its words link', async () => {
+        const payload = { verses: {} };
+        fetchMock.mockResolvedValue(jsonResponse(payload));
+
+        const api = new FreeUseBibleApi();
+        const chapter = {
+            thisChapterWordsLink:
+                'https://bible.helloao.org/api/engwebp/JHN/1.words.simple.json',
+        } as SimpleTranslationCompleteChapter;
+
+        const words = await api.getSimpleChapterWords(chapter);
+
+        expect(words).toEqual(payload);
+        expect(fetchMock).toHaveBeenCalledWith(
+            'https://bible.helloao.org/api/engwebp/JHN/1.words.simple.json'
+        );
+    });
+
+    it('returns null simplified words for complete translation chapters that have no annotations', async () => {
+        const api = new FreeUseBibleApi();
+        const chapter = {} as SimpleTranslationCompleteChapter;
 
         await expect(api.getSimpleChapterWords(chapter)).resolves.toBeNull();
         expect(fetchMock).not.toHaveBeenCalled();
