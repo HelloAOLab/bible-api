@@ -166,10 +166,10 @@ export interface Dataset {
                 "json"
             ],
             "listOfBooksApiLink": "/api/d/theographic/books.json",
-            "numberOfBooks": 0,
-            "totalNumberOfChapters": 0,
-            "totalNumberOfVerses": 0,
-            "totalNumberOfReferences": 0,
+            "numberOfBooks": 66,
+            "totalNumberOfChapters": 1182,
+            "totalNumberOfVerses": 24547,
+            "totalNumberOfReferences": 53120,
             "languageName": "English",
             "languageEnglishName": "English",
             "listOfPeopleApiLink": "/api/d/theographic/people.json",
@@ -330,6 +330,8 @@ interface DatasetBook {
 `GET https://bible.helloao.org/api/d/{dataset}/{book}/{chapter}.json`
 
 Gets the content of a single chapter for a given book and dataset.
+
+For cross reference datasets (such as `open-cross-ref`), the chapter contains the list of cross references for each verse. For entity datasets (such as `theographic`), the chapter contains the people, places, and events that appear in the chapter - see [Get the Entities in a Chapter](#get-the-entities-in-a-chapter).
 
 -   `dataset` the ID of the dataset (e.g. `open-cross-ref`).
 -   `book` is the ID of the book (e.g. `GEN` for Genesis).
@@ -541,6 +543,8 @@ Some datasets - such as the [Theographic Bible Metadata](https://github.com/robe
 
 Datasets that contain entities include `listOfPeopleApiLink`, `listOfPlacesApiLink`, `listOfEventsApiLink`, and `listOfPeopleGroupsApiLink` properties in their entry in `/api/available_datasets.json`.
 
+Entity datasets also provide chapter-aligned data: `/api/d/{dataset}/books.json` lists the books whose chapters contain entity data, and `/api/d/{dataset}/{book}/{chapter}.json` returns the people, places, and events that appear in that chapter, along with the verse numbers where each one is mentioned. See [Get the Entities in a Chapter](#get-the-entities-in-a-chapter).
+
 Entities reference Bible passages using the same book IDs, chapter numbers, and verse numbers as the rest of the API, so they can be combined with any translation. They reference each other using entity references:
 
 ```typescript:no-line-numbers title="entity-shared.ts"
@@ -582,6 +586,289 @@ export interface VerseRef {
      * Consecutive verses in the same chapter are collapsed into a single reference.
      */
     endVerse?: number;
+}
+```
+
+## Get the Entities in a Chapter
+
+`GET https://bible.helloao.org/api/d/{dataset}/{book}/{chapter}.json`
+
+For entity datasets, gets the people, places, and events that appear in a single chapter, along with the verse numbers in the chapter where each one is mentioned.
+
+-   `dataset` the ID of the dataset (e.g. `theographic`).
+-   `book` is the ID of the book (e.g. `GEN` for Genesis).
+-   `chapter` is the numerical chapter number (e.g. `1` for the first chapter).
+
+The list of books and chapters that have entity data is available from `GET https://bible.helloao.org/api/d/{dataset}/books.json`, which follows the same structure as the [dataset books endpoint](#list-books-in-a-dataset). For entity datasets, `totalNumberOfVerses` is the number of verses that are mentioned by at least one entity and `totalNumberOfReferences` is the total number of entity-verse mentions.
+
+### Code Example
+
+```ts:no-line-numbers title="fetch-chapter-entities.js"
+const dataset = 'theographic';
+const book = 'GEN';
+const chapter = 2;
+
+// Get the people, places, and events that appear in Genesis 2
+fetch(`https://bible.helloao.org/api/d/${dataset}/${book}/${chapter}.json`)
+    .then(request => request.json())
+    .then(chapter => {
+        console.log('Genesis 2 (theographic):', chapter);
+    });
+```
+
+### Structure
+
+```typescript:no-line-numbers title="dataset-chapter-entities.ts"
+export interface DatasetEntityBookChapter {
+    /**
+     * The dataset information for the book chapter.
+     */
+    dataset: Dataset;
+
+    /**
+     * The book information for the book chapter.
+     */
+    book: DatasetBook;
+
+    /**
+     * The entity data for the chapter.
+     */
+    chapter: DatasetEntityChapterData;
+
+    /**
+     * The link to this chapter.
+     */
+    thisChapterLink: string;
+
+    /**
+     * The link to the next chapter.
+     * Null if this is the last chapter in the dataset.
+     */
+    nextChapterApiLink: string | null;
+
+    /**
+     * The link to the previous chapter.
+     * Null if this is the first chapter in the dataset.
+     */
+    previousChapterApiLink: string | null;
+
+    /**
+     * The number of people, places, and events that appear in the chapter.
+     */
+    numberOfPeople: number;
+    numberOfPlaces: number;
+    numberOfEvents: number;
+}
+
+interface DatasetEntityChapterData {
+    /**
+     * The number of the chapter.
+     */
+    number: number;
+
+    /**
+     * The people that appear in the chapter.
+     * Sorted by the first verse that they appear in.
+     */
+    people: ChapterPerson[];
+
+    /**
+     * The places that appear in the chapter.
+     * Sorted by the first verse that they appear in.
+     */
+    places: ChapterPlace[];
+
+    /**
+     * The events that appear in the chapter.
+     * Sorted by the first verse that they appear in.
+     */
+    events: ChapterEvent[];
+}
+
+interface ChapterPerson {
+    /**
+     * The ID of the person.
+     */
+    id: string;
+
+    /**
+     * The name of the person.
+     */
+    name: string;
+
+    /**
+     * Whether the name of the person is a proper name.
+     */
+    isProperName?: boolean;
+
+    /**
+     * The gender of the person.
+     */
+    gender?: string;
+
+    /**
+     * The year that the person was born and the year they died.
+     * Negative numbers are years BC. Positive numbers are years AD.
+     */
+    birthYear?: number;
+    deathYear?: number;
+
+    /**
+     * The API link for the person.
+     */
+    apiLink: string;
+
+    /**
+     * The numbers of the verses in the chapter that mention the person.
+     * Sorted in ascending order.
+     */
+    verses: number[];
+}
+
+interface ChapterPlace {
+    /**
+     * The ID of the place.
+     */
+    id: string;
+
+    /**
+     * The name of the place.
+     */
+    name: string;
+
+    /**
+     * The type of geographical feature that the place is.
+     */
+    featureType?: string;
+
+    /**
+     * The latitude and longitude of the place.
+     */
+    latitude?: number;
+    longitude?: number;
+
+    /**
+     * The API link for the place.
+     */
+    apiLink: string;
+
+    /**
+     * The numbers of the verses in the chapter that mention the place.
+     * Sorted in ascending order.
+     */
+    verses: number[];
+}
+
+interface ChapterEvent {
+    /**
+     * The ID of the event.
+     */
+    id: string;
+
+    /**
+     * The name of the event.
+     */
+    name: string;
+
+    /**
+     * The date that the event started at.
+     */
+    startDate?: string;
+
+    /**
+     * The API link for the event.
+     */
+    apiLink: string;
+
+    /**
+     * The numbers of the verses in the chapter that describe the event.
+     * Sorted in ascending order.
+     */
+    verses: number[];
+}
+```
+
+### Example
+
+```json:no-line-numbers title="/api/d/theographic/GEN/2.json"
+{
+    "dataset": {
+        "id": "theographic",
+        "name": "Theographic Bible Metadata",
+        "...": "..."
+    },
+    "book": {
+        "id": "GEN",
+        "order": 1,
+        "firstChapterNumber": 1,
+        "firstChapterApiLink": "/api/d/theographic/GEN/1.json",
+        "lastChapterNumber": 50,
+        "lastChapterApiLink": "/api/d/theographic/GEN/50.json",
+        "numberOfChapters": 50,
+        "totalNumberOfVerses": 1343,
+        "totalNumberOfReferences": 3346
+    },
+    "chapter": {
+        "number": 2,
+        "people": [
+            {
+                "id": "god_1324",
+                "name": "God",
+                "isProperName": true,
+                "gender": "Male",
+                "apiLink": "/api/d/theographic/people/god_1324.json",
+                "verses": [2, 3, 4, 5, 7, 8, 9, 15, 16, 18, 19, 21, 22]
+            },
+            {
+                "id": "adam_78",
+                "name": "Adam",
+                "isProperName": true,
+                "gender": "Male",
+                "birthYear": -4004,
+                "deathYear": -3074,
+                "apiLink": "/api/d/theographic/people/adam_78.json",
+                "verses": [19, 20, 21, 23]
+            }
+        ],
+        "places": [
+            {
+                "id": "eden_354",
+                "name": "Eden",
+                "featureType": "Region",
+                "apiLink": "/api/d/theographic/places/eden_354.json",
+                "verses": [8, 10, 15]
+            },
+            {
+                "id": "havilah_533",
+                "name": "Havilah (of Eden)",
+                "featureType": "Region",
+                "apiLink": "/api/d/theographic/places/havilah_533.json",
+                "verses": [11]
+            }
+        ],
+        "events": [
+            {
+                "id": "creation-of-all-things_1",
+                "name": "Creation of all things",
+                "startDate": "-4003",
+                "apiLink": "/api/d/theographic/events/creation-of-all-things_1.json",
+                "verses": [1, 2, 3]
+            },
+            {
+                "id": "creation-of-adam-and-eve_2",
+                "name": "Creation of Adam and Eve",
+                "startDate": "-4003",
+                "apiLink": "/api/d/theographic/events/creation-of-adam-and-eve_2.json",
+                "verses": [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]
+            }
+        ]
+    },
+    "thisChapterLink": "/api/d/theographic/GEN/2.json",
+    "previousChapterApiLink": "/api/d/theographic/GEN/1.json",
+    "nextChapterApiLink": "/api/d/theographic/GEN/3.json",
+    "numberOfPeople": 2,
+    "numberOfPlaces": 8,
+    "numberOfEvents": 2
 }
 ```
 
@@ -631,6 +918,11 @@ interface DatasetPersonSummary {
      * The name of the person.
      */
     name: string;
+
+    /**
+     * Whether the name of the person is a proper name.
+     */
+    isProperName?: boolean;
 
     /**
      * The gender of the person.
@@ -735,6 +1027,11 @@ interface DatasetPerson {
      * Other names that the person is called by.
      */
     alsoCalled?: string[];
+
+    /**
+     * Whether the name of the person is a proper name.
+     */
+    isProperName?: boolean;
 
     /**
      * The gender of the person.

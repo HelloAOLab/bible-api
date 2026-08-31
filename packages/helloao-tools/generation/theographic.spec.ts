@@ -98,6 +98,7 @@ describe('generateDatasetFromTheographic()', () => {
                         slug: 'adam_2',
                         name: 'Adam',
                         displayTitle: 'Adam',
+                        isProperName: true,
                         gender: 'Male',
                         children: ['personSeth'],
                         memberOf: ['groupHumanity'],
@@ -203,6 +204,7 @@ describe('generateDatasetFromTheographic()', () => {
             {
                 id: 'adam_2',
                 name: 'Adam',
+                isProperName: true,
                 gender: 'Male',
                 description: ['The first man (Gen. 1:26).'],
                 children: [{ id: 'seth_10', name: 'Seth' }],
@@ -367,6 +369,7 @@ describe('generateDatasetFromTheographic()', () => {
                 {
                     id: 'adam_2',
                     name: 'Adam',
+                    isProperName: true,
                     gender: 'Male',
                     numberOfReferences: 2,
                     thisPersonApiLink: '/api/d/theographic/people/adam_2.json',
@@ -521,6 +524,169 @@ describe('generateDatasetFromTheographic()', () => {
             );
             expect(paths).toContain('/api/d/theographic/groups.json');
             expect(paths).toContain('/api/d/theographic/groups/humanity.json');
+            expect(paths).toContain('/api/d/theographic/GEN/1.json');
+            expect(paths).toContain('/api/d/theographic/GEN/2.json');
+            expect(paths).toContain('/api/d/theographic/ACT/9.json');
+        });
+
+        it('should generate the books index from the entity chapters', () => {
+            const api = generateApiForDataset(createDatasetOutput());
+
+            expect(api.datasetBooks).toHaveLength(1);
+            expect(api.datasetBooks![0].books).toEqual([
+                {
+                    id: 'GEN',
+                    order: 1,
+                    firstChapterNumber: 1,
+                    firstChapterApiLink: '/api/d/theographic/GEN/1.json',
+                    firstChapterReference: {
+                        datasetId: 'theographic',
+                        book: 'GEN',
+                        chapter: 1,
+                    },
+                    lastChapterNumber: 2,
+                    lastChapterApiLink: '/api/d/theographic/GEN/2.json',
+                    lastChapterReference: {
+                        datasetId: 'theographic',
+                        book: 'GEN',
+                        chapter: 2,
+                    },
+                    numberOfChapters: 2,
+                    totalNumberOfVerses: 2,
+                    totalNumberOfReferences: 7,
+                },
+                {
+                    id: 'ACT',
+                    order: 44,
+                    firstChapterNumber: 9,
+                    firstChapterApiLink: '/api/d/theographic/ACT/9.json',
+                    firstChapterReference: {
+                        datasetId: 'theographic',
+                        book: 'ACT',
+                        chapter: 9,
+                    },
+                    lastChapterNumber: 9,
+                    lastChapterApiLink: '/api/d/theographic/ACT/9.json',
+                    lastChapterReference: {
+                        datasetId: 'theographic',
+                        book: 'ACT',
+                        chapter: 9,
+                    },
+                    numberOfChapters: 1,
+                    totalNumberOfVerses: 2,
+                    totalNumberOfReferences: 3,
+                },
+            ]);
+
+            const dataset = api.availableDatasets!.datasets[0];
+            expect(dataset.numberOfBooks).toBe(2);
+            expect(dataset.totalNumberOfChapters).toBe(3);
+            expect(dataset.totalNumberOfVerses).toBe(4);
+            expect(dataset.totalNumberOfReferences).toBe(10);
+        });
+
+        it('should generate chapter files with the entities that appear in each chapter', () => {
+            const api = generateApiForDataset(createDatasetOutput());
+
+            expect(api.datasetEntityBookChapters).toHaveLength(3);
+
+            const [gen1, gen2, act9] = api.datasetEntityBookChapters!;
+
+            expect(gen1.thisChapterLink).toBe('/api/d/theographic/GEN/1.json');
+            expect(gen1.chapter).toEqual({
+                number: 1,
+                people: [
+                    {
+                        id: 'adam_2',
+                        name: 'Adam',
+                        isProperName: true,
+                        gender: 'Male',
+                        apiLink: '/api/d/theographic/people/adam_2.json',
+                        verses: [1],
+                    },
+                ],
+                places: [
+                    {
+                        id: 'eden_1',
+                        name: 'Eden',
+                        featureType: 'Region',
+                        latitude: 31.777444,
+                        longitude: 35.234935,
+                        apiLink: '/api/d/theographic/places/eden_1.json',
+                        verses: [1],
+                    },
+                ],
+                events: [
+                    {
+                        id: 'creation-of-adam-and-eve_1',
+                        name: 'Creation of Adam and Eve',
+                        startDate: '-4003',
+                        apiLink:
+                            '/api/d/theographic/events/creation-of-adam-and-eve_1.json',
+                        verses: [1],
+                    },
+                ],
+            });
+            expect(gen1.numberOfPeople).toBe(1);
+            expect(gen1.numberOfPlaces).toBe(1);
+            expect(gen1.numberOfEvents).toBe(1);
+            expect(gen1.previousChapterApiLink).toBe(null);
+            expect(gen1.nextChapterApiLink).toBe(
+                '/api/d/theographic/GEN/2.json'
+            );
+
+            expect(gen2.chapter.people.map((p) => p.id)).toEqual([
+                'adam_2',
+                'seth_10',
+            ]);
+            expect(gen2.chapter.people[1]).toEqual({
+                id: 'seth_10',
+                name: 'Seth',
+                gender: 'Male',
+                birthYear: -3874,
+                apiLink: '/api/d/theographic/people/seth_10.json',
+                verses: [1],
+            });
+            expect(gen2.previousChapterApiLink).toBe(
+                '/api/d/theographic/GEN/1.json'
+            );
+            expect(gen2.nextChapterApiLink).toBe(
+                '/api/d/theographic/ACT/9.json'
+            );
+            expect(gen2.nextChapterReference).toEqual({
+                datasetId: 'theographic',
+                book: 'ACT',
+                chapter: 9,
+            });
+
+            // Events are sorted by the first verse that they appear in.
+            // "The Fall" references ACT 9:1-2 while "Creation" references ACT 9:2.
+            expect(act9.chapter.people).toEqual([]);
+            expect(act9.chapter.places).toEqual([]);
+            expect(act9.chapter.events.map((e) => e.id)).toEqual([
+                'the-fall_2',
+                'creation-of-adam-and-eve_1',
+            ]);
+            expect(act9.chapter.events[0].verses).toEqual([1, 2]);
+            expect(act9.chapter.events[1].verses).toEqual([2]);
+            expect(act9.nextChapterApiLink).toBe(null);
+        });
+
+        it('should respect the path prefix for entity chapters', () => {
+            const api = generateApiForDataset(createDatasetOutput(), {
+                pathPrefix: '/hello',
+            });
+
+            const gen1 = api.datasetEntityBookChapters![0];
+            expect(gen1.thisChapterLink).toBe(
+                '/hello/api/d/theographic/GEN/1.json'
+            );
+            expect(gen1.chapter.people[0].apiLink).toBe(
+                '/hello/api/d/theographic/people/adam_2.json'
+            );
+            expect(api.datasetBooks![0].books[0].firstChapterApiLink).toBe(
+                '/hello/api/d/theographic/GEN/1.json'
+            );
         });
     });
 });

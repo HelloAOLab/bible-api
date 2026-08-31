@@ -48,7 +48,8 @@ import {
     simplifyChapter,
     simplifyCommentaryChapter,
 } from './simple.js';
-import { BookIdSchema } from '../utils.js';
+import { BookId, BookIdSchema, VerseRef } from '../utils.js';
+import { bookOrderMap } from './book-order.js';
 
 /**
  * Defines the output of the API generation.
@@ -170,6 +171,13 @@ export interface ApiOutput {
      * - /api/d/:datasetId/:bookId/:chapterNumber.json
      */
     datasetBookChapters?: ApiDatasetBookChapter[];
+
+    /**
+     * The list of chapters that contain entity data for each dataset book.
+     * This maps to the following endpoint:
+     * - /api/d/:datasetId/:bookId/:chapterNumber.json
+     */
+    datasetEntityBookChapters?: ApiDatasetEntityBookChapter[];
 
     /**
      * The list of people for each dataset.
@@ -928,6 +936,13 @@ export const ApiDatasetPersonSummarySchema = z
         }),
 
         /**
+         * Whether the name of the person is a proper name.
+         */
+        isProperName: z.boolean().optional().meta({
+            description: 'Whether the name of the person is a proper name.',
+        }),
+
+        /**
          * The gender of the person.
          */
         gender: z.string().optional().meta({
@@ -1398,6 +1413,373 @@ export const ApiDatasetPeopleGroupSchema = z
     });
 
 export type ApiDatasetPeopleGroup = z.infer<typeof ApiDatasetPeopleGroupSchema>;
+
+/**
+ * Defines a Zod schema for a person that appears in a chapter of a dataset.
+ */
+export const ApiDatasetChapterPersonSchema = z
+    .object({
+        /**
+         * The ID of the person.
+         */
+        id: z.string().meta({
+            description: 'The ID of the person.',
+        }),
+
+        /**
+         * The name of the person.
+         */
+        name: z.string().meta({
+            description: 'The name of the person.',
+        }),
+
+        /**
+         * Whether the name of the person is a proper name.
+         */
+        isProperName: z.boolean().optional().meta({
+            description: 'Whether the name of the person is a proper name.',
+        }),
+
+        /**
+         * The gender of the person.
+         */
+        gender: z.string().optional().meta({
+            description: 'The gender of the person.',
+        }),
+
+        /**
+         * The year that the person was born.
+         * Negative numbers are years BC. Positive numbers are years AD.
+         */
+        birthYear: z.number().optional().meta({
+            description:
+                'The year that the person was born. Negative numbers are years BC. Positive numbers are years AD.',
+        }),
+
+        /**
+         * The year that the person died.
+         * Negative numbers are years BC. Positive numbers are years AD.
+         */
+        deathYear: z.number().optional().meta({
+            description:
+                'The year that the person died. Negative numbers are years BC. Positive numbers are years AD.',
+        }),
+
+        /**
+         * The API link for the person.
+         */
+        apiLink: z.string().meta({
+            description:
+                'The API link for the person. Relative to the API origin.',
+        }),
+
+        /**
+         * The numbers of the verses in the chapter that mention the person.
+         * Sorted in ascending order.
+         */
+        verses: z.array(z.number()).meta({
+            description:
+                'The numbers of the verses in the chapter that mention the person. Sorted in ascending order.',
+        }),
+    })
+    .meta({
+        id: 'ApiDatasetChapterPerson',
+        description: 'Defines a person that appears in a chapter of a dataset.',
+    });
+
+export type ApiDatasetChapterPerson = z.infer<
+    typeof ApiDatasetChapterPersonSchema
+>;
+
+/**
+ * Defines a Zod schema for a place that appears in a chapter of a dataset.
+ */
+export const ApiDatasetChapterPlaceSchema = z
+    .object({
+        /**
+         * The ID of the place.
+         */
+        id: z.string().meta({
+            description: 'The ID of the place.',
+        }),
+
+        /**
+         * The name of the place.
+         */
+        name: z.string().meta({
+            description: 'The name of the place.',
+        }),
+
+        /**
+         * The type of geographical feature that the place is.
+         */
+        featureType: z.string().optional().meta({
+            description:
+                'The type of geographical feature that the place is. For example, "City", "Region", "Mountain", "Water", etc.',
+        }),
+
+        /**
+         * The latitude of the place.
+         */
+        latitude: z.number().optional().meta({
+            description: 'The latitude of the place.',
+        }),
+
+        /**
+         * The longitude of the place.
+         */
+        longitude: z.number().optional().meta({
+            description: 'The longitude of the place.',
+        }),
+
+        /**
+         * The API link for the place.
+         */
+        apiLink: z.string().meta({
+            description:
+                'The API link for the place. Relative to the API origin.',
+        }),
+
+        /**
+         * The numbers of the verses in the chapter that mention the place.
+         * Sorted in ascending order.
+         */
+        verses: z.array(z.number()).meta({
+            description:
+                'The numbers of the verses in the chapter that mention the place. Sorted in ascending order.',
+        }),
+    })
+    .meta({
+        id: 'ApiDatasetChapterPlace',
+        description: 'Defines a place that appears in a chapter of a dataset.',
+    });
+
+export type ApiDatasetChapterPlace = z.infer<
+    typeof ApiDatasetChapterPlaceSchema
+>;
+
+/**
+ * Defines a Zod schema for an event that appears in a chapter of a dataset.
+ */
+export const ApiDatasetChapterEventSchema = z
+    .object({
+        /**
+         * The ID of the event.
+         */
+        id: z.string().meta({
+            description: 'The ID of the event.',
+        }),
+
+        /**
+         * The name of the event.
+         */
+        name: z.string().meta({
+            description: 'The name of the event.',
+        }),
+
+        /**
+         * The date that the event started at.
+         */
+        startDate: z.string().optional().meta({
+            description:
+                'The date that the event started at. Negative numbers are years BC. Positive numbers are years AD. More specific dates use the `YYYY-MM-DD` format.',
+        }),
+
+        /**
+         * The API link for the event.
+         */
+        apiLink: z.string().meta({
+            description:
+                'The API link for the event. Relative to the API origin.',
+        }),
+
+        /**
+         * The numbers of the verses in the chapter that describe the event.
+         * Sorted in ascending order.
+         */
+        verses: z.array(z.number()).meta({
+            description:
+                'The numbers of the verses in the chapter that describe the event. Sorted in ascending order.',
+        }),
+    })
+    .meta({
+        id: 'ApiDatasetChapterEvent',
+        description: 'Defines an event that appears in a chapter of a dataset.',
+    });
+
+export type ApiDatasetChapterEvent = z.infer<
+    typeof ApiDatasetChapterEventSchema
+>;
+
+/**
+ * Defines a Zod schema for the entity data for a chapter in a dataset.
+ */
+export const ApiDatasetEntityChapterDataSchema = z
+    .object({
+        /**
+         * The number of the chapter.
+         */
+        number: z.number().meta({
+            description: 'The number of the chapter.',
+        }),
+
+        /**
+         * The people that appear in the chapter.
+         * Sorted by the first verse that they appear in.
+         */
+        people: z.array(ApiDatasetChapterPersonSchema).meta({
+            description:
+                'The people that appear in the chapter. Sorted by the first verse that they appear in.',
+        }),
+
+        /**
+         * The places that appear in the chapter.
+         * Sorted by the first verse that they appear in.
+         */
+        places: z.array(ApiDatasetChapterPlaceSchema).meta({
+            description:
+                'The places that appear in the chapter. Sorted by the first verse that they appear in.',
+        }),
+
+        /**
+         * The events that appear in the chapter.
+         * Sorted by the first verse that they appear in.
+         */
+        events: z.array(ApiDatasetChapterEventSchema).meta({
+            description:
+                'The events that appear in the chapter. Sorted by the first verse that they appear in.',
+        }),
+    })
+    .meta({
+        id: 'ApiDatasetEntityChapterData',
+        description:
+            'Defines the entity data for a chapter in a dataset. Contains the people, places, and events that appear in the chapter.',
+    });
+
+export type ApiDatasetEntityChapterData = z.infer<
+    typeof ApiDatasetEntityChapterDataSchema
+>;
+
+/**
+ * Defines a Zod schema for the entities that appear in a chapter of a book for a dataset.
+ * Maps to the /api/d/:datasetId/:bookId/:chapterNumber.json endpoint for datasets that contain entities.
+ */
+export const ApiDatasetEntityBookChapterSchema = z
+    .object({
+        /**
+         * The dataset information for the book chapter.
+         */
+        dataset: z
+            .lazy(() => ApiDatasetSchema)
+            .meta({
+                description: 'The dataset information for the book chapter.',
+            }),
+
+        /**
+         * The book information for the book chapter.
+         */
+        book: z
+            .lazy(() => ApiDatasetBookSchema)
+            .meta({
+                description: 'The book information for the book chapter.',
+            }),
+
+        /**
+         * The entity data for the chapter.
+         */
+        chapter: ApiDatasetEntityChapterDataSchema.meta({
+            description: 'The entity data for the chapter.',
+        }),
+
+        /**
+         * The link to this chapter.
+         */
+        thisChapterLink: z.string().meta({
+            description:
+                'The link to this chapter. Relative to the API origin.',
+        }),
+
+        /**
+         * The reference for this chapter.
+         */
+        thisChapterReference: z
+            .lazy(() => DatasetChapterReferenceSchema)
+            .meta({
+                description: 'The reference for this chapter.',
+            }),
+
+        /**
+         * The link to the next chapter.
+         * Null if this is the last chapter in the dataset.
+         */
+        nextChapterApiLink: z.string().nullable().meta({
+            description:
+                'The link to the next chapter. Relative to the API origin. Null if this is the last chapter in the dataset.',
+        }),
+
+        /**
+         * The reference for the next chapter.
+         * Null if this is the last chapter in the dataset.
+         */
+        nextChapterReference: z
+            .lazy(() => DatasetChapterReferenceSchema)
+            .nullable()
+            .meta({
+                description:
+                    'The reference for the next chapter. Null if this is the last chapter in the dataset.',
+            }),
+
+        /**
+         * The link to the previous chapter.
+         * Null if this is the first chapter in the dataset.
+         */
+        previousChapterApiLink: z.string().nullable().meta({
+            description:
+                'The link to the previous chapter. Relative to the API origin. Null if this is the first chapter in the dataset.',
+        }),
+
+        /**
+         * The reference for the previous chapter.
+         * Null if this is the first chapter in the dataset.
+         */
+        previousChapterReference: z
+            .lazy(() => DatasetChapterReferenceSchema)
+            .nullable()
+            .meta({
+                description:
+                    'The reference for the previous chapter. Null if this is the first chapter in the dataset.',
+            }),
+
+        /**
+         * The number of people that appear in the chapter.
+         */
+        numberOfPeople: z.number().meta({
+            description: 'The number of people that appear in the chapter.',
+        }),
+
+        /**
+         * The number of places that appear in the chapter.
+         */
+        numberOfPlaces: z.number().meta({
+            description: 'The number of places that appear in the chapter.',
+        }),
+
+        /**
+         * The number of events that appear in the chapter.
+         */
+        numberOfEvents: z.number().meta({
+            description: 'The number of events that appear in the chapter.',
+        }),
+    })
+    .meta({
+        id: 'ApiDatasetEntityBookChapter',
+        description:
+            'The entities (people, places, and events) that appear in a chapter of a book for a dataset. Maps to the /api/d/:datasetId/:bookId/:chapterNumber.json endpoint for datasets that contain entities.',
+    });
+
+export type ApiDatasetEntityBookChapter = z.infer<
+    typeof ApiDatasetEntityBookChapterSchema
+>;
 
 /**
  * Defines an interface that contains information about the profiles that are available for a commentary.
@@ -3516,6 +3898,7 @@ export function generateApiForDataset(
                 datasetPeople.people.push({
                     id: person.id,
                     name: person.name,
+                    isProperName: person.isProperName,
                     gender: person.gender,
                     numberOfReferences: person.references.length,
                     thisPersonApiLink,
@@ -3732,6 +4115,282 @@ export function generateApiForDataset(
             api.datasetPeopleGroups.push(datasetPeopleGroups);
         }
 
+        // Generate chapter-aligned entity data for datasets that contain
+        // entities but no chapter books of their own. Each chapter file
+        // contains the people, places, and events that appear in that
+        // chapter, derived from the entities' Bible references.
+        if (books.length <= 0 && (people || places || events)) {
+            interface ChapterEntities {
+                people: Map<string, ApiDatasetChapterPerson>;
+                places: Map<string, ApiDatasetChapterPlace>;
+                events: Map<string, ApiDatasetChapterEvent>;
+            }
+
+            // bookId -> chapterNumber -> entities
+            const chapterMap = new Map<BookId, Map<number, ChapterEntities>>();
+
+            function addEntityVerses<
+                T extends { verses: number[] },
+                K extends 'people' | 'places' | 'events',
+            >(
+                collection: K,
+                references: VerseRef[],
+                createEntry: () => Omit<T, 'verses'>
+            ) {
+                for (let reference of references) {
+                    let bookChapters = chapterMap.get(reference.book);
+                    if (!bookChapters) {
+                        bookChapters = new Map();
+                        chapterMap.set(reference.book, bookChapters);
+                    }
+                    let chapterEntities = bookChapters.get(reference.chapter);
+                    if (!chapterEntities) {
+                        chapterEntities = {
+                            people: new Map(),
+                            places: new Map(),
+                            events: new Map(),
+                        };
+                        bookChapters.set(reference.chapter, chapterEntities);
+                    }
+
+                    const entry = createEntry() as T;
+                    const entities = chapterEntities[
+                        collection
+                    ] as unknown as Map<string, T>;
+                    let existing = entities.get((entry as any).id);
+                    if (!existing) {
+                        existing = { ...entry, verses: [] } as T;
+                        entities.set((entry as any).id, existing);
+                    }
+                    const endVerse = reference.endVerse ?? reference.verse;
+                    for (
+                        let verse = reference.verse;
+                        verse <= endVerse;
+                        verse++
+                    ) {
+                        existing.verses.push(verse);
+                    }
+                }
+            }
+
+            for (let person of people ?? []) {
+                addEntityVerses<ApiDatasetChapterPerson, 'people'>(
+                    'people',
+                    person.references,
+                    () => ({
+                        id: person.id,
+                        name: person.name,
+                        isProperName: person.isProperName,
+                        gender: person.gender,
+                        birthYear: person.birthYear,
+                        deathYear: person.deathYear,
+                        apiLink: datasetEntityApiLink(
+                            datasetInfo.id,
+                            'people',
+                            person.id,
+                            'json',
+                            apiPathPrefix
+                        ),
+                    })
+                );
+            }
+
+            for (let place of places ?? []) {
+                addEntityVerses<ApiDatasetChapterPlace, 'places'>(
+                    'places',
+                    place.references,
+                    () => ({
+                        id: place.id,
+                        name: place.name,
+                        featureType: place.featureType,
+                        latitude: place.latitude,
+                        longitude: place.longitude,
+                        apiLink: datasetEntityApiLink(
+                            datasetInfo.id,
+                            'places',
+                            place.id,
+                            'json',
+                            apiPathPrefix
+                        ),
+                    })
+                );
+            }
+
+            for (let event of events ?? []) {
+                addEntityVerses<ApiDatasetChapterEvent, 'events'>(
+                    'events',
+                    event.references,
+                    () => ({
+                        id: event.id,
+                        name: event.name,
+                        startDate: event.startDate,
+                        apiLink: datasetEntityApiLink(
+                            datasetInfo.id,
+                            'events',
+                            event.id,
+                            'json',
+                            apiPathPrefix
+                        ),
+                    })
+                );
+            }
+
+            const sortedBooks = [...chapterMap.keys()].sort(
+                (a, b) =>
+                    (bookOrderMap.get(a) ?? 9999) -
+                    (bookOrderMap.get(b) ?? 9999)
+            );
+
+            function sortEntities<T extends { id: string; verses: number[] }>(
+                entities: Map<string, T>
+            ): T[] {
+                const list = [...entities.values()];
+                for (let entity of list) {
+                    entity.verses.sort((a, b) => a - b);
+                }
+                return list.sort(
+                    (a, b) =>
+                        a.verses[0] - b.verses[0] || a.id.localeCompare(b.id)
+                );
+            }
+
+            const entityChapters: ApiDatasetEntityBookChapter[] = [];
+
+            for (let bookId of sortedBooks) {
+                const bookChapters = chapterMap.get(bookId)!;
+                const chapterNumbers = [...bookChapters.keys()].sort(
+                    (a, b) => a - b
+                );
+                const firstChapterNumber = chapterNumbers[0];
+                const lastChapterNumber =
+                    chapterNumbers[chapterNumbers.length - 1];
+
+                const apiBook: ApiDatasetBook = {
+                    id: bookId,
+                    order: bookOrderMap.get(bookId) ?? 9999,
+                    firstChapterNumber,
+                    firstChapterApiLink: bookDatasetChapterApiLink(
+                        datasetInfo.id,
+                        bookId,
+                        firstChapterNumber,
+                        'json',
+                        apiPathPrefix
+                    ),
+                    firstChapterReference: {
+                        datasetId: datasetInfo.id,
+                        book: bookId,
+                        chapter: firstChapterNumber,
+                    },
+                    lastChapterNumber,
+                    lastChapterApiLink: bookDatasetChapterApiLink(
+                        datasetInfo.id,
+                        bookId,
+                        lastChapterNumber,
+                        'json',
+                        apiPathPrefix
+                    ),
+                    lastChapterReference: {
+                        datasetId: datasetInfo.id,
+                        book: bookId,
+                        chapter: lastChapterNumber,
+                    },
+                    numberOfChapters: chapterNumbers.length,
+                    totalNumberOfVerses: 0,
+                    totalNumberOfReferences: 0,
+                };
+
+                for (let chapterNumber of chapterNumbers) {
+                    const chapterEntities = bookChapters.get(chapterNumber)!;
+                    const chapterPeople = sortEntities(chapterEntities.people);
+                    const chapterPlaces = sortEntities(chapterEntities.places);
+                    const chapterEvents = sortEntities(chapterEntities.events);
+
+                    const distinctVerses = new Set<number>();
+                    let numberOfReferences = 0;
+                    for (let list of [
+                        chapterPeople,
+                        chapterPlaces,
+                        chapterEvents,
+                    ]) {
+                        for (let entity of list as {
+                            verses: number[];
+                        }[]) {
+                            numberOfReferences += entity.verses.length;
+                            for (let verse of entity.verses) {
+                                distinctVerses.add(verse);
+                            }
+                        }
+                    }
+
+                    apiBook.totalNumberOfVerses += distinctVerses.size;
+                    apiBook.totalNumberOfReferences += numberOfReferences;
+
+                    const apiChapter: ApiDatasetEntityBookChapter = {
+                        dataset: apiDataset,
+                        book: apiBook,
+                        chapter: {
+                            number: chapterNumber,
+                            people: chapterPeople,
+                            places: chapterPlaces,
+                            events: chapterEvents,
+                        },
+                        thisChapterLink: bookDatasetChapterApiLink(
+                            datasetInfo.id,
+                            bookId,
+                            chapterNumber,
+                            'json',
+                            apiPathPrefix
+                        ),
+                        thisChapterReference: {
+                            datasetId: datasetInfo.id,
+                            book: bookId,
+                            chapter: chapterNumber,
+                        },
+                        nextChapterApiLink: null,
+                        nextChapterReference: null,
+                        previousChapterApiLink: null,
+                        previousChapterReference: null,
+                        numberOfPeople: chapterPeople.length,
+                        numberOfPlaces: chapterPlaces.length,
+                        numberOfEvents: chapterEvents.length,
+                    };
+
+                    entityChapters.push(apiChapter);
+                }
+
+                datasetBooks.books.push(apiBook);
+
+                apiDataset.totalNumberOfChapters += apiBook.numberOfChapters;
+                apiDataset.totalNumberOfVerses += apiBook.totalNumberOfVerses;
+                apiDataset.totalNumberOfReferences +=
+                    apiBook.totalNumberOfReferences;
+            }
+
+            apiDataset.numberOfBooks = datasetBooks.books.length;
+
+            for (let i = 0; i < entityChapters.length; i++) {
+                if (i > 0) {
+                    entityChapters[i].previousChapterApiLink =
+                        entityChapters[i - 1].thisChapterLink;
+                    entityChapters[i].previousChapterReference =
+                        entityChapters[i - 1].thisChapterReference;
+                }
+                if (i < entityChapters.length - 1) {
+                    entityChapters[i].nextChapterApiLink =
+                        entityChapters[i + 1].thisChapterLink;
+                    entityChapters[i].nextChapterReference =
+                        entityChapters[i + 1].thisChapterReference;
+                }
+            }
+
+            if (entityChapters.length > 0) {
+                if (!api.datasetEntityBookChapters) {
+                    api.datasetEntityBookChapters = [];
+                }
+                api.datasetEntityBookChapters.push(...entityChapters);
+            }
+        }
+
         if (!api.availableDatasets) {
             api.availableDatasets = {
                 datasets: [],
@@ -3884,6 +4543,10 @@ export function generateFilesForApi(api: ApiOutput): OutputFile[] {
                 jsonFile(datasetBookChapter.thisChapterLink, datasetBookChapter)
             );
         }
+    }
+
+    for (let entityChapter of api.datasetEntityBookChapters ?? []) {
+        files.push(jsonFile(entityChapter.thisChapterLink, entityChapter));
     }
 
     for (let datasetPeople of api.datasetPeople ?? []) {

@@ -803,7 +803,6 @@ export async function loadDatasetsFromDirectory(
                 chapters: [],
                 order: bookOrderMap.get(id)!,
             };
-            dataset.books.push(book);
 
             const bookDir = path.resolve(datasetDir, bookId);
             const chapters = await readdir(bookDir);
@@ -813,7 +812,18 @@ export async function loadDatasetsFromDirectory(
                     await readFile(path.resolve(bookDir, chapterFile), 'utf-8')
                 );
 
-                if (chapterJson.chapter) {
+                if (
+                    chapterJson.chapter &&
+                    (chapterJson.numberOfPeople !== undefined ||
+                        chapterJson.numberOfPlaces !== undefined ||
+                        chapterJson.numberOfEvents !== undefined)
+                ) {
+                    // Entity chapters (people, places, and events that appear
+                    // in a chapter) are derived from the dataset's entities
+                    // when the API files are generated, so they shouldn't be
+                    // imported as chapter data.
+                    continue;
+                } else if (chapterJson.chapter) {
                     book.chapters.push({
                         chapter: chapterJson.chapter,
                     });
@@ -848,6 +858,12 @@ export async function loadDatasetsFromDirectory(
                     logger.warn(`Unknown chapter format: ${chapterFile}`);
                     continue;
                 }
+            }
+
+            // Books that only contain derived entity chapters have no
+            // chapter data of their own, so they shouldn't be imported.
+            if (book.chapters.length > 0) {
+                dataset.books.push(book);
             }
         }
 

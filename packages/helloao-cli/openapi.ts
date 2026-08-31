@@ -6,6 +6,7 @@ import {
     ApiCommentaryBooksSchema,
     ApiDatasetBookChapterSchema,
     ApiDatasetBooksSchema,
+    ApiDatasetEntityBookChapterSchema,
     ApiDatasetEventSchema,
     ApiDatasetEventsSchema,
     ApiDatasetPeopleGroupSchema,
@@ -532,7 +533,7 @@ export function createFreeUseBibleApiOpenApiDocument(): any {
                 get: {
                     operationId: 'getDatasetBookChapter',
                     description:
-                        'Get the content of a specific chapter of a specific book for a specific dataset.',
+                        'Get the content of a specific chapter of a specific book for a specific dataset. For cross reference datasets, this is the list of cross references for each verse in the chapter. For entity datasets (such as "theographic"), this is the people, places, and events that appear in the chapter.',
                     requestParams: {
                         path: z.object({
                             dataset,
@@ -545,7 +546,10 @@ export function createFreeUseBibleApiOpenApiDocument(): any {
                             description: '200 OK',
                             content: {
                                 'application/json': {
-                                    schema: ApiDatasetBookChapterSchema,
+                                    schema: z.union([
+                                        ApiDatasetBookChapterSchema,
+                                        ApiDatasetEntityBookChapterSchema,
+                                    ]),
                                 },
                             },
                         },

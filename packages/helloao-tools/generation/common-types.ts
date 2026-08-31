@@ -623,6 +623,13 @@ export const DatasetPersonSchema = z
         }),
 
         /**
+         * Whether the name of the person is a proper name.
+         */
+        isProperName: z.boolean().optional().meta({
+            description: 'Whether the name of the person is a proper name.',
+        }),
+
+        /**
          * The gender of the person.
          */
         gender: z.string().optional().meta({

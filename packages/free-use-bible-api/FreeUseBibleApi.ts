@@ -6,6 +6,7 @@ import type {
     ApiDatasetBook,
     ApiDatasetBookChapter,
     ApiDatasetBooks,
+    ApiDatasetEntityBookChapter,
     ApiDatasetEvent,
     ApiDatasetEvents,
     ApiDatasetPeople,
@@ -619,6 +620,10 @@ export class FreeUseBibleApi {
 
     /**
      * Gets the content of a specific chapter of a specific book for a specific dataset.
+     *
+     * For cross reference datasets, this is the list of cross references for each verse
+     * in the chapter. For entity datasets (such as "theographic"), this is the people,
+     * places, and events that appear in the chapter.
      * @param dataset The ID of the dataset to get the chapter for.
      * @param book The ID of the book to get the chapter for.
      * @param chapter The chapter number to get.
@@ -629,11 +634,13 @@ export class FreeUseBibleApi {
         book: string,
         chapter: number | string,
         endpoint?: string
-    ): Promise<ApiDatasetBookChapter> {
+    ): Promise<ApiDatasetBookChapter | ApiDatasetEntityBookChapter> {
         const encodedDataset = encodeURIComponent(dataset);
         const encodedBook = encodeURIComponent(book);
         const encodedChapter = encodeURIComponent(String(chapter));
-        return this._getJson<ApiDatasetBookChapter>(
+        return this._getJson<
+            ApiDatasetBookChapter | ApiDatasetEntityBookChapter
+        >(
             `api/d/${encodedDataset}/${encodedBook}/${encodedChapter}.json`,
             endpoint
         );

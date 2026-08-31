@@ -77,7 +77,7 @@ const api = new FreeUseBibleApi({
 
 -   `getAvailableDatasets(endpoint?)`
 -   `getDatasetBooks(dataset, endpoint?)`
--   `getDatasetBookChapter(dataset, book, chapter, endpoint?)`
+-   `getDatasetBookChapter(dataset, book, chapter, endpoint?)` - returns cross references for cross reference datasets, or the people, places, and events that appear in the chapter for entity datasets (such as `theographic`)
 -   `getDatasetPeople(dataset, endpoint?)`
 -   `getDatasetPerson(dataset, person, endpoint?)`
 -   `getDatasetPlaces(dataset, endpoint?)`

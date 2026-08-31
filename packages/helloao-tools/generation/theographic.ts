@@ -431,6 +431,10 @@ export function generateDatasetFromTheographic(
             id: ref.id,
             name: ref.name!,
             alsoCalled: parseNames(fields.alsoCalled),
+            isProperName:
+                typeof fields.isProperName === 'boolean'
+                    ? fields.isProperName
+                    : undefined,
             gender: fields.gender ?? undefined,
             description: parseDescription(fields.dictText),
             birthYear: parseYear(fields.birthYear),

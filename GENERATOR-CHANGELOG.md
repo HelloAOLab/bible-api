@@ -15,6 +15,7 @@ For information on the API itself, see [API-CHANGELOG.md](./API-CHANGELOG.md).
     -   Added the `DatasetEntity` table to the database schema for storing dataset entities.
     -   `upload-api-files` now generates the entity API files for datasets that contain entities, and `import-api` imports them.
     -   `generateApiForDataset()` now generates entity lists and individual entity files for datasets that contain entities.
+    -   `generateApiForDataset()` also derives chapter-aligned entity files (the people, places, and events that appear in each chapter) and the dataset books index from the entities' Bible references, for datasets that contain entities but no chapter books of their own. The derived chapter files are not stored in the database and are skipped by `import-api`.
 
 ### :bug: Bug Fixes
 

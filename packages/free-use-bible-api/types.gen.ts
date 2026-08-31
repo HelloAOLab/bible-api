@@ -1810,6 +1810,180 @@ export type ScoredVerseRef = {
 };
 
 /**
+ * The entities (people, places, and events) that appear in a chapter of a book for a dataset. Maps to the /api/d/:datasetId/:bookId/:chapterNumber.json endpoint for datasets that contain entities.
+ */
+export type ApiDatasetEntityBookChapter = {
+    /**
+     * The dataset information for the book chapter.
+     */
+    dataset: ApiDataset;
+    /**
+     * The book information for the book chapter.
+     */
+    book: ApiDatasetBook;
+    /**
+     * The entity data for the chapter.
+     */
+    chapter: ApiDatasetEntityChapterData;
+    /**
+     * The link to this chapter. Relative to the API origin.
+     */
+    thisChapterLink: string;
+    /**
+     * The reference for this chapter.
+     */
+    thisChapterReference: DatasetChapterReference;
+    /**
+     * The link to the next chapter. Relative to the API origin. Null if this is the last chapter in the dataset.
+     */
+    nextChapterApiLink: string | null;
+    /**
+     * The reference for the next chapter. Null if this is the last chapter in the dataset.
+     */
+    nextChapterReference: DatasetChapterReference | null;
+    /**
+     * The link to the previous chapter. Relative to the API origin. Null if this is the first chapter in the dataset.
+     */
+    previousChapterApiLink: string | null;
+    /**
+     * The reference for the previous chapter. Null if this is the first chapter in the dataset.
+     */
+    previousChapterReference: DatasetChapterReference | null;
+    /**
+     * The number of people that appear in the chapter.
+     */
+    numberOfPeople: number;
+    /**
+     * The number of places that appear in the chapter.
+     */
+    numberOfPlaces: number;
+    /**
+     * The number of events that appear in the chapter.
+     */
+    numberOfEvents: number;
+};
+
+/**
+ * Defines a person that appears in a chapter of a dataset.
+ */
+export type ApiDatasetChapterPerson = {
+    /**
+     * The ID of the person.
+     */
+    id: string;
+    /**
+     * The name of the person.
+     */
+    name: string;
+    /**
+     * Whether the name of the person is a proper name.
+     */
+    isProperName?: boolean;
+    /**
+     * The gender of the person.
+     */
+    gender?: string;
+    /**
+     * The year that the person was born. Negative numbers are years BC. Positive numbers are years AD.
+     */
+    birthYear?: number;
+    /**
+     * The year that the person died. Negative numbers are years BC. Positive numbers are years AD.
+     */
+    deathYear?: number;
+    /**
+     * The API link for the person. Relative to the API origin.
+     */
+    apiLink: string;
+    /**
+     * The numbers of the verses in the chapter that mention the person. Sorted in ascending order.
+     */
+    verses: Array<number>;
+};
+
+/**
+ * Defines a place that appears in a chapter of a dataset.
+ */
+export type ApiDatasetChapterPlace = {
+    /**
+     * The ID of the place.
+     */
+    id: string;
+    /**
+     * The name of the place.
+     */
+    name: string;
+    /**
+     * The type of geographical feature that the place is. For example, "City", "Region", "Mountain", "Water", etc.
+     */
+    featureType?: string;
+    /**
+     * The latitude of the place.
+     */
+    latitude?: number;
+    /**
+     * The longitude of the place.
+     */
+    longitude?: number;
+    /**
+     * The API link for the place. Relative to the API origin.
+     */
+    apiLink: string;
+    /**
+     * The numbers of the verses in the chapter that mention the place. Sorted in ascending order.
+     */
+    verses: Array<number>;
+};
+
+/**
+ * Defines an event that appears in a chapter of a dataset.
+ */
+export type ApiDatasetChapterEvent = {
+    /**
+     * The ID of the event.
+     */
+    id: string;
+    /**
+     * The name of the event.
+     */
+    name: string;
+    /**
+     * The date that the event started at. Negative numbers are years BC. Positive numbers are years AD. More specific dates use the `YYYY-MM-DD` format.
+     */
+    startDate?: string;
+    /**
+     * The API link for the event. Relative to the API origin.
+     */
+    apiLink: string;
+    /**
+     * The numbers of the verses in the chapter that describe the event. Sorted in ascending order.
+     */
+    verses: Array<number>;
+};
+
+/**
+ * Defines the entity data for a chapter in a dataset. Contains the people, places, and events that appear in the chapter.
+ */
+export type ApiDatasetEntityChapterData = {
+    /**
+     * The number of the chapter.
+     */
+    number: number;
+    /**
+     * The people that appear in the chapter. Sorted by the first verse that they appear in.
+     */
+    people: Array<ApiDatasetChapterPerson>;
+    /**
+     * The places that appear in the chapter. Sorted by the first verse that they appear in.
+     */
+    places: Array<ApiDatasetChapterPlace>;
+    /**
+     * The events that appear in the chapter. Sorted by the first verse that they appear in.
+     */
+    events: Array<ApiDatasetChapterEvent>;
+};
+
+/**
  * The list of people in a dataset. Maps to the /api/d/:datasetId/people.json endpoint.
  */
 export type ApiDatasetPeople = {
@@ -1835,6 +2009,10 @@ export type ApiDatasetPersonSummary = {
      * The name of the person.
      */
     name: string;
+    /**
+     * Whether the name of the person is a proper name.
+     */
+    isProperName?: boolean;
     /**
      * The gender of the person.
      */
@@ -1928,6 +2106,10 @@ export type DatasetPerson = {
      * Other names that the person is called by.
      */
     alsoCalled?: Array<string>;
+    /**
+     * Whether the name of the person is a proper name.
+     */
+    isProperName?: boolean;
     /**
      * The gender of the person.
      */
@@ -2824,7 +3006,7 @@ export type GetDatasetBookChapterResponses = {
     /**
      * 200 OK
      */
-    200: ApiDatasetBookChapter;
+    200: ApiDatasetBookChapter | ApiDatasetEntityBookChapter;
 };
 
 export type GetDatasetBookChapterResponse =

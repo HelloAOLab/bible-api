@@ -227,6 +227,43 @@ describe('FreeUseBibleApi', () => {
         expect(last).toEqual(lastPayload);
     });
 
+    it('gets an entity chapter through getDatasetBookChapter', async () => {
+        const payload = {
+            chapter: {
+                number: 1,
+                people: [
+                    {
+                        id: 'god_1324',
+                        name: 'God',
+                        isProperName: true,
+                        gender: 'Male',
+                        apiLink: '/api/d/theographic/people/god_1324.json',
+                        verses: [1, 3, 5],
+                    },
+                ],
+                places: [],
+                events: [],
+            },
+            numberOfPeople: 1,
+            numberOfPlaces: 0,
+            numberOfEvents: 0,
+        };
+        fetchMock.mockResolvedValue(jsonResponse(payload));
+
+        const api = new FreeUseBibleApi();
+
+        const chapter = await api.getDatasetBookChapter(
+            'theographic',
+            'GEN',
+            1
+        );
+
+        expect(chapter).toEqual(payload);
+        expect(fetchMock).toHaveBeenCalledWith(
+            'https://bible.helloao.org/api/d/theographic/GEN/1.json'
+        );
+    });
+
     it('gets dataset entity lists using dedicated methods', async () => {
         const peoplePayload = { people: [{ id: 'paul_2479' }] };
         const placesPayload = { places: [{ id: 'jerusalem_636' }] };
