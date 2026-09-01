@@ -1,6 +1,6 @@
 {
     "name": "@helloao/tools",
-    "version": "0.3.0",
+    "version": "0.4.0",
     "description": "A set of tools for managing HelloAO's Free Bible API",
     "type": "module",
     "main": "./dist/cjs/index.cjs",
