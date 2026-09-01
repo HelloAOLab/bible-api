@@ -3,7 +3,7 @@
 This is the log of changes for the Bible API Generator and associated tools.
 For information on the API itself, see [API-CHANGELOG.md](./API-CHANGELOG.md).
 
-## Unreleased
+## V2.3.0
 
 ### :rocket: Features
 
