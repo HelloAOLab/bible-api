@@ -5,8 +5,10 @@ from __future__ import annotations
 import argparse
 import logging
 import sys
+from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
+from time import perf_counter
 
 from . import api as api_module
 from .align import anchor
@@ -21,6 +23,16 @@ logger = logging.getLogger("bible_audio_timings")
 
 DEFAULT_OUTPUT = Path("./audio-timings.json")
 DEFAULT_CACHE = Path("./.cache/audio-timings")
+
+
+@contextmanager
+def _timed(label: str):
+    """Log how long a block took, at INFO, so slow stages are visible."""
+    start = perf_counter()
+    try:
+        yield
+    finally:
+        logger.info("%s: %.2fs", label, perf_counter() - start)
 
 
 class UsageError(ValueError):
@@ -192,35 +204,41 @@ def process_chapter(
     refine: bool,
     refine_max_shift: float,
 ) -> ChapterTimings:
-    ref_tokens = reference_tokens(
-        chapter_json, include_hebrew_subtitles=include_hebrew_subtitles
-    )
-    language = resolve_language(api_module.language_code(chapter_json), language_override)
-
-    asr_words, duration = transcriber.transcribe_and_align(audio_path, language=language)
-    anchors = anchor(asr_words, ref_tokens)
-
-    timings = derive(
-        translation_id=key.translation_id,
-        book_id=key.book_id,
-        chapter_number=key.chapter_number,
-        reader=key.reader,
-        asr=asr_words,
-        ref=ref_tokens,
-        anchors=anchors,
-        audio_duration=duration,
-        thresholds=thresholds,
-    )
-
-    if refine and timings.ok:
-        _refine(
-            transcriber,
-            audio_path,
-            language=language,
-            timings=timings,
-            ref_tokens=ref_tokens,
-            max_shift=refine_max_shift,
+    with _timed(f"{key.as_string()} total"):
+        ref_tokens = reference_tokens(
+            chapter_json, include_hebrew_subtitles=include_hebrew_subtitles
         )
+        language = resolve_language(
+            api_module.language_code(chapter_json), language_override
+        )
+
+        asr_words, duration = transcriber.transcribe_and_align(
+            audio_path, language=language
+        )
+        anchors = anchor(asr_words, ref_tokens)
+
+        timings = derive(
+            translation_id=key.translation_id,
+            book_id=key.book_id,
+            chapter_number=key.chapter_number,
+            reader=key.reader,
+            asr=asr_words,
+            ref=ref_tokens,
+            anchors=anchors,
+            audio_duration=duration,
+            thresholds=thresholds,
+        )
+
+        if refine and timings.ok:
+            with _timed(f"{key.as_string()} refine"):
+                _refine(
+                    transcriber,
+                    audio_path,
+                    language=language,
+                    timings=timings,
+                    ref_tokens=ref_tokens,
+                    max_shift=refine_max_shift,
+                )
 
     return timings
 
@@ -381,7 +399,8 @@ def main(argv: list[str] | None = None) -> int:
 
         for translation_id, book_id, chapter, target_reader in work:
             try:
-                chapter_json = api.chapter(translation_id, book_id, chapter)
+                with _timed(f"{translation_id}/{book_id}/{chapter} fetch chapter json"):
+                    chapter_json = api.chapter(translation_id, book_id, chapter)
             except ApiError as error:
                 failed.append((f"{translation_id}/{book_id}/{chapter}", str(error)))
                 logger.error("%s", error)
@@ -505,7 +524,8 @@ def _resolve_audio(
         return cached
 
     try:
-        return api.download(url, cached)
+        with _timed(f"{key.as_string()} download audio"):
+            return api.download(url, cached)
     except ApiError as error:
         logger.error("%s: %s", key.as_string(), error)
         return None

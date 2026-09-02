@@ -14,12 +14,24 @@ import json
 import logging
 import math
 import os
+from contextlib import contextmanager
 from pathlib import Path
+from time import perf_counter
 
 from .align import AsrWord
 from .normalize import normalize_token
 
 logger = logging.getLogger(__name__)
+
+
+@contextmanager
+def _timed(label: str):
+    """Log how long a block took, at INFO, so slow stages are visible."""
+    start = perf_counter()
+    try:
+        yield
+    finally:
+        logger.info("%s: %.2fs", label, perf_counter() - start)
 
 SAMPLE_RATE = 16000
 
@@ -173,19 +185,21 @@ class Transcriber:
                 self.device,
                 self.compute_type,
             )
-            self._asr = self.whisperx.load_model(
-                self.model_name, self.device, compute_type=self.compute_type
-            )
+            with _timed("load whisper model"):
+                self._asr = self.whisperx.load_model(
+                    self.model_name, self.device, compute_type=self.compute_type
+                )
         return self._asr
 
     def _aligner(self, language: str) -> tuple[object, dict]:
         if language not in self._aligners:
             logger.info("loading alignment model for %s", language)
-            self._aligners[language] = self.whisperx.load_align_model(
-                language_code=language,
-                device=self.device,
-                model_name=self.align_model_name,
-            )
+            with _timed(f"load alignment model ({language})"):
+                self._aligners[language] = self.whisperx.load_align_model(
+                    language_code=language,
+                    device=self.device,
+                    model_name=self.align_model_name,
+                )
         return self._aligners[language]
 
     # -- the work ---------------------------------------------------------
@@ -201,23 +215,34 @@ class Transcriber:
         if fake:
             return _load_fake_asr(Path(fake))
 
-        audio = self.load_audio(audio_path)
+        with _timed(f"load audio file {audio_path.name}"):
+            audio = self.load_audio(audio_path)
         duration = len(audio) / SAMPLE_RATE
 
-        result = self._asr_model().transcribe(audio, batch_size=self.batch_size)
+        # `language=language` matters beyond speed: without it whisperX runs its
+        # own language auto-detection on every "first" call, and - because it
+        # caches the tokenizer on the pipeline object - silently keeps using
+        # whichever language it detected first for every later chapter too,
+        # even chapters in a different language. We already know the language
+        # from the API, so pass it explicitly and skip detection entirely.
+        with _timed("transcribe"):
+            result = self._asr_model().transcribe(
+                audio, batch_size=self.batch_size, language=language
+            )
         segments = result.get("segments") or []
         if not segments:
             raise TranscriptionError(f"whisper produced no segments for {audio_path}")
 
         model, metadata = self._aligner(language)
-        aligned = self.whisperx.align(
-            segments,
-            model,
-            metadata,
-            audio,
-            self.device,
-            return_char_alignments=False,
-        )
+        with _timed("align"):
+            aligned = self.whisperx.align(
+                segments,
+                model,
+                metadata,
+                audio,
+                self.device,
+                return_char_alignments=False,
+            )
         return _to_asr_words(aligned.get("word_segments") or []), duration
 
     def refine(
@@ -233,16 +258,18 @@ class Transcriber:
         verse-sized (~10s), so the wav2vec2 activations stay small - unlike
         aligning a whole chapter as one segment, which OOMs on modest GPUs.
         """
-        audio = self.load_audio(audio_path)
+        with _timed(f"load audio file {audio_path.name} (refine)"):
+            audio = self.load_audio(audio_path)
         model, metadata = self._aligner(language)
-        aligned = self.whisperx.align(
-            segments,
-            model,
-            metadata,
-            audio,
-            self.device,
-            return_char_alignments=False,
-        )
+        with _timed("refine align"):
+            aligned = self.whisperx.align(
+                segments,
+                model,
+                metadata,
+                audio,
+                self.device,
+                return_char_alignments=False,
+            )
         return list(aligned.get("segments") or [])
 
 
