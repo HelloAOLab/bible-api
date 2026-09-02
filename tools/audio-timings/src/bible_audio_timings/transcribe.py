@@ -14,6 +14,7 @@ import json
 import logging
 import math
 import os
+import sys
 from contextlib import contextmanager
 from pathlib import Path
 from time import perf_counter
@@ -22,6 +23,34 @@ from .align import AsrWord
 from .normalize import normalize_token
 
 logger = logging.getLogger(__name__)
+
+
+def _register_windows_ffmpeg_dll_dirs() -> None:
+    """Make FFmpeg's shared libraries visible to torch/torchcodec on Windows.
+
+    Since Python 3.8, ctypes-based DLL loading (which is how torch loads
+    torchcodec, and how torchcodec in turn loads FFmpeg's own shared
+    libraries) no longer searches PATH for a DLL's *dependencies* - only
+    directories registered with os.add_dll_directory(). Without this,
+    torchcodec fails with "could not find ffmpeg" even when a compatible
+    FFmpeg is on PATH, because PATH is only used to find whisperX's `ffmpeg`
+    executable itself, not the DLLs torchcodec dynamically links against.
+    """
+    if sys.platform != "win32":
+        return
+    for directory in os.environ.get("PATH", "").split(os.pathsep):
+        if not directory:
+            continue
+        path = Path(directory)
+        try:
+            has_ffmpeg_libs = any(path.glob("avutil-*.dll"))
+        except OSError:
+            continue
+        if has_ffmpeg_libs:
+            try:
+                os.add_dll_directory(str(path))
+            except OSError:
+                pass
 
 
 @contextmanager
@@ -167,6 +196,7 @@ class Transcriber:
     @property
     def whisperx(self):
         if self._whisperx is None:
+            _register_windows_ffmpeg_dll_dirs()
             try:
                 import whisperx
             except ImportError as error:  # pragma: no cover - needs the extra
