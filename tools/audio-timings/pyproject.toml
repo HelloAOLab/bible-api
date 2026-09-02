@@ -10,13 +10,25 @@ dependencies = ["httpx>=0.27"]
 [project.optional-dependencies]
 # whisperX pulls in torch/CUDA, so it is opt-in. Everything except
 # bible_audio_timings.transcribe imports and tests without it.
-asr = ["whisperx>=3.1"]
+asr = ["whisperx>=3.1", "torch>=2.8.0,<2.9.dev0", "torchaudio>=2.8.0,<2.9.dev0"]
 
 [project.scripts]
 bible-audio-timings = "bible_audio_timings.cli:main"
 
 [dependency-groups]
 dev = ["pytest>=8.0", "ruff>=0.6"]
+
+# PyPI's Windows/Linux torch wheels are CPU-only; the CUDA builds only live on
+# PyTorch's own index. Without this, `default_device()` always sees
+# torch.cuda.is_available() == False and silently falls back to CPU.
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cu128", marker = "sys_platform == 'win32' or sys_platform == 'linux'" }]
+torchaudio = [{ index = "pytorch-cu128", marker = "sys_platform == 'win32' or sys_platform == 'linux'" }]
 
 [build-system]
 requires = ["hatchling"]
