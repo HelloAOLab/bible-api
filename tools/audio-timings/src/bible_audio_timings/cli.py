@@ -105,7 +105,7 @@ def local_audio(directory: Path, key: ChapterKey) -> Path | None:
     ]
     for suffix in (".mp3", ".m4a", ".wav", ".ogg", ".flac"):
         for folder in candidates:
-            path = folder / f"{key.chapter_number}.{key.reader}{suffix}"
+            path = folder / f"{key.chapter_number}" / "audio" / f"{key.reader}{suffix}"
             if path.is_file():
                 return path
     return None
