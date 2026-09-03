@@ -14,6 +14,8 @@ model Translation {
     licenseUrl    String
     licenseNotes  String?
     licenseNotice String?
+    // JSON-serialized License object (see @helloao/tools generation/common-types.ts)
+    license       String?
     shortName     String?
     englishName   String
     language      String

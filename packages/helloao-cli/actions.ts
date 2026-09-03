@@ -64,6 +64,7 @@ import {
     convertUsfmToUsx3,
 } from './conversion.js';
 import { fetchEBibleMetadata } from './ebible.js';
+import { detectEBibleLicense } from './ebible-license.js';
 import { importDatasetOutput } from './db.js';
 import { groupBy } from 'es-toolkit/compat';
 
@@ -260,6 +261,11 @@ async function createMetadataJson(
             shortName: shortName,
             website: `https://ebible.org/Scriptures/details.php?id=${source.id}`,
         };
+
+        const license = await detectEBibleLicense(source);
+        if (license) {
+            metadata.license = license;
+        }
     }
 
     await writeFile(metadataPath, JSON.stringify(metadata, null, 2));

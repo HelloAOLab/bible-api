@@ -308,6 +308,7 @@ export function insertTranslations(
         licenseUrl,
         licenseNotes,
         licenseNotice,
+        license,
         website,
         englishName
     ) VALUES (
@@ -319,9 +320,10 @@ export function insertTranslations(
         @licenseUrl,
         @licenseNotes,
         @licenseNotice,
+        @license,
         @website,
         @englishName
-    ) ON CONFLICT(id) DO 
+    ) ON CONFLICT(id) DO
         UPDATE SET
             name=excluded.name,
             language=excluded.language,
@@ -330,6 +332,7 @@ export function insertTranslations(
             licenseUrl=excluded.licenseUrl,
             licenseNotes=excluded.licenseNotes,
             licenseNotice=excluded.licenseNotice,
+            license=excluded.license,
             website=excluded.website,
             englishName=excluded.englishName;`);
 
@@ -345,6 +348,9 @@ export function insertTranslations(
                     licenseUrl: translation.licenseUrl,
                     licenseNotes: translation.licenseNotes,
                     licenseNotice: translation.licenseNotice,
+                    license: translation.license
+                        ? JSON.stringify(translation.license)
+                        : null,
                     website: translation.website,
                     englishName: translation.englishName,
                 });
@@ -1910,6 +1916,7 @@ export async function* loadTranslationDatasets(
         const optionalTranslationKeys: (keyof DatasetTranslation)[] = [
             'licenseNotes',
             'licenseNotice',
+            'license',
         ];
 
         for (let translation of translations) {
@@ -1917,6 +1924,9 @@ export async function* loadTranslationDatasets(
                 ...translation,
                 shortName: translation.shortName!,
                 textDirection: translation.textDirection! as any,
+                license: translation.license
+                    ? JSON.parse(translation.license)
+                    : undefined,
                 books: [],
             };
             for (let key of optionalTranslationKeys) {

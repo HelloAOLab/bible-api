@@ -75,6 +75,11 @@ export interface MetadataBase {
     licenseNotice?: string | null;
 
     /**
+     * The structured license terms that were detected for the translation, if any.
+     */
+    license?: License | null;
+
+    /**
      * The ISO 639 letter language tag that the translation is primarily in.
      */
     language: string;
@@ -84,6 +89,56 @@ export interface MetadataBase {
      */
     direction: 'ltr' | 'rtl';
 }
+
+/**
+ * Defines a Zod schema for the structured license terms of a translation.
+ */
+export const LicenseSchema = z.object({
+    /**
+     * Whether attribution to the original source is required when using the translation.
+     */
+    attribution: z.enum(['required', 'not-required']).meta({
+        description:
+            'Whether attribution to the original source is required when using the translation.',
+    }),
+
+    /**
+     * Whether commercial use of the translation is allowed.
+     */
+    commercialUse: z.enum(['allowed', 'not-allowed']).meta({
+        description: 'Whether commercial use of the translation is allowed.',
+    }),
+
+    /**
+     * Whether creating and distributing derivative works of the translation is allowed.
+     */
+    derivatives: z.enum(['allowed', 'not-allowed']).meta({
+        description:
+            'Whether creating and distributing derivative works of the translation is allowed.',
+    }),
+
+    /**
+     * Whether derivative works must be distributed under the same license (i.e. a "share-alike" requirement).
+     */
+    copyleft: z.boolean().meta({
+        description:
+            'Whether derivative works must be distributed under the same license (i.e. a "share-alike" requirement).',
+    }),
+
+    /**
+     * Whether the translation has been dedicated to the public domain.
+     */
+    publicDomain: z.boolean().meta({
+        description:
+            'Whether the translation has been dedicated to the public domain.',
+    }),
+}).meta({
+    id: 'License',
+    description:
+        'Defines the structured license terms that were detected for a translation.',
+});
+
+export type License = z.infer<typeof LicenseSchema>;
 
 /**
  * The metadata for a translation that is input into the generator.
@@ -156,6 +211,14 @@ export const TranslationSchema = z.object({
     licenseNotice: z.string().nullable().optional().meta({
         description:
             'The notice that should be displayed when displaying content from the translation.',
+    }),
+
+    /**
+     * The structured license terms that were detected for the translation, if any.
+     */
+    license: LicenseSchema.nullable().optional().meta({
+        description:
+            'The structured license terms that were detected for the translation, if any.',
     }),
 
     /**
