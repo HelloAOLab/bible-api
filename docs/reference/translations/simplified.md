@@ -18,6 +18,8 @@ Use this endpoint when you want the text of a chapter. Use [the regular chapter 
 
 Chapters that have word-level annotations link to them with `thisChapterWordsLink`, which points at [the simplified annotations](#get-the-words-of-a-chapter-in-the-simplified-format) - the ones whose offsets match the text in this file.
 
+Chapters that have per-reader audio timings link to them with `thisChapterAudioTimings`, which points at [the audio timings endpoint](./standard.md#get-the-audio-timings-for-a-chapter) - the same file that the regular chapter endpoint links to, since timings don't depend on the chapter format.
+
 ### Code Example
 
 ```ts:no-line-numbers title="fetch-simple-chapter.js"
@@ -73,6 +75,13 @@ export interface SimpleTranslationBookChapter {
     thisChapterAudioLinks: TranslationBookChapterAudioLinks;
 
     /**
+     * The links to the audio timings for different audio versions for the chapter.
+     * See "Get the Audio Timings for a Chapter" in the standard format docs -
+     * the timings file is the same regardless of which chapter format linked to it.
+     */
+    thisChapterAudioTimings: TranslationBookChapterAudioTimingsLinks;
+
+    /**
      * The link to the next chapter, in the simplified format.
      * Null if this is the last chapter in the translation.
      */
@@ -85,6 +94,12 @@ export interface SimpleTranslationBookChapter {
     nextChapterAudioLinks: TranslationBookChapterAudioLinks | null;
 
     /**
+     * The links to the audio timings for different audio versions for the next chapter.
+     * Null if this is the last chapter in the translation.
+     */
+    nextChapterAudioTimings: TranslationBookChapterAudioTimingsLinks | null;
+
+    /**
      * The link to the previous chapter, in the simplified format.
      * Null if this is the first chapter in the translation.
      */
@@ -95,6 +110,12 @@ export interface SimpleTranslationBookChapter {
      * Null if this is the first chapter in the translation.
      */
     previousChapterAudioLinks: TranslationBookChapterAudioLinks | null;
+
+    /**
+     * The links to the audio timings for different audio versions for the previous chapter.
+     * Null if this is the first chapter in the translation.
+     */
+    previousChapterAudioTimings: TranslationBookChapterAudioTimingsLinks | null;
 
     /**
      * The number of verses that the chapter contains.
@@ -327,14 +348,25 @@ interface SimplePoemRange extends SimpleTextRange {
         "souer": "https://audio.bible.helloao.org/api/BSB/GEN/1/audio/souer.mp3",
         "david": "https://audio.bible.helloao.org/api/BSB/GEN/1/audio/david.mp3"
     },
+    "thisChapterAudioTimings": {
+        "hays": "/api/BSB/GEN/1.hays.audioTimings.json",
+        "souer": "/api/BSB/GEN/1.souer.audioTimings.json",
+        "david": "/api/BSB/GEN/1.david.audioTimings.json"
+    },
     "nextChapterApiLink": "/api/BSB/GEN/2.simple.json",
     "nextChapterReference": {
         "translationId": "BSB",
         "book": "GEN",
         "chapter": 2
     },
+    "nextChapterAudioTimings": {
+        "hays": "/api/BSB/GEN/2.hays.audioTimings.json",
+        "souer": "/api/BSB/GEN/2.souer.audioTimings.json",
+        "david": "/api/BSB/GEN/2.david.audioTimings.json"
+    },
     "previousChapterApiLink": null,
     "previousChapterReference": null,
+    "previousChapterAudioTimings": null,
     "numberOfVerses": 31,
     "chapter": {
         "number": 1,
@@ -694,10 +726,11 @@ export interface SimpleTranslationCompleteChapter {
     /**
      * The audio timings (per-verse start times, in seconds) for the chapter.
      *
-     * Note that the complete translation files contain the timings themselves,
-     * unlike the individual chapter endpoints, which contain links to them.
+     * Note that the complete translation files contain the timings themselves
+     * (see TranslationBookChapterAudioTimingsMap in the standard format docs), unlike the
+     * individual chapter endpoints, which contain links to them.
      */
-    thisChapterAudioTimings: TranslationBookChapterAudioTimings;
+    thisChapterAudioTimings: TranslationBookChapterAudioTimingsMap;
 
     /**
      * The link to the word-level annotations for the chapter, using the
@@ -755,7 +788,11 @@ export interface SimpleTranslationCompleteChapter {
                         "souer": "https://audio.bible.helloao.org/api/BSB/GEN/1/audio/souer.mp3",
                         "david": "https://audio.bible.helloao.org/api/BSB/GEN/1/audio/david.mp3"
                     },
-                    "thisChapterAudioTimings": {},
+                    "thisChapterAudioTimings": {
+                        "hays": [0, 4.32, 10.28],
+                        "souer": [0, 4.28, 10.19],
+                        "david": [0, 4.51, 10.62]
+                    },
                     "chapter": {
                         "number": 1,
                         "content": [
