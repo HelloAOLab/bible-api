@@ -35,6 +35,14 @@ const chapter = await api.getTranslationBookChapter('BSB', 'GEN', 1);
 console.log('Verses in Genesis 1:', chapter.numberOfVerses);
 ```
 
+CommonJS is also supported:
+
+```js
+const { FreeUseBibleApi } = require('free-use-bible-api');
+
+const api = new FreeUseBibleApi();
+```
+
 ## Client Options
 
 You can customize the client with `FreeUseBibleApiOptions`:
