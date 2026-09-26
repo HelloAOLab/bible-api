@@ -435,6 +435,8 @@ export class FreeUseBibleApi {
 
     /**
      * Gets the audio timings for a specific chapter, read by a specific reader.
+     *
+     * Only some chapters have audio timings. Available readers are the keys of the chapter's `thisChapterAudioTimings` property.
      * @param translation The ID of the translation to get the audio timings for.
      * @param book The ID of the book to get the audio timings for.
      * @param chapter The chapter number to get the audio timings for.

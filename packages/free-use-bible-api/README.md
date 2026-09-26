@@ -75,6 +75,8 @@ const api = new FreeUseBibleApi({
 
 `getCompleteTranslation()` and `getSimpleCompleteTranslation()` disable per-request cache internally because payloads are typically large.
 
+Only some chapters have audio timings. The keys of a chapter's `thisChapterAudioTimings` property identify the readers available to pass to `getTranslationBookChapterAudioTimings()`.
+
 The client provides callable methods for all 24 public API operations.
 
 ### Commentaries
