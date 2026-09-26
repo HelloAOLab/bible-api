@@ -131,7 +131,6 @@ async function buildClient() {
         esbuild.build({
             ...cjsOptions,
             ...options,
-            bundle: false,
             outdir: path.resolve(fubaDist, 'cjs'),
         }),
     ]);

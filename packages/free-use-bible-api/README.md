@@ -58,6 +58,7 @@ const api = new FreeUseBibleApi({
 -   `getAvailableTranslations(endpoint?)`
 -   `getTranslationBooks(translation, endpoint?)`
 -   `getTranslationBookChapter(translation, book, chapter, endpoint?)`
+-   `getTranslationBookChapterAudioTimings(translation, book, chapter, reader, endpoint?)`
 -   `getTranslationBookChapterWords(translation, book, chapter, endpoint?)`
 -   `getCompleteTranslation(translation, endpoint?)`
 -   `getSimpleTranslationBookChapter(translation, book, chapter, endpoint?)`
@@ -65,6 +66,8 @@ const api = new FreeUseBibleApi({
 -   `getSimpleCompleteTranslation(translation, endpoint?)`
 
 `getCompleteTranslation()` and `getSimpleCompleteTranslation()` disable per-request cache internally because payloads are typically large.
+
+The client provides callable methods for all 24 public API operations.
 
 ### Commentaries
 
@@ -214,6 +217,7 @@ for (const content of chapter.chapter.content) {
 -   `GET /api/available_translations.json`
 -   `GET /api/{translation}/books.json`
 -   `GET /api/{translation}/{book}/{chapter}.json`
+-   `GET /api/{translation}/{book}/{chapter}.{reader}.audioTimings.json`
 -   `GET /api/{translation}/{book}/{chapter}.words.json`
 -   `GET /api/{translation}/complete.json`
 -   `GET /api/{translation}/{book}/{chapter}.simple.json`

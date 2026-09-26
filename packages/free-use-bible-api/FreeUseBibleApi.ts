@@ -1,8 +1,10 @@
 import type {
+    ApiAvailableCommentaries,
     ApiAvailableDatasets,
     ApiAvailableTranslations,
     ApiCommentaryBook,
     ApiCommentaryBookChapter,
+    ApiCommentaryBooks,
     ApiDatasetBook,
     ApiDatasetBookChapter,
     ApiDatasetBooks,
@@ -21,6 +23,7 @@ import type {
     ApiSimpleTranslationComplete,
     ApiTranslationBook,
     ApiTranslationBookChapter,
+    ApiTranslationBookChapterAudioTimings,
     ApiTranslationBookChapterWords,
     ApiTranslationBooks,
     ApiTranslationComplete,
@@ -195,8 +198,8 @@ export class FreeUseBibleApi {
      */
     async getAvailableCommentaries(
         endpoint?: string
-    ): Promise<ApiAvailableTranslations> {
-        return this._getJson<ApiAvailableTranslations>(
+    ): Promise<ApiAvailableCommentaries> {
+        return this._getJson<ApiAvailableCommentaries>(
             'api/available_commentaries.json',
             endpoint
         );
@@ -239,9 +242,9 @@ export class FreeUseBibleApi {
     async getCommentaryBooks(
         commentary: string,
         endpoint?: string
-    ): Promise<ApiTranslationBooks> {
+    ): Promise<ApiCommentaryBooks> {
         const encodedCommentary = encodeURIComponent(commentary);
-        return this._getJson<ApiTranslationBooks>(
+        return this._getJson<ApiCommentaryBooks>(
             `api/c/${encodedCommentary}/books.json`,
             endpoint
         );
@@ -426,6 +429,31 @@ export class FreeUseBibleApi {
         const encodedChapter = encodeURIComponent(String(chapter));
         return this._getJson<ApiTranslationBookChapter>(
             `api/${encodedTranslation}/${encodedBook}/${encodedChapter}.json`,
+            endpoint
+        );
+    }
+
+    /**
+     * Gets the audio timings for a specific chapter, read by a specific reader.
+     * @param translation The ID of the translation to get the audio timings for.
+     * @param book The ID of the book to get the audio timings for.
+     * @param chapter The chapter number to get the audio timings for.
+     * @param reader The ID of the reader to get the audio timings for.
+     * @param endpoint The API endpoint to use for the request. If not provided, the default endpoint will be used.
+     */
+    async getTranslationBookChapterAudioTimings(
+        translation: string,
+        book: string,
+        chapter: number | string,
+        reader: string,
+        endpoint?: string
+    ): Promise<ApiTranslationBookChapterAudioTimings> {
+        const encodedTranslation = encodeURIComponent(translation);
+        const encodedBook = encodeURIComponent(book);
+        const encodedChapter = encodeURIComponent(String(chapter));
+        const encodedReader = encodeURIComponent(reader);
+        return this._getJson<ApiTranslationBookChapterAudioTimings>(
+            `api/${encodedTranslation}/${encodedBook}/${encodedChapter}.${encodedReader}.audioTimings.json`,
             endpoint
         );
     }
@@ -618,11 +646,11 @@ export class FreeUseBibleApi {
         book: string,
         chapter: number | string,
         endpoint?: string
-    ): Promise<ApiTranslationBookChapter> {
+    ): Promise<ApiCommentaryBookChapter> {
         const encodedCommentary = encodeURIComponent(commentary);
         const encodedBook = encodeURIComponent(book);
         const encodedChapter = encodeURIComponent(String(chapter));
-        return this._getJson<ApiTranslationBookChapter>(
+        return this._getJson<ApiCommentaryBookChapter>(
             `api/c/${encodedCommentary}/${encodedBook}/${encodedChapter}.json`,
             endpoint
         );
@@ -705,9 +733,11 @@ export class FreeUseBibleApi {
      * @returns The next chapter, or null if there is no next chapter.
      */
     getNextChapter(
-        chapter: ApiDatasetBookChapter,
+        chapter: ApiDatasetBookChapter | ApiDatasetEntityBookChapter,
         endpoint?: string
-    ): Promise<ApiDatasetBookChapter | null>;
+    ): Promise<
+        ApiDatasetBookChapter | ApiDatasetEntityBookChapter | null
+    >;
     /**
      * Gets the next chapter for a given chapter, if available.
      * @param chapter The chapter to get the next chapter for.
@@ -733,6 +763,7 @@ export class FreeUseBibleApi {
             | ApiTranslationBookChapter
             | ApiCommentaryBookChapter
             | ApiDatasetBookChapter
+            | ApiDatasetEntityBookChapter
             | ApiSimpleTranslationBookChapter
             | ApiSimpleCommentaryBookChapter,
         endpoint?: string
@@ -740,6 +771,7 @@ export class FreeUseBibleApi {
         | ApiTranslationBookChapter
         | ApiCommentaryBookChapter
         | ApiDatasetBookChapter
+        | ApiDatasetEntityBookChapter
         | ApiSimpleTranslationBookChapter
         | ApiSimpleCommentaryBookChapter
         | null
@@ -751,6 +783,7 @@ export class FreeUseBibleApi {
             | ApiTranslationBookChapter
             | ApiCommentaryBookChapter
             | ApiDatasetBookChapter
+            | ApiDatasetEntityBookChapter
             | ApiSimpleTranslationBookChapter
             | ApiSimpleCommentaryBookChapter
         >(chapter.nextChapterApiLink, endpoint);
@@ -783,9 +816,11 @@ export class FreeUseBibleApi {
      * @returns The previous chapter, or null if there is no previous chapter.
      */
     getPreviousChapter(
-        chapter: ApiDatasetBookChapter,
+        chapter: ApiDatasetBookChapter | ApiDatasetEntityBookChapter,
         endpoint?: string
-    ): Promise<ApiDatasetBookChapter | null>;
+    ): Promise<
+        ApiDatasetBookChapter | ApiDatasetEntityBookChapter | null
+    >;
     /**
      * Gets the previous chapter for a given chapter, if available.
      * @param chapter The chapter to get the previous chapter for.
@@ -811,6 +846,7 @@ export class FreeUseBibleApi {
             | ApiTranslationBookChapter
             | ApiCommentaryBookChapter
             | ApiDatasetBookChapter
+            | ApiDatasetEntityBookChapter
             | ApiSimpleTranslationBookChapter
             | ApiSimpleCommentaryBookChapter,
         endpoint?: string
@@ -818,6 +854,7 @@ export class FreeUseBibleApi {
         | ApiTranslationBookChapter
         | ApiCommentaryBookChapter
         | ApiDatasetBookChapter
+        | ApiDatasetEntityBookChapter
         | ApiSimpleTranslationBookChapter
         | ApiSimpleCommentaryBookChapter
         | null
@@ -829,6 +866,7 @@ export class FreeUseBibleApi {
             | ApiTranslationBookChapter
             | ApiCommentaryBookChapter
             | ApiDatasetBookChapter
+            | ApiDatasetEntityBookChapter
             | ApiSimpleTranslationBookChapter
             | ApiSimpleCommentaryBookChapter
         >(chapter.previousChapterApiLink, endpoint);
@@ -863,7 +901,7 @@ export class FreeUseBibleApi {
     getFirstChapter(
         book: ApiDatasetBook,
         endpoint?: string
-    ): Promise<ApiDatasetBookChapter>;
+    ): Promise<ApiDatasetBookChapter | ApiDatasetEntityBookChapter>;
     async getFirstChapter(
         book: ApiTranslationBook | ApiCommentaryBook | ApiDatasetBook,
         endpoint?: string
@@ -871,6 +909,7 @@ export class FreeUseBibleApi {
         | ApiTranslationBookChapter
         | ApiCommentaryBookChapter
         | ApiDatasetBookChapter
+        | ApiDatasetEntityBookChapter
         | null
     > {
         if (!book.firstChapterApiLink) {
@@ -880,6 +919,7 @@ export class FreeUseBibleApi {
             | ApiTranslationBookChapter
             | ApiCommentaryBookChapter
             | ApiDatasetBookChapter
+            | ApiDatasetEntityBookChapter
         >(book.firstChapterApiLink, endpoint);
     }
 
@@ -912,7 +952,7 @@ export class FreeUseBibleApi {
     getLastChapter(
         book: ApiDatasetBook,
         endpoint?: string
-    ): Promise<ApiDatasetBookChapter>;
+    ): Promise<ApiDatasetBookChapter | ApiDatasetEntityBookChapter>;
     async getLastChapter(
         book: ApiTranslationBook | ApiCommentaryBook | ApiDatasetBook,
         endpoint?: string
@@ -920,6 +960,7 @@ export class FreeUseBibleApi {
         | ApiTranslationBookChapter
         | ApiCommentaryBookChapter
         | ApiDatasetBookChapter
+        | ApiDatasetEntityBookChapter
         | null
     > {
         if (!book.lastChapterApiLink) {
@@ -929,6 +970,7 @@ export class FreeUseBibleApi {
             | ApiTranslationBookChapter
             | ApiCommentaryBookChapter
             | ApiDatasetBookChapter
+            | ApiDatasetEntityBookChapter
         >(book.lastChapterApiLink, endpoint);
     }
 
