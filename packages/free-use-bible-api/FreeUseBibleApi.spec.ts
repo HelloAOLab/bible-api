@@ -1,20 +1,52 @@
+import { readFileSync } from 'node:fs';
 import { FreeUseBibleApi, VerseReference } from './FreeUseBibleApi.js';
 import type {
     ApiCommentaryBook,
     ApiCommentaryBookChapter,
     ApiDatasetBook,
     ApiDatasetBookChapter,
+    ApiDatasetEntityBookChapter,
     ApiSimpleCommentaryBookChapter,
     ApiSimpleTranslationBookChapter,
     ApiSimpleTranslationBookChapterWords,
     ApiTranslationBook,
     ApiTranslationBookChapter,
+    ApiTranslationBookChapterAudioTimings,
     ApiTranslationBookChapterWords,
     ChapterVerse,
     SimpleChapterVerse,
     SimpleTranslationCompleteChapter,
     TranslationCompleteChapter,
 } from './types.gen.js';
+
+const operationMethods = {
+    GetAvailableTranslations: 'getAvailableTranslations',
+    GetTranslationBooks: 'getTranslationBooks',
+    GetTranslationBookChapter: 'getTranslationBookChapter',
+    GetSimpleTranslationBookChapter: 'getSimpleTranslationBookChapter',
+    GetTranslationBookChapterAudioTimings:
+        'getTranslationBookChapterAudioTimings',
+    GetTranslationBookChapterWords: 'getTranslationBookChapterWords',
+    GetSimpleTranslationBookChapterWords:
+        'getSimpleTranslationBookChapterWords',
+    GetTranslationComplete: 'getCompleteTranslation',
+    GetSimpleTranslationComplete: 'getSimpleCompleteTranslation',
+    GetAvailableCommentaries: 'getAvailableCommentaries',
+    GetCommentaryBooks: 'getCommentaryBooks',
+    GetCommentaryBookChapter: 'getCommentaryBookChapter',
+    GetSimpleCommentaryBookChapter: 'getSimpleCommentaryBookChapter',
+    GetAvailableDatasets: 'getAvailableDatasets',
+    GetDatasetBooks: 'getDatasetBooks',
+    GetDatasetBookChapter: 'getDatasetBookChapter',
+    GetDatasetPeople: 'getDatasetPeople',
+    GetDatasetPerson: 'getDatasetPerson',
+    GetDatasetPlaces: 'getDatasetPlaces',
+    GetDatasetPlace: 'getDatasetPlace',
+    GetDatasetEvents: 'getDatasetEvents',
+    GetDatasetEvent: 'getDatasetEvent',
+    GetDatasetPeopleGroups: 'getDatasetPeopleGroups',
+    GetDatasetPeopleGroup: 'getDatasetPeopleGroup',
+} as const satisfies Record<string, keyof FreeUseBibleApi>;
 
 describe('FreeUseBibleApi', () => {
     let fetchMock: jest.Mock;
@@ -50,6 +82,50 @@ describe('FreeUseBibleApi', () => {
         );
     });
 
+    it('has a callable method mapped for every public OpenAPI operation', () => {
+        const generatedTypes = readFileSync(
+            'packages/free-use-bible-api/types.gen.ts',
+            'utf8'
+        );
+        const operationIds = Array.from(
+            generatedTypes.matchAll(/^export type (Get\w+)Data = \{/gm),
+            (match) => match[1]
+        ).sort();
+
+        expect(operationIds).toEqual(Object.keys(operationMethods).sort());
+
+        const api = new FreeUseBibleApi();
+        for (const method of Object.values(operationMethods)) {
+            expect(typeof api[method]).toBe('function');
+        }
+    });
+
+    it('returns commentary-specific response types', async () => {
+        fetchMock
+            .mockResolvedValueOnce(
+                jsonResponse({ commentaries: [{ id: 'matthew_henry' }] })
+            )
+            .mockResolvedValueOnce(
+                jsonResponse({ commentary: { id: 'matthew_henry' }, books: [] })
+            )
+            .mockResolvedValueOnce(
+                jsonResponse({ commentary: { id: 'matthew_henry' } })
+            );
+
+        const api = new FreeUseBibleApi();
+        const available = await api.getAvailableCommentaries();
+        const books = await api.getCommentaryBooks('matthew_henry');
+        const chapter = await api.getCommentaryBookChapter(
+            'matthew_henry',
+            'GEN',
+            1
+        );
+
+        expect(available.commentaries[0].id).toBe('matthew_henry');
+        expect(books.commentary.id).toBe('matthew_henry');
+        expect(chapter.commentary.id).toBe('matthew_henry');
+    });
+
     it('builds encoded chapter URLs and supports endpoint override per call', async () => {
         const payload = { chapter: { number: 1 } };
         fetchMock.mockResolvedValue(jsonResponse(payload));
@@ -64,6 +140,39 @@ describe('FreeUseBibleApi', () => {
 
         expect(fetchMock).toHaveBeenCalledWith(
             'https://example.com/base/api/My%20Translation/GEN%2FIntro/1.json'
+        );
+    });
+
+    it('gets typed audio timings with independently encoded path segments', async () => {
+        const payload: ApiTranslationBookChapterAudioTimings = {
+            translationId: 'My Translation',
+            bookId: 'GEN/Intro',
+            chapterNumber: 1,
+            reader: 'Reader / One',
+            audioLink: '/audio.mp3',
+            thisChapterLink: '/api/chapter.json',
+            nextChapterLink: null,
+            previousChapterLink: null,
+            thisChapterAudioTimingsLink: '/api/timings.json',
+            nextChapterAudioTimingsLink: null,
+            previousChapterAudioTimingsLink: null,
+            verses: [0, 4.2],
+        };
+        fetchMock.mockResolvedValue(jsonResponse(payload));
+
+        const api = new FreeUseBibleApi();
+        const result = await api.getTranslationBookChapterAudioTimings(
+            'My Translation',
+            'GEN/Intro',
+            '1/2',
+            'Reader / One',
+            'https://example.com/base/'
+        );
+
+        expect(result.verses).toEqual([0, 4.2]);
+        expect(result).toBe(payload);
+        expect(fetchMock).toHaveBeenCalledWith(
+            'https://example.com/base/api/My%20Translation/GEN%2FIntro/1%2F2.Reader%20%2F%20One.audioTimings.json'
         );
     });
 
@@ -227,6 +336,43 @@ describe('FreeUseBibleApi', () => {
 
         expect(first).toEqual(firstPayload);
         expect(last).toEqual(lastPayload);
+    });
+
+    it('preserves entity chapter fields through dataset navigation', async () => {
+        const entityPayload = {
+            chapter: { number: 2, people: [], places: [], events: [] },
+            numberOfPeople: 3,
+            numberOfPlaces: 2,
+            numberOfEvents: 1,
+        };
+        fetchMock.mockResolvedValue(jsonResponse(entityPayload));
+
+        const api = new FreeUseBibleApi({ useCache: false });
+        const chapter = {
+            nextChapterApiLink: '/api/d/theographic/GEN/2.json',
+            previousChapterApiLink: '/api/d/theographic/GEN/1.json',
+        } as ApiDatasetEntityBookChapter;
+        const book = {
+            firstChapterApiLink: '/api/d/theographic/GEN/1.json',
+            lastChapterApiLink: '/api/d/theographic/GEN/50.json',
+        } as ApiDatasetBook;
+
+        const results = await Promise.all([
+            api.getNextChapter(chapter),
+            api.getPreviousChapter(chapter),
+            api.getFirstChapter(book),
+            api.getLastChapter(book),
+        ]);
+
+        for (const result of results) {
+            expect(result).not.toBeNull();
+            if (!result || !('numberOfPeople' in result)) {
+                throw new Error('Expected an entity dataset chapter');
+            }
+            expect(result.numberOfPeople).toBe(3);
+            expect(result.chapter.people).toEqual([]);
+        }
+        expect(fetchMock).toHaveBeenCalledTimes(4);
     });
 
     it('gets an entity chapter through getDatasetBookChapter', async () => {
