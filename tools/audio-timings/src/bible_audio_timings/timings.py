@@ -251,11 +251,12 @@ def _reject(result: ChapterTimings, thresholds: Thresholds) -> list[str]:
         )
 
     starts = result.starts
+    first_verse = result.verses[0].verse
     if starts[0] < 0:
-        reasons.append(f"verse 1 starts at a negative time ({starts[0]:.2f}s)")
+        reasons.append(f"verse {first_verse} starts at a negative time ({starts[0]:.2f}s)")
     elif starts[0] > thresholds.max_first_verse_start:
         reasons.append(
-            f"verse 1 starts at {starts[0]:.2f}s, later than "
+            f"verse {first_verse} starts at {starts[0]:.2f}s, later than "
             f"{thresholds.max_first_verse_start:.0f}s"
         )
 

@@ -43,6 +43,35 @@ def test_verse_starts_come_from_their_first_anchor() -> None:
     assert result.ok
 
 
+def test_omitted_verse_numbers_get_one_start_per_verse_present() -> None:
+    """A chapter with no verse 2 (like Matthew 17:21) still times every verse."""
+    tokens = [
+        RefToken(verse=(1, 3, 4)[index // 2], index=index, raw=word, norm=word)
+        for index, word in enumerate(WORDS)
+    ]
+    stream = asr(WORDS, start=1.0, step=0.5)
+    result = run(asr_words=stream, ref_tokens=tokens, duration=4.2)
+
+    assert [timing.verse for timing in result.verses] == [1, 3, 4]
+    assert all(timing.source == "anchor" for timing in result.verses)
+    assert result.starts == [1.0, 2.0, 3.0]
+    assert result.ok
+
+
+def test_unanchored_verse_after_a_gap_is_interpolated() -> None:
+    tokens = [
+        RefToken(verse=(1, 3, 4)[index // 2], index=index, raw=word, norm=word)
+        for index, word in enumerate(WORDS)
+    ]
+    stream = asr(WORDS, step=0.5)
+    anchors = [a for a in anchor(stream, tokens) if a.ref_index not in (2, 3)]
+    result = run(asr_words=stream, ref_tokens=tokens, anchors=anchors, duration=3.6)
+
+    assert [timing.verse for timing in result.verses] == [1, 3, 4]
+    assert result.verses[1].source == "interpolated"
+    assert result.starts[0] < result.starts[1] < result.starts[2]
+
+
 def test_reader_intro_does_not_pull_verse_one_to_zero() -> None:
     spoken = ["test", "book", "chapter", "1", *WORDS]
     result = run(asr_words=asr(spoken, step=0.5), ref_tokens=ref(WORDS), duration=5.2)

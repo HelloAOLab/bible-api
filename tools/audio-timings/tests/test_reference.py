@@ -74,14 +74,38 @@ def test_verse_count_cross_checks_number_of_verses(simple_chapter: dict) -> None
         verse_count(lying)
 
 
-def test_non_contiguous_verses_are_rejected(simple_chapter: dict) -> None:
-    broken = copy.deepcopy(simple_chapter)
-    broken["chapter"]["content"] = [
+def test_omitted_verses_are_accepted(simple_chapter: dict) -> None:
+    """Chapters like Matthew 17 have no verse 21 in many translations."""
+    gapped = copy.deepcopy(simple_chapter)
+    gapped["chapter"]["content"] = [
         item
-        for item in broken["chapter"]["content"]
+        for item in gapped["chapter"]["content"]
         if not (item.get("type") == "verse" and item.get("number") == 2)
     ]
-    with pytest.raises(ReferenceError, match="not contiguous"):
+    gapped["numberOfVerses"] = 3
+
+    assert [number for number, _ in verse_texts(gapped)] == [1, 3, 4]
+    assert verse_count(gapped) == 3
+    tokens = reference_tokens(gapped)
+    assert sorted(verse_token_starts(tokens)) == [1, 3, 4]
+
+
+def test_out_of_order_verses_are_rejected(simple_chapter: dict) -> None:
+    broken = copy.deepcopy(simple_chapter)
+    content = broken["chapter"]["content"]
+    positions = [i for i, item in enumerate(content) if item.get("type") == "verse"]
+    first, second = positions[1], positions[2]
+    content[first], content[second] = content[second], content[first]
+    with pytest.raises(ReferenceError, match="not in ascending order: 2 follows 3"):
+        verse_texts(broken)
+
+
+def test_verse_zero_is_rejected(simple_chapter: dict) -> None:
+    broken = copy.deepcopy(simple_chapter)
+    for item in broken["chapter"]["content"]:
+        if item.get("type") == "verse" and item["number"] == 1:
+            item["number"] = 0
+    with pytest.raises(ReferenceError, match="start at 1 or above"):
         verse_texts(broken)
 
 
