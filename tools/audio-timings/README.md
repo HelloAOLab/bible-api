@@ -23,7 +23,7 @@ matching job, and that is what makes the output checkable.
 2. **ASR** — run whisperX over the recording, then `whisperx.align()` for word-level
    timestamps.
 3. **Match** — align the recognized word stream against the reference word stream with
-   `difflib`. Agreement runs become *anchors*: points where a recognized word with a known
+   `difflib`. Agreement runs become _anchors_: points where a recognized word with a known
    timestamp is pinned to a known reference position.
 4. **Verse starts** — each verse takes the timestamp of its first anchor, walked back at
    the local speaking rate if the anchor sits a few words in. Verses with no anchor are
@@ -32,7 +32,7 @@ matching job, and that is what makes the output checkable.
    that fails them.
 
 Step 3 is what a pure forced-alignment approach would skip, and it is the part worth
-keeping. The match rate *measures* whether the recording and the text actually correspond —
+keeping. The match rate _measures_ whether the recording and the text actually correspond —
 which matters here, because the BSB recordings were reportedly pulled for no longer matching
 the current edition of the text (see
 [issue #46](https://github.com/HelloAOLab/bible-api/issues/46)). Aligning known text
@@ -73,13 +73,13 @@ uv run bible-audio-timings BSB/GEN/1-5 --dry-run
 
 Targets are `TRANSLATION[/BOOK[/CHAPTER[-CHAPTER]]][:READER]`:
 
-| Target | Meaning |
-| --- | --- |
-| `BSB` | every book and chapter of a translation |
-| `BSB/GEN` | every chapter of a book |
-| `BSB/GEN/1` | a single chapter |
-| `BSB/GEN/1-5` | a chapter range |
-| `BSB/GEN/1:hays` | a single chapter for one reader |
+| Target           | Meaning                                 |
+| ---------------- | --------------------------------------- |
+| `BSB`            | every book and chapter of a translation |
+| `BSB/GEN`        | every chapter of a book                 |
+| `BSB/GEN/1`      | a single chapter                        |
+| `BSB/GEN/1-5`    | a chapter range                         |
+| `BSB/GEN/1:hays` | a single chapter for one reader         |
 
 With no reader given, every reader in the chapter's `thisChapterAudioLinks` is processed.
 
@@ -106,7 +106,17 @@ under `--cache-dir` (default `./.cache/audio-timings`, already gitignored).
 
 Long runs are resumable. Every finished chapter is recorded in the cache manifest and the
 output file is rewritten immediately, so an interrupted whole-Bible run picks up where it
-stopped with `--resume`. The whisper and alignment models load once per process and are
+stopped with `--resume`. Chapters that failed or were rejected by the quality thresholds are
+recorded too, and `--retry-failed` reruns only those, straight from the manifest, without
+fetching every chapter of the targets first:
+
+```bash
+# Retry every failed chapter in the manifest (targets optional; they narrow the set).
+uv run bible-audio-timings --retry-failed --audio ./sources/audio -o ./timings.json
+uv run bible-audio-timings BSB/GEN --retry-failed --min-match-rate 0.7 -o ./timings.json
+```
+
+The whisper and alignment models load once per process and are
 reused across chapters, which is most of the reason to process a range in one invocation
 rather than looping the command.
 
@@ -130,7 +140,7 @@ A JSON array of `AudioTimingRecord` (`packages/helloao-cli/actions.ts`):
 non-decreasing.
 
 > One wrinkle worth knowing: the example array in issue #10 is not monotonic, because it
-> holds per-verse *durations* copied from biblehub's `hays.js`. The merged schema in this
+> holds per-verse _durations_ copied from biblehub's `hays.js`. The merged schema in this
 > repo specifies start times (`api.ts`, `schema.prisma`), which is what this tool emits.
 > `--durations` converts to the older convention for interoperability; it is not the import
 > format, so it requires an explicit `--output`.
@@ -141,14 +151,14 @@ A wrong timing is worse than a missing one — it desynchronizes the highlight f
 chapter — so chapters are rejected rather than emitted on doubt. A rejected chapter is
 listed in the run summary with the metric that failed, and the command exits non-zero.
 
-| Check | Default | Flag |
-| --- | --- | --- |
-| Reference words that found an anchor | ≥ 80% | `--min-match-rate` |
-| Verses that were interpolated or clamped | ≤ 15% | `--max-interpolated-fraction` |
-| Verse 1 start | ≤ 90s, ≥ 0 | `--max-first-verse-start` |
-| Widest gap between consecutive verse starts | ≤ 180s | `--max-verse-gap` |
-| Verse span as a fraction of the recording after verse 1 | ≥ 70% | `--min-coverage` |
-| Last verse start | within the recording | — |
+| Check                                                   | Default              | Flag                          |
+| ------------------------------------------------------- | -------------------- | ----------------------------- |
+| Reference words that found an anchor                    | ≥ 80%                | `--min-match-rate`            |
+| Verses that were interpolated or clamped                | ≤ 15%                | `--max-interpolated-fraction` |
+| Verse 1 start                                           | ≤ 90s, ≥ 0           | `--max-first-verse-start`     |
+| Widest gap between consecutive verse starts             | ≤ 180s               | `--max-verse-gap`             |
+| Verse span as a fraction of the recording after verse 1 | ≥ 70%                | `--min-coverage`              |
+| Last verse start                                        | within the recording | —                             |
 
 A low match rate usually means one of three things: the recording is a different edition
 than the text, the wrong reader or chapter was paired with the audio, or the language was
@@ -157,7 +167,7 @@ anyway.
 
 ### `--refine`
 
-An optional second pass re-aligns each verse's *known* text within its own time window,
+An optional second pass re-aligns each verse's _known_ text within its own time window,
 snapping boundaries to the real words instead of to the ASR's guess at them. Windows stay
 verse-sized so memory stays bounded, and a refined start that moves more than
 `--refine-max-shift` (default 2s) is discarded in favour of the coarse value. Slower;
@@ -167,16 +177,16 @@ worth it for a final published run.
 
 Run `uv run bible-audio-timings --help` for the full list. The ones that matter most:
 
-| Flag | Default | Notes |
-| --- | --- | --- |
-| `--model` | `large-v2` | any whisper model name |
-| `--device` | auto | `cuda` if available, else `cpu` |
-| `--compute-type` | `float16` on CUDA, else `int8` | lower for less VRAM |
-| `--batch-size` | `8` | lower for less VRAM |
-| `--language` | from the API | override if the API's tag is wrong |
-| `--align-model` | whisperX default | override the wav2vec2 model |
-| `--include-hebrew-subtitles` | off | for readers who voice Psalm superscriptions |
-| `--api-base` | `https://bible.helloao.org` | a `file://` path also works, for fixtures |
+| Flag                         | Default                        | Notes                                       |
+| ---------------------------- | ------------------------------ | ------------------------------------------- |
+| `--model`                    | `large-v2`                     | any whisper model name                      |
+| `--device`                   | auto                           | `cuda` if available, else `cpu`             |
+| `--compute-type`             | `float16` on CUDA, else `int8` | lower for less VRAM                         |
+| `--batch-size`               | `8`                            | lower for less VRAM                         |
+| `--language`                 | from the API                   | override if the API's tag is wrong          |
+| `--align-model`              | whisperX default               | override the wav2vec2 model                 |
+| `--include-hebrew-subtitles` | off                            | for readers who voice Psalm superscriptions |
+| `--api-base`                 | `https://bible.helloao.org`    | a `file://` path also works, for fixtures   |
 
 The API reports languages as ISO 639-3 (`eng`) while whisperX keys its alignment models by
 ISO 639-1 (`en`); the mapping is built in. A language whisperX cannot align is a hard error
