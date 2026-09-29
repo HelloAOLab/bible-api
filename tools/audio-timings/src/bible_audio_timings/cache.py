@@ -25,6 +25,19 @@ class ChapterKey:
             f"{self.translation_id}/{self.book_id}/{self.chapter_number}:{self.reader}"
         )
 
+    @classmethod
+    def parse(cls, text: str) -> ChapterKey | None:
+        """Inverse of :meth:`as_string`; ``None`` for anything malformed."""
+        body, _, reader = text.partition(":")
+        parts = body.split("/")
+        if not reader or len(parts) != 3:
+            return None
+        try:
+            chapter = int(parts[2])
+        except ValueError:
+            return None
+        return cls(parts[0], parts[1], chapter, reader)
+
 
 class Cache:
     def __init__(self, root: Path) -> None:
@@ -67,6 +80,16 @@ class Cache:
     def is_done(self, key: ChapterKey) -> bool:
         entry = self.manifest.get(key.as_string())
         return bool(entry and entry.get("ok"))
+
+    def failed_keys(self) -> list[ChapterKey]:
+        """Every chapter the manifest records as failed or rejected."""
+        keys = []
+        for text, entry in self.manifest.items():
+            if isinstance(entry, dict) and not entry.get("ok"):
+                key = ChapterKey.parse(text)
+                if key is not None:
+                    keys.append(key)
+        return keys
 
     def entry(self, key: ChapterKey) -> dict | None:
         return self.manifest.get(key.as_string())
