@@ -1,19 +1,27 @@
 <script setup lang="ts">
-import { onMounted, ref, resolveComponent } from 'vue';
+import { computed, onMounted, ref, resolveComponent } from 'vue';
 import { RouteLink } from 'vuepress/client';
 import ParentLayout from '@vuepress/theme-default/layouts/Layout.vue';
 import SiteFooter from '../components/SiteFooter.vue';
-import { useLocalePath } from '../composables/useLocalePath';
+import {
+    provideLocaleAfterMount,
+    useLabels,
+    useLocalePath,
+} from '../composables/useLocale';
 
 // Registered globally by the search plugin. Resolved here, as the theme's
 // navbar does, so it renders in the build-time HTML as well as the browser.
 const SearchBox = resolveComponent('SearchBox');
 
-const localePath = useLocalePath();
+const locale = provideLocaleAfterMount();
+const labels = useLabels(locale);
+const localePath = useLocalePath(locale);
 
 // The navbar already has a search box bound to the "s" and "/" hotkeys, so
 // the one on this page gets none of its own.
-const searchLocales = { '/': { placeholder: 'Search the docs' } };
+const searchLocales = computed(() => ({
+    [locale.value]: { placeholder: labels.value.notFound.search },
+}));
 
 // Show the address that failed, so a typo is easy to spot. It is only known
 // in the browser, since the 404 page is rendered once at build time.
@@ -65,34 +73,31 @@ onMounted(() => {
                         sandbox="allow-scripts"
                         referrerpolicy="no-referrer"
                         :srcdoc="sceneDoc(scene)"
-                        title="Decorative ASCII art scene"
+                        :title="labels.notFound.scene"
                         aria-hidden="true"
                         tabindex="-1"
                     ></iframe>
-                    <p class="code">Error 404</p>
-                    <h1>Page not found</h1>
-                    <p class="lead">
-                        We couldn't find the page you were looking for. The link
-                        may be broken, or the page may have moved.
-                    </p>
+                    <p class="code">{{ labels.notFound.code }}</p>
+                    <h1>{{ labels.notFound.title }}</h1>
+                    <p class="lead">{{ labels.notFound.lead }}</p>
                     <p v-if="missingPath" class="path">
-                        <code>{{ missingPath }}</code>
+                        <code dir="ltr">{{ missingPath }}</code>
                     </p>
 
                     <div class="search">
-                        <p class="label">Search the docs</p>
+                        <p class="label">{{ labels.notFound.search }}</p>
                         <SearchBox :locales="searchLocales" :hot-keys="[]" />
                     </div>
 
-                    <p class="label">Or try one of these</p>
+                    <p class="label">{{ labels.notFound.tryThese }}</p>
                     <div class="options">
                         <RouteLink class="option" :to="localePath('/')">
-                            <b>Home page</b>
-                            <span>Start from the beginning of the docs.</span>
+                            <b>{{ labels.notFound.home }}</b>
+                            <span>{{ labels.notFound.homeDetail }}</span>
                         </RouteLink>
                         <RouteLink class="option" :to="localePath('/guide/')">
-                            <b>Guide</b>
-                            <span>Learn how to use the API, step by step.</span>
+                            <b>{{ labels.notFound.guide }}</b>
+                            <span>{{ labels.notFound.guideDetail }}</span>
                         </RouteLink>
                     </div>
                 </main>

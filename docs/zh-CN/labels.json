@@ -1,11 +1,13 @@
 {
-    "guide": "指南",
-    "reference": "参考",
-    "sdks": "SDK",
-    "donate": "捐赠",
-    "translationsBooksChapters": "译本、书卷与章节",
-    "commentaries": "注释书",
-    "datasets": "数据集",
-    "languages": "语言",
-    "selectLanguage": "选择语言"
+    "nav": {
+        "guide": "指南",
+        "reference": "参考",
+        "sdks": "SDK",
+        "donate": "捐赠",
+        "translationsBooksChapters": "译本、书卷与章节",
+        "commentaries": "注释书",
+        "datasets": "数据集",
+        "languages": "语言",
+        "selectLanguage": "选择语言"
+    }
 }

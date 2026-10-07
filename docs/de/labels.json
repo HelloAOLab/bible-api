@@ -1,11 +1,13 @@
 {
-    "guide": "Leitfaden",
-    "reference": "Referenz",
-    "sdks": "SDKs",
-    "donate": "Spenden",
-    "translationsBooksChapters": "Übersetzungen, Bücher und Kapitel",
-    "commentaries": "Kommentare",
-    "datasets": "Datensätze",
-    "languages": "Sprachen",
-    "selectLanguage": "Sprache auswählen"
+    "nav": {
+        "guide": "Leitfaden",
+        "reference": "Referenz",
+        "sdks": "SDKs",
+        "donate": "Spenden",
+        "translationsBooksChapters": "Übersetzungen, Bücher und Kapitel",
+        "commentaries": "Kommentare",
+        "datasets": "Datensätze",
+        "languages": "Sprachen",
+        "selectLanguage": "Sprache auswählen"
+    }
 }

@@ -25,8 +25,9 @@
  * through unchanged, and relative links are rewritten so they still resolve
  * from the translated file's location.
  *
- * The navbar and sidebar labels in `docs/.vuepress/labels.json` are translated
- * into `docs/<language>/labels.json`, which the site config reads.
+ * The navbar, sidebar, home page and 404 page text in
+ * `docs/.vuepress/labels.json` is translated into
+ * `docs/<language>/labels.json`, which the site reads.
  */
 
 import { GoogleAuth } from 'google-auth-library';
@@ -49,8 +50,9 @@ const SOURCE_LANGUAGE = 'en';
 const MARKER_FILE = '.translated-docs';
 
 /**
- * The navbar and sidebar labels, which live in the site config rather than in
- * a page. Relative to the source root, and written to the root of each
+ * The navbar and sidebar labels and the text of the custom home and 404
+ * pages, which live in the site config and Vue components rather than in a
+ * page. Relative to the source root, and written to the root of each
  * translation under the same file name.
  */
 const LABELS_FILE = '.vuepress/labels.json';
@@ -804,20 +806,40 @@ function yamlQuote(value: string): string {
 // Navbar and sidebar labels
 // ---------------------------------------------------------------------------
 
+export type Labels = { [key: string]: string | Labels };
+
 /**
- * Translates the values of a flat `{ key: label }` object, keeping its keys.
+ * Translates every string in a (possibly nested) `{ key: label }` object,
+ * keeping its keys. Labels are short markdown strings, so they go through the
+ * same conversion as page prose: `**bold**` survives and `{{ placeholders }}`
+ * are left untranslated.
  */
 export async function translateLabels(
-    labels: Record<string, string>,
+    labels: Labels,
     translate: Translator
-): Promise<Record<string, string>> {
-    const keys = Object.keys(labels);
-    const translated = await translate(
-        keys.map((key) => escapeHtml(labels[key]))
-    );
-    return Object.fromEntries(
-        keys.map((key, i) => [key, unescapeHtml(translated[i]).trim()])
-    );
+): Promise<Labels> {
+    const strings: string[] = [];
+    const collect = (node: Labels) => {
+        for (const value of Object.values(node)) {
+            if (typeof value === 'string') strings.push(value);
+            else collect(value);
+        }
+    };
+    collect(labels);
+
+    const segments = strings.map((text) => markdownToSegment(text));
+    const translated = await translate(segments.map((s) => s.html));
+
+    let i = 0;
+    const rebuild = (node: Labels): Labels =>
+        Object.fromEntries(
+            Object.entries(node).map(([key, value]) => {
+                if (typeof value !== 'string') return [key, rebuild(value)];
+                const { tokens } = segments[i];
+                return [key, segmentToMarkdown(translated[i++], tokens).trim()];
+            })
+        );
+    return rebuild(labels);
 }
 
 // ---------------------------------------------------------------------------

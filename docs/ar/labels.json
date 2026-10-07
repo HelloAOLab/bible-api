@@ -1,11 +1,13 @@
 {
-    "guide": "الدليل",
-    "reference": "المرجع",
-    "sdks": "حزم SDK",
-    "donate": "تبرّع",
-    "translationsBooksChapters": "الترجمات والأسفار والإصحاحات",
-    "commentaries": "التفاسير",
-    "datasets": "مجموعات البيانات",
-    "languages": "اللغات",
-    "selectLanguage": "اختر اللغة"
+    "nav": {
+        "guide": "الدليل",
+        "reference": "المرجع",
+        "sdks": "حزم SDK",
+        "donate": "تبرّع",
+        "translationsBooksChapters": "الترجمات والأسفار والإصحاحات",
+        "commentaries": "التفاسير",
+        "datasets": "مجموعات البيانات",
+        "languages": "اللغات",
+        "selectLanguage": "اختر اللغة"
+    }
 }

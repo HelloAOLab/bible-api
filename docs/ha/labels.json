@@ -1,11 +1,13 @@
 {
-    "guide": "Jagora",
-    "reference": "Bayanan API",
-    "sdks": "SDKs",
-    "donate": "Ba da gudummawa",
-    "translationsBooksChapters": "Fassarori, Littattafai da Surori",
-    "commentaries": "Sharhohi",
-    "datasets": "Saitunan Bayanai",
-    "languages": "Harsuna",
-    "selectLanguage": "Zaɓi harshe"
+    "nav": {
+        "guide": "Jagora",
+        "reference": "Bayanan API",
+        "sdks": "SDKs",
+        "donate": "Ba da gudummawa",
+        "translationsBooksChapters": "Fassarori, Littattafai da Surori",
+        "commentaries": "Sharhohi",
+        "datasets": "Saitunan Bayanai",
+        "languages": "Harsuna",
+        "selectLanguage": "Zaɓi harshe"
+    }
 }

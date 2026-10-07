@@ -2,8 +2,7 @@ import { watchEffect } from 'vue';
 import {
     defineClientConfig,
     resolvers,
-    usePageFrontmatter,
-    usePageLang,
+    useSiteLocaleData,
 } from 'vuepress/client';
 import HomeLayout from './layouts/HomeLayout.vue';
 import NotFound from './layouts/NotFound.vue';
@@ -42,19 +41,15 @@ export default defineClientConfig({
 
     // Arabic and Urdu read right to left. The page's `lang` is set from the
     // locale, but nothing sets `dir`, so do it here as the reader switches
-    // languages. The home page's content lives in HomePage.vue and is only
-    // written in English, so it stays left to right in every locale.
+    // languages. It follows the locale of the address rather than the page,
+    // since the one 404 page is shown in every locale.
     setup() {
         if (__VUEPRESS_SSR__) {
             return;
         }
-        const lang = usePageLang();
-        const frontmatter = usePageFrontmatter();
+        const siteLocale = useSiteLocaleData();
         watchEffect(() => {
-            document.documentElement.dir =
-                frontmatter.value.layout === 'HomeLayout'
-                    ? 'ltr'
-                    : textDirection(lang.value);
+            document.documentElement.dir = textDirection(siteLocale.value.lang);
         });
     },
 });
