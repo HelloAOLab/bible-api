@@ -14,7 +14,7 @@ import type {
     SidebarOptions,
 } from '@vuepress/theme-default';
 import type { SiteLocaleConfig } from 'vuepress';
-import { existsSync, readdirSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
 const hostname = 'https://bible.helloao.org';
@@ -122,17 +122,34 @@ const nativeLanguageName = (lang: string) => {
     return name.charAt(0).toLocaleUpperCase(lang) + name.slice(1);
 };
 
-const navbar = (prefix: string): NavbarOptions => [
+/**
+ * The navbar and sidebar labels. tools/translate-docs.ts translates this file
+ * into `docs/<language>/labels.json`; a label missing from a translation
+ * falls back to English.
+ */
+const englishLabels: Record<string, string> = JSON.parse(
+    readFileSync(path.join(__dirname, 'labels.json'), 'utf8')
+);
+type Labels = typeof englishLabels;
+
+const labelsFor = (lang: string): Labels => {
+    const file = path.join(docsDir, lang, 'labels.json');
+    return existsSync(file)
+        ? { ...englishLabels, ...JSON.parse(readFileSync(file, 'utf8')) }
+        : englishLabels;
+};
+
+const navbar = (prefix: string, labels: Labels): NavbarOptions => [
     {
-        text: 'Guide',
+        text: labels.guide,
         link: `${prefix}guide/`,
     },
     {
-        text: 'Reference',
+        text: labels.reference,
         link: `${prefix}reference/`,
     },
     {
-        text: 'SDKs',
+        text: labels.sdks,
         link: `${prefix}sdks/`,
     },
     {
@@ -140,15 +157,15 @@ const navbar = (prefix: string): NavbarOptions => [
         link: 'https://github.com/HelloAOLab/bible-api',
     },
     {
-        text: 'Donate',
+        text: labels.donate,
         link: 'https://better.giving/marketplace/1118469',
     },
 ];
 
-const sidebar = (prefix: string): SidebarOptions => ({
+const sidebar = (prefix: string, labels: Labels): SidebarOptions => ({
     [`${prefix}guide/`]: [
         {
-            text: 'Guide',
+            text: labels.guide,
             collapsible: false,
             children: [
                 '',
@@ -161,12 +178,12 @@ const sidebar = (prefix: string): SidebarOptions => ({
     ],
     [`${prefix}reference/`]: [
         {
-            text: 'Reference',
+            text: labels.reference,
             collapsible: false,
             children: [
                 '',
                 {
-                    text: 'Translations, Books, & Chapters',
+                    text: labels.translationsBooksChapters,
                     collapsible: true,
                     children: [
                         'translations/',
@@ -175,12 +192,12 @@ const sidebar = (prefix: string): SidebarOptions => ({
                     ],
                 },
                 {
-                    text: 'Commentaries',
+                    text: labels.commentaries,
                     collapsible: true,
                     children: ['commentaries/'],
                 },
                 {
-                    text: 'Datasets',
+                    text: labels.datasets,
                     collapsible: true,
                     children: ['datasets/'],
                 },
@@ -190,7 +207,7 @@ const sidebar = (prefix: string): SidebarOptions => ({
     ],
     [`${prefix}sdks/`]: [
         {
-            text: 'SDKs',
+            text: labels.sdks,
             collapsible: false,
             children: ['', 'javascript'],
         },
@@ -213,22 +230,32 @@ const siteLocales: Record<string, SiteLocaleConfig> = {
 const themeLocales: Record<string, DefaultThemeLocaleData> = {
     '/': {
         selectLanguageName: 'English',
-        navbar: navbar('/'),
-        sidebar: sidebar('/'),
+        navbar: navbar('/', englishLabels),
+        sidebar: sidebar('/', englishLabels),
     },
     ...Object.fromEntries(
-        translatedLanguages.map((lang) => [
-            `/${lang}/`,
-            {
-                selectLanguageName: nativeLanguageName(lang),
-                selectLanguageText: 'Languages',
-                selectLanguageAriaLabel: 'Select language',
-                navbar: navbar(`/${lang}/`),
-                sidebar: sidebar(`/${lang}/`),
-            },
-        ])
+        translatedLanguages.map((lang) => {
+            const labels = labelsFor(lang);
+            return [
+                `/${lang}/`,
+                {
+                    selectLanguageName: nativeLanguageName(lang),
+                    selectLanguageText: labels.languages,
+                    selectLanguageAriaLabel: labels.selectLanguage,
+                    navbar: navbar(`/${lang}/`, labels),
+                    sidebar: sidebar(`/${lang}/`, labels),
+                },
+            ];
+        })
     ),
 };
+
+// Translated section landing pages get translated crumb labels too.
+for (const lang of translatedLanguages) {
+    const labels = labelsFor(lang);
+    sectionNames[`/${lang}/guide/`] = labels.guide;
+    sectionNames[`/${lang}/reference/`] = labels.reference;
+}
 
 export default defineUserConfig({
     base,

@@ -24,6 +24,9 @@
  * inline code, HTML tags, HTML comments, URLs and link destinations are passed
  * through unchanged, and relative links are rewritten so they still resolve
  * from the translated file's location.
+ *
+ * The navbar and sidebar labels in `docs/.vuepress/labels.json` are translated
+ * into `docs/<language>/labels.json`, which the site config reads.
  */
 
 import { GoogleAuth } from 'google-auth-library';
@@ -44,6 +47,14 @@ const SOURCE_LANGUAGE = 'en';
  * not to treat it as English source material.
  */
 const MARKER_FILE = '.translated-docs';
+
+/**
+ * The navbar and sidebar labels, which live in the site config rather than in
+ * a page. Relative to the source root, and written to the root of each
+ * translation under the same file name.
+ */
+const LABELS_FILE = '.vuepress/labels.json';
+const TRANSLATED_LABELS_FILE = 'labels.json';
 
 /** Directories under the source root that never contain translatable pages. */
 const IGNORED_DIRS = new Set(['node_modules', 'site-root']);
@@ -790,6 +801,26 @@ function yamlQuote(value: string): string {
 }
 
 // ---------------------------------------------------------------------------
+// Navbar and sidebar labels
+// ---------------------------------------------------------------------------
+
+/**
+ * Translates the values of a flat `{ key: label }` object, keeping its keys.
+ */
+export async function translateLabels(
+    labels: Record<string, string>,
+    translate: Translator
+): Promise<Record<string, string>> {
+    const keys = Object.keys(labels);
+    const translated = await translate(
+        keys.map((key) => escapeHtml(labels[key]))
+    );
+    return Object.fromEntries(
+        keys.map((key, i) => [key, unescapeHtml(translated[i]).trim()])
+    );
+}
+
+// ---------------------------------------------------------------------------
 // Files
 // ---------------------------------------------------------------------------
 
@@ -1030,6 +1061,30 @@ async function main() {
             await writeFile(outputFile, result);
             translated++;
             console.log(`  done  ${rel}`);
+        }
+
+        const labelsSource = path.join(sourceRoot, LABELS_FILE);
+        const labelsOutput = path.join(outputRoot, TRANSLATED_LABELS_FILE);
+        if (await exists(labelsSource)) {
+            const upToDate =
+                !values.force &&
+                (await exists(labelsOutput)) &&
+                (await stat(labelsOutput)).mtimeMs >=
+                    (await stat(labelsSource)).mtimeMs;
+            if (upToDate) {
+                console.log(`  skip  ${LABELS_FILE} (up to date)`);
+            } else if (values['dry-run']) {
+                console.log(`  would translate  ${LABELS_FILE}`);
+            } else {
+                const labels = JSON.parse(await readFile(labelsSource, 'utf8'));
+                const result = await translateLabels(labels, translate);
+                await mkdir(outputRoot, { recursive: true });
+                await writeFile(
+                    labelsOutput,
+                    JSON.stringify(result, null, 4) + '\n'
+                );
+                console.log(`  done  ${LABELS_FILE}`);
+            }
         }
 
         if (!values['dry-run']) {
