@@ -1,0 +1,82 @@
+name: Release
+
+# Builds, tests, and publishes the public packages to NPM:
+#   - @helloao/tools        (packages/helloao-tools)
+#   - @helloao/cli          (packages/helloao-cli)
+#   - free-use-bible-api    (packages/free-use-bible-api)
+#
+# To release, bump the "version" in the package.json of each package that
+# should be published, merge it, and then publish a GitHub release (or run
+# this workflow manually). Only packages whose version is not already on NPM
+# are published, so unchanged packages are skipped. Private packages are
+# never published.
+#
+# Requires an NPM_TOKEN repository secret with publish access to the packages.
+
+on:
+    release:
+        types: [published]
+    workflow_dispatch:
+        inputs:
+            dry-run:
+                description: 'Build, test, and pack without publishing to NPM'
+                type: boolean
+                default: true
+
+concurrency:
+    group: release
+    cancel-in-progress: false
+
+jobs:
+    release:
+        name: Build, Test, and Publish
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            # Needed to generate NPM provenance attestations.
+            id-token: write
+        env:
+            CI: true
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Install pnpm
+              uses: pnpm/action-setup@v4
+
+            - name: Use Node.js 24.x
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 24.x
+                  cache: pnpm
+                  registry-url: 'https://registry.npmjs.org'
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Test
+              run: npx --node-options="--max_old_space_size=4096" jest --detectOpenHandles --forceExit --no-cache
+
+            - name: Build
+              run: npm run build
+
+            - name: Publish to NPM (dry run)
+              if: github.event_name == 'workflow_dispatch' && inputs.dry-run
+              run: pnpm publish -r --access public --no-git-checks --dry-run
+
+            - name: Publish to NPM
+              if: github.event_name == 'release' || !inputs.dry-run
+              run: pnpm publish -r --access public --no-git-checks --report-summary
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+                  NPM_CONFIG_PROVENANCE: true
+
+            - name: Publish summary
+              if: github.event_name == 'release' || !inputs.dry-run
+              run: |
+                  {
+                      echo '## Published packages'
+                      echo
+                      jq -r 'if (.publishedPackages | length) == 0
+                          then "No new package versions to publish."
+                          else .publishedPackages[] | "- `\(.name)@\(.version)`" end' pnpm-publish-summary.json
+                  } >> "$GITHUB_STEP_SUMMARY"
