@@ -1,5 +1,7 @@
 # Free Use Bible API
 
+<!-- #region docs -->
+
 TypeScript and JavaScript client for the public Free Use Bible API:
 
 -   `https://bible.helloao.org`
@@ -281,3 +283,6 @@ A 404 response usually means one of the path values is invalid, for example:
 
 -   Uses the global `fetch` API.
 -   For Node.js, use a runtime that provides `fetch` (Node 18+ recommended) or polyfill it.
+
+<!-- #endregion docs -->
+

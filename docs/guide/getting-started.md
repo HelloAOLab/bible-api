@@ -1,3 +1,7 @@
+---
+description: 'Start using the Free Use Bible API in minutes. Install the JavaScript SDK or call the JSON endpoints directly — no API key or signup required.'
+---
+
 # Getting Started
 
 Let's get right into it! 

@@ -1,3 +1,7 @@
+---
+description: 'Reference documentation for the Free Use Bible API: endpoints and response types for translations, commentaries, datasets, and the OpenAPI document.'
+---
+
 # API
 
 Reference documentation for the Free Use Bible API, organized by category:

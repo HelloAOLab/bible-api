@@ -1,6 +1,10 @@
+---
+description: 'Why we publish the Bible without copyright restrictions, and how the Berean Standard Bible makes a freely licensed English translation possible.'
+---
+
 # A Biblical Model for Licensing The Bible
 
-**“...freely you have received; freely give.” - Mathew 10:8**
+**“...freely you have received; freely give.” - Matthew 10:8**
 
 Christians believe that Jesus’ words are the very words of God and were freely given to mankind at great cost to Jesus himself who left behind every comfort to take on human flesh and share in our suffering.
 

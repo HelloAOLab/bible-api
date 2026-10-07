@@ -1,3 +1,7 @@
+---
+description: 'How to make requests to the Free Use Bible API: fetch translations, books, chapters, commentaries, and datasets over plain HTTP GET.'
+---
+
 # Making Requests
 
 To access the API, all you need to do is make an HTTP GET Request to the right endpoint.
