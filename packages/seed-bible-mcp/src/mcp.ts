@@ -12,6 +12,7 @@ import {
     makeResultId,
     parseQueryToRef,
     parseResultId,
+    resolveTranslationId,
     passageTitle,
 } from './bible.js';
 
@@ -31,6 +32,19 @@ function error(message: string) {
         content: [{ type: 'text' as const, text: message }],
         isError: true,
     };
+}
+
+const translationParam = z
+    .string()
+    .optional()
+    .describe(
+        'The translation to use: any translation id from listTranslations() (e.g. "spa_rv1909"), or one of BSB, WEB, WLC, SBL. Overrides a translation named in the reference. Defaults to BSB.'
+    );
+
+function unknownTranslation(translation: string) {
+    return error(
+        `Unknown translation "${translation}". Use listTranslations() to find available translation ids.`
+    );
 }
 
 /**
@@ -55,8 +69,8 @@ export function createBibleMcpServer(options: BibleMcpOptions = {}): McpServer {
                 'Use getBibleReference() to interpret a user query into a Bible passage result. ' +
                 'Then use fetchChapter() to retrieve the full passage text. ' +
                 'To get the text of a verse or verse range directly, use fetchVerse(). ' +
-                'Use listTranslations() to find available translations by language or name. ' +
-                'Supports BSB, WEB (ENGWEBP), Hebrew WLC (heb_wlc), and SBL Greek NT (grc_sbl).',
+                'Use listTranslations() to find available translations by language or name, then pass a translation id as the translation parameter. ' +
+                'References can name BSB, WEB (ENGWEBP), Hebrew WLC (heb_wlc), or SBL Greek NT (grc_sbl) directly; other translations need the translation parameter.',
             // The default Ajv validator compiles schemas with `new Function`,
             // which Cloudflare Workers forbids. The cfworker validator is pure JS
             // and works on every runtime.
@@ -75,10 +89,17 @@ export function createBibleMcpServer(options: BibleMcpOptions = {}): McpServer {
                     .describe(
                         'A passage reference, e.g. "John 3:16" or "Gen 1:1-3 WEB".'
                     ),
+                translation: translationParam,
             },
         },
-        async ({ query }) => {
-            const ref = await parseQueryToRef(apiBase, query);
+        async ({ query, translation: requestedTranslation }) => {
+            const translationId = requestedTranslation
+                ? await resolveTranslationId(apiBase, requestedTranslation)
+                : undefined;
+            if (translationId === null) {
+                return unknownTranslation(requestedTranslation!);
+            }
+            const ref = await parseQueryToRef(apiBase, query, translationId);
             if (!ref) return json({ results: [] });
 
             const [translation, book, chapter, verses] = ref;
@@ -135,10 +156,21 @@ export function createBibleMcpServer(options: BibleMcpOptions = {}): McpServer {
                     .describe(
                         'A verse or verse range reference, optionally followed by a translation, e.g. "John 3:16", "Gen 1:1-3" or "Ps 23:1-6 WEB".'
                     ),
+                translation: translationParam,
             },
         },
-        async ({ reference }) => {
-            const ref = await parseQueryToRef(apiBase, reference);
+        async ({ reference, translation: requestedTranslation }) => {
+            const translationId = requestedTranslation
+                ? await resolveTranslationId(apiBase, requestedTranslation)
+                : undefined;
+            if (translationId === null) {
+                return unknownTranslation(requestedTranslation!);
+            }
+            const ref = await parseQueryToRef(
+                apiBase,
+                reference,
+                translationId
+            );
             if (!ref || !ref[3]) {
                 return error(
                     `Could not interpret "${reference}" as a verse reference.`

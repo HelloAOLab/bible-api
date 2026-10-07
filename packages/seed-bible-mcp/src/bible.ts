@@ -197,14 +197,41 @@ export function passageTitle(
     return `${book} ${chapter}${verses ? ':' + verses : ''} (${translation})`;
 }
 
+/**
+ * Resolves a user-supplied translation to an API translation id.
+ * Accepts the short aliases (e.g. "WEB", "Hebrew") or any id from
+ * available_translations.json, ignoring case.
+ * Returns null if the translation isn't available.
+ */
+export async function resolveTranslationId(
+    apiBase: string,
+    translation: string
+): Promise<string | null> {
+    const t = translation.trim();
+    const alias = TRANSLATION_ALIASES[t.toUpperCase()];
+    if (alias) return alias;
+
+    const translations = await getAvailableTranslations(apiBase);
+    const match = translations.find(
+        (x) => x.id.toLowerCase() === t.toLowerCase()
+    );
+    return match?.id ?? null;
+}
+
+/**
+ * Parses a passage reference such as "John 3:16" or "Gen 1:1-3 WEB".
+ *
+ * @param translation An API translation id to use instead of picking one from the query.
+ */
 export async function parseQueryToRef(
     apiBase: string,
-    query: string
+    query: string,
+    translation?: string
 ): Promise<Ref | null> {
     const m = REF_RE.exec(query);
     if (!m || !m.groups) return null;
 
-    const translation = chooseTranslation(query);
+    translation ??= chooseTranslation(query);
     const bookRaw = m.groups.book.trim();
     const chapter = parseInt(m.groups.chapter, 10);
     const verses = m.groups.verses ?? null;
@@ -216,8 +243,11 @@ export async function parseQueryToRef(
 
     // Otherwise map from book name -> id using API book metadata.
     // Using BSB book list is generally fine because IDs are standard across translations.
-    const booksMap = await getBooksMap(apiBase, 'BSB');
-    const bookId = booksMap[norm(bookRaw)];
+    // Fall back to the translation's own book names (e.g. "Juan" in a Spanish translation).
+    let bookId = (await getBooksMap(apiBase, 'BSB'))[norm(bookRaw)];
+    if (!bookId && translation !== 'BSB') {
+        bookId = (await getBooksMap(apiBase, translation))[norm(bookRaw)];
+    }
     if (!bookId) return null;
 
     return [translation, bookId, chapter, verses];
