@@ -108,6 +108,7 @@ export default defineUserConfig({
                             collapsible: true,
                             children: ['datasets/'],
                         },
+                        'openapi',
                     ],
                 },
             ],

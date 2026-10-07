@@ -5,3 +5,4 @@ Reference documentation for the Free Use Bible API, organized by category:
 -   [**Translations, Books, & Chapters**](./translations/README.md) - Bible translations, their books, and chapter content, available in [standard](./translations/standard.md) and [simplified](./translations/simplified.md) formats.
 -   [**Commentaries**](./commentaries/README.md) - Bible commentaries, their books, chapters, and profiles.
 -   [**Datasets**](./datasets/README.md) - supplementary datasets, such as cross references and biblical entities (people, places, events, and people groups), and their books, chapters, and entities.
+-   [**OpenAPI**](./openapi.md) - the OpenAPI document that describes the API, which you can use to generate clients for other languages.
