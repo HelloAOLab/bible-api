@@ -31,8 +31,8 @@
         "s3:sync:zip": "aws --profile aolabs s3 cp ./free-use-bible-api.zip s3://ao-bible-api/api.zip",
         "postinstall": "prisma generate",
         "prepublish": "npm run build",
-        "start:mcp": "tsx ./packages/seed-bible-mcp/server.tsx",
-        "dev:mcp": "tsx watch ./packages/seed-bible-mcp/server.tsx"
+        "start:mcp": "tsx ./packages/seed-bible-mcp/src/node.ts",
+        "dev:mcp": "tsx watch ./packages/seed-bible-mcp/src/node.ts"
     },
     "devDependencies": {
         "@types/better-sqlite3": "^9.6.0",
