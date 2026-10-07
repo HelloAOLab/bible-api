@@ -2,7 +2,7 @@
 
 This is the log of changes for the Free Use Bible API.
 
-## V0.4.1
+## V1.15.0
 
 ### :rocket: Features
 
@@ -10,7 +10,7 @@ This is the log of changes for the Free Use Bible API.
 -   Added verse timings for audio for the AAB and BSB translations.
     -   The chapter endpoints (e.g. `/api/AAB/GEN/1.json`, `/api/AAB/GEN/1.simple.json`) now contain a `thisChapterAudioTimings` object that references the timings file for each supported reader.
 
-## V0.4.0
+## V1.14.0
 
 ### :rocket: Features
 

@@ -1,6 +1,6 @@
 {
     "name": "free-use-bible-api",
-    "version": "0.4.1",
+    "version": "1.15.0",
     "description": "Access over 1000 Bible translations in over 700 languages for free",
     "type": "module",
     "main": "./dist/cjs/index.cjs",
