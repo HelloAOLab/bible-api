@@ -31,24 +31,23 @@ const SCENES = [
     'night-coast',
     'ocean-sunset',
     'storm-plains',
-    'taj-dawn',
     'varanasi-ghats',
 ];
-const ASCII_SCRIPT = 'https://ascii.rest/ascii.js';
 const scene = ref('');
+
+// The scene runs in a sandboxed iframe, so ascii.rest's script has no access
+// to this page: no cookies, storage, DOM or navigation.
+const sceneDoc = (piece: string) =>
+    '<!doctype html><html><head><meta charset="utf-8">' +
+    '<style>html,body{margin:0;height:100%;overflow:hidden}' +
+    'ascii-art{display:block;width:100%;height:100%}</style>' +
+    '<script type="module" src="https://ascii.rest/ascii.js"><' +
+    '/script></head><body>' +
+    `<ascii-art piece="${piece}"></ascii-art></body></html>`;
 
 onMounted(() => {
     missingPath.value = decodeURI(window.location.pathname);
     scene.value = SCENES[Math.floor(Math.random() * SCENES.length)];
-
-    // Only this page uses the <ascii-art> element, so its script is loaded
-    // here instead of in the site-wide <head>.
-    if (!document.querySelector(`script[src="${ASCII_SCRIPT}"]`)) {
-        const script = document.createElement('script');
-        script.type = 'module';
-        script.src = ASCII_SCRIPT;
-        document.head.appendChild(script);
-    }
 });
 </script>
 
@@ -57,9 +56,16 @@ onMounted(() => {
         <template #page>
             <div class="fuba-404">
                 <main class="not-found">
-                    <div v-if="scene" class="scene" aria-hidden="true">
-                        <ascii-art :piece="scene"></ascii-art>
-                    </div>
+                    <iframe
+                        v-if="scene"
+                        class="scene"
+                        sandbox="allow-scripts"
+                        referrerpolicy="no-referrer"
+                        :srcdoc="sceneDoc(scene)"
+                        title="Decorative ASCII art scene"
+                        aria-hidden="true"
+                        tabindex="-1"
+                    ></iframe>
                     <p class="code">Error 404</p>
                     <h1>Page not found</h1>
                     <p class="lead">
@@ -112,14 +118,12 @@ onMounted(() => {
     }
 
     .scene {
+        display: block;
+        width: 100%;
+        aspect-ratio: 2 / 1;
         margin: 0 0 40px;
-        overflow: hidden;
+        border: 0;
         border-radius: 10px;
-
-        ascii-art {
-            display: block;
-            max-width: 100%;
-        }
     }
 
     .code {

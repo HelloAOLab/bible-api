@@ -74,17 +74,7 @@ export default defineUserConfig({
 
     title,
     description: description,
-    bundler: viteBundler({
-        vuePluginOptions: {
-            template: {
-                compilerOptions: {
-                    // <ascii-art> is a web component from ascii.rest (used on
-                    // the 404 page), not a Vue component.
-                    isCustomElement: (tag) => tag === 'ascii-art',
-                },
-            },
-        },
-    }) as any,
+    bundler: viteBundler() as any,
 
     extendsPage: (page) => {
         // The 404 page has no sidebar of its own (the theme otherwise warns
