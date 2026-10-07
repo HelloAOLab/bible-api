@@ -76,6 +76,16 @@ export default defineUserConfig({
     description: description,
     bundler: viteBundler() as any,
 
+    extendsPage: (page) => {
+        // The 404 page has no sidebar of its own (the theme otherwise warns
+        // about it), and should not be titled after the site home.
+        if (page.path === '/404.html') {
+            page.title = page.data.title = 'Page not found';
+            page.frontmatter.title = page.title;
+            page.frontmatter.sidebar = false;
+        }
+    },
+
     head: [
         ['link', { rel: 'icon', href: '/docs/favicon.png' }],
         ['link', { rel: 'apple-touch-icon', href: '/docs/favicon.png' }],
