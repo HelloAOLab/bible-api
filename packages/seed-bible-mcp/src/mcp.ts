@@ -52,7 +52,7 @@ export function createBibleMcpServer(options: BibleMcpOptions = {}): McpServer {
             instructions:
                 'Use getBibleReference() to interpret a user query into a Bible passage result. ' +
                 'Then use fetchChapter() to retrieve the full passage text. ' +
-                'To get the text of one verse directly, use fetchVerse(). ' +
+                'To get the text of a verse or verse range directly, use fetchVerse(). ' +
                 'Supports BSB, WEB (ENGWEBP), Hebrew WLC (heb_wlc), and SBL Greek NT (grc_sbl).',
             // The default Ajv validator compiles schemas with `new Function`,
             // which Cloudflare Workers forbids. The cfworker validator is pure JS
@@ -125,52 +125,47 @@ export function createBibleMcpServer(options: BibleMcpOptions = {}): McpServer {
         'fetchVerse',
         {
             description:
-                'Retrieve the text of a single Bible verse from a reference such as "John 3:16".',
+                'Retrieve the text of a single Bible verse or a range of verses within one chapter, from a reference such as "John 3:16" or "John 3:16-18".',
             inputSchema: {
                 reference: z
                     .string()
                     .describe(
-                        'A single verse reference, optionally followed by a translation, e.g. "John 3:16" or "Gen 1:1 WEB".'
+                        'A verse or verse range reference, optionally followed by a translation, e.g. "John 3:16", "Gen 1:1-3" or "Ps 23:1-6 WEB".'
                     ),
             },
         },
         async ({ reference }) => {
             const ref = await parseQueryToRef(apiBase, reference);
-            if (!ref || !ref[3] || ref[3].includes('-')) {
+            if (!ref || !ref[3]) {
                 return error(
-                    `Could not interpret "${reference}" as a single verse reference.`
+                    `Could not interpret "${reference}" as a verse reference.`
                 );
             }
 
-            const [translation, book, chapter, verse] = ref;
+            const [translation, book, chapter, verses] = ref;
+            const title = passageTitle(translation, book, chapter, verses);
             const chapterJson = await fetchSimpleChapterJson(
                 apiBase,
                 translation,
                 book,
                 chapter
             );
-            // Drop the "N. " prefix that extractVerses() adds to each verse.
-            const text = extractVerses(chapterJson, verse).replace(
-                /^\d+\. /,
-                ''
-            );
+            let text = extractVerses(chapterJson, verses);
             if (!text) {
-                return error(
-                    `${passageTitle(translation, book, chapter, verse)} was not found.`
-                );
+                return error(`${title} was not found.`);
+            }
+            if (!verses.includes('-')) {
+                // Drop the "N. " prefix that extractVerses() adds; it's
+                // redundant for a single verse.
+                text = text.replace(/^\d+\. /, '');
             }
 
             return json({
-                id: makeResultId(translation, book, chapter, verse),
-                title: passageTitle(translation, book, chapter, verse),
+                id: makeResultId(translation, book, chapter, verses),
+                title,
                 text,
                 url: chapterUrl(apiBase, translation, book, chapter),
-                metadata: {
-                    translation,
-                    book,
-                    chapter,
-                    verse: parseInt(verse, 10),
-                },
+                metadata: { translation, book, chapter, verses },
             });
         }
     );

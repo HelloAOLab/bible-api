@@ -4,7 +4,7 @@ An [MCP](https://modelcontextprotocol.io) server that exposes the [Free Use Bibl
 
 - `getBibleReference` — turns a reference such as `John 3:16` or `Gen 1:1-3 WEB` into a passage result id.
 - `fetchChapter` — returns the passage text for a result id from `getBibleReference`.
-- `fetchVerse` — returns the text of a single verse for a reference such as `John 3:16` or `Gen 1:1 WEB`.
+- `fetchVerse` — returns the text of a verse or verse range within one chapter, for a reference such as `John 3:16` or `Gen 1:1-3 WEB`.
 
 The server speaks the Streamable HTTP transport at `/mcp` and runs statelessly, so the same code runs on Node.js and on Cloudflare Workers.
 
