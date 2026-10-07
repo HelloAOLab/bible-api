@@ -15,8 +15,40 @@ const searchLocales = { '/': { placeholder: 'Search the docs' } };
 // Show the address that failed, so a typo is easy to spot. It is only known
 // in the browser, since the 404 page is rendered once at build time.
 const missingPath = ref('');
+
+// A random scene from ascii.rest. It is picked in the browser, not at build
+// time, so each visit can get a different one without the build-time HTML
+// disagreeing with the page once it loads.
+const SCENES = [
+    'alpine-dawn',
+    'aurora-fjord',
+    'deep-reef',
+    'desert-night',
+    'earthrise',
+    'kyoto-dusk',
+    'marine-drive',
+    'misty-forest',
+    'night-coast',
+    'ocean-sunset',
+    'storm-plains',
+    'taj-dawn',
+    'varanasi-ghats',
+];
+const ASCII_SCRIPT = 'https://ascii.rest/ascii.js';
+const scene = ref('');
+
 onMounted(() => {
     missingPath.value = decodeURI(window.location.pathname);
+    scene.value = SCENES[Math.floor(Math.random() * SCENES.length)];
+
+    // Only this page uses the <ascii-art> element, so its script is loaded
+    // here instead of in the site-wide <head>.
+    if (!document.querySelector(`script[src="${ASCII_SCRIPT}"]`)) {
+        const script = document.createElement('script');
+        script.type = 'module';
+        script.src = ASCII_SCRIPT;
+        document.head.appendChild(script);
+    }
 });
 </script>
 
@@ -25,6 +57,9 @@ onMounted(() => {
         <template #page>
             <div class="fuba-404">
                 <main class="not-found">
+                    <div v-if="scene" class="scene" aria-hidden="true">
+                        <ascii-art :piece="scene"></ascii-art>
+                    </div>
                     <p class="code">Error 404</p>
                     <h1>Page not found</h1>
                     <p class="lead">
@@ -74,6 +109,17 @@ onMounted(() => {
         max-width: 640px;
         margin: 0 auto;
         padding: clamp(48px, 10vw, 112px) 28px clamp(56px, 10vw, 112px);
+    }
+
+    .scene {
+        margin: 0 0 40px;
+        overflow: hidden;
+        border-radius: 10px;
+
+        ascii-art {
+            display: block;
+            max-width: 100%;
+        }
     }
 
     .code {
