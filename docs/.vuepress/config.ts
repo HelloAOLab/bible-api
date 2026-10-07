@@ -17,7 +17,24 @@ export default defineUserConfig({
 
     head: [
         ['link', { rel: 'icon', href: '/docs/favicon.png' }],
-        ['meta', { name: 'theme-color', content: '#3eaf7c' }],
+        ['meta', { name: 'theme-color', content: '#ffffff' }],
+        ['meta', { property: 'og:type', content: 'website' }],
+        ['meta', { property: 'og:title', content: 'Free Use Bible API' }],
+        [
+            'meta',
+            {
+                property: 'og:description',
+                content:
+                    'An easy-to-use and fully featured JSON API for Scripture. No API key, no usage limits, no copyright restrictions.',
+            },
+        ],
+        [
+            'meta',
+            {
+                property: 'og:image',
+                content: 'https://bible.helloao.org/docs/seed_bible_logo.png',
+            },
+        ],
         ['meta', { name: 'apple-mobile-web-app-capable', content: 'yes' }],
         [
             'meta',
@@ -26,6 +43,9 @@ export default defineUserConfig({
     ],
 
     theme: defaultTheme({
+        logo: '/seed_bible_logo.png',
+        logoDark: '/seed_bible_logo_dark.png',
+        logoAlt: 'Seed Bible',
         themePlugins: {
             // Disable the default theme's built-in prismjs highlighter since
             // shikiPlugin (registered below) already highlights code blocks.
@@ -52,20 +72,12 @@ export default defineUserConfig({
                 link: '/sdks/',
             },
             {
-                text: 'Source Code',
+                text: 'GitHub',
                 link: 'https://github.com/HelloAOLab/bible-api',
-            },
-            {
-                text: 'About Us',
-                link: 'https://helloao.org/about-us',
             },
             {
                 text: 'Donate',
                 link: 'https://better.giving/marketplace/1118469',
-            },
-            {
-                text: 'YouTube',
-                link: 'https://www.youtube.com/@aolab',
             },
         ],
         sidebar: {
