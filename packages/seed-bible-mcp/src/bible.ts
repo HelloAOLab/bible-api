@@ -1,8 +1,8 @@
-// server.tsx
-import { FastMCP } from 'fastmcp';
-import { z } from 'zod';
+// Runtime-agnostic helpers for talking to the Free Use Bible API.
+// Only web-standard APIs (fetch, etc.) are used here so this module runs
+// unchanged on Node.js and Cloudflare Workers.
 
-const BIBLE_API_BASE = 'https://bible.helloao.org/api';
+export const DEFAULT_BIBLE_API_BASE = 'https://bible.helloao.org/api';
 
 // Map user-friendly mentions to API translation IDs
 const TRANSLATION_ALIASES: Record<string, string> = {
@@ -26,6 +26,7 @@ function norm(s: string): string {
     return s.toUpperCase().replace(/[^A-Z0-9]/g, '');
 }
 
+// Module-level cache. On Workers this lives for the lifetime of the isolate.
 const booksCache = new Map<string, Record<string, string>>();
 
 /**
@@ -33,12 +34,14 @@ const booksCache = new Map<string, Record<string, string>>();
  * Uses the API's books.json endpoint.
  */
 async function getBooksMap(
+    apiBase: string,
     translation: string
 ): Promise<Record<string, string>> {
-    const cached = booksCache.get(translation);
+    const cacheKey = `${apiBase}|${translation}`;
+    const cached = booksCache.get(cacheKey);
     if (cached) return cached;
 
-    const res = await fetch(`${BIBLE_API_BASE}/${translation}/books.json`);
+    const res = await fetch(`${apiBase}/${translation}/books.json`);
     if (!res.ok) throw new Error(`books.json request failed: ${res.status}`);
     const data: any = await res.json();
 
@@ -51,7 +54,7 @@ async function getBooksMap(
         }
     }
 
-    booksCache.set(translation, m);
+    booksCache.set(cacheKey, m);
     return m;
 }
 
@@ -64,7 +67,9 @@ function chooseTranslation(query: string): string {
     return 'BSB';
 }
 
-function makeResultId(
+export type Ref = [string, string, number, string | null];
+
+export function makeResultId(
     translation: string,
     book: string,
     chapter: number,
@@ -74,17 +79,34 @@ function makeResultId(
     return `${translation}:${book}:${chapter}:${verses ?? ''}`;
 }
 
-function parseResultId(
-    resultId: string
-): [string, string, number, string | null] {
+export function parseResultId(resultId: string): Ref {
     const parts = [...resultId.split(/:/, 4), '', '', '', ''].slice(0, 4);
     const [t, b, c, v] = parts;
     return [t, b, parseInt(c, 10), v || null];
 }
 
-type Ref = [string, string, number, string | null];
+export function chapterUrl(
+    apiBase: string,
+    translation: string,
+    book: string,
+    chapter: number
+): string {
+    return `${apiBase}/${translation}/${book}/${chapter}.json`;
+}
 
-async function parseQueryToRef(query: string): Promise<Ref | null> {
+export function passageTitle(
+    translation: string,
+    book: string,
+    chapter: number,
+    verses: string | null
+): string {
+    return `${book} ${chapter}${verses ? ':' + verses : ''} (${translation})`;
+}
+
+export async function parseQueryToRef(
+    apiBase: string,
+    query: string
+): Promise<Ref | null> {
     const m = REF_RE.exec(query);
     if (!m || !m.groups) return null;
 
@@ -100,21 +122,20 @@ async function parseQueryToRef(query: string): Promise<Ref | null> {
 
     // Otherwise map from book name -> id using API book metadata.
     // Using BSB book list is generally fine because IDs are standard across translations.
-    const booksMap = await getBooksMap('BSB');
+    const booksMap = await getBooksMap(apiBase, 'BSB');
     const bookId = booksMap[norm(bookRaw)];
     if (!bookId) return null;
 
     return [translation, bookId, chapter, verses];
 }
 
-async function fetchChapterJson(
+export async function fetchChapterJson(
+    apiBase: string,
     translation: string,
     book: string,
     chapter: number
 ): Promise<any> {
-    const res = await fetch(
-        `${BIBLE_API_BASE}/${translation}/${book}/${chapter}.json`
-    );
+    const res = await fetch(chapterUrl(apiBase, translation, book, chapter));
     if (!res.ok) throw new Error(`chapter request failed: ${res.status}`);
     return res.json();
 }
@@ -146,7 +167,10 @@ function flattenVerseContent(items: any[]): string {
     return s.trim();
 }
 
-function extractVerses(chapterJson: any, verseRange: string | null): string {
+export function extractVerses(
+    chapterJson: any,
+    verseRange: string | null
+): string {
     const content: any[] = chapterJson?.chapter?.content ?? [];
     let start: number | null = null;
     let end: number | null = null;
@@ -174,75 +198,3 @@ function extractVerses(chapterJson: any, verseRange: string | null): string {
 
     return lines.join('\n').trim();
 }
-
-// --- MCP server definition ---
-
-const mcp = new FastMCP({
-    name: 'Free Use Bible (BSB/WEB/WLC/SBL)',
-    version: '1.0.0',
-    instructions:
-        'Use search() to interpret a user query into a Bible passage result. ' +
-        'Then use fetch() to retrieve the full passage text. ' +
-        'Supports BSB, WEB (ENGWEBP), Hebrew WLC (heb_wlc), and SBL Greek NT (grc_sbl).',
-});
-
-mcp.addTool({
-    name: 'search',
-    description:
-        'Interpret a natural-language query into a single Bible passage result.',
-    parameters: z.object({
-        query: z
-            .string()
-            .describe(
-                'A passage reference, e.g. "John 3:16" or "Gen 1:1-3 WEB".'
-            ),
-    }),
-    execute: async ({ query }) => {
-        const ref = await parseQueryToRef(query);
-        if (!ref) return JSON.stringify({ results: [] });
-
-        const [translation, book, chapter, verses] = ref;
-        const url = `${BIBLE_API_BASE}/${translation}/${book}/${chapter}.json`;
-        const title = `${book} ${chapter}${verses ? ':' + verses : ''} (${translation})`;
-        const resultId = makeResultId(translation, book, chapter, verses);
-
-        return JSON.stringify({
-            results: [{ id: resultId, title, url }],
-        });
-    },
-});
-
-mcp.addTool({
-    name: 'fetch',
-    description:
-        'Retrieve the full passage text for a result id from search().',
-    parameters: z.object({
-        id: z.string().describe('A result id returned by search().'),
-    }),
-    execute: async ({ id }) => {
-        const [translation, book, chapter, verses] = parseResultId(id);
-        const chapterJson = await fetchChapterJson(translation, book, chapter);
-
-        const text = extractVerses(chapterJson, verses);
-        const url = `${BIBLE_API_BASE}/${translation}/${book}/${chapter}.json`;
-        const title = `${book} ${chapter}${verses ? ':' + verses : ''} (${translation})`;
-
-        return JSON.stringify({
-            id,
-            title,
-            text,
-            url,
-            metadata: { translation, book, chapter, verses },
-        });
-    },
-});
-
-const port = parseInt(process.env.PORT ?? '8000', 10);
-
-mcp.start({
-    transportType: 'httpStream',
-    httpStream: {
-        endpoint: '/mcp',
-        port,
-    },
-});

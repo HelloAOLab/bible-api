@@ -10,6 +10,10 @@ Gets the list of available Bible commentaries in the API.
 
 ### Code Example
 
+::: code-tabs#lang
+
+@tab JavaScript
+
 ```ts:no-line-numbers title="fetch-commentaries.js"
 fetch(`https://bible.helloao.org/api/available_commentaries.json`)
     .then(request => request.json())
@@ -17,6 +21,14 @@ fetch(`https://bible.helloao.org/api/available_commentaries.json`)
         console.log('The API has the following commentaries:', availableCommentaries);
     });
 ```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/available_commentaries.json
+```
+
+:::
 
 ### Structure
 
@@ -149,6 +161,10 @@ Gets the list of books that are available for the given commentary.
 
 ### Code Example
 
+::: code-tabs#lang
+
+@tab JavaScript
+
 ```ts:no-line-numbers title="fetch-commentary-books.js"
 const commentary = 'adam-clarke';
 
@@ -159,6 +175,14 @@ fetch(`https://bible.helloao.org/api/c/${commentary}/books.json`)
         console.log('The adam-clarke commentary has the following books:', books);
     });
 ```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/c/adam-clarke/books.json
+```
+
+:::
 
 ### Structure
 
@@ -299,6 +323,10 @@ A simplified version of this endpoint is available at `https://bible.helloao.org
 
 ### Code Example
 
+::: code-tabs#lang
+
+@tab JavaScript
+
 ```ts:no-line-numbers title="fetch-commentary-chapter.js"
 const commentary = 'adam-clarke';
 const book = 'GEN';
@@ -311,6 +339,14 @@ fetch(`https://bible.helloao.org/api/c/${commentary}/${book}/${chapter}.json`)
         console.log('Genesis 1 (adam-clarke):', chapter);
     });
 ```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/c/adam-clarke/GEN/1.json
+```
+
+:::
 
 ### Structure
 
@@ -440,6 +476,10 @@ Currently, only `tyndale` has any profiles.
 
 ### Code Example
 
+::: code-tabs#lang
+
+@tab JavaScript
+
 ```ts:no-line-numbers title="fetch-commentary-profiles.js"
 const commentary = 'tyndale';
 
@@ -450,6 +490,14 @@ fetch(`https://bible.helloao.org/api/c/${commentary}/profiles.json`)
         console.log('The tyndale commentary has the following profiles:', profiles);
     });
 ```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/c/tyndale/profiles.json
+```
+
+:::
 
 ### Structure
 
@@ -590,6 +638,10 @@ Gets a profile from a commentary.
 
 ### Code Example
 
+::: code-tabs#lang
+
+@tab JavaScript
+
 ```ts:no-line-numbers title="fetch-commentary-profile.js"
 const commentary = 'tyndale';
 const profile = 'aaron';
@@ -601,6 +653,14 @@ fetch(`https://bible.helloao.org/api/c/${commentary}/profiles/${profile}.json`)
         console.log('The Aaron tyndale commentary profile:', profile);
     });
 ```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/c/tyndale/profiles/aaron.json
+```
+
+:::
 
 ### Structure
 

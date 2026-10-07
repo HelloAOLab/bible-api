@@ -1,0 +1,12 @@
+{
+    "$schema": "node_modules/wrangler/config-schema.json",
+    "name": "free-use-bible-mcp",
+    "main": "src/worker.ts",
+    "compatibility_date": "2026-10-01",
+    "compatibility_flags": ["nodejs_compat"],
+    "observability": {
+        "enabled": true,
+    },
+    // Optionally override the upstream API:
+    // "vars": { "BIBLE_API_BASE": "https://bible.helloao.org/api" }
+}

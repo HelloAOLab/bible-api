@@ -22,6 +22,10 @@ Chapters that have per-reader audio timings link to them with `thisChapterAudioT
 
 ### Code Example
 
+::: code-tabs#lang
+
+@tab JavaScript
+
 ```ts:no-line-numbers title="fetch-simple-chapter.js"
 const translation = 'BSB';
 const book = 'GEN';
@@ -38,6 +42,14 @@ fetch(`https://bible.helloao.org/api/${translation}/${book}/${chapter}.simple.js
         }
     });
 ```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/BSB/GEN/1.simple.json
+```
+
+:::
 
 ### Offsets
 
@@ -467,6 +479,10 @@ As with the regular annotations, only some translations have them. A simplified 
 
 ### Code Example
 
+::: code-tabs#lang
+
+@tab JavaScript
+
 ```ts:no-line-numbers title="fetch-simple-chapter-words.js"
 const translation = 'BSB';
 const book = 'GEN';
@@ -487,6 +503,15 @@ Promise.all([
     }
 });
 ```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/BSB/GEN/1.simple.json
+curl https://bible.helloao.org/api/BSB/GEN/1.words.simple.json
+```
+
+:::
 
 ### Structure
 
@@ -658,6 +683,10 @@ This file is generated alongside `complete.json`, so a translation either has bo
 
 ### Code Example
 
+::: code-tabs#lang
+
+@tab JavaScript
+
 ```ts:no-line-numbers title="fetch-translation-complete-simple.js"
 const translation = 'BSB';
 
@@ -676,6 +705,14 @@ fetch(`https://bible.helloao.org/api/${translation}/complete.simple.json`)
         }
     });
 ```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/BSB/complete.simple.json
+```
+
+:::
 
 ### Structure
 

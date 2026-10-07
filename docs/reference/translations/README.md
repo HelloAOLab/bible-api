@@ -17,6 +17,10 @@ Gets the list of available translations in the API.
 
 ### Code Example
 
+::: code-tabs#lang
+
+@tab JavaScript
+
 ```ts:no-line-numbers title="fetch-translations.js"
 fetch(`https://bible.helloao.org/api/available_translations.json`)
     .then(request => request.json())
@@ -24,6 +28,14 @@ fetch(`https://bible.helloao.org/api/available_translations.json`)
         console.log('The API has the following translations:', availableTranslations);
     });
 ```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/available_translations.json
+```
+
+:::
 
 ### Structure
 
@@ -181,6 +193,10 @@ Gets the list of books that are available for the given translation.
 
 ### Code Example
 
+::: code-tabs#lang
+
+@tab JavaScript
+
 ```ts:no-line-numbers title="fetch-books.js"
 const translation = 'BSB';
 
@@ -191,6 +207,14 @@ fetch(`https://bible.helloao.org/api/${translation}/books.json`)
         console.log('The BSB has the following books:', books);
     });
 ```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/BSB/books.json
+```
+
+:::
 
 ### Structure
 
