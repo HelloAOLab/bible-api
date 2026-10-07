@@ -10,13 +10,25 @@ Gets the list of available Bible datasets in the API.
 
 ### Code Example
 
+::: code-tabs#lang
+
+@tab JavaScript
+
 ```ts:no-line-numbers title="fetch-datasets.js"
 fetch(`https://bible.helloao.org/api/available_datasets.json`)
     .then(request => request.json())
     .then(availableDatasets => {
-        console.log('The API has the following commentaries:', availableDatasets);
+        console.log('The API has the following datasets:', availableDatasets);
     });
 ```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/available_datasets.json
+```
+
+:::
 
 ### Structure
 
@@ -196,16 +208,28 @@ Gets the list of books that are available for the given dataset.
 
 ### Code Example
 
+::: code-tabs#lang
+
+@tab JavaScript
+
 ```ts:no-line-numbers title="fetch-dataset-books.js"
 const dataset = 'open-cross-ref';
 
 // Get the list of books for the open-cross-ref dataset
-fetch(`https://bible.helloao.org/api/c/${dataset}/books.json`)
+fetch(`https://bible.helloao.org/api/d/${dataset}/books.json`)
     .then(request => request.json())
     .then(books => {
         console.log('The open-cross-ref dataset has the following books:', books);
     });
 ```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/d/open-cross-ref/books.json
+```
+
+:::
 
 ### Structure
 
@@ -339,6 +363,10 @@ For cross reference datasets (such as `open-cross-ref`), the chapter contains th
 
 ### Code Example
 
+::: code-tabs#lang
+
+@tab JavaScript
+
 ```ts:no-line-numbers title="fetch-dataset-chapter.js"
 const dataset = 'open-cross-ref';
 const book = 'GEN';
@@ -351,6 +379,14 @@ fetch(`https://bible.helloao.org/api/d/${dataset}/${book}/${chapter}.json`)
         console.log('Genesis 1 (open-cross-ref):', chapter);
     });
 ```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/d/open-cross-ref/GEN/1.json
+```
+
+:::
 
 ### Structure
 
@@ -610,6 +646,10 @@ The list of books and chapters that have entity data is available from `GET http
 
 ### Code Example
 
+::: code-tabs#lang
+
+@tab JavaScript
+
 ```ts:no-line-numbers title="fetch-chapter-entities.js"
 const dataset = 'theographic';
 const book = 'GEN';
@@ -622,6 +662,14 @@ fetch(`https://bible.helloao.org/api/d/${dataset}/${book}/${chapter}.json`)
         console.log('Genesis 2 (theographic):', chapter);
     });
 ```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/d/theographic/GEN/2.json
+```
+
+:::
 
 ### Structure
 
@@ -889,6 +937,10 @@ Gets the list of people that are available for the given dataset.
 
 ### Code Example
 
+::: code-tabs#lang
+
+@tab JavaScript
+
 ```ts:no-line-numbers title="fetch-dataset-people.js"
 const dataset = 'theographic';
 
@@ -899,6 +951,14 @@ fetch(`https://bible.helloao.org/api/d/${dataset}/people.json`)
         console.log('The theographic dataset has the following people:', people);
     });
 ```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/d/theographic/people.json
+```
+
+:::
 
 ### Structure
 
@@ -987,6 +1047,10 @@ Gets the information about a single person, including the Bible references that 
 
 ### Code Example
 
+::: code-tabs#lang
+
+@tab JavaScript
+
 ```ts:no-line-numbers title="fetch-dataset-person.js"
 const dataset = 'theographic';
 const person = 'paul_2479';
@@ -998,6 +1062,14 @@ fetch(`https://bible.helloao.org/api/d/${dataset}/people/${person}.json`)
         console.log('Paul:', person);
     });
 ```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/d/theographic/people/paul_2479.json
+```
+
+:::
 
 ### Structure
 
