@@ -6,9 +6,12 @@ const DONATE_URL = 'https://better.giving/marketplace/1118469';
 const DISCORD_URL = 'https://discord.com/invite/NbEZMCJmqC';
 const GITHUB_URL = 'https://github.com/HelloAOLab/bible-api';
 const ISSUES_URL = 'https://github.com/HelloAOLab/bible-api/issues';
+const NEWSLETTER_URL = 'https://helloao.org';
 
 const logo = withBase('/seed_bible_logo.png');
 const logoDark = withBase('/seed_bible_logo_dark.png');
+const aoLabLogo = withBase('/ao_lab_logo.png');
+const aoLabLogoDark = withBase('/ao_lab_logo_dark.png');
 
 // The catalog grows. Fill the printed numbers from the live endpoint rather
 // than letting them rot, but only once a session: the file is large.
@@ -370,14 +373,14 @@ const compareRows: {
                             </RouteLink>
                         </div>
                         <div class="build-opts">
-                            <RouteLink to="/reference/">
-                                <small>Want the details?</small>
-                                <strong>Read the API reference &rarr;</strong>
+                            <a :href="NEWSLETTER_URL">
+                                <small>Want to stay in the loop?</small>
+                                <strong>Sign up for the newsletter &rarr;</strong>
                                 <p>
-                                    Every endpoint, with the exact shape of the
-                                    JSON it returns.
+                                    Updates from the people building it, in your
+                                    inbox.
                                 </p>
-                            </RouteLink>
+                            </a>
                             <RouteLink to="/guide/making-requests.html#examples">
                                 <small>Want something to copy?</small>
                                 <strong>See examples &rarr;</strong>
@@ -451,7 +454,7 @@ const compareRows: {
                         <p class="lbl2">AO Lab</p>
                         <ul>
                             <li><a href="https://helloao.org">AO Lab</a></li>
-                            <li><a href="https://helloao.org/about-us">About us</a></li>
+                            <li><a href="https://helloao.org/about.html">About us</a></li>
                             <li><a :href="DONATE_URL">Donate to AO Lab</a></li>
                         </ul>
                     </div>
@@ -460,8 +463,8 @@ const compareRows: {
                 <div class="foot-legal">
                     <span>A 501(c)(3) nonprofit &middot; Established 2/2/2022</span>
                     <a class="foot-logo" href="https://helloao.org" aria-label="AO Lab">
-                        <img class="light-only" :src="logo" alt="Seed Bible" />
-                        <img class="dark-only" :src="logoDark" alt="Seed Bible" />
+                        <img class="light-only" :src="aoLabLogo" alt="AO Lab" />
+                        <img class="dark-only" :src="aoLabLogoDark" alt="AO Lab" />
                     </a>
                     <span class="foot-terms">
                         <RouteLink to="/guide/a-biblical-model-for-licensing-the-bible.html">License</RouteLink>
@@ -1146,7 +1149,7 @@ const compareRows: {
     .foot-logo img {
         display: block;
         width: auto;
-        height: 40px;
+        height: 48px;
     }
 
     @media (max-width: 980px) {

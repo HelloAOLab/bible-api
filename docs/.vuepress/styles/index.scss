@@ -163,3 +163,10 @@
 .vp-navbar-item > a.route-link-active {
     color: var(--vp-c-text);
 }
+
+// Centre the Seed Bible mark on the wordmark rather than pinning it to the top.
+.vp-navbar > span > a {
+    display: inline-flex;
+    align-items: center;
+    height: var(--navbar-line-height);
+}
