@@ -38,3 +38,5 @@ This is the log of changes for the Free Use Bible API.
     -   Each chapter now has an optional `thisChapterWordsLink` property instead, pointing at the same per-chapter words file (`{chapter}.words.json`/`{chapter}.words.simple.json`) that the regular chapter endpoints link to. It's omitted for chapters that have no annotations, same as `thisChapterWordsLink` on those endpoints.
     -   This keeps the complete translation files focused on chapter/verse content, footnotes, and audio, matching how word annotations are already handled everywhere else in the API.
     -   `/api/{translation}/{book}/{chapter}.words.simple.json` is now generated whenever `complete.simple.json` is, even if simplified per-chapter files aren't otherwise being generated, so the link is always valid.
+
+This is the end of the changelog. For older entries, see the [API Changelog](https://github.com/HelloAOLab/bible-api/blob/2ea0612f33db11b01fbd903cb69cdadd8a4bd127/API-CHANGELOG.md) or [Generator Changelog](https://github.com/HelloAOLab/bible-api/blob/2ea0612f33db11b01fbd903cb69cdadd8a4bd127/GENERATOR-CHANGELOG.md).
