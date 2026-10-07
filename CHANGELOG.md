@@ -7,6 +7,7 @@ This is the log of changes for the Free Use Bible API.
 ### :rocket: Features
 
 -   We have an updated documentation website!
+-   We now also support multiple languages for the documentation via Google Translate.
 -   Added verse timings for audio for the AAB and BSB translations.
     -   The chapter endpoints (e.g. `/api/AAB/GEN/1.json`, `/api/AAB/GEN/1.simple.json`) now contain a `thisChapterAudioTimings` object that references the timings file for each supported reader.
 
