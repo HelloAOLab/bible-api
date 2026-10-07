@@ -35,6 +35,14 @@ const chapter = await api.getTranslationBookChapter('BSB', 'GEN', 1);
 console.log('Verses in Genesis 1:', chapter.numberOfVerses);
 ```
 
+CommonJS is also supported:
+
+```js
+const { FreeUseBibleApi } = require('free-use-bible-api');
+
+const api = new FreeUseBibleApi();
+```
+
 ## Client Options
 
 You can customize the client with `FreeUseBibleApiOptions`:
@@ -58,6 +66,7 @@ const api = new FreeUseBibleApi({
 -   `getAvailableTranslations(endpoint?)`
 -   `getTranslationBooks(translation, endpoint?)`
 -   `getTranslationBookChapter(translation, book, chapter, endpoint?)`
+-   `getTranslationBookChapterAudioTimings(translation, book, chapter, reader, endpoint?)`
 -   `getTranslationBookChapterWords(translation, book, chapter, endpoint?)`
 -   `getCompleteTranslation(translation, endpoint?)`
 -   `getSimpleTranslationBookChapter(translation, book, chapter, endpoint?)`
@@ -65,6 +74,10 @@ const api = new FreeUseBibleApi({
 -   `getSimpleCompleteTranslation(translation, endpoint?)`
 
 `getCompleteTranslation()` and `getSimpleCompleteTranslation()` disable per-request cache internally because payloads are typically large.
+
+Only some chapters have audio timings. The keys of a chapter's `thisChapterAudioTimings` property identify the readers available to pass to `getTranslationBookChapterAudioTimings()`.
+
+The client provides callable methods for all 24 public API operations.
 
 ### Commentaries
 
@@ -214,6 +227,7 @@ for (const content of chapter.chapter.content) {
 -   `GET /api/available_translations.json`
 -   `GET /api/{translation}/books.json`
 -   `GET /api/{translation}/{book}/{chapter}.json`
+-   `GET /api/{translation}/{book}/{chapter}.{reader}.audioTimings.json`
 -   `GET /api/{translation}/{book}/{chapter}.words.json`
 -   `GET /api/{translation}/complete.json`
 -   `GET /api/{translation}/{book}/{chapter}.simple.json`
