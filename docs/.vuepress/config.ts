@@ -20,6 +20,54 @@ const description =
     'An easy-to-use and fully featured JSON API for Scripture. ' +
     'No API key, no usage limits, no copyright restrictions.';
 
+/** Turns a page path into an absolute URL, including the `/docs/` base. */
+const absolute = (path: string) =>
+    `${hostname}${base}${path.replace(/^\//, '')}`;
+
+/**
+ * The chain of pages leading to `path`, starting at the site root.
+ *
+ * `/reference/translations/standard.html` becomes
+ * `['/', '/reference/', '/reference/translations/', '/reference/translations/standard.html']`.
+ */
+const breadcrumbTrail = (path: string): string[] => {
+    const segments = path.split('/').filter(Boolean);
+    const trail = ['/'];
+    let prefix = '';
+
+    segments.forEach((segment, i) => {
+        if (i === segments.length - 1 && segment.endsWith('.html')) {
+            trail.push(`${prefix}/${segment}`);
+        } else {
+            prefix += `/${segment}`;
+            trail.push(`${prefix}/`);
+        }
+    });
+
+    return trail;
+};
+
+/** Fallback crumb label for the unlikely case that an ancestor has no page. */
+const humanize = (path: string) =>
+    path
+        .replace(/\/$/, '')
+        .split('/')
+        .pop()!
+        .replace(/\.html$/, '')
+        .replace(/-/g, ' ')
+        .replace(/\b\w/g, (c) => c.toUpperCase());
+
+/**
+ * Crumb labels for the section landing pages, which are titled by their H1
+ * ("Introduction", "API") rather than by the name the navbar and sidebar use.
+ * A breadcrumb that reads "Home > Introduction > Getting Started" does not
+ * match how the site presents itself.
+ */
+const sectionNames: Record<string, string> = {
+    '/guide/': 'Guide',
+    '/reference/': 'Reference',
+};
+
 export default defineUserConfig({
     base,
     lang: 'en-US',
@@ -160,6 +208,10 @@ export default defineUserConfig({
             // https://bible.helloao.org/docs/guide/. Build it explicitly.
             canonical: (page) =>
                 `${hostname}${base}${page.path.replace(/^\//, '')}`,
+            // Only the guides are articles. Typing the API reference and the
+            // SDK index as Article (with an author) misdescribes them, and it
+            // would also give them og:type=article.
+            isArticle: (page) => page.path.startsWith('/guide/'),
             // Defensive fallbacks: a page without its own title/description
             // would otherwise get an empty og:title or og:description.
             ogp: (ogp) => ({
@@ -167,10 +219,62 @@ export default defineUserConfig({
                 'og:title': ogp['og:title'] || title,
                 'og:description': ogp['og:description'] || description,
             }),
-            jsonLd: (jsonLd) =>
-                jsonLd['@type'] === 'WebPage'
-                    ? { ...jsonLd, name: jsonLd.name || title }
-                    : jsonLd,
+            jsonLd: (jsonLd) => {
+                const next: Record<string, unknown> = { ...jsonLd };
+
+                if (next['@type'] === 'Article') {
+                    // Developer documentation, not general-interest writing.
+                    next['@type'] = 'TechArticle';
+                } else {
+                    next.name = next.name || title;
+                }
+
+                // `lastUpdated` and the git plugin are both off, so the plugin
+                // emits `dateModified: null`. A literal null is not a valid
+                // schema.org Date, so drop empty values entirely.
+                for (const [key, value] of Object.entries(next)) {
+                    if (value == null) {
+                        delete next[key];
+                    }
+                }
+
+                return next as typeof jsonLd;
+            },
+            // Breadcrumbs are a separate JSON-LD block, so they go in via
+            // customHead rather than the single-object `jsonLd` hook.
+            customHead: (head, page, app) => {
+                if (page.path === '/404.html') {
+                    return;
+                }
+
+                const trail = breadcrumbTrail(page.path);
+
+                // A lone "Home" crumb tells search engines nothing.
+                if (trail.length < 2) {
+                    return;
+                }
+
+                head.push([
+                    'script',
+                    { type: 'application/ld+json' },
+                    JSON.stringify({
+                        '@context': 'https://schema.org',
+                        '@type': 'BreadcrumbList',
+                        itemListElement: trail.map((path, i) => ({
+                            '@type': 'ListItem',
+                            position: i + 1,
+                            name:
+                                i === 0
+                                    ? 'Home'
+                                    : sectionNames[path] ||
+                                      app.pages.find((p) => p.path === path)
+                                          ?.title ||
+                                      humanize(path),
+                            item: absolute(path),
+                        })),
+                    }),
+                ]);
+            },
         }),
         sitemapPlugin({
             hostname,
