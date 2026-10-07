@@ -1,13 +1,52 @@
+import { readFileSync } from 'node:fs';
 import { FreeUseBibleApi, VerseReference } from './FreeUseBibleApi.js';
 import type {
     ApiCommentaryBook,
     ApiCommentaryBookChapter,
     ApiDatasetBook,
     ApiDatasetBookChapter,
+    ApiDatasetEntityBookChapter,
+    ApiSimpleCommentaryBookChapter,
+    ApiSimpleTranslationBookChapter,
+    ApiSimpleTranslationBookChapterWords,
     ApiTranslationBook,
     ApiTranslationBookChapter,
+    ApiTranslationBookChapterAudioTimings,
+    ApiTranslationBookChapterWords,
     ChapterVerse,
+    SimpleChapterVerse,
+    SimpleTranslationCompleteChapter,
+    TranslationCompleteChapter,
 } from './types.gen.js';
+
+const operationMethods = {
+    GetAvailableTranslations: 'getAvailableTranslations',
+    GetTranslationBooks: 'getTranslationBooks',
+    GetTranslationBookChapter: 'getTranslationBookChapter',
+    GetSimpleTranslationBookChapter: 'getSimpleTranslationBookChapter',
+    GetTranslationBookChapterAudioTimings:
+        'getTranslationBookChapterAudioTimings',
+    GetTranslationBookChapterWords: 'getTranslationBookChapterWords',
+    GetSimpleTranslationBookChapterWords:
+        'getSimpleTranslationBookChapterWords',
+    GetTranslationComplete: 'getCompleteTranslation',
+    GetSimpleTranslationComplete: 'getSimpleCompleteTranslation',
+    GetAvailableCommentaries: 'getAvailableCommentaries',
+    GetCommentaryBooks: 'getCommentaryBooks',
+    GetCommentaryBookChapter: 'getCommentaryBookChapter',
+    GetSimpleCommentaryBookChapter: 'getSimpleCommentaryBookChapter',
+    GetAvailableDatasets: 'getAvailableDatasets',
+    GetDatasetBooks: 'getDatasetBooks',
+    GetDatasetBookChapter: 'getDatasetBookChapter',
+    GetDatasetPeople: 'getDatasetPeople',
+    GetDatasetPerson: 'getDatasetPerson',
+    GetDatasetPlaces: 'getDatasetPlaces',
+    GetDatasetPlace: 'getDatasetPlace',
+    GetDatasetEvents: 'getDatasetEvents',
+    GetDatasetEvent: 'getDatasetEvent',
+    GetDatasetPeopleGroups: 'getDatasetPeopleGroups',
+    GetDatasetPeopleGroup: 'getDatasetPeopleGroup',
+} as const satisfies Record<string, keyof FreeUseBibleApi>;
 
 describe('FreeUseBibleApi', () => {
     let fetchMock: jest.Mock;
@@ -43,6 +82,50 @@ describe('FreeUseBibleApi', () => {
         );
     });
 
+    it('has a callable method mapped for every public OpenAPI operation', () => {
+        const generatedTypes = readFileSync(
+            'packages/free-use-bible-api/types.gen.ts',
+            'utf8'
+        );
+        const operationIds = Array.from(
+            generatedTypes.matchAll(/^export type (Get\w+)Data = \{/gm),
+            (match) => match[1]
+        ).sort();
+
+        expect(operationIds).toEqual(Object.keys(operationMethods).sort());
+
+        const api = new FreeUseBibleApi();
+        for (const method of Object.values(operationMethods)) {
+            expect(typeof api[method]).toBe('function');
+        }
+    });
+
+    it('returns commentary-specific response types', async () => {
+        fetchMock
+            .mockResolvedValueOnce(
+                jsonResponse({ commentaries: [{ id: 'matthew_henry' }] })
+            )
+            .mockResolvedValueOnce(
+                jsonResponse({ commentary: { id: 'matthew_henry' }, books: [] })
+            )
+            .mockResolvedValueOnce(
+                jsonResponse({ commentary: { id: 'matthew_henry' } })
+            );
+
+        const api = new FreeUseBibleApi();
+        const available = await api.getAvailableCommentaries();
+        const books = await api.getCommentaryBooks('matthew_henry');
+        const chapter = await api.getCommentaryBookChapter(
+            'matthew_henry',
+            'GEN',
+            1
+        );
+
+        expect(available.commentaries[0].id).toBe('matthew_henry');
+        expect(books.commentary.id).toBe('matthew_henry');
+        expect(chapter.commentary.id).toBe('matthew_henry');
+    });
+
     it('builds encoded chapter URLs and supports endpoint override per call', async () => {
         const payload = { chapter: { number: 1 } };
         fetchMock.mockResolvedValue(jsonResponse(payload));
@@ -57,6 +140,39 @@ describe('FreeUseBibleApi', () => {
 
         expect(fetchMock).toHaveBeenCalledWith(
             'https://example.com/base/api/My%20Translation/GEN%2FIntro/1.json'
+        );
+    });
+
+    it('gets typed audio timings with independently encoded path segments', async () => {
+        const payload: ApiTranslationBookChapterAudioTimings = {
+            translationId: 'My Translation',
+            bookId: 'GEN/Intro',
+            chapterNumber: 1,
+            reader: 'Reader / One',
+            audioLink: '/audio.mp3',
+            thisChapterLink: '/api/chapter.json',
+            nextChapterLink: null,
+            previousChapterLink: null,
+            thisChapterAudioTimingsLink: '/api/timings.json',
+            nextChapterAudioTimingsLink: null,
+            previousChapterAudioTimingsLink: null,
+            verses: [0, 4.2],
+        };
+        fetchMock.mockResolvedValue(jsonResponse(payload));
+
+        const api = new FreeUseBibleApi();
+        const result = await api.getTranslationBookChapterAudioTimings(
+            'My Translation',
+            'GEN/Intro',
+            '1/2',
+            'Reader / One',
+            'https://example.com/base/'
+        );
+
+        expect(result.verses).toEqual([0, 4.2]);
+        expect(result).toBe(payload);
+        expect(fetchMock).toHaveBeenCalledWith(
+            'https://example.com/base/api/My%20Translation/GEN%2FIntro/1%2F2.Reader%20%2F%20One.audioTimings.json'
         );
     });
 
@@ -222,6 +338,166 @@ describe('FreeUseBibleApi', () => {
         expect(last).toEqual(lastPayload);
     });
 
+    it('preserves entity chapter fields through dataset navigation', async () => {
+        const entityPayload = {
+            chapter: { number: 2, people: [], places: [], events: [] },
+            numberOfPeople: 3,
+            numberOfPlaces: 2,
+            numberOfEvents: 1,
+        };
+        fetchMock.mockResolvedValue(jsonResponse(entityPayload));
+
+        const api = new FreeUseBibleApi({ useCache: false });
+        const chapter = {
+            nextChapterApiLink: '/api/d/theographic/GEN/2.json',
+            previousChapterApiLink: '/api/d/theographic/GEN/1.json',
+        } as ApiDatasetEntityBookChapter;
+        const book = {
+            firstChapterApiLink: '/api/d/theographic/GEN/1.json',
+            lastChapterApiLink: '/api/d/theographic/GEN/50.json',
+        } as ApiDatasetBook;
+
+        const results = await Promise.all([
+            api.getNextChapter(chapter),
+            api.getPreviousChapter(chapter),
+            api.getFirstChapter(book),
+            api.getLastChapter(book),
+        ]);
+
+        for (const result of results) {
+            expect(result).not.toBeNull();
+            if (!result || !('numberOfPeople' in result)) {
+                throw new Error('Expected an entity dataset chapter');
+            }
+            expect(result.numberOfPeople).toBe(3);
+            expect(result.chapter.people).toEqual([]);
+        }
+        expect(fetchMock).toHaveBeenCalledTimes(4);
+    });
+
+    it('gets an entity chapter through getDatasetBookChapter', async () => {
+        const payload = {
+            chapter: {
+                number: 1,
+                people: [
+                    {
+                        id: 'god_1324',
+                        name: 'God',
+                        isProperName: true,
+                        gender: 'Male',
+                        apiLink: '/api/d/theographic/people/god_1324.json',
+                        verses: [1, 3, 5],
+                    },
+                ],
+                places: [],
+                events: [],
+            },
+            numberOfPeople: 1,
+            numberOfPlaces: 0,
+            numberOfEvents: 0,
+        };
+        fetchMock.mockResolvedValue(jsonResponse(payload));
+
+        const api = new FreeUseBibleApi();
+
+        const chapter = await api.getDatasetBookChapter(
+            'theographic',
+            'GEN',
+            1
+        );
+
+        expect(chapter).toEqual(payload);
+        expect(fetchMock).toHaveBeenCalledWith(
+            'https://bible.helloao.org/api/d/theographic/GEN/1.json'
+        );
+    });
+
+    it('gets dataset entity lists using dedicated methods', async () => {
+        const peoplePayload = { people: [{ id: 'paul_2479' }] };
+        const placesPayload = { places: [{ id: 'jerusalem_636' }] };
+        const eventsPayload = { events: [{ id: 'saul-is-converted_326' }] };
+        const groupsPayload = { groups: [{ id: 'tribe-of-benjamin' }] };
+        fetchMock
+            .mockResolvedValueOnce(jsonResponse(peoplePayload))
+            .mockResolvedValueOnce(jsonResponse(placesPayload))
+            .mockResolvedValueOnce(jsonResponse(eventsPayload))
+            .mockResolvedValueOnce(jsonResponse(groupsPayload));
+
+        const api = new FreeUseBibleApi();
+
+        const people = await api.getDatasetPeople('theographic');
+        const places = await api.getDatasetPlaces('theographic');
+        const events = await api.getDatasetEvents('theographic');
+        const groups = await api.getDatasetPeopleGroups('theographic');
+
+        expect(people).toEqual(peoplePayload);
+        expect(places).toEqual(placesPayload);
+        expect(events).toEqual(eventsPayload);
+        expect(groups).toEqual(groupsPayload);
+        expect(fetchMock).toHaveBeenNthCalledWith(
+            1,
+            'https://bible.helloao.org/api/d/theographic/people.json'
+        );
+        expect(fetchMock).toHaveBeenNthCalledWith(
+            2,
+            'https://bible.helloao.org/api/d/theographic/places.json'
+        );
+        expect(fetchMock).toHaveBeenNthCalledWith(
+            3,
+            'https://bible.helloao.org/api/d/theographic/events.json'
+        );
+        expect(fetchMock).toHaveBeenNthCalledWith(
+            4,
+            'https://bible.helloao.org/api/d/theographic/groups.json'
+        );
+    });
+
+    it('gets individual dataset entities using dedicated methods', async () => {
+        const personPayload = { person: { id: 'paul_2479' } };
+        const placePayload = { place: { id: 'jerusalem_636' } };
+        const eventPayload = { event: { id: 'saul-is-converted_326' } };
+        const groupPayload = { group: { id: 'tribe-of-benjamin' } };
+        fetchMock
+            .mockResolvedValueOnce(jsonResponse(personPayload))
+            .mockResolvedValueOnce(jsonResponse(placePayload))
+            .mockResolvedValueOnce(jsonResponse(eventPayload))
+            .mockResolvedValueOnce(jsonResponse(groupPayload));
+
+        const api = new FreeUseBibleApi();
+
+        const person = await api.getDatasetPerson('theographic', 'paul_2479');
+        const place = await api.getDatasetPlace('theographic', 'jerusalem_636');
+        const event = await api.getDatasetEvent(
+            'theographic',
+            'saul-is-converted_326'
+        );
+        const group = await api.getDatasetPeopleGroup(
+            'theographic',
+            'tribe-of-benjamin'
+        );
+
+        expect(person).toEqual(personPayload);
+        expect(place).toEqual(placePayload);
+        expect(event).toEqual(eventPayload);
+        expect(group).toEqual(groupPayload);
+        expect(fetchMock).toHaveBeenNthCalledWith(
+            1,
+            'https://bible.helloao.org/api/d/theographic/people/paul_2479.json'
+        );
+        expect(fetchMock).toHaveBeenNthCalledWith(
+            2,
+            'https://bible.helloao.org/api/d/theographic/places/jerusalem_636.json'
+        );
+        expect(fetchMock).toHaveBeenNthCalledWith(
+            3,
+            'https://bible.helloao.org/api/d/theographic/events/saul-is-converted_326.json'
+        );
+        expect(fetchMock).toHaveBeenNthCalledWith(
+            4,
+            'https://bible.helloao.org/api/d/theographic/groups/tribe-of-benjamin.json'
+        );
+    });
+
     it('gets a commentary chapter and dataset chapter using dedicated methods', async () => {
         const commentaryPayload = { chapter: { number: 1 } };
         const datasetPayload = { chapter: { number: 3 } };
@@ -244,7 +520,7 @@ describe('FreeUseBibleApi', () => {
         expect(dataset).toEqual(datasetPayload as ApiDatasetBookChapter);
         expect(fetchMock).toHaveBeenNthCalledWith(
             1,
-            'https://bible.helloao.org/api/matthew_henry/GEN/1.json'
+            'https://bible.helloao.org/api/c/matthew_henry/GEN/1.json'
         );
         expect(fetchMock).toHaveBeenNthCalledWith(
             2,
@@ -615,4 +891,620 @@ describe('FreeUseBibleApi', () => {
             expect(formatted).toBe(expected);
         }
     );
+
+    // In the beginning was the Word
+    // 0  3   7             21  25
+    const wordsVerse = {
+        type: 'verse',
+        number: 1,
+        content: ['In the beginning was the Word'],
+    } as ChapterVerse;
+
+    const wordsPayload = {
+        translationId: 'engwebp',
+        bookId: 'JHN',
+        chapterNumber: 1,
+        verses: {
+            '1': [
+                { contentIndex: 0, start: 0, end: 2, strongs: ['G1722'] },
+                { contentIndex: 0, start: 3, end: 6, strongs: ['G1722'] },
+                { contentIndex: 0, start: 7, end: 16, strongs: ['G0746'] },
+            ],
+        },
+    } as unknown as ApiTranslationBookChapterWords;
+
+    it('requests the words for a chapter', async () => {
+        fetchMock.mockResolvedValue(jsonResponse(wordsPayload));
+
+        const api = new FreeUseBibleApi();
+        const result = await api.getTranslationBookChapterWords(
+            'engwebp',
+            'JHN',
+            1
+        );
+
+        expect(result).toEqual(wordsPayload);
+        expect(fetchMock).toHaveBeenCalledWith(
+            'https://bible.helloao.org/api/engwebp/JHN/1.words.json'
+        );
+    });
+
+    it('builds encoded words URLs and supports endpoint override per call', async () => {
+        fetchMock.mockResolvedValue(jsonResponse(wordsPayload));
+
+        const api = new FreeUseBibleApi();
+        await api.getTranslationBookChapterWords(
+            'My Translation',
+            'GEN/Intro',
+            '1',
+            'https://example.com/base/'
+        );
+
+        expect(fetchMock).toHaveBeenCalledWith(
+            'https://example.com/base/api/My%20Translation/GEN%2FIntro/1.words.json'
+        );
+    });
+
+    it('gets the words for a chapter by following its words link', async () => {
+        fetchMock.mockResolvedValue(jsonResponse(wordsPayload));
+
+        const api = new FreeUseBibleApi();
+        const chapter = {
+            thisChapterWordsLink:
+                'https://bible.helloao.org/api/engwebp/JHN/1.words.json',
+        } as ApiTranslationBookChapter;
+
+        const words = await api.getChapterWords(chapter);
+
+        expect(words).toEqual(wordsPayload);
+        expect(fetchMock).toHaveBeenCalledWith(
+            'https://bible.helloao.org/api/engwebp/JHN/1.words.json'
+        );
+    });
+
+    it('returns null words for chapters that have no annotations', async () => {
+        const api = new FreeUseBibleApi();
+        const chapter = {} as ApiTranslationBookChapter;
+
+        await expect(api.getChapterWords(chapter)).resolves.toBeNull();
+        expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('gets the words for a complete translation chapter by following its words link', async () => {
+        fetchMock.mockResolvedValue(jsonResponse(wordsPayload));
+
+        const api = new FreeUseBibleApi();
+        const chapter = {
+            thisChapterWordsLink:
+                'https://bible.helloao.org/api/engwebp/JHN/1.words.json',
+        } as TranslationCompleteChapter;
+
+        const words = await api.getChapterWords(chapter);
+
+        expect(words).toEqual(wordsPayload);
+        expect(fetchMock).toHaveBeenCalledWith(
+            'https://bible.helloao.org/api/engwebp/JHN/1.words.json'
+        );
+    });
+
+    it('returns null words for complete translation chapters that have no annotations', async () => {
+        const api = new FreeUseBibleApi();
+        const chapter = {} as TranslationCompleteChapter;
+
+        await expect(api.getChapterWords(chapter)).resolves.toBeNull();
+        expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('getWordText slices the annotated word out of a string', () => {
+        const api = new FreeUseBibleApi();
+
+        expect(
+            api.getWordText(wordsVerse, {
+                contentIndex: 0,
+                start: 7,
+                end: 16,
+            })
+        ).toBe('beginning');
+    });
+
+    it('getWordText slices the annotated word out of formatted text', () => {
+        const api = new FreeUseBibleApi();
+        const verse = {
+            type: 'verse',
+            number: 38,
+            content: [
+                'Jesus said,',
+                { text: '“What are you looking for?”', wordsOfJesus: true },
+            ],
+        } as ChapterVerse;
+
+        expect(
+            api.getWordText(verse, { contentIndex: 1, start: 1, end: 5 })
+        ).toBe('What');
+    });
+
+    it('getWordText returns an empty string for content that has no text', () => {
+        const api = new FreeUseBibleApi();
+        const verse = {
+            type: 'verse',
+            number: 1,
+            content: [{ noteId: 2 }, { lineBreak: true }],
+        } as ChapterVerse;
+
+        expect(
+            api.getWordText(verse, { contentIndex: 0, start: 0, end: 2 })
+        ).toBe('');
+        expect(
+            api.getWordText(verse, { contentIndex: 1, start: 0, end: 2 })
+        ).toBe('');
+        expect(
+            api.getWordText(verse, { contentIndex: 5, start: 0, end: 2 })
+        ).toBe('');
+    });
+
+    it('getVerseWords pairs each annotation with its text', () => {
+        const api = new FreeUseBibleApi();
+
+        expect(api.getVerseWords(wordsVerse, wordsPayload)).toEqual([
+            {
+                contentIndex: 0,
+                start: 0,
+                end: 2,
+                strongs: ['G1722'],
+                text: 'In',
+            },
+            {
+                contentIndex: 0,
+                start: 3,
+                end: 6,
+                strongs: ['G1722'],
+                text: 'the',
+            },
+            {
+                contentIndex: 0,
+                start: 7,
+                end: 16,
+                strongs: ['G0746'],
+                text: 'beginning',
+            },
+        ]);
+    });
+
+    it('getVerseWords returns an empty list for verses with no annotations', () => {
+        const api = new FreeUseBibleApi();
+        const verse = {
+            type: 'verse',
+            number: 2,
+            content: ['The same was in the beginning with God.'],
+        } as ChapterVerse;
+
+        expect(api.getVerseWords(verse, wordsPayload)).toEqual([]);
+    });
+
+    it('requests a simplified translation chapter from the default endpoint', async () => {
+        const payload = { chapter: { number: 1 } };
+        fetchMock.mockResolvedValue(jsonResponse(payload));
+
+        const api = new FreeUseBibleApi();
+        const result = await api.getSimpleTranslationBookChapter(
+            'BSB',
+            'GEN',
+            1
+        );
+
+        expect(result).toEqual(payload);
+        expect(fetchMock).toHaveBeenCalledWith(
+            'https://bible.helloao.org/api/BSB/GEN/1.simple.json'
+        );
+    });
+
+    it('builds encoded simplified chapter URLs and supports endpoint override per call', async () => {
+        const payload = { chapter: { number: 1 } };
+        fetchMock.mockResolvedValue(jsonResponse(payload));
+
+        const api = new FreeUseBibleApi();
+        await api.getSimpleTranslationBookChapter(
+            'My Translation',
+            'GEN/Intro',
+            '1',
+            'https://example.com/base/'
+        );
+
+        expect(fetchMock).toHaveBeenCalledWith(
+            'https://example.com/base/api/My%20Translation/GEN%2FIntro/1.simple.json'
+        );
+    });
+
+    it('requests the simplified words for a chapter', async () => {
+        const payload = { verses: {} };
+        fetchMock.mockResolvedValue(jsonResponse(payload));
+
+        const api = new FreeUseBibleApi();
+        const result = await api.getSimpleTranslationBookChapterWords(
+            'engwebp',
+            'JHN',
+            1
+        );
+
+        expect(result).toEqual(payload);
+        expect(fetchMock).toHaveBeenCalledWith(
+            'https://bible.helloao.org/api/engwebp/JHN/1.words.simple.json'
+        );
+    });
+
+    it('gets a simplified commentary chapter using the dedicated method', async () => {
+        const payload = { chapter: { number: 1 } };
+        fetchMock.mockResolvedValue(jsonResponse(payload));
+
+        const api = new FreeUseBibleApi();
+        const result = await api.getSimpleCommentaryBookChapter(
+            'matthew_henry',
+            'GEN',
+            1
+        );
+
+        expect(result).toEqual(payload);
+        expect(fetchMock).toHaveBeenCalledWith(
+            'https://bible.helloao.org/api/c/matthew_henry/GEN/1.simple.json'
+        );
+    });
+
+    it('does not cache simplified complete translation responses', async () => {
+        fetchMock
+            .mockResolvedValueOnce(jsonResponse({ books: [] }))
+            .mockResolvedValueOnce(jsonResponse({ books: [] }));
+
+        const api = new FreeUseBibleApi();
+        await api.getSimpleCompleteTranslation('BSB');
+        await api.getSimpleCompleteTranslation('BSB');
+
+        expect(fetchMock).toHaveBeenCalledTimes(2);
+        expect(fetchMock).toHaveBeenNthCalledWith(
+            1,
+            'https://bible.helloao.org/api/BSB/complete.simple.json'
+        );
+    });
+
+    it('gets the simplified version of a translation chapter by following its link', async () => {
+        const simplePayload = { chapter: { number: 1 } };
+        fetchMock.mockResolvedValue(jsonResponse(simplePayload));
+
+        const api = new FreeUseBibleApi();
+        const chapter = {
+            simpleChapterApiLink:
+                'https://bible.helloao.org/api/BSB/GEN/1.simple.json',
+        } as ApiTranslationBookChapter;
+
+        const simple = await api.getSimpleChapter(chapter);
+
+        expect(simple).toEqual(simplePayload);
+        expect(fetchMock).toHaveBeenCalledWith(
+            'https://bible.helloao.org/api/BSB/GEN/1.simple.json'
+        );
+    });
+
+    it('gets the simplified version of a commentary chapter by following its link', async () => {
+        const simplePayload = { chapter: { number: 1 } };
+        fetchMock.mockResolvedValue(jsonResponse(simplePayload));
+
+        const api = new FreeUseBibleApi();
+        const chapter = {
+            simpleChapterApiLink:
+                'https://bible.helloao.org/api/c/matthew_henry/GEN/1.simple.json',
+        } as ApiCommentaryBookChapter;
+
+        const simple = await api.getSimpleChapter(chapter);
+
+        expect(simple).toEqual(simplePayload);
+        expect(fetchMock).toHaveBeenCalledWith(
+            'https://bible.helloao.org/api/c/matthew_henry/GEN/1.simple.json'
+        );
+    });
+
+    it('returns null for the simplified chapter when the link is missing', async () => {
+        const api = new FreeUseBibleApi();
+        const chapter = {} as ApiTranslationBookChapter;
+
+        await expect(api.getSimpleChapter(chapter)).resolves.toBeNull();
+        expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('gets the words for a simplified chapter by following its words link', async () => {
+        const payload = { verses: {} };
+        fetchMock.mockResolvedValue(jsonResponse(payload));
+
+        const api = new FreeUseBibleApi();
+        const chapter = {
+            thisChapterWordsLink:
+                'https://bible.helloao.org/api/engwebp/JHN/1.words.simple.json',
+        } as ApiSimpleTranslationBookChapter;
+
+        const words = await api.getSimpleChapterWords(chapter);
+
+        expect(words).toEqual(payload);
+        expect(fetchMock).toHaveBeenCalledWith(
+            'https://bible.helloao.org/api/engwebp/JHN/1.words.simple.json'
+        );
+    });
+
+    it('returns null simplified words for chapters that have no annotations', async () => {
+        const api = new FreeUseBibleApi();
+        const chapter = {} as ApiSimpleTranslationBookChapter;
+
+        await expect(api.getSimpleChapterWords(chapter)).resolves.toBeNull();
+        expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('gets the words for a simplified complete translation chapter by following its words link', async () => {
+        const payload = { verses: {} };
+        fetchMock.mockResolvedValue(jsonResponse(payload));
+
+        const api = new FreeUseBibleApi();
+        const chapter = {
+            thisChapterWordsLink:
+                'https://bible.helloao.org/api/engwebp/JHN/1.words.simple.json',
+        } as SimpleTranslationCompleteChapter;
+
+        const words = await api.getSimpleChapterWords(chapter);
+
+        expect(words).toEqual(payload);
+        expect(fetchMock).toHaveBeenCalledWith(
+            'https://bible.helloao.org/api/engwebp/JHN/1.words.simple.json'
+        );
+    });
+
+    it('returns null simplified words for complete translation chapters that have no annotations', async () => {
+        const api = new FreeUseBibleApi();
+        const chapter = {} as SimpleTranslationCompleteChapter;
+
+        await expect(api.getSimpleChapterWords(chapter)).resolves.toBeNull();
+        expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('gets next and previous chapters when given simplified chapters', async () => {
+        const nextPayload = { chapter: { number: 2 } };
+        const prevPayload = { chapter: { number: 1 } };
+        fetchMock
+            .mockResolvedValueOnce(jsonResponse(nextPayload))
+            .mockResolvedValueOnce(jsonResponse(prevPayload));
+
+        const api = new FreeUseBibleApi();
+        const translationChapter = {
+            nextChapterApiLink:
+                'https://bible.helloao.org/api/BSB/GEN/2.simple.json',
+            previousChapterApiLink:
+                'https://bible.helloao.org/api/BSB/GEN/1.simple.json',
+        } as ApiSimpleTranslationBookChapter;
+
+        const next = await api.getNextChapter(translationChapter);
+        const previous = await api.getPreviousChapter(translationChapter);
+
+        expect(next).toEqual(nextPayload);
+        expect(previous).toEqual(prevPayload);
+
+        const commentaryChapter = {
+            nextChapterApiLink: null,
+            previousChapterApiLink: null,
+        } as ApiSimpleCommentaryBookChapter;
+
+        await expect(api.getNextChapter(commentaryChapter)).resolves.toBeNull();
+        await expect(
+            api.getPreviousChapter(commentaryChapter)
+        ).resolves.toBeNull();
+    });
+
+    const simpleWordsVerse = {
+        type: 'verse',
+        number: 1,
+        text: 'In the beginning was the Word',
+        footnotes: [],
+    } as SimpleChapterVerse;
+
+    const simpleWordsPayload = {
+        translationId: 'engwebp',
+        bookId: 'JHN',
+        chapterNumber: 1,
+        verses: {
+            '1': [
+                { start: 0, end: 2, strongs: ['G1722'] },
+                { start: 7, end: 16, strongs: ['G0746'] },
+            ],
+        },
+    } as unknown as ApiSimpleTranslationBookChapterWords;
+
+    it('getSimpleWordText slices the annotated word out of the verse text', () => {
+        const api = new FreeUseBibleApi();
+
+        expect(
+            api.getSimpleWordText(simpleWordsVerse, { start: 7, end: 16 })
+        ).toBe('beginning');
+    });
+
+    it('getSimpleVerseWords pairs each annotation with its text', () => {
+        const api = new FreeUseBibleApi();
+
+        expect(
+            api.getSimpleVerseWords(simpleWordsVerse, simpleWordsPayload)
+        ).toEqual([
+            { start: 0, end: 2, strongs: ['G1722'], text: 'In' },
+            { start: 7, end: 16, strongs: ['G0746'], text: 'beginning' },
+        ]);
+    });
+
+    it('getSimpleVerseWords returns an empty list for verses with no annotations', () => {
+        const api = new FreeUseBibleApi();
+        const verse = {
+            type: 'verse',
+            number: 2,
+            text: 'The same was in the beginning with God.',
+            footnotes: [],
+        } as SimpleChapterVerse;
+
+        expect(api.getSimpleVerseWords(verse, simpleWordsPayload)).toEqual([]);
+    });
+
+    it('getSimpleChapterVerseText includes verse numbers by default', () => {
+        const api = new FreeUseBibleApi();
+        const chapter = {
+            book: getChapterVerseTextBook,
+            chapter: {
+                number: 1,
+                content: [
+                    {
+                        type: 'verse',
+                        number: 1,
+                        text: 'In the beginning',
+                    },
+                    {
+                        type: 'verse',
+                        number: 2,
+                        text: 'And the earth was formless',
+                    },
+                ],
+            },
+        } as ApiSimpleTranslationBookChapter;
+
+        const text = api.getSimpleChapterVerseText(chapter);
+        expect(text).toBe(
+            'Genesis 1\n[1] In the beginning [2] And the earth was formless'
+        );
+    });
+
+    it('getSimpleChapterVerseText omits verse numbers when requested', () => {
+        const api = new FreeUseBibleApi();
+        const chapter = {
+            book: getChapterVerseTextBook,
+            chapter: {
+                number: 1,
+                content: [
+                    {
+                        type: 'verse',
+                        number: 3,
+                        text: 'Then God said',
+                    },
+                ],
+            },
+        } as ApiSimpleTranslationBookChapter;
+
+        const text = api.getSimpleChapterVerseText(chapter, {
+            omitVerseNumbers: true,
+        });
+        expect(text).toBe('Genesis 1\nThen God said');
+    });
+
+    it('getSimpleChapterVerseText ignores non-verse chapter content', () => {
+        const api = new FreeUseBibleApi();
+        const chapter = {
+            book: getChapterVerseTextBook,
+            chapter: {
+                number: 1,
+                content: [
+                    {
+                        type: 'heading',
+                        text: 'The Creation',
+                    },
+                    {
+                        type: 'line_break',
+                    },
+                    {
+                        type: 'verse',
+                        number: 1,
+                        text: 'In the beginning',
+                    },
+                ],
+            },
+        } as ApiSimpleTranslationBookChapter;
+
+        const text = api.getSimpleChapterVerseText(chapter);
+        expect(text).toBe('Genesis 1\n[1] In the beginning');
+    });
+
+    it('getSimpleChapterVerseText renders line_break objects', () => {
+        const api = new FreeUseBibleApi();
+        const chapter = {
+            book: getChapterVerseTextBook,
+            chapter: {
+                number: 1,
+                content: [
+                    {
+                        type: 'verse',
+                        number: 1,
+                        text: 'First line',
+                    },
+                    {
+                        type: 'line_break',
+                    },
+                    {
+                        type: 'verse',
+                        number: 2,
+                        text: 'Second line',
+                    },
+                ],
+            },
+        } as ApiSimpleTranslationBookChapter;
+
+        const text = api.getSimpleChapterVerseText(chapter);
+        expect(text).toBe('Genesis 1\n[1] First line\n[2] Second line');
+    });
+
+    it('getSimpleChapterVerseText omits reference when requested', () => {
+        const api = new FreeUseBibleApi();
+        const chapter = {
+            book: getChapterVerseTextBook,
+            chapter: {
+                number: 1,
+                content: [
+                    {
+                        type: 'verse',
+                        number: 1,
+                        text: 'First line',
+                    },
+                    {
+                        type: 'line_break',
+                    },
+                    {
+                        type: 'verse',
+                        number: 2,
+                        text: 'Second line',
+                    },
+                ],
+            },
+        } as ApiSimpleTranslationBookChapter;
+
+        const text = api.getSimpleChapterVerseText(chapter, {
+            omitReference: true,
+        });
+        expect(text).toBe('[1] First line\n[2] Second line');
+    });
+
+    it('getSimpleChapterVerseText omits both reference and verse numbers when requested', () => {
+        const api = new FreeUseBibleApi();
+        const chapter = {
+            book: getChapterVerseTextBook,
+            chapter: {
+                number: 1,
+                content: [
+                    {
+                        type: 'verse',
+                        number: 1,
+                        text: 'First line',
+                    },
+                    {
+                        type: 'line_break',
+                    },
+                    {
+                        type: 'verse',
+                        number: 2,
+                        text: 'Second line',
+                    },
+                ],
+            },
+        } as ApiSimpleTranslationBookChapter;
+
+        const text = api.getSimpleChapterVerseText(chapter, {
+            omitReference: true,
+            omitVerseNumbers: true,
+        });
+        expect(text).toBe('First line\nSecond line');
+    });
 });

@@ -29,6 +29,8 @@ Commands:
   import-translations [options] <dir>                    Imports all translations from the given directory into the database.
   import-commentary [options] <dir> [dirs...]            Imports a commentary from the given directory into the database.
   import-commentaries [options] <dir>                    Imports all commentaries from the given directory into the database.
+  import-bible-metadata <dir>                            Imports the Theographic bible metadata (people, places, events, and people groups) from the given directory into the database.
+                                                         The directory should contain the JSON files downloaded by the fetch-bible-metadata command.
   upload-test-translation [options] <input>              Uploads a translation to the HelloAO Free Bible API test S3 bucket.
                                                          Requires access to the HelloAO Free Bible API test S3 bucket.
                                                          For inquiries, please contact hello@helloao.org.
@@ -46,6 +48,8 @@ Commands:
   fetch-tyndale-open-resources <dir>                     Fetches the Tyndale Open Bible Resources and places it in the given directory.
   help [command]                                         display help for command
 ```
+
+> **Audio timings.** The `import-audio-timings <file>` command loads per-verse start times for a chapter's audio into the database, from a JSON array of `{ translationId, bookId, chapterNumber, reader, verses }` records. To generate that file from the audio itself, see [`tools/audio-timings`](../../tools/audio-timings/README.md), which transcribes a chapter with whisperX and aligns the result against the chapter's known verse text.
 
 The `@helloao/cli` package can also be used as a library.
 

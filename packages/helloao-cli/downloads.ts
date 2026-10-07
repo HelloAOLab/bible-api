@@ -15,6 +15,11 @@ export async function downloadFile(
     const logger = log.getLogger();
     logger.log('Downloading', url, 'to', path);
     const response = await fetch(url);
+    if (!response.ok) {
+        throw new Error(
+            `Failed to download ${url}: ${response.status} ${response.statusText}`
+        );
+    }
     await downloadResponse(response, path, onProgress);
 }
 

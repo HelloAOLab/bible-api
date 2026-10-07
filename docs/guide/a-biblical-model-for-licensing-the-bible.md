@@ -24,7 +24,7 @@ Thank you!
 
 ## Your License to this API
 
-This API, and [the source code behind it](https://github.com/HelloAOLab/bible-api), is freely available for you to use under the MIT license, a copy of which has been included below for your benefit.
+This API, and [the source code behind it](https://github.com/HelloAOLab/bible-api), is freely available for you to use under the MIT license, a copy of which has been included below for your benefit. 
 
 ```:no-line-numbers
 MIT License
@@ -54,7 +54,7 @@ SOFTWARE.
 
 The Berean Bible and Majority Bible texts are officially [dedicated to the public domain](https://creativecommons.org/publicdomain/zero/1.0/) as of April 30, 2023.
 
-_All uses are freely permitted._
+*All uses are freely permitted.*
 
 ### Attribution Notice (appreciated but not required):
 

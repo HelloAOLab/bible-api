@@ -15,15 +15,10 @@ const title = 'Free Use Bible API';
 const ogImage = `${hostname}${base}og-image.png`;
 
 // Used as the site-wide fallback <meta name="description"> for any page that
-// does not set its own `description` in frontmatter. Kept around 155 characters
-// so search engines show it without truncating.
+// does not set its own `description` in frontmatter.
 const description =
-    'A free JSON Bible API with over 1000 translations in 700+ languages. ' +
-    'No API keys, no rate limits, no usage restrictions. Includes commentaries and datasets.';
-
-// The home page has no markdown title, which would otherwise leave og:title and
-// the JSON-LD name empty on the most-shared URL of the site.
-const homeTitle = 'Free Use Bible API — A Free JSON API for the Bible';
+    'An easy-to-use and fully featured JSON API for Scripture. ' +
+    'No API key, no usage limits, no copyright restrictions.';
 
 export default defineUserConfig({
     base,
@@ -36,10 +31,14 @@ export default defineUserConfig({
     head: [
         ['link', { rel: 'icon', href: '/docs/favicon.png' }],
         ['link', { rel: 'apple-touch-icon', href: '/docs/favicon.png' }],
-        ['meta', { name: 'theme-color', content: '#3eaf7c' }],
-        // Every page shares the same 1200x630 card, so the card type can be set
-        // globally. Without this the seo plugin only emits twitter:card for
-        // pages that declare their own `banner`/`cover`, and X renders the
+        ['meta', { name: 'theme-color', content: '#ffffff' }],
+        // og:type/title/description/image are emitted per page by seoPlugin
+        // below, so they are deliberately not set here: a static site-wide
+        // value would give every page the home page's card.
+        //
+        // Every page does share the same 1200x630 image, so the card type can
+        // be set globally. Without this the seo plugin only emits twitter:card
+        // for pages that declare their own `banner`/`cover`, and X renders the
         // small summary card instead of the large one.
         ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
         ['meta', { name: 'twitter:image', content: ogImage }],
@@ -51,11 +50,22 @@ export default defineUserConfig({
     ],
 
     theme: defaultTheme({
+        logo: '/seed_bible_logo.png',
+        logoDark: '/seed_bible_logo_dark.png',
+        logoAlt: 'Seed Bible',
+        themePlugins: {
+            // Disable the default theme's built-in prismjs highlighter since
+            // shikiPlugin (registered below) already highlights code blocks.
+            // Having both enabled caused code fences (and their titles) to be
+            // rendered twice.
+            prismjs: false,
+        },
         repo: '',
         editLink: false,
         docsDir: '',
         editLinkText: '',
         lastUpdated: false,
+        contributors: false,
         navbar: [
             {
                 text: 'Guide',
@@ -70,20 +80,12 @@ export default defineUserConfig({
                 link: '/sdks/',
             },
             {
-                text: 'Source Code',
+                text: 'GitHub',
                 link: 'https://github.com/HelloAOLab/bible-api',
-            },
-            {
-                text: 'About Us',
-                link: 'https://helloao.org/about-us',
             },
             {
                 text: 'Donate',
                 link: 'https://better.giving/marketplace/1118469',
-            },
-            {
-                text: 'YouTube',
-                link: 'https://www.youtube.com/@aolab',
             },
         ],
         sidebar: {
@@ -104,7 +106,29 @@ export default defineUserConfig({
                 {
                     text: 'Reference',
                     collapsible: false,
-                    children: [''],
+                    children: [
+                        '',
+                        {
+                            text: 'Translations, Books, & Chapters',
+                            collapsible: true,
+                            children: [
+                                'translations/',
+                                'translations/standard',
+                                'translations/simplified',
+                            ],
+                        },
+                        {
+                            text: 'Commentaries',
+                            collapsible: true,
+                            children: ['commentaries/'],
+                        },
+                        {
+                            text: 'Datasets',
+                            collapsible: true,
+                            children: ['datasets/'],
+                        },
+                        'openapi',
+                    ],
                 },
             ],
             '/sdks/': [
@@ -136,14 +160,16 @@ export default defineUserConfig({
             // https://bible.helloao.org/docs/guide/. Build it explicitly.
             canonical: (page) =>
                 `${hostname}${base}${page.path.replace(/^\//, '')}`,
+            // Defensive fallbacks: a page without its own title/description
+            // would otherwise get an empty og:title or og:description.
             ogp: (ogp) => ({
                 ...ogp,
-                'og:title': ogp['og:title'] || homeTitle,
+                'og:title': ogp['og:title'] || title,
                 'og:description': ogp['og:description'] || description,
             }),
             jsonLd: (jsonLd) =>
                 jsonLd['@type'] === 'WebPage'
-                    ? { ...jsonLd, name: jsonLd.name || homeTitle }
+                    ? { ...jsonLd, name: jsonLd.name || title }
                     : jsonLd,
         }),
         sitemapPlugin({

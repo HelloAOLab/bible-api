@@ -1,38 +1,172 @@
 /**
- * Custom Styles here.
+ * Free Use Bible API theme.
  *
- * ref：https://v1.vuepress.vuejs.org/config/#index-styl
+ * A neutral black-and-white system: no colour beyond shades of grey. Every
+ * colour is a token, redefined for dark mode, so the theme toggle in the
+ * navbar keeps working.
  */
 
 :root {
-    // --c-text: #2c3e50;
-    // --c-text-accent: #3eaf7c;
-    // --c-
+    // accent colors
+    --vp-c-accent: #0d0d0d;
+    --vp-c-accent-bg: #0d0d0d;
+    --vp-c-accent-hover: #3d3d3d;
+    --vp-c-accent-text: #ffffff;
+    --vp-c-accent-soft: rgb(0 0 0 / 6%);
+
+    // background colors
+    --vp-c-bg: #ffffff;
+    --vp-c-bg-alt: #f7f7f7;
+    --vp-c-bg-elv: #ffffff;
+
+    // text colors
+    --vp-c-text: #0d0d0d;
+    --vp-c-text-mute: #4d4d4d;
+    --vp-c-text-subtle: #737373;
+
+    // border colors
+    --vp-c-divider: #e2e2e2;
+    --vp-c-border: #c9c9c9;
+    --vp-c-border-hard: #b0b0b0;
+
+    // control colors
+    --vp-c-control: rgb(0 0 0 / 5%);
+    --vp-c-control-hover: rgb(0 0 0 / 9%);
+
+    // extra tokens used by the home page
+    --fuba-surface-2: #efefef;
+    --fuba-text-2: #3d3d3d;
+    --fuba-line-strong: #0d0d0d;
+    --fuba-card-line: rgb(255 255 255 / 20%);
+    --fuba-card-dim: rgb(255 255 255 / 82%);
+
+    // hint containers (tip, warning, ...) stay in greys
+    --fuba-hint-soft: #f3f3f3;
+    --fuba-hint-text: #0d0d0d;
+
+    // badges
+    --badge-c-tip-text: var(--vp-c-text);
+    --badge-c-tip-bg: var(--vp-c-control-hover);
+    --badge-c-warning-text: var(--vp-c-text);
+    --badge-c-warning-bg: var(--vp-c-control-hover);
+    --badge-c-danger-text: var(--vp-c-bg);
+    --badge-c-danger-bg: var(--vp-c-text);
+    --badge-c-important-text: var(--vp-c-text);
+    --badge-c-important-bg: var(--vp-c-control-hover);
+    --badge-c-info-text: var(--vp-c-text);
+    --badge-c-info-bg: var(--vp-c-control-hover);
+    --badge-c-note-text: var(--vp-c-text);
+    --badge-c-note-bg: var(--vp-c-control-hover);
+
+    --font-family:
+        ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+        'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --code-font-family:
+        ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas,
+        'Liberation Mono', monospace;
+
+    --code-title-c-bg: #e2e2e2;
 }
 
-.vp-hero > .vp-hero-image {
-    max-height: 175px;
+[data-theme='dark'] {
+    --vp-c-accent: #f4f4f4;
+    --vp-c-accent-bg: #f4f4f4;
+    --vp-c-accent-hover: #c9c9c9;
+    --vp-c-accent-text: #0d0d0d;
+    --vp-c-accent-soft: rgb(255 255 255 / 8%);
+
+    --vp-c-bg: #0d0d0d;
+    --vp-c-bg-alt: #161616;
+    --vp-c-bg-elv: #161616;
+
+    --vp-c-text: #f4f4f4;
+    --vp-c-text-mute: #a9a9a9;
+    --vp-c-text-subtle: #7a7a7a;
+
+    --vp-c-divider: #2a2a2a;
+    --vp-c-border: #3a3a3a;
+    --vp-c-border-hard: #4a4a4a;
+
+    --vp-c-control: rgb(255 255 255 / 6%);
+    --vp-c-control-hover: rgb(255 255 255 / 11%);
+
+    --fuba-surface-2: #1e1e1e;
+    --fuba-text-2: #c9c9c9;
+    --fuba-line-strong: #f4f4f4;
+    --fuba-card-line: rgb(0 0 0 / 16%);
+    --fuba-card-dim: rgb(0 0 0 / 70%);
+
+    --fuba-hint-soft: #161616;
+    --fuba-hint-text: #f4f4f4;
+
+    --code-title-c-bg: #1e1e1e;
 }
 
-.hero-verse {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 24px;
-    font-size: 1.2rem;
+// Every hint container type renders in the same greys, distinguished by its
+// title and icon rather than by colour.
+:root,
+[data-theme='dark'] {
+    @each $type in important, info, note, tip, warning, caution {
+        --#{$type}-c-accent: var(--fuba-hint-text);
+        --#{$type}-c-text: var(--fuba-hint-text);
+        --#{$type}-c-soft: var(--fuba-hint-soft);
+    }
 }
 
-.hero-verse-content {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    align-items: flex-end;
-    background-color: #eee;
-    padding: 24px;
-    border-radius: 8px;
+.hint-container.important,
+.hint-container.info,
+.hint-container.note,
+.hint-container.tip,
+.hint-container.warning,
+.hint-container.caution {
+    border: 1px solid var(--vp-c-divider);
+    border-inline-start: 3px solid var(--fuba-line-strong);
 }
 
-.hero-verse-content p {
-    margin: 0;
+// Links in prose need an underline now that they no longer have a colour.
+[vp-content] a:not(.header-anchor) {
+    color: var(--vp-c-text);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: var(--vp-c-border);
+
+    &:hover {
+        text-decoration-color: var(--vp-c-text);
+    }
+}
+
+// Navbar: a quiet bar with a hairline, bold wordmark and muted links.
+.vp-navbar {
+    border-bottom: 1px solid var(--vp-c-divider);
+    background: color-mix(in srgb, var(--vp-c-bg) 92%, transparent);
+    backdrop-filter: blur(12px) saturate(140%);
+}
+
+.vp-site-name {
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+.vp-navbar .vp-site-logo {
+    height: 1.1rem;
+    margin-inline-end: 0.6rem;
+}
+
+.vp-navbar-item > a,
+.vp-navbar-dropdown-title {
+    color: var(--vp-c-text-mute);
     font-weight: 500;
+}
+
+.vp-navbar-item > a:hover,
+.vp-navbar-item > a.route-link-active {
+    color: var(--vp-c-text);
+}
+
+// Centre the Seed Bible mark on the wordmark rather than pinning it to the top.
+.vp-navbar > span > a {
+    display: inline-flex;
+    align-items: center;
+    height: var(--navbar-line-height);
 }

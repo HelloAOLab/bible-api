@@ -1,0 +1,45 @@
+{
+    "translation": {
+        "id": "TST",
+        "name": "Test Translation",
+        "englishName": "Test Translation",
+        "language": "eng",
+        "textDirection": "ltr"
+    },
+    "book": {
+        "id": "GEN",
+        "name": "Test Book",
+        "commonName": "Test Book",
+        "numberOfChapters": 2
+    },
+    "thisChapterLink": "/api/TST/GEN/2.json",
+    "thisChapterAudioLinks": {},
+    "thisChapterAudioTimings": {},
+    "nextChapterApiLink": null,
+    "nextChapterAudioLinks": null,
+    "nextChapterAudioTimings": null,
+    "previousChapterApiLink": "/api/TST/GEN/1.json",
+    "previousChapterAudioLinks": {},
+    "previousChapterAudioTimings": {},
+    "numberOfVerses": 2,
+    "chapter": {
+        "number": 2,
+        "content": [
+            {
+                "type": "hebrew_subtitle",
+                "content": ["A subtitle for the second chapter"]
+            },
+            {
+                "type": "verse",
+                "number": 1,
+                "content": ["victor whiskey xray"]
+            },
+            {
+                "type": "verse",
+                "number": 2,
+                "content": ["yankee zulu"]
+            }
+        ],
+        "footnotes": []
+    }
+}

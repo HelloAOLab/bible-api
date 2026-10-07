@@ -15,6 +15,16 @@ import {
     DatasetBookChapterSchema,
     DatasetBookSchema,
     DatasetBookChapter,
+    DatasetEntityRef,
+    DatasetEntityType,
+    DatasetEvent,
+    DatasetEventSchema,
+    DatasetPeopleGroup,
+    DatasetPeopleGroupSchema,
+    DatasetPerson,
+    DatasetPersonSchema,
+    DatasetPlace,
+    DatasetPlaceSchema,
     OutputFile,
     DatasetSchema,
     TranslationSchema,
@@ -25,10 +35,22 @@ import {
     TranslationBookChapterSchema,
     TranslationBookChapterAudioLinks,
     TranslationBookChapterAudioTimings,
+    TranslationBookChapterWords,
+    ChapterWordSchema,
     CommentarySchema,
+    SimpleChapterDataSchema,
+    SimpleChapterWordSchema,
+    SimpleCommentaryChapterDataSchema,
+    SimpleTranslationBookChapterSchema,
 } from './common-types.js';
 import { DatasetOutput } from './dataset.js';
-import { BookIdSchema } from '../utils.js';
+import {
+    SimplifiedChapter,
+    simplifyChapter,
+    simplifyCommentaryChapter,
+} from './simple.js';
+import { BookId, BookIdSchema, VerseRef } from '../utils.js';
+import { bookOrderMap } from './book-order.js';
 
 /**
  * Defines the output of the API generation.
@@ -55,6 +77,23 @@ export interface ApiOutput {
     translationBookChapters: ApiTranslationBookChapter[];
 
     /**
+     * The list of chapters for each book, in the simplified format.
+     * Omitted unless simplified chapter generation is enabled.
+     * This maps to the following endpoints:
+     * - /api/:translationId/:bookId/:chapterNumber.simple.json
+     * - /api/:translationId/:bookCommonName/:chapterNumber.simple.json
+     */
+    simpleTranslationBookChapters?: ApiSimpleTranslationBookChapter[];
+
+    /**
+     * The list of word-level annotations for chapters, in the simplified format.
+     * Omitted unless simplified chapter generation is enabled.
+     * This maps to the following endpoints:
+     * - /api/:translationId/:bookId/:chapterNumber.words.simple.json
+     */
+    simpleTranslationBookChapterWords?: ApiSimpleTranslationBookChapterWords[];
+
+    /**
      * The list of audio files.
      * This maps to the following endpoints:
      * - /api/:translationId/:bookId/:chapterNumber.:reader.mp3
@@ -67,6 +106,13 @@ export interface ApiOutput {
      * - /api/:translationId/:bookId/:chapterNumber.:reader.audioTimings.json
      */
     translationBookChapterAudioTimings: ApiTranslationBookChapterAudioTimings[];
+
+    /**
+     * The list of word-level annotations for chapters.
+     * This maps to the following endpoints:
+     * - /api/:translationId/:bookId/:chapterNumber.words.json
+     */
+    translationBookChapterWords: ApiTranslationBookChapterWords[];
 
     /**
      * The list of available commentaries.
@@ -92,6 +138,14 @@ export interface ApiOutput {
      * - /api/c/:commentaryId/:bookId/:chapterNumber.json
      */
     commentaryBookChapters: ApiCommentaryBookChapter[];
+
+    /**
+     * The list of chapters for each commentary book, in the simplified format.
+     * Omitted unless simplified chapter generation is enabled.
+     * This maps to the following endpoint:
+     * - /api/c/:commentaryId/:bookId/:chapterNumber.simple.json
+     */
+    simpleCommentaryBookChapters?: ApiSimpleCommentaryBookChapter[];
 
     /**
      * The list of individual profiles for each commentary.
@@ -120,10 +174,75 @@ export interface ApiOutput {
     datasetBookChapters?: ApiDatasetBookChapter[];
 
     /**
+     * The list of chapters that contain entity data for each dataset book.
+     * This maps to the following endpoint:
+     * - /api/d/:datasetId/:bookId/:chapterNumber.json
+     */
+    datasetEntityBookChapters?: ApiDatasetEntityBookChapter[];
+
+    /**
+     * The list of people for each dataset.
+     * This maps to the /api/d/:datasetId/people.json endpoint.
+     */
+    datasetPeople?: ApiDatasetPeople[];
+
+    /**
+     * The list of individual people for each dataset.
+     * This maps to the following endpoint:
+     * - /api/d/:datasetId/people/:personId.json
+     */
+    datasetPeopleContents?: ApiDatasetPerson[];
+
+    /**
+     * The list of places for each dataset.
+     * This maps to the /api/d/:datasetId/places.json endpoint.
+     */
+    datasetPlaces?: ApiDatasetPlaces[];
+
+    /**
+     * The list of individual places for each dataset.
+     * This maps to the following endpoint:
+     * - /api/d/:datasetId/places/:placeId.json
+     */
+    datasetPlaceContents?: ApiDatasetPlace[];
+
+    /**
+     * The list of events for each dataset.
+     * This maps to the /api/d/:datasetId/events.json endpoint.
+     */
+    datasetEvents?: ApiDatasetEvents[];
+
+    /**
+     * The list of individual events for each dataset.
+     * This maps to the following endpoint:
+     * - /api/d/:datasetId/events/:eventId.json
+     */
+    datasetEventContents?: ApiDatasetEvent[];
+
+    /**
+     * The list of people groups for each dataset.
+     * This maps to the /api/d/:datasetId/groups.json endpoint.
+     */
+    datasetPeopleGroups?: ApiDatasetPeopleGroups[];
+
+    /**
+     * The list of individual people groups for each dataset.
+     * This maps to the following endpoint:
+     * - /api/d/:datasetId/groups/:groupId.json
+     */
+    datasetPeopleGroupContents?: ApiDatasetPeopleGroup[];
+
+    /**
      * The complete translation data for each translation.
      * This maps to the /api/:translationId/complete.json endpoint.
      */
     translationComplete: ApiTranslationComplete[];
+
+    /**
+     * The complete translation data for each translation, in the simplified format.
+     * This maps to the /api/:translationId/complete.simple.json endpoint.
+     */
+    simpleTranslationComplete: ApiSimpleTranslationComplete[];
 
     /**
      * The path prefix that the API should use.
@@ -262,6 +381,78 @@ export const ApiDatasetSchema = DatasetSchema.extend({
         description:
             "Gets the name of the language in English. Null or undefined if the language doesn't have an english name.",
     }),
+
+    /**
+     * The API link for the list of people for this dataset.
+     * Omitted if the dataset doesn't contain people.
+     */
+    listOfPeopleApiLink: z.string().optional().meta({
+        description:
+            "The API link for the list of people for this dataset. Relative to the API origin. Omitted if the dataset doesn't contain people.",
+    }),
+
+    /**
+     * The API link for the list of places for this dataset.
+     * Omitted if the dataset doesn't contain places.
+     */
+    listOfPlacesApiLink: z.string().optional().meta({
+        description:
+            "The API link for the list of places for this dataset. Relative to the API origin. Omitted if the dataset doesn't contain places.",
+    }),
+
+    /**
+     * The API link for the list of events for this dataset.
+     * Omitted if the dataset doesn't contain events.
+     */
+    listOfEventsApiLink: z.string().optional().meta({
+        description:
+            "The API link for the list of events for this dataset. Relative to the API origin. Omitted if the dataset doesn't contain events.",
+    }),
+
+    /**
+     * The API link for the list of people groups for this dataset.
+     * Omitted if the dataset doesn't contain people groups.
+     */
+    listOfPeopleGroupsApiLink: z.string().optional().meta({
+        description:
+            "The API link for the list of people groups for this dataset. Relative to the API origin. Omitted if the dataset doesn't contain people groups.",
+    }),
+
+    /**
+     * The total number of people that are contained in this dataset.
+     * Omitted if the dataset doesn't contain people.
+     */
+    totalNumberOfPeople: z.number().optional().meta({
+        description:
+            "The total number of people that are contained in this dataset. Omitted if the dataset doesn't contain people.",
+    }),
+
+    /**
+     * The total number of places that are contained in this dataset.
+     * Omitted if the dataset doesn't contain places.
+     */
+    totalNumberOfPlaces: z.number().optional().meta({
+        description:
+            "The total number of places that are contained in this dataset. Omitted if the dataset doesn't contain places.",
+    }),
+
+    /**
+     * The total number of events that are contained in this dataset.
+     * Omitted if the dataset doesn't contain events.
+     */
+    totalNumberOfEvents: z.number().optional().meta({
+        description:
+            "The total number of events that are contained in this dataset. Omitted if the dataset doesn't contain events.",
+    }),
+
+    /**
+     * The total number of people groups that are contained in this dataset.
+     * Omitted if the dataset doesn't contain people groups.
+     */
+    totalNumberOfPeopleGroups: z.number().optional().meta({
+        description:
+            "The total number of people groups that are contained in this dataset. Omitted if the dataset doesn't contain people groups.",
+    }),
 }).meta({
     id: 'ApiDataset',
     description: 'Defines a dataset that is used in the API.',
@@ -367,6 +558,17 @@ export const ApiTranslationSchema = TranslationSchema.extend({
         description:
             'The API link for downloading the complete translation as a single JSON file. Relative to the API origin. Undefined if complete translation files are not available.',
     }),
+
+    /**
+     * The API link for downloading the complete translation as a single JSON file,
+     * using the simplified chapter format.
+     *
+     * Undefined if complete translation files are not available.
+     */
+    simpleCompleteTranslationApiLink: z.string().optional().meta({
+        description:
+            'The API link for downloading the complete translation as a single JSON file, using the simplified chapter format. Relative to the API origin. Undefined if complete translation files are not available.',
+    }),
 }).meta({
     id: 'ApiTranslation',
     description: 'Defines a translation that is used in the API.',
@@ -407,6 +609,72 @@ export type ApiTranslationComplete = z.infer<
 >;
 
 /**
+ * A chapter in the complete translation download.
+ */
+// Word annotations are published as separate files, and are linked to by
+// thisChapterWordsLink instead of being included inline, same as the regular
+// per-chapter endpoint.
+export const TranslationCompleteChapterSchema =
+    TranslationBookChapterSchema.omit({ thisChapterWords: true })
+        .extend({
+            /**
+             * The number of verses that the chapter contains.
+             */
+            numberOfVerses: z.number().meta({
+                description: 'The number of verses that the chapter contains.',
+            }),
+
+            /**
+             * The link to the word-level annotations for the chapter.
+             * Omitted if the chapter doesn't have any word-level annotations.
+             */
+            thisChapterWordsLink: z.string().optional().meta({
+                description:
+                    "The link to the word-level annotations for this chapter. Relative to the API origin. Omitted if the chapter doesn't have any word-level annotations.",
+            }),
+        })
+        .meta({
+            id: 'TranslationCompleteChapter',
+            description: 'A chapter in the complete translation download.',
+        });
+
+export type TranslationCompleteChapter = z.infer<
+    typeof TranslationCompleteChapterSchema
+>;
+
+/**
+ * A chapter in the complete translation download, using the simplified chapter format.
+ */
+export const SimpleTranslationCompleteChapterSchema =
+    SimpleTranslationBookChapterSchema.omit({ thisChapterWords: true })
+        .extend({
+            /**
+             * The number of verses that the chapter contains.
+             */
+            numberOfVerses: z.number().meta({
+                description: 'The number of verses that the chapter contains.',
+            }),
+
+            /**
+             * The link to the word-level annotations for the chapter.
+             * Omitted if the chapter doesn't have any word-level annotations.
+             */
+            thisChapterWordsLink: z.string().optional().meta({
+                description:
+                    "The link to the word-level annotations for this chapter. Relative to the API origin. Omitted if the chapter doesn't have any word-level annotations.",
+            }),
+        })
+        .meta({
+            id: 'SimpleTranslationCompleteChapter',
+            description:
+                'A chapter in the complete translation download, using the simplified chapter format.',
+        });
+
+export type SimpleTranslationCompleteChapter = z.infer<
+    typeof SimpleTranslationCompleteChapterSchema
+>;
+
+/**
  * A book in the complete translation download.
  */
 export const ApiTranslationCompleteBookSchema = TranslationBookSchema.extend({
@@ -427,7 +695,7 @@ export const ApiTranslationCompleteBookSchema = TranslationBookSchema.extend({
     /**
      * The complete list of chapters with all content.
      */
-    chapters: z.array(TranslationBookChapterSchema).meta({
+    chapters: z.array(TranslationCompleteChapterSchema).meta({
         description: 'The complete list of chapters with all content.',
     }),
 }).meta({
@@ -437,6 +705,62 @@ export const ApiTranslationCompleteBookSchema = TranslationBookSchema.extend({
 
 export type ApiTranslationCompleteBook = z.infer<
     typeof ApiTranslationCompleteBookSchema
+>;
+
+/**
+ * Defines the complete translation download data, using the simplified chapter format.
+ * Maps to the /api/:translationId/complete.simple.json endpoint.
+ */
+export const ApiSimpleTranslationCompleteSchema = z
+    .object({
+        /**
+         * The translation metadata.
+         */
+        translation: z
+            .lazy(() => ApiTranslationSchema)
+            .meta({
+                description: 'The translation metadata.',
+            }),
+
+        /**
+         * The complete list of books with all their chapters.
+         */
+        books: z
+            .array(z.lazy(() => ApiSimpleTranslationCompleteBookSchema))
+            .meta({
+                description:
+                    'The complete list of books with all their chapters.',
+            }),
+    })
+    .meta({
+        id: 'ApiSimpleTranslationComplete',
+        description:
+            'Defines the complete translation download data, using the simplified chapter format. Maps to the /api/:translationId/complete.simple.json endpoint.',
+    });
+
+export type ApiSimpleTranslationComplete = z.infer<
+    typeof ApiSimpleTranslationCompleteSchema
+>;
+
+/**
+ * A book in the complete translation download, using the simplified chapter format.
+ */
+export const ApiSimpleTranslationCompleteBookSchema =
+    ApiTranslationCompleteBookSchema.extend({
+        /**
+         * The complete list of chapters with all content.
+         */
+        chapters: z.array(SimpleTranslationCompleteChapterSchema).meta({
+            description: 'The complete list of chapters with all content.',
+        }),
+    }).meta({
+        id: 'ApiSimpleTranslationCompleteBook',
+        description:
+            'A book in the complete translation download, using the simplified chapter format.',
+    });
+
+export type ApiSimpleTranslationCompleteBook = z.infer<
+    typeof ApiSimpleTranslationCompleteBookSchema
 >;
 
 /**
@@ -617,6 +941,871 @@ export const ApiDatasetBooksSchema = z
     });
 
 export type ApiDatasetBooks = z.infer<typeof ApiDatasetBooksSchema>;
+
+/**
+ * Defines a Zod schema for a summary of a person in a dataset.
+ */
+export const ApiDatasetPersonSummarySchema = z
+    .object({
+        /**
+         * The ID of the person.
+         */
+        id: z.string().meta({
+            description: 'The ID of the person.',
+        }),
+
+        /**
+         * The name of the person.
+         */
+        name: z.string().meta({
+            description: 'The name of the person.',
+        }),
+
+        /**
+         * Whether the name of the person is a proper name.
+         */
+        isProperName: z.boolean().optional().meta({
+            description: 'Whether the name of the person is a proper name.',
+        }),
+
+        /**
+         * The gender of the person.
+         */
+        gender: z.string().optional().meta({
+            description: 'The gender of the person.',
+        }),
+
+        /**
+         * The number of Bible references that mention the person.
+         */
+        numberOfReferences: z.number().meta({
+            description:
+                'The number of Bible references that mention the person.',
+        }),
+
+        /**
+         * The API link for the person.
+         */
+        thisPersonApiLink: z.string().meta({
+            description:
+                'The API link for the person. Relative to the API origin.',
+        }),
+    })
+    .meta({
+        id: 'ApiDatasetPersonSummary',
+        description: 'Defines a summary of a person in a dataset.',
+    });
+
+export type ApiDatasetPersonSummary = z.infer<
+    typeof ApiDatasetPersonSummarySchema
+>;
+
+/**
+ * Defines a Zod schema for the list of people in a dataset.
+ * Maps to the /api/d/:datasetId/people.json endpoint.
+ */
+export const ApiDatasetPeopleSchema = z
+    .object({
+        /**
+         * The dataset information for the people.
+         */
+        dataset: z
+            .lazy(() => ApiDatasetSchema)
+            .meta({
+                description: 'The dataset information for the people.',
+            }),
+
+        /**
+         * The list of people that are available for the dataset.
+         */
+        people: z.array(ApiDatasetPersonSummarySchema).meta({
+            description:
+                'The list of people that are available for the dataset.',
+        }),
+    })
+    .meta({
+        id: 'ApiDatasetPeople',
+        description:
+            'The list of people in a dataset. Maps to the /api/d/:datasetId/people.json endpoint.',
+    });
+
+export type ApiDatasetPeople = z.infer<typeof ApiDatasetPeopleSchema>;
+
+/**
+ * Defines a Zod schema for the information about a person in a dataset.
+ * Maps to the /api/d/:datasetId/people/:personId.json endpoint.
+ */
+export const ApiDatasetPersonSchema = z
+    .object({
+        /**
+         * The dataset information for the person.
+         */
+        dataset: z
+            .lazy(() => ApiDatasetSchema)
+            .meta({
+                description: 'The dataset information for the person.',
+            }),
+
+        /**
+         * The information about the person.
+         */
+        person: DatasetPersonSchema.meta({
+            description: 'The information about the person.',
+        }),
+
+        /**
+         * The API link for this person.
+         */
+        thisPersonApiLink: z.string().meta({
+            description:
+                'The API link for this person. Relative to the API origin.',
+        }),
+    })
+    .meta({
+        id: 'ApiDatasetPerson',
+        description:
+            'The information about a person in a dataset. Maps to the /api/d/:datasetId/people/:personId.json endpoint.',
+    });
+
+export type ApiDatasetPerson = z.infer<typeof ApiDatasetPersonSchema>;
+
+/**
+ * Defines a Zod schema for a summary of a place in a dataset.
+ */
+export const ApiDatasetPlaceSummarySchema = z
+    .object({
+        /**
+         * The ID of the place.
+         */
+        id: z.string().meta({
+            description: 'The ID of the place.',
+        }),
+
+        /**
+         * The name of the place.
+         */
+        name: z.string().meta({
+            description: 'The name of the place.',
+        }),
+
+        /**
+         * The type of geographical feature that the place is.
+         */
+        featureType: z.string().optional().meta({
+            description:
+                'The type of geographical feature that the place is. For example, "City", "Region", "Mountain", "Water", etc.',
+        }),
+
+        /**
+         * The latitude of the place.
+         */
+        latitude: z.number().optional().meta({
+            description: 'The latitude of the place.',
+        }),
+
+        /**
+         * The longitude of the place.
+         */
+        longitude: z.number().optional().meta({
+            description: 'The longitude of the place.',
+        }),
+
+        /**
+         * The number of Bible references that mention the place.
+         */
+        numberOfReferences: z.number().meta({
+            description:
+                'The number of Bible references that mention the place.',
+        }),
+
+        /**
+         * The API link for the place.
+         */
+        thisPlaceApiLink: z.string().meta({
+            description:
+                'The API link for the place. Relative to the API origin.',
+        }),
+    })
+    .meta({
+        id: 'ApiDatasetPlaceSummary',
+        description: 'Defines a summary of a place in a dataset.',
+    });
+
+export type ApiDatasetPlaceSummary = z.infer<
+    typeof ApiDatasetPlaceSummarySchema
+>;
+
+/**
+ * Defines a Zod schema for the list of places in a dataset.
+ * Maps to the /api/d/:datasetId/places.json endpoint.
+ */
+export const ApiDatasetPlacesSchema = z
+    .object({
+        /**
+         * The dataset information for the places.
+         */
+        dataset: z
+            .lazy(() => ApiDatasetSchema)
+            .meta({
+                description: 'The dataset information for the places.',
+            }),
+
+        /**
+         * The list of places that are available for the dataset.
+         */
+        places: z.array(ApiDatasetPlaceSummarySchema).meta({
+            description:
+                'The list of places that are available for the dataset.',
+        }),
+    })
+    .meta({
+        id: 'ApiDatasetPlaces',
+        description:
+            'The list of places in a dataset. Maps to the /api/d/:datasetId/places.json endpoint.',
+    });
+
+export type ApiDatasetPlaces = z.infer<typeof ApiDatasetPlacesSchema>;
+
+/**
+ * Defines a Zod schema for the information about a place in a dataset.
+ * Maps to the /api/d/:datasetId/places/:placeId.json endpoint.
+ */
+export const ApiDatasetPlaceSchema = z
+    .object({
+        /**
+         * The dataset information for the place.
+         */
+        dataset: z
+            .lazy(() => ApiDatasetSchema)
+            .meta({
+                description: 'The dataset information for the place.',
+            }),
+
+        /**
+         * The information about the place.
+         */
+        place: DatasetPlaceSchema.meta({
+            description: 'The information about the place.',
+        }),
+
+        /**
+         * The API link for this place.
+         */
+        thisPlaceApiLink: z.string().meta({
+            description:
+                'The API link for this place. Relative to the API origin.',
+        }),
+    })
+    .meta({
+        id: 'ApiDatasetPlace',
+        description:
+            'The information about a place in a dataset. Maps to the /api/d/:datasetId/places/:placeId.json endpoint.',
+    });
+
+export type ApiDatasetPlace = z.infer<typeof ApiDatasetPlaceSchema>;
+
+/**
+ * Defines a Zod schema for a summary of an event in a dataset.
+ */
+export const ApiDatasetEventSummarySchema = z
+    .object({
+        /**
+         * The ID of the event.
+         */
+        id: z.string().meta({
+            description: 'The ID of the event.',
+        }),
+
+        /**
+         * The name of the event.
+         */
+        name: z.string().meta({
+            description: 'The name of the event.',
+        }),
+
+        /**
+         * The date that the event started at.
+         */
+        startDate: z.string().optional().meta({
+            description:
+                'The date that the event started at. Negative numbers are years BC. Positive numbers are years AD. More specific dates use the `YYYY-MM-DD` format.',
+        }),
+
+        /**
+         * The number of Bible references that describe the event.
+         */
+        numberOfReferences: z.number().meta({
+            description:
+                'The number of Bible references that describe the event.',
+        }),
+
+        /**
+         * The API link for the event.
+         */
+        thisEventApiLink: z.string().meta({
+            description:
+                'The API link for the event. Relative to the API origin.',
+        }),
+    })
+    .meta({
+        id: 'ApiDatasetEventSummary',
+        description: 'Defines a summary of an event in a dataset.',
+    });
+
+export type ApiDatasetEventSummary = z.infer<
+    typeof ApiDatasetEventSummarySchema
+>;
+
+/**
+ * Defines a Zod schema for the list of events in a dataset.
+ * Maps to the /api/d/:datasetId/events.json endpoint.
+ */
+export const ApiDatasetEventsSchema = z
+    .object({
+        /**
+         * The dataset information for the events.
+         */
+        dataset: z
+            .lazy(() => ApiDatasetSchema)
+            .meta({
+                description: 'The dataset information for the events.',
+            }),
+
+        /**
+         * The list of events that are available for the dataset.
+         */
+        events: z.array(ApiDatasetEventSummarySchema).meta({
+            description:
+                'The list of events that are available for the dataset.',
+        }),
+    })
+    .meta({
+        id: 'ApiDatasetEvents',
+        description:
+            'The list of events in a dataset. Maps to the /api/d/:datasetId/events.json endpoint.',
+    });
+
+export type ApiDatasetEvents = z.infer<typeof ApiDatasetEventsSchema>;
+
+/**
+ * Defines a Zod schema for the information about an event in a dataset.
+ * Maps to the /api/d/:datasetId/events/:eventId.json endpoint.
+ */
+export const ApiDatasetEventSchema = z
+    .object({
+        /**
+         * The dataset information for the event.
+         */
+        dataset: z
+            .lazy(() => ApiDatasetSchema)
+            .meta({
+                description: 'The dataset information for the event.',
+            }),
+
+        /**
+         * The information about the event.
+         */
+        event: DatasetEventSchema.meta({
+            description: 'The information about the event.',
+        }),
+
+        /**
+         * The API link for this event.
+         */
+        thisEventApiLink: z.string().meta({
+            description:
+                'The API link for this event. Relative to the API origin.',
+        }),
+    })
+    .meta({
+        id: 'ApiDatasetEvent',
+        description:
+            'The information about an event in a dataset. Maps to the /api/d/:datasetId/events/:eventId.json endpoint.',
+    });
+
+export type ApiDatasetEvent = z.infer<typeof ApiDatasetEventSchema>;
+
+/**
+ * Defines a Zod schema for a summary of a people group in a dataset.
+ */
+export const ApiDatasetPeopleGroupSummarySchema = z
+    .object({
+        /**
+         * The ID of the people group.
+         */
+        id: z.string().meta({
+            description: 'The ID of the people group.',
+        }),
+
+        /**
+         * The name of the people group.
+         */
+        name: z.string().meta({
+            description: 'The name of the people group.',
+        }),
+
+        /**
+         * The number of people that are members of the people group.
+         */
+        numberOfMembers: z.number().meta({
+            description:
+                'The number of people that are members of the people group.',
+        }),
+
+        /**
+         * The API link for the people group.
+         */
+        thisPeopleGroupApiLink: z.string().meta({
+            description:
+                'The API link for the people group. Relative to the API origin.',
+        }),
+    })
+    .meta({
+        id: 'ApiDatasetPeopleGroupSummary',
+        description: 'Defines a summary of a people group in a dataset.',
+    });
+
+export type ApiDatasetPeopleGroupSummary = z.infer<
+    typeof ApiDatasetPeopleGroupSummarySchema
+>;
+
+/**
+ * Defines a Zod schema for the list of people groups in a dataset.
+ * Maps to the /api/d/:datasetId/groups.json endpoint.
+ */
+export const ApiDatasetPeopleGroupsSchema = z
+    .object({
+        /**
+         * The dataset information for the people groups.
+         */
+        dataset: z
+            .lazy(() => ApiDatasetSchema)
+            .meta({
+                description: 'The dataset information for the people groups.',
+            }),
+
+        /**
+         * The list of people groups that are available for the dataset.
+         */
+        groups: z.array(ApiDatasetPeopleGroupSummarySchema).meta({
+            description:
+                'The list of people groups that are available for the dataset.',
+        }),
+    })
+    .meta({
+        id: 'ApiDatasetPeopleGroups',
+        description:
+            'The list of people groups in a dataset. Maps to the /api/d/:datasetId/groups.json endpoint.',
+    });
+
+export type ApiDatasetPeopleGroups = z.infer<
+    typeof ApiDatasetPeopleGroupsSchema
+>;
+
+/**
+ * Defines a Zod schema for the information about a people group in a dataset.
+ * Maps to the /api/d/:datasetId/groups/:groupId.json endpoint.
+ */
+export const ApiDatasetPeopleGroupSchema = z
+    .object({
+        /**
+         * The dataset information for the people group.
+         */
+        dataset: z
+            .lazy(() => ApiDatasetSchema)
+            .meta({
+                description: 'The dataset information for the people group.',
+            }),
+
+        /**
+         * The information about the people group.
+         */
+        group: DatasetPeopleGroupSchema.meta({
+            description: 'The information about the people group.',
+        }),
+
+        /**
+         * The API link for this people group.
+         */
+        thisPeopleGroupApiLink: z.string().meta({
+            description:
+                'The API link for this people group. Relative to the API origin.',
+        }),
+    })
+    .meta({
+        id: 'ApiDatasetPeopleGroup',
+        description:
+            'The information about a people group in a dataset. Maps to the /api/d/:datasetId/groups/:groupId.json endpoint.',
+    });
+
+export type ApiDatasetPeopleGroup = z.infer<typeof ApiDatasetPeopleGroupSchema>;
+
+/**
+ * Defines a Zod schema for a person that appears in a chapter of a dataset.
+ */
+export const ApiDatasetChapterPersonSchema = z
+    .object({
+        /**
+         * The ID of the person.
+         */
+        id: z.string().meta({
+            description: 'The ID of the person.',
+        }),
+
+        /**
+         * The name of the person.
+         */
+        name: z.string().meta({
+            description: 'The name of the person.',
+        }),
+
+        /**
+         * Whether the name of the person is a proper name.
+         */
+        isProperName: z.boolean().optional().meta({
+            description: 'Whether the name of the person is a proper name.',
+        }),
+
+        /**
+         * The gender of the person.
+         */
+        gender: z.string().optional().meta({
+            description: 'The gender of the person.',
+        }),
+
+        /**
+         * The year that the person was born.
+         * Negative numbers are years BC. Positive numbers are years AD.
+         */
+        birthYear: z.number().optional().meta({
+            description:
+                'The year that the person was born. Negative numbers are years BC. Positive numbers are years AD.',
+        }),
+
+        /**
+         * The year that the person died.
+         * Negative numbers are years BC. Positive numbers are years AD.
+         */
+        deathYear: z.number().optional().meta({
+            description:
+                'The year that the person died. Negative numbers are years BC. Positive numbers are years AD.',
+        }),
+
+        /**
+         * The API link for the person.
+         */
+        apiLink: z.string().meta({
+            description:
+                'The API link for the person. Relative to the API origin.',
+        }),
+
+        /**
+         * The numbers of the verses in the chapter that mention the person.
+         * Sorted in ascending order.
+         */
+        verses: z.array(z.number()).meta({
+            description:
+                'The numbers of the verses in the chapter that mention the person. Sorted in ascending order.',
+        }),
+    })
+    .meta({
+        id: 'ApiDatasetChapterPerson',
+        description: 'Defines a person that appears in a chapter of a dataset.',
+    });
+
+export type ApiDatasetChapterPerson = z.infer<
+    typeof ApiDatasetChapterPersonSchema
+>;
+
+/**
+ * Defines a Zod schema for a place that appears in a chapter of a dataset.
+ */
+export const ApiDatasetChapterPlaceSchema = z
+    .object({
+        /**
+         * The ID of the place.
+         */
+        id: z.string().meta({
+            description: 'The ID of the place.',
+        }),
+
+        /**
+         * The name of the place.
+         */
+        name: z.string().meta({
+            description: 'The name of the place.',
+        }),
+
+        /**
+         * The type of geographical feature that the place is.
+         */
+        featureType: z.string().optional().meta({
+            description:
+                'The type of geographical feature that the place is. For example, "City", "Region", "Mountain", "Water", etc.',
+        }),
+
+        /**
+         * The latitude of the place.
+         */
+        latitude: z.number().optional().meta({
+            description: 'The latitude of the place.',
+        }),
+
+        /**
+         * The longitude of the place.
+         */
+        longitude: z.number().optional().meta({
+            description: 'The longitude of the place.',
+        }),
+
+        /**
+         * The API link for the place.
+         */
+        apiLink: z.string().meta({
+            description:
+                'The API link for the place. Relative to the API origin.',
+        }),
+
+        /**
+         * The numbers of the verses in the chapter that mention the place.
+         * Sorted in ascending order.
+         */
+        verses: z.array(z.number()).meta({
+            description:
+                'The numbers of the verses in the chapter that mention the place. Sorted in ascending order.',
+        }),
+    })
+    .meta({
+        id: 'ApiDatasetChapterPlace',
+        description: 'Defines a place that appears in a chapter of a dataset.',
+    });
+
+export type ApiDatasetChapterPlace = z.infer<
+    typeof ApiDatasetChapterPlaceSchema
+>;
+
+/**
+ * Defines a Zod schema for an event that appears in a chapter of a dataset.
+ */
+export const ApiDatasetChapterEventSchema = z
+    .object({
+        /**
+         * The ID of the event.
+         */
+        id: z.string().meta({
+            description: 'The ID of the event.',
+        }),
+
+        /**
+         * The name of the event.
+         */
+        name: z.string().meta({
+            description: 'The name of the event.',
+        }),
+
+        /**
+         * The date that the event started at.
+         */
+        startDate: z.string().optional().meta({
+            description:
+                'The date that the event started at. Negative numbers are years BC. Positive numbers are years AD. More specific dates use the `YYYY-MM-DD` format.',
+        }),
+
+        /**
+         * The API link for the event.
+         */
+        apiLink: z.string().meta({
+            description:
+                'The API link for the event. Relative to the API origin.',
+        }),
+
+        /**
+         * The numbers of the verses in the chapter that describe the event.
+         * Sorted in ascending order.
+         */
+        verses: z.array(z.number()).meta({
+            description:
+                'The numbers of the verses in the chapter that describe the event. Sorted in ascending order.',
+        }),
+    })
+    .meta({
+        id: 'ApiDatasetChapterEvent',
+        description: 'Defines an event that appears in a chapter of a dataset.',
+    });
+
+export type ApiDatasetChapterEvent = z.infer<
+    typeof ApiDatasetChapterEventSchema
+>;
+
+/**
+ * Defines a Zod schema for the entity data for a chapter in a dataset.
+ */
+export const ApiDatasetEntityChapterDataSchema = z
+    .object({
+        /**
+         * The number of the chapter.
+         */
+        number: z.number().meta({
+            description: 'The number of the chapter.',
+        }),
+
+        /**
+         * The people that appear in the chapter.
+         * Sorted by the first verse that they appear in.
+         */
+        people: z.array(ApiDatasetChapterPersonSchema).meta({
+            description:
+                'The people that appear in the chapter. Sorted by the first verse that they appear in.',
+        }),
+
+        /**
+         * The places that appear in the chapter.
+         * Sorted by the first verse that they appear in.
+         */
+        places: z.array(ApiDatasetChapterPlaceSchema).meta({
+            description:
+                'The places that appear in the chapter. Sorted by the first verse that they appear in.',
+        }),
+
+        /**
+         * The events that appear in the chapter.
+         * Sorted by the first verse that they appear in.
+         */
+        events: z.array(ApiDatasetChapterEventSchema).meta({
+            description:
+                'The events that appear in the chapter. Sorted by the first verse that they appear in.',
+        }),
+    })
+    .meta({
+        id: 'ApiDatasetEntityChapterData',
+        description:
+            'Defines the entity data for a chapter in a dataset. Contains the people, places, and events that appear in the chapter.',
+    });
+
+export type ApiDatasetEntityChapterData = z.infer<
+    typeof ApiDatasetEntityChapterDataSchema
+>;
+
+/**
+ * Defines a Zod schema for the entities that appear in a chapter of a book for a dataset.
+ * Maps to the /api/d/:datasetId/:bookId/:chapterNumber.json endpoint for datasets that contain entities.
+ */
+export const ApiDatasetEntityBookChapterSchema = z
+    .object({
+        /**
+         * The dataset information for the book chapter.
+         */
+        dataset: z
+            .lazy(() => ApiDatasetSchema)
+            .meta({
+                description: 'The dataset information for the book chapter.',
+            }),
+
+        /**
+         * The book information for the book chapter.
+         */
+        book: z
+            .lazy(() => ApiDatasetBookSchema)
+            .meta({
+                description: 'The book information for the book chapter.',
+            }),
+
+        /**
+         * The entity data for the chapter.
+         */
+        chapter: ApiDatasetEntityChapterDataSchema.meta({
+            description: 'The entity data for the chapter.',
+        }),
+
+        /**
+         * The link to this chapter.
+         */
+        thisChapterLink: z.string().meta({
+            description:
+                'The link to this chapter. Relative to the API origin.',
+        }),
+
+        /**
+         * The reference for this chapter.
+         */
+        thisChapterReference: z
+            .lazy(() => DatasetChapterReferenceSchema)
+            .meta({
+                description: 'The reference for this chapter.',
+            }),
+
+        /**
+         * The link to the next chapter.
+         * Null if this is the last chapter in the dataset.
+         */
+        nextChapterApiLink: z.string().nullable().meta({
+            description:
+                'The link to the next chapter. Relative to the API origin. Null if this is the last chapter in the dataset.',
+        }),
+
+        /**
+         * The reference for the next chapter.
+         * Null if this is the last chapter in the dataset.
+         */
+        nextChapterReference: z
+            .lazy(() => DatasetChapterReferenceSchema)
+            .nullable()
+            .meta({
+                description:
+                    'The reference for the next chapter. Null if this is the last chapter in the dataset.',
+            }),
+
+        /**
+         * The link to the previous chapter.
+         * Null if this is the first chapter in the dataset.
+         */
+        previousChapterApiLink: z.string().nullable().meta({
+            description:
+                'The link to the previous chapter. Relative to the API origin. Null if this is the first chapter in the dataset.',
+        }),
+
+        /**
+         * The reference for the previous chapter.
+         * Null if this is the first chapter in the dataset.
+         */
+        previousChapterReference: z
+            .lazy(() => DatasetChapterReferenceSchema)
+            .nullable()
+            .meta({
+                description:
+                    'The reference for the previous chapter. Null if this is the first chapter in the dataset.',
+            }),
+
+        /**
+         * The number of people that appear in the chapter.
+         */
+        numberOfPeople: z.number().meta({
+            description: 'The number of people that appear in the chapter.',
+        }),
+
+        /**
+         * The number of places that appear in the chapter.
+         */
+        numberOfPlaces: z.number().meta({
+            description: 'The number of places that appear in the chapter.',
+        }),
+
+        /**
+         * The number of events that appear in the chapter.
+         */
+        numberOfEvents: z.number().meta({
+            description: 'The number of events that appear in the chapter.',
+        }),
+    })
+    .meta({
+        id: 'ApiDatasetEntityBookChapter',
+        description:
+            'The entities (people, places, and events) that appear in a chapter of a book for a dataset. Maps to the /api/d/:datasetId/:bookId/:chapterNumber.json endpoint for datasets that contain entities.',
+    });
+
+export type ApiDatasetEntityBookChapter = z.infer<
+    typeof ApiDatasetEntityBookChapterSchema
+>;
 
 /**
  * Defines an interface that contains information about the profiles that are available for a commentary.
@@ -958,8 +2147,14 @@ export type ApiDatasetBook = z.infer<typeof ApiDatasetBookSchema>;
 /**
  * Defines an interface that contains information about a book chapter.
  */
+// The word annotations are published as a separate file, and are linked to by
+// thisChapterWordsLink instead of being included inline.
+const ApiTranslationBookChapterBaseSchema = TranslationBookChapterSchema.omit({
+    thisChapterWords: true,
+});
+
 export const ApiTranslationBookChapterSchema =
-    TranslationBookChapterSchema.extend({
+    ApiTranslationBookChapterBaseSchema.extend({
         /**
          * The translation information for the book chapter.
          */
@@ -1090,10 +2285,48 @@ export const ApiTranslationBookChapterSchema =
             }),
 
         /**
+         * The link to the word-level annotations for the chapter.
+         * Omitted if the chapter doesn't have any word-level annotations.
+         */
+        thisChapterWordsLink: z.string().optional().meta({
+            description:
+                "The link to the word-level annotations for this chapter. Relative to the API origin. Omitted if the chapter doesn't have any word-level annotations.",
+        }),
+
+        /**
+         * The link to the word-level annotations for the next chapter.
+         * Omitted if this is the last chapter in the translation, or if the next
+         * chapter doesn't have any word-level annotations.
+         */
+        nextChapterWordsLink: z.string().optional().meta({
+            description:
+                "The link to the word-level annotations for the next chapter. Relative to the API origin. Omitted if this is the last chapter in the translation, or if the next chapter doesn't have any word-level annotations.",
+        }),
+
+        /**
+         * The link to the word-level annotations for the previous chapter.
+         * Omitted if this is the first chapter in the translation, or if the
+         * previous chapter doesn't have any word-level annotations.
+         */
+        previousChapterWordsLink: z.string().optional().meta({
+            description:
+                "The link to the word-level annotations for the previous chapter. Relative to the API origin. Omitted if this is the first chapter in the translation, or if the previous chapter doesn't have any word-level annotations.",
+        }),
+
+        /**
          * The number of verses that the chapter contains.
          */
         numberOfVerses: z.number().meta({
             description: 'The number of verses that the chapter contains.',
+        }),
+
+        /**
+         * The link to the simplified version of this chapter.
+         * Omitted if simplified chapters were not generated.
+         */
+        simpleChapterApiLink: z.string().optional().meta({
+            description:
+                'The API link to the simplified version of this chapter. Relative to the API origin. Omitted if simplified chapters are not available.',
         }),
     }).meta({
         id: 'ApiTranslationBookChapter',
@@ -1103,6 +2336,44 @@ export const ApiTranslationBookChapterSchema =
 
 export type ApiTranslationBookChapter = z.infer<
     typeof ApiTranslationBookChapterSchema
+>;
+
+/**
+ * Defines an interface that contains information about a book chapter in a translation,
+ * using the simplified chapter format.
+ */
+export const ApiSimpleTranslationBookChapterSchema =
+    ApiTranslationBookChapterSchema.omit({
+        chapter: true,
+        simpleChapterApiLink: true,
+    })
+        .extend({
+            /**
+             * The simplified information for the chapter.
+             */
+            chapter: z
+                .lazy(() => SimpleChapterDataSchema)
+                .meta({
+                    description:
+                        'The simplified information for the chapter. Each verse contains a single text string, and the footnotes and formatting are represented by offsets into that string.',
+                }),
+
+            /**
+             * The link to the regular version of this chapter.
+             */
+            fullChapterApiLink: z.string().meta({
+                description:
+                    'The API link to the regular (non-simplified) version of this chapter. Relative to the API origin.',
+            }),
+        })
+        .meta({
+            id: 'ApiSimpleTranslationBookChapter',
+            description:
+                'Defines an interface that contains information about a book chapter in a translation, using the simplified chapter format.',
+        });
+
+export type ApiSimpleTranslationBookChapter = z.infer<
+    typeof ApiSimpleTranslationBookChapterSchema
 >;
 
 /**
@@ -1173,6 +2444,15 @@ export const ApiCommentaryBookChapterSchema =
         numberOfVerses: z.number().meta({
             description: 'The number of verses that the chapter contains.',
         }),
+
+        /**
+         * The link to the simplified version of this chapter.
+         * Omitted if simplified chapters were not generated.
+         */
+        simpleChapterApiLink: z.string().optional().meta({
+            description:
+                'The API link to the simplified version of this chapter. Relative to the API origin. Omitted if simplified chapters are not available.',
+        }),
     }).meta({
         id: 'ApiCommentaryBookChapter',
         description:
@@ -1181,6 +2461,44 @@ export const ApiCommentaryBookChapterSchema =
 
 export type ApiCommentaryBookChapter = z.infer<
     typeof ApiCommentaryBookChapterSchema
+>;
+
+/**
+ * Defines a schema that contains information about a book chapter in a commentary,
+ * using the simplified chapter format.
+ */
+export const ApiSimpleCommentaryBookChapterSchema =
+    ApiCommentaryBookChapterSchema.omit({
+        chapter: true,
+        simpleChapterApiLink: true,
+    })
+        .extend({
+            /**
+             * The simplified information for the chapter.
+             */
+            chapter: z
+                .lazy(() => SimpleCommentaryChapterDataSchema)
+                .meta({
+                    description:
+                        'The simplified information for the chapter. Each verse contains a single text string, and the footnotes and formatting are represented by offsets into that string.',
+                }),
+
+            /**
+             * The link to the regular version of this chapter.
+             */
+            fullChapterApiLink: z.string().meta({
+                description:
+                    'The API link to the regular (non-simplified) version of this chapter. Relative to the API origin.',
+            }),
+        })
+        .meta({
+            id: 'ApiSimpleCommentaryBookChapter',
+            description:
+                'Defines a schema that contains information about a book chapter in a commentary, using the simplified chapter format.',
+        });
+
+export type ApiSimpleCommentaryBookChapter = z.infer<
+    typeof ApiSimpleCommentaryBookChapterSchema
 >;
 
 /**
@@ -1397,6 +2715,122 @@ export type ApiTranslationBookChapterAudioTimings = z.infer<
     typeof ApiTranslationBookChapterAudioTimingsSchema
 >;
 
+export const ApiTranslationBookChapterWordsSchema = z.object({
+    /**
+     * The ID of the translation.
+     */
+    translationId: z.string().meta({
+        description: 'The ID of the translation.',
+    }),
+
+    /**
+     * The ID of the book.
+     */
+    bookId: z.string().meta({
+        description: 'The ID of the book.',
+    }),
+
+    /**
+     * The number of the chapter.
+     */
+    chapterNumber: z.number().meta({
+        description: 'The number of the chapter.',
+    }),
+
+    /**
+     * The link to the information for this chapter.
+     */
+    thisChapterLink: z.string().meta({
+        description: 'The link to the information for this chapter.',
+    }),
+
+    /**
+     * The link to the information for the next chapter.
+     * Null if this is the last chapter in the translation.
+     */
+    nextChapterLink: z.string().nullable().meta({
+        description:
+            'The link to the information for the next chapter. Null if this is the last chapter in the translation.',
+    }),
+
+    /**
+     * The link to the information for the previous chapter.
+     * Null if this is the first chapter in the translation.
+     */
+    previousChapterLink: z.string().nullable().meta({
+        description:
+            'The link to the information for the previous chapter. Null if this is the first chapter in the translation.',
+    }),
+
+    /**
+     * The link to this words file.
+     */
+    thisChapterWordsLink: z.string().meta({
+        description: 'The link to this words file.',
+    }),
+
+    /**
+     * The link to the words for the next chapter.
+     * Null if this is the last chapter in the translation, or if the next chapter
+     * doesn't have any word-level annotations.
+     */
+    nextChapterWordsLink: z.string().nullable().meta({
+        description:
+            "The link to the words for the next chapter. Null if this is the last chapter in the translation, or if the next chapter doesn't have any word-level annotations.",
+    }),
+
+    /**
+     * The link to the words for the previous chapter.
+     * Null if this is the first chapter in the translation, or if the previous
+     * chapter doesn't have any word-level annotations.
+     */
+    previousChapterWordsLink: z.string().nullable().meta({
+        description:
+            "The link to the words for the previous chapter. Null if this is the first chapter in the translation, or if the previous chapter doesn't have any word-level annotations.",
+    }),
+
+    /**
+     * The annotated words for each verse in the chapter.
+     */
+    verses: z.record(z.string(), z.array(z.lazy(() => ChapterWordSchema))).meta({
+        description:
+            'The annotated words for each verse in the chapter, keyed by verse number. Each list is in the order that the words occur in the verse.',
+    }),
+}).meta({
+    id: 'ApiTranslationBookChapterWords',
+    description:
+        'Defines an interface that contains the word-level annotations for a book chapter.',
+});
+
+/**
+ * Defines an interface that contains the word-level annotations for a book chapter,
+ * with their offsets remapped onto the text of each simplified verse.
+ */
+export const ApiSimpleTranslationBookChapterWordsSchema =
+    ApiTranslationBookChapterWordsSchema.extend({
+        /**
+         * The annotated words for each verse in the chapter.
+         */
+        verses: z
+            .record(z.string(), z.array(z.lazy(() => SimpleChapterWordSchema)))
+            .meta({
+                description:
+                    'The annotated words for each verse in the chapter, keyed by verse number. Each list is in the order that the words occur in the verse. The offsets are into the text of the simplified verse.',
+            }),
+    }).meta({
+        id: 'ApiSimpleTranslationBookChapterWords',
+        description:
+            'Defines an interface that contains the word-level annotations for a book chapter, with their offsets remapped onto the text of each simplified verse.',
+    });
+
+export type ApiSimpleTranslationBookChapterWords = z.infer<
+    typeof ApiSimpleTranslationBookChapterWordsSchema
+>;
+
+export type ApiTranslationBookChapterWords = z.infer<
+    typeof ApiTranslationBookChapterWordsSchema
+>;
+
 export const ApiCommentaryProfileContentSchema = z.object({
     /**
      * The commentary information for the profile.
@@ -1471,6 +2905,14 @@ export interface GenerateApiOptions {
      * Whether to generate complete translation files for each translation.
      */
     generateCompleteTranslationFiles?: boolean;
+
+    /**
+     * Whether to generate simplified chapter files for each translation and commentary chapter.
+     * In the simplified format, the content of each verse is a single string instead of a list of
+     * formatted content, and the footnotes are available on the verses that they occur in.
+     * Defaults to false.
+     */
+    generateSimpleChapterFiles?: boolean;
 }
 
 /**
@@ -1484,6 +2926,7 @@ export function generateApiForDataset(
 ): ApiOutput {
     const { useCommonName, pathPrefix } = options;
     const apiPathPrefix = pathPrefix ? pathPrefix : '';
+    const generateSimpleChapterFiles = !!options.generateSimpleChapterFiles;
     let api: ApiOutput = {
         availableTranslations: {
             translations: [],
@@ -1492,7 +2935,9 @@ export function generateApiForDataset(
         translationBookChapters: [],
         translationBookChapterAudio: [],
         translationBookChapterAudioTimings: [],
+        translationBookChapterWords: [],
         translationComplete: [],
+        simpleTranslationComplete: [],
         availableCommentaries: {
             commentaries: [],
         },
@@ -1502,6 +2947,23 @@ export function generateApiForDataset(
         commentaryProfileContents: [],
         pathPrefix: apiPathPrefix,
     };
+
+    if (generateSimpleChapterFiles) {
+        api.simpleTranslationBookChapters = [];
+        api.simpleCommentaryBookChapters = [];
+    }
+
+    // The simplified chapter-words files are also needed by the complete
+    // translation files, which link to them instead of embedding the words
+    // directly. Generate them whenever either feature needs them, so the
+    // links in complete.simple.json always resolve even if per-chapter
+    // simplified files aren't being generated.
+    if (
+        generateSimpleChapterFiles ||
+        options.generateCompleteTranslationFiles
+    ) {
+        api.simpleTranslationBookChapterWords = [];
+    }
 
     const getNativeName = options.getNativeName;
     const getEnglishName = options.getEnglishName;
@@ -1528,6 +2990,14 @@ export function generateApiForDataset(
             completeTranslationApiLink: options.generateCompleteTranslationFiles
                 ? completeTranslationApiLink(translation.id, apiPathPrefix)
                 : undefined,
+            simpleCompleteTranslationApiLink:
+                options.generateCompleteTranslationFiles
+                    ? completeTranslationApiLink(
+                          translation.id,
+                          apiPathPrefix,
+                          SIMPLE_JSON_EXTENSION
+                      )
+                    : undefined,
             numberOfBooks,
             totalNumberOfChapters: 0,
             totalNumberOfVerses: 0,
@@ -1557,6 +3027,10 @@ export function generateApiForDataset(
         let rawAudioTimingsByChapter = new Map<
             ApiTranslationBookChapter,
             TranslationBookChapterAudioTimings
+        >();
+        let rawWordsByChapter = new Map<
+            ApiTranslationBookChapter,
+            TranslationBookChapterWords
         >();
 
         for (let { chapters, ...book } of books) {
@@ -1599,6 +3073,7 @@ export function generateApiForDataset(
                 chapter,
                 thisChapterAudioLinks,
                 thisChapterAudioTimings,
+                thisChapterWords,
             } of chapters) {
                 const audio: TranslationBookChapterAudioLinks = {};
                 const audioTimings: Record<string, string> = {};
@@ -1629,6 +3104,15 @@ export function generateApiForDataset(
                     nextChapterAudioTimings: null,
                     previousChapterAudioTimings: null,
                     numberOfVerses: 0,
+                    simpleChapterApiLink: generateSimpleChapterFiles
+                        ? bookChapterApiLink(
+                              translation.id,
+                              getBookLink(book),
+                              chapter.number,
+                              SIMPLE_JSON_EXTENSION,
+                              apiPathPrefix
+                          )
+                        : undefined,
                 };
 
                 for (let reader in thisChapterAudioLinks) {
@@ -1655,6 +3139,17 @@ export function generateApiForDataset(
                     apiBookChapter,
                     thisChapterAudioTimings
                 );
+
+                if (thisChapterWords) {
+                    apiBookChapter.thisChapterWordsLink =
+                        bookChapterWordsApiLink(
+                            translation.id,
+                            getBookLink(book),
+                            chapter.number,
+                            apiPathPrefix
+                        );
+                    rawWordsByChapter.set(apiBookChapter, thisChapterWords);
+                }
 
                 for (let reader in thisChapterAudioTimings) {
                     const verses = thisChapterAudioTimings[reader];
@@ -1725,6 +3220,11 @@ export function generateApiForDataset(
                     previousChapter.thisChapterAudioLinks;
                 currentChapter.previousChapterAudioTimings =
                     previousChapter.thisChapterAudioTimings;
+
+                if (previousChapter.thisChapterWordsLink) {
+                    currentChapter.previousChapterWordsLink =
+                        previousChapter.thisChapterWordsLink;
+                }
             }
 
             if (i < translationChapters.length - 1) {
@@ -1745,6 +3245,154 @@ export function generateApiForDataset(
                     nextChapter.thisChapterAudioLinks;
                 currentChapter.nextChapterAudioTimings =
                     nextChapter.thisChapterAudioTimings;
+
+                if (nextChapter.thisChapterWordsLink) {
+                    currentChapter.nextChapterWordsLink =
+                        nextChapter.thisChapterWordsLink;
+                }
+            }
+        }
+
+        // The simplified chapters are shared between the per-chapter files and the
+        // complete translation file, which are controlled by separate options.
+        // Simplifying each chapter once means enabling both options doesn't do the
+        // work twice or keep two copies of the result in memory.
+        const simplifiedChapters = new Map<
+            ApiTranslationBookChapter,
+            SimplifiedChapter
+        >();
+        if (
+            generateSimpleChapterFiles ||
+            options.generateCompleteTranslationFiles
+        ) {
+            for (let chapter of translationChapters) {
+                simplifiedChapters.set(
+                    chapter,
+                    simplifyChapter(
+                        chapter.chapter,
+                        rawWordsByChapter.get(chapter)
+                    )
+                );
+            }
+        }
+
+        const simpleChapterLink = (chapter: ApiTranslationBookChapter) =>
+            bookChapterApiLink(
+                translation.id,
+                getBookLink(chapter.book),
+                chapter.chapter.number,
+                SIMPLE_JSON_EXTENSION,
+                apiPathPrefix
+            );
+
+        // The words for a simplified chapter are only published when the chapter
+        // itself is, since their offsets are anchored to the simplified text.
+        const simpleWordsLink = (chapter: ApiTranslationBookChapter) =>
+            hasSimpleWords(chapter)
+                ? bookChapterWordsApiLink(
+                      translation.id,
+                      getBookLink(chapter.book),
+                      chapter.chapter.number,
+                      apiPathPrefix,
+                      SIMPLE_JSON_EXTENSION
+                  )
+                : undefined;
+
+        function hasSimpleWords(chapter: ApiTranslationBookChapter) {
+            const words = simplifiedChapters.get(chapter)?.words;
+            return !!words && Object.keys(words).length > 0;
+        }
+
+        if (
+            api.simpleTranslationBookChapters ||
+            api.simpleTranslationBookChapterWords
+        ) {
+            for (let i = 0; i < translationChapters.length; i++) {
+                const currentChapter = translationChapters[i];
+                const previousChapter = translationChapters[i - 1];
+                const nextChapter = translationChapters[i + 1];
+                const simplified = simplifiedChapters.get(currentChapter)!;
+
+                // Per-chapter simplified files aren't necessarily being
+                // generated (e.g. when only the complete translation file
+                // needs the simplified words), so `simpleChapter` may be
+                // undefined below.
+                let simpleChapter: ApiSimpleTranslationBookChapter | undefined;
+                if (api.simpleTranslationBookChapters) {
+                    const {
+                        chapter,
+                        simpleChapterApiLink,
+                        thisChapterWordsLink,
+                        nextChapterWordsLink,
+                        previousChapterWordsLink,
+                        ...rest
+                    } = currentChapter;
+
+                    simpleChapter = {
+                        ...rest,
+                        chapter: simplified.chapter,
+                        thisChapterLink: simpleChapterLink(currentChapter),
+                        fullChapterApiLink: rest.thisChapterLink,
+                        previousChapterApiLink: previousChapter
+                            ? simpleChapterLink(previousChapter)
+                            : null,
+                        nextChapterApiLink: nextChapter
+                            ? simpleChapterLink(nextChapter)
+                            : null,
+                    };
+                }
+
+                const thisWordsLink = simpleWordsLink(currentChapter);
+                if (thisWordsLink) {
+                    if (simpleChapter) {
+                        simpleChapter.thisChapterWordsLink = thisWordsLink;
+                    }
+
+                    // When per-chapter simplified files aren't generated,
+                    // there's no simple chapter link to point to, so fall
+                    // back to the regular chapter's links.
+                    api.simpleTranslationBookChapterWords?.push({
+                        translationId: translation.id,
+                        bookId: currentChapter.book.id,
+                        chapterNumber: currentChapter.chapter.number,
+                        thisChapterLink:
+                            simpleChapter?.thisChapterLink ??
+                            currentChapter.thisChapterLink,
+                        nextChapterLink:
+                            simpleChapter?.nextChapterApiLink ??
+                            currentChapter.nextChapterApiLink,
+                        previousChapterLink:
+                            simpleChapter?.previousChapterApiLink ??
+                            currentChapter.previousChapterApiLink,
+                        thisChapterWordsLink: thisWordsLink,
+                        nextChapterWordsLink: nextChapter
+                            ? (simpleWordsLink(nextChapter) ?? null)
+                            : null,
+                        previousChapterWordsLink: previousChapter
+                            ? (simpleWordsLink(previousChapter) ?? null)
+                            : null,
+                        verses: simplified.words,
+                    });
+                }
+
+                if (simpleChapter) {
+                    const nextWordsLink = nextChapter
+                        ? simpleWordsLink(nextChapter)
+                        : undefined;
+                    if (nextWordsLink) {
+                        simpleChapter.nextChapterWordsLink = nextWordsLink;
+                    }
+
+                    const previousWordsLink = previousChapter
+                        ? simpleWordsLink(previousChapter)
+                        : undefined;
+                    if (previousWordsLink) {
+                        simpleChapter.previousChapterWordsLink =
+                            previousWordsLink;
+                    }
+
+                    api.simpleTranslationBookChapters!.push(simpleChapter);
+                }
             }
         }
 
@@ -1770,37 +3418,109 @@ export function generateApiForDataset(
             });
         }
 
+        for (let apiBookChapter of translationChapters) {
+            const words = rawWordsByChapter.get(apiBookChapter);
+            if (!words || !apiBookChapter.thisChapterWordsLink) {
+                continue;
+            }
+
+            api.translationBookChapterWords.push({
+                translationId: translation.id,
+                bookId: apiBookChapter.book.id,
+                chapterNumber: apiBookChapter.chapter.number,
+                thisChapterLink: apiBookChapter.thisChapterLink,
+                nextChapterLink: apiBookChapter.nextChapterApiLink,
+                previousChapterLink: apiBookChapter.previousChapterApiLink,
+                thisChapterWordsLink: apiBookChapter.thisChapterWordsLink,
+                nextChapterWordsLink:
+                    apiBookChapter.nextChapterWordsLink ?? null,
+                previousChapterWordsLink:
+                    apiBookChapter.previousChapterWordsLink ?? null,
+                verses: words,
+            });
+        }
+
         api.availableTranslations.translations.push(apiTranslation);
         api.translationBooks.push(translationBooks);
 
         if (options.generateCompleteTranslationFiles) {
-            // Build the complete translation data for download
+            // Build the complete translation data for download.
+            // The regular and simplified files only differ by the content of each
+            // chapter, so they share the book grouping and the per-chapter metadata.
+            const completeBooks = translationBooks.books.map((book) => ({
+                book,
+                chapters: translationChapters.filter(
+                    (ch) => ch.book.id === book.id
+                ),
+            }));
+
+            const completeBook = <T>(
+                book: ApiTranslationBook,
+                chapters: T[]
+            ) => ({
+                id: book.id,
+                name: book.name,
+                commonName: book.commonName,
+                title: book.title,
+                order: book.order,
+                numberOfChapters: book.numberOfChapters,
+                totalNumberOfVerses: book.totalNumberOfVerses,
+                isApocryphal: book.isApocryphal,
+                chapters,
+            });
+
+            const completeChapter = (chapter: ApiTranslationBookChapter) => ({
+                numberOfVerses: chapter.numberOfVerses,
+                thisChapterAudioLinks: chapter.thisChapterAudioLinks,
+                // The complete files contain the raw audio timings rather than links
+                // to them, since the point is to have everything in one file.
+                thisChapterAudioTimings:
+                    rawAudioTimingsByChapter.get(chapter) ?? {},
+            });
+
             const completeTranslation: ApiTranslationComplete = {
                 translation: apiTranslation,
-                books: translationBooks.books.map((book) => {
-                    const bookChapters = translationChapters.filter(
-                        (ch) => ch.book.id === book.id
-                    );
-                    return {
-                        id: book.id,
-                        name: book.name,
-                        commonName: book.commonName,
-                        title: book.title,
-                        order: book.order,
-                        numberOfChapters: book.numberOfChapters,
-                        totalNumberOfVerses: book.totalNumberOfVerses,
-                        isApocryphal: book.isApocryphal,
-                        chapters: bookChapters.map((ch) => ({
-                            numberOfVerses: ch.numberOfVerses,
-                            thisChapterAudioLinks: ch.thisChapterAudioLinks,
-                            thisChapterAudioTimings:
-                                rawAudioTimingsByChapter.get(ch) ?? {},
+                books: completeBooks.map(({ book, chapters }) =>
+                    completeBook(
+                        book,
+                        chapters.map((ch) => ({
+                            ...completeChapter(ch),
+                            // The complete files link to the word annotations
+                            // rather than embedding them, same as the regular
+                            // per-chapter endpoint.
+                            ...(ch.thisChapterWordsLink
+                                ? {
+                                      thisChapterWordsLink:
+                                          ch.thisChapterWordsLink,
+                                  }
+                                : {}),
                             chapter: ch.chapter,
-                        })),
-                    };
-                }),
+                        }))
+                    )
+                ),
             };
             api.translationComplete.push(completeTranslation);
+
+            const simpleCompleteTranslation: ApiSimpleTranslationComplete = {
+                translation: apiTranslation,
+                books: completeBooks.map(({ book, chapters }) =>
+                    completeBook(
+                        book,
+                        chapters.map((ch) => {
+                            const simplified = simplifiedChapters.get(ch)!;
+                            const wordsLink = simpleWordsLink(ch);
+                            return {
+                                ...completeChapter(ch),
+                                ...(wordsLink
+                                    ? { thisChapterWordsLink: wordsLink }
+                                    : {}),
+                                chapter: simplified.chapter,
+                            };
+                        })
+                    )
+                ),
+            };
+            api.simpleTranslationComplete.push(simpleCompleteTranslation);
         }
     }
 
@@ -1907,6 +3627,15 @@ export function generateApiForDataset(
                     previousChapterApiLink: null,
                     previousChapterReference: null,
                     numberOfVerses: 0,
+                    simpleChapterApiLink: generateSimpleChapterFiles
+                        ? bookCommentaryChapterApiLink(
+                              commentary.id,
+                              getBookLink(book),
+                              chapter.number,
+                              SIMPLE_JSON_EXTENSION,
+                              apiPathPrefix
+                          )
+                        : undefined,
                 };
 
                 for (let c of chapter.content) {
@@ -2000,12 +3729,50 @@ export function generateApiForDataset(
             }
         }
 
+        if (api.simpleCommentaryBookChapters) {
+            const simpleChapterLink = (chapter: ApiCommentaryBookChapter) =>
+                bookCommentaryChapterApiLink(
+                    commentary.id,
+                    getBookLink(chapter.book),
+                    chapter.chapter.number,
+                    SIMPLE_JSON_EXTENSION,
+                    apiPathPrefix
+                );
+
+            for (let i = 0; i < commentaryChapters.length; i++) {
+                const { chapter, simpleChapterApiLink, ...currentChapter } =
+                    commentaryChapters[i];
+                const previousChapter = commentaryChapters[i - 1];
+                const nextChapter = commentaryChapters[i + 1];
+
+                api.simpleCommentaryBookChapters.push({
+                    ...currentChapter,
+                    chapter: simplifyCommentaryChapter(chapter),
+                    thisChapterLink: simpleChapterLink(commentaryChapters[i]),
+                    fullChapterApiLink: currentChapter.thisChapterLink,
+                    previousChapterApiLink: previousChapter
+                        ? simpleChapterLink(previousChapter)
+                        : null,
+                    nextChapterApiLink: nextChapter
+                        ? simpleChapterLink(nextChapter)
+                        : null,
+                });
+            }
+        }
+
         api.availableCommentaries.commentaries.push(apiCommentary);
         api.commentaryBooks.push(commentaryBooks);
         api.commentaryProfiles.push(commentaryProfiles);
     }
 
-    for (let { books, ...datasetInfo } of dataset.datasets ?? []) {
+    for (let {
+        books,
+        people,
+        places,
+        events,
+        peopleGroups,
+        ...datasetInfo
+    } of dataset.datasets ?? []) {
         const apiDataset: ApiDataset = {
             ...datasetInfo,
             availableFormats: ['json'],
@@ -2153,6 +3920,541 @@ export function generateApiForDataset(
             }
         }
 
+        const linkEntityRef = (
+            collection: DatasetEntityCollection,
+            ref: DatasetEntityRef | undefined
+        ): DatasetEntityRef | undefined =>
+            ref
+                ? {
+                      ...ref,
+                      type: collection,
+                      apiLink: datasetEntityApiLink(
+                          datasetInfo.id,
+                          collection,
+                          ref.id,
+                          'json',
+                          apiPathPrefix
+                      ),
+                  }
+                : undefined;
+
+        const linkEntityRefs = (
+            collection: DatasetEntityCollection,
+            refs: DatasetEntityRef[] | undefined
+        ): DatasetEntityRef[] | undefined =>
+            refs?.map((ref) => linkEntityRef(collection, ref)!);
+
+        if (people) {
+            const datasetPeople: ApiDatasetPeople = {
+                dataset: apiDataset,
+                people: [],
+            };
+
+            for (let person of people) {
+                const thisPersonApiLink = datasetEntityApiLink(
+                    datasetInfo.id,
+                    'people',
+                    person.id,
+                    'json',
+                    apiPathPrefix
+                );
+
+                datasetPeople.people.push({
+                    id: person.id,
+                    name: person.name,
+                    isProperName: person.isProperName,
+                    gender: person.gender,
+                    numberOfReferences: person.references.length,
+                    thisPersonApiLink,
+                });
+
+                const apiPerson: ApiDatasetPerson = {
+                    dataset: apiDataset,
+                    person: {
+                        ...person,
+                        birthPlace: linkEntityRef('places', person.birthPlace),
+                        deathPlace: linkEntityRef('places', person.deathPlace),
+                        father: linkEntityRefs('people', person.father),
+                        mother: linkEntityRefs('people', person.mother),
+                        partners: linkEntityRefs('people', person.partners),
+                        children: linkEntityRefs('people', person.children),
+                        siblings: linkEntityRefs('people', person.siblings),
+                        halfSiblingsSameMother: linkEntityRefs(
+                            'people',
+                            person.halfSiblingsSameMother
+                        ),
+                        halfSiblingsSameFather: linkEntityRefs(
+                            'people',
+                            person.halfSiblingsSameFather
+                        ),
+                        memberOf: linkEntityRefs('groups', person.memberOf),
+                        events: linkEntityRefs('events', person.events),
+                    },
+                    thisPersonApiLink,
+                };
+
+                if (!api.datasetPeopleContents) {
+                    api.datasetPeopleContents = [];
+                }
+                api.datasetPeopleContents.push(apiPerson);
+            }
+
+            apiDataset.listOfPeopleApiLink = listOfDatasetEntitiesApiLink(
+                datasetInfo.id,
+                'people',
+                'json',
+                apiPathPrefix
+            );
+            apiDataset.totalNumberOfPeople = people.length;
+            if (!api.datasetPeople) {
+                api.datasetPeople = [];
+            }
+            api.datasetPeople.push(datasetPeople);
+        }
+
+        if (places) {
+            const datasetPlaces: ApiDatasetPlaces = {
+                dataset: apiDataset,
+                places: [],
+            };
+
+            for (let place of places) {
+                const thisPlaceApiLink = datasetEntityApiLink(
+                    datasetInfo.id,
+                    'places',
+                    place.id,
+                    'json',
+                    apiPathPrefix
+                );
+
+                datasetPlaces.places.push({
+                    id: place.id,
+                    name: place.name,
+                    featureType: place.featureType,
+                    latitude: place.latitude,
+                    longitude: place.longitude,
+                    numberOfReferences: place.references.length,
+                    thisPlaceApiLink,
+                });
+
+                const apiPlace: ApiDatasetPlace = {
+                    dataset: apiDataset,
+                    place: {
+                        ...place,
+                        rootPlace: linkEntityRef('places', place.rootPlace),
+                        duplicateOf: linkEntityRef('places', place.duplicateOf),
+                        people: linkEntityRefs('people', place.people),
+                        peopleBorn: linkEntityRefs('people', place.peopleBorn),
+                        peopleDied: linkEntityRefs('people', place.peopleDied),
+                        events: linkEntityRefs('events', place.events),
+                    },
+                    thisPlaceApiLink,
+                };
+
+                if (!api.datasetPlaceContents) {
+                    api.datasetPlaceContents = [];
+                }
+                api.datasetPlaceContents.push(apiPlace);
+            }
+
+            apiDataset.listOfPlacesApiLink = listOfDatasetEntitiesApiLink(
+                datasetInfo.id,
+                'places',
+                'json',
+                apiPathPrefix
+            );
+            apiDataset.totalNumberOfPlaces = places.length;
+            if (!api.datasetPlaces) {
+                api.datasetPlaces = [];
+            }
+            api.datasetPlaces.push(datasetPlaces);
+        }
+
+        if (events) {
+            const datasetEvents: ApiDatasetEvents = {
+                dataset: apiDataset,
+                events: [],
+            };
+
+            for (let event of events) {
+                const thisEventApiLink = datasetEntityApiLink(
+                    datasetInfo.id,
+                    'events',
+                    event.id,
+                    'json',
+                    apiPathPrefix
+                );
+
+                datasetEvents.events.push({
+                    id: event.id,
+                    name: event.name,
+                    startDate: event.startDate,
+                    numberOfReferences: event.references.length,
+                    thisEventApiLink,
+                });
+
+                const apiEvent: ApiDatasetEvent = {
+                    dataset: apiDataset,
+                    event: {
+                        ...event,
+                        participants: linkEntityRefs(
+                            'people',
+                            event.participants
+                        ),
+                        locations: linkEntityRefs('places', event.locations),
+                        groups: linkEntityRefs('groups', event.groups),
+                        partOf: linkEntityRef('events', event.partOf),
+                        predecessor: linkEntityRef('events', event.predecessor),
+                    },
+                    thisEventApiLink,
+                };
+
+                if (!api.datasetEventContents) {
+                    api.datasetEventContents = [];
+                }
+                api.datasetEventContents.push(apiEvent);
+            }
+
+            apiDataset.listOfEventsApiLink = listOfDatasetEntitiesApiLink(
+                datasetInfo.id,
+                'events',
+                'json',
+                apiPathPrefix
+            );
+            apiDataset.totalNumberOfEvents = events.length;
+            if (!api.datasetEvents) {
+                api.datasetEvents = [];
+            }
+            api.datasetEvents.push(datasetEvents);
+        }
+
+        if (peopleGroups) {
+            const datasetPeopleGroups: ApiDatasetPeopleGroups = {
+                dataset: apiDataset,
+                groups: [],
+            };
+
+            for (let group of peopleGroups) {
+                const thisPeopleGroupApiLink = datasetEntityApiLink(
+                    datasetInfo.id,
+                    'groups',
+                    group.id,
+                    'json',
+                    apiPathPrefix
+                );
+
+                datasetPeopleGroups.groups.push({
+                    id: group.id,
+                    name: group.name,
+                    numberOfMembers: group.members?.length ?? 0,
+                    thisPeopleGroupApiLink,
+                });
+
+                const apiGroup: ApiDatasetPeopleGroup = {
+                    dataset: apiDataset,
+                    group: {
+                        ...group,
+                        members: linkEntityRefs('people', group.members),
+                        events: linkEntityRefs('events', group.events),
+                    },
+                    thisPeopleGroupApiLink,
+                };
+
+                if (!api.datasetPeopleGroupContents) {
+                    api.datasetPeopleGroupContents = [];
+                }
+                api.datasetPeopleGroupContents.push(apiGroup);
+            }
+
+            apiDataset.listOfPeopleGroupsApiLink = listOfDatasetEntitiesApiLink(
+                datasetInfo.id,
+                'groups',
+                'json',
+                apiPathPrefix
+            );
+            apiDataset.totalNumberOfPeopleGroups = peopleGroups.length;
+            if (!api.datasetPeopleGroups) {
+                api.datasetPeopleGroups = [];
+            }
+            api.datasetPeopleGroups.push(datasetPeopleGroups);
+        }
+
+        // Generate chapter-aligned entity data for datasets that contain
+        // entities but no chapter books of their own. Each chapter file
+        // contains the people, places, and events that appear in that
+        // chapter, derived from the entities' Bible references.
+        if (books.length <= 0 && (people || places || events)) {
+            interface ChapterEntities {
+                people: Map<string, ApiDatasetChapterPerson>;
+                places: Map<string, ApiDatasetChapterPlace>;
+                events: Map<string, ApiDatasetChapterEvent>;
+            }
+
+            // bookId -> chapterNumber -> entities
+            const chapterMap = new Map<BookId, Map<number, ChapterEntities>>();
+
+            function addEntityVerses<
+                T extends { verses: number[] },
+                K extends 'people' | 'places' | 'events',
+            >(
+                collection: K,
+                references: VerseRef[],
+                createEntry: () => Omit<T, 'verses'>
+            ) {
+                for (let reference of references) {
+                    let bookChapters = chapterMap.get(reference.book);
+                    if (!bookChapters) {
+                        bookChapters = new Map();
+                        chapterMap.set(reference.book, bookChapters);
+                    }
+                    let chapterEntities = bookChapters.get(reference.chapter);
+                    if (!chapterEntities) {
+                        chapterEntities = {
+                            people: new Map(),
+                            places: new Map(),
+                            events: new Map(),
+                        };
+                        bookChapters.set(reference.chapter, chapterEntities);
+                    }
+
+                    const entry = createEntry() as T;
+                    const entities = chapterEntities[
+                        collection
+                    ] as unknown as Map<string, T>;
+                    let existing = entities.get((entry as any).id);
+                    if (!existing) {
+                        existing = { ...entry, verses: [] } as T;
+                        entities.set((entry as any).id, existing);
+                    }
+                    const endVerse = reference.endVerse ?? reference.verse;
+                    for (
+                        let verse = reference.verse;
+                        verse <= endVerse;
+                        verse++
+                    ) {
+                        existing.verses.push(verse);
+                    }
+                }
+            }
+
+            for (let person of people ?? []) {
+                addEntityVerses<ApiDatasetChapterPerson, 'people'>(
+                    'people',
+                    person.references,
+                    () => ({
+                        id: person.id,
+                        name: person.name,
+                        isProperName: person.isProperName,
+                        gender: person.gender,
+                        birthYear: person.birthYear,
+                        deathYear: person.deathYear,
+                        apiLink: datasetEntityApiLink(
+                            datasetInfo.id,
+                            'people',
+                            person.id,
+                            'json',
+                            apiPathPrefix
+                        ),
+                    })
+                );
+            }
+
+            for (let place of places ?? []) {
+                addEntityVerses<ApiDatasetChapterPlace, 'places'>(
+                    'places',
+                    place.references,
+                    () => ({
+                        id: place.id,
+                        name: place.name,
+                        featureType: place.featureType,
+                        latitude: place.latitude,
+                        longitude: place.longitude,
+                        apiLink: datasetEntityApiLink(
+                            datasetInfo.id,
+                            'places',
+                            place.id,
+                            'json',
+                            apiPathPrefix
+                        ),
+                    })
+                );
+            }
+
+            for (let event of events ?? []) {
+                addEntityVerses<ApiDatasetChapterEvent, 'events'>(
+                    'events',
+                    event.references,
+                    () => ({
+                        id: event.id,
+                        name: event.name,
+                        startDate: event.startDate,
+                        apiLink: datasetEntityApiLink(
+                            datasetInfo.id,
+                            'events',
+                            event.id,
+                            'json',
+                            apiPathPrefix
+                        ),
+                    })
+                );
+            }
+
+            const sortedBooks = [...chapterMap.keys()].sort(
+                (a, b) =>
+                    (bookOrderMap.get(a) ?? 9999) -
+                    (bookOrderMap.get(b) ?? 9999)
+            );
+
+            function sortEntities<T extends { id: string; verses: number[] }>(
+                entities: Map<string, T>
+            ): T[] {
+                const list = [...entities.values()];
+                for (let entity of list) {
+                    entity.verses.sort((a, b) => a - b);
+                }
+                return list.sort(
+                    (a, b) =>
+                        a.verses[0] - b.verses[0] || a.id.localeCompare(b.id)
+                );
+            }
+
+            const entityChapters: ApiDatasetEntityBookChapter[] = [];
+
+            for (let bookId of sortedBooks) {
+                const bookChapters = chapterMap.get(bookId)!;
+                const chapterNumbers = [...bookChapters.keys()].sort(
+                    (a, b) => a - b
+                );
+                const firstChapterNumber = chapterNumbers[0];
+                const lastChapterNumber =
+                    chapterNumbers[chapterNumbers.length - 1];
+
+                const apiBook: ApiDatasetBook = {
+                    id: bookId,
+                    order: bookOrderMap.get(bookId) ?? 9999,
+                    firstChapterNumber,
+                    firstChapterApiLink: bookDatasetChapterApiLink(
+                        datasetInfo.id,
+                        bookId,
+                        firstChapterNumber,
+                        'json',
+                        apiPathPrefix
+                    ),
+                    firstChapterReference: {
+                        datasetId: datasetInfo.id,
+                        book: bookId,
+                        chapter: firstChapterNumber,
+                    },
+                    lastChapterNumber,
+                    lastChapterApiLink: bookDatasetChapterApiLink(
+                        datasetInfo.id,
+                        bookId,
+                        lastChapterNumber,
+                        'json',
+                        apiPathPrefix
+                    ),
+                    lastChapterReference: {
+                        datasetId: datasetInfo.id,
+                        book: bookId,
+                        chapter: lastChapterNumber,
+                    },
+                    numberOfChapters: chapterNumbers.length,
+                    totalNumberOfVerses: 0,
+                    totalNumberOfReferences: 0,
+                };
+
+                for (let chapterNumber of chapterNumbers) {
+                    const chapterEntities = bookChapters.get(chapterNumber)!;
+                    const chapterPeople = sortEntities(chapterEntities.people);
+                    const chapterPlaces = sortEntities(chapterEntities.places);
+                    const chapterEvents = sortEntities(chapterEntities.events);
+
+                    const distinctVerses = new Set<number>();
+                    let numberOfReferences = 0;
+                    for (let list of [
+                        chapterPeople,
+                        chapterPlaces,
+                        chapterEvents,
+                    ]) {
+                        for (let entity of list as {
+                            verses: number[];
+                        }[]) {
+                            numberOfReferences += entity.verses.length;
+                            for (let verse of entity.verses) {
+                                distinctVerses.add(verse);
+                            }
+                        }
+                    }
+
+                    apiBook.totalNumberOfVerses += distinctVerses.size;
+                    apiBook.totalNumberOfReferences += numberOfReferences;
+
+                    const apiChapter: ApiDatasetEntityBookChapter = {
+                        dataset: apiDataset,
+                        book: apiBook,
+                        chapter: {
+                            number: chapterNumber,
+                            people: chapterPeople,
+                            places: chapterPlaces,
+                            events: chapterEvents,
+                        },
+                        thisChapterLink: bookDatasetChapterApiLink(
+                            datasetInfo.id,
+                            bookId,
+                            chapterNumber,
+                            'json',
+                            apiPathPrefix
+                        ),
+                        thisChapterReference: {
+                            datasetId: datasetInfo.id,
+                            book: bookId,
+                            chapter: chapterNumber,
+                        },
+                        nextChapterApiLink: null,
+                        nextChapterReference: null,
+                        previousChapterApiLink: null,
+                        previousChapterReference: null,
+                        numberOfPeople: chapterPeople.length,
+                        numberOfPlaces: chapterPlaces.length,
+                        numberOfEvents: chapterEvents.length,
+                    };
+
+                    entityChapters.push(apiChapter);
+                }
+
+                datasetBooks.books.push(apiBook);
+
+                apiDataset.totalNumberOfChapters += apiBook.numberOfChapters;
+                apiDataset.totalNumberOfVerses += apiBook.totalNumberOfVerses;
+                apiDataset.totalNumberOfReferences +=
+                    apiBook.totalNumberOfReferences;
+            }
+
+            apiDataset.numberOfBooks = datasetBooks.books.length;
+
+            for (let i = 0; i < entityChapters.length; i++) {
+                if (i > 0) {
+                    entityChapters[i].previousChapterApiLink =
+                        entityChapters[i - 1].thisChapterLink;
+                    entityChapters[i].previousChapterReference =
+                        entityChapters[i - 1].thisChapterReference;
+                }
+                if (i < entityChapters.length - 1) {
+                    entityChapters[i].nextChapterApiLink =
+                        entityChapters[i + 1].thisChapterLink;
+                    entityChapters[i].nextChapterReference =
+                        entityChapters[i + 1].thisChapterReference;
+                }
+            }
+
+            if (entityChapters.length > 0) {
+                if (!api.datasetEntityBookChapters) {
+                    api.datasetEntityBookChapters = [];
+                }
+                api.datasetEntityBookChapters.push(...entityChapters);
+            }
+        }
+
         if (!api.availableDatasets) {
             api.availableDatasets = {
                 datasets: [],
@@ -2199,6 +4501,10 @@ export function generateFilesForApi(api: ApiOutput): OutputFile[] {
         files.push(jsonFile(bookChapter.thisChapterLink, bookChapter));
     }
 
+    for (let bookChapter of api.simpleTranslationBookChapters ?? []) {
+        files.push(jsonFile(bookChapter.thisChapterLink, bookChapter));
+    }
+
     for (let audio of api.translationBookChapterAudio) {
         files.push(downloadedFile(audio.link, audio.originalUrl));
     }
@@ -2207,12 +4513,31 @@ export function generateFilesForApi(api: ApiOutput): OutputFile[] {
         files.push(jsonFile(timings.thisChapterAudioTimingsLink, timings));
     }
 
+    for (let words of api.translationBookChapterWords) {
+        files.push(jsonFile(words.thisChapterWordsLink, words));
+    }
+
+    for (let words of api.simpleTranslationBookChapterWords ?? []) {
+        files.push(jsonFile(words.thisChapterWordsLink, words));
+    }
+
     // Generate complete translation download files
     for (let complete of api.translationComplete) {
         if (complete.translation.completeTranslationApiLink) {
             files.push(
                 jsonFile(
                     complete.translation.completeTranslationApiLink,
+                    complete
+                )
+            );
+        }
+    }
+
+    for (let complete of api.simpleTranslationComplete) {
+        if (complete.translation.simpleCompleteTranslationApiLink) {
+            files.push(
+                jsonFile(
+                    complete.translation.simpleCompleteTranslationApiLink,
                     complete
                 )
             );
@@ -2254,6 +4579,10 @@ export function generateFilesForApi(api: ApiOutput): OutputFile[] {
         files.push(jsonFile(bookChapter.thisChapterLink, bookChapter));
     }
 
+    for (let bookChapter of api.simpleCommentaryBookChapters ?? []) {
+        files.push(jsonFile(bookChapter.thisChapterLink, bookChapter));
+    }
+
     if (api.availableDatasets) {
         files.push(
             jsonFile(
@@ -2278,6 +4607,53 @@ export function generateFilesForApi(api: ApiOutput): OutputFile[] {
                 jsonFile(datasetBookChapter.thisChapterLink, datasetBookChapter)
             );
         }
+    }
+
+    for (let entityChapter of api.datasetEntityBookChapters ?? []) {
+        files.push(jsonFile(entityChapter.thisChapterLink, entityChapter));
+    }
+
+    for (let datasetPeople of api.datasetPeople ?? []) {
+        files.push(
+            jsonFile(datasetPeople.dataset.listOfPeopleApiLink!, datasetPeople)
+        );
+    }
+
+    for (let person of api.datasetPeopleContents ?? []) {
+        files.push(jsonFile(person.thisPersonApiLink, person));
+    }
+
+    for (let datasetPlaces of api.datasetPlaces ?? []) {
+        files.push(
+            jsonFile(datasetPlaces.dataset.listOfPlacesApiLink!, datasetPlaces)
+        );
+    }
+
+    for (let place of api.datasetPlaceContents ?? []) {
+        files.push(jsonFile(place.thisPlaceApiLink, place));
+    }
+
+    for (let datasetEvents of api.datasetEvents ?? []) {
+        files.push(
+            jsonFile(datasetEvents.dataset.listOfEventsApiLink!, datasetEvents)
+        );
+    }
+
+    for (let event of api.datasetEventContents ?? []) {
+        files.push(jsonFile(event.thisEventApiLink, event));
+    }
+
+    for (let datasetPeopleGroups of api.datasetPeopleGroups ?? []) {
+        files.push(
+            jsonFile(
+                datasetPeopleGroups.dataset.listOfPeopleGroupsApiLink!,
+                datasetPeopleGroups
+            )
+        );
+    }
+
+    for (let group of api.datasetPeopleGroupContents ?? []) {
+        files.push(jsonFile(group.thisPeopleGroupApiLink, group));
     }
 
     // for (let audio of api.translationBookChapterAudio) {
@@ -2320,13 +4696,15 @@ export function listOfBooksApiLink(
  * Gets the API Link for the complete translation download endpoint.
  * @param translationId The ID of the translation.
  * @param prefix The path prefix.
+ * @param extension The extension of the file. Use SIMPLE_JSON_EXTENSION for the simplified format.
  * @returns
  */
 export function completeTranslationApiLink(
     translationId: string,
-    prefix: string = ''
+    prefix: string = '',
+    extension: string = 'json'
 ): string {
-    return `${prefix}/api/${translationId}/complete.json`;
+    return `${prefix}/api/${translationId}/complete.${extension}`;
 }
 
 /**
@@ -2352,6 +4730,52 @@ export function listOfDatasetBooksApiLink(
 ): string {
     return `${prefix}/api/d/${datasetId}/books.json`;
 }
+
+/**
+ * The collections of entities that a dataset can contain.
+ */
+export type DatasetEntityCollection = DatasetEntityType;
+
+/**
+ * Gets the API Link for the list of entities in a collection for a dataset.
+ * @param datasetId The ID of the dataset.
+ * @param collection The collection of entities.
+ * @param extension The extension of the file.
+ * @param prefix The prefix for the API links.
+ */
+export function listOfDatasetEntitiesApiLink(
+    datasetId: string,
+    collection: DatasetEntityCollection,
+    extension: string = 'json',
+    prefix: string = ''
+): string {
+    return `${prefix}/api/d/${datasetId}/${collection}.${extension}`;
+}
+
+/**
+ * Gets the API Link for an entity in a collection for a dataset.
+ * @param datasetId The ID of the dataset.
+ * @param collection The collection of entities.
+ * @param entityId The ID of the entity.
+ * @param extension The extension of the file.
+ * @param prefix The prefix for the API links.
+ */
+export function datasetEntityApiLink(
+    datasetId: string,
+    collection: DatasetEntityCollection,
+    entityId: string,
+    extension: string = 'json',
+    prefix: string = ''
+): string {
+    return `${prefix}/api/d/${datasetId}/${collection}/${replaceSpacesWithUnderscores(
+        entityId
+    )}.${extension}`;
+}
+
+/**
+ * The file extension that is used for chapters that are in the simplified format.
+ */
+export const SIMPLE_JSON_EXTENSION = 'simple.json';
 
 /**
  * Getes the API link for a book chapter.
@@ -2413,6 +4837,26 @@ export function bookChapterAudioTimingsApiLink(
     return `${prefix}/api/${translationId}/${replaceSpacesWithUnderscores(
         bookId
     )}/${chapterNumber}.${reader}.audioTimings.json`;
+}
+
+/**
+ * Gets the API link for the word-level annotations of a book chapter.
+ * @param translationId The ID of the translation.
+ * @param bookId The ID of the book.
+ * @param chapterNumber The number of the chapter.
+ * @param prefix The prefix that should be added to the link.
+ * @param extension The extension of the file. Use SIMPLE_JSON_EXTENSION for the simplified format.
+ */
+export function bookChapterWordsApiLink(
+    translationId: string,
+    bookId: string,
+    chapterNumber: number,
+    prefix: string = '',
+    extension: string = 'json'
+) {
+    return `${prefix}/api/${translationId}/${replaceSpacesWithUnderscores(
+        bookId
+    )}/${chapterNumber}.words.${extension}`;
 }
 
 /**

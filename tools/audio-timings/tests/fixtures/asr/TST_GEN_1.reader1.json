@@ -1,0 +1,179 @@
+{
+  "duration": 16.0,
+  "word_segments": [
+    {
+      "word": "test",
+      "start": 0.5,
+      "end": 0.9,
+      "score": 0.9
+    },
+    {
+      "word": "book",
+      "start": 1.0,
+      "end": 1.4,
+      "score": 0.9
+    },
+    {
+      "word": "chapter",
+      "start": 1.5,
+      "end": 1.9,
+      "score": 0.9
+    },
+    {
+      "word": "1",
+      "start": 2.0,
+      "end": 2.4,
+      "score": 0.9
+    },
+    {
+      "word": "alpha",
+      "start": 2.5,
+      "end": 2.9,
+      "score": 0.9
+    },
+    {
+      "word": "bravo",
+      "start": 3.0,
+      "end": 3.4,
+      "score": 0.9
+    },
+    {
+      "word": "charlie",
+      "start": 3.5,
+      "end": 3.9,
+      "score": 0.9
+    },
+    {
+      "word": "delta",
+      "start": 4.0,
+      "end": 4.4,
+      "score": 0.9
+    },
+    {
+      "word": "echo",
+      "start": 4.5,
+      "end": 4.9,
+      "score": 0.9
+    },
+    {
+      "word": "foxtrot",
+      "start": 5.0,
+      "end": 5.4,
+      "score": 0.9
+    },
+    {
+      "word": "golf",
+      "start": 5.5,
+      "end": 5.9,
+      "score": 0.9
+    },
+    {
+      "word": "hotel",
+      "start": 6.0,
+      "end": 6.4,
+      "score": 0.9
+    },
+    {
+      "word": "india",
+      "start": 6.5,
+      "end": 6.9,
+      "score": 0.9
+    },
+    {
+      "word": "juliet",
+      "start": 7.0,
+      "end": 7.4,
+      "score": 0.9
+    },
+    {
+      "word": "kilo",
+      "start": 7.5,
+      "end": 7.9,
+      "score": 0.9
+    },
+    {
+      "word": "lima",
+      "start": 8.0,
+      "end": 8.4,
+      "score": 0.9
+    },
+    {
+      "word": "mike",
+      "start": 8.5,
+      "end": 8.9,
+      "score": 0.9
+    },
+    {
+      "word": "november",
+      "start": 9.0,
+      "end": 9.4,
+      "score": 0.9
+    },
+    {
+      "word": "oscar",
+      "start": 9.5,
+      "end": 9.9,
+      "score": 0.9
+    },
+    {
+      "word": "papa",
+      "start": 10.0,
+      "end": 10.4,
+      "score": 0.9
+    },
+    {
+      "word": "quebec",
+      "start": 10.5,
+      "end": 10.9,
+      "score": 0.9
+    },
+    {
+      "word": "romeo",
+      "start": 11.0,
+      "end": 11.4,
+      "score": 0.9
+    },
+    {
+      "word": "sierra",
+      "start": 11.5,
+      "end": 11.9,
+      "score": 0.9
+    },
+    {
+      "word": "tango",
+      "start": 12.0,
+      "end": 12.4,
+      "score": 0.9
+    },
+    {
+      "word": "uniform",
+      "start": 12.5,
+      "end": 12.9,
+      "score": 0.9
+    },
+    {
+      "word": "end",
+      "start": 13.0,
+      "end": 13.4,
+      "score": 0.9
+    },
+    {
+      "word": "of",
+      "start": 13.5,
+      "end": 13.9,
+      "score": 0.9
+    },
+    {
+      "word": "the",
+      "start": 14.0,
+      "end": 14.4,
+      "score": 0.9
+    },
+    {
+      "word": "reading",
+      "start": 14.5,
+      "end": 14.9,
+      "score": 0.9
+    }
+  ]
+}

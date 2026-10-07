@@ -3,6 +3,74 @@
 This is the log of changes for the Bible API Generator and associated tools.
 For information on the API itself, see [API-CHANGELOG.md](./API-CHANGELOG.md).
 
+## V2.3.0
+
+### :rocket: Features
+
+-   Added support for dataset entities (people, places, events, and people groups).
+    -   Added `@helloao/tools/generation/theographic.js`, which deterministically converts the raw [Theographic Bible Metadata](https://github.com/robertrouse/theographic-bible-metadata) JSON files into the repository's dataset format. Airtable record IDs are resolved into entity IDs and Bible verse references, and Easton's dictionary text is cleaned of Theographic-internal markdown links.
+    -   Added the `import-bible-metadata <dir>` CLI command, which imports the Theographic JSON files (downloaded by `fetch-bible-metadata`) into the database. Rerun `fetch-bible-metadata` and `import-bible-metadata` to pick up upstream Theographic updates.
+    -   Added the `DatasetEntity` table to the database schema for storing dataset entities.
+    -   `upload-api-files` now generates the entity API files for datasets that contain entities, and `import-api` imports them.
+    -   `generateApiForDataset()` now generates entity lists and individual entity files for datasets that contain entities.
+    -   `generateApiForDataset()` also derives chapter-aligned entity files (the people, places, and events that appear in each chapter) and the dataset books index from the entities' Bible references, for datasets that contain entities but no chapter books of their own. The derived chapter files are not stored in the database and are skipped by `import-api`.
+
+### :bug: Bug Fixes
+
+-   `fetch-bible-metadata` no longer downloads `periods.json`, which no longer exists in the Theographic repository, and `downloadFile()` now fails on HTTP error responses instead of writing the error page to the output file.
+
+### :bug: Bug Fixes
+
+-   `generateApiForDataset()` no longer embeds `thisChapterWords` on the chapters of `translationComplete`/`simpleTranslationComplete`.
+    -   Each chapter now gets an optional `thisChapterWordsLink` instead, reusing the chapter's existing words link (or the simplified equivalent) rather than the raw annotation data.
+    -   `generateSimpleChapterFiles: false` no longer prevents `{chapter}.words.simple.json` files from being generated when `generateCompleteTranslationFiles` is `true` - they're now generated whenever either option needs them, so `complete.simple.json` always links to a file that actually exists.
+
+## V2.2.0
+
+### Date: 2026-08-19
+
+### :rocket: Features
+
+-   Added `tools/audio-timings`, a Python tool that generates verse-by-verse audio timings for a chapter using [whisperX](https://github.com/m-bain/whisperX).
+    -   Transcribes a chapter's audio, then aligns the recognized words against the chapter's known verse text from the API to determine when each verse starts.
+    -   Outputs the JSON that `helloao import-audio-timings` already consumes, so the timings flow into `/api/{translation}/{book}/{chapter}.{reader}.audioTimings.json` with no changes to the generator.
+    -   Reports a match rate per chapter and refuses to emit chapters that fail its quality thresholds, so a recording that does not correspond to the text is rejected instead of producing confident but wrong timings.
+-   Added support for parsing word-level annotations from USX files.
+    -   The `USXParser` now reads the `strong`, `lemma`, `x-morph`, `srcloc`, `x-occurrence`, and `x-occurrences` attributes off `<char style="w">` elements, including words that are nested inside other characters (like the words of Jesus).
+        -   The misspelled `x-occurence`/`x-occurences` attribute names are read as well, since they are common in real files.
+    -   Annotations are recorded on `Chapter.words`, keyed by verse number. Each entry points at a range of characters in a single item of the verse's content, so the ranges survive the merging and whitespace normalization that the parser applies to verse content.
+        -   `Chapter.words` is omitted entirely when a source has no annotations.
+    -   `TranslationBookChapter` gained an optional `thisChapterWords` property that carries the annotations through to the API generator.
+    -   The USFM parser is unchanged - it still discards word level attributes. USFM sources are converted to USX3 before they are imported, so USX is the ingestion path for word annotations.
+    -   `zaln-s`/`zaln-e` alignment milestones are not supported yet. They align phrases many-to-many rather than word-to-word, which needs milestone pairing that the parser doesn't do today.
+-   Added the ability to generate simplified chapter files.
+    -   In the simplified format, the content of each verse is a single string, and the footnotes and formatting are represented by offsets into that string.
+    -   Added the `generateSimpleChapterFiles` option to `generateApiForDataset()`. It defaults to `false`.
+    -   Added the `--no-generate-simple-chapter-files` flag to the CLI commands that generate API files. The CLI generates them by default.
+    -   Added the `generation/simple.js` module, which exports `simplifyChapter()`, `simplifyCommentaryChapter()`, `simplifyVerse()`, and `simplifyVerseContent()` for converting chapters into the simplified format.
+-   Added the ability to generate complete translation files in the simplified format.
+    -   These are generated by the existing `generateCompleteTranslationFiles` option, so they are always generated alongside the regular complete translation files.
+    -   This is independent of `generateSimpleChapterFiles` - simplified complete files are generated even when the individual simplified chapter files are not.
+    -   `completeTranslationApiLink()` now accepts an optional `extension` argument for building the link to the simplified file.
+-   Added the ability to generate word-level annotations for the simplified format.
+    -   The annotations are remapped onto the text of each simplified verse, so their offsets can be used with the simplified format directly.
+    -   These are generated by the `generateSimpleChapterFiles` option, alongside the simplified chapters themselves.
+    -   `bookChapterWordsApiLink()` now accepts an optional `extension` argument for building the link to the simplified file.
+
+### :bug: Bug Fixes
+
+-   `init --source` now copies the `ChapterAudioTiming` table when cloning a database. Previously it was silently dropped from cloned and language-filtered databases.
+-   Fixed an issue where `import-api` would try to import every file in a commentary book directory as a chapter.
+    -   Files like `1.simple.json` are no longer treated as chapters. The equivalent fix for translations was made along with the word annotations.
+-   Fixed the schema for the complete translation endpoint, which did not declare the `numberOfVerses` property that the generator has always emitted on each chapter.
+    -   This only affects the generated OpenAPI document and clients. The files themselves are unchanged.
+-   Fixed an issue where `import-api` warned about the files in a translation's directory that aren't book directories, like `complete.json`.
+
+### Other Changes
+
+-   `PARSER_VERSION` was bumped to `4`, which forces every cached input file to be re-parsed.
+-   Added a `ChapterWords` table (migration `20260809000000_add_chapter_words`) which stores the annotations for a chapter.
+
 ## V2.1.1
 
 #### Date: 2026-04-24

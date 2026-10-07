@@ -15,6 +15,7 @@ import {
     dataset,
     InputTranslationMetadata,
 } from '@helloao/tools/generation/index.js';
+import * as theographic from '@helloao/tools/generation/theographic.js';
 import fsExtra from 'fs-extra';
 const { exists, readFile } = fsExtra;
 import { copyFile } from 'node:fs/promises';
@@ -63,6 +64,7 @@ import {
     convertUsfmToUsx3,
 } from './conversion.js';
 import { fetchEBibleMetadata } from './ebible.js';
+import { detectEBibleLicense } from './ebible-license.js';
 import { importDatasetOutput } from './db.js';
 import { groupBy } from 'es-toolkit/compat';
 
@@ -259,6 +261,11 @@ async function createMetadataJson(
             shortName: shortName,
             website: `https://ebible.org/Scriptures/details.php?id=${source.id}`,
         };
+
+        const license = await detectEBibleLicense(source);
+        if (license) {
+            metadata.license = license;
+        }
     }
 
     await writeFile(metadataPath, JSON.stringify(metadata, null, 2));
@@ -342,6 +349,14 @@ export async function initDb(
                         INNER JOIN source.Translation ON source.Translation.id = source.ChapterAudioUrl.translationId
                         WHERE source.Translation.language IN ${languages};
 
+                        CREATE TABLE "ChapterAudioTiming" AS SELECT * FROM source.ChapterAudioTiming
+                        INNER JOIN source.Translation ON source.Translation.id = source.ChapterAudioTiming.translationId
+                        WHERE source.Translation.language IN ${languages};
+
+                        CREATE TABLE "ChapterWords" AS SELECT * FROM source.ChapterWords
+                        INNER JOIN source.Translation ON source.Translation.id = source.ChapterWords.translationId
+                        WHERE source.Translation.language IN ${languages};
+
                         CREATE TABLE "Commentary" AS SELECT * FROM source.Commentary
                         WHERE language IN ${languages};
 
@@ -375,6 +390,10 @@ export async function initDb(
                         CREATE TABLE "DatasetReference" AS SELECT * FROM source.DatasetReference
                         INNER JOIN source.Dataset ON source.Dataset.id = source.DatasetReference.datasetId
                         WHERE source.Dataset.language IN ${languages};
+
+                        CREATE TABLE "DatasetEntity" AS SELECT * FROM source.DatasetEntity
+                        INNER JOIN source.Dataset ON source.Dataset.id = source.DatasetEntity.datasetId
+                        WHERE source.Dataset.language IN ${languages};
                     `);
                 } else {
                     db.exec(`
@@ -387,6 +406,8 @@ export async function initDb(
                         CREATE TABLE "ChapterVerse" AS SELECT * FROM source.ChapterVerse;
                         CREATE TABLE "ChapterFootnote" AS SELECT * FROM source.ChapterFootnote;
                         CREATE TABLE "ChapterAudioUrl" AS SELECT * FROM source.ChapterAudioUrl;
+                        CREATE TABLE "ChapterAudioTiming" AS SELECT * FROM source.ChapterAudioTiming;
+                        CREATE TABLE "ChapterWords" AS SELECT * FROM source.ChapterWords;
                         CREATE TABLE "Commentary" AS SELECT * FROM source.Commentary;
                         CREATE TABLE "CommentaryBook" AS SELECT * FROM source.CommentaryBook;
                         CREATE TABLE "CommentaryChapter" AS SELECT * FROM source.CommentaryChapter;
@@ -396,6 +417,7 @@ export async function initDb(
                         CREATE TABLE "DatasetChapter" AS SELECT * FROM source.DatasetChapter;
                         CREATE TABLE "DatasetChapterVerse" AS SELECT * FROM source.DatasetChapterVerse;
                         CREATE TABLE "DatasetReference" AS SELECT * FROM source.DatasetReference;
+                        CREATE TABLE "DatasetEntity" AS SELECT * FROM source.DatasetEntity;
                     `);
                 }
 
@@ -560,6 +582,60 @@ export async function importApi(
             commentaries,
             translations,
             datasets,
+        });
+    } finally {
+        db.close();
+    }
+}
+
+/**
+ * Imports the Theographic Bible Metadata from the given directory into the database.
+ * The directory should contain the JSON files that are downloaded by the fetch-bible-metadata command.
+ * @param dir The directory that the Theographic JSON files are located in.
+ * @param options The options.
+ */
+export async function importBibleMetadata(
+    dir: string,
+    options: ImportTranslationOptions
+) {
+    const logger = log.getLogger();
+
+    async function readJsonFile(name: string): Promise<any> {
+        const filePath = path.resolve(dir, name);
+        if (!existsSync(filePath)) {
+            throw new Error(
+                `Could not find ${name} in ${dir}. Run the fetch-bible-metadata command first.`
+            );
+        }
+        return JSON.parse(await readFile(filePath, 'utf-8'));
+    }
+
+    const files: theographic.TheographicFiles = {
+        books: await readJsonFile('books.json'),
+        verses: await readJsonFile('verses.json'),
+        people: await readJsonFile('people.json'),
+        places: await readJsonFile('places.json'),
+        events: await readJsonFile('events.json'),
+        peopleGroups: await readJsonFile('peopleGroups.json'),
+    };
+
+    logger.log('Generating the Theographic dataset...');
+    const theographicDataset =
+        theographic.generateDatasetFromTheographic(files);
+
+    logger.log(
+        `Generated ${theographicDataset.people?.length ?? 0} people, ` +
+            `${theographicDataset.places?.length ?? 0} places, ` +
+            `${theographicDataset.events?.length ?? 0} events, ` +
+            `and ${theographicDataset.peopleGroups?.length ?? 0} people groups.`
+    );
+
+    const db = await database.getDb(options.db);
+    try {
+        importDatasetOutput(db, {
+            translations: [],
+            commentaries: [],
+            datasets: [theographicDataset],
         });
     } finally {
         db.close();

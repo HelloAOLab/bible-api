@@ -1,0 +1,19 @@
+{
+    "translation": {
+        "id": "TST",
+        "name": "Test Translation",
+        "englishName": "Test Translation",
+        "language": "eng",
+        "textDirection": "ltr"
+    },
+    "books": [
+        {
+            "id": "GEN",
+            "name": "Test Book",
+            "commonName": "Test Book",
+            "numberOfChapters": 2,
+            "firstChapterApiLink": "/api/TST/GEN/1.json",
+            "lastChapterApiLink": "/api/TST/GEN/2.json"
+        }
+    ]
+}

@@ -205,6 +205,10 @@ export type ApiTranslation = {
      * The API link for downloading the complete translation as a single JSON file. Relative to the API origin. Undefined if complete translation files are not available.
      */
     completeTranslationApiLink?: string;
+    /**
+     * The API link for downloading the complete translation as a single JSON file, using the simplified chapter format. Relative to the API origin. Undefined if complete translation files are not available.
+     */
+    simpleCompleteTranslationApiLink?: string;
 };
 
 /**
@@ -315,6 +319,12 @@ export type ApiTranslationBookChapter = {
      */
     thisChapterAudioLinks: TranslationBookChapterAudioLinks;
     /**
+     * The links to the audio timings for different audio versions for the chapter. Relative to the API origin.
+     */
+    thisChapterAudioTimings: {
+        [key: string]: string;
+    };
+    /**
      * The translation information for the book chapter.
      */
     translation: ApiTranslation;
@@ -342,6 +352,18 @@ export type ApiTranslationBookChapter = {
         [key: string]: string;
     } | null;
     /**
+     * The links to the audio timings for different audio versions for the next chapter. Relative to the API origin. Null if this is the last chapter in the translation.
+     */
+    nextChapterAudioTimings: {
+        [key: string]: string;
+    } | null;
+    /**
+     * The links to the audio timings for different audio versions for the previous chapter. Relative to the API origin. Null if this is the first chapter in the translation.
+     */
+    previousChapterAudioTimings: {
+        [key: string]: string;
+    } | null;
+    /**
      * The API link to the previous chapter. Relative to the API origin. Null if this is the first chapter in the translation.
      */
     previousChapterApiLink: string | null;
@@ -356,9 +378,25 @@ export type ApiTranslationBookChapter = {
         [key: string]: string;
     } | null;
     /**
+     * The link to the word-level annotations for this chapter. Relative to the API origin. Omitted if the chapter doesn't have any word-level annotations.
+     */
+    thisChapterWordsLink?: string;
+    /**
+     * The link to the word-level annotations for the next chapter. Relative to the API origin. Omitted if this is the last chapter in the translation, or if the next chapter doesn't have any word-level annotations.
+     */
+    nextChapterWordsLink?: string;
+    /**
+     * The link to the word-level annotations for the previous chapter. Relative to the API origin. Omitted if this is the first chapter in the translation, or if the previous chapter doesn't have any word-level annotations.
+     */
+    previousChapterWordsLink?: string;
+    /**
      * The number of verses that the chapter contains.
      */
     numberOfVerses: number;
+    /**
+     * The API link to the simplified version of this chapter. Relative to the API origin. Omitted if simplified chapters are not available.
+     */
+    simpleChapterApiLink?: string;
 };
 
 /**
@@ -506,6 +544,501 @@ export type TranslationBookChapterAudioLinks = {
 };
 
 /**
+ * Defines an interface that contains information about a book chapter in a translation, using the simplified chapter format.
+ */
+export type ApiSimpleTranslationBookChapter = {
+    /**
+     * The links to different audio versions for the chapter.
+     */
+    thisChapterAudioLinks: TranslationBookChapterAudioLinks;
+    /**
+     * The links to the audio timings for different audio versions for the chapter. Relative to the API origin.
+     */
+    thisChapterAudioTimings: {
+        [key: string]: string;
+    };
+    /**
+     * The translation information for the book chapter.
+     */
+    translation: ApiTranslation;
+    /**
+     * The book information for the book chapter.
+     */
+    book: ApiTranslationBook;
+    /**
+     * The API link for this chapter. Relative to the API origin.
+     */
+    thisChapterLink: string;
+    thisChapterReference: TranslationChapterReference;
+    /**
+     * The API link to the next chapter. Relative to the API origin. Null if this is the last chapter in the translation.
+     */
+    nextChapterApiLink: string | null;
+    /**
+     * The reference for the next chapter. Null if this is the last chapter in the translation.
+     */
+    nextChapterReference: TranslationChapterReference | null;
+    /**
+     * The links to the audio versions for the next chapter. Relative to the API origin. Null if this is the last chapter in the translation.
+     */
+    nextChapterAudioLinks: {
+        [key: string]: string;
+    } | null;
+    /**
+     * The links to the audio timings for different audio versions for the next chapter. Relative to the API origin. Null if this is the last chapter in the translation.
+     */
+    nextChapterAudioTimings: {
+        [key: string]: string;
+    } | null;
+    /**
+     * The links to the audio timings for different audio versions for the previous chapter. Relative to the API origin. Null if this is the first chapter in the translation.
+     */
+    previousChapterAudioTimings: {
+        [key: string]: string;
+    } | null;
+    /**
+     * The API link to the previous chapter. Relative to the API origin. Null if this is the first chapter in the translation.
+     */
+    previousChapterApiLink: string | null;
+    /**
+     * The reference for the previous chapter. Null if this is the first chapter in the translation.
+     */
+    previousChapterReference: TranslationChapterReference | null;
+    /**
+     * The links to the audio versions for the previous chapter. Relative to the API origin. Null if this is the first chapter in the translation.
+     */
+    previousChapterAudioLinks: {
+        [key: string]: string;
+    } | null;
+    /**
+     * The link to the word-level annotations for this chapter. Relative to the API origin. Omitted if the chapter doesn't have any word-level annotations.
+     */
+    thisChapterWordsLink?: string;
+    /**
+     * The link to the word-level annotations for the next chapter. Relative to the API origin. Omitted if this is the last chapter in the translation, or if the next chapter doesn't have any word-level annotations.
+     */
+    nextChapterWordsLink?: string;
+    /**
+     * The link to the word-level annotations for the previous chapter. Relative to the API origin. Omitted if this is the first chapter in the translation, or if the previous chapter doesn't have any word-level annotations.
+     */
+    previousChapterWordsLink?: string;
+    /**
+     * The number of verses that the chapter contains.
+     */
+    numberOfVerses: number;
+    /**
+     * The simplified information for the chapter. Each verse contains a single text string, and the footnotes and formatting are represented by offsets into that string.
+     */
+    chapter: SimpleChapterData;
+    /**
+     * The API link to the regular (non-simplified) version of this chapter. Relative to the API origin.
+     */
+    fullChapterApiLink: string;
+};
+
+/**
+ * Defines the schema for the data in a simplified chapter. Unlike the regular chapter format, each verse contains a single text string and the footnotes/formatting are represented by offsets into that string.
+ */
+export type SimpleChapterData = {
+    /**
+     * The number of the chapter.
+     */
+    number: number;
+    /**
+     * The content of the chapter.
+     */
+    content: Array<SimpleChapterContent>;
+    /**
+     * The list of footnotes that could not be associated with a verse. Footnotes that belong to a verse are included on the verse itself, so this list is usually empty.
+     */
+    footnotes: Array<ChapterFootnote>;
+};
+
+/**
+ * Defines a union type that represents a single piece of content in a simplified chapter. A piece of chapter content can be one of the following things: A heading, a line break, a verse, or a Hebrew Subtitle.
+ */
+export type SimpleChapterContent =
+    | ({
+          type: 'heading';
+      } & SimpleChapterHeading)
+    | ({
+          type: 'line_break';
+      } & ChapterLineBreak)
+    | ({
+          type: 'verse';
+      } & SimpleChapterVerse)
+    | ({
+          type: 'hebrew_subtitle';
+      } & SimpleChapterHebrewSubtitle);
+
+/**
+ * Defines the schema for a heading in a simplified chapter.
+ */
+export type SimpleChapterHeading = {
+    type: 'heading';
+    /**
+     * The text of the heading.
+     */
+    text: string;
+};
+
+/**
+ * Defines the schema for a verse in a simplified chapter.
+ */
+export type SimpleChapterVerse = {
+    type: 'verse';
+    /**
+     * The number of the verse.
+     */
+    number: number;
+    /**
+     * The text of the verse. Lines of poetry and line breaks are separated by newline (\n) characters.
+     */
+    text: string;
+    /**
+     * The footnotes that occur in the verse.
+     */
+    footnotes: Array<SimpleVerseFootnote>;
+    /**
+     * The headings that occur in the middle of the verse. Omitted if the verse contains no inline headings.
+     */
+    headings?: Array<SimpleInlineHeading>;
+    /**
+     * The ranges of the verse text that represent the Words of Jesus. Omitted if the verse contains none.
+     */
+    wordsOfJesus?: Array<SimpleTextRange>;
+    /**
+     * The ranges of the verse text that represent lines of poetry. Omitted if the verse contains none.
+     */
+    poem?: Array<SimplePoemRange>;
+};
+
+/**
+ * Defines the schema for a footnote in a simplified verse. Unlike the footnotes in the regular chapter format, simplified footnotes include the position that they occur at in the verse text.
+ */
+export type SimpleVerseFootnote = {
+    /**
+     * The ID of the note.
+     */
+    noteId: number;
+    /**
+     * The index in the verse text that the footnote caller should be inserted at. Measured in UTF-16 code units.
+     */
+    offset: number;
+    /**
+     * The text of the footnote.
+     */
+    text: string;
+    /**
+     * The caller that should be used for the footnote. If "+", then the caller should be autogenerated. If null, then the caller should be empty. If a string, then the caller should be that string.
+     */
+    caller: '+' | string | null;
+};
+
+/**
+ * Defines the schema for a heading that is embedded in a simplified verse.
+ */
+export type SimpleInlineHeading = {
+    /**
+     * The index in the verse text that the heading occurs at. Measured in UTF-16 code units.
+     */
+    offset: number;
+    /**
+     * The text of the heading.
+     */
+    text: string;
+};
+
+/**
+ * Defines the schema for a range of text inside a simplified verse. Ranges are expressed as offsets into the text of the verse that contains them, measured in UTF-16 code units.
+ */
+export type SimpleTextRange = {
+    /**
+     * The index of the first character of the range in the verse text. Measured in UTF-16 code units.
+     */
+    start: number;
+    /**
+     * The index after the last character of the range in the verse text. Measured in UTF-16 code units.
+     */
+    end: number;
+};
+
+/**
+ * Defines the schema for a range of text inside a simplified verse that represents a line of poetry.
+ */
+export type SimplePoemRange = {
+    /**
+     * The index of the first character of the range in the verse text. Measured in UTF-16 code units.
+     */
+    start: number;
+    /**
+     * The index after the last character of the range in the verse text. Measured in UTF-16 code units.
+     */
+    end: number;
+    /**
+     * The level of indent that the line of poetry should be displayed with.
+     */
+    level: number;
+};
+
+/**
+ * Defines the schema for a Hebrew Subtitle in a simplified chapter.
+ */
+export type SimpleChapterHebrewSubtitle = {
+    /**
+     * The text of the verse. Lines of poetry and line breaks are separated by newline (\n) characters.
+     */
+    text: string;
+    /**
+     * The footnotes that occur in the verse.
+     */
+    footnotes: Array<SimpleVerseFootnote>;
+    /**
+     * The headings that occur in the middle of the verse. Omitted if the verse contains no inline headings.
+     */
+    headings?: Array<SimpleInlineHeading>;
+    /**
+     * The ranges of the verse text that represent the Words of Jesus. Omitted if the verse contains none.
+     */
+    wordsOfJesus?: Array<SimpleTextRange>;
+    /**
+     * The ranges of the verse text that represent lines of poetry. Omitted if the verse contains none.
+     */
+    poem?: Array<SimplePoemRange>;
+    type: 'hebrew_subtitle';
+};
+
+/**
+ * Defines an interface that contains the audio timings for a book chapter, for a specific reader.
+ */
+export type ApiTranslationBookChapterAudioTimings = {
+    /**
+     * The ID of the translation.
+     */
+    translationId: string;
+    /**
+     * The ID of the book.
+     */
+    bookId: string;
+    /**
+     * The number of the chapter.
+     */
+    chapterNumber: number;
+    /**
+     * The reader for the chapter.
+     */
+    reader: string;
+    /**
+     * The link to the audio for these timings.
+     */
+    audioLink: string;
+    /**
+     * The link to the information for this chapter.
+     */
+    thisChapterLink: string;
+    /**
+     * The link to the information for the next chapter. Null if this is the last chapter in the translation.
+     */
+    nextChapterLink: string | null;
+    /**
+     * The link to the information for the previous chapter. Null if this is the first chapter in the translation.
+     */
+    previousChapterLink: string | null;
+    /**
+     * The link to this audio timings file.
+     */
+    thisChapterAudioTimingsLink: string;
+    /**
+     * The link to the timings for the next chapter. Null if this is the last chapter in the translation.
+     */
+    nextChapterAudioTimingsLink: string | null;
+    /**
+     * The link to the timings for the previous chapter. Null if this is the first chapter in the translation.
+     */
+    previousChapterAudioTimingsLink: string | null;
+    /**
+     * The times in seconds at which each verse starts, in order. The first number (index 0) is the time in the recording at which the first verse starts.
+     */
+    verses: Array<number>;
+};
+
+/**
+ * Defines an interface that contains the word-level annotations for a book chapter.
+ */
+export type ApiTranslationBookChapterWords = {
+    /**
+     * The ID of the translation.
+     */
+    translationId: string;
+    /**
+     * The ID of the book.
+     */
+    bookId: string;
+    /**
+     * The number of the chapter.
+     */
+    chapterNumber: number;
+    /**
+     * The link to the information for this chapter.
+     */
+    thisChapterLink: string;
+    /**
+     * The link to the information for the next chapter. Null if this is the last chapter in the translation.
+     */
+    nextChapterLink: string | null;
+    /**
+     * The link to the information for the previous chapter. Null if this is the first chapter in the translation.
+     */
+    previousChapterLink: string | null;
+    /**
+     * The link to this words file.
+     */
+    thisChapterWordsLink: string;
+    /**
+     * The link to the words for the next chapter. Null if this is the last chapter in the translation, or if the next chapter doesn't have any word-level annotations.
+     */
+    nextChapterWordsLink: string | null;
+    /**
+     * The link to the words for the previous chapter. Null if this is the first chapter in the translation, or if the previous chapter doesn't have any word-level annotations.
+     */
+    previousChapterWordsLink: string | null;
+    /**
+     * The annotated words for each verse in the chapter, keyed by verse number. Each list is in the order that the words occur in the verse.
+     */
+    verses: {
+        [key: string]: Array<ChapterWord>;
+    };
+};
+
+/**
+ * Defines the schema for a word-level annotation in a chapter. The annotation is anchored to a range of characters in a single item of a verse's content.
+ */
+export type ChapterWord = {
+    /**
+     * The index of the item in the verse's content array that the annotation applies to.
+     */
+    contentIndex: number;
+    /**
+     * The index of the first character of the annotated word in the content item's text.
+     */
+    start: number;
+    /**
+     * The index after the last character of the annotated word in the content item's text. That is, text.slice(start, end) is the annotated word.
+     */
+    end: number;
+    /**
+     * The Strong's number(s) for the word. Omitted if the translation only provided other annotations for the word.
+     */
+    strongs?: Array<string>;
+    /**
+     * The dictionary (citation) form of the word. Omitted if the translation did not provide one.
+     */
+    lemma?: string;
+    /**
+     * The morphology parse code for the word. Omitted if the translation did not provide one.
+     */
+    morph?: string;
+    /**
+     * The pointer to the word in the source text, in the <sourceName>:<location> format. Omitted if the translation did not provide one.
+     */
+    srcloc?: string;
+    /**
+     * Which occurrence of the source word this word is. 1-based. Omitted if the translation did not provide one.
+     */
+    occurrence?: number;
+    /**
+     * The total number of times that the source word occurs. Omitted if the translation did not provide one.
+     */
+    occurrences?: number;
+};
+
+/**
+ * Defines an interface that contains the word-level annotations for a book chapter, with their offsets remapped onto the text of each simplified verse.
+ */
+export type ApiSimpleTranslationBookChapterWords = {
+    /**
+     * The ID of the translation.
+     */
+    translationId: string;
+    /**
+     * The ID of the book.
+     */
+    bookId: string;
+    /**
+     * The number of the chapter.
+     */
+    chapterNumber: number;
+    /**
+     * The link to the information for this chapter.
+     */
+    thisChapterLink: string;
+    /**
+     * The link to the information for the next chapter. Null if this is the last chapter in the translation.
+     */
+    nextChapterLink: string | null;
+    /**
+     * The link to the information for the previous chapter. Null if this is the first chapter in the translation.
+     */
+    previousChapterLink: string | null;
+    /**
+     * The link to this words file.
+     */
+    thisChapterWordsLink: string;
+    /**
+     * The link to the words for the next chapter. Null if this is the last chapter in the translation, or if the next chapter doesn't have any word-level annotations.
+     */
+    nextChapterWordsLink: string | null;
+    /**
+     * The link to the words for the previous chapter. Null if this is the first chapter in the translation, or if the previous chapter doesn't have any word-level annotations.
+     */
+    previousChapterWordsLink: string | null;
+    /**
+     * The annotated words for each verse in the chapter, keyed by verse number. Each list is in the order that the words occur in the verse. The offsets are into the text of the simplified verse.
+     */
+    verses: {
+        [key: string]: Array<SimpleChapterWord>;
+    };
+};
+
+/**
+ * Defines the schema for a word-level annotation in a simplified chapter. The annotation is anchored to a range of characters in the verse's text.
+ */
+export type SimpleChapterWord = {
+    /**
+     * The index of the first character of the annotated word in the content item's text.
+     */
+    start: number;
+    /**
+     * The index after the last character of the annotated word in the content item's text. That is, text.slice(start, end) is the annotated word.
+     */
+    end: number;
+    /**
+     * The Strong's number(s) for the word. Omitted if the translation only provided other annotations for the word.
+     */
+    strongs?: Array<string>;
+    /**
+     * The dictionary (citation) form of the word. Omitted if the translation did not provide one.
+     */
+    lemma?: string;
+    /**
+     * The morphology parse code for the word. Omitted if the translation did not provide one.
+     */
+    morph?: string;
+    /**
+     * The pointer to the word in the source text, in the <sourceName>:<location> format. Omitted if the translation did not provide one.
+     */
+    srcloc?: string;
+    /**
+     * Which occurrence of the source word this word is. 1-based. Omitted if the translation did not provide one.
+     */
+    occurrence?: number;
+    /**
+     * The total number of times that the source word occurs. Omitted if the translation did not provide one.
+     */
+    occurrences?: number;
+};
+
+/**
  * Defines the complete translation download data. Maps to the /api/:translationId/complete.json endpoint.
  */
 export type ApiTranslationComplete = {
@@ -555,13 +1088,13 @@ export type ApiTranslationCompleteBook = {
     /**
      * The complete list of chapters with all content.
      */
-    chapters: Array<TranslationBookChapter>;
+    chapters: Array<TranslationCompleteChapter>;
 };
 
 /**
- * Defines the schema for information about a book chapter.
+ * A chapter in the complete translation download.
  */
-export type TranslationBookChapter = {
+export type TranslationCompleteChapter = {
     /**
      * The information for the chapter.
      */
@@ -583,6 +1116,104 @@ export type TranslationBookChapter = {
      * The links to different audio versions for the chapter.
      */
     thisChapterAudioLinks: TranslationBookChapterAudioLinks;
+    /**
+     * The audio timings (per-verse start times, in seconds) for different audio versions for the chapter.
+     */
+    thisChapterAudioTimings: TranslationBookChapterAudioTimings;
+    /**
+     * The number of verses that the chapter contains.
+     */
+    numberOfVerses: number;
+    /**
+     * The link to the word-level annotations for this chapter. Relative to the API origin. Omitted if the chapter doesn't have any word-level annotations.
+     */
+    thisChapterWordsLink?: string;
+};
+
+/**
+ * Defines the schema for the audio timings for a book chapter. Maps a reader ID to the list of times (in seconds) that each verse starts, in verse order.
+ */
+export type TranslationBookChapterAudioTimings = {
+    [key: string]: Array<number>;
+};
+
+/**
+ * Defines the complete translation download data, using the simplified chapter format. Maps to the /api/:translationId/complete.simple.json endpoint.
+ */
+export type ApiSimpleTranslationComplete = {
+    /**
+     * The translation metadata.
+     */
+    translation: ApiTranslation;
+    /**
+     * The complete list of books with all their chapters.
+     */
+    books: Array<ApiSimpleTranslationCompleteBook>;
+};
+
+/**
+ * A book in the complete translation download, using the simplified chapter format.
+ */
+export type ApiSimpleTranslationCompleteBook = {
+    id: BookId;
+    /**
+     * The name that the translation provided for the book.
+     */
+    name: string;
+    /**
+     * The common name for the book.
+     */
+    commonName: string;
+    /**
+     * The title of the book. This is usually a more descriptive version of the book name. If not available, then one was not provided by the translation.
+     */
+    title: string | null;
+    /**
+     * The numerical order of the book in the translation.
+     */
+    order: number;
+    /**
+     * Whether the book is an apocryphal book.
+     */
+    isApocryphal?: boolean;
+    /**
+     * The number of chapters in the book.
+     */
+    numberOfChapters: number;
+    /**
+     * The total number of verses in the book.
+     */
+    totalNumberOfVerses: number;
+    /**
+     * The complete list of chapters with all content.
+     */
+    chapters: Array<SimpleTranslationCompleteChapter>;
+};
+
+/**
+ * A chapter in the complete translation download, using the simplified chapter format.
+ */
+export type SimpleTranslationCompleteChapter = {
+    /**
+     * The simplified information for the chapter.
+     */
+    chapter: SimpleChapterData;
+    /**
+     * The links to different audio versions for the chapter.
+     */
+    thisChapterAudioLinks: TranslationBookChapterAudioLinks;
+    /**
+     * The audio timings (per-verse start times, in seconds) for different audio versions for the chapter.
+     */
+    thisChapterAudioTimings: TranslationBookChapterAudioTimings;
+    /**
+     * The number of verses that the chapter contains.
+     */
+    numberOfVerses: number;
+    /**
+     * The link to the word-level annotations for this chapter. Relative to the API origin. Omitted if the chapter doesn't have any word-level annotations.
+     */
+    thisChapterWordsLink?: string;
 };
 
 /**
@@ -808,6 +1439,75 @@ export type ApiCommentaryBookChapter = {
      * The number of verses that the chapter contains.
      */
     numberOfVerses: number;
+    /**
+     * The API link to the simplified version of this chapter. Relative to the API origin. Omitted if simplified chapters are not available.
+     */
+    simpleChapterApiLink?: string;
+};
+
+/**
+ * Defines a schema that contains information about a book chapter in a commentary, using the simplified chapter format.
+ */
+export type ApiSimpleCommentaryBookChapter = {
+    /**
+     * The commentary information for the book chapter.
+     */
+    commentary: ApiCommentary;
+    /**
+     * The book information for the book chapter.
+     */
+    book: ApiCommentaryBook;
+    /**
+     * The API link for this chapter. Relative to the API origin.
+     */
+    thisChapterLink: string;
+    thisChapterReference: CommentaryChapterReference;
+    /**
+     * The API link to the next chapter. Relative to the API origin. Null if this is the last chapter in the commentary.
+     */
+    nextChapterApiLink: string | null;
+    /**
+     * The reference for the next chapter. Null if this is the last chapter in the commentary.
+     */
+    nextChapterReference: CommentaryChapterReference | null;
+    /**
+     * The API link to the previous chapter. Relative to the API origin. Null if this is the first chapter in the commentary.
+     */
+    previousChapterApiLink: string | null;
+    /**
+     * The reference for the previous chapter. Null if this is the first chapter in the commentary.
+     */
+    previousChapterReference: CommentaryChapterReference | null;
+    /**
+     * The number of verses that the chapter contains.
+     */
+    numberOfVerses: number;
+    /**
+     * The simplified information for the chapter. Each verse contains a single text string, and the footnotes and formatting are represented by offsets into that string.
+     */
+    chapter: SimpleCommentaryChapterData;
+    /**
+     * The API link to the regular (non-simplified) version of this chapter. Relative to the API origin.
+     */
+    fullChapterApiLink: string;
+};
+
+/**
+ * Defines the schema for the data in a simplified commentary chapter.
+ */
+export type SimpleCommentaryChapterData = {
+    /**
+     * The number of the chapter.
+     */
+    number: number;
+    /**
+     * The introduction that the commentary provided to the chapter. Not all commentaries provide an introduction to a chapter.
+     */
+    introduction?: string;
+    /**
+     * The content of the chapter.
+     */
+    content: Array<SimpleChapterVerse>;
 };
 
 /**
@@ -885,6 +1585,38 @@ export type ApiDataset = {
      * Gets the name of the language in English. Null or undefined if the language doesn't have an english name.
      */
     languageEnglishName?: string;
+    /**
+     * The API link for the list of people for this dataset. Relative to the API origin. Omitted if the dataset doesn't contain people.
+     */
+    listOfPeopleApiLink?: string;
+    /**
+     * The API link for the list of places for this dataset. Relative to the API origin. Omitted if the dataset doesn't contain places.
+     */
+    listOfPlacesApiLink?: string;
+    /**
+     * The API link for the list of events for this dataset. Relative to the API origin. Omitted if the dataset doesn't contain events.
+     */
+    listOfEventsApiLink?: string;
+    /**
+     * The API link for the list of people groups for this dataset. Relative to the API origin. Omitted if the dataset doesn't contain people groups.
+     */
+    listOfPeopleGroupsApiLink?: string;
+    /**
+     * The total number of people that are contained in this dataset. Omitted if the dataset doesn't contain people.
+     */
+    totalNumberOfPeople?: number;
+    /**
+     * The total number of places that are contained in this dataset. Omitted if the dataset doesn't contain places.
+     */
+    totalNumberOfPlaces?: number;
+    /**
+     * The total number of events that are contained in this dataset. Omitted if the dataset doesn't contain events.
+     */
+    totalNumberOfEvents?: number;
+    /**
+     * The total number of people groups that are contained in this dataset. Omitted if the dataset doesn't contain people groups.
+     */
+    totalNumberOfPeopleGroups?: number;
 };
 
 /**
@@ -1063,6 +1795,722 @@ export type ScoredVerseRef = {
     score: number;
 };
 
+/**
+ * The entities (people, places, and events) that appear in a chapter of a book for a dataset. Maps to the /api/d/:datasetId/:bookId/:chapterNumber.json endpoint for datasets that contain entities.
+ */
+export type ApiDatasetEntityBookChapter = {
+    /**
+     * The dataset information for the book chapter.
+     */
+    dataset: ApiDataset;
+    /**
+     * The book information for the book chapter.
+     */
+    book: ApiDatasetBook;
+    /**
+     * The entity data for the chapter.
+     */
+    chapter: ApiDatasetEntityChapterData;
+    /**
+     * The link to this chapter. Relative to the API origin.
+     */
+    thisChapterLink: string;
+    /**
+     * The reference for this chapter.
+     */
+    thisChapterReference: DatasetChapterReference;
+    /**
+     * The link to the next chapter. Relative to the API origin. Null if this is the last chapter in the dataset.
+     */
+    nextChapterApiLink: string | null;
+    /**
+     * The reference for the next chapter. Null if this is the last chapter in the dataset.
+     */
+    nextChapterReference: DatasetChapterReference | null;
+    /**
+     * The link to the previous chapter. Relative to the API origin. Null if this is the first chapter in the dataset.
+     */
+    previousChapterApiLink: string | null;
+    /**
+     * The reference for the previous chapter. Null if this is the first chapter in the dataset.
+     */
+    previousChapterReference: DatasetChapterReference | null;
+    /**
+     * The number of people that appear in the chapter.
+     */
+    numberOfPeople: number;
+    /**
+     * The number of places that appear in the chapter.
+     */
+    numberOfPlaces: number;
+    /**
+     * The number of events that appear in the chapter.
+     */
+    numberOfEvents: number;
+};
+
+/**
+ * Defines a person that appears in a chapter of a dataset.
+ */
+export type ApiDatasetChapterPerson = {
+    /**
+     * The ID of the person.
+     */
+    id: string;
+    /**
+     * The name of the person.
+     */
+    name: string;
+    /**
+     * Whether the name of the person is a proper name.
+     */
+    isProperName?: boolean;
+    /**
+     * The gender of the person.
+     */
+    gender?: string;
+    /**
+     * The year that the person was born. Negative numbers are years BC. Positive numbers are years AD.
+     */
+    birthYear?: number;
+    /**
+     * The year that the person died. Negative numbers are years BC. Positive numbers are years AD.
+     */
+    deathYear?: number;
+    /**
+     * The API link for the person. Relative to the API origin.
+     */
+    apiLink: string;
+    /**
+     * The numbers of the verses in the chapter that mention the person. Sorted in ascending order.
+     */
+    verses: Array<number>;
+};
+
+/**
+ * Defines a place that appears in a chapter of a dataset.
+ */
+export type ApiDatasetChapterPlace = {
+    /**
+     * The ID of the place.
+     */
+    id: string;
+    /**
+     * The name of the place.
+     */
+    name: string;
+    /**
+     * The type of geographical feature that the place is. For example, "City", "Region", "Mountain", "Water", etc.
+     */
+    featureType?: string;
+    /**
+     * The latitude of the place.
+     */
+    latitude?: number;
+    /**
+     * The longitude of the place.
+     */
+    longitude?: number;
+    /**
+     * The API link for the place. Relative to the API origin.
+     */
+    apiLink: string;
+    /**
+     * The numbers of the verses in the chapter that mention the place. Sorted in ascending order.
+     */
+    verses: Array<number>;
+};
+
+/**
+ * Defines an event that appears in a chapter of a dataset.
+ */
+export type ApiDatasetChapterEvent = {
+    /**
+     * The ID of the event.
+     */
+    id: string;
+    /**
+     * The name of the event.
+     */
+    name: string;
+    /**
+     * The date that the event started at. Negative numbers are years BC. Positive numbers are years AD. More specific dates use the `YYYY-MM-DD` format.
+     */
+    startDate?: string;
+    /**
+     * The API link for the event. Relative to the API origin.
+     */
+    apiLink: string;
+    /**
+     * The numbers of the verses in the chapter that describe the event. Sorted in ascending order.
+     */
+    verses: Array<number>;
+};
+
+/**
+ * Defines the entity data for a chapter in a dataset. Contains the people, places, and events that appear in the chapter.
+ */
+export type ApiDatasetEntityChapterData = {
+    /**
+     * The number of the chapter.
+     */
+    number: number;
+    /**
+     * The people that appear in the chapter. Sorted by the first verse that they appear in.
+     */
+    people: Array<ApiDatasetChapterPerson>;
+    /**
+     * The places that appear in the chapter. Sorted by the first verse that they appear in.
+     */
+    places: Array<ApiDatasetChapterPlace>;
+    /**
+     * The events that appear in the chapter. Sorted by the first verse that they appear in.
+     */
+    events: Array<ApiDatasetChapterEvent>;
+};
+
+/**
+ * The list of people in a dataset. Maps to the /api/d/:datasetId/people.json endpoint.
+ */
+export type ApiDatasetPeople = {
+    /**
+     * The dataset information for the people.
+     */
+    dataset: ApiDataset;
+    /**
+     * The list of people that are available for the dataset.
+     */
+    people: Array<ApiDatasetPersonSummary>;
+};
+
+/**
+ * Defines a summary of a person in a dataset.
+ */
+export type ApiDatasetPersonSummary = {
+    /**
+     * The ID of the person.
+     */
+    id: string;
+    /**
+     * The name of the person.
+     */
+    name: string;
+    /**
+     * Whether the name of the person is a proper name.
+     */
+    isProperName?: boolean;
+    /**
+     * The gender of the person.
+     */
+    gender?: string;
+    /**
+     * The number of Bible references that mention the person.
+     */
+    numberOfReferences: number;
+    /**
+     * The API link for the person. Relative to the API origin.
+     */
+    thisPersonApiLink: string;
+};
+
+/**
+ * The information about a person in a dataset. Maps to the /api/d/:datasetId/people/:personId.json endpoint.
+ */
+export type ApiDatasetPerson = {
+    /**
+     * The dataset information for the person.
+     */
+    dataset: ApiDataset;
+    /**
+     * The information about the person.
+     */
+    person: DatasetPerson;
+    /**
+     * The API link for this person. Relative to the API origin.
+     */
+    thisPersonApiLink: string;
+};
+
+/**
+ * Defines the schema for a reference to another entity (person, place, event, or people group) in a dataset.
+ */
+export type DatasetEntityRef = {
+    /**
+     * The ID of the entity that is being referenced.
+     */
+    id: string;
+    /**
+     * The type of the entity that is being referenced. Matches the collection segment of the entity's API link, so the link can be constructed as `/api/d/{dataset}/{type}/{id}.json`.
+     */
+    type: DatasetEntityType;
+    /**
+     * The name of the entity that is being referenced.
+     */
+    name?: string;
+    /**
+     * The API link for the entity that is being referenced. Relative to the API origin. Only present in API responses.
+     */
+    apiLink?: string;
+};
+
+/**
+ * The type of an entity in a dataset. Matches the collection segment of the entity API paths, so the API link for an entity can be constructed as `/api/d/{dataset}/{type}/{id}.json`.
+ */
+export type DatasetEntityType = 'people' | 'places' | 'events' | 'groups';
+
+/**
+ * Defines a schema for verse references. A verse reference is a string that contains a book ID, chapter number, and verse number, such as "GEN 1:1". It can also contain an optional content part that comes after the verse reference, such as "GEN 1:1 In the beginning, God created the Heavens and the Earth." It can also contain optional endChapter and endVerse fields for references that span multiple chapters or verses, such as "GEN 1:1-2:3".
+ */
+export type VerseRef = {
+    book: BookId;
+    /**
+     * The chapter number that the reference starts at.
+     */
+    chapter: number;
+    /**
+     * The verse number that the reference starts at.
+     */
+    verse: number;
+    /**
+     * The rest of the content of the verse reference. This is the part of the string that comes after the verse reference. For example, in "GEN 1:1 In the beginning, God created the Heavens and the Earth.", the content would be "In the beginning, God created the Heavens and the Earth."
+     */
+    content?: string;
+    /**
+     * The chapter that the verse reference ends at. This is used for references that span multiple chapters, such as "GEN 1:1-2:3". In this case, the endChapter would be 2.
+     */
+    endChapter?: number;
+    /**
+     * The verse that the verse reference ends at. This is used for references that span multiple verses, such as "GEN 1:1-1:3". In this case, the endVerse would be 3.
+     */
+    endVerse?: number;
+};
+
+/**
+ * Defines the schema for information about a person in a dataset.
+ */
+export type DatasetPerson = {
+    /**
+     * The ID of the person.
+     */
+    id: string;
+    /**
+     * The name of the person.
+     */
+    name: string;
+    /**
+     * Other names that the person is called by.
+     */
+    alsoCalled?: Array<string>;
+    /**
+     * Whether the name of the person is a proper name.
+     */
+    isProperName?: boolean;
+    /**
+     * The gender of the person.
+     */
+    gender?: string;
+    /**
+     * The description of the person. Each string is a paragraph.
+     */
+    description?: Array<string>;
+    /**
+     * The year that the person was born. Negative numbers are years BC. Positive numbers are years AD.
+     */
+    birthYear?: number;
+    /**
+     * The year that the person died. Negative numbers are years BC. Positive numbers are years AD.
+     */
+    deathYear?: number;
+    /**
+     * The earliest year that the person is mentioned in. Negative numbers are years BC. Positive numbers are years AD.
+     */
+    minYear?: number;
+    /**
+     * The latest year that the person is mentioned in. Negative numbers are years BC. Positive numbers are years AD.
+     */
+    maxYear?: number;
+    /**
+     * The place that the person was born in.
+     */
+    birthPlace?: DatasetEntityRef;
+    /**
+     * The place that the person died in.
+     */
+    deathPlace?: DatasetEntityRef;
+    /**
+     * The father(s) of the person.
+     */
+    father?: Array<DatasetEntityRef>;
+    /**
+     * The mother(s) of the person.
+     */
+    mother?: Array<DatasetEntityRef>;
+    /**
+     * The partners (spouses) of the person.
+     */
+    partners?: Array<DatasetEntityRef>;
+    /**
+     * The children of the person.
+     */
+    children?: Array<DatasetEntityRef>;
+    /**
+     * The siblings of the person.
+     */
+    siblings?: Array<DatasetEntityRef>;
+    /**
+     * The half-siblings of the person that share the same mother.
+     */
+    halfSiblingsSameMother?: Array<DatasetEntityRef>;
+    /**
+     * The half-siblings of the person that share the same father.
+     */
+    halfSiblingsSameFather?: Array<DatasetEntityRef>;
+    /**
+     * The people groups that the person is a member of.
+     */
+    memberOf?: Array<DatasetEntityRef>;
+    /**
+     * The events that the person participated in.
+     */
+    events?: Array<DatasetEntityRef>;
+    /**
+     * The list of Bible references that mention the person. Sorted by book order, chapter, and verse. Consecutive verses in the same chapter are collapsed into a single reference using `endVerse`.
+     */
+    references: Array<VerseRef>;
+};
+
+/**
+ * The list of places in a dataset. Maps to the /api/d/:datasetId/places.json endpoint.
+ */
+export type ApiDatasetPlaces = {
+    /**
+     * The dataset information for the places.
+     */
+    dataset: ApiDataset;
+    /**
+     * The list of places that are available for the dataset.
+     */
+    places: Array<ApiDatasetPlaceSummary>;
+};
+
+/**
+ * Defines a summary of a place in a dataset.
+ */
+export type ApiDatasetPlaceSummary = {
+    /**
+     * The ID of the place.
+     */
+    id: string;
+    /**
+     * The name of the place.
+     */
+    name: string;
+    /**
+     * The type of geographical feature that the place is. For example, "City", "Region", "Mountain", "Water", etc.
+     */
+    featureType?: string;
+    /**
+     * The latitude of the place.
+     */
+    latitude?: number;
+    /**
+     * The longitude of the place.
+     */
+    longitude?: number;
+    /**
+     * The number of Bible references that mention the place.
+     */
+    numberOfReferences: number;
+    /**
+     * The API link for the place. Relative to the API origin.
+     */
+    thisPlaceApiLink: string;
+};
+
+/**
+ * The information about a place in a dataset. Maps to the /api/d/:datasetId/places/:placeId.json endpoint.
+ */
+export type ApiDatasetPlace = {
+    /**
+     * The dataset information for the place.
+     */
+    dataset: ApiDataset;
+    /**
+     * The information about the place.
+     */
+    place: DatasetPlace;
+    /**
+     * The API link for this place. Relative to the API origin.
+     */
+    thisPlaceApiLink: string;
+};
+
+/**
+ * Defines the schema for information about a place in a dataset.
+ */
+export type DatasetPlace = {
+    /**
+     * The ID of the place.
+     */
+    id: string;
+    /**
+     * The name of the place.
+     */
+    name: string;
+    /**
+     * The name of the place as it appears in the King James Version.
+     */
+    kjvName?: string;
+    /**
+     * The name of the place as it appears in the English Standard Version.
+     */
+    esvName?: string;
+    /**
+     * Other names that the place is called by.
+     */
+    aliases?: Array<string>;
+    /**
+     * The type of geographical feature that the place is. For example, "City", "Region", "Mountain", "Water", etc.
+     */
+    featureType?: string;
+    /**
+     * The sub-type of geographical feature that the place is.
+     */
+    featureSubType?: string;
+    /**
+     * The latitude of the place.
+     */
+    latitude?: number;
+    /**
+     * The longitude of the place.
+     */
+    longitude?: number;
+    /**
+     * How precise the latitude and longitude of the place are.
+     */
+    precision?: string;
+    /**
+     * The description of the place. Each string is a paragraph.
+     */
+    description?: Array<string>;
+    /**
+     * The comment on the place from the dataset authors.
+     */
+    comment?: string;
+    /**
+     * The root place for this place. Different names for the same geographical location share the same root place.
+     */
+    rootPlace?: DatasetEntityRef;
+    /**
+     * The place that this place is a duplicate of.
+     */
+    duplicateOf?: DatasetEntityRef;
+    /**
+     * The people that have been at the place.
+     */
+    people?: Array<DatasetEntityRef>;
+    /**
+     * The people that were born at the place.
+     */
+    peopleBorn?: Array<DatasetEntityRef>;
+    /**
+     * The people that died at the place.
+     */
+    peopleDied?: Array<DatasetEntityRef>;
+    /**
+     * The events that happened at the place.
+     */
+    events?: Array<DatasetEntityRef>;
+    /**
+     * The list of Bible references that mention the place. Sorted by book order, chapter, and verse. Consecutive verses in the same chapter are collapsed into a single reference using `endVerse`.
+     */
+    references: Array<VerseRef>;
+};
+
+/**
+ * The list of events in a dataset. Maps to the /api/d/:datasetId/events.json endpoint.
+ */
+export type ApiDatasetEvents = {
+    /**
+     * The dataset information for the events.
+     */
+    dataset: ApiDataset;
+    /**
+     * The list of events that are available for the dataset.
+     */
+    events: Array<ApiDatasetEventSummary>;
+};
+
+/**
+ * Defines a summary of an event in a dataset.
+ */
+export type ApiDatasetEventSummary = {
+    /**
+     * The ID of the event.
+     */
+    id: string;
+    /**
+     * The name of the event.
+     */
+    name: string;
+    /**
+     * The date that the event started at. Negative numbers are years BC. Positive numbers are years AD. More specific dates use the `YYYY-MM-DD` format.
+     */
+    startDate?: string;
+    /**
+     * The number of Bible references that describe the event.
+     */
+    numberOfReferences: number;
+    /**
+     * The API link for the event. Relative to the API origin.
+     */
+    thisEventApiLink: string;
+};
+
+/**
+ * The information about an event in a dataset. Maps to the /api/d/:datasetId/events/:eventId.json endpoint.
+ */
+export type ApiDatasetEvent = {
+    /**
+     * The dataset information for the event.
+     */
+    dataset: ApiDataset;
+    /**
+     * The information about the event.
+     */
+    event: DatasetEvent;
+    /**
+     * The API link for this event. Relative to the API origin.
+     */
+    thisEventApiLink: string;
+};
+
+/**
+ * Defines the schema for information about an event in a dataset.
+ */
+export type DatasetEvent = {
+    /**
+     * The ID of the event.
+     */
+    id: string;
+    /**
+     * The name of the event.
+     */
+    name: string;
+    /**
+     * The date that the event started at. Negative numbers are years BC. Positive numbers are years AD. More specific dates use the `YYYY-MM-DD` format.
+     */
+    startDate?: string;
+    /**
+     * The duration of the event. For example, "1D" is one day and "40Y" is fourty years.
+     */
+    duration?: string;
+    /**
+     * The people that participated in the event.
+     */
+    participants?: Array<DatasetEntityRef>;
+    /**
+     * The places that the event happened at.
+     */
+    locations?: Array<DatasetEntityRef>;
+    /**
+     * The people groups that participated in the event.
+     */
+    groups?: Array<DatasetEntityRef>;
+    /**
+     * The event that this event is a part of.
+     */
+    partOf?: DatasetEntityRef;
+    /**
+     * The event that happened before this event.
+     */
+    predecessor?: DatasetEntityRef;
+    /**
+     * The list of Bible references that describe the event. Sorted by book order, chapter, and verse. Consecutive verses in the same chapter are collapsed into a single reference using `endVerse`.
+     */
+    references: Array<VerseRef>;
+};
+
+/**
+ * The list of people groups in a dataset. Maps to the /api/d/:datasetId/groups.json endpoint.
+ */
+export type ApiDatasetPeopleGroups = {
+    /**
+     * The dataset information for the people groups.
+     */
+    dataset: ApiDataset;
+    /**
+     * The list of people groups that are available for the dataset.
+     */
+    groups: Array<ApiDatasetPeopleGroupSummary>;
+};
+
+/**
+ * Defines a summary of a people group in a dataset.
+ */
+export type ApiDatasetPeopleGroupSummary = {
+    /**
+     * The ID of the people group.
+     */
+    id: string;
+    /**
+     * The name of the people group.
+     */
+    name: string;
+    /**
+     * The number of people that are members of the people group.
+     */
+    numberOfMembers: number;
+    /**
+     * The API link for the people group. Relative to the API origin.
+     */
+    thisPeopleGroupApiLink: string;
+};
+
+/**
+ * The information about a people group in a dataset. Maps to the /api/d/:datasetId/groups/:groupId.json endpoint.
+ */
+export type ApiDatasetPeopleGroup = {
+    /**
+     * The dataset information for the people group.
+     */
+    dataset: ApiDataset;
+    /**
+     * The information about the people group.
+     */
+    group: DatasetPeopleGroup;
+    /**
+     * The API link for this people group. Relative to the API origin.
+     */
+    thisPeopleGroupApiLink: string;
+};
+
+/**
+ * Defines the schema for information about a people group in a dataset.
+ */
+export type DatasetPeopleGroup = {
+    /**
+     * The ID of the people group.
+     */
+    id: string;
+    /**
+     * The name of the people group.
+     */
+    name: string;
+    /**
+     * The people that are members of the people group.
+     */
+    members?: Array<DatasetEntityRef>;
+    /**
+     * The events that the people group participated in.
+     */
+    events?: Array<DatasetEntityRef>;
+    /**
+     * The list of Bible references that mention the people group. Sorted by book order, chapter, and verse. Consecutive verses in the same chapter are collapsed into a single reference using `endVerse`.
+     */
+    references: Array<VerseRef>;
+};
+
 export type GetAvailableTranslationsData = {
     body?: never;
     path?: never;
@@ -1146,6 +2594,158 @@ export type GetTranslationBookChapterResponses = {
 export type GetTranslationBookChapterResponse =
     GetTranslationBookChapterResponses[keyof GetTranslationBookChapterResponses];
 
+export type GetSimpleTranslationBookChapterData = {
+    body?: never;
+    path: {
+        /**
+         * The translation ID of the Bible translation to get the books for. For example, "eng_kjv" for the King James Version.
+         */
+        translation: string;
+        /**
+         * IDs for books. Follows the USFM standard (https://ubsicap.github.io/usfm/identification/books.html)
+         */
+        book: BookId;
+        /**
+         * The chapter number to get the content for. This should be a positive integer.
+         */
+        chapter: number;
+    };
+    query?: never;
+    url: '/api/{translation}/{book}/{chapter}.simple.json';
+};
+
+export type GetSimpleTranslationBookChapterErrors = {
+    /**
+     * 404 Not Found - The specified translation, book, or chapter was not found.
+     */
+    404: unknown;
+};
+
+export type GetSimpleTranslationBookChapterResponses = {
+    /**
+     * 200 OK
+     */
+    200: ApiSimpleTranslationBookChapter;
+};
+
+export type GetSimpleTranslationBookChapterResponse =
+    GetSimpleTranslationBookChapterResponses[keyof GetSimpleTranslationBookChapterResponses];
+
+export type GetTranslationBookChapterAudioTimingsData = {
+    body?: never;
+    path: {
+        /**
+         * The translation ID of the Bible translation to get the books for. For example, "eng_kjv" for the King James Version.
+         */
+        translation: string;
+        /**
+         * IDs for books. Follows the USFM standard (https://ubsicap.github.io/usfm/identification/books.html)
+         */
+        book: BookId;
+        /**
+         * The chapter number to get the content for. This should be a positive integer.
+         */
+        chapter: number;
+        /**
+         * The ID of the reader to get the audio timings for. For example, "hays" for the Hays reading of the Berean Standard Bible.
+         */
+        reader: string;
+    };
+    query?: never;
+    url: '/api/{translation}/{book}/{chapter}.{reader}.audioTimings.json';
+};
+
+export type GetTranslationBookChapterAudioTimingsErrors = {
+    /**
+     * 404 Not Found - The specified translation, book, chapter, or reader was not found.
+     */
+    404: unknown;
+};
+
+export type GetTranslationBookChapterAudioTimingsResponses = {
+    /**
+     * 200 OK
+     */
+    200: ApiTranslationBookChapterAudioTimings;
+};
+
+export type GetTranslationBookChapterAudioTimingsResponse =
+    GetTranslationBookChapterAudioTimingsResponses[keyof GetTranslationBookChapterAudioTimingsResponses];
+
+export type GetTranslationBookChapterWordsData = {
+    body?: never;
+    path: {
+        /**
+         * The translation ID of the Bible translation to get the books for. For example, "eng_kjv" for the King James Version.
+         */
+        translation: string;
+        /**
+         * IDs for books. Follows the USFM standard (https://ubsicap.github.io/usfm/identification/books.html)
+         */
+        book: BookId;
+        /**
+         * The chapter number to get the content for. This should be a positive integer.
+         */
+        chapter: number;
+    };
+    query?: never;
+    url: '/api/{translation}/{book}/{chapter}.words.json';
+};
+
+export type GetTranslationBookChapterWordsErrors = {
+    /**
+     * 404 Not Found - The specified translation, book, or chapter was not found, or the chapter does not have any word-level annotations.
+     */
+    404: unknown;
+};
+
+export type GetTranslationBookChapterWordsResponses = {
+    /**
+     * 200 OK
+     */
+    200: ApiTranslationBookChapterWords;
+};
+
+export type GetTranslationBookChapterWordsResponse =
+    GetTranslationBookChapterWordsResponses[keyof GetTranslationBookChapterWordsResponses];
+
+export type GetSimpleTranslationBookChapterWordsData = {
+    body?: never;
+    path: {
+        /**
+         * The translation ID of the Bible translation to get the books for. For example, "eng_kjv" for the King James Version.
+         */
+        translation: string;
+        /**
+         * IDs for books. Follows the USFM standard (https://ubsicap.github.io/usfm/identification/books.html)
+         */
+        book: BookId;
+        /**
+         * The chapter number to get the content for. This should be a positive integer.
+         */
+        chapter: number;
+    };
+    query?: never;
+    url: '/api/{translation}/{book}/{chapter}.words.simple.json';
+};
+
+export type GetSimpleTranslationBookChapterWordsErrors = {
+    /**
+     * 404 Not Found - The specified translation, book, or chapter was not found, or the chapter does not have any word-level annotations.
+     */
+    404: unknown;
+};
+
+export type GetSimpleTranslationBookChapterWordsResponses = {
+    /**
+     * 200 OK
+     */
+    200: ApiSimpleTranslationBookChapterWords;
+};
+
+export type GetSimpleTranslationBookChapterWordsResponse =
+    GetSimpleTranslationBookChapterWordsResponses[keyof GetSimpleTranslationBookChapterWordsResponses];
+
 export type GetTranslationCompleteData = {
     body?: never;
     path: {
@@ -1174,6 +2774,35 @@ export type GetTranslationCompleteResponses = {
 
 export type GetTranslationCompleteResponse =
     GetTranslationCompleteResponses[keyof GetTranslationCompleteResponses];
+
+export type GetSimpleTranslationCompleteData = {
+    body?: never;
+    path: {
+        /**
+         * The translation ID of the Bible translation to get the books for. For example, "eng_kjv" for the King James Version.
+         */
+        translation: string;
+    };
+    query?: never;
+    url: '/api/{translation}/complete.simple.json';
+};
+
+export type GetSimpleTranslationCompleteErrors = {
+    /**
+     * 404 Not Found - The specified translation was not found, or complete translations are not available.
+     */
+    404: unknown;
+};
+
+export type GetSimpleTranslationCompleteResponses = {
+    /**
+     * 200 OK
+     */
+    200: ApiSimpleTranslationComplete;
+};
+
+export type GetSimpleTranslationCompleteResponse =
+    GetSimpleTranslationCompleteResponses[keyof GetSimpleTranslationCompleteResponses];
 
 export type GetAvailableCommentariesData = {
     body?: never;
@@ -1258,6 +2887,43 @@ export type GetCommentaryBookChapterResponses = {
 export type GetCommentaryBookChapterResponse =
     GetCommentaryBookChapterResponses[keyof GetCommentaryBookChapterResponses];
 
+export type GetSimpleCommentaryBookChapterData = {
+    body?: never;
+    path: {
+        /**
+         * The commentary ID of the commentary to get the books or chapter content for.
+         */
+        commentary: string;
+        /**
+         * IDs for books. Follows the USFM standard (https://ubsicap.github.io/usfm/identification/books.html)
+         */
+        book: BookId;
+        /**
+         * The chapter number to get the content for. This should be a positive integer.
+         */
+        chapter: number;
+    };
+    query?: never;
+    url: '/api/c/{commentary}/{book}/{chapter}.simple.json';
+};
+
+export type GetSimpleCommentaryBookChapterErrors = {
+    /**
+     * 404 Not Found - The specified commentary, book, or chapter was not found.
+     */
+    404: unknown;
+};
+
+export type GetSimpleCommentaryBookChapterResponses = {
+    /**
+     * 200 OK
+     */
+    200: ApiSimpleCommentaryBookChapter;
+};
+
+export type GetSimpleCommentaryBookChapterResponse =
+    GetSimpleCommentaryBookChapterResponses[keyof GetSimpleCommentaryBookChapterResponses];
+
 export type GetAvailableDatasetsData = {
     body?: never;
     path?: never;
@@ -1335,8 +3001,256 @@ export type GetDatasetBookChapterResponses = {
     /**
      * 200 OK
      */
-    200: ApiDatasetBookChapter;
+    200: ApiDatasetBookChapter | ApiDatasetEntityBookChapter;
 };
 
 export type GetDatasetBookChapterResponse =
     GetDatasetBookChapterResponses[keyof GetDatasetBookChapterResponses];
+
+export type GetDatasetPeopleData = {
+    body?: never;
+    path: {
+        /**
+         * The dataset ID of the dataset to get the books or chapter content for.
+         */
+        dataset: string;
+    };
+    query?: never;
+    url: '/api/d/{dataset}/people.json';
+};
+
+export type GetDatasetPeopleErrors = {
+    /**
+     * 404 Not Found - The specified dataset was not found or doesn't contain people.
+     */
+    404: unknown;
+};
+
+export type GetDatasetPeopleResponses = {
+    /**
+     * 200 OK
+     */
+    200: ApiDatasetPeople;
+};
+
+export type GetDatasetPeopleResponse =
+    GetDatasetPeopleResponses[keyof GetDatasetPeopleResponses];
+
+export type GetDatasetPersonData = {
+    body?: never;
+    path: {
+        /**
+         * The dataset ID of the dataset to get the books or chapter content for.
+         */
+        dataset: string;
+        /**
+         * The ID of the person to get the information for. For example, "paul_2479" for the apostle Paul.
+         */
+        person: string;
+    };
+    query?: never;
+    url: '/api/d/{dataset}/people/{person}.json';
+};
+
+export type GetDatasetPersonErrors = {
+    /**
+     * 404 Not Found - The specified dataset or person was not found.
+     */
+    404: unknown;
+};
+
+export type GetDatasetPersonResponses = {
+    /**
+     * 200 OK
+     */
+    200: ApiDatasetPerson;
+};
+
+export type GetDatasetPersonResponse =
+    GetDatasetPersonResponses[keyof GetDatasetPersonResponses];
+
+export type GetDatasetPlacesData = {
+    body?: never;
+    path: {
+        /**
+         * The dataset ID of the dataset to get the books or chapter content for.
+         */
+        dataset: string;
+    };
+    query?: never;
+    url: '/api/d/{dataset}/places.json';
+};
+
+export type GetDatasetPlacesErrors = {
+    /**
+     * 404 Not Found - The specified dataset was not found or doesn't contain places.
+     */
+    404: unknown;
+};
+
+export type GetDatasetPlacesResponses = {
+    /**
+     * 200 OK
+     */
+    200: ApiDatasetPlaces;
+};
+
+export type GetDatasetPlacesResponse =
+    GetDatasetPlacesResponses[keyof GetDatasetPlacesResponses];
+
+export type GetDatasetPlaceData = {
+    body?: never;
+    path: {
+        /**
+         * The dataset ID of the dataset to get the books or chapter content for.
+         */
+        dataset: string;
+        /**
+         * The ID of the place to get the information for. For example, "jerusalem_636" for Jerusalem.
+         */
+        place: string;
+    };
+    query?: never;
+    url: '/api/d/{dataset}/places/{place}.json';
+};
+
+export type GetDatasetPlaceErrors = {
+    /**
+     * 404 Not Found - The specified dataset or place was not found.
+     */
+    404: unknown;
+};
+
+export type GetDatasetPlaceResponses = {
+    /**
+     * 200 OK
+     */
+    200: ApiDatasetPlace;
+};
+
+export type GetDatasetPlaceResponse =
+    GetDatasetPlaceResponses[keyof GetDatasetPlaceResponses];
+
+export type GetDatasetEventsData = {
+    body?: never;
+    path: {
+        /**
+         * The dataset ID of the dataset to get the books or chapter content for.
+         */
+        dataset: string;
+    };
+    query?: never;
+    url: '/api/d/{dataset}/events.json';
+};
+
+export type GetDatasetEventsErrors = {
+    /**
+     * 404 Not Found - The specified dataset was not found or doesn't contain events.
+     */
+    404: unknown;
+};
+
+export type GetDatasetEventsResponses = {
+    /**
+     * 200 OK
+     */
+    200: ApiDatasetEvents;
+};
+
+export type GetDatasetEventsResponse =
+    GetDatasetEventsResponses[keyof GetDatasetEventsResponses];
+
+export type GetDatasetEventData = {
+    body?: never;
+    path: {
+        /**
+         * The dataset ID of the dataset to get the books or chapter content for.
+         */
+        dataset: string;
+        /**
+         * The ID of the event to get the information for. For example, "saul-is-converted_326" for the conversion of Saul.
+         */
+        event: string;
+    };
+    query?: never;
+    url: '/api/d/{dataset}/events/{event}.json';
+};
+
+export type GetDatasetEventErrors = {
+    /**
+     * 404 Not Found - The specified dataset or event was not found.
+     */
+    404: unknown;
+};
+
+export type GetDatasetEventResponses = {
+    /**
+     * 200 OK
+     */
+    200: ApiDatasetEvent;
+};
+
+export type GetDatasetEventResponse =
+    GetDatasetEventResponses[keyof GetDatasetEventResponses];
+
+export type GetDatasetPeopleGroupsData = {
+    body?: never;
+    path: {
+        /**
+         * The dataset ID of the dataset to get the books or chapter content for.
+         */
+        dataset: string;
+    };
+    query?: never;
+    url: '/api/d/{dataset}/groups.json';
+};
+
+export type GetDatasetPeopleGroupsErrors = {
+    /**
+     * 404 Not Found - The specified dataset was not found or doesn't contain people groups.
+     */
+    404: unknown;
+};
+
+export type GetDatasetPeopleGroupsResponses = {
+    /**
+     * 200 OK
+     */
+    200: ApiDatasetPeopleGroups;
+};
+
+export type GetDatasetPeopleGroupsResponse =
+    GetDatasetPeopleGroupsResponses[keyof GetDatasetPeopleGroupsResponses];
+
+export type GetDatasetPeopleGroupData = {
+    body?: never;
+    path: {
+        /**
+         * The dataset ID of the dataset to get the books or chapter content for.
+         */
+        dataset: string;
+        /**
+         * The ID of the people group to get the information for. For example, "tribe-of-benjamin" for the tribe of Benjamin.
+         */
+        group: string;
+    };
+    query?: never;
+    url: '/api/d/{dataset}/groups/{group}.json';
+};
+
+export type GetDatasetPeopleGroupErrors = {
+    /**
+     * 404 Not Found - The specified dataset or people group was not found.
+     */
+    404: unknown;
+};
+
+export type GetDatasetPeopleGroupResponses = {
+    /**
+     * 200 OK
+     */
+    200: ApiDatasetPeopleGroup;
+};
+
+export type GetDatasetPeopleGroupResponse =
+    GetDatasetPeopleGroupResponses[keyof GetDatasetPeopleGroupResponses];

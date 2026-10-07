@@ -17,6 +17,7 @@ import {
     generateTranslationFiles,
     generateTranslationsFiles,
     importApi,
+    importBibleMetadata,
     importAudioTimings,
     importCommentaries,
     importCommentary,
@@ -415,6 +416,18 @@ async function start() {
         });
 
     program
+        .command('import-bible-metadata <dir>')
+        .description(
+            'Imports the Theographic bible metadata (people, places, events, and people groups) from the given directory into the database.\nThe directory should contain the JSON files downloaded by the fetch-bible-metadata command.'
+        )
+        .action(async (dir: string, options: any) => {
+            await importBibleMetadata(dir, {
+                ...program.opts(),
+                ...options,
+            });
+        });
+
+    program
         .command('import-audio-timings <file>')
         .description(
             'Imports chapter audio timing data from the given JSON file into the database.\nThe file should contain an array of records: { translationId, bookId, chapterNumber, reader, verses } where verses is an array of numbers (seconds) - one per verse in the chapter, in order.'
@@ -460,6 +473,10 @@ async function start() {
         .option(
             '--no-generate-complete-translation-files',
             'Whether to skip generating complete translation files.'
+        )
+        .option(
+            '--no-generate-simple-chapter-files',
+            'Whether to skip generating simplified chapter files.'
         )
         .option(
             '--profile <profile>',
@@ -545,6 +562,10 @@ async function start() {
         .option(
             '--no-generate-complete-translation-files',
             'Whether to skip generating complete translation files.'
+        )
+        .option(
+            '--no-generate-simple-chapter-files',
+            'Whether to skip generating simplified chapter files.'
         )
         .option(
             '--profile <profile>',
@@ -646,6 +667,10 @@ async function start() {
             '--no-generate-complete-translation-files',
             'Whether to skip generating complete translation files.'
         )
+        .option(
+            '--no-generate-simple-chapter-files',
+            'Whether to skip generating simplified chapter files.'
+        )
         .action(async (input: string, dest: string, options: any) => {
             await generateTranslationFiles(input, dest, {
                 ...program.opts(),
@@ -687,6 +712,10 @@ async function start() {
             'Whether to skip generating complete translation files.'
         )
         .option(
+            '--no-generate-simple-chapter-files',
+            'Whether to skip generating simplified chapter files.'
+        )
+        .option(
             '--profile <profile>',
             'The AWS profile to use for uploading to S3.'
         )
@@ -719,7 +748,7 @@ async function start() {
         .option(
             '--batch-size <size>',
             'The number of translations to generate API files for in each batch.',
-            '50'
+            '25'
         )
         .option(
             '--translations <translations...>',
@@ -749,6 +778,10 @@ async function start() {
         .option(
             '--no-generate-complete-translation-files',
             'Whether to skip generating complete translation files.'
+        )
+        .option(
+            '--no-generate-simple-chapter-files',
+            'Whether to skip generating simplified chapter files.'
         )
         .option(
             '--no-generate-open-api-document',
@@ -898,7 +931,6 @@ async function start() {
                 'events.json',
                 'people.json',
                 'peopleGroups.json',
-                'periods.json',
                 'places.json',
                 'verses.json',
             ];

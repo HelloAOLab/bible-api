@@ -18,7 +18,7 @@ import {
     InputCommentaryMetadata,
     InputFileMetadata,
     InputTranslationFile,
-    TranslationBookChapter,
+    TranslationBookChapterWords,
     CommentaryBookChapterSchema,
     CommentaryBookChapter,
 } from '@helloao/tools/generation/common-types.js';
@@ -27,7 +27,7 @@ import { Readable, Writable } from 'stream';
 import hash from 'hash.js';
 const { sha256 } = hash;
 import { PARSER_VERSION } from '@helloao/tools/parser/usx-parser.js';
-import { mergeWith } from 'es-toolkit/compat';
+import { mergeWith, sortBy } from 'es-toolkit/compat';
 import { fromByteArray } from 'base64-js';
 import { log } from '@helloao/tools';
 import { bookOrderMap } from '@helloao/tools/generation/book-order.js';
@@ -55,6 +55,8 @@ import {
     ApiCommentaryProfiles,
     ApiCommentaryProfilesSchema,
     ApiTranslationBooks,
+    ApiTranslationBookChapter,
+    ApiTranslationBookChapterWords,
     replaceSpacesWithUnderscores,
 } from '@helloao/tools/generation/api.js';
 import { ZodType } from 'zod';
@@ -438,17 +440,21 @@ export async function loadTranslationsFromDirectory(
 
     for (let dataset of translations) {
         const datasetDir = path.resolve(apiDir, dataset.id);
-        const booksList = await readdir(datasetDir);
+        const booksList = await readdir(datasetDir, { withFileTypes: true });
 
         const booksPath = path.resolve(datasetDir, 'books.json');
         const booksData: ApiTranslationBooks | null = existsSync(booksPath)
             ? JSON.parse(await readFile(booksPath, 'utf-8'))
             : null;
 
-        for (let bookId of booksList) {
-            if (bookId === 'books.json') {
+        for (let entry of booksList) {
+            // The translation directory also contains the files that aren't scoped to a
+            // book, like books.json and the complete translation downloads.
+            if (!entry.isDirectory()) {
                 continue;
             }
+
+            const bookId = entry.name;
             const id = getBookId(bookId);
 
             if (!id) {
@@ -477,11 +483,26 @@ export async function loadTranslationsFromDirectory(
             const chapters = await readdir(bookDir);
 
             for (let chapterFile of chapters) {
-                const chapterJson: TranslationBookChapter = JSON.parse(
+                // Book directories also contain the sidecar files for a chapter
+                // (audio timings and words) and the other chapter formats
+                // (the simplified chapters). They are loaded through the chapter
+                // that links to them, not on their own.
+                if (!isChapterFile(chapterFile)) {
+                    continue;
+                }
+
+                const chapterJson: ApiTranslationBookChapter = JSON.parse(
                     await readFile(path.resolve(bookDir, chapterFile), 'utf-8')
                 );
 
                 if (chapterJson.chapter) {
+                    const words = chapterJson.thisChapterWordsLink
+                        ? await readChapterWords(
+                              bookDir,
+                              chapterJson.chapter.number
+                          )
+                        : null;
+
                     book.chapters.push({
                         chapter: chapterJson.chapter,
                         thisChapterAudioLinks:
@@ -491,6 +512,7 @@ export async function loadTranslationsFromDirectory(
                         // raw per-verse timing data. Re-importing timings requires the
                         // `import-audio-timings` CLI command instead.
                         thisChapterAudioTimings: {},
+                        ...(words ? { thisChapterWords: words } : {}),
                     });
                 } else {
                     logger.warn(`Unknown chapter format: ${chapterFile}`);
@@ -501,6 +523,41 @@ export async function loadTranslationsFromDirectory(
     }
 
     return translations;
+}
+
+/**
+ * Determines whether the given file name in a book directory is a chapter file,
+ * as opposed to one of the sidecar files that a chapter links to.
+ * @param fileName The name of the file.
+ */
+function isChapterFile(fileName: string): boolean {
+    return /^[0-9]+\.json$/.test(fileName);
+}
+
+/**
+ * Reads the word-level annotations for the given chapter from the book directory.
+ * Returns null if they could not be read.
+ * @param bookDir The directory that the book's files are in.
+ * @param chapterNumber The number of the chapter.
+ */
+async function readChapterWords(
+    bookDir: string,
+    chapterNumber: number
+): Promise<TranslationBookChapterWords | null> {
+    const wordsPath = path.resolve(bookDir, `${chapterNumber}.words.json`);
+
+    if (!existsSync(wordsPath)) {
+        log.getLogger().warn(
+            `Chapter links to word annotations, but ${wordsPath} does not exist.`
+        );
+        return null;
+    }
+
+    const words: ApiTranslationBookChapterWords = JSON.parse(
+        await readFile(wordsPath, 'utf-8')
+    );
+
+    return words.verses ?? null;
 }
 
 async function tryParseJsonFile<T>(
@@ -640,6 +697,12 @@ export async function loadCommentariesFromDirectory(
             const chapters = await readdir(bookDir);
 
             for (let chapterFile of chapters) {
+                // Book directories also contain the other chapter formats
+                // (the simplified chapters), which can't be imported as chapters.
+                if (!isChapterFile(chapterFile)) {
+                    continue;
+                }
+
                 const chapterJson: CommentaryBookChapter | null =
                     await tryParseJsonFile(
                         path.resolve(bookDir, chapterFile),
@@ -702,12 +765,30 @@ export async function loadDatasetsFromDirectory(
         }))
     );
 
+    const entityCollections = [
+        ['people', 'people'],
+        ['places', 'places'],
+        ['events', 'events'],
+        ['groups', 'peopleGroups'],
+    ] as const;
+    const entityListFiles = new Set([
+        'people.json',
+        'places.json',
+        'events.json',
+        'groups.json',
+    ]);
+    const entityDirs = new Set(['people', 'places', 'events', 'groups']);
+
     for (let dataset of datasets) {
         const datasetDir = path.resolve(apiDir, 'd', dataset.id);
         const booksList = await readdir(datasetDir);
 
         for (let bookId of booksList) {
-            if (bookId === 'books.json') {
+            if (
+                bookId === 'books.json' ||
+                entityListFiles.has(bookId) ||
+                entityDirs.has(bookId)
+            ) {
                 continue;
             }
             const id = getBookId(bookId);
@@ -722,7 +803,6 @@ export async function loadDatasetsFromDirectory(
                 chapters: [],
                 order: bookOrderMap.get(id)!,
             };
-            dataset.books.push(book);
 
             const bookDir = path.resolve(datasetDir, bookId);
             const chapters = await readdir(bookDir);
@@ -732,7 +812,18 @@ export async function loadDatasetsFromDirectory(
                     await readFile(path.resolve(bookDir, chapterFile), 'utf-8')
                 );
 
-                if (chapterJson.chapter) {
+                if (
+                    chapterJson.chapter &&
+                    (chapterJson.numberOfPeople !== undefined ||
+                        chapterJson.numberOfPlaces !== undefined ||
+                        chapterJson.numberOfEvents !== undefined)
+                ) {
+                    // Entity chapters (people, places, and events that appear
+                    // in a chapter) are derived from the dataset's entities
+                    // when the API files are generated, so they shouldn't be
+                    // imported as chapter data.
+                    continue;
+                } else if (chapterJson.chapter) {
                     book.chapters.push({
                         chapter: chapterJson.chapter,
                     });
@@ -768,10 +859,74 @@ export async function loadDatasetsFromDirectory(
                     continue;
                 }
             }
+
+            // Books that only contain derived entity chapters have no
+            // chapter data of their own, so they shouldn't be imported.
+            if (book.chapters.length > 0) {
+                dataset.books.push(book);
+            }
+        }
+
+        // Load the entities (people, places, events, and people groups)
+        // for the dataset, if they exist.
+        for (let [collection, property] of entityCollections) {
+            const collectionDir = path.resolve(datasetDir, collection);
+            if (!existsSync(collectionDir)) {
+                continue;
+            }
+
+            const entities: any[] = [];
+            const entityFiles = await readdir(collectionDir);
+            for (let entityFile of entityFiles) {
+                const entityJson = JSON.parse(
+                    await readFile(
+                        path.resolve(collectionDir, entityFile),
+                        'utf-8'
+                    )
+                );
+
+                const entity =
+                    entityJson.person ??
+                    entityJson.place ??
+                    entityJson.event ??
+                    entityJson.group;
+
+                if (!entity) {
+                    logger.warn(`Unknown entity format: ${entityFile}`);
+                    continue;
+                }
+
+                entities.push(stripEntityRefApiLinks(entity));
+            }
+
+            if (entities.length > 0) {
+                (dataset as any)[property] = sortBy(entities, (e) => e.id);
+            }
         }
     }
 
     return datasets;
+}
+
+/**
+ * Removes the API links from any entity references in the given entity.
+ * API links are added when the API files are generated, so they shouldn't be
+ * stored in the database.
+ * @param entity The entity to strip the API links from.
+ */
+function stripEntityRefApiLinks(entity: any): any {
+    for (let value of Object.values(entity)) {
+        if (Array.isArray(value)) {
+            for (let item of value) {
+                if (item && typeof item === 'object' && 'apiLink' in item) {
+                    delete item.apiLink;
+                }
+            }
+        } else if (value && typeof value === 'object' && 'apiLink' in value) {
+            delete (value as any).apiLink;
+        }
+    }
+    return entity;
 }
 
 /**

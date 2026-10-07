@@ -17,6 +17,10 @@ import {
     Dataset as CommonDataset,
     DatasetBook,
     DatasetBookChapter,
+    DatasetPerson,
+    DatasetPlace,
+    DatasetEvent,
+    DatasetPeopleGroup,
 } from './common-types.js';
 import {
     bookIdMap as defaultBookIdMap,
@@ -117,6 +121,26 @@ export interface DatasetCommentaryProfile extends CommentaryProfile {
 
 export interface DatasetDataset extends CommonDataset {
     books: DatasetDatasetBook[];
+
+    /**
+     * The list of people that are contained in the dataset.
+     */
+    people?: DatasetPerson[];
+
+    /**
+     * The list of places that are contained in the dataset.
+     */
+    places?: DatasetPlace[];
+
+    /**
+     * The list of events that are contained in the dataset.
+     */
+    events?: DatasetEvent[];
+
+    /**
+     * The list of people groups that are contained in the dataset.
+     */
+    peopleGroups?: DatasetPeopleGroup[];
 }
 
 export interface DatasetDatasetBook extends DatasetBook {
@@ -303,6 +327,12 @@ export function generateDataset(
                         content.number
                     ),
                     thisChapterAudioTimings: {},
+
+                    // Word annotations are kept out of the chapter itself so
+                    // that they can be published as a separate file.
+                    ...(content.words
+                        ? { thisChapterWords: content.words }
+                        : {}),
                 });
             }
         }

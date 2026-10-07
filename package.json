@@ -1,7 +1,7 @@
 {
     "name": "bible-api",
     "private": true,
-    "version": "1.8.0",
+    "version": "1.14.0",
     "type": "module",
     "scripts": {
         "pretest": "npm run clean && tsc --build",
@@ -12,8 +12,8 @@
         "esbuild": "tsx ./tools/build.ts",
         "clean": "jake -f ./jakefile.cjs clean",
         "build:docs": "cd docs && pnpm build",
-        "dev:docs": "vuepress dev docs/src",
-        "cli": "npm run build && node ./packages/helloao-cli/dist/esm/cli.js",
+        "dev:docs": "cd docs && pnpm dev",
+        "cli": "npm run build && node --max-old-space-size=8192 ./packages/helloao-cli/dist/esm/cli.js",
         "db:clone": "npm run cli init ./free-use-bible-api.download.db -- --source https://bible.helloao.org/bible.db",
         "db:init": "npm run cli init ./free-use-bible-api.db",
         "db:init:eng": "npm run cli init ./free-use-bible-api.eng.db -- --overwrite --source ./free-use-bible-api.db --language eng",
@@ -22,6 +22,7 @@
         "fetch:bible:commentaries": "npm run cli fetch-tyndale-open-resources -- ./sources/comment/tyndale",
         "fetch:ebible": "npm run cli source-translations -- --convert-to-usx3 ./sources/ebible",
         "import:bible:ebible": "npm run cli import-translations -- --db ./free-use-bible-api.db ./sources/ebible",
+        "import:bible:metadata": "npm run cli import-bible-metadata -- --db ./free-use-bible-api.db ./sources/metadata",
         "import:bible:commentaries": "npm run cli import-commentaries -- --db ./free-use-bible-api.db ./sources/comment",
         "zip:sync": "npm run cli upload-api-files ./free-use-bible-api.zip",
         "s3:sync:docs": "aws --profile aolabs s3 sync ./build/docs s3://ao-bible-api/docs --delete && aws --profile aolabs s3 cp ./docs/site-root/robots.txt s3://ao-bible-api/robots.txt",
@@ -34,13 +35,13 @@
         "dev:mcp": "tsx watch ./packages/seed-bible-mcp/server.tsx"
     },
     "devDependencies": {
-        "@types/better-sqlite3": "^7.6.9",
+        "@types/better-sqlite3": "^9.6.0",
         "@types/fs-extra": "^11.0.4",
         "@types/jest": "^29.4.0",
+        "@types/luxon": "3.4.2",
         "@types/markdown-it": "^12.2.3",
         "@types/node": "^22.7.4",
         "@types/papaparse": "5.3.15",
-        "@types/luxon": "3.4.2",
         "del": "7.0.0",
         "esbuild": "0.24.0",
         "fast-glob": "^3.3.2",
@@ -56,7 +57,7 @@
         "typesense": "3.0.5"
     },
     "engines": {
-        "node": "^22.19.0",
+        "node": "^24.15.0",
         "pnpm": "^10.12.1"
     },
     "pnpm": {
@@ -65,6 +66,9 @@
             "@prisma/client",
             "@prisma/engines",
             "prisma"
+        ],
+        "ignoredBuiltDependencies": [
+            "@parcel/watcher"
         ]
     },
     "packageManager": "pnpm@10.12.1+sha512.f0dda8580f0ee9481c5c79a1d927b9164f2c478e90992ad268bbb2465a736984391d6333d2c327913578b2804af33474ca554ba29c04a8b13060a717675ae3ac"

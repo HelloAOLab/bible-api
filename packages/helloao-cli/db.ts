@@ -308,6 +308,7 @@ export function insertTranslations(
         licenseUrl,
         licenseNotes,
         licenseNotice,
+        license,
         website,
         englishName
     ) VALUES (
@@ -319,9 +320,10 @@ export function insertTranslations(
         @licenseUrl,
         @licenseNotes,
         @licenseNotice,
+        @license,
         @website,
         @englishName
-    ) ON CONFLICT(id) DO 
+    ) ON CONFLICT(id) DO
         UPDATE SET
             name=excluded.name,
             language=excluded.language,
@@ -330,6 +332,7 @@ export function insertTranslations(
             licenseUrl=excluded.licenseUrl,
             licenseNotes=excluded.licenseNotes,
             licenseNotice=excluded.licenseNotice,
+            license=excluded.license,
             website=excluded.website,
             englishName=excluded.englishName;`);
 
@@ -345,6 +348,9 @@ export function insertTranslations(
                     licenseUrl: translation.licenseUrl,
                     licenseNotes: translation.licenseNotes,
                     licenseNotice: translation.licenseNotice,
+                    license: translation.license
+                        ? JSON.stringify(translation.license)
+                        : null,
                     website: translation.website,
                     englishName: translation.englishName,
                 });
@@ -505,6 +511,20 @@ export function insertTranslationContent(
         UPDATE SET
             timingsJson=excluded.timingsJson;`);
 
+    const chapterWordsUpsert = db.prepare(`INSERT INTO ChapterWords(
+        translationId,
+        bookId,
+        number,
+        wordsJson
+    ) VALUES (
+        @translationId,
+        @bookId,
+        @number,
+        @wordsJson
+    ) ON CONFLICT(translationId,bookId,number) DO
+        UPDATE SET
+            wordsJson=excluded.wordsJson;`);
+
     const insertChaptersAndVerses = db.transaction(() => {
         for (let chapter of chapters) {
             let verses: {
@@ -622,6 +642,15 @@ export function insertTranslationContent(
                         timingsJson: JSON.stringify(verses),
                     });
                 }
+            }
+
+            if (chapter.thisChapterWords) {
+                chapterWordsUpsert.run({
+                    translationId: translation.id,
+                    bookId: book.id,
+                    number: chapter.chapter.number,
+                    wordsJson: JSON.stringify(chapter.thisChapterWords),
+                });
             }
         }
     });
@@ -1330,7 +1359,62 @@ export function insertDatasets(db: Database, datasets: DatasetDataset[]) {
             datasetId: dataset.id,
         });
         insertDatasetBooks(db, dataset, dataset.books);
+        insertDatasetEntities(db, dataset);
     }
+}
+
+/**
+ * Inserts the entities (people, places, events, and people groups) for the given dataset into the database.
+ * Any entities that are no longer present in the dataset are deleted.
+ * @param db The database to insert the entities into.
+ * @param dataset The dataset that the entities belong to.
+ */
+export function insertDatasetEntities(db: Database, dataset: DatasetDataset) {
+    const deleteEntities = db.prepare(`DELETE FROM DatasetEntity
+        WHERE datasetId = @datasetId;`);
+
+    const entityUpsert = db.prepare(`INSERT INTO DatasetEntity(
+        id,
+        datasetId,
+        type,
+        name,
+        json
+    ) VALUES (
+        @id,
+        @datasetId,
+        @type,
+        @name,
+        @json
+    ) ON CONFLICT(datasetId,type,id) DO
+        UPDATE SET
+            name=excluded.name,
+            json=excluded.json;`);
+
+    const collections = [
+        ['person', dataset.people],
+        ['place', dataset.places],
+        ['event', dataset.events],
+        ['peopleGroup', dataset.peopleGroups],
+    ] as const;
+
+    const insertAll = db.transaction(() => {
+        deleteEntities.run({
+            datasetId: dataset.id,
+        });
+        for (let [type, entities] of collections) {
+            for (let entity of entities ?? []) {
+                entityUpsert.run({
+                    id: entity.id,
+                    datasetId: dataset.id,
+                    type,
+                    name: entity.name,
+                    json: JSON.stringify(entity),
+                });
+            }
+        }
+    });
+
+    insertAll();
 }
 
 export function insertDatasetBooks(
@@ -1495,6 +1579,12 @@ function updateDatasetHashes(db: Database, datasets: Dataset[]) {
     const getChapters = db.prepare(
         'SELECT * FROM DatasetChapter WHERE datasetId = @datasetId AND bookId = @bookId;'
     );
+    const getEntities = db.prepare(
+        'SELECT * FROM DatasetEntity WHERE datasetId = ? ORDER BY type ASC, id ASC;'
+    );
+    const updateEntityHash = db.prepare(
+        `UPDATE DatasetEntity SET sha256 = @sha256 WHERE datasetId = @datasetId AND type = @type AND id = @entityId;`
+    );
 
     for (let dataset of datasets) {
         const commentarySha = sha256()
@@ -1575,6 +1665,40 @@ function updateDatasetHashes(db: Database, datasets: Dataset[]) {
         });
 
         updateBooks();
+
+        const entities = getEntities.all(dataset.id) as {
+            id: string;
+            datasetId: string;
+            type: string;
+            name: string;
+            json: string;
+            sha256: string;
+        }[];
+
+        for (let entity of entities) {
+            const entityHash = sha256()
+                .update(entity.datasetId)
+                .update(entity.type)
+                .update(entity.id)
+                .update(entity.json)
+                .digest('hex');
+
+            entity.sha256 = entityHash;
+            commentarySha.update(entityHash);
+        }
+
+        const updateEntities = db.transaction(() => {
+            for (let entity of entities) {
+                updateEntityHash.run({
+                    sha256: entity.sha256,
+                    datasetId: entity.datasetId,
+                    type: entity.type,
+                    entityId: entity.id,
+                });
+            }
+        });
+
+        updateEntities();
 
         const hash = commentarySha.digest('hex');
         (dataset as any).sha256 = hash;
@@ -1792,6 +1916,7 @@ export async function* loadTranslationDatasets(
         const optionalTranslationKeys: (keyof DatasetTranslation)[] = [
             'licenseNotes',
             'licenseNotice',
+            'license',
         ];
 
         for (let translation of translations) {
@@ -1799,6 +1924,9 @@ export async function* loadTranslationDatasets(
                 ...translation,
                 shortName: translation.shortName!,
                 textDirection: translation.textDirection! as any,
+                license: translation.license
+                    ? JSON.parse(translation.license)
+                    : undefined,
                 books: [],
             };
             for (let key of optionalTranslationKeys) {
@@ -1845,8 +1973,20 @@ export async function* loadTranslationDatasets(
                     orderBy: [{ number: 'asc' }, { reader: 'asc' }],
                 });
 
+                const chapterWords = await db.chapterWords.findMany({
+                    where: {
+                        translationId: translation.id,
+                        bookId: book.id,
+                    },
+                    orderBy: [{ number: 'asc' }],
+                });
+
                 const bookChapters: TranslationBookChapter[] = chapters.map(
                     (chapter) => {
+                        const words = chapterWords.find(
+                            (words) => words.number === chapter.number
+                        );
+
                         return {
                             chapter: JSON.parse(chapter.json),
                             thisChapterAudioLinks: audioLinks
@@ -1859,8 +1999,7 @@ export async function* loadTranslationDatasets(
                                 }, {} as any),
                             thisChapterAudioTimings: audioTimings
                                 .filter(
-                                    (timing) =>
-                                        timing.number === chapter.number
+                                    (timing) => timing.number === chapter.number
                                 )
                                 .reduce((acc, timing) => {
                                     acc[timing.reader] = JSON.parse(
@@ -1868,6 +2007,13 @@ export async function* loadTranslationDatasets(
                                     );
                                     return acc;
                                 }, {} as any),
+                            ...(words
+                                ? {
+                                      thisChapterWords: JSON.parse(
+                                          words.wordsJson
+                                      ),
+                                  }
+                                : {}),
                         };
                     }
                 );
@@ -2110,6 +2256,31 @@ export async function* loadDatasetDatasets(
                 };
                 datasetDataset.books.push(datasetBook);
             }
+
+            const entities = await db.datasetEntity.findMany({
+                where: {
+                    datasetId: dataset.id,
+                },
+                orderBy: [{ type: 'asc' }, { id: 'asc' }],
+            });
+
+            for (let entity of entities) {
+                const parsed = JSON.parse(entity.json);
+                if (entity.type === 'person') {
+                    (datasetDataset.people ??= []).push(parsed);
+                } else if (entity.type === 'place') {
+                    (datasetDataset.places ??= []).push(parsed);
+                } else if (entity.type === 'event') {
+                    (datasetDataset.events ??= []).push(parsed);
+                } else if (entity.type === 'peopleGroup') {
+                    (datasetDataset.peopleGroups ??= []).push(parsed);
+                } else {
+                    logger.warn(
+                        '[loadDatasetDatasets] Unknown entity type!',
+                        entity.type
+                    );
+                }
+            }
         }
 
         yield output;
@@ -2137,7 +2308,7 @@ export interface SerializeApiOptions extends GenerateApiOptions {
 export function serializeFilesFromDatabase(
     db: PrismaClient,
     options: SerializeApiOptions = {},
-    translationsPerBatch: number = 50,
+    translationsPerBatch: number = 25,
     translations?: string[]
 ): AsyncGenerator<SerializedFile[]> {
     return serializeDatasets(

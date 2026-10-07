@@ -75,6 +75,11 @@ export interface MetadataBase {
     licenseNotice?: string | null;
 
     /**
+     * The structured license terms that were detected for the translation, if any.
+     */
+    license?: License | null;
+
+    /**
      * The ISO 639 letter language tag that the translation is primarily in.
      */
     language: string;
@@ -84,6 +89,56 @@ export interface MetadataBase {
      */
     direction: 'ltr' | 'rtl';
 }
+
+/**
+ * Defines a Zod schema for the structured license terms of a translation.
+ */
+export const LicenseSchema = z.object({
+    /**
+     * Whether attribution to the original source is required when using the translation.
+     */
+    attribution: z.enum(['required', 'not-required']).meta({
+        description:
+            'Whether attribution to the original source is required when using the translation.',
+    }),
+
+    /**
+     * Whether commercial use of the translation is allowed.
+     */
+    commercialUse: z.enum(['allowed', 'not-allowed']).meta({
+        description: 'Whether commercial use of the translation is allowed.',
+    }),
+
+    /**
+     * Whether creating and distributing derivative works of the translation is allowed.
+     */
+    derivatives: z.enum(['allowed', 'not-allowed']).meta({
+        description:
+            'Whether creating and distributing derivative works of the translation is allowed.',
+    }),
+
+    /**
+     * Whether derivative works must be distributed under the same license (i.e. a "share-alike" requirement).
+     */
+    copyleft: z.boolean().meta({
+        description:
+            'Whether derivative works must be distributed under the same license (i.e. a "share-alike" requirement).',
+    }),
+
+    /**
+     * Whether the translation has been dedicated to the public domain.
+     */
+    publicDomain: z.boolean().meta({
+        description:
+            'Whether the translation has been dedicated to the public domain.',
+    }),
+}).meta({
+    id: 'License',
+    description:
+        'Defines the structured license terms that were detected for a translation.',
+});
+
+export type License = z.infer<typeof LicenseSchema>;
 
 /**
  * The metadata for a translation that is input into the generator.
@@ -156,6 +211,14 @@ export const TranslationSchema = z.object({
     licenseNotice: z.string().nullable().optional().meta({
         description:
             'The notice that should be displayed when displaying content from the translation.',
+    }),
+
+    /**
+     * The structured license terms that were detected for the translation, if any.
+     */
+    license: LicenseSchema.nullable().optional().meta({
+        description:
+            'The structured license terms that were detected for the translation, if any.',
     }),
 
     /**
@@ -561,6 +624,555 @@ export const ScoredVerseRefSchema = VerseRefSchema.extend({
 export type ScoredVerseRef = z.infer<typeof ScoredVerseRefSchema>;
 
 /**
+ * Defines a Zod schema for a reference to another entity (person, place, event, or people group) in a dataset.
+ */
+/**
+ * Defines a Zod schema for the type of an entity in a dataset.
+ * Matches the collection segment of the entity API paths.
+ */
+export const DatasetEntityTypeSchema = z
+    .enum(['people', 'places', 'events', 'groups'])
+    .meta({
+        id: 'DatasetEntityType',
+        description:
+            'The type of an entity in a dataset. Matches the collection segment of the entity API paths, so the API link for an entity can be constructed as `/api/d/{dataset}/{type}/{id}.json`.',
+    });
+
+export type DatasetEntityType = z.infer<typeof DatasetEntityTypeSchema>;
+
+export const DatasetEntityRefSchema = z
+    .object({
+        /**
+         * The ID of the entity that is being referenced.
+         */
+        id: z.string().meta({
+            description: 'The ID of the entity that is being referenced.',
+        }),
+
+        /**
+         * The type of the entity that is being referenced.
+         * Matches the collection segment of the entity's API link,
+         * so the link can be constructed as `/api/d/{dataset}/{type}/{id}.json`.
+         */
+        type: DatasetEntityTypeSchema.meta({
+            description:
+                "The type of the entity that is being referenced. Matches the collection segment of the entity's API link, so the link can be constructed as `/api/d/{dataset}/{type}/{id}.json`.",
+        }),
+
+        /**
+         * The name of the entity that is being referenced.
+         */
+        name: z.string().optional().meta({
+            description: 'The name of the entity that is being referenced.',
+        }),
+
+        /**
+         * The API link for the entity that is being referenced.
+         * Only present in API responses.
+         */
+        apiLink: z.string().optional().meta({
+            description:
+                'The API link for the entity that is being referenced. Relative to the API origin. Only present in API responses.',
+        }),
+    })
+    .meta({
+        id: 'DatasetEntityRef',
+        description:
+            'Defines the schema for a reference to another entity (person, place, event, or people group) in a dataset.',
+    });
+
+export type DatasetEntityRef = z.infer<typeof DatasetEntityRefSchema>;
+
+/**
+ * Defines a Zod schema for information about a person in a dataset.
+ */
+export const DatasetPersonSchema = z
+    .object({
+        /**
+         * The ID of the person.
+         */
+        id: z.string().meta({
+            description: 'The ID of the person.',
+        }),
+
+        /**
+         * The name of the person.
+         */
+        name: z.string().meta({
+            description: 'The name of the person.',
+        }),
+
+        /**
+         * Other names that the person is called by.
+         */
+        alsoCalled: z.array(z.string()).optional().meta({
+            description: 'Other names that the person is called by.',
+        }),
+
+        /**
+         * Whether the name of the person is a proper name.
+         */
+        isProperName: z.boolean().optional().meta({
+            description: 'Whether the name of the person is a proper name.',
+        }),
+
+        /**
+         * The gender of the person.
+         */
+        gender: z.string().optional().meta({
+            description: 'The gender of the person.',
+        }),
+
+        /**
+         * The description of the person.
+         * Each string is a paragraph.
+         */
+        description: z.array(z.string()).optional().meta({
+            description:
+                'The description of the person. Each string is a paragraph.',
+        }),
+
+        /**
+         * The year that the person was born.
+         * Negative numbers are years BC. Positive numbers are years AD.
+         */
+        birthYear: z.number().optional().meta({
+            description:
+                'The year that the person was born. Negative numbers are years BC. Positive numbers are years AD.',
+        }),
+
+        /**
+         * The year that the person died.
+         * Negative numbers are years BC. Positive numbers are years AD.
+         */
+        deathYear: z.number().optional().meta({
+            description:
+                'The year that the person died. Negative numbers are years BC. Positive numbers are years AD.',
+        }),
+
+        /**
+         * The earliest year that the person is mentioned in.
+         * Negative numbers are years BC. Positive numbers are years AD.
+         */
+        minYear: z.number().optional().meta({
+            description:
+                'The earliest year that the person is mentioned in. Negative numbers are years BC. Positive numbers are years AD.',
+        }),
+
+        /**
+         * The latest year that the person is mentioned in.
+         * Negative numbers are years BC. Positive numbers are years AD.
+         */
+        maxYear: z.number().optional().meta({
+            description:
+                'The latest year that the person is mentioned in. Negative numbers are years BC. Positive numbers are years AD.',
+        }),
+
+        /**
+         * The place that the person was born in.
+         */
+        birthPlace: DatasetEntityRefSchema.optional().meta({
+            description: 'The place that the person was born in.',
+        }),
+
+        /**
+         * The place that the person died in.
+         */
+        deathPlace: DatasetEntityRefSchema.optional().meta({
+            description: 'The place that the person died in.',
+        }),
+
+        /**
+         * The father(s) of the person.
+         */
+        father: z.array(DatasetEntityRefSchema).optional().meta({
+            description: 'The father(s) of the person.',
+        }),
+
+        /**
+         * The mother(s) of the person.
+         */
+        mother: z.array(DatasetEntityRefSchema).optional().meta({
+            description: 'The mother(s) of the person.',
+        }),
+
+        /**
+         * The partners (spouses) of the person.
+         */
+        partners: z.array(DatasetEntityRefSchema).optional().meta({
+            description: 'The partners (spouses) of the person.',
+        }),
+
+        /**
+         * The children of the person.
+         */
+        children: z.array(DatasetEntityRefSchema).optional().meta({
+            description: 'The children of the person.',
+        }),
+
+        /**
+         * The siblings of the person.
+         */
+        siblings: z.array(DatasetEntityRefSchema).optional().meta({
+            description: 'The siblings of the person.',
+        }),
+
+        /**
+         * The half-siblings of the person that share the same mother.
+         */
+        halfSiblingsSameMother: z
+            .array(DatasetEntityRefSchema)
+            .optional()
+            .meta({
+                description:
+                    'The half-siblings of the person that share the same mother.',
+            }),
+
+        /**
+         * The half-siblings of the person that share the same father.
+         */
+        halfSiblingsSameFather: z
+            .array(DatasetEntityRefSchema)
+            .optional()
+            .meta({
+                description:
+                    'The half-siblings of the person that share the same father.',
+            }),
+
+        /**
+         * The people groups that the person is a member of.
+         */
+        memberOf: z.array(DatasetEntityRefSchema).optional().meta({
+            description: 'The people groups that the person is a member of.',
+        }),
+
+        /**
+         * The events that the person participated in.
+         */
+        events: z.array(DatasetEntityRefSchema).optional().meta({
+            description: 'The events that the person participated in.',
+        }),
+
+        /**
+         * The list of Bible references that mention the person.
+         * Sorted by book order, chapter, and verse.
+         * Consecutive verses in the same chapter are collapsed into a single reference using `endVerse`.
+         */
+        references: z.array(VerseRefSchema).meta({
+            description:
+                'The list of Bible references that mention the person. Sorted by book order, chapter, and verse. Consecutive verses in the same chapter are collapsed into a single reference using `endVerse`.',
+        }),
+    })
+    .meta({
+        id: 'DatasetPerson',
+        description:
+            'Defines the schema for information about a person in a dataset.',
+    });
+
+export type DatasetPerson = z.infer<typeof DatasetPersonSchema>;
+
+/**
+ * Defines a Zod schema for information about a place in a dataset.
+ */
+export const DatasetPlaceSchema = z
+    .object({
+        /**
+         * The ID of the place.
+         */
+        id: z.string().meta({
+            description: 'The ID of the place.',
+        }),
+
+        /**
+         * The name of the place.
+         */
+        name: z.string().meta({
+            description: 'The name of the place.',
+        }),
+
+        /**
+         * The name of the place as it appears in the King James Version.
+         */
+        kjvName: z.string().optional().meta({
+            description:
+                'The name of the place as it appears in the King James Version.',
+        }),
+
+        /**
+         * The name of the place as it appears in the English Standard Version.
+         */
+        esvName: z.string().optional().meta({
+            description:
+                'The name of the place as it appears in the English Standard Version.',
+        }),
+
+        /**
+         * Other names that the place is called by.
+         */
+        aliases: z.array(z.string()).optional().meta({
+            description: 'Other names that the place is called by.',
+        }),
+
+        /**
+         * The type of geographical feature that the place is.
+         * For example, "City", "Region", "Mountain", "Water", etc.
+         */
+        featureType: z.string().optional().meta({
+            description:
+                'The type of geographical feature that the place is. For example, "City", "Region", "Mountain", "Water", etc.',
+        }),
+
+        /**
+         * The sub-type of geographical feature that the place is.
+         */
+        featureSubType: z.string().optional().meta({
+            description:
+                'The sub-type of geographical feature that the place is.',
+        }),
+
+        /**
+         * The latitude of the place.
+         */
+        latitude: z.number().optional().meta({
+            description: 'The latitude of the place.',
+        }),
+
+        /**
+         * The longitude of the place.
+         */
+        longitude: z.number().optional().meta({
+            description: 'The longitude of the place.',
+        }),
+
+        /**
+         * How precise the latitude and longitude of the place are.
+         */
+        precision: z.string().optional().meta({
+            description:
+                'How precise the latitude and longitude of the place are.',
+        }),
+
+        /**
+         * The description of the place.
+         * Each string is a paragraph.
+         */
+        description: z.array(z.string()).optional().meta({
+            description:
+                'The description of the place. Each string is a paragraph.',
+        }),
+
+        /**
+         * The comment on the place from the dataset authors.
+         */
+        comment: z.string().optional().meta({
+            description: 'The comment on the place from the dataset authors.',
+        }),
+
+        /**
+         * The root place for this place.
+         * For example, the root place of "Sea of Galilee" and "Sea of Tiberias" is the same body of water.
+         */
+        rootPlace: DatasetEntityRefSchema.optional().meta({
+            description:
+                'The root place for this place. Different names for the same geographical location share the same root place.',
+        }),
+
+        /**
+         * The place that this place is a duplicate of.
+         */
+        duplicateOf: DatasetEntityRefSchema.optional().meta({
+            description: 'The place that this place is a duplicate of.',
+        }),
+
+        /**
+         * The people that have been at the place.
+         */
+        people: z.array(DatasetEntityRefSchema).optional().meta({
+            description: 'The people that have been at the place.',
+        }),
+
+        /**
+         * The people that were born at the place.
+         */
+        peopleBorn: z.array(DatasetEntityRefSchema).optional().meta({
+            description: 'The people that were born at the place.',
+        }),
+
+        /**
+         * The people that died at the place.
+         */
+        peopleDied: z.array(DatasetEntityRefSchema).optional().meta({
+            description: 'The people that died at the place.',
+        }),
+
+        /**
+         * The events that happened at the place.
+         */
+        events: z.array(DatasetEntityRefSchema).optional().meta({
+            description: 'The events that happened at the place.',
+        }),
+
+        /**
+         * The list of Bible references that mention the place.
+         * Sorted by book order, chapter, and verse.
+         * Consecutive verses in the same chapter are collapsed into a single reference using `endVerse`.
+         */
+        references: z.array(VerseRefSchema).meta({
+            description:
+                'The list of Bible references that mention the place. Sorted by book order, chapter, and verse. Consecutive verses in the same chapter are collapsed into a single reference using `endVerse`.',
+        }),
+    })
+    .meta({
+        id: 'DatasetPlace',
+        description:
+            'Defines the schema for information about a place in a dataset.',
+    });
+
+export type DatasetPlace = z.infer<typeof DatasetPlaceSchema>;
+
+/**
+ * Defines a Zod schema for information about an event in a dataset.
+ */
+export const DatasetEventSchema = z
+    .object({
+        /**
+         * The ID of the event.
+         */
+        id: z.string().meta({
+            description: 'The ID of the event.',
+        }),
+
+        /**
+         * The name of the event.
+         */
+        name: z.string().meta({
+            description: 'The name of the event.',
+        }),
+
+        /**
+         * The date that the event started at.
+         * Negative numbers are years BC. Positive numbers are years AD.
+         * More specific dates use the `YYYY-MM-DD` format.
+         */
+        startDate: z.string().optional().meta({
+            description:
+                'The date that the event started at. Negative numbers are years BC. Positive numbers are years AD. More specific dates use the `YYYY-MM-DD` format.',
+        }),
+
+        /**
+         * The duration of the event.
+         * For example, "1D" is one day and "40Y" is fourty years.
+         */
+        duration: z.string().optional().meta({
+            description:
+                'The duration of the event. For example, "1D" is one day and "40Y" is fourty years.',
+        }),
+
+        /**
+         * The people that participated in the event.
+         */
+        participants: z.array(DatasetEntityRefSchema).optional().meta({
+            description: 'The people that participated in the event.',
+        }),
+
+        /**
+         * The places that the event happened at.
+         */
+        locations: z.array(DatasetEntityRefSchema).optional().meta({
+            description: 'The places that the event happened at.',
+        }),
+
+        /**
+         * The people groups that participated in the event.
+         */
+        groups: z.array(DatasetEntityRefSchema).optional().meta({
+            description: 'The people groups that participated in the event.',
+        }),
+
+        /**
+         * The event that this event is a part of.
+         */
+        partOf: DatasetEntityRefSchema.optional().meta({
+            description: 'The event that this event is a part of.',
+        }),
+
+        /**
+         * The event that happened before this event.
+         */
+        predecessor: DatasetEntityRefSchema.optional().meta({
+            description: 'The event that happened before this event.',
+        }),
+
+        /**
+         * The list of Bible references that describe the event.
+         * Sorted by book order, chapter, and verse.
+         * Consecutive verses in the same chapter are collapsed into a single reference using `endVerse`.
+         */
+        references: z.array(VerseRefSchema).meta({
+            description:
+                'The list of Bible references that describe the event. Sorted by book order, chapter, and verse. Consecutive verses in the same chapter are collapsed into a single reference using `endVerse`.',
+        }),
+    })
+    .meta({
+        id: 'DatasetEvent',
+        description:
+            'Defines the schema for information about an event in a dataset.',
+    });
+
+export type DatasetEvent = z.infer<typeof DatasetEventSchema>;
+
+/**
+ * Defines a Zod schema for information about a people group in a dataset.
+ */
+export const DatasetPeopleGroupSchema = z
+    .object({
+        /**
+         * The ID of the people group.
+         */
+        id: z.string().meta({
+            description: 'The ID of the people group.',
+        }),
+
+        /**
+         * The name of the people group.
+         */
+        name: z.string().meta({
+            description: 'The name of the people group.',
+        }),
+
+        /**
+         * The people that are members of the people group.
+         */
+        members: z.array(DatasetEntityRefSchema).optional().meta({
+            description: 'The people that are members of the people group.',
+        }),
+
+        /**
+         * The events that the people group participated in.
+         */
+        events: z.array(DatasetEntityRefSchema).optional().meta({
+            description: 'The events that the people group participated in.',
+        }),
+
+        /**
+         * The list of Bible references that mention the people group.
+         * Sorted by book order, chapter, and verse.
+         * Consecutive verses in the same chapter are collapsed into a single reference using `endVerse`.
+         */
+        references: z.array(VerseRefSchema).meta({
+            description:
+                'The list of Bible references that mention the people group. Sorted by book order, chapter, and verse. Consecutive verses in the same chapter are collapsed into a single reference using `endVerse`.',
+        }),
+    })
+    .meta({
+        id: 'DatasetPeopleGroup',
+        description:
+            'Defines the schema for information about a people group in a dataset.',
+    });
+
+export type DatasetPeopleGroup = z.infer<typeof DatasetPeopleGroupSchema>;
+
+/**
  * Defines a Zod schema for information about a profile in a commentary.
  */
 export const CommentaryProfileSchema = z.object({
@@ -621,6 +1233,18 @@ export const TranslationBookChapterSchema = z
             .meta({
                 description:
                     'The audio timings (per-verse start times, in seconds) for different audio versions for the chapter.',
+            }),
+
+        /**
+         * The word-level annotations for the chapter's verses.
+         * Omitted if the translation doesn't have any word-level annotations for the chapter.
+         */
+        thisChapterWords: z
+            .lazy(() => TranslationBookChapterWordsSchema)
+            .optional()
+            .meta({
+                description:
+                    "The word-level annotations (Strong's numbers and related source data) for the chapter's verses. Omitted if the translation doesn't have any word-level annotations for the chapter.",
             }),
     })
     .meta({
@@ -683,6 +1307,111 @@ export const TranslationBookChapterAudioTimingsSchema = z
 
 export type TranslationBookChapterAudioTimings = z.infer<
     typeof TranslationBookChapterAudioTimingsSchema
+>;
+
+/**
+ * Defines a Zod schema for a word-level annotation in a chapter.
+ *
+ * The annotation is anchored to a range of characters in a single item of a
+ * verse's content, so that consumers can highlight exactly the characters that
+ * it applies to.
+ */
+export const ChapterWordSchema = z
+    .object({
+        /**
+         * The index of the item in the verse's content array that the annotation applies to.
+         */
+        contentIndex: z.number().meta({
+            description:
+                "The index of the item in the verse's content array that the annotation applies to.",
+        }),
+
+        /**
+         * The index of the first character of the annotated word.
+         */
+        start: z.number().meta({
+            description:
+                "The index of the first character of the annotated word in the content item's text.",
+        }),
+
+        /**
+         * The index after the last character of the annotated word.
+         */
+        end: z.number().meta({
+            description:
+                "The index after the last character of the annotated word in the content item's text. That is, text.slice(start, end) is the annotated word.",
+        }),
+
+        /**
+         * The Strong's number(s) for the word.
+         */
+        strongs: z.array(z.string()).optional().meta({
+            description:
+                "The Strong's number(s) for the word. Omitted if the translation only provided other annotations for the word.",
+        }),
+
+        /**
+         * The dictionary (citation) form of the word.
+         */
+        lemma: z.string().optional().meta({
+            description:
+                'The dictionary (citation) form of the word. Omitted if the translation did not provide one.',
+        }),
+
+        /**
+         * The morphology parse code for the word.
+         */
+        morph: z.string().optional().meta({
+            description:
+                'The morphology parse code for the word. Omitted if the translation did not provide one.',
+        }),
+
+        /**
+         * The pointer to the word in the source text.
+         */
+        srcloc: z.string().optional().meta({
+            description:
+                'The pointer to the word in the source text, in the <sourceName>:<location> format. Omitted if the translation did not provide one.',
+        }),
+
+        /**
+         * Which occurrence of the source word this word is.
+         */
+        occurrence: z.number().optional().meta({
+            description:
+                'Which occurrence of the source word this word is. 1-based. Omitted if the translation did not provide one.',
+        }),
+
+        /**
+         * The total number of times that the source word occurs.
+         */
+        occurrences: z.number().optional().meta({
+            description:
+                'The total number of times that the source word occurs. Omitted if the translation did not provide one.',
+        }),
+    })
+    .meta({
+        id: 'ChapterWord',
+        description:
+            "Defines the schema for a word-level annotation in a chapter. The annotation is anchored to a range of characters in a single item of a verse's content.",
+    });
+
+export type ChapterWord = z.infer<typeof ChapterWordSchema>;
+
+/**
+ * Defines a Zod schema for the word-level annotations for a book chapter.
+ * Maps a verse number to the list of annotated words in the verse, in order.
+ */
+export const TranslationBookChapterWordsSchema = z
+    .record(z.string(), z.array(z.lazy(() => ChapterWordSchema)))
+    .meta({
+        id: 'TranslationBookChapterWords',
+        description:
+            'Defines the schema for the word-level annotations for a book chapter. Maps a verse number to the list of annotated words in the verse, in order.',
+    });
+
+export type TranslationBookChapterWords = z.infer<
+    typeof TranslationBookChapterWordsSchema
 >;
 
 /**
@@ -1051,3 +1780,402 @@ export const ChapterFootnoteSchema = z
     });
 
 export type ChapterFootnote = z.infer<typeof ChapterFootnoteSchema>;
+
+/**
+ * A Zod schema for a range of text inside a simplified verse.
+ *
+ * Ranges are expressed as offsets into the `text` property of the verse that contains them.
+ * Offsets are measured in UTF-16 code units, which is what JavaScript's `String.prototype.length`,
+ * `String.prototype.slice()`, and `String.prototype.substring()` use.
+ */
+export const SimpleTextRangeSchema = z
+    .object({
+        /**
+         * The index of the first character in the range.
+         */
+        start: z.number().meta({
+            description:
+                'The index of the first character of the range in the verse text. Measured in UTF-16 code units.',
+        }),
+
+        /**
+         * The index after the last character in the range.
+         */
+        end: z.number().meta({
+            description:
+                'The index after the last character of the range in the verse text. Measured in UTF-16 code units.',
+        }),
+    })
+    .meta({
+        id: 'SimpleTextRange',
+        description:
+            'Defines the schema for a range of text inside a simplified verse. Ranges are expressed as offsets into the text of the verse that contains them, measured in UTF-16 code units.',
+    });
+
+export type SimpleTextRange = z.infer<typeof SimpleTextRangeSchema>;
+
+/**
+ * A Zod schema for a range of text inside a simplified verse that represents a line of poetry.
+ */
+export const SimplePoemRangeSchema = SimpleTextRangeSchema.extend({
+    /**
+     * The level of indent that the poem line should be displayed with.
+     */
+    level: z.number().meta({
+        description:
+            'The level of indent that the line of poetry should be displayed with.',
+    }),
+}).meta({
+    id: 'SimplePoemRange',
+    description:
+        'Defines the schema for a range of text inside a simplified verse that represents a line of poetry.',
+});
+
+export type SimplePoemRange = z.infer<typeof SimplePoemRangeSchema>;
+
+/**
+ * A Zod schema for a footnote in a simplified verse.
+ */
+export const SimpleVerseFootnoteSchema = z
+    .object({
+        /**
+         * The ID of the note.
+         */
+        noteId: z.number().meta({
+            description: 'The ID of the note.',
+        }),
+
+        /**
+         * The index in the verse text that the footnote caller should be inserted at.
+         */
+        offset: z.number().meta({
+            description:
+                'The index in the verse text that the footnote caller should be inserted at. Measured in UTF-16 code units.',
+        }),
+
+        /**
+         * The text of the footnote.
+         */
+        text: z.string().meta({
+            description: 'The text of the footnote.',
+        }),
+
+        /**
+         * The caller that should be used for the footnote.
+         * See ChapterFootnote for more information.
+         */
+        caller: z.union([z.literal('+'), z.string(), z.null()]).meta({
+            description:
+                'The caller that should be used for the footnote. If "+", then the caller should be autogenerated. If null, then the caller should be empty. If a string, then the caller should be that string.',
+        }),
+    })
+    .meta({
+        id: 'SimpleVerseFootnote',
+        description:
+            'Defines the schema for a footnote in a simplified verse. Unlike the footnotes in the regular chapter format, simplified footnotes include the position that they occur at in the verse text.',
+    });
+
+export type SimpleVerseFootnote = z.infer<typeof SimpleVerseFootnoteSchema>;
+
+/**
+ * A Zod schema for a heading that is embedded in a simplified verse.
+ */
+export const SimpleInlineHeadingSchema = z
+    .object({
+        /**
+         * The index in the verse text that the heading occurs at.
+         */
+        offset: z.number().meta({
+            description:
+                'The index in the verse text that the heading occurs at. Measured in UTF-16 code units.',
+        }),
+
+        /**
+         * The text of the heading.
+         */
+        text: z.string().meta({
+            description: 'The text of the heading.',
+        }),
+    })
+    .meta({
+        id: 'SimpleInlineHeading',
+        description:
+            'Defines the schema for a heading that is embedded in a simplified verse.',
+    });
+
+export type SimpleInlineHeading = z.infer<typeof SimpleInlineHeadingSchema>;
+
+/**
+ * A Zod schema for a verse in a simplified chapter.
+ */
+export const SimpleChapterVerseSchema = z
+    .object({
+        /**
+         * Indicates that the content is a verse.
+         */
+        type: z.literal('verse'),
+
+        /**
+         * The number of the verse.
+         */
+        number: z.number().meta({
+            description: 'The number of the verse.',
+        }),
+
+        /**
+         * The text of the verse.
+         */
+        text: z.string().meta({
+            description:
+                'The text of the verse. Lines of poetry and line breaks are separated by newline (\\n) characters.',
+        }),
+
+        /**
+         * The footnotes that occur in the verse.
+         */
+        footnotes: z.array(SimpleVerseFootnoteSchema).meta({
+            description: 'The footnotes that occur in the verse.',
+        }),
+
+        /**
+         * The headings that occur in the verse.
+         */
+        headings: z.array(SimpleInlineHeadingSchema).optional().meta({
+            description:
+                'The headings that occur in the middle of the verse. Omitted if the verse contains no inline headings.',
+        }),
+
+        /**
+         * The ranges of text that represent the Words of Jesus.
+         */
+        wordsOfJesus: z.array(SimpleTextRangeSchema).optional().meta({
+            description:
+                'The ranges of the verse text that represent the Words of Jesus. Omitted if the verse contains none.',
+        }),
+
+        /**
+         * The ranges of text that represent lines of poetry.
+         */
+        poem: z.array(SimplePoemRangeSchema).optional().meta({
+            description:
+                'The ranges of the verse text that represent lines of poetry. Omitted if the verse contains none.',
+        }),
+    })
+    .meta({
+        id: 'SimpleChapterVerse',
+        description: 'Defines the schema for a verse in a simplified chapter.',
+    });
+
+export type SimpleChapterVerse = z.infer<typeof SimpleChapterVerseSchema>;
+
+/**
+ * A Zod schema for a Hebrew Subtitle in a simplified chapter.
+ */
+export const SimpleChapterHebrewSubtitleSchema = SimpleChapterVerseSchema.omit({
+    type: true,
+    number: true,
+})
+    .extend({
+        /**
+         * Indicates that the content represents a Hebrew Subtitle.
+         */
+        type: z.literal('hebrew_subtitle'),
+    })
+    .meta({
+        id: 'SimpleChapterHebrewSubtitle',
+        description:
+            'Defines the schema for a Hebrew Subtitle in a simplified chapter.',
+    });
+
+export type SimpleChapterHebrewSubtitle = z.infer<
+    typeof SimpleChapterHebrewSubtitleSchema
+>;
+
+/**
+ * A Zod schema for a heading in a simplified chapter.
+ */
+export const SimpleChapterHeadingSchema = z
+    .object({
+        /**
+         * Indicates that the content represents a heading.
+         */
+        type: z.literal('heading'),
+
+        /**
+         * The text of the heading.
+         */
+        text: z.string().meta({
+            description: 'The text of the heading.',
+        }),
+    })
+    .meta({
+        id: 'SimpleChapterHeading',
+        description:
+            'Defines the schema for a heading in a simplified chapter.',
+    });
+
+export type SimpleChapterHeading = z.infer<typeof SimpleChapterHeadingSchema>;
+
+/**
+ * A union type that represents a single piece of content in a simplified chapter.
+ * A piece of chapter content can be one of the following things:
+ * - A heading.
+ * - A line break.
+ * - A verse.
+ * - A Hebrew Subtitle.
+ */
+export const SimpleChapterContentSchema = z
+    .discriminatedUnion('type', [
+        SimpleChapterHeadingSchema,
+        ChapterLineBreakSchema,
+        SimpleChapterVerseSchema,
+        SimpleChapterHebrewSubtitleSchema,
+    ])
+    .meta({
+        id: 'SimpleChapterContent',
+        description:
+            'Defines a union type that represents a single piece of content in a simplified chapter. A piece of chapter content can be one of the following things: A heading, a line break, a verse, or a Hebrew Subtitle.',
+    });
+
+export type SimpleChapterContent = z.infer<typeof SimpleChapterContentSchema>;
+
+/**
+ * A Zod schema for the data in a simplified chapter.
+ */
+export const SimpleChapterDataSchema = z
+    .object({
+        /**
+         * The number of the chapter.
+         */
+        number: z.number().meta({
+            description: 'The number of the chapter.',
+        }),
+
+        /**
+         * The content of the chapter.
+         */
+        content: z.array(SimpleChapterContentSchema).meta({
+            description: 'The content of the chapter.',
+        }),
+
+        /**
+         * The footnotes that could not be associated with a verse.
+         */
+        footnotes: z.array(ChapterFootnoteSchema).meta({
+            description:
+                'The list of footnotes that could not be associated with a verse. Footnotes that belong to a verse are included on the verse itself, so this list is usually empty.',
+        }),
+    })
+    .meta({
+        id: 'SimpleChapterData',
+        description:
+            'Defines the schema for the data in a simplified chapter. Unlike the regular chapter format, each verse contains a single text string and the footnotes/formatting are represented by offsets into that string.',
+    });
+
+export type SimpleChapterData = z.infer<typeof SimpleChapterDataSchema>;
+
+/**
+ * A Zod schema for the data in a simplified commentary chapter.
+ */
+export const SimpleCommentaryChapterDataSchema = z
+    .object({
+        /**
+         * The number of the chapter.
+         */
+        number: z.number().meta({
+            description: 'The number of the chapter.',
+        }),
+
+        /**
+         * The introduction that the commentary provided to the chapter.
+         */
+        introduction: z.string().optional().meta({
+            description:
+                'The introduction that the commentary provided to the chapter. Not all commentaries provide an introduction to a chapter.',
+        }),
+
+        /**
+         * The content of the chapter.
+         */
+        content: z.array(SimpleChapterVerseSchema).meta({
+            description: 'The content of the chapter.',
+        }),
+    })
+    .meta({
+        id: 'SimpleCommentaryChapterData',
+        description:
+            'Defines the schema for the data in a simplified commentary chapter.',
+    });
+
+export type SimpleCommentaryChapterData = z.infer<
+    typeof SimpleCommentaryChapterDataSchema
+>;
+
+/**
+ * Defines a Zod schema for information about a book chapter, using the simplified
+ * chapter format.
+ */
+export const SimpleTranslationBookChapterSchema =
+    TranslationBookChapterSchema.extend({
+        /**
+         * The simplified information for the chapter.
+         */
+        chapter: z
+            .lazy(() => SimpleChapterDataSchema)
+            .meta({
+                description: 'The simplified information for the chapter.',
+            }),
+
+        /**
+         * The word-level annotations for the chapter's verses, using the simplified format.
+         */
+        thisChapterWords: z
+            .lazy(() => SimpleTranslationBookChapterWordsSchema)
+            .optional()
+            .meta({
+                description:
+                    "The word-level annotations (Strong's numbers and related source data) for the chapter's verses, with their offsets remapped onto the simplified verse text. Omitted if the translation doesn't have any word-level annotations for the chapter.",
+            }),
+    }).meta({
+        id: 'SimpleTranslationBookChapter',
+        description:
+            'Defines the schema for information about a book chapter, using the simplified chapter format.',
+    });
+
+export type SimpleTranslationBookChapter = z.infer<
+    typeof SimpleTranslationBookChapterSchema
+>;
+
+/**
+ * A Zod schema for a word-level annotation in a simplified chapter.
+ *
+ * Unlike the regular annotations, these are anchored to a range of characters in the
+ * text of a verse, since the simplified format replaces the verse's content array with
+ * a single string.
+ */
+export const SimpleChapterWordSchema = ChapterWordSchema.omit({
+    contentIndex: true,
+}).meta({
+    id: 'SimpleChapterWord',
+    description:
+        "Defines the schema for a word-level annotation in a simplified chapter. The annotation is anchored to a range of characters in the verse's text.",
+});
+
+export type SimpleChapterWord = z.infer<typeof SimpleChapterWordSchema>;
+
+/**
+ * Defines a Zod schema for the word-level annotations for a book chapter, using the
+ * simplified format.
+ * Maps a verse number to the list of annotated words in the verse, in order.
+ */
+export const SimpleTranslationBookChapterWordsSchema = z
+    .record(z.string(), z.array(z.lazy(() => SimpleChapterWordSchema)))
+    .meta({
+        id: 'SimpleTranslationBookChapterWords',
+        description:
+            'Defines the schema for the word-level annotations for a book chapter, using the simplified format. Maps a verse number to the list of annotated words in the verse, in order.',
+    });
+
+export type SimpleTranslationBookChapterWords = z.infer<
+    typeof SimpleTranslationBookChapterWordsSchema
+>;
