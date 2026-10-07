@@ -87,21 +87,7 @@ See [https://bible.helloao.org/docs/guide/](https://bible.helloao.org/docs/guide
 
 ## Translating the Documentation
 
-`pnpm translate:docs` machine-translates the English docs in `docs/` into any language supported by the
-[Google Cloud Translation API](https://cloud.google.com/translate/docs/languages). It authenticates with
-Application Default Credentials, so a project with the Cloud Translation API enabled and the gcloud CLI are all you need:
-
-```bash
-gcloud auth application-default login
-gcloud auth application-default set-quota-project <project-id>
-
-pnpm translate:docs --list-languages   # show supported language codes
-pnpm translate:docs es fr zh-CN         # writes docs/es, docs/fr, docs/zh-CN
-```
-
-Code blocks, inline code, URLs and HTML are left untouched, and links are rewritten to point at the translated pages.
-Files whose translation is newer than the English source are skipped; pass `--force` to re-translate them.
-Run `pnpm translate:docs --help` for all options.
+See [`docs/README.md`](./docs/README.md#translating-the-documentation) for how to machine-translate the docs into other languages.
 
 ## License
 

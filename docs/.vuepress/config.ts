@@ -190,7 +190,11 @@ export default defineUserConfig({
     }),
 
     plugins: [
-        searchPlugin(),
+        searchPlugin({
+            // A home page's markdown body holds contributor notes for GitHub
+            // that HomeLayout never renders, so keep its headings out of search.
+            isSearchable: (page) => page.frontmatter.layout !== 'HomeLayout',
+        }),
         shikiPlugin({
             // options
             langs: ['ts', 'json'],
