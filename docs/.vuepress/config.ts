@@ -17,6 +17,7 @@ import type { SiteLocaleConfig } from 'vuepress';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { mergeLabels, type Labels } from './labels';
+import type { Verses } from './verses';
 
 const hostname = 'https://bible.helloao.org';
 const base = '/docs/';
@@ -257,6 +258,21 @@ const siteLabels: Record<string, Labels> = {
     ),
 };
 
+/**
+ * Every locale's home page verses, keyed like `locales`. See verses.ts.
+ */
+const readVerses = (file: string): Verses =>
+    existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')) : {};
+const siteVerses: Record<string, Verses> = {
+    '/': readVerses(path.join(__dirname, 'verses.json')),
+    ...Object.fromEntries(
+        translatedLanguages.map((lang) => [
+            `/${lang}/`,
+            readVerses(path.join(docsDir, lang, 'verses.json')),
+        ])
+    ),
+};
+
 // Translated section landing pages get translated crumb labels too.
 for (const lang of translatedLanguages) {
     const labels = siteLabels[`/${lang}/`];
@@ -271,6 +287,7 @@ export default defineUserConfig({
 
     define: {
         __SITE_LABELS__: siteLabels,
+        __SITE_VERSES__: siteVerses,
     },
 
     title,

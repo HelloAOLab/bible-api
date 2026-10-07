@@ -14,6 +14,7 @@
         "build:docs": "cd docs && pnpm build",
         "dev:docs": "cd docs && pnpm dev",
         "translate:docs": "tsx ./tools/translate-docs.ts",
+        "fill:docs-verses": "tsx ./tools/fill-docs-verses.ts",
         "cli": "npm run build && node --max-old-space-size=8192 ./packages/helloao-cli/dist/esm/cli.js",
         "db:clone": "npm run cli init ./free-use-bible-api.download.db -- --source https://bible.helloao.org/bible.db",
         "db:init": "npm run cli init ./free-use-bible-api.db",

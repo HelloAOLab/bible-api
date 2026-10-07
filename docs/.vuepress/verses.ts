@@ -1,20 +1,16 @@
 /**
- * The Bible verses quoted on the home page, for each language.
+ * The Bible verses quoted on the home page.
  *
- * These are never machine-translated: Scripture should be quoted from a real
- * translation. For each language, take the text from a translation in the
- * Free Use Bible API, e.g.
+ * These are never machine-translated: Scripture is quoted from a real
+ * translation in the Free Use Bible API. The English verses are in
+ * `verses.json` next to this file, and each translated language's in
+ * `docs/<language>/verses.json`. A language or verse that has none falls back
+ * to English.
  *
- *     https://bible.helloao.org/api/<translationId>/<book>/<chapter>.json
- *
- * and fill in `text` (the verse), `bookName` (the translation's name for the
- * book), `translationAbbreviation` (shown next to the reference) and
- * `translationId` (the API's ID for the translation, also used for the link
- * to Seed Bible).
- *
- * Languages are keyed by the same code as their docs directory (`es`,
- * `zh-CN`), with `en` for English. A language or verse that is not listed
- * falls back to English.
+ * `pnpm fill:docs-verses` fills in missing verses from the API, choosing a
+ * translation for each language the way the Seed Bible app does (see
+ * tools/fill-docs-verses.ts). Entries already in a file are left alone, so
+ * they can be edited by hand.
  */
 
 /** Which verses the home page quotes. */
@@ -34,30 +30,13 @@ export interface VerseText {
     translationAbbreviation: string;
     /** The translation's ID in the Free Use Bible API, e.g. "AAB". */
     translationId: string;
+    /**
+     * The language of the text, when it is not the language of the page it
+     * is shown on (a language with no Bible translation of its own can quote
+     * one in a related language).
+     */
+    language?: string;
 }
 
-export const VERSES: Record<string, Partial<Record<HomeVerse, VerseText>>> = {
-    en: {
-        freelyGive: {
-            text: 'Freely you have received; freely give.',
-            bookName: 'Matthew',
-            translationAbbreviation: 'AAB',
-            translationId: 'AAB',
-        },
-        stewards: {
-            text: 'As good stewards of the manifold grace of God, each of you should use whatever gift he has received to serve one another.',
-            bookName: '1 Peter',
-            translationAbbreviation: 'AAB',
-            translationId: 'AAB',
-        },
-    },
-    // es: {
-    //     freelyGive: {
-    //         text: '…',
-    //         bookName: 'Mateo',
-    //         translationAbbreviation: '…',
-    //         translationId: '…',
-    //     },
-    //     stewards: { … },
-    // },
-};
+/** The verses for one language. */
+export type Verses = Partial<Record<HomeVerse, VerseText>>;

@@ -16,10 +16,13 @@ import { fillLabel, labelHtml } from '../composables/formatLabel';
 import type { Labels } from '../labels';
 import {
     HOME_VERSES,
-    VERSES,
     type HomeVerse,
+    type Verses,
     type VerseText,
 } from '../verses';
+
+// Every locale's verses, keyed by locale path. Defined in config.ts.
+declare const __SITE_VERSES__: Record<string, Verses>;
 
 const DONATE_URL = 'https://better.giving/marketplace/1118469';
 const DISCORD_URL = 'https://discord.com/invite/NbEZMCJmqC';
@@ -31,21 +34,22 @@ const frontmatter = usePageFrontmatter();
 const lang = usePageLang();
 const locale = useLocale();
 
-// The quoted verses come from verses.ts rather than the machine-translated
-// labels, falling back to English for a language that has none.
+// The quoted verses come from verses.json files rather than the
+// machine-translated labels, falling back to English for a language that has
+// none. See verses.ts.
 const verses = computed(() => {
     const code = locale.value === '/' ? 'en' : locale.value.slice(1, -1);
     return Object.fromEntries(
         (Object.keys(HOME_VERSES) as HomeVerse[]).map((key) => {
-            const own = VERSES[code]?.[key];
-            const verse = own ?? VERSES.en[key]!;
+            const own = __SITE_VERSES__[locale.value]?.[key];
+            const verse = own ?? __SITE_VERSES__['/'][key]!;
             const { book, chapter, verse: number } = HOME_VERSES[key];
             const reference = `${verse.bookName} ${chapter}:${number}`;
             return [
                 key,
                 {
                     ...verse,
-                    lang: own ? code : 'en',
+                    lang: verse.language ?? (own ? code : 'en'),
                     reference,
                     open: fillLabel(labels.value.home.openVerse, { reference }),
                     url:
