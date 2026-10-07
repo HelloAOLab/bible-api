@@ -58,6 +58,100 @@ async function getBooksMap(
     return m;
 }
 
+export interface TranslationSummary {
+    id: string;
+    name: string;
+    englishName: string;
+    shortName?: string;
+    language: string;
+    languageName?: string;
+    languageEnglishName?: string;
+    textDirection: string;
+    numberOfBooks: number;
+}
+
+const translationsCache = new Map<string, TranslationSummary[]>();
+
+/**
+ * Fetches the list of translations from the API's available_translations.json endpoint.
+ */
+export async function getAvailableTranslations(
+    apiBase: string
+): Promise<TranslationSummary[]> {
+    const cached = translationsCache.get(apiBase);
+    if (cached) return cached;
+
+    const res = await fetch(`${apiBase}/available_translations.json`);
+    if (!res.ok) {
+        throw new Error(
+            `available_translations.json request failed: ${res.status}`
+        );
+    }
+    const data: any = await res.json();
+
+    const translations: TranslationSummary[] = (data.translations ?? []).map(
+        (t: any) => ({
+            id: t.id,
+            name: t.name,
+            englishName: t.englishName,
+            shortName: t.shortName,
+            language: t.language,
+            languageName: t.languageName,
+            languageEnglishName: t.languageEnglishName,
+            textDirection: t.textDirection,
+            numberOfBooks: t.numberOfBooks,
+        })
+    );
+
+    translationsCache.set(apiBase, translations);
+    return translations;
+}
+
+function includesIgnoreCase(
+    values: (string | undefined)[],
+    search: string
+): boolean {
+    const s = search.toLowerCase();
+    return values.some((v) => !!v && v.toLowerCase().includes(s));
+}
+
+/**
+ * Filters translations by language and/or name.
+ *
+ * - `language` matches the ISO 639 language code exactly, or any part of the
+ *   language's native or English name (e.g. "spa", "Spanish", "Español").
+ * - `name` matches any part of the translation's id, name, English name, or short name.
+ */
+export function filterTranslations(
+    translations: TranslationSummary[],
+    filter: { language?: string; name?: string }
+): TranslationSummary[] {
+    const language = filter.language?.trim();
+    const name = filter.name?.trim();
+    return translations.filter((t) => {
+        if (
+            language &&
+            t.language?.toLowerCase() !== language.toLowerCase() &&
+            !includesIgnoreCase(
+                [t.languageName, t.languageEnglishName],
+                language
+            )
+        ) {
+            return false;
+        }
+        if (
+            name &&
+            !includesIgnoreCase(
+                [t.id, t.name, t.englishName, t.shortName],
+                name
+            )
+        ) {
+            return false;
+        }
+        return true;
+    });
+}
+
 function chooseTranslation(query: string): string {
     const uq = query.toUpperCase();
     for (const [alias, tid] of Object.entries(TRANSLATION_ALIASES)) {

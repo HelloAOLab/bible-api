@@ -7,6 +7,8 @@ import {
     chapterUrl,
     extractVerses,
     fetchSimpleChapterJson,
+    filterTranslations,
+    getAvailableTranslations,
     makeResultId,
     parseQueryToRef,
     parseResultId,
@@ -53,6 +55,7 @@ export function createBibleMcpServer(options: BibleMcpOptions = {}): McpServer {
                 'Use getBibleReference() to interpret a user query into a Bible passage result. ' +
                 'Then use fetchChapter() to retrieve the full passage text. ' +
                 'To get the text of a verse or verse range directly, use fetchVerse(). ' +
+                'Use listTranslations() to find available translations by language or name. ' +
                 'Supports BSB, WEB (ENGWEBP), Hebrew WLC (heb_wlc), and SBL Greek NT (grc_sbl).',
             // The default Ajv validator compiles schemas with `new Function`,
             // which Cloudflare Workers forbids. The cfworker validator is pure JS
@@ -166,6 +169,45 @@ export function createBibleMcpServer(options: BibleMcpOptions = {}): McpServer {
                 text,
                 url: chapterUrl(apiBase, translation, book, chapter),
                 metadata: { translation, book, chapter, verses },
+            });
+        }
+    );
+
+    server.registerTool(
+        'listTranslations',
+        {
+            description:
+                'List the Bible translations available in the Free Use Bible API, optionally filtered by language and/or name.',
+            inputSchema: {
+                language: z
+                    .string()
+                    .optional()
+                    .describe(
+                        'Filter by language: an ISO 639-3 code (e.g. "spa") or part of the language name in English or the language itself (e.g. "Spanish", "Español").'
+                    ),
+                name: z
+                    .string()
+                    .optional()
+                    .describe(
+                        'Filter by part of the translation id, name, English name, or short name (e.g. "BSB", "Reina", "King James").'
+                    ),
+                limit: z
+                    .number()
+                    .int()
+                    .min(1)
+                    .max(500)
+                    .optional()
+                    .describe(
+                        'The maximum number of translations to return. Defaults to 50.'
+                    ),
+            },
+        },
+        async ({ language, name, limit }) => {
+            const all = await getAvailableTranslations(apiBase);
+            const matches = filterTranslations(all, { language, name });
+            return json({
+                total: matches.length,
+                translations: matches.slice(0, limit ?? 50),
             });
         }
     );
