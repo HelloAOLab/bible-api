@@ -38,6 +38,7 @@ export default defineUserConfig({
         docsDir: '',
         editLinkText: '',
         lastUpdated: false,
+        contributors: false,
         navbar: [
             {
                 text: 'Guide',
