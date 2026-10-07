@@ -60,7 +60,8 @@
         "**/*.d.ts",
         "/migrations/**/*.sql",
         "./schema.prisma",
-        "/meta/*.json"
+        "/meta/*.json",
+        "!**/node_modules/**"
     ],
     "prisma": {
         "schema": "./schema.prisma"
