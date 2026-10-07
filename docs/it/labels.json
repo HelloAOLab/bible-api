@@ -1,0 +1,13 @@
+{
+    "nav": {
+        "guide": "Guida",
+        "reference": "Riferimento",
+        "sdks": "SDK",
+        "donate": "Dona",
+        "translationsBooksChapters": "Traduzioni, libri e capitoli",
+        "commentaries": "Commentari",
+        "datasets": "Set di dati",
+        "languages": "Lingue",
+        "selectLanguage": "Seleziona la lingua"
+    }
+}

@@ -24,6 +24,10 @@
  * inline code, HTML tags, HTML comments, URLs and link destinations are passed
  * through unchanged, and relative links are rewritten so they still resolve
  * from the translated file's location.
+ *
+ * The navbar, sidebar, home page and 404 page text in
+ * `docs/.vuepress/labels.json` is translated into
+ * `docs/<language>/labels.json`, which the site reads.
  */
 
 import { GoogleAuth } from 'google-auth-library';
@@ -44,6 +48,15 @@ const SOURCE_LANGUAGE = 'en';
  * not to treat it as English source material.
  */
 const MARKER_FILE = '.translated-docs';
+
+/**
+ * The navbar and sidebar labels and the text of the custom home and 404
+ * pages, which live in the site config and Vue components rather than in a
+ * page. Relative to the source root, and written to the root of each
+ * translation under the same file name.
+ */
+const LABELS_FILE = '.vuepress/labels.json';
+const TRANSLATED_LABELS_FILE = 'labels.json';
 
 /** Directories under the source root that never contain translatable pages. */
 const IGNORED_DIRS = new Set(['node_modules', 'site-root']);
@@ -790,6 +803,46 @@ function yamlQuote(value: string): string {
 }
 
 // ---------------------------------------------------------------------------
+// Navbar and sidebar labels
+// ---------------------------------------------------------------------------
+
+export type Labels = { [key: string]: string | Labels };
+
+/**
+ * Translates every string in a (possibly nested) `{ key: label }` object,
+ * keeping its keys. Labels are short markdown strings, so they go through the
+ * same conversion as page prose: `**bold**` survives and `{{ placeholders }}`
+ * are left untranslated.
+ */
+export async function translateLabels(
+    labels: Labels,
+    translate: Translator
+): Promise<Labels> {
+    const strings: string[] = [];
+    const collect = (node: Labels) => {
+        for (const value of Object.values(node)) {
+            if (typeof value === 'string') strings.push(value);
+            else collect(value);
+        }
+    };
+    collect(labels);
+
+    const segments = strings.map((text) => markdownToSegment(text));
+    const translated = await translate(segments.map((s) => s.html));
+
+    let i = 0;
+    const rebuild = (node: Labels): Labels =>
+        Object.fromEntries(
+            Object.entries(node).map(([key, value]) => {
+                if (typeof value !== 'string') return [key, rebuild(value)];
+                const { tokens } = segments[i];
+                return [key, segmentToMarkdown(translated[i++], tokens).trim()];
+            })
+        );
+    return rebuild(labels);
+}
+
+// ---------------------------------------------------------------------------
 // Files
 // ---------------------------------------------------------------------------
 
@@ -1030,6 +1083,30 @@ async function main() {
             await writeFile(outputFile, result);
             translated++;
             console.log(`  done  ${rel}`);
+        }
+
+        const labelsSource = path.join(sourceRoot, LABELS_FILE);
+        const labelsOutput = path.join(outputRoot, TRANSLATED_LABELS_FILE);
+        if (await exists(labelsSource)) {
+            const upToDate =
+                !values.force &&
+                (await exists(labelsOutput)) &&
+                (await stat(labelsOutput)).mtimeMs >=
+                    (await stat(labelsSource)).mtimeMs;
+            if (upToDate) {
+                console.log(`  skip  ${LABELS_FILE} (up to date)`);
+            } else if (values['dry-run']) {
+                console.log(`  would translate  ${LABELS_FILE}`);
+            } else {
+                const labels = JSON.parse(await readFile(labelsSource, 'utf8'));
+                const result = await translateLabels(labels, translate);
+                await mkdir(outputRoot, { recursive: true });
+                await writeFile(
+                    labelsOutput,
+                    JSON.stringify(result, null, 4) + '\n'
+                );
+                console.log(`  done  ${LABELS_FILE}`);
+            }
         }
 
         if (!values['dry-run']) {

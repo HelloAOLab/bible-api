@@ -1,24 +1,97 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
-import { RouteLink, withBase } from 'vuepress/client';
+import { computed, onMounted, ref } from 'vue';
+import {
+    RouteLink,
+    usePageFrontmatter,
+    usePageLang,
+    withBase,
+} from 'vuepress/client';
 import SiteFooter from './SiteFooter.vue';
+import {
+    useLabels,
+    useLocale,
+    useLocalePath,
+} from '../composables/useLocale';
+import { fillLabel, labelHtml } from '../composables/formatLabel';
+import type { Labels } from '../labels';
+import {
+    HOME_VERSES,
+    type HomeVerse,
+    type Verses,
+    type VerseText,
+} from '../verses';
+
+// Every locale's verses, keyed by locale path. Defined in config.ts.
+declare const __SITE_VERSES__: Record<string, Verses>;
 
 const DONATE_URL = 'https://better.giving/marketplace/1118469';
 const DISCORD_URL = 'https://discord.com/invite/NbEZMCJmqC';
 const NEWSLETTER_URL = 'https://helloao.org';
+
+const localePath = useLocalePath();
+const labels = useLabels();
+const frontmatter = usePageFrontmatter();
+const lang = usePageLang();
+const locale = useLocale();
+
+// The quoted verses come from verses.json files rather than the
+// machine-translated labels, falling back to English for a language that has
+// none. See verses.ts.
+const verses = computed(() => {
+    const code = locale.value === '/' ? 'en' : locale.value.slice(1, -1);
+    return Object.fromEntries(
+        (Object.keys(HOME_VERSES) as HomeVerse[]).map((key) => {
+            const own = __SITE_VERSES__[locale.value]?.[key];
+            const verse = own ?? __SITE_VERSES__['/'][key]!;
+            const { book, chapter, verse: number } = HOME_VERSES[key];
+            const reference = `${verse.bookName} ${chapter}:${number}`;
+            return [
+                key,
+                {
+                    ...verse,
+                    lang: verse.language ?? (own ? code : 'en'),
+                    reference,
+                    open: fillLabel(labels.value.home.openVerse, { reference }),
+                    url:
+                        'https://seedbible.org/?translation=' +
+                        encodeURIComponent(verse.translationId) +
+                        `&book=${book}&chapter=${chapter}&verse=${number}`,
+                },
+            ];
+        })
+    ) as Record<
+        HomeVerse,
+        VerseText & {
+            lang: string;
+            reference: string;
+            open: string;
+            url: string;
+        }
+    >;
+});
 
 const logo = withBase('/seed_bible_logo.png');
 const logoDark = withBase('/seed_bible_logo_dark.png');
 
 // The catalog grows. Fill the printed numbers from the live endpoint rather
 // than letting them rot, but only once a session: the file is large.
-const translations = ref('1,256');
-const languages = ref('1,004');
+const translationCount = ref(1256);
+const languageCount = ref(1004);
 
 function paintCounts(t: number, l: number) {
-    if (t) translations.value = t.toLocaleString('en-US');
-    if (l) languages.value = l.toLocaleString('en-US');
+    if (t) translationCount.value = t;
+    if (l) languageCount.value = l;
 }
+
+const formatCount = (n: number) => {
+    try {
+        return n.toLocaleString(lang.value);
+    } catch {
+        return n.toLocaleString('en-US');
+    }
+};
+const translations = computed(() => formatCount(translationCount.value));
+const languages = computed(() => formatCount(languageCount.value));
 
 onMounted(() => {
     let hit: string | null = null;
@@ -63,82 +136,59 @@ onMounted(() => {
 });
 
 type Mark = 'y' | 'p' | 'n';
-const MARK_LABEL: Record<Mark, string> = {
-    y: 'Yes',
-    p: 'Conditional',
-    n: 'Not granted',
-};
+const markLabel = computed<Record<Mark, string>>(() => ({
+    y: labels.value.home.markYes,
+    p: labels.value.home.markConditional,
+    n: labels.value.home.markNotGranted,
+}));
 
-const compareColumns = [
-    'No account',
-    'No usage limit',
-    'Permissionless',
-    'Store & cache*',
-    'Open source',
+type CompareColumn = keyof Labels['home']['compareColumns'];
+const COMPARE_COLUMNS: CompareColumn[] = [
+    'account',
+    'usage',
+    'permission',
+    'storage',
+    'openSource',
 ];
 
-const compareRows: {
+// The notes for each cell are in labels.json, under the same row and column.
+const COMPARE_ROWS: {
+    id: keyof Labels['home']['compareRows'];
     name: string;
     ours?: boolean;
-    cells: [Mark, string][];
+    marks: Mark[];
 }[] = [
     {
+        id: 'ours',
         name: 'Free Use Bible API',
         ours: true,
-        cells: [
-            ['y', 'No account, key or approval'],
-            ['y', 'No published usage limit'],
-            [
-                'y',
-                'Nothing to accept. AO Lab adds no restrictions; each text keeps its own notice',
-            ],
-            ['y', 'Cache, store and download without expiry'],
-            ['y', 'MIT licensed'],
-        ],
+        marks: ['y', 'y', 'y', 'y', 'y'],
     },
+    { id: 'apiBible', name: 'API.Bible', marks: ['n', 'n', 'n', 'p', 'p'] },
     {
-        name: 'API.Bible',
-        cells: [
-            ['n', 'Account and API key required'],
-            ['n', '5,000 calls a month on Starter'],
-            [
-                'n',
-                'Accept API.Bible’s terms; commercial use adds a licence for each translation',
-            ],
-            ['p', 'Cache allowed, but must refresh at least every 30 days'],
-            ['p', 'Client SDKs are open source; the API itself is not'],
-        ],
-    },
-    {
+        id: 'youVersion',
         name: 'YouVersion Platform',
-        cells: [
-            ['n', 'App registration and key required'],
-            ['n', 'Rate limited, no published number'],
-            [
-                'n',
-                'Accept the platform terms, then a publisher agreement for each set of translations',
-            ],
-            [
-                'p',
-                'Set by each publisher agreement; some allow in-app offline use, some limit how much is shown at once',
-            ],
-            ['p', 'Client SDKs are open source; the API itself is not'],
-        ],
+        marks: ['n', 'n', 'n', 'p', 'p'],
     },
     {
+        id: 'bibleBrain',
         name: 'Bible Brain',
-        cells: [
-            ['n', 'Key required, granted at their discretion'],
-            [
-                'n',
-                'None published, and access can be limited or revoked at any time',
-            ],
-            ['n', 'Accept the licence; keys are approved at their discretion'],
-            ['p', 'Offline use only via their download endpoint'],
-            ['y', 'The API is MIT licensed'],
-        ],
+        marks: ['n', 'n', 'n', 'p', 'y'],
     },
 ];
+
+const compareRows = computed(() =>
+    COMPARE_ROWS.map((row) => ({
+        ...row,
+        cells: COMPARE_COLUMNS.map(
+            (column, i) =>
+                [
+                    row.marks[i],
+                    labels.value.home.compareRows[row.id][column],
+                ] as [Mark, string]
+        ),
+    }))
+);
 </script>
 
 <template>
@@ -146,16 +196,16 @@ const compareRows: {
         <main>
             <section class="hero">
                 <div class="shell">
-                    <h1>Free Use Bible API</h1>
-                    <p class="sub">
-                        An easy-to-use and fully featured JSON API for
-                        Scripture.
-                    </p>
+                    <h1>{{ frontmatter.title }}</h1>
+                    <p class="sub">{{ labels.home.tagline }}</p>
                     <div class="cta">
-                        <RouteLink class="btn primary" to="/guide/getting-started.html">
-                            Quick Start <span aria-hidden="true">&rarr;</span>
+                        <RouteLink class="btn primary" :to="localePath('/guide/getting-started.html')">
+                            {{ labels.home.quickStart }}
+                            <span aria-hidden="true">&rarr;</span>
                         </RouteLink>
-                        <a class="btn secondary" :href="DONATE_URL">Donate</a>
+                        <a class="btn secondary" :href="DONATE_URL">{{
+                            labels.home.donate
+                        }}</a>
                     </div>
                 </div>
             </section>
@@ -164,18 +214,22 @@ const compareRows: {
                 <div class="shell">
                     <a
                         class="verse"
-                        href="https://seedbible.org/?translation=AAB&book=MAT&chapter=10&verse=8"
+                        :href="verses.freelyGive.url"
                         target="_blank"
                         rel="noopener noreferrer"
-                        aria-label="Open Matthew 10:8 in Seed Bible"
+                        :aria-label="verses.freelyGive.open"
                     >
-                        <blockquote>
-                            &ldquo;Freely you have received; freely give.&rdquo;
+                        <blockquote :lang="verses.freelyGive.lang" dir="auto">
+                            &ldquo;{{ verses.freelyGive.text }}&rdquo;
                         </blockquote>
                         <span class="ref">
                             <img class="seed light-only" :src="logo" alt="" />
                             <img class="seed dark-only" :src="logoDark" alt="" />
-                            Matthew 10:8 &middot; AAB &#8599;
+                            <span :lang="verses.freelyGive.lang"
+                                >{{ verses.freelyGive.reference }} &middot;
+                                {{ verses.freelyGive.translationAbbreviation }}
+                                &#8599;</span
+                            >
                         </span>
                     </a>
                 </div>
@@ -184,16 +238,24 @@ const compareRows: {
             <section class="proof">
                 <div class="shell proof-grid">
                     <div>
-                        <strong>{{ translations }} translations</strong>
-                        <span>across {{ languages }} languages</span>
+                        <strong>{{
+                            fillLabel(labels.home.translationCount, {
+                                count: translations,
+                            })
+                        }}</strong>
+                        <span>{{
+                            fillLabel(labels.home.languageCount, {
+                                count: languages,
+                            })
+                        }}</span>
                     </div>
                     <div>
-                        <strong>No API key</strong>
-                        <span>Nothing to sign up for</span>
+                        <strong>{{ labels.home.noApiKey }}</strong>
+                        <span>{{ labels.home.noApiKeyDetail }}</span>
                     </div>
                     <div>
-                        <strong>No usage limits</strong>
-                        <span>Free forever</span>
+                        <strong>{{ labels.home.noUsageLimits }}</strong>
+                        <span>{{ labels.home.noUsageLimitsDetail }}</span>
                     </div>
                 </div>
             </section>
@@ -201,54 +263,51 @@ const compareRows: {
             <section class="section ecosystem" id="ecosystem">
                 <div class="shell">
                     <div class="head">
-                        <h2>Welcome to freedom.</h2>
-                        <p>
-                            Get started today with <strong>no limits</strong>
-                            and <strong>no red tape</strong>.
-                        </p>
+                        <h2>{{ labels.home.welcome }}</h2>
+                        <p v-html="labelHtml(labels.home.welcomeDetail)"></p>
                         <p class="tiny-link">
                             <a href="#compare">
-                                Compare us to other Bible APIs &rarr;
+                                {{ labels.home.compareLink }} &rarr;
                             </a>
                         </p>
                     </div>
                     <div class="cards">
-                        <RouteLink class="card" to="/reference/translations/">
-                            <h3>Bible Translations</h3>
+                        <RouteLink class="card" :to="localePath('/reference/translations/')">
+                            <h3>{{ labels.home.translationsTitle }}</h3>
                             <p>
-                                {{ translations }} translations as static JSON,
-                                with headings, poetry, line breaks and
-                                footnotes kept intact.
+                                {{
+                                    fillLabel(labels.home.translationsBody, {
+                                        count: translations,
+                                    })
+                                }}
                             </p>
-                            <span class="go">API reference &rarr;</span>
+                            <span class="go"
+                                >{{ labels.home.translationsLink }} &rarr;</span
+                            >
                         </RouteLink>
                         <RouteLink
                             class="card"
-                            to="/reference/translations/standard.html#get-the-audio-timings-for-a-chapter"
+                            :to="localePath('/reference/translations/standard.html#get-the-audio-timings-for-a-chapter')"
                         >
-                            <h3>Bible Audio</h3>
-                            <p>
-                                Scripture plainly read aloud and dramatized, for
-                                easy listening and accessibility.
-                            </p>
-                            <span class="go">Audio endpoints &rarr;</span>
+                            <h3>{{ labels.home.audioTitle }}</h3>
+                            <p>{{ labels.home.audioBody }}</p>
+                            <span class="go"
+                                >{{ labels.home.audioLink }} &rarr;</span
+                            >
                         </RouteLink>
-                        <RouteLink class="card" to="/reference/datasets/">
-                            <h3>Bible Data Sets</h3>
-                            <p>
-                                Cross references and other Bible data sets, in
-                                formats you can build with rather than parse
-                                around.
-                            </p>
-                            <span class="go">Browse datasets &rarr;</span>
+                        <RouteLink class="card" :to="localePath('/reference/datasets/')">
+                            <h3>{{ labels.home.datasetsTitle }}</h3>
+                            <p>{{ labels.home.datasetsBody }}</p>
+                            <span class="go"
+                                >{{ labels.home.datasetsLink }} &rarr;</span
+                            >
                         </RouteLink>
                         <div class="card">
-                            <h3>Seed Bible Developer Docs</h3>
-                            <p>
-                                Utilize and extend our open platform instead of
-                                starting from scratch.
-                            </p>
-                            <span class="go pending">Coming December</span>
+                            <h3>{{ labels.home.seedBibleTitle }}</h3>
+                            <p>{{ labels.home.seedBibleBody }}</p>
+                            <span class="go pending">{{
+                                labels.home.seedBibleComing
+                            }}</span>
                         </div>
                     </div>
                 </div>
@@ -257,25 +316,26 @@ const compareRows: {
             <section class="section compare" id="compare">
                 <div class="shell">
                     <div class="head">
-                        <h2>A Few Bible APIs Compared</h2>
+                        <h2>{{ labels.home.compareTitle }}</h2>
                     </div>
                     <div class="matrix-wrap">
                         <table class="matrix">
                             <caption class="vh">
-                                What the Free Use Bible API and three widely
-                                used Bible APIs let you do
+                                {{ labels.home.compareCaption }}
                             </caption>
                             <thead>
                                 <tr>
                                     <th scope="col" class="matrix-corner">
-                                        What you may do
+                                        {{ labels.home.compareCorner }}
                                     </th>
                                     <th
-                                        v-for="col in compareColumns"
+                                        v-for="col in COMPARE_COLUMNS"
                                         :key="col"
                                         scope="col"
                                     >
-                                        <span>{{ col }}</span>
+                                        <span>{{
+                                            labels.home.compareColumns[col]
+                                        }}</span>
                                     </th>
                                 </tr>
                             </thead>
@@ -296,7 +356,7 @@ const compareRows: {
                                             :title="note"
                                         ></span>
                                         <span class="vh">
-                                            {{ MARK_LABEL[mark] }}. {{ note }}
+                                            {{ markLabel[mark] }}. {{ note }}
                                         </span>
                                     </td>
                                 </tr>
@@ -305,13 +365,21 @@ const compareRows: {
                     </div>
                     <div class="matrix-foot">
                         <p class="legend">
-                            <span><span class="m y"></span> Yes</span>
-                            <span><span class="m p"></span> Conditional</span>
-                            <span><span class="m n"></span> Not granted</span>
+                            <span
+                                ><span class="m y"></span>
+                                {{ labels.home.markYes }}</span
+                            >
+                            <span
+                                ><span class="m p"></span>
+                                {{ labels.home.markConditional }}</span
+                            >
+                            <span
+                                ><span class="m n"></span>
+                                {{ labels.home.markNotGranted }}</span
+                            >
                         </p>
                         <p class="legend-note">
-                            *Copy and store on your own hardware, servers, or on
-                            a device so it works offline.
+                            {{ labels.home.storageNote }}
                         </p>
                     </div>
                 </div>
@@ -320,19 +388,17 @@ const compareRows: {
             <section class="section contribute" id="contribute">
                 <div class="shell contribute-grid">
                     <h2 class="contribute-title">
-                        Help us expand the frontier.
+                        {{ labels.home.contributeTitle }}
                     </h2>
                     <div class="contribute-copy">
-                        <p>
-                            Let&rsquo;s create an open ecosystem of public
-                            domain content and open source tools.
-                        </p>
+                        <p>{{ labels.home.contributeBody }}</p>
                         <div class="cta">
                             <a class="btn primary" :href="DONATE_URL">
-                                Donate <span aria-hidden="true">&rarr;</span>
+                                {{ labels.home.donate }}
+                                <span aria-hidden="true">&rarr;</span>
                             </a>
                             <a class="btn secondary" :href="DISCORD_URL">
-                                Contribute on Discord
+                                {{ labels.home.contributeDiscord }}
                                 <span aria-hidden="true">&#8599;</span>
                             </a>
                         </div>
@@ -340,20 +406,22 @@ const compareRows: {
 
                     <a
                         class="verse"
-                        href="https://seedbible.org/?translation=AAB&book=1PE&chapter=4&verse=10"
+                        :href="verses.stewards.url"
                         target="_blank"
                         rel="noopener noreferrer"
-                        aria-label="Open 1 Peter 4:10 in Seed Bible"
+                        :aria-label="verses.stewards.open"
                     >
-                        <blockquote>
-                            &ldquo;As good stewards of the manifold grace of
-                            God, each of you should use whatever gift he has
-                            received to serve one another.&rdquo;
+                        <blockquote :lang="verses.stewards.lang" dir="auto">
+                            &ldquo;{{ verses.stewards.text }}&rdquo;
                         </blockquote>
                         <span class="ref">
                             <img class="seed light-only" :src="logo" alt="" />
                             <img class="seed dark-only" :src="logoDark" alt="" />
-                            1 Peter 4:10 &middot; AAB &#8599;
+                            <span :lang="verses.stewards.lang"
+                                >{{ verses.stewards.reference }} &middot;
+                                {{ verses.stewards.translationAbbreviation }}
+                                &#8599;</span
+                            >
                         </span>
                     </a>
                 </div>
@@ -363,28 +431,26 @@ const compareRows: {
                 <div class="shell">
                     <div class="build-card">
                         <div class="build-main">
-                            <h3>Let&rsquo;s start building.</h3>
-                            <RouteLink class="btn" to="/guide/getting-started.html">
-                                Quick Start
+                            <h3>{{ labels.home.buildTitle }}</h3>
+                            <RouteLink class="btn" :to="localePath('/guide/getting-started.html')">
+                                {{ labels.home.quickStart }}
                                 <span aria-hidden="true">&rarr;</span>
                             </RouteLink>
                         </div>
                         <div class="build-opts">
                             <a :href="NEWSLETTER_URL">
-                                <small>Want to stay in the loop?</small>
-                                <strong>Sign up for the newsletter &rarr;</strong>
-                                <p>
-                                    Updates from the people building it, in your
-                                    inbox.
-                                </p>
+                                <small>{{ labels.home.newsletterPrompt }}</small>
+                                <strong
+                                    >{{ labels.home.newsletterLink }} &rarr;</strong
+                                >
+                                <p>{{ labels.home.newsletterBody }}</p>
                             </a>
-                            <RouteLink to="/guide/making-requests.html#examples">
-                                <small>Want something to copy?</small>
-                                <strong>See examples &rarr;</strong>
-                                <p>
-                                    Common requests and working patterns you can
-                                    adapt.
-                                </p>
+                            <RouteLink :to="localePath('/guide/making-requests.html#examples')">
+                                <small>{{ labels.home.examplesPrompt }}</small>
+                                <strong
+                                    >{{ labels.home.examplesLink }} &rarr;</strong
+                                >
+                                <p>{{ labels.home.examplesBody }}</p>
                             </RouteLink>
                         </div>
                     </div>

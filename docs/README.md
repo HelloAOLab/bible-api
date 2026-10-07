@@ -34,4 +34,8 @@ Comments in fenced code blocks are translated too (for languages such as TypeScr
 inline code, URLs and HTML are left untouched, and links are rewritten to point at the translated pages.
 Pass `--skip-code-comments` to keep code comments in English.
 Files whose translation is newer than the English source are skipped; pass `--force` to re-translate them.
+The navbar and sidebar labels and the text of the home and 404 pages, in `.vuepress/labels.json`, are translated into `<language>/labels.json`. Any label missing from a translation falls back to English.
+The Bible verses quoted on the home page are never machine-translated: they are quoted from a translation in the Free Use Bible API.
+`pnpm fill:docs-verses` fills in `<language>/verses.json` for each language, choosing a translation the way the Seed Bible app does.
+Verses already in a file are kept (pass `--force` to replace them), so they can be edited by hand. See `.vuepress/verses.ts`.
 Run `pnpm translate:docs --help` for all options.

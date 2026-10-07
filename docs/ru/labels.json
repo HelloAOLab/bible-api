@@ -1,0 +1,13 @@
+{
+    "nav": {
+        "guide": "Руководство",
+        "reference": "Справочник",
+        "sdks": "SDK",
+        "donate": "Пожертвовать",
+        "translationsBooksChapters": "Переводы, книги и главы",
+        "commentaries": "Комментарии",
+        "datasets": "Наборы данных",
+        "languages": "Языки",
+        "selectLanguage": "Выбрать язык"
+    }
+}

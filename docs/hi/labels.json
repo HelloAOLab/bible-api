@@ -1,0 +1,13 @@
+{
+    "nav": {
+        "guide": "मार्गदर्शिका",
+        "reference": "संदर्भ",
+        "sdks": "SDK",
+        "donate": "दान करें",
+        "translationsBooksChapters": "अनुवाद, पुस्तकें और अध्याय",
+        "commentaries": "टीकाएँ",
+        "datasets": "डेटासेट",
+        "languages": "भाषाएँ",
+        "selectLanguage": "भाषा चुनें"
+    }
+}
