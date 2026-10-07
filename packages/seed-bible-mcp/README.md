@@ -2,8 +2,8 @@
 
 An [MCP](https://modelcontextprotocol.io) server that exposes the [Free Use Bible API](https://bible.helloao.org) (BSB, WEB, Hebrew WLC, SBL Greek NT) through two tools:
 
-- `search` — turns a reference such as `John 3:16` or `Gen 1:1-3 WEB` into a passage result id.
-- `fetch` — returns the passage text for a result id from `search`.
+- `getBibleReference` — turns a reference such as `John 3:16` or `Gen 1:1-3 WEB` into a passage result id.
+- `fetchChapter` — returns the passage text for a result id from `getBibleReference`.
 
 The server speaks the Streamable HTTP transport at `/mcp` and runs statelessly, so the same code runs on Node.js and on Cloudflare Workers.
 

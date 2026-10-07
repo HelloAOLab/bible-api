@@ -43,8 +43,8 @@ export function createBibleMcpServer(options: BibleMcpOptions = {}): McpServer {
         },
         {
             instructions:
-                'Use search() to interpret a user query into a Bible passage result. ' +
-                'Then use fetch() to retrieve the full passage text. ' +
+                'Use getBibleReference() to interpret a user query into a Bible passage result. ' +
+                'Then use fetchChapter() to retrieve the full passage text. ' +
                 'Supports BSB, WEB (ENGWEBP), Hebrew WLC (heb_wlc), and SBL Greek NT (grc_sbl).',
             // The default Ajv validator compiles schemas with `new Function`,
             // which Cloudflare Workers forbids. The cfworker validator is pure JS
@@ -54,7 +54,7 @@ export function createBibleMcpServer(options: BibleMcpOptions = {}): McpServer {
     );
 
     server.registerTool(
-        'search',
+        'getBibleReference',
         {
             description:
                 'Interpret a natural-language query into a single Bible passage result.',
@@ -84,12 +84,14 @@ export function createBibleMcpServer(options: BibleMcpOptions = {}): McpServer {
     );
 
     server.registerTool(
-        'fetch',
+        'fetchChapter',
         {
             description:
-                'Retrieve the full passage text for a result id from search().',
+                'Retrieve the full passage text for a result id from getBibleReference().',
             inputSchema: {
-                id: z.string().describe('A result id returned by search().'),
+                id: z
+                    .string()
+                    .describe('A result id returned by getBibleReference().'),
             },
         },
         async ({ id }) => {
