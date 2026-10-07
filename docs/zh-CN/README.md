@@ -1,7 +1,7 @@
 ---
 layout: HomeLayout
 sidebar: false
-title: '免费使用圣经API'
+title: '免费使用圣经 API'
 headTitle: '免费使用圣经 API | AO 实验室'
 description: '一个易于使用且功能齐全的圣经JSON API。无需API密钥，无使用限制，无版权限制。'
 ---
@@ -28,4 +28,4 @@ pnpm translate:docs --list-languages   # 显示支持的语言代码
 pnpm translate:docs es fr zh-CN         # 编写文档（西班牙语、法语、中文）。
 ```
 
-代码块内的注释也会被翻译（例如 TypeScript、JSON 和 bash 等语言），但代码本身、内联代码、URL 和 HTML 保持不变，链接会被重写以指向已翻译的页面。传递参数`--skip-code-comments`可保留英文代码注释。翻译版本比英文源文件更新的文件将被跳过；传递参数`--force`可重新翻译这些文件。运行参数`pnpm translate:docs --help`可启用所有选项。
+代码块内的注释也会被翻译（例如 TypeScript、JSON 和 bash 等语言），但代码本身、内联代码、URL 和 HTML 保持不变，链接会被重写以指向已翻译的页面。传递参数`--skip-code-comments`可保留英文代码注释。翻译版本比英文源文件更新的文件将被跳过；传递参数`--force`可重新翻译这些文件。导航栏和侧边栏标签以及首页和 404 页面的文本（见`.vuepress/labels.json` ）将被翻译成`<language>/labels.json` 。任何翻译中缺失的标签都将回退到英文。首页上引用的圣经经文绝不会进行机器翻译：它们引用自 Free Use Bible API 中的译本。 `pnpm fill:docs-verses`会为每种语言填充`<language>/verses.json`行，并像 Seed Bible 应用那样选择译本。文件中已有的经文将被保留（传递参数`--force`可替换它们），以便手动编辑。参见`.vuepress/verses.ts` 。运行`pnpm translate:docs --help`行可查看所有选项。

@@ -1,0 +1,14 @@
+{
+    "freelyGive": {
+        "text": "Guérissez les malades, ressuscitez les morts, purifiez les lépreux, chassez les démons : vous avez reçu gratuitement, donnez gratuitement.",
+        "bookName": "Matthieu",
+        "translationAbbreviation": "NCL",
+        "translationId": "fra_ncl"
+    },
+    "stewards": {
+        "text": "Que chacun mette au service des autres le don qu’il a reçu comme de bons dispensateurs de la grâce de Dieu, laquelle est variée. Si quelqu’un parle, que ce soit selon les oracles de Dieu ;",
+        "bookName": "1 Pierre",
+        "translationAbbreviation": "NCL",
+        "translationId": "fra_ncl"
+    }
+}

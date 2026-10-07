@@ -1,0 +1,14 @@
+{
+    "freelyGive": {
+        "text": "病人を直し、死人を生き返らせ、らい病人をきよめ、悪霊を追い出しなさい。あなたがたは、ただで受けたのだから、ただで与えなさい。",
+        "bookName": "マタイの福音書",
+        "translationAbbreviation": "LOC",
+        "translationId": "jpn_loc"
+    },
+    "stewards": {
+        "text": "それぞれが賜物を受けているのですから、神のさまざまな恵みの良い管理者として、その賜物を用いて、互いに仕え合いなさい。",
+        "bookName": "ペテロの手紙第一",
+        "translationAbbreviation": "LOC",
+        "translationId": "jpn_loc"
+    }
+}
