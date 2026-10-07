@@ -7,9 +7,19 @@ import {
     withBase,
 } from 'vuepress/client';
 import SiteFooter from './SiteFooter.vue';
-import { useLabels, useLocalePath } from '../composables/useLocale';
+import {
+    useLabels,
+    useLocale,
+    useLocalePath,
+} from '../composables/useLocale';
 import { fillLabel, labelHtml } from '../composables/formatLabel';
 import type { Labels } from '../labels';
+import {
+    HOME_VERSES,
+    VERSES,
+    type HomeVerse,
+    type VerseText,
+} from '../verses';
 
 const DONATE_URL = 'https://better.giving/marketplace/1118469';
 const DISCORD_URL = 'https://discord.com/invite/NbEZMCJmqC';
@@ -19,6 +29,42 @@ const localePath = useLocalePath();
 const labels = useLabels();
 const frontmatter = usePageFrontmatter();
 const lang = usePageLang();
+const locale = useLocale();
+
+// The quoted verses come from verses.ts rather than the machine-translated
+// labels, falling back to English for a language that has none.
+const verses = computed(() => {
+    const code = locale.value === '/' ? 'en' : locale.value.slice(1, -1);
+    return Object.fromEntries(
+        (Object.keys(HOME_VERSES) as HomeVerse[]).map((key) => {
+            const own = VERSES[code]?.[key];
+            const verse = own ?? VERSES.en[key]!;
+            const { book, chapter, verse: number } = HOME_VERSES[key];
+            const reference = `${verse.bookName} ${chapter}:${number}`;
+            return [
+                key,
+                {
+                    ...verse,
+                    lang: own ? code : 'en',
+                    reference,
+                    open: fillLabel(labels.value.home.openVerse, { reference }),
+                    url:
+                        'https://seedbible.org/?translation=' +
+                        encodeURIComponent(verse.translationId) +
+                        `&book=${book}&chapter=${chapter}&verse=${number}`,
+                },
+            ];
+        })
+    ) as Record<
+        HomeVerse,
+        VerseText & {
+            lang: string;
+            reference: string;
+            open: string;
+            url: string;
+        }
+    >;
+});
 
 const logo = withBase('/seed_bible_logo.png');
 const logoDark = withBase('/seed_bible_logo_dark.png');
@@ -164,19 +210,22 @@ const compareRows = computed(() =>
                 <div class="shell">
                     <a
                         class="verse"
-                        href="https://seedbible.org/?translation=AAB&book=MAT&chapter=10&verse=8"
+                        :href="verses.freelyGive.url"
                         target="_blank"
                         rel="noopener noreferrer"
-                        :aria-label="labels.home.freelyGiveOpen"
+                        :aria-label="verses.freelyGive.open"
                     >
-                        <blockquote>
-                            &ldquo;{{ labels.home.freelyGiveVerse }}&rdquo;
+                        <blockquote :lang="verses.freelyGive.lang" dir="auto">
+                            &ldquo;{{ verses.freelyGive.text }}&rdquo;
                         </blockquote>
                         <span class="ref">
                             <img class="seed light-only" :src="logo" alt="" />
                             <img class="seed dark-only" :src="logoDark" alt="" />
-                            {{ labels.home.freelyGiveReference }} &middot; AAB
-                            &#8599;
+                            <span :lang="verses.freelyGive.lang"
+                                >{{ verses.freelyGive.reference }} &middot;
+                                {{ verses.freelyGive.translationAbbreviation }}
+                                &#8599;</span
+                            >
                         </span>
                     </a>
                 </div>
@@ -353,19 +402,22 @@ const compareRows = computed(() =>
 
                     <a
                         class="verse"
-                        href="https://seedbible.org/?translation=AAB&book=1PE&chapter=4&verse=10"
+                        :href="verses.stewards.url"
                         target="_blank"
                         rel="noopener noreferrer"
-                        :aria-label="labels.home.stewardsOpen"
+                        :aria-label="verses.stewards.open"
                     >
-                        <blockquote>
-                            &ldquo;{{ labels.home.stewardsVerse }}&rdquo;
+                        <blockquote :lang="verses.stewards.lang" dir="auto">
+                            &ldquo;{{ verses.stewards.text }}&rdquo;
                         </blockquote>
                         <span class="ref">
                             <img class="seed light-only" :src="logo" alt="" />
                             <img class="seed dark-only" :src="logoDark" alt="" />
-                            {{ labels.home.stewardsReference }} &middot; AAB
-                            &#8599;
+                            <span :lang="verses.stewards.lang"
+                                >{{ verses.stewards.reference }} &middot;
+                                {{ verses.stewards.translationAbbreviation }}
+                                &#8599;</span
+                            >
                         </span>
                     </a>
                 </div>
