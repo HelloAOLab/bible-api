@@ -34,6 +34,15 @@ pnpm deploy       # deploy to your Cloudflare account
 
 Configuration lives in `wrangler.jsonc`.
 
+### Continuous deployment
+
+`.github/workflows/deploy-bible-mcp-worker.yml` deploys the Worker whenever changes to this package are pushed to `main` (it can also be run manually from the Actions tab). Pull requests that touch the package get a type-check and a `wrangler deploy --dry-run`.
+
+The workflow needs two repository secrets:
+
+- `CLOUDFLARE_API_TOKEN` — an API token with the **Edit Cloudflare Workers** permission
+- `CLOUDFLARE_ACCOUNT_ID` — the Cloudflare account to deploy to
+
 ## Configuration
 
 | Variable         | Default                         | Description                   |

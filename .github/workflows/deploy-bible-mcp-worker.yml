@@ -1,0 +1,68 @@
+name: Deploy Bible MCP Worker
+
+# Deploys packages/seed-bible-mcp to Cloudflare Workers.
+#
+# - Pull requests that touch the package: type-check and `wrangler deploy --dry-run`.
+# - Pushes to main that touch the package (or a manual run): deploy.
+#
+# Requires these repository secrets:
+#   - CLOUDFLARE_API_TOKEN:  API token with the "Edit Cloudflare Workers" permission
+#   - CLOUDFLARE_ACCOUNT_ID: the Cloudflare account to deploy to
+
+on:
+    push:
+        branches: [main]
+        paths:
+            - 'packages/seed-bible-mcp/**'
+            - 'pnpm-lock.yaml'
+            - '.github/workflows/deploy-bible-mcp-worker.yml'
+    pull_request:
+        paths:
+            - 'packages/seed-bible-mcp/**'
+            - 'pnpm-lock.yaml'
+            - '.github/workflows/deploy-bible-mcp-worker.yml'
+    workflow_dispatch:
+
+concurrency:
+    group: deploy-bible-mcp-worker-${{ github.ref }}
+    cancel-in-progress: false
+
+jobs:
+    deploy:
+        name: ${{ github.event_name == 'pull_request' && 'Check' || 'Deploy' }}
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+        env:
+            CI: true
+        defaults:
+            run:
+                working-directory: packages/seed-bible-mcp
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Install pnpm
+              uses: pnpm/action-setup@v4
+
+            - name: Use Node.js 24.x
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 24.x
+                  cache: pnpm
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile --filter free-use-bible-mcp-server --ignore-scripts
+
+            - name: Type-check
+              run: pnpm run typecheck
+
+            - name: Build (dry run)
+              if: github.event_name == 'pull_request'
+              run: pnpm exec wrangler deploy --dry-run --outdir dist
+
+            - name: Deploy
+              if: github.event_name != 'pull_request'
+              run: pnpm exec wrangler deploy
+              env:
+                  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+                  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
