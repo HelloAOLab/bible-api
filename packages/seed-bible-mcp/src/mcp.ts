@@ -6,7 +6,7 @@ import {
     DEFAULT_BIBLE_API_BASE,
     chapterUrl,
     extractVerses,
-    fetchChapterJson,
+    fetchSimpleChapterJson,
     makeResultId,
     parseQueryToRef,
     parseResultId,
@@ -96,7 +96,7 @@ export function createBibleMcpServer(options: BibleMcpOptions = {}): McpServer {
         },
         async ({ id }) => {
             const [translation, book, chapter, verses] = parseResultId(id);
-            const chapterJson = await fetchChapterJson(
+            const chapterJson = await fetchSimpleChapterJson(
                 apiBase,
                 translation,
                 book,

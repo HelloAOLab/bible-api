@@ -129,49 +129,37 @@ export async function parseQueryToRef(
     return [translation, bookId, chapter, verses];
 }
 
-export async function fetchChapterJson(
+export function simpleChapterUrl(
+    apiBase: string,
+    translation: string,
+    book: string,
+    chapter: number
+): string {
+    return `${apiBase}/${translation}/${book}/${chapter}.simple.json`;
+}
+
+/**
+ * Fetches a chapter in the simplified format, where each verse's content is
+ * already flattened into a single `text` string.
+ */
+export async function fetchSimpleChapterJson(
     apiBase: string,
     translation: string,
     book: string,
     chapter: number
 ): Promise<any> {
-    const res = await fetch(chapterUrl(apiBase, translation, book, chapter));
+    const res = await fetch(
+        simpleChapterUrl(apiBase, translation, book, chapter)
+    );
     if (!res.ok) throw new Error(`chapter request failed: ${res.status}`);
     return res.json();
 }
 
-/**
- * Verse content entries can be:
- *   - strings
- *   - formatted text objects { "text": "...", ... }
- *   - inline objects like { "lineBreak": true } or { "noteId": 0 }
- * We keep readable text and turn line breaks into newlines; ignore footnote refs.
- */
-function flattenVerseContent(items: any[]): string {
-    const out: string[] = [];
-    for (const x of items) {
-        if (typeof x === 'string') {
-            out.push(x);
-        } else if (x && typeof x === 'object') {
-            if (typeof x.text === 'string') {
-                out.push(x.text);
-            } else if (x.lineBreak === true) {
-                out.push('\n');
-            }
-            // ignore noteId, headings, etc for plain verse text
-        }
-    }
-    let s = out.join('');
-    s = s.replace(/\s+\n/g, '\n');
-    s = s.replace(/\n\s+/g, '\n');
-    return s.trim();
-}
-
 export function extractVerses(
-    chapterJson: any,
+    simpleChapterJson: any,
     verseRange: string | null
 ): string {
-    const content: any[] = chapterJson?.chapter?.content ?? [];
+    const content: any[] = simpleChapterJson?.chapter?.content ?? [];
     let start: number | null = null;
     let end: number | null = null;
     if (verseRange) {
@@ -192,8 +180,7 @@ export function extractVerses(
         if (typeof num !== 'number' || !Number.isInteger(num)) continue;
         if (start !== null && (num < start || num > (end as number))) continue;
 
-        const verseText = flattenVerseContent(item.content ?? []);
-        lines.push(`${num}. ${verseText}`);
+        lines.push(`${num}. ${(item.text ?? '').trim()}`);
     }
 
     return lines.join('\n').trim();
