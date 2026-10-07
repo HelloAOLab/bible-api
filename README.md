@@ -85,6 +85,10 @@ We believe the Bible should be freely available to everyone. Read more about
 
 See [https://bible.helloao.org/docs/guide/](https://bible.helloao.org/docs/guide/) for instructions on using and accessing the API.
 
+## Translating the Documentation
+
+See [`docs/README.md`](./docs/README.md#translating-the-documentation) for how to machine-translate the docs into other languages.
+
 ## License
 
 The API and this source code are available under the [MIT license](./LICENSE). The Berean Standard Bible and Majority Bible texts are [dedicated to the public domain](https://creativecommons.org/publicdomain/zero/1.0/).
