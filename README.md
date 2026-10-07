@@ -62,9 +62,9 @@ See the [API Reference](https://bible.helloao.org/docs/reference/) for every end
 
 Prefer to work offline? The whole API is available in bulk:
 
-- [api.zip](https://bible.helloao.org/api.zip) (1.5 GB) — the entire API as static JSON files
-- [bible.db](https://bible.helloao.org/bible.db) (11 GB) — every translation as a SQLite database
-- [bible.eng.db](https://bible.helloao.org/bible.eng.db) (1.5 GB) — English translations only
+-   [api.zip](https://bible.helloao.org/api.zip) (1.5 GB) — the entire API as static JSON files
+-   [bible.db](https://bible.helloao.org/bible.db) (11 GB) — every translation as a SQLite database
+-   [bible.eng.db](https://bible.helloao.org/bible.eng.db) (1.5 GB) — English translations only
 
 ## Packages
 
@@ -84,10 +84,6 @@ We believe the Bible should be freely available to everyone. Read more about
 ## Get Started
 
 See [https://bible.helloao.org/docs/guide/](https://bible.helloao.org/docs/guide/) for instructions on using and accessing the API.
-
-## Translating the Documentation
-
-See [`docs/README.md`](./docs/README.md#translating-the-documentation) for how to machine-translate the docs into other languages.
 
 ## License
 
