@@ -422,8 +422,8 @@ const compareRows: {
                         <p class="lbl2">Want to contribute or found a bug?</p>
                         <a :href="ISSUES_URL">Open an issue on GitHub &rarr;</a>
                         <div class="reach2">
-                            <p class="lbl2">Want to talk with the team?</p>
-                            <a :href="DISCORD_URL">Join us on Discord &rarr;</a>
+                            <p class="lbl2">Want updates?</p>
+                            <a :href="NEWSLETTER_URL">Sign up for the newsletter &rarr;</a>
                         </div>
                     </div>
                 </div>
