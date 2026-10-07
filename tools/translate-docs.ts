@@ -20,9 +20,10 @@
  * Each language is written to `docs/<language>/` by default, mirroring the
  * layout of the English docs so it can be registered as a VuePress locale.
  *
- * Only prose is translated. Code blocks, inline code, HTML tags, comments,
- * URLs and link destinations are passed through unchanged, and relative links
- * are rewritten so they still resolve from the translated file's location.
+ * Prose and the comments inside fenced code blocks are translated. Code,
+ * inline code, HTML tags, HTML comments, URLs and link destinations are passed
+ * through unchanged, and relative links are rewritten so they still resolve
+ * from the translated file's location.
  */
 
 import { GoogleAuth } from 'google-auth-library';
@@ -222,16 +223,21 @@ function unescapeHtml(text: string) {
 /** Converts a line of markdown prose into an HTML segment for translation. */
 export function markdownToSegment(
     text: string,
-    rewriteDestination: (dest: string) => string = (d) => d
+    rewriteDestination: (dest: string) => string = (d) => d,
+    extraProtected?: RegExp
 ): Segment {
     const tokens: string[] = [];
     const protect = (value: string) => {
         tokens.push(value);
         return TOKEN(tokens.length - 1);
     };
+    let s = text;
+    if (extraProtected) {
+        s = s.replace(extraProtected, (match) => protect(match));
+    }
 
     // Link and image destinations, before anything else can match inside them.
-    let s = text.replace(
+    s = s.replace(
         /\]\(([^()\s]*(?:\([^()\s]*\)[^()\s]*)*)((?:\s+"[^"]*")?)\)/g,
         (_, dest, title) => `](${protect(rewriteDestination(dest) + title)})`
     );
@@ -304,6 +310,8 @@ function rewriteIncludes(text: string, rewrite: (dest: string) => string) {
 interface DocumentOptions {
     translate: Translator;
     rewriteDestination: (dest: string) => string;
+    /** Whether to translate comments inside fenced code blocks. Defaults to true. */
+    translateCodeComments?: boolean;
 }
 
 /**
@@ -313,7 +321,11 @@ interface DocumentOptions {
  */
 export async function translateMarkdown(
     source: string,
-    { translate, rewriteDestination }: DocumentOptions
+    {
+        translate,
+        rewriteDestination,
+        translateCodeComments = true,
+    }: DocumentOptions
 ): Promise<string> {
     const eol = source.includes('\r\n') ? '\r\n' : '\n';
     const lines = source.split(/\r?\n/);
@@ -321,10 +333,18 @@ export async function translateMarkdown(
     const pending: { segment: Segment; result?: string }[] = [];
 
     /** Queues `text` for translation, keeping its surrounding whitespace. */
-    const deferred = (text: string, wrap: (t: string) => string = (t) => t) => {
+    const deferred = (
+        text: string,
+        wrap: (t: string) => string = (t) => t,
+        extraProtected?: RegExp
+    ) => {
         const match = /^(\s*)([\s\S]*?)(\s*)$/.exec(text)!;
         const [, lead, body, trail] = match;
-        const segment = markdownToSegment(body, rewriteDestination);
+        const segment = markdownToSegment(
+            body,
+            rewriteDestination,
+            extraProtected
+        );
         // Nothing worth translating (e.g. only code or URLs).
         if (!/\p{L}/u.test(segment.html.replace(/<[^>]*>/g, ''))) {
             const restored = segmentToMarkdown(segment.html, segment.tokens);
@@ -362,23 +382,31 @@ export async function translateMarkdown(
         }
     }
 
-    let fence: string | null = null;
     let inComment = false;
 
     for (; i < lines.length; i++) {
         const line = lines[i];
 
-        if (fence) {
-            output.push(line);
-            if (new RegExp(`^\\s*${fence}+\\s*$`).test(line)) {
-                fence = null;
-            }
-            continue;
-        }
-        const fenceMatch = /^\s*(`{3,}|~{3,})/.exec(line);
+        // Fenced code blocks: only comments are translated, if at all.
+        const fenceMatch = /^\s*(`{3,}|~{3,})\s*([\w+#-]*)/.exec(line);
         if (fenceMatch) {
-            fence = fenceMatch[1];
+            const close = new RegExp(`^\\s*${fenceMatch[1]}+\\s*$`);
+            let end = i + 1;
+            while (end < lines.length && !close.test(lines[end])) end++;
+            const code = lines.slice(i + 1, end);
+            const style = translateCodeComments
+                ? commentStyle(fenceMatch[2])
+                : null;
             output.push(line);
+            if (code.length > 0) {
+                output.push(
+                    style
+                        ? translateComments(code.join('\n'), style, deferred)
+                        : code.join(eol)
+                );
+            }
+            if (end < lines.length) output.push(lines[end]);
+            i = end;
             continue;
         }
 
@@ -460,7 +488,250 @@ export async function translateMarkdown(
         });
     }
 
-    return output.map((o) => (typeof o === 'string' ? o : o())).join(eol);
+    return output
+        .map((o) => (typeof o === 'string' ? o : o()))
+        .join(eol)
+        .replace(/\r?\n/g, eol);
+}
+
+// ---------------------------------------------------------------------------
+// Code comments
+// ---------------------------------------------------------------------------
+
+type CommentStyle = 'c' | 'hash';
+
+const C_STYLE_LANGUAGES = new Set([
+    'ts',
+    'typescript',
+    'tsx',
+    'js',
+    'javascript',
+    'jsx',
+    'mjs',
+    'cjs',
+    'json',
+    'jsonc',
+    'json5',
+    'java',
+    'kotlin',
+    'kt',
+    'c',
+    'cpp',
+    'c++',
+    'cs',
+    'csharp',
+    'go',
+    'rust',
+    'rs',
+    'swift',
+    'dart',
+    'php',
+    'scala',
+]);
+
+const HASH_LANGUAGES = new Set([
+    'bash',
+    'sh',
+    'shell',
+    'zsh',
+    'console',
+    'python',
+    'py',
+    'ruby',
+    'rb',
+    'yaml',
+    'yml',
+    'toml',
+    'powershell',
+    'ps1',
+    'r',
+    'perl',
+]);
+
+/**
+ * The comment syntax for a fence language. Blocks without a recognised
+ * language are left alone, since guessing wrong would corrupt the code.
+ */
+function commentStyle(language: string): CommentStyle | null {
+    const lang = language.toLowerCase();
+    if (C_STYLE_LANGUAGES.has(lang)) return 'c';
+    if (HASH_LANGUAGES.has(lang)) return 'hash';
+    return null;
+}
+
+interface CodeComment {
+    start: number;
+    end: number;
+    block: boolean;
+}
+
+/**
+ * Finds the comments in `code`, skipping over string literals so that
+ * `"https://..."` or `'#fff'` are not mistaken for comments.
+ */
+export function findComments(code: string, style: CommentStyle): CodeComment[] {
+    const comments: CodeComment[] = [];
+    let i = 0;
+    while (i < code.length) {
+        const c = code[i];
+        if (c === '"' || c === "'" || c === '`') {
+            i++;
+            while (i < code.length && code[i] !== c) {
+                if (code[i] === '\\' && style === 'c') i++;
+                else if (code[i] === '\n' && c !== '`') break;
+                i++;
+            }
+            i++;
+        } else if (style === 'c' && code.startsWith('//', i)) {
+            const end = code.indexOf('\n', i);
+            const stop = end < 0 ? code.length : end;
+            comments.push({ start: i, end: stop, block: false });
+            i = stop;
+        } else if (style === 'c' && code.startsWith('/*', i)) {
+            const end = code.indexOf('*/', i + 2);
+            const stop = end < 0 ? code.length : end + 2;
+            comments.push({ start: i, end: stop, block: true });
+            i = stop;
+        } else if (
+            style === 'hash' &&
+            c === '#' &&
+            (i === 0 || /\s/.test(code[i - 1])) &&
+            !code.startsWith('#!', i)
+        ) {
+            const end = code.indexOf('\n', i);
+            const stop = end < 0 ? code.length : end;
+            comments.push({ start: i, end: stop, block: false });
+            i = stop;
+        } else {
+            i++;
+        }
+    }
+    return comments;
+}
+
+/** Comments that are probably disabled code rather than prose. */
+const LOOKS_LIKE_CODE =
+    /[;{}]\s*$|=>|^\s*(import|export|const|let|var|function|return|await|if|for)\b|^\s*[\w.$]+\(.*\)\s*$/;
+
+/** JSDoc tags and their parameter names are kept as written. */
+const JSDOC_TAGS =
+    /\{@[^}]*\}|@(?:param|arg|argument|prop|property|template)\b(?:\s+\{[^}]*\})?\s+[\w$.[\]=]+|@[\w-]+/g;
+
+type Deferred = (
+    text: string,
+    wrap?: (t: string) => string,
+    extraProtected?: RegExp
+) => () => string;
+
+/**
+ * Translates the comments in a code block, leaving the code untouched.
+ *
+ * A sentence that is wrapped over several comment lines is translated as a
+ * whole and written back as a single comment line.
+ */
+function translateComments(
+    code: string,
+    style: CommentStyle,
+    deferred: Deferred
+): () => string {
+    const parts: (string | (() => string))[] = [];
+    let pos = 0;
+    const comments = findComments(code, style);
+
+    for (let c = 0; c < comments.length; c++) {
+        const comment = comments[c];
+        parts.push(code.slice(pos, comment.start));
+
+        if (comment.block) {
+            parts.push(
+                ...translateCommentLines(
+                    code.slice(comment.start, comment.end).split('\n'),
+                    /^(\s*(?:\/\*+|\*(?!\/))?\s?)(.*?)(\s*\*\/\s*)?$/,
+                    deferred
+                )
+            );
+            pos = comment.end;
+            continue;
+        }
+
+        // Group full-line comments on consecutive lines into one run.
+        const marker = style === 'c' ? '//' : '#';
+        let last = c;
+        while (last + 1 < comments.length) {
+            const next = comments[last + 1];
+            const between = code.slice(comments[last].end, next.start);
+            if (next.block || !/^\n[ \t]*$/.test(between)) break;
+            last++;
+        }
+        const lineStart = code.lastIndexOf('\n', comment.start - 1) + 1;
+        const indent = code.slice(lineStart, comment.start);
+        const fullLine = /^[ \t]*$/.test(indent);
+        const end = fullLine ? comments[last].end : comment.end;
+        const text = code.slice(comment.start, end);
+        const escaped = marker.replace(/[/#]/g, (m) => '\\' + m);
+        parts.push(
+            ...translateCommentLines(
+                text.split('\n'),
+                new RegExp(`^(\\s*${escaped}+\\s?)(.*?)()$`),
+                deferred
+            )
+        );
+        pos = end;
+        if (fullLine) c = last;
+    }
+    parts.push(code.slice(pos));
+
+    return () => parts.map((p) => (typeof p === 'string' ? p : p())).join('');
+}
+
+/**
+ * Translates comment lines that each look like `prefix content suffix`.
+ * A sentence that wraps onto the next line is joined with it before
+ * translating; lines that end a sentence, list items and JSDoc tags are kept
+ * on their own lines.
+ */
+function translateCommentLines(
+    lines: string[],
+    pattern: RegExp,
+    deferred: Deferred
+): (string | (() => string))[] {
+    const parsed = lines.map((line) => {
+        const [, prefix = '', content = '', suffix = ''] =
+            pattern.exec(line) ?? [];
+        return { line, prefix, content, suffix };
+    });
+    const parts: (string | (() => string))[] = [];
+
+    for (let i = 0; i < parsed.length; i++) {
+        const first = parsed[i];
+        if (i > 0) parts.push('\n');
+        if (!/\S/.test(first.content)) {
+            parts.push(first.line);
+            continue;
+        }
+        let text = first.content;
+        let suffix = first.suffix;
+        while (
+            !suffix &&
+            i + 1 < parsed.length &&
+            /\S/.test(parsed[i + 1].content) &&
+            !/[.:!?]$/.test(text.trimEnd()) &&
+            !/^\s*(@|[-*+]\s|\d+[.)]\s)/.test(parsed[i + 1].content)
+        ) {
+            i++;
+            text += ' ' + parsed[i].content.trim();
+            suffix = parsed[i].suffix;
+        }
+        const close = suffix;
+        if (LOOKS_LIKE_CODE.test(text)) {
+            parts.push(first.prefix + text + close);
+        } else {
+            parts.push(
+                deferred(text, (t) => first.prefix + t + close, JSDOC_TAGS)
+            );
+        }
+    }
+    return parts;
 }
 
 /** Whether `line` continues the paragraph above it rather than starting a new block. */
@@ -636,6 +907,7 @@ Options:
                        GOOGLE_CLOUD_PROJECT or the ADC quota project.
   --force              Re-translate files even if the output is up to date
   --dry-run            List the files that would be translated
+  --skip-code-comments Leave comments in code blocks in English
   --list-languages     Print the supported target languages and exit
   -h, --help           Show this help
 
@@ -653,6 +925,7 @@ async function main() {
             project: { type: 'string' },
             force: { type: 'boolean', default: false },
             'dry-run': { type: 'boolean', default: false },
+            'skip-code-comments': { type: 'boolean', default: false },
             'list-languages': { type: 'boolean', default: false },
             help: { type: 'boolean', short: 'h', default: false },
         },
@@ -745,6 +1018,7 @@ async function main() {
             const source = await readFile(sourceFile, 'utf8');
             const result = await translateMarkdown(source, {
                 translate,
+                translateCodeComments: !values['skip-code-comments'],
                 rewriteDestination: destinationRewriter(
                     sourceRoot,
                     outputRoot,

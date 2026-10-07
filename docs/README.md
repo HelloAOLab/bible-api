@@ -30,6 +30,8 @@ pnpm translate:docs --list-languages   # show supported language codes
 pnpm translate:docs es fr zh-CN         # writes docs/es, docs/fr, docs/zh-CN
 ```
 
-Code blocks, inline code, URLs and HTML are left untouched, and links are rewritten to point at the translated pages.
+Comments in fenced code blocks are translated too (for languages such as TypeScript, JSON and bash), but the code itself,
+inline code, URLs and HTML are left untouched, and links are rewritten to point at the translated pages.
+Pass `--skip-code-comments` to keep code comments in English.
 Files whose translation is newer than the English source are skipped; pass `--force` to re-translate them.
 Run `pnpm translate:docs --help` for all options.
