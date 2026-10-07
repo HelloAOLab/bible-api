@@ -203,7 +203,7 @@ export default defineUserConfig({
         searchPlugin(),
         shikiPlugin({
             // options
-            langs: ['ts', 'json'],
+            langs: ['ts', 'json', 'bash'],
             theme: 'dark-plus',
         }),
         seoPlugin({

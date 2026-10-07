@@ -14,6 +14,10 @@ Gets the content of a single chapter for a given book and translation.
 
 ### Code Example
 
+::: code-tabs#lang
+
+@tab JavaScript
+
 ```ts:no-line-numbers title="fetch-chapter.js"
 const translation = 'BSB';
 const book = 'GEN';
@@ -26,6 +30,14 @@ fetch(`https://bible.helloao.org/api/${translation}/${book}/${chapter}.json`)
         console.log('Genesis 1 (BSB):', chapter);
     });
 ```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/BSB/GEN/1.json
+```
+
+:::
 
 ### Structure
 
@@ -552,6 +564,10 @@ only one set of timings per translation, book, chapter, and reader.
 
 ### Code Example
 
+::: code-tabs#lang
+
+@tab JavaScript
+
 ```ts:no-line-numbers title="fetch-chapter-audio-timings.js"
 const translation = 'BSB';
 const book = 'GEN';
@@ -565,6 +581,14 @@ fetch(`https://bible.helloao.org/api/${translation}/${book}/${chapter}.${reader}
         console.log('Genesis 1 (BSB, hays) verse start times:', timings.verses);
     });
 ```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/BSB/GEN/1.hays.audioTimings.json
+```
+
+:::
 
 ### Structure
 
@@ -695,6 +719,10 @@ Jesus, and footnote references.
 
 ### Code Example
 
+::: code-tabs#lang
+
+@tab JavaScript
+
 ```ts:no-line-numbers title="fetch-chapter-words.js"
 const translation = 'BSB';
 const book = 'GEN';
@@ -707,6 +735,14 @@ fetch(`https://bible.helloao.org/api/${translation}/${book}/${chapter}.words.jso
         console.log('Genesis 1 words (BSB):', words);
     });
 ```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/BSB/GEN/1.words.json
+```
+
+:::
 
 ### Structure
 
@@ -900,6 +936,10 @@ Gets the content of an entire translation.
 
 ### Code Example
 
+::: code-tabs#lang
+
+@tab JavaScript
+
 ```ts:no-line-numbers title="fetch-translation-complete.js"
 const translation = 'BSB';
 
@@ -910,6 +950,14 @@ fetch(`https://bible.helloao.org/api/${translation}/complete.json`)
         console.log('BSB:', chapter);
     });
 ```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/BSB/complete.json
+```
+
+:::
 
 ### Structure
 
