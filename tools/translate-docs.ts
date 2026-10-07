@@ -27,7 +27,10 @@
  *
  * The navbar, sidebar, home page and 404 page text in
  * `docs/.vuepress/labels.json` is translated into
- * `docs/<language>/labels.json`, which the site reads.
+ * `docs/<language>/labels.json`, which the site reads. Labels added to the
+ * English file are translated on the next run without re-translating the ones
+ * already there; `--force`, or editing the English file after the
+ * translation was written, translates them all again.
  */
 
 import { GoogleAuth } from 'google-auth-library';
@@ -813,33 +816,71 @@ export type Labels = { [key: string]: string | Labels };
  * keeping its keys. Labels are short markdown strings, so they go through the
  * same conversion as page prose: `**bold**` survives and `{{ placeholders }}`
  * are left untranslated.
+ *
+ * Labels already present in `existing` (an earlier translation of the same
+ * file) are kept as they are, so only labels added since then are sent for
+ * translation. Labels no longer in `labels` are dropped.
  */
 export async function translateLabels(
     labels: Labels,
-    translate: Translator
+    translate: Translator,
+    existing: Labels = {}
 ): Promise<Labels> {
     const strings: string[] = [];
-    const collect = (node: Labels) => {
-        for (const value of Object.values(node)) {
-            if (typeof value === 'string') strings.push(value);
-            else collect(value);
+    const collect = (node: Labels, prior: Labels | undefined) => {
+        for (const [key, value] of Object.entries(node)) {
+            const old = prior?.[key];
+            if (typeof value !== 'string') {
+                collect(value, typeof old === 'object' ? old : undefined);
+            } else if (typeof old !== 'string') {
+                strings.push(value);
+            }
         }
     };
-    collect(labels);
+    collect(labels, existing);
 
     const segments = strings.map((text) => markdownToSegment(text));
-    const translated = await translate(segments.map((s) => s.html));
+    const translated = segments.length
+        ? await translate(segments.map((s) => s.html))
+        : [];
 
     let i = 0;
-    const rebuild = (node: Labels): Labels =>
+    const rebuild = (node: Labels, prior: Labels | undefined): Labels =>
         Object.fromEntries(
             Object.entries(node).map(([key, value]) => {
-                if (typeof value !== 'string') return [key, rebuild(value)];
+                const old = prior?.[key];
+                if (typeof value !== 'string') {
+                    return [
+                        key,
+                        rebuild(
+                            value,
+                            typeof old === 'object' ? old : undefined
+                        ),
+                    ];
+                }
+                if (typeof old === 'string') return [key, old];
                 const { tokens } = segments[i];
                 return [key, segmentToMarkdown(translated[i++], tokens).trim()];
             })
         );
-    return rebuild(labels);
+    return rebuild(labels, existing);
+}
+
+/** Counts the strings in `labels` that `existing` has no translation for. */
+export function countMissingLabels(labels: Labels, existing: Labels): number {
+    let missing = 0;
+    for (const [key, value] of Object.entries(labels)) {
+        const old = existing[key];
+        if (typeof value === 'string') {
+            if (typeof old !== 'string') missing++;
+        } else {
+            missing += countMissingLabels(
+                value,
+                typeof old === 'object' ? old : {}
+            );
+        }
+    }
+    return missing;
 }
 
 // ---------------------------------------------------------------------------
@@ -1088,24 +1129,41 @@ async function main() {
         const labelsSource = path.join(sourceRoot, LABELS_FILE);
         const labelsOutput = path.join(outputRoot, TRANSLATED_LABELS_FILE);
         if (await exists(labelsSource)) {
-            const upToDate =
-                !values.force &&
-                (await exists(labelsOutput)) &&
-                (await stat(labelsOutput)).mtimeMs >=
+            const labels: Labels = JSON.parse(
+                await readFile(labelsSource, 'utf8')
+            );
+            // Labels added to the English file since the last run are
+            // translated on their own. When the English file is newer than
+            // the translation, existing labels may have been reworded too,
+            // so everything is translated again.
+            let existing: Labels = {};
+            if (!values.force && (await exists(labelsOutput))) {
+                const stale =
+                    (await stat(labelsOutput)).mtimeMs <
                     (await stat(labelsSource)).mtimeMs;
-            if (upToDate) {
+                if (!stale) {
+                    existing = JSON.parse(await readFile(labelsOutput, 'utf8'));
+                }
+            }
+            const missing = countMissingLabels(labels, existing);
+            if (missing === 0) {
                 console.log(`  skip  ${LABELS_FILE} (up to date)`);
             } else if (values['dry-run']) {
-                console.log(`  would translate  ${LABELS_FILE}`);
+                console.log(
+                    `  would translate  ${LABELS_FILE} (${missing} label(s))`
+                );
             } else {
-                const labels = JSON.parse(await readFile(labelsSource, 'utf8'));
-                const result = await translateLabels(labels, translate);
+                const result = await translateLabels(
+                    labels,
+                    translate,
+                    existing
+                );
                 await mkdir(outputRoot, { recursive: true });
                 await writeFile(
                     labelsOutput,
                     JSON.stringify(result, null, 4) + '\n'
                 );
-                console.log(`  done  ${LABELS_FILE}`);
+                console.log(`  done  ${LABELS_FILE} (${missing} label(s))`);
             }
         }
 
