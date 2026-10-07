@@ -11,6 +11,7 @@ from bible_audio_timings.cli import (
     UsageError,
     build_parser,
     expand,
+    failed_work,
     local_audio,
     main,
     parse_target,
@@ -181,6 +182,62 @@ def test_resume_skips_completed_chapters(fixtures, tmp_path, monkeypatch, caplog
     caplog.set_level("INFO")
     assert main([*argv, "--resume"]) == 0
     assert "already done, skipping" in caplog.text
+
+
+def test_failed_work_reads_only_failed_manifest_entries(tmp_path) -> None:
+    cache = Cache(tmp_path)
+    cache.record(ChapterKey("BSB", "GEN", 1, "hays"), ok=True)
+    cache.record(ChapterKey("BSB", "GEN", 2, "hays"), ok=False)
+    cache.record(ChapterKey("BSB", "EXO", 3, "souer"), ok=False)
+    cache.record(ChapterKey("WEB", "GEN", 2, "hays"), ok=False)
+    # Reload from disk, as a later run would; the manifest is written sorted.
+    cache = Cache(tmp_path)
+
+    assert failed_work(cache, [], None) == [
+        ("BSB", "EXO", 3, "souer"),
+        ("BSB", "GEN", 2, "hays"),
+        ("WEB", "GEN", 2, "hays"),
+    ]
+    assert failed_work(cache, [parse_target("BSB/gen/1-2")], None) == [
+        ("BSB", "GEN", 2, "hays"),
+    ]
+    assert failed_work(cache, [parse_target("BSB")], ["souer"]) == [
+        ("BSB", "EXO", 3, "souer"),
+    ]
+
+
+def test_retry_failed_reruns_only_failed_chapters(
+    fixtures, tmp_path, monkeypatch, caplog
+) -> None:
+    monkeypatch.setenv(FAKE_ASR_ENV, str(fixtures / "asr/TST_GEN_1.reader1.json"))
+    audio = tmp_path / "1.reader1.mp3"
+    audio.write_bytes(b"x")
+    cache_dir = tmp_path / "cache"
+    argv = [
+        "--api-base",
+        f"file://{fixtures / 'apiroot'}",
+        "--audio",
+        str(audio),
+        "--cache-dir",
+        str(cache_dir),
+        "-o",
+        str(tmp_path / "out.json"),
+    ]
+    key = ChapterKey("TST", "GEN", 1, "reader1")
+    assert main(["TST/GEN/1:reader1", *argv, "--min-match-rate", "1.01"]) == 1
+    assert not Cache(cache_dir).is_done(key)
+
+    caplog.set_level("INFO")
+    assert main([*argv, "--retry-failed"]) == 0
+    assert "retrying 1 failed chapter(s)" in caplog.text
+    assert Cache(cache_dir).is_done(key)
+    assert len(read_records(tmp_path / "out.json")) == 1
+
+
+def test_targets_are_required_without_retry_failed(capsys) -> None:
+    with pytest.raises(SystemExit):
+        main([])
+    assert "at least one TARGET" in capsys.readouterr().err
 
 
 def test_thresholds_reject_and_set_a_failing_exit_code(

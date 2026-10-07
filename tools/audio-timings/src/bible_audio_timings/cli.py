@@ -108,6 +108,33 @@ def expand(api: BibleApi, target: Target) -> list[tuple[str, str, int]]:
     return triples
 
 
+def matches(target: Target, key: ChapterKey) -> bool:
+    """Whether a target selector covers a chapter key, without asking the API."""
+    if key.translation_id != target.translation_id:
+        return False
+    if target.book_id and key.book_id.upper() != target.book_id.upper():
+        return False
+    if target.first_chapter is not None and not (
+        target.first_chapter <= key.chapter_number <= target.last_chapter
+    ):
+        return False
+    return not target.reader or key.reader == target.reader
+
+
+def failed_work(
+    cache: Cache, targets: list[Target], readers: list[str] | None
+) -> list[tuple[str, str, int, str | None]]:
+    """Work items for chapters the manifest records as failed, in manifest order."""
+    work = []
+    for key in cache.failed_keys():
+        if targets and not any(matches(target, key) for target in targets):
+            continue
+        if readers and key.reader not in readers:
+            continue
+        work.append((key.translation_id, key.book_id, key.chapter_number, key.reader))
+    return work
+
+
 def local_audio(directory: Path, key: ChapterKey) -> Path | None:
     """Find a chapter's audio in a ``fetch-audio``-style directory."""
     candidates = [
@@ -259,9 +286,12 @@ def build_parser() -> argparse.ArgumentParser:
             "  BSB/GEN/1        a single chapter\n"
             "  BSB/GEN/1-5      a chapter range\n"
             "  BSB/GEN/1:hays   a single chapter for one reader\n"
+            "\n"
+            "With --retry-failed, targets are optional and only narrow which failed\n"
+            "manifest entries are retried.\n"
         ),
     )
-    parser.add_argument("targets", nargs="+", metavar="TARGET")
+    parser.add_argument("targets", nargs="*", metavar="TARGET")
     parser.add_argument(
         "--reader",
         action="append",
@@ -288,6 +318,14 @@ def build_parser() -> argparse.ArgumentParser:
         "--overwrite",
         action="store_true",
         help="reprocess chapters even if the manifest says they are done",
+    )
+    parser.add_argument(
+        "--retry-failed",
+        action="store_true",
+        help=(
+            "only rerun chapters the cache manifest records as failed or rejected, "
+            "without walking every chapter of the targets"
+        ),
     )
     parser.add_argument(
         "--dry-run",
@@ -358,6 +396,8 @@ def main(argv: list[str] | None = None) -> int:
         parser.error(
             "--durations does not produce the import format; pass an explicit --output"
         )
+    if not args.targets and not args.retry_failed:
+        parser.error("at least one TARGET is required (unless --retry-failed)")
 
     thresholds = Thresholds(
         min_match_rate=args.min_match_rate,
@@ -388,14 +428,18 @@ def main(argv: list[str] | None = None) -> int:
     planned = 0
 
     with BibleApi(args.api_base) as api:
-        try:
-            work: list[tuple[str, str, int, str | None]] = []
-            for target in targets:
-                for translation_id, book_id, chapter in expand(api, target):
-                    work.append((translation_id, book_id, chapter, target.reader))
-        except (UsageError, ApiError) as error:
-            logger.error("%s", error)
-            return 2
+        work: list[tuple[str, str, int, str | None]] = []
+        if args.retry_failed:
+            work = failed_work(cache, targets, args.readers)
+            logger.info("retrying %d failed chapter(s) from the manifest", len(work))
+        else:
+            try:
+                for target in targets:
+                    for translation_id, book_id, chapter in expand(api, target):
+                        work.append((translation_id, book_id, chapter, target.reader))
+            except (UsageError, ApiError) as error:
+                logger.error("%s", error)
+                return 2
 
         for translation_id, book_id, chapter, target_reader in work:
             try:

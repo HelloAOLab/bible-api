@@ -52,6 +52,13 @@ export interface TranslationBookChapter {
     thisChapterAudioLinks: TranslationBookChapterAudioLinks;
 
     /**
+     * The links to the audio timings for different audio versions for the chapter.
+     * Each link points at the audio timings file for that reader - see
+     * "Get the Audio Timings for a Chapter" below.
+     */
+    thisChapterAudioTimings: TranslationBookChapterAudioTimingsLinks;
+
+    /**
      * The link to the next chapter.
      * Null if this is the last chapter in the translation.
      */
@@ -64,6 +71,12 @@ export interface TranslationBookChapter {
     nextChapterAudioLinks: TranslationBookChapterAudioLinks | null;
 
     /**
+     * The links to the audio timings for different audio versions for the next chapter.
+     * Null if this is the last chapter in the translation.
+     */
+    nextChapterAudioTimings: TranslationBookChapterAudioTimingsLinks | null;
+
+    /**
      * The link to the previous chapter.
      * Null if this is the first chapter in the translation.
      */
@@ -74,6 +87,12 @@ export interface TranslationBookChapter {
      * Null if this is the first chapter in the translation.
      */
     previousChapterAudioLinks: TranslationBookChapterAudioLinks | null;
+
+    /**
+     * The links to the audio timings for different audio versions for the previous chapter.
+     * Null if this is the first chapter in the translation.
+     */
+    previousChapterAudioTimings: TranslationBookChapterAudioTimingsLinks | null;
 
     /**
      * The link to the word-level annotations for the chapter.
@@ -305,6 +324,16 @@ interface TranslationBookChapterAudioLinks {
      */
     [reader: string]: string;
 }
+
+/**
+ * The audio timings links for a book chapter.
+ */
+interface TranslationBookChapterAudioTimingsLinks {
+    /**
+     * The reader for the chapter and the API link to the audio timings file for that reader.
+     */
+    [reader: string]: string;
+}
 ```
 
 ### Example
@@ -351,14 +380,25 @@ interface TranslationBookChapterAudioLinks {
         "hays": "https://openbible.com/audio/hays/BSB_01_Gen_001_H.mp3",
         "souer": "https://openbible.com/audio/souer/BSB_01_Gen_001.mp3"
     },
+    "thisChapterAudioTimings": {
+        "gilbert": "/api/BSB/GEN/1.gilbert.audioTimings.json",
+        "hays": "/api/BSB/GEN/1.hays.audioTimings.json",
+        "souer": "/api/BSB/GEN/1.souer.audioTimings.json"
+    },
     "nextChapterApiLink": "/api/BSB/GEN/2.json",
     "nextChapterAudioLinks": {
         "gilbert": "https://openbible.com/audio/gilbert/BSB_01_Gen_002_G.mp3",
         "hays": "https://openbible.com/audio/hays/BSB_01_Gen_002_H.mp3",
         "souer": "https://openbible.com/audio/souer/BSB_01_Gen_002.mp3"
     },
+    "nextChapterAudioTimings": {
+        "gilbert": "/api/BSB/GEN/2.gilbert.audioTimings.json",
+        "hays": "/api/BSB/GEN/2.hays.audioTimings.json",
+        "souer": "/api/BSB/GEN/2.souer.audioTimings.json"
+    },
     "previousChapterApiLink": null,
     "previousChapterAudioLinks": null,
+    "previousChapterAudioTimings": null,
     "numberOfVerses": 31,
     "chapter": {
         "number": 1,
@@ -481,6 +521,154 @@ interface TranslationBookChapterAudioLinks {
     }
 }
 ```
+
+
+## Get the Audio Timings for a Chapter
+
+`GET https://bible.helloao.org/api/{translation}/{book}/{chapter}.{reader}.audioTimings.json`
+
+Gets the per-verse audio timings for a single chapter, for a single reader's narration of it -
+that is, the time (in seconds, relative to the start of that reader's audio file) at which
+each verse begins. Clients can use this to highlight the verse that is currently being read as
+the audio plays.
+
+Only some translations and readers have audio timings. A chapter that has them for a reader
+links to this file with an entry in `thisChapterAudioTimings`, keyed by that reader's ID; when a
+reader isn't a key in that map, this file doesn't exist for that reader and chapter.
+
+-   `translation` is the ID of the translation (e.g. `BSB`).
+-   `book` is the ID of the book (e.g. `GEN` for Genesis - you can find a list of book IDs [here](https://ubsicap.github.io/usfm/identification/books.html)).
+-   `chapter` is the numerical chapter (e.g. `1` for the first chapter).
+-   `reader` is the ID of the reader whose narration the timings are for (e.g. `hays`) - the
+    available readers for a chapter are the keys of its `thisChapterAudioLinks`.
+
+A verse's end is the start of the next verse (or, for the last verse, the end of the audio
+file), so a client doesn't need anything beyond the ordered list of start times to build
+highlighting ranges for the whole chapter.
+
+This file is the same regardless of whether it's reached from the regular chapter endpoint or
+[the simplified one](./simplified.md#get-a-simplified-chapter-from-a-translation) - there's
+only one set of timings per translation, book, chapter, and reader.
+
+### Code Example
+
+```ts:no-line-numbers title="fetch-chapter-audio-timings.js"
+const translation = 'BSB';
+const book = 'GEN';
+const chapter = 1;
+const reader = 'hays';
+
+// Get the audio timings for Genesis 1 (BSB), as read by "hays"
+fetch(`https://bible.helloao.org/api/${translation}/${book}/${chapter}.${reader}.audioTimings.json`)
+    .then(request => request.json())
+    .then(timings => {
+        console.log('Genesis 1 (BSB, hays) verse start times:', timings.verses);
+    });
+```
+
+### Structure
+
+```typescript:no-line-numbers title="chapter-audio-timings.ts"
+/**
+ * Defines the audio timings for a book chapter, for a single reader.
+ * Maps to the /api/{translation}/{book}/{chapter}.{reader}.audioTimings.json endpoint.
+ */
+export interface TranslationBookChapterAudioTimings {
+    /**
+     * The ID of the translation.
+     */
+    translationId: string;
+
+    /**
+     * The ID of the book.
+     */
+    bookId: string;
+
+    /**
+     * The number of the chapter.
+     */
+    chapterNumber: number;
+
+    /**
+     * The ID of the reader that these timings are for.
+     */
+    reader: string;
+
+    /**
+     * The link to the audio file that these timings are for.
+     */
+    audioLink: string;
+
+    /**
+     * The link to the information for this chapter.
+     */
+    thisChapterLink: string;
+
+    /**
+     * The link to the information for the next chapter.
+     * Null if this is the last chapter in the translation.
+     */
+    nextChapterLink: string | null;
+
+    /**
+     * The link to the information for the previous chapter.
+     * Null if this is the first chapter in the translation.
+     */
+    previousChapterLink: string | null;
+
+    /**
+     * The link to this audio timings file.
+     */
+    thisChapterAudioTimingsLink: string;
+
+    /**
+     * The link to the timings for the next chapter, for the same reader.
+     * Null if this is the last chapter in the translation.
+     */
+    nextChapterAudioTimingsLink: string | null;
+
+    /**
+     * The link to the timings for the previous chapter, for the same reader.
+     * Null if this is the first chapter in the translation.
+     */
+    previousChapterAudioTimingsLink: string | null;
+
+    /**
+     * The times in seconds at which each verse starts, in order.
+     * The first number (index 0) is the time in the recording at which the first verse starts.
+     */
+    verses: number[];
+}
+```
+
+### Example
+
+```json:no-line-numbers title="/api/BSB/GEN/1.hays.audioTimings.json"
+{
+    "translationId": "BSB",
+    "bookId": "GEN",
+    "chapterNumber": 1,
+    "reader": "hays",
+    "audioLink": "https://openbible.com/audio/hays/BSB_01_Gen_001_H.mp3",
+    "thisChapterLink": "/api/BSB/GEN/1.json",
+    "nextChapterLink": "/api/BSB/GEN/2.json",
+    "previousChapterLink": null,
+    "thisChapterAudioTimingsLink": "/api/BSB/GEN/1.hays.audioTimings.json",
+    "nextChapterAudioTimingsLink": "/api/BSB/GEN/2.hays.audioTimings.json",
+    "previousChapterAudioTimingsLink": null,
+    "verses": [
+        0,
+        4.32,
+        10.28,
+        19.06,
+        27.84
+    ]
+}
+```
+
+`verses[0]` is the start time of verse 1, `verses[1]` is the start time of verse 2, and so on -
+so in this example, verse 2 of Genesis 1 (BSB, as read by "hays") starts 4.32 seconds into
+`audioLink`.
 
 
 ## Get the Words of a Chapter
@@ -795,11 +983,45 @@ export interface TranslationCompleteBook {
 /**
  * A chapter in the complete translation download.
  */
-export interface TranslationCompleteChapter extends TranslationBookChapter {
+export interface TranslationCompleteChapter {
     /**
      * The number of verses that the chapter contains.
      */
     numberOfVerses: number;
+
+    /**
+     * The links to different audio versions for the chapter.
+     */
+    thisChapterAudioLinks: TranslationBookChapterAudioLinks;
+
+    /**
+     * The audio timings (per-verse start times, in seconds) for different audio versions for
+     * the chapter.
+     *
+     * Unlike `thisChapterAudioTimings` on the individual chapter endpoint (which links to
+     * "Get the Audio Timings for a Chapter" below), this contains the timings themselves -
+     * since the point of the complete translation download is to have everything in one file.
+     */
+    thisChapterAudioTimings: TranslationBookChapterAudioTimingsMap;
+
+    /**
+     * The link to the word-level annotations for the chapter.
+     * Omitted if the chapter doesn't have any word-level annotations.
+     */
+    thisChapterWordsLink?: string;
+
+    /**
+     * The information for the chapter.
+     */
+    chapter: ChapterData;
+}
+
+/**
+ * The audio timings for a book chapter, embedded directly rather than linked to.
+ * Maps a reader ID to the list of times (in seconds) that each verse starts, in verse order.
+ */
+interface TranslationBookChapterAudioTimingsMap {
+    [reader: string]: number[];
 }
 ```
 
@@ -846,6 +1068,11 @@ export interface TranslationCompleteChapter extends TranslationBookChapter {
             "gilbert": "https://openbible.com/audio/gilbert/BSB_01_Gen_001_G.mp3",
             "hays": "https://openbible.com/audio/hays/BSB_01_Gen_001_H.mp3",
             "souer": "https://openbible.com/audio/souer/BSB_01_Gen_001.mp3"
+          },
+          "thisChapterAudioTimings": {
+            "gilbert": [0, 4.4, 10.36],
+            "hays": [0, 4.32, 10.28],
+            "souer": [0, 4.28, 10.19]
           },
           "chapter": {
             "number": 1,

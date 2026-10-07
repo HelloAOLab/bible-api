@@ -111,16 +111,29 @@ def verse_texts(
 
 
 def _check_verse_numbering(verses: list[tuple[int, str]]) -> None:
+    """Require verse numbers that are unique, positive and ascending.
+
+    Gaps are allowed: many translations omit verses that later manuscripts added
+    (Matthew 17:21, for example), so the chapter simply has no such verse. The
+    output holds one start time per verse *present*, in document order, which is
+    what ``numberOfVerses`` counts too.
+    """
     numbers = [number for number, _ in verses]
     counts = Counter(numbers)
     duplicates = sorted(number for number, count in counts.items() if count > 1)
     if duplicates:
         raise ReferenceError(f"duplicate verse numbers: {duplicates}")
-    expected = list(range(1, len(numbers) + 1))
-    if numbers != expected:
+    if numbers[0] < 1:
+        raise ReferenceError(f"verse numbers must start at 1 or above: got {numbers[0]}")
+    out_of_order = [
+        (previous, current)
+        for previous, current in zip(numbers, numbers[1:], strict=False)
+        if current < previous
+    ]
+    if out_of_order:
+        previous, current = out_of_order[0]
         raise ReferenceError(
-            f"verse numbers are not contiguous from 1: got {numbers[:5]}"
-            f"{'...' if len(numbers) > 5 else ''}"
+            f"verse numbers are not in ascending order: {current} follows {previous}"
         )
 
 
