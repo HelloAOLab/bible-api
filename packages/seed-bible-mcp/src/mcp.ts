@@ -24,6 +24,13 @@ function json(value: unknown) {
     };
 }
 
+function error(message: string) {
+    return {
+        content: [{ type: 'text' as const, text: message }],
+        isError: true,
+    };
+}
+
 /**
  * Create a new MCP server instance with the Bible tools registered.
  *
@@ -45,6 +52,7 @@ export function createBibleMcpServer(options: BibleMcpOptions = {}): McpServer {
             instructions:
                 'Use getBibleReference() to interpret a user query into a Bible passage result. ' +
                 'Then use fetchChapter() to retrieve the full passage text. ' +
+                'To get the text of one verse directly, use fetchVerse(). ' +
                 'Supports BSB, WEB (ENGWEBP), Hebrew WLC (heb_wlc), and SBL Greek NT (grc_sbl).',
             // The default Ajv validator compiles schemas with `new Function`,
             // which Cloudflare Workers forbids. The cfworker validator is pure JS
@@ -109,6 +117,60 @@ export function createBibleMcpServer(options: BibleMcpOptions = {}): McpServer {
                 text: extractVerses(chapterJson, verses),
                 url: chapterUrl(apiBase, translation, book, chapter),
                 metadata: { translation, book, chapter, verses },
+            });
+        }
+    );
+
+    server.registerTool(
+        'fetchVerse',
+        {
+            description:
+                'Retrieve the text of a single Bible verse from a reference such as "John 3:16".',
+            inputSchema: {
+                reference: z
+                    .string()
+                    .describe(
+                        'A single verse reference, optionally followed by a translation, e.g. "John 3:16" or "Gen 1:1 WEB".'
+                    ),
+            },
+        },
+        async ({ reference }) => {
+            const ref = await parseQueryToRef(apiBase, reference);
+            if (!ref || !ref[3] || ref[3].includes('-')) {
+                return error(
+                    `Could not interpret "${reference}" as a single verse reference.`
+                );
+            }
+
+            const [translation, book, chapter, verse] = ref;
+            const chapterJson = await fetchSimpleChapterJson(
+                apiBase,
+                translation,
+                book,
+                chapter
+            );
+            // Drop the "N. " prefix that extractVerses() adds to each verse.
+            const text = extractVerses(chapterJson, verse).replace(
+                /^\d+\. /,
+                ''
+            );
+            if (!text) {
+                return error(
+                    `${passageTitle(translation, book, chapter, verse)} was not found.`
+                );
+            }
+
+            return json({
+                id: makeResultId(translation, book, chapter, verse),
+                title: passageTitle(translation, book, chapter, verse),
+                text,
+                url: chapterUrl(apiBase, translation, book, chapter),
+                metadata: {
+                    translation,
+                    book,
+                    chapter,
+                    verse: parseInt(verse, 10),
+                },
             });
         }
     );
