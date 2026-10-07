@@ -467,7 +467,8 @@ const compareRows: {
                         <img class="dark-only" :src="aoLabLogoDark" alt="AO Lab" />
                     </a>
                     <span class="foot-terms">
-                        <RouteLink to="/guide/a-biblical-model-for-licensing-the-bible.html">License</RouteLink>
+                        <a href="https://helloao.org/privacy.html">Privacy</a> &middot;
+                        <a href="https://helloao.org/terms.html">Terms</a>
                     </span>
                 </div>
             </div>
