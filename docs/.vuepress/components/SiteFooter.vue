@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { RouteLink, withBase } from 'vuepress/client';
+import { useLocalePath } from '../composables/useLocalePath';
 
 const DONATE_URL = 'https://better.giving/marketplace/1118469';
 const DISCORD_URL = 'https://discord.com/invite/NbEZMCJmqC';
 const GITHUB_URL = 'https://github.com/HelloAOLab/bible-api';
 const ISSUES_URL = 'https://github.com/HelloAOLab/bible-api/issues';
 const NEWSLETTER_URL = 'https://helloao.org';
+
+const localePath = useLocalePath();
 
 const aoLabLogo = withBase('/ao_lab_logo.png');
 const aoLabLogoDark = withBase('/ao_lab_logo_dark.png');
@@ -49,21 +52,21 @@ const aoLabLogoDark = withBase('/ao_lab_logo_dark.png');
                 <div>
                     <p class="lbl2">Docs</p>
                     <ul>
-                        <li><RouteLink to="/guide/getting-started.html">Quick Start</RouteLink></li>
-                        <li><RouteLink to="/guide/">Guide</RouteLink></li>
-                        <li><RouteLink to="/reference/">Reference</RouteLink></li>
-                        <li><RouteLink to="/sdks/">SDKs</RouteLink></li>
-                        <li><RouteLink to="/guide/downloads.html">Downloads</RouteLink></li>
+                        <li><RouteLink :to="localePath('/guide/getting-started.html')">Quick Start</RouteLink></li>
+                        <li><RouteLink :to="localePath('/guide/')">Guide</RouteLink></li>
+                        <li><RouteLink :to="localePath('/reference/')">Reference</RouteLink></li>
+                        <li><RouteLink :to="localePath('/sdks/')">SDKs</RouteLink></li>
+                        <li><RouteLink :to="localePath('/guide/downloads.html')">Downloads</RouteLink></li>
                         <li><a :href="ISSUES_URL">Report an issue</a></li>
                     </ul>
                 </div>
                 <div>
                     <p class="lbl2">Resources</p>
                     <ul>
-                        <li><RouteLink to="/reference/translations/">Bible translations</RouteLink></li>
-                        <li><RouteLink to="/reference/translations/standard.html#get-the-audio-timings-for-a-chapter">Bible audio</RouteLink></li>
-                        <li><RouteLink to="/reference/commentaries/">Bible commentaries</RouteLink></li>
-                        <li><RouteLink to="/reference/datasets/">Bible data sets</RouteLink></li>
+                        <li><RouteLink :to="localePath('/reference/translations/')">Bible translations</RouteLink></li>
+                        <li><RouteLink :to="localePath('/reference/translations/standard.html#get-the-audio-timings-for-a-chapter')">Bible audio</RouteLink></li>
+                        <li><RouteLink :to="localePath('/reference/commentaries/')">Bible commentaries</RouteLink></li>
+                        <li><RouteLink :to="localePath('/reference/datasets/')">Bible data sets</RouteLink></li>
                         <li><span class="soon">Seed Bible (Coming soon)</span></li>
                     </ul>
                 </div>

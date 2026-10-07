@@ -3,10 +3,13 @@ import { onMounted, ref, resolveComponent } from 'vue';
 import { RouteLink } from 'vuepress/client';
 import ParentLayout from '@vuepress/theme-default/layouts/Layout.vue';
 import SiteFooter from '../components/SiteFooter.vue';
+import { useLocalePath } from '../composables/useLocalePath';
 
 // Registered globally by the search plugin. Resolved here, as the theme's
 // navbar does, so it renders in the build-time HTML as well as the browser.
 const SearchBox = resolveComponent('SearchBox');
+
+const localePath = useLocalePath();
 
 // The navbar already has a search box bound to the "s" and "/" hotkeys, so
 // the one on this page gets none of its own.
@@ -83,11 +86,11 @@ onMounted(() => {
 
                     <p class="label">Or try one of these</p>
                     <div class="options">
-                        <RouteLink class="option" to="/">
+                        <RouteLink class="option" :to="localePath('/')">
                             <b>Home page</b>
                             <span>Start from the beginning of the docs.</span>
                         </RouteLink>
-                        <RouteLink class="option" to="/guide/">
+                        <RouteLink class="option" :to="localePath('/guide/')">
                             <b>Guide</b>
                             <span>Learn how to use the API, step by step.</span>
                         </RouteLink>

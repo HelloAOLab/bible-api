@@ -8,6 +8,14 @@ import { seoPlugin } from '@vuepress/plugin-seo';
 import { shikiPlugin } from '@vuepress/plugin-shiki';
 import { sitemapPlugin } from '@vuepress/plugin-sitemap';
 import { markdownIncludePlugin } from '@vuepress/plugin-markdown-include';
+import type {
+    DefaultThemeLocaleData,
+    NavbarOptions,
+    SidebarOptions,
+} from '@vuepress/theme-default';
+import type { SiteLocaleConfig } from 'vuepress';
+import { existsSync, readdirSync } from 'node:fs';
+import path from 'node:path';
 
 const hostname = 'https://bible.helloao.org';
 const base = '/docs/';
@@ -68,9 +76,164 @@ const sectionNames: Record<string, string> = {
     '/reference/': 'Reference',
 };
 
+/**
+ * Written by tools/translate-docs.ts to the root of every machine-translated
+ * copy of the docs.
+ */
+const TRANSLATED_DOCS_MARKER = '.translated-docs';
+
+/**
+ * Names that read better in the language selector than the ones
+ * `Intl.DisplayNames` gives ("Indonesia", "中文（中国）"), or than capitalizing
+ * them below would (isiZulu).
+ */
+const languageNameOverrides: Record<string, string> = {
+    id: 'Bahasa Indonesia',
+    'zh-CN': '简体中文',
+    zu: 'isiZulu',
+};
+
+/**
+ * The language codes of the translated docs, found by looking for the
+ * directories that tools/translate-docs.ts generated. A newly translated
+ * language shows up in the language selector without touching this file.
+ */
+const docsDir = path.resolve(__dirname, '..');
+const translatedLanguages = readdirSync(docsDir, { withFileTypes: true })
+    .filter(
+        (entry) =>
+            entry.isDirectory() &&
+            existsSync(path.join(docsDir, entry.name, TRANSLATED_DOCS_MARKER))
+    )
+    .map((entry) => entry.name)
+    .sort();
+
+/** The name of a language, written in that language. */
+const nativeLanguageName = (lang: string) => {
+    if (languageNameOverrides[lang]) {
+        return languageNameOverrides[lang];
+    }
+    const name = new Intl.DisplayNames([lang], { type: 'language' }).of(lang);
+    if (!name || name === lang) {
+        return lang;
+    }
+    // Some languages write their own names in lowercase ("español"), which
+    // looks out of place in a menu.
+    return name.charAt(0).toLocaleUpperCase(lang) + name.slice(1);
+};
+
+const navbar = (prefix: string): NavbarOptions => [
+    {
+        text: 'Guide',
+        link: `${prefix}guide/`,
+    },
+    {
+        text: 'Reference',
+        link: `${prefix}reference/`,
+    },
+    {
+        text: 'SDKs',
+        link: `${prefix}sdks/`,
+    },
+    {
+        text: 'GitHub',
+        link: 'https://github.com/HelloAOLab/bible-api',
+    },
+    {
+        text: 'Donate',
+        link: 'https://better.giving/marketplace/1118469',
+    },
+];
+
+const sidebar = (prefix: string): SidebarOptions => ({
+    [`${prefix}guide/`]: [
+        {
+            text: 'Guide',
+            collapsible: false,
+            children: [
+                '',
+                'getting-started',
+                'making-requests',
+                'downloads',
+                'a-biblical-model-for-licensing-the-bible',
+            ],
+        },
+    ],
+    [`${prefix}reference/`]: [
+        {
+            text: 'Reference',
+            collapsible: false,
+            children: [
+                '',
+                {
+                    text: 'Translations, Books, & Chapters',
+                    collapsible: true,
+                    children: [
+                        'translations/',
+                        'translations/standard',
+                        'translations/simplified',
+                    ],
+                },
+                {
+                    text: 'Commentaries',
+                    collapsible: true,
+                    children: ['commentaries/'],
+                },
+                {
+                    text: 'Datasets',
+                    collapsible: true,
+                    children: ['datasets/'],
+                },
+                'openapi',
+            ],
+        },
+    ],
+    [`${prefix}sdks/`]: [
+        {
+            text: 'SDKs',
+            collapsible: false,
+            children: ['', 'javascript'],
+        },
+    ],
+});
+
+/** Per-language site settings, keyed by the path each language lives under. */
+const siteLocales: Record<string, SiteLocaleConfig> = {
+    '/': { lang: 'en-US' },
+    ...Object.fromEntries(
+        translatedLanguages.map((lang) => [`/${lang}/`, { lang }])
+    ),
+};
+
+/**
+ * Per-language theme settings. `selectLanguageName` is what the navbar's
+ * language selector lists, which the theme only shows when there is more
+ * than one locale.
+ */
+const themeLocales: Record<string, DefaultThemeLocaleData> = {
+    '/': {
+        selectLanguageName: 'English',
+        navbar: navbar('/'),
+        sidebar: sidebar('/'),
+    },
+    ...Object.fromEntries(
+        translatedLanguages.map((lang) => [
+            `/${lang}/`,
+            {
+                selectLanguageName: nativeLanguageName(lang),
+                selectLanguageText: 'Languages',
+                selectLanguageAriaLabel: 'Select language',
+                navbar: navbar(`/${lang}/`),
+                sidebar: sidebar(`/${lang}/`),
+            },
+        ])
+    ),
+};
+
 export default defineUserConfig({
     base,
     lang: 'en-US',
+    locales: siteLocales,
 
     title,
     description: description,
@@ -124,79 +287,7 @@ export default defineUserConfig({
         editLinkText: '',
         lastUpdated: false,
         contributors: false,
-        navbar: [
-            {
-                text: 'Guide',
-                link: '/guide/',
-            },
-            {
-                text: 'Reference',
-                link: '/reference/',
-            },
-            {
-                text: 'SDKs',
-                link: '/sdks/',
-            },
-            {
-                text: 'GitHub',
-                link: 'https://github.com/HelloAOLab/bible-api',
-            },
-            {
-                text: 'Donate',
-                link: 'https://better.giving/marketplace/1118469',
-            },
-        ],
-        sidebar: {
-            '/guide/': [
-                {
-                    text: 'Guide',
-                    collapsible: false,
-                    children: [
-                        '',
-                        'getting-started',
-                        'making-requests',
-                        'downloads',
-                        'a-biblical-model-for-licensing-the-bible',
-                    ],
-                },
-            ],
-            '/reference/': [
-                {
-                    text: 'Reference',
-                    collapsible: false,
-                    children: [
-                        '',
-                        {
-                            text: 'Translations, Books, & Chapters',
-                            collapsible: true,
-                            children: [
-                                'translations/',
-                                'translations/standard',
-                                'translations/simplified',
-                            ],
-                        },
-                        {
-                            text: 'Commentaries',
-                            collapsible: true,
-                            children: ['commentaries/'],
-                        },
-                        {
-                            text: 'Datasets',
-                            collapsible: true,
-                            children: ['datasets/'],
-                        },
-                        'openapi',
-                    ],
-                },
-            ],
-            '/sdks/': [
-                {
-                    text: 'SDKs',
-                    collapsible: false,
-                    children: ['', 'javascript'],
-                },
-            ],
-        },
+        locales: themeLocales,
     }),
 
     plugins: [

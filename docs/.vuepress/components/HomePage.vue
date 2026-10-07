@@ -2,10 +2,13 @@
 import { onMounted, ref } from 'vue';
 import { RouteLink, withBase } from 'vuepress/client';
 import SiteFooter from './SiteFooter.vue';
+import { useLocalePath } from '../composables/useLocalePath';
 
 const DONATE_URL = 'https://better.giving/marketplace/1118469';
 const DISCORD_URL = 'https://discord.com/invite/NbEZMCJmqC';
 const NEWSLETTER_URL = 'https://helloao.org';
+
+const localePath = useLocalePath();
 
 const logo = withBase('/seed_bible_logo.png');
 const logoDark = withBase('/seed_bible_logo_dark.png');
@@ -152,7 +155,7 @@ const compareRows: {
                         Scripture.
                     </p>
                     <div class="cta">
-                        <RouteLink class="btn primary" to="/guide/getting-started.html">
+                        <RouteLink class="btn primary" :to="localePath('/guide/getting-started.html')">
                             Quick Start <span aria-hidden="true">&rarr;</span>
                         </RouteLink>
                         <a class="btn secondary" :href="DONATE_URL">Donate</a>
@@ -213,7 +216,7 @@ const compareRows: {
                         </p>
                     </div>
                     <div class="cards">
-                        <RouteLink class="card" to="/reference/translations/">
+                        <RouteLink class="card" :to="localePath('/reference/translations/')">
                             <h3>Bible Translations</h3>
                             <p>
                                 {{ translations }} translations as static JSON,
@@ -224,7 +227,7 @@ const compareRows: {
                         </RouteLink>
                         <RouteLink
                             class="card"
-                            to="/reference/translations/standard.html#get-the-audio-timings-for-a-chapter"
+                            :to="localePath('/reference/translations/standard.html#get-the-audio-timings-for-a-chapter')"
                         >
                             <h3>Bible Audio</h3>
                             <p>
@@ -233,7 +236,7 @@ const compareRows: {
                             </p>
                             <span class="go">Audio endpoints &rarr;</span>
                         </RouteLink>
-                        <RouteLink class="card" to="/reference/datasets/">
+                        <RouteLink class="card" :to="localePath('/reference/datasets/')">
                             <h3>Bible Data Sets</h3>
                             <p>
                                 Cross references and other Bible data sets, in
@@ -364,7 +367,7 @@ const compareRows: {
                     <div class="build-card">
                         <div class="build-main">
                             <h3>Let&rsquo;s start building.</h3>
-                            <RouteLink class="btn" to="/guide/getting-started.html">
+                            <RouteLink class="btn" :to="localePath('/guide/getting-started.html')">
                                 Quick Start
                                 <span aria-hidden="true">&rarr;</span>
                             </RouteLink>
@@ -378,7 +381,7 @@ const compareRows: {
                                     inbox.
                                 </p>
                             </a>
-                            <RouteLink to="/guide/making-requests.html#examples">
+                            <RouteLink :to="localePath('/guide/making-requests.html#examples')">
                                 <small>Want something to copy?</small>
                                 <strong>See examples &rarr;</strong>
                                 <p>
