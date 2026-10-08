@@ -58,6 +58,100 @@ async function getBooksMap(
     return m;
 }
 
+export interface TranslationSummary {
+    id: string;
+    name: string;
+    englishName: string;
+    shortName?: string;
+    language: string;
+    languageName?: string;
+    languageEnglishName?: string;
+    textDirection: string;
+    numberOfBooks: number;
+}
+
+const translationsCache = new Map<string, TranslationSummary[]>();
+
+/**
+ * Fetches the list of translations from the API's available_translations.json endpoint.
+ */
+export async function getAvailableTranslations(
+    apiBase: string
+): Promise<TranslationSummary[]> {
+    const cached = translationsCache.get(apiBase);
+    if (cached) return cached;
+
+    const res = await fetch(`${apiBase}/available_translations.json`);
+    if (!res.ok) {
+        throw new Error(
+            `available_translations.json request failed: ${res.status}`
+        );
+    }
+    const data: any = await res.json();
+
+    const translations: TranslationSummary[] = (data.translations ?? []).map(
+        (t: any) => ({
+            id: t.id,
+            name: t.name,
+            englishName: t.englishName,
+            shortName: t.shortName,
+            language: t.language,
+            languageName: t.languageName,
+            languageEnglishName: t.languageEnglishName,
+            textDirection: t.textDirection,
+            numberOfBooks: t.numberOfBooks,
+        })
+    );
+
+    translationsCache.set(apiBase, translations);
+    return translations;
+}
+
+function includesIgnoreCase(
+    values: (string | undefined)[],
+    search: string
+): boolean {
+    const s = search.toLowerCase();
+    return values.some((v) => !!v && v.toLowerCase().includes(s));
+}
+
+/**
+ * Filters translations by language and/or name.
+ *
+ * - `language` matches the ISO 639 language code exactly, or any part of the
+ *   language's native or English name (e.g. "spa", "Spanish", "Español").
+ * - `name` matches any part of the translation's id, name, English name, or short name.
+ */
+export function filterTranslations(
+    translations: TranslationSummary[],
+    filter: { language?: string; name?: string }
+): TranslationSummary[] {
+    const language = filter.language?.trim();
+    const name = filter.name?.trim();
+    return translations.filter((t) => {
+        if (
+            language &&
+            t.language?.toLowerCase() !== language.toLowerCase() &&
+            !includesIgnoreCase(
+                [t.languageName, t.languageEnglishName],
+                language
+            )
+        ) {
+            return false;
+        }
+        if (
+            name &&
+            !includesIgnoreCase(
+                [t.id, t.name, t.englishName, t.shortName],
+                name
+            )
+        ) {
+            return false;
+        }
+        return true;
+    });
+}
+
 function chooseTranslation(query: string): string {
     const uq = query.toUpperCase();
     for (const [alias, tid] of Object.entries(TRANSLATION_ALIASES)) {
@@ -103,14 +197,41 @@ export function passageTitle(
     return `${book} ${chapter}${verses ? ':' + verses : ''} (${translation})`;
 }
 
+/**
+ * Resolves a user-supplied translation to an API translation id.
+ * Accepts the short aliases (e.g. "WEB", "Hebrew") or any id from
+ * available_translations.json, ignoring case.
+ * Returns null if the translation isn't available.
+ */
+export async function resolveTranslationId(
+    apiBase: string,
+    translation: string
+): Promise<string | null> {
+    const t = translation.trim();
+    const alias = TRANSLATION_ALIASES[t.toUpperCase()];
+    if (alias) return alias;
+
+    const translations = await getAvailableTranslations(apiBase);
+    const match = translations.find(
+        (x) => x.id.toLowerCase() === t.toLowerCase()
+    );
+    return match?.id ?? null;
+}
+
+/**
+ * Parses a passage reference such as "John 3:16" or "Gen 1:1-3 WEB".
+ *
+ * @param translation An API translation id to use instead of picking one from the query.
+ */
 export async function parseQueryToRef(
     apiBase: string,
-    query: string
+    query: string,
+    translation?: string
 ): Promise<Ref | null> {
     const m = REF_RE.exec(query);
     if (!m || !m.groups) return null;
 
-    const translation = chooseTranslation(query);
+    translation ??= chooseTranslation(query);
     const bookRaw = m.groups.book.trim();
     const chapter = parseInt(m.groups.chapter, 10);
     const verses = m.groups.verses ?? null;
@@ -122,56 +243,47 @@ export async function parseQueryToRef(
 
     // Otherwise map from book name -> id using API book metadata.
     // Using BSB book list is generally fine because IDs are standard across translations.
-    const booksMap = await getBooksMap(apiBase, 'BSB');
-    const bookId = booksMap[norm(bookRaw)];
+    // Fall back to the translation's own book names (e.g. "Juan" in a Spanish translation).
+    let bookId = (await getBooksMap(apiBase, 'BSB'))[norm(bookRaw)];
+    if (!bookId && translation !== 'BSB') {
+        bookId = (await getBooksMap(apiBase, translation))[norm(bookRaw)];
+    }
     if (!bookId) return null;
 
     return [translation, bookId, chapter, verses];
 }
 
-export async function fetchChapterJson(
+export function simpleChapterUrl(
+    apiBase: string,
+    translation: string,
+    book: string,
+    chapter: number
+): string {
+    return `${apiBase}/${translation}/${book}/${chapter}.simple.json`;
+}
+
+/**
+ * Fetches a chapter in the simplified format, where each verse's content is
+ * already flattened into a single `text` string.
+ */
+export async function fetchSimpleChapterJson(
     apiBase: string,
     translation: string,
     book: string,
     chapter: number
 ): Promise<any> {
-    const res = await fetch(chapterUrl(apiBase, translation, book, chapter));
+    const res = await fetch(
+        simpleChapterUrl(apiBase, translation, book, chapter)
+    );
     if (!res.ok) throw new Error(`chapter request failed: ${res.status}`);
     return res.json();
 }
 
-/**
- * Verse content entries can be:
- *   - strings
- *   - formatted text objects { "text": "...", ... }
- *   - inline objects like { "lineBreak": true } or { "noteId": 0 }
- * We keep readable text and turn line breaks into newlines; ignore footnote refs.
- */
-function flattenVerseContent(items: any[]): string {
-    const out: string[] = [];
-    for (const x of items) {
-        if (typeof x === 'string') {
-            out.push(x);
-        } else if (x && typeof x === 'object') {
-            if (typeof x.text === 'string') {
-                out.push(x.text);
-            } else if (x.lineBreak === true) {
-                out.push('\n');
-            }
-            // ignore noteId, headings, etc for plain verse text
-        }
-    }
-    let s = out.join('');
-    s = s.replace(/\s+\n/g, '\n');
-    s = s.replace(/\n\s+/g, '\n');
-    return s.trim();
-}
-
 export function extractVerses(
-    chapterJson: any,
+    simpleChapterJson: any,
     verseRange: string | null
 ): string {
-    const content: any[] = chapterJson?.chapter?.content ?? [];
+    const content: any[] = simpleChapterJson?.chapter?.content ?? [];
     let start: number | null = null;
     let end: number | null = null;
     if (verseRange) {
@@ -192,8 +304,7 @@ export function extractVerses(
         if (typeof num !== 'number' || !Number.isInteger(num)) continue;
         if (start !== null && (num < start || num > (end as number))) continue;
 
-        const verseText = flattenVerseContent(item.content ?? []);
-        lines.push(`${num}. ${verseText}`);
+        lines.push(`${num}. ${(item.text ?? '').trim()}`);
     }
 
     return lines.join('\n').trim();
