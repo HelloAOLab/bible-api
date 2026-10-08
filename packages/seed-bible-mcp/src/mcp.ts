@@ -14,6 +14,7 @@ import {
     parseResultId,
     resolveTranslationId,
     passageTitle,
+    seedBibleUrl,
 } from './bible.js';
 
 export interface BibleMcpOptions {
@@ -69,6 +70,7 @@ export function createBibleMcpServer(options: BibleMcpOptions = {}): McpServer {
                 'Use getBibleReference() to interpret a user query into a Bible passage result. ' +
                 'Then use fetchChapter() to retrieve the full passage text. ' +
                 'To get the text of a verse or verse range directly, use fetchVerse(). ' +
+                'To link a reader to a chapter on Seed Bible (seedbible.org), use getSeedBibleLink(). ' +
                 'Use listTranslations() to find available translations by language or name, then pass a translation id as the translation parameter. ' +
                 'References can name BSB, WEB (ENGWEBP), Hebrew WLC (heb_wlc), or SBL Greek NT (grc_sbl) directly; other translations need the translation parameter.',
             // The default Ajv validator compiles schemas with `new Function`,
@@ -200,6 +202,47 @@ export function createBibleMcpServer(options: BibleMcpOptions = {}): McpServer {
                 title,
                 text,
                 url: chapterUrl(apiBase, translation, book, chapter),
+                metadata: { translation, book, chapter, verses },
+            });
+        }
+    );
+
+    server.registerTool(
+        'getSeedBibleLink',
+        {
+            description:
+                'Get a link to a Bible chapter on Seed Bible (https://seedbible.org/{translationId}/{bookId}/{chapter}), from a reference such as "John 3" or "Gen 1:1-3 WEB".',
+            inputSchema: {
+                reference: z
+                    .string()
+                    .describe(
+                        'A chapter, verse, or verse range reference, optionally followed by a translation, e.g. "John 3", "John 3:16" or "Ps 23 WEB". Seed Bible links point to the whole chapter.'
+                    ),
+                translation: translationParam,
+            },
+        },
+        async ({ reference, translation: requestedTranslation }) => {
+            const translationId = requestedTranslation
+                ? await resolveTranslationId(apiBase, requestedTranslation)
+                : undefined;
+            if (translationId === null) {
+                return unknownTranslation(requestedTranslation!);
+            }
+            const ref = await parseQueryToRef(
+                apiBase,
+                reference,
+                translationId
+            );
+            if (!ref) {
+                return error(
+                    `Could not interpret "${reference}" as a Bible reference.`
+                );
+            }
+
+            const [translation, book, chapter, verses] = ref;
+            return json({
+                title: passageTitle(translation, book, chapter, verses),
+                url: seedBibleUrl(translation, book, chapter),
                 metadata: { translation, book, chapter, verses },
             });
         }
