@@ -46,6 +46,12 @@ const SCENES = [
 ];
 const scene = ref('');
 
+// The server may answer a missing address with another page's HTML (such as
+// the docs home) rather than 404.html. Vue's hydration keeps that page's
+// attributes, so the 404 page would render without its classes or styles.
+// Re-creating the page once it has mounted replaces whatever was there.
+const mounted = ref(false);
+
 // The scene runs in a sandboxed iframe, so ascii.rest's script has no access
 // to this page: no cookies, storage, DOM or navigation.
 const sceneDoc = (piece: string) =>
@@ -59,13 +65,14 @@ const sceneDoc = (piece: string) =>
 onMounted(() => {
     missingPath.value = decodeURI(window.location.pathname);
     scene.value = SCENES[Math.floor(Math.random() * SCENES.length)];
+    mounted.value = true;
 });
 </script>
 
 <template>
     <ParentLayout>
         <template #page>
-            <div class="fuba-404">
+            <div :key="mounted ? 'client' : 'server'" class="fuba-404">
                 <main class="not-found">
                     <iframe
                         v-if="scene"
