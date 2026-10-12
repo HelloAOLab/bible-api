@@ -770,14 +770,22 @@ export async function loadDatasetsFromDirectory(
         ['places', 'places'],
         ['events', 'events'],
         ['groups', 'peopleGroups'],
+        ['lexicon', 'lexicon'],
     ] as const;
     const entityListFiles = new Set([
         'people.json',
         'places.json',
         'events.json',
         'groups.json',
+        'lexicon.json',
     ]);
-    const entityDirs = new Set(['people', 'places', 'events', 'groups']);
+    const entityDirs = new Set([
+        'people',
+        'places',
+        'events',
+        'groups',
+        'lexicon',
+    ]);
 
     for (let dataset of datasets) {
         const datasetDir = path.resolve(apiDir, 'd', dataset.id);
@@ -840,18 +848,22 @@ export async function loadDatasetsFromDirectory(
                     book.chapters.push({
                         chapter: {
                             number: chapterNumber,
-                            content: chapterJson.content.map((c: any) => ({
-                                verse: c.verse,
-                                references: (c.references ?? []).map(
-                                    (ref: any) => ({
-                                        book: ref.book,
-                                        chapter: ref.chapter,
-                                        verse: ref.verse,
-                                        endVerse: ref.endVerse,
-                                        score: ref.score ?? ref.votes,
-                                    })
-                                ),
-                            })),
+                            content: chapterJson.content.map((c: any) =>
+                                'words' in c
+                                    ? { verse: c.verse, words: c.words }
+                                    : {
+                                          verse: c.verse,
+                                          references: (c.references ?? []).map(
+                                              (ref: any) => ({
+                                                  book: ref.book,
+                                                  chapter: ref.chapter,
+                                                  verse: ref.verse,
+                                                  endVerse: ref.endVerse,
+                                                  score: ref.score ?? ref.votes,
+                                              })
+                                          ),
+                                      }
+                            ),
                         },
                     });
                 } else {
@@ -867,7 +879,7 @@ export async function loadDatasetsFromDirectory(
             }
         }
 
-        // Load the entities (people, places, events, and people groups)
+        // Load the entities (people, places, events, people groups, and lexicon entries)
         // for the dataset, if they exist.
         for (let [collection, property] of entityCollections) {
             const collectionDir = path.resolve(datasetDir, collection);
@@ -889,7 +901,8 @@ export async function loadDatasetsFromDirectory(
                     entityJson.person ??
                     entityJson.place ??
                     entityJson.event ??
-                    entityJson.group;
+                    entityJson.group ??
+                    entityJson.entry;
 
                 if (!entity) {
                     logger.warn(`Unknown entity format: ${entityFile}`);

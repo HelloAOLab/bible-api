@@ -11,6 +11,8 @@ import type {
     ApiDatasetEntityBookChapter,
     ApiDatasetEvent,
     ApiDatasetEvents,
+    ApiDatasetLexicon,
+    ApiDatasetLexiconEntry,
     ApiDatasetPeople,
     ApiDatasetPeopleGroup,
     ApiDatasetPeopleGroups,
@@ -412,6 +414,42 @@ export class FreeUseBibleApi {
     }
 
     /**
+     * Gets the list of lexicon entries for a given dataset.
+     * @param dataset The ID of the dataset to get the lexicon entries for.
+     * @param endpoint The endpoint to use for the request. If not provided, then the default endpoint will be used.
+     */
+    async getDatasetLexicon(
+        dataset: string,
+        endpoint?: string
+    ): Promise<ApiDatasetLexicon> {
+        const encodedDataset = encodeURIComponent(dataset);
+        return this._getJson<ApiDatasetLexicon>(
+            `api/d/${encodedDataset}/lexicon.json`,
+            endpoint
+        );
+    }
+
+    /**
+     * Gets the information about a specific lexicon entry for a given dataset.
+     * Includes the senses of the base Strong's number.
+     * @param dataset The ID of the dataset to get the lexicon entry for.
+     * @param strongs The zero-padded Strong's number of the lexicon entry to get. For example, "H0430".
+     * @param endpoint The endpoint to use for the request. If not provided, then the default endpoint will be used.
+     */
+    async getDatasetLexiconEntry(
+        dataset: string,
+        strongs: string,
+        endpoint?: string
+    ): Promise<ApiDatasetLexiconEntry> {
+        const encodedDataset = encodeURIComponent(dataset);
+        const encodedStrongs = encodeURIComponent(strongs);
+        return this._getJson<ApiDatasetLexiconEntry>(
+            `api/d/${encodedDataset}/lexicon/${encodedStrongs}.json`,
+            endpoint
+        );
+    }
+
+    /**
      * Gets the content of a specific chapter of a specific book for a specific Bible translation.
      * @param translation The ID of the translation to get the chapter for.
      * @param book The ID of the book to get the chapter for.
@@ -684,8 +722,9 @@ export class FreeUseBibleApi {
      * Gets the content of a specific chapter of a specific book for a specific dataset.
      *
      * For cross reference datasets, this is the list of cross references for each verse
-     * in the chapter. For entity datasets (such as "theographic"), this is the people,
-     * places, and events that appear in the chapter.
+     * in the chapter. For interlinear datasets (such as "bsb-interlinear"), this is the
+     * original-language words of each verse in the chapter. For entity datasets (such as
+     * "theographic"), this is the people, places, and events that appear in the chapter.
      * @param dataset The ID of the dataset to get the chapter for.
      * @param book The ID of the book to get the chapter for.
      * @param chapter The chapter number to get.

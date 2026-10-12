@@ -31,6 +31,8 @@ Commands:
   import-commentaries [options] <dir>                    Imports all commentaries from the given directory into the database.
   import-bible-metadata <dir>                            Imports the Theographic bible metadata (people, places, events, and people groups) from the given directory into the database.
                                                          The directory should contain the JSON files downloaded by the fetch-bible-metadata command.
+  import-interlinear <dir>                               Imports the Berean interlinear words and the STEPBible lexicons from the given directory into the database.
+                                                         The directory should contain the files downloaded by the fetch-interlinear command.
   upload-test-translation [options] <input>              Uploads a translation to the HelloAO Free Bible API test S3 bucket.
                                                          Requires access to the HelloAO Free Bible API test S3 bucket.
                                                          For inquiries, please contact hello@helloao.org.
@@ -45,6 +47,7 @@ Commands:
   fetch-audio [options] <dir> [translations...]          Fetches the specified audio translations and places them in the given directory.
                                                          Translations should be in the format "translationId/audioId". e.g. "BSB/gilbert"
   fetch-bible-metadata <dir>                             Fetches the Theographic bible metadata and places it in the given directory.
+  fetch-interlinear <dir>                                Fetches the Berean interlinear table and the STEPBible lexicons (with their license) and places them in the given directory.
   fetch-tyndale-open-resources <dir>                     Fetches the Tyndale Open Bible Resources and places it in the given directory.
   help [command]                                         display help for command
 ```

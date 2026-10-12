@@ -28,5 +28,7 @@ These files are available at the following paths:
 -   [`https://bible.helloao.org/api/available_datasets.json`](../reference/datasets/README.md#available-datasets)
 -   [`https://bible.helloao.org/api/d/{dataset}/books.json`](../reference/datasets/README.md#list-books-in-a-dataset)
 -   [`https://bible.helloao.org/api/d/{dataset}/{book}/{chapter}.json`](../reference/datasets/README.md#get-a-chapter-from-a-dataset)
+-   [`https://bible.helloao.org/api/d/{dataset}/lexicon.json`](../reference/datasets/README.md#list-lexicon-entries-in-a-dataset)
+-   [`https://bible.helloao.org/api/d/{dataset}/lexicon/{strongs}.json`](../reference/datasets/README.md#get-a-lexicon-entry-from-a-dataset)
 
 For more information about each endpoint, see the [next page](./making-requests.md).

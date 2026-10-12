@@ -14,10 +14,12 @@ import {
     askForMetadata,
     copyOpenBibleAudio,
     fetchAudio,
+    fetchInterlinear,
     generateTranslationFiles,
     generateTranslationsFiles,
     importApi,
     importBibleMetadata,
+    importInterlinear,
     importAudioTimings,
     importCommentaries,
     importCommentary,
@@ -422,6 +424,18 @@ async function start() {
         )
         .action(async (dir: string, options: any) => {
             await importBibleMetadata(dir, {
+                ...program.opts(),
+                ...options,
+            });
+        });
+
+    program
+        .command('import-interlinear <dir>')
+        .description(
+            'Imports the Berean interlinear words and the STEPBible lexicons from the given directory into the database.\nThe directory should contain the files downloaded by the fetch-interlinear command.'
+        )
+        .action(async (dir: string, options: any) => {
+            await importInterlinear(dir, {
                 ...program.opts(),
                 ...options,
             });
@@ -944,6 +958,15 @@ async function start() {
             });
 
             await Promise.all(promises);
+        });
+
+    program
+        .command('fetch-interlinear <dir>')
+        .description(
+            'Fetches the Berean interlinear table and the STEPBible lexicons (with their license) and places them in the given directory.'
+        )
+        .action(async (dir: string) => {
+            await fetchInterlinear(dir);
         });
 
     program

@@ -579,9 +579,96 @@ export const DatasetChapterDataSchema = z
 export type DatasetChapterData = z.infer<typeof DatasetChapterDataSchema>;
 
 /**
- * Defines a Zod schema for information about a verse in a dataset chapter.
+ * Defines a Zod schema for the original languages of the Bible.
  */
-export const DatasetChapterVerseContentSchema = z
+export const OriginalLanguageSchema = z.enum(['hebrew', 'aramaic', 'greek']);
+
+/**
+ * Defines a Zod schema for information about a word in an interlinear dataset verse.
+ */
+export const DatasetInterlinearWordSchema = z
+    .object({
+        /**
+         * The 1-based rank of the word in the original text's order.
+         */
+        pos: z.number().meta({
+            description:
+                "The 1-based rank of the word in the original text's order.",
+        }),
+
+        /**
+         * The 1-based rank of the word in the BSB's English order.
+         */
+        bsbPos: z.number().meta({
+            description:
+                "The 1-based rank of the word in the Berean Standard Bible's English order.",
+        }),
+
+        /**
+         * The language of the word.
+         */
+        language: OriginalLanguageSchema.meta({
+            description: 'The language of the word.',
+        }),
+
+        /**
+         * The word in the original script. NFC-normalized.
+         */
+        text: z.string().meta({
+            description: 'The word in the original script. NFC-normalized.',
+        }),
+
+        /**
+         * The transliteration of the word.
+         */
+        transliteration: z.string().nullable().meta({
+            description: 'The transliteration of the word.',
+        }),
+
+        /**
+         * The short grammatical parsing code of the word.
+         */
+        parsing: z.string().nullable().meta({
+            description: 'The short grammatical parsing code of the word.',
+        }),
+
+        /**
+         * The spelled-out grammatical parsing of the word.
+         */
+        parsingFull: z.string().nullable().meta({
+            description: 'The spelled-out grammatical parsing of the word.',
+        }),
+
+        /**
+         * The zero-padded Strong's number of the word. Matches the KJV's `.words.json` values. Other translations may need zero-padding and suffix stripping before joining.
+         */
+        strongs: z.string().nullable().meta({
+            description:
+                "The zero-padded Strong's number of the word, such as `H0430` or `G3056`. Matches the KJV's `.words.json` values. Other translations' values may need zero-padding and suffix stripping before joining. Null when the source gives the word no Strong's number.",
+        }),
+
+        /**
+         * The BSB's English phrase for the word.
+         */
+        gloss: z.string().nullable().meta({
+            description:
+                "The Berean Standard Bible's English phrase for the word. Null when the BSB leaves the word untranslated.",
+        }),
+    })
+    .meta({
+        id: 'DatasetInterlinearWord',
+        description:
+            'Defines the schema for an original-language word in an interlinear dataset verse.',
+    });
+
+export type DatasetInterlinearWord = z.infer<
+    typeof DatasetInterlinearWordSchema
+>;
+
+/**
+ * Defines a Zod schema for a verse in a dataset chapter that lists cross references.
+ */
+export const DatasetChapterVerseReferencesSchema = z
     .object({
         /**
          * The number of the verse.
@@ -598,9 +685,58 @@ export const DatasetChapterVerseContentSchema = z
         }),
     })
     .meta({
+        id: 'DatasetChapterVerseReferences',
+        description:
+            'Defines the schema for a verse in a dataset chapter that lists references to other verses.',
+    });
+
+export type DatasetChapterVerseReferences = z.infer<
+    typeof DatasetChapterVerseReferencesSchema
+>;
+
+/**
+ * Defines a Zod schema for a verse in a dataset chapter that lists interlinear words.
+ */
+export const DatasetChapterVerseWordsSchema = z
+    .object({
+        /**
+         * The number of the verse.
+         */
+        verse: z.number().meta({
+            description: 'The number of the verse.',
+        }),
+
+        /**
+         * The original-language words of the verse, in original-text order.
+         */
+        words: z.array(DatasetInterlinearWordSchema).meta({
+            description:
+                'The original-language words of the verse, in original-text order.',
+        }),
+    })
+    .meta({
+        id: 'DatasetChapterVerseWords',
+        description:
+            'Defines the schema for a verse in a dataset chapter that lists its original-language words.',
+    });
+
+export type DatasetChapterVerseWords = z.infer<
+    typeof DatasetChapterVerseWordsSchema
+>;
+
+/**
+ * Defines a Zod schema for information about a verse in a dataset chapter.
+ * A verse carries either `references` or `words`, depending on the dataset.
+ */
+export const DatasetChapterVerseContentSchema = z
+    .union([
+        DatasetChapterVerseReferencesSchema,
+        DatasetChapterVerseWordsSchema,
+    ])
+    .meta({
         id: 'DatasetChapterVerseContent',
         description:
-            'Defines the schema for information about a verse in a dataset chapter.',
+            'Defines the schema for information about a verse in a dataset chapter. A verse carries either `references` (cross references) or `words` (interlinear words), depending on the dataset.',
     });
 
 export type DatasetChapterVerseContent = z.infer<
@@ -631,7 +767,7 @@ export type ScoredVerseRef = z.infer<typeof ScoredVerseRefSchema>;
  * Matches the collection segment of the entity API paths.
  */
 export const DatasetEntityTypeSchema = z
-    .enum(['people', 'places', 'events', 'groups'])
+    .enum(['people', 'places', 'events', 'groups', 'lexicon'])
     .meta({
         id: 'DatasetEntityType',
         description:
@@ -1171,6 +1307,107 @@ export const DatasetPeopleGroupSchema = z
     });
 
 export type DatasetPeopleGroup = z.infer<typeof DatasetPeopleGroupSchema>;
+
+/**
+ * Defines a Zod schema for a sense of a lexicon entry in a dataset.
+ */
+export const DatasetLexiconSenseSchema = z
+    .object({
+        /**
+         * The extended ID of the sense.
+         */
+        id: z.string().meta({
+            description:
+                "The extended ID of the sense, such as `H0001G`. Equal to the base Strong's number when the number has a single sense.",
+        }),
+
+        /**
+         * The language of the sense.
+         */
+        language: OriginalLanguageSchema.meta({
+            description: 'The language of the sense.',
+        }),
+
+        /**
+         * The lemma of the sense in the original script.
+         */
+        lemma: z.string().meta({
+            description: 'The lemma of the sense in the original script.',
+        }),
+
+        /**
+         * The transliteration of the lemma.
+         */
+        transliteration: z.string().nullable().meta({
+            description: 'The transliteration of the lemma.',
+        }),
+
+        /**
+         * The part of speech (morphology) code of the sense.
+         */
+        partOfSpeech: z.string().nullable().meta({
+            description: 'The part of speech (morphology) code of the sense.',
+        }),
+
+        /**
+         * The short English gloss of the sense.
+         */
+        gloss: z.string().nullable().meta({
+            description: 'The short English gloss of the sense.',
+        }),
+
+        /**
+         * The definition of the sense as plain text. Paragraphs are separated by blank lines.
+         */
+        definition: z.string().meta({
+            description:
+                'The definition of the sense as plain text. Paragraphs are separated by blank lines.',
+        }),
+    })
+    .meta({
+        id: 'DatasetLexiconSense',
+        description:
+            'Defines the schema for a sense of a lexicon entry in a dataset.',
+    });
+
+export type DatasetLexiconSense = z.infer<typeof DatasetLexiconSenseSchema>;
+
+/**
+ * Defines a Zod schema for a lexicon entry in a dataset.
+ * There is one entry per base Strong's number.
+ */
+export const DatasetLexiconEntrySchema = z
+    .object({
+        /**
+         * The zero-padded Strong's number of the entry.
+         */
+        id: z.string().meta({
+            description:
+                "The zero-padded Strong's number of the entry, such as `H0430` or `G3056`.",
+        }),
+
+        /**
+         * The language of the entry.
+         */
+        language: OriginalLanguageSchema.meta({
+            description:
+                "The language of the entry. This is the language of the entry's first sense.",
+        }),
+
+        /**
+         * The senses of the entry, in ID order.
+         */
+        senses: z.array(DatasetLexiconSenseSchema).meta({
+            description: 'The senses of the entry, in ID order.',
+        }),
+    })
+    .meta({
+        id: 'DatasetLexiconEntry',
+        description:
+            "Defines the schema for a lexicon entry in a dataset. There is one entry per base Strong's number.",
+    });
+
+export type DatasetLexiconEntry = z.infer<typeof DatasetLexiconEntrySchema>;
 
 /**
  * Defines a Zod schema for information about a profile in a commentary.

@@ -1364,7 +1364,7 @@ export function insertDatasets(db: Database, datasets: DatasetDataset[]) {
 }
 
 /**
- * Inserts the entities (people, places, events, and people groups) for the given dataset into the database.
+ * Inserts the entities (people, places, events, people groups, and lexicon entries) for the given dataset into the database.
  * Any entities that are no longer present in the dataset are deleted.
  * @param db The database to insert the entities into.
  * @param dataset The dataset that the entities belong to.
@@ -1395,6 +1395,7 @@ export function insertDatasetEntities(db: Database, dataset: DatasetDataset) {
         ['place', dataset.places],
         ['event', dataset.events],
         ['peopleGroup', dataset.peopleGroups],
+        ['lexicon', dataset.lexicon],
     ] as const;
 
     const insertAll = db.transaction(() => {
@@ -1407,7 +1408,10 @@ export function insertDatasetEntities(db: Database, dataset: DatasetDataset) {
                     id: entity.id,
                     datasetId: dataset.id,
                     type,
-                    name: entity.name,
+                    name:
+                        'name' in entity
+                            ? entity.name
+                            : (entity.senses[0]?.lemma ?? entity.id),
                     json: JSON.stringify(entity),
                 });
             }
@@ -1534,7 +1538,7 @@ export function insertDatasetContent(
                     contentJson: JSON.stringify(verse),
                 });
 
-                for (let ref of verse.references) {
+                for (let ref of 'references' in verse ? verse.references : []) {
                     referenceInsert.run({
                         datasetId: dataset.id,
                         bookId: book.id,
@@ -2242,7 +2246,11 @@ export async function* loadDatasetDatasets(
                         };
 
                         for (let verse of bookChapter.chapter.content) {
-                            verse.references.sort((a, b) => b.score - a.score);
+                            if ('references' in verse) {
+                                verse.references.sort(
+                                    (a, b) => b.score - a.score
+                                );
+                            }
                         }
 
                         return bookChapter;
@@ -2274,6 +2282,8 @@ export async function* loadDatasetDatasets(
                     (datasetDataset.events ??= []).push(parsed);
                 } else if (entity.type === 'peopleGroup') {
                     (datasetDataset.peopleGroups ??= []).push(parsed);
+                } else if (entity.type === 'lexicon') {
+                    (datasetDataset.lexicon ??= []).push(parsed);
                 } else {
                     logger.warn(
                         '[loadDatasetDatasets] Unknown entity type!',

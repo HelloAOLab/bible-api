@@ -4,7 +4,7 @@ import Sql, { Database } from 'better-sqlite3';
 import Typesense from 'typesense';
 import { Book, Prisma, PrismaClient } from './prisma-gen/client.js';
 import { DOMParser, Element, Node } from 'linkedom';
-import { mkdir, readdir, rm, writeFile } from 'node:fs/promises';
+import { mkdir, readdir, rename, rm, stat, writeFile } from 'node:fs/promises';
 import {
     getBookId,
     getFirstNonEmpty,
@@ -16,6 +16,7 @@ import {
     InputTranslationMetadata,
 } from '@helloao/tools/generation/index.js';
 import * as theographic from '@helloao/tools/generation/theographic.js';
+import * as interlinear from '@helloao/tools/generation/interlinear.js';
 import fsExtra from 'fs-extra';
 const { exists, readFile } = fsExtra;
 import { copyFile } from 'node:fs/promises';
@@ -636,6 +637,118 @@ export async function importBibleMetadata(
             translations: [],
             commentaries: [],
             datasets: [theographicDataset],
+        });
+    } finally {
+        db.close();
+    }
+}
+
+const STEPBIBLE_LEXICONS_URL =
+    'https://raw.githubusercontent.com/STEPBible/STEPBible-Data/master';
+
+/**
+ * The interlinear source files that are downloaded by the fetch-interlinear command.
+ */
+export const INTERLINEAR_SOURCES = [
+    {
+        file: 'bsb_tables.tsv',
+        url: 'https://bereanbible.com/bsb_tables.tsv',
+        // Smaller files are error pages that were served with a success status.
+        minBytes: 50e6,
+    },
+    {
+        file: 'stepbible/tbesh.txt',
+        url: `${STEPBIBLE_LEXICONS_URL}/Lexicons/TBESH%20-%20Translators%20Brief%20lexicon%20of%20Extended%20Strongs%20for%20Hebrew%20-%20STEPBible.org%20CC%20BY.txt`,
+        minBytes: 1e6,
+    },
+    {
+        file: 'stepbible/tbesg.txt',
+        url: `${STEPBIBLE_LEXICONS_URL}/Lexicons/TBESG%20-%20Translators%20Brief%20lexicon%20of%20Extended%20Strongs%20for%20Greek%20-%20STEPBible.org%20CC%20BY.txt`,
+        minBytes: 1e6,
+    },
+    {
+        // The repository has no LICENSE file. The README states the CC BY 4.0 license.
+        file: 'stepbible/README.md',
+        url: `${STEPBIBLE_LEXICONS_URL}/README.md`,
+        minBytes: 1e3,
+    },
+];
+
+/**
+ * Fetches the interlinear sources (the Berean interlinear table and the STEPBible lexicons) and places them in the given directory.
+ * Each file is downloaded to a temporary path and moved into place once it has been checked, so a failed download never leaves a partial file behind.
+ * @param dir The directory that the files should be placed in.
+ */
+export async function fetchInterlinear(dir: string) {
+    const logger = log.getLogger();
+
+    await Promise.all(
+        INTERLINEAR_SOURCES.map(async ({ file, url, minBytes }) => {
+            const fullPath = path.resolve(dir, file);
+            const partPath = `${fullPath}.part`;
+            await mkdir(path.dirname(fullPath), { recursive: true });
+            try {
+                await downloadFile(url, partPath);
+                const { size } = await stat(partPath);
+                if (size < minBytes) {
+                    throw new Error(
+                        `Downloaded ${url} is only ${size} bytes, expected at least ${minBytes} (possibly an HTML error page).`
+                    );
+                }
+                await rename(partPath, fullPath);
+                logger.log(`Saved ${file} (${(size / 1e6).toFixed(1)} MB)`);
+            } catch (err) {
+                await rm(partPath, { force: true });
+                throw err;
+            }
+        })
+    );
+}
+
+/**
+ * Imports the interlinear and lexicon datasets from the given directory into the database.
+ * The directory should contain the files that are downloaded by the fetch-interlinear command.
+ * @param dir The directory that the interlinear source files are located in.
+ * @param options The options.
+ */
+export async function importInterlinear(
+    dir: string,
+    options: ImportTranslationOptions
+) {
+    const logger = log.getLogger();
+
+    async function readSourceFile(name: string): Promise<string> {
+        const filePath = path.resolve(dir, name);
+        if (!existsSync(filePath)) {
+            throw new Error(
+                `Could not find ${name} in ${dir}. Run the fetch-interlinear command first.`
+            );
+        }
+        return await readFile(filePath, 'utf-8');
+    }
+
+    const files: interlinear.InterlinearFiles = {
+        berean: await readSourceFile('bsb_tables.tsv'),
+        tbesh: await readSourceFile('stepbible/tbesh.txt'),
+        tbesg: await readSourceFile('stepbible/tbesg.txt'),
+    };
+
+    logger.log('Generating the interlinear datasets...');
+    const datasets = interlinear.generateDatasetsFromInterlinear(files);
+
+    const [words, lexicon] = datasets;
+    logger.log(
+        `Generated ${words.books.length} books and ` +
+            `${words.books.reduce((n, b) => n + b.chapters.length, 0)} chapters of interlinear words, ` +
+            `and ${lexicon.lexicon?.length ?? 0} lexicon entries.`
+    );
+
+    const db = await database.getDb(options.db);
+    try {
+        importDatasetOutput(db, {
+            translations: [],
+            commentaries: [],
+            datasets,
         });
     } finally {
         db.close();

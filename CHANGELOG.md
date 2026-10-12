@@ -2,6 +2,26 @@
 
 This is the log of changes for the Free Use Bible API.
 
+## V1.16.0
+
+### :rocket: Features
+
+-   Added the Berean interlinear dataset (`bsb-interlinear`), which lists the original-language (Hebrew, Aramaic, and Greek) words of every verse in original-text order, with their transliteration, parsing, Strong's number, and the Berean Standard Bible's English phrase. It is based on the public domain [Berean Standard Bible interlinear tables](https://bereanbible.com/).
+    -   `GET /api/d/bsb-interlinear/books.json`
+    -   `GET /api/d/bsb-interlinear/{book}/{chapter}.json` (e.g. `/api/d/bsb-interlinear/GEN/1.json`) returns `{ verse, words }` for every verse in the chapter.
+    -   Words use zero-padded Strong's numbers (e.g. `H0430`), which match the KJV's `.words.json` values. Other translations may need zero-padding and suffix stripping before joining. The BSB can be linked using each word's `gloss` and `bsbPos`.
+-   Added the STEPBible lexicon dataset (`stepbible-lexicon`), which contains one entry for each Hebrew, Aramaic, and Greek base Strong's number, with its senses (lemma, transliteration, part of speech, gloss, and definition). It is based on the [STEPBible](https://github.com/STEPBible/STEPBible-Data) TBESH and TBESG lexicons by STEPBible.org / Tyndale House, Cambridge, and is licensed under CC BY 4.0.
+    -   `GET /api/d/stepbible-lexicon/lexicon.json`
+    -   `GET /api/d/stepbible-lexicon/lexicon/{strongs}.json` (e.g. `/api/d/stepbible-lexicon/lexicon/H0430.json`) returns `{ dataset, entry, thisLexiconEntryApiLink }`, where `entry` has the `id`, `language`, and `senses`.
+-   Entries in `/api/available_datasets.json` can now include `totalNumberOfWords`, `listOfLexiconApiLink`, and `totalNumberOfLexicon`.
+-   Added the `fetch-interlinear <dir>` and `import-interlinear <dir>` CLI commands (and the `fetch:bible:interlinear` and `import:bible:interlinear` scripts) for downloading and importing the interlinear sources.
+-   The `@helloao/free-use-bible-api` client has new `getDatasetLexicon()` and `getDatasetLexiconEntry()` methods.
+
+### :warning: Changes
+
+-   The content of a verse in a dataset chapter (`DatasetChapterVerseContent`) is now either `{ verse, references }` (cross reference datasets) or `{ verse, words }` (interlinear datasets). JSON responses for the existing `open-cross-ref` and `theographic` datasets are unchanged. TypeScript clients that read `verse.references` need to narrow the type first (e.g. `'references' in verse`).
+-   `DatasetEntityType` now includes `lexicon`.
+
 ## V1.15.0
 
 ### :rocket: Features

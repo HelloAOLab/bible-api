@@ -1,6 +1,6 @@
 # Datasets
 
-Endpoints for browsing supplementary Bible datasets - such as cross references and biblical entities (people, places, events, and people groups) - and fetching their books, chapter content, and entities.
+Endpoints for browsing supplementary Bible datasets - such as cross references, biblical entities (people, places, events, and people groups), original-language interlinear words, and lexicons - and fetching their books, chapter content, entities, and lexicon entries.
 
 ## Available Datasets
 
@@ -105,8 +105,15 @@ export interface Dataset {
 
     /**
      * The total number of cross references that are contained in this dataset.
+     * 0 for datasets that don't contain cross references.
      */
     totalNumberOfReferences: number;
+
+    /**
+     * The total number of interlinear words that are contained in this dataset.
+     * Omitted if the dataset doesn't contain interlinear words.
+     */
+    totalNumberOfWords?: number;
 
     /**
      * Gets the name of the language that the dataset is in.
@@ -137,6 +144,18 @@ export interface Dataset {
     totalNumberOfPlaces?: number;
     totalNumberOfEvents?: number;
     totalNumberOfPeopleGroups?: number;
+
+    /**
+     * The API link for the list of lexicon entries in the dataset.
+     * Omitted if the dataset doesn't contain lexicon entries.
+     */
+    listOfLexiconApiLink?: string;
+
+    /**
+     * The total number of lexicon entries that are contained in the dataset.
+     * Omitted if the dataset doesn't contain lexicon entries.
+     */
+    totalNumberOfLexicon?: number;
 }
 ```
 
@@ -192,6 +211,49 @@ export interface Dataset {
             "totalNumberOfEvents": 450,
             "listOfPeopleGroupsApiLink": "/api/d/theographic/groups.json",
             "totalNumberOfPeopleGroups": 23
+        },
+        {
+            "id": "bsb-interlinear",
+            "name": "Berean Standard Bible Interlinear",
+            "website": "https://bereanbible.com/",
+            "licenseUrl": "https://berean.bible/terms.htm",
+            "licenseNotes": "The Berean Standard Bible and its interlinear tables are in the public domain. Changes were made to the data to fit the Free Use Bible API format.",
+            "englishName": "Berean Standard Bible Interlinear",
+            "language": "eng",
+            "textDirection": "ltr",
+            "availableFormats": [
+                "json"
+            ],
+            "listOfBooksApiLink": "/api/d/bsb-interlinear/books.json",
+            "numberOfBooks": 66,
+            "totalNumberOfChapters": 1189,
+            "totalNumberOfVerses": 31102,
+            "totalNumberOfReferences": 0,
+            "languageName": "English",
+            "languageEnglishName": "English",
+            "totalNumberOfWords": 443625
+        },
+        {
+            "id": "stepbible-lexicon",
+            "name": "STEPBible Brief Lexicons",
+            "website": "https://github.com/STEPBible/STEPBible-Data",
+            "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+            "licenseNotes": "The Translators Brief lexicons of Extended Strongs (TBESH and TBESG) are by STEPBible.org / Tyndale House, Cambridge, and are licensed under CC BY 4.0. Changes were made to the data to fit the Free Use Bible API format.",
+            "englishName": "STEPBible Brief Lexicons",
+            "language": "eng",
+            "textDirection": "ltr",
+            "availableFormats": [
+                "json"
+            ],
+            "listOfBooksApiLink": "/api/d/stepbible-lexicon/books.json",
+            "numberOfBooks": 0,
+            "totalNumberOfChapters": 0,
+            "totalNumberOfVerses": 0,
+            "totalNumberOfReferences": 0,
+            "languageName": "English",
+            "languageEnglishName": "English",
+            "listOfLexiconApiLink": "/api/d/stepbible-lexicon/lexicon.json",
+            "totalNumberOfLexicon": 18085
         }
     ]
 }
@@ -355,7 +417,7 @@ interface DatasetBook {
 
 Gets the content of a single chapter for a given book and dataset.
 
-For cross reference datasets (such as `open-cross-ref`), the chapter contains the list of cross references for each verse. For entity datasets (such as `theographic`), the chapter contains the people, places, and events that appear in the chapter - see [Get the Entities in a Chapter](#get-the-entities-in-a-chapter).
+For cross reference datasets (such as `open-cross-ref`), the chapter contains the list of cross references for each verse. For interlinear datasets (such as `bsb-interlinear`), the chapter contains the original-language words of each verse - see [Interlinear Datasets](#interlinear-datasets). For entity datasets (such as `theographic`), the chapter contains the people, places, and events that appear in the chapter - see [Get the Entities in a Chapter](#get-the-entities-in-a-chapter).
 
 -   `dataset` the ID of the dataset (e.g. `open-cross-ref`).
 -   `book` is the ID of the book (e.g. `GEN` for Genesis).
@@ -442,7 +504,13 @@ interface DatasetChapterData {
     content: DatasetVerse[];
 }
 
-interface DatasetVerse {
+/**
+ * A verse carries either `references` (cross reference datasets) or `words` (interlinear datasets).
+ * Check which one is present with `'words' in verse`.
+ */
+type DatasetVerse = DatasetReferencesVerse | DatasetWordsVerse;
+
+interface DatasetReferencesVerse {
     /**
      * The number of the verse.
      */
@@ -454,6 +522,19 @@ interface DatasetVerse {
      * Sorted by score, descending.
      */
     references: DatasetReference[];
+}
+
+interface DatasetWordsVerse {
+    /**
+     * The number of the verse.
+     */
+    verse: number;
+
+    /**
+     * The original-language words of the verse, in original-text order.
+     * See "Interlinear Datasets" below.
+     */
+    words: InterlinearWord[];
 }
 
 interface DatasetReference {
@@ -483,6 +564,8 @@ interface DatasetReference {
      */
     score?: number;
 }
+
+// See "Interlinear Datasets" below for the structure of InterlinearWord.
 ```
 
 ### Example
@@ -1734,5 +1817,407 @@ interface DatasetPeopleGroup {
         "references": []
     },
     "thisPeopleGroupApiLink": "/api/d/theographic/groups/tribe-of-benjamin.json"
+}
+```
+
+
+## Interlinear Datasets
+
+The Berean interlinear dataset (`bsb-interlinear`) lists the original-language (Hebrew, Aramaic, and Greek) words of every verse of the Bible, in the order they appear in the original text. Each word has its transliteration, grammatical parsing, [Strong's number](https://en.wikipedia.org/wiki/Strong%27s_Concordance), and the English phrase that the [Berean Standard Bible](https://berean.bible) uses for it.
+
+The dataset uses the same endpoints as other datasets:
+
+-   `GET https://bible.helloao.org/api/d/bsb-interlinear/books.json` lists the 66 books.
+-   `GET https://bible.helloao.org/api/d/bsb-interlinear/{book}/{chapter}.json` (e.g. `/api/d/bsb-interlinear/GEN/1.json`) returns the chapter, with `{ verse, words }` for every verse. The response is a [dataset chapter](#get-a-chapter-from-a-dataset).
+
+The words data comes from the [Berean Standard Bible interlinear tables](https://bereanbible.com/), which are in the public domain. Strong's numbers for the words are looked up in the [lexicon](#lexicon) (`stepbible-lexicon`).
+
+### Structure
+
+```typescript:no-line-numbers title="interlinear-word.ts"
+interface InterlinearWord {
+    /**
+     * The 1-based rank of the word in the original text's order.
+     * Words are listed in this order.
+     */
+    pos: number;
+
+    /**
+     * The 1-based rank of the word in the Berean Standard Bible's English order.
+     */
+    bsbPos: number;
+
+    /**
+     * The language of the word.
+     */
+    language: 'hebrew' | 'aramaic' | 'greek';
+
+    /**
+     * The word in the original script. NFC-normalized.
+     */
+    text: string;
+
+    /**
+     * The transliteration of the word.
+     */
+    transliteration: string | null;
+
+    /**
+     * The short grammatical parsing code of the word. e.g. "N-mp" or "V-Qal-Perf-3ms".
+     */
+    parsing: string | null;
+
+    /**
+     * The spelled-out grammatical parsing of the word.
+     */
+    parsingFull: string | null;
+
+    /**
+     * The zero-padded Strong's number of the word. e.g. "H0430" or "G3056".
+     * Zero-padded, which matches the KJV's `.words.json` values.
+     * Other translations' values may need zero-padding and suffix stripping before joining.
+     * Null when the source gives the word no Strong's number
+     * (this is the case for some words that are suffixes, such as pronoun suffixes).
+     */
+    strongs: string | null;
+
+    /**
+     * The Berean Standard Bible's English phrase for the word.
+     * Null when the BSB leaves the word untranslated (such as the Hebrew direct object marker).
+     */
+    gloss: string | null;
+}
+```
+
+### Example
+
+```json:no-line-numbers title="/api/d/bsb-interlinear/GEN/1.json"
+{
+    "dataset": {
+        "id": "bsb-interlinear",
+        "name": "Berean Standard Bible Interlinear",
+        "totalNumberOfWords": 443625
+        // ...
+    },
+    "book": {
+        "id": "GEN",
+        "datasetId": "bsb-interlinear",
+        "order": 1,
+        "numberOfChapters": 50
+        // ...
+    },
+    "chapter": {
+        "number": 1,
+        "content": [
+            {
+                "verse": 1,
+                "words": [
+                    {
+                        "pos": 1,
+                        "bsbPos": 1,
+                        "language": "hebrew",
+                        "text": "בְּרֵאשִׁ֖ית",
+                        "transliteration": "bə·rê·šîṯ",
+                        "parsing": "Prep-b | N-fs",
+                        "parsingFull": "Preposition-b | Noun - feminine singular",
+                        "strongs": "H7225",
+                        "gloss": "In the beginning"
+                    },
+                    {
+                        "pos": 2,
+                        "bsbPos": 4,
+                        "language": "hebrew",
+                        "text": "בָּרָ֣א",
+                        "transliteration": "bā·rā",
+                        "parsing": "V-Qal-Perf-3ms",
+                        "parsingFull": "Verb - Qal - Perfect - third person masculine singular",
+                        "strongs": "H1254",
+                        "gloss": "created"
+                    }
+                    // ...
+                ]
+            }
+            // ...
+        ]
+    },
+    "thisChapterLink": "/api/d/bsb-interlinear/GEN/1.json",
+    "nextChapterApiLink": "/api/d/bsb-interlinear/GEN/2.json",
+    "previousChapterApiLink": null,
+    "numberOfVerses": 31,
+    "numberOfReferences": 0
+}
+```
+
+### Linking Words to Translations
+
+Interlinear `strongs` values are zero-padded (e.g. `H0430`). This matches the `strongs` values in the KJV's word annotations (`/api/eng_kjv/{book}/{chapter}.words.json`). Other translations' values may need zero-padding and suffix stripping (e.g. `H430` or `H1961a` to `H0430` and `H1961`) before they can be joined.
+
+-   **KJV.** For the King James Version (`eng_kjv` and `eng_kja`), join the Strong's numbers in a chapter's `.words.json` file with the `strongs` of the interlinear words of the same verse. For example, every Strong's number annotated in `/api/eng_kjv/GEN/1.words.json` for verse 1 (`H7225`, `H1254`, `H0430`, `H0853`, `H8064`, `H0776`) appears as a `strongs` value among the words of verse 1 in `/api/d/bsb-interlinear/GEN/1.json`.
+-   **Berean Standard Bible.** Each word's `gloss` is the BSB phrase for that word. Walk the verse's words in `bsbPos` order and match each `gloss` against the verse text of the BSB translation to find where the word's translation sits.
+
+The numbering of the two sources does not always agree. For example, the KJV tags "was" as `G2258` where the Berean table has `G1510`. A few joins miss because of differences like this.
+
+### Attribution
+
+The Berean interlinear tables are in the public domain. The [lexicon](#lexicon) is licensed under CC BY 4.0 and requires attribution.
+
+
+## Lexicon
+
+The STEPBible lexicon dataset (`stepbible-lexicon`) contains the Hebrew, Aramaic, and Greek brief lexicons (TBESH and TBESG) from [STEPBible.org](https://www.stepbible.org/) at Tyndale House, Cambridge. It has one entry for every base Strong's number, and every entry has one or more senses with the lemma, transliteration, part of speech, English gloss, and a definition.
+
+Any zero-padded `strongs` value from an [interlinear word](#interlinear-datasets) that has a lexicon entry can be looked up at `/api/d/stepbible-lexicon/lexicon/{strongs}.json` without reformatting. The same holds for the KJV's `.words.json` values; other translations' values may need zero-padding and suffix stripping first. Greek entries that the lexicon adds without a Strong's number are not published.
+
+Datasets that contain lexicon entries include `listOfLexiconApiLink` and `totalNumberOfLexicon` in their entry in `/api/available_datasets.json`.
+
+### Attribution
+
+The lexicon data is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). If you use it, credit STEPBible.org / Tyndale House, Cambridge, and note any changes. The `licenseNotes` property of the dataset carries the credit.
+
+
+## List Lexicon Entries in a Dataset
+
+`GET https://bible.helloao.org/api/d/{dataset}/lexicon.json`
+
+Gets the list of lexicon entries that are available for a dataset.
+
+-   `dataset` the ID of the dataset (e.g. `stepbible-lexicon`).
+
+### Code Example
+
+::: code-tabs#lang
+
+@tab JavaScript
+
+```ts:no-line-numbers title="fetch-lexicon.js"
+fetch(`https://bible.helloao.org/api/d/stepbible-lexicon/lexicon.json`)
+    .then(request => request.json())
+    .then(lexicon => {
+        console.log('The lexicon has', lexicon.lexicon.length, 'entries');
+    });
+```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/d/stepbible-lexicon/lexicon.json
+```
+
+:::
+
+### Structure
+
+```typescript:no-line-numbers title="dataset-lexicon.ts"
+export interface DatasetLexicon {
+    /**
+     * The dataset information for the lexicon.
+     */
+    dataset: Dataset;
+
+    /**
+     * The list of lexicon entries that are available for the dataset.
+     */
+    lexicon: DatasetLexiconEntrySummary[];
+}
+
+export interface DatasetLexiconEntrySummary {
+    /**
+     * The zero-padded Strong's number of the lexicon entry. e.g. "H0430".
+     */
+    id: string;
+
+    /**
+     * The language of the lexicon entry.
+     */
+    language: 'hebrew' | 'aramaic' | 'greek';
+
+    /**
+     * The name of the lexicon entry.
+     * This is the lemma of the entry's first sense.
+     */
+    name: string;
+
+    /**
+     * The API link for the lexicon entry.
+     */
+    apiLink: string;
+}
+```
+
+### Example
+
+```json:no-line-numbers title="/api/d/stepbible-lexicon/lexicon.json"
+{
+    "dataset": {
+        "id": "stepbible-lexicon",
+        "name": "STEPBible Brief Lexicons",
+        "totalNumberOfLexicon": 18085
+        // ...
+    },
+    "lexicon": [
+        {
+            "id": "G0001",
+            "language": "greek",
+            "name": "α, Ἀλφα",
+            "apiLink": "/api/d/stepbible-lexicon/lexicon/G0001.json"
+        },
+        {
+            "id": "G0002",
+            "language": "greek",
+            "name": "Ἀαρών",
+            "apiLink": "/api/d/stepbible-lexicon/lexicon/G0002.json"
+        }
+        // ...
+    ]
+}
+```
+
+
+## Get a Lexicon Entry from a Dataset
+
+`GET https://bible.helloao.org/api/d/{dataset}/lexicon/{strongs}.json`
+
+Gets the lexicon entry for a single base Strong's number, with all of its senses.
+
+-   `dataset` the ID of the dataset (e.g. `stepbible-lexicon`).
+-   `strongs` is the zero-padded Strong's number (e.g. `H0430` for the Hebrew word _elohim_, or `G3056` for the Greek word _logos_).
+
+### Code Example
+
+::: code-tabs#lang
+
+@tab JavaScript
+
+```ts:no-line-numbers title="fetch-lexicon-entry.js"
+const strongs = 'H1254';
+
+fetch(`https://bible.helloao.org/api/d/stepbible-lexicon/lexicon/${strongs}.json`)
+    .then(request => request.json())
+    .then(({ entry }) => {
+        console.log('H1254:', entry.senses.map(sense => sense.gloss));
+    });
+```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/d/stepbible-lexicon/lexicon/H1254.json
+```
+
+:::
+
+### Structure
+
+```typescript:no-line-numbers title="dataset-lexicon-entry.ts"
+export interface DatasetLexiconEntry {
+    /**
+     * The dataset information for the lexicon entry.
+     */
+    dataset: Dataset;
+
+    /**
+     * The lexicon entry.
+     */
+    entry: DatasetLexiconEntryContent;
+
+    /**
+     * The API link for this lexicon entry.
+     */
+    thisLexiconEntryApiLink: string;
+}
+
+export interface DatasetLexiconEntryContent {
+    /**
+     * The zero-padded Strong's number of the entry. e.g. "H0430".
+     */
+    id: string;
+
+    /**
+     * The language of the entry.
+     * This is the language of the entry's first sense.
+     */
+    language: 'hebrew' | 'aramaic' | 'greek';
+
+    /**
+     * The senses of the entry, in ID order.
+     */
+    senses: DatasetLexiconSense[];
+}
+
+export interface DatasetLexiconSense {
+    /**
+     * The extended ID of the sense. e.g. "H0001G".
+     * Equal to the base Strong's number when the number has a single sense.
+     */
+    id: string;
+
+    /**
+     * The language of the sense.
+     */
+    language: 'hebrew' | 'aramaic' | 'greek';
+
+    /**
+     * The lemma of the sense in the original script.
+     */
+    lemma: string;
+
+    /**
+     * The transliteration of the lemma.
+     */
+    transliteration: string | null;
+
+    /**
+     * The part of speech (morphology) code of the sense.
+     */
+    partOfSpeech: string | null;
+
+    /**
+     * The short English gloss of the sense.
+     */
+    gloss: string | null;
+
+    /**
+     * The definition of the sense as plain text.
+     * Paragraphs are separated by blank lines. Markup in the source is removed.
+     */
+    definition: string;
+}
+```
+
+### Example
+
+```json:no-line-numbers title="/api/d/stepbible-lexicon/lexicon/H1254.json"
+{
+    "dataset": {
+        "id": "stepbible-lexicon",
+        "name": "STEPBible Brief Lexicons",
+        "totalNumberOfLexicon": 18085
+        // ...
+    },
+    "entry": {
+        "id": "H1254",
+        "language": "hebrew",
+        "senses": [
+            {
+                "id": "H1254A",
+                "language": "hebrew",
+                "lemma": "בָּרָא",
+                "transliteration": "ba.ra",
+                "partOfSpeech": "V",
+                "gloss": "to create",
+                "definition": "1) to create, shape, form\n\n1a) (Qal) to shape, fashion, create (always with God as subject)\n\n1b) (Niphal) to be created"
+            },
+            {
+                "id": "H1254B",
+                "language": "hebrew",
+                "lemma": "בָּרָא",
+                "transliteration": "ba.ra",
+                "partOfSpeech": "V",
+                "gloss": "to fatten",
+                "definition": "1) to be fat\n\n1a) (Hiphil) to make yourselves fat"
+            }
+        ]
+    },
+    "thisLexiconEntryApiLink": "/api/d/stepbible-lexicon/lexicon/H1254.json"
 }
 ```

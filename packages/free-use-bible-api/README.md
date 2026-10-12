@@ -79,7 +79,7 @@ const api = new FreeUseBibleApi({
 
 Only some chapters have audio timings. The keys of a chapter's `thisChapterAudioTimings` property identify the readers available to pass to `getTranslationBookChapterAudioTimings()`.
 
-The client provides callable methods for all 24 public API operations.
+The client provides callable methods for all 30 public API operations.
 
 ### Commentaries
 
@@ -92,7 +92,7 @@ The client provides callable methods for all 24 public API operations.
 
 -   `getAvailableDatasets(endpoint?)`
 -   `getDatasetBooks(dataset, endpoint?)`
--   `getDatasetBookChapter(dataset, book, chapter, endpoint?)` - returns cross references for cross reference datasets, or the people, places, and events that appear in the chapter for entity datasets (such as `theographic`)
+-   `getDatasetBookChapter(dataset, book, chapter, endpoint?)` - returns cross references for cross reference datasets, the original-language words of each verse for interlinear datasets (such as `bsb-interlinear`), or the people, places, and events that appear in the chapter for entity datasets (such as `theographic`)
 -   `getDatasetPeople(dataset, endpoint?)`
 -   `getDatasetPerson(dataset, person, endpoint?)`
 -   `getDatasetPlaces(dataset, endpoint?)`
@@ -101,6 +101,8 @@ The client provides callable methods for all 24 public API operations.
 -   `getDatasetEvent(dataset, event, endpoint?)`
 -   `getDatasetPeopleGroups(dataset, endpoint?)`
 -   `getDatasetPeopleGroup(dataset, group, endpoint?)`
+-   `getDatasetLexicon(dataset, endpoint?)`
+-   `getDatasetLexiconEntry(dataset, strongs, endpoint?)`
 
 ### Chapter Navigation Helpers
 

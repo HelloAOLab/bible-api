@@ -149,6 +149,10 @@ export type ApiTranslation = {
      */
     licenseNotice?: string | null;
     /**
+     * The structured license terms that were detected for the translation, if any.
+     */
+    license?: License | null;
+    /**
      * The short name for the translation.
      */
     shortName?: string;
@@ -209,6 +213,32 @@ export type ApiTranslation = {
      * The API link for downloading the complete translation as a single JSON file, using the simplified chapter format. Relative to the API origin. Undefined if complete translation files are not available.
      */
     simpleCompleteTranslationApiLink?: string;
+};
+
+/**
+ * Defines the structured license terms that were detected for a translation.
+ */
+export type License = {
+    /**
+     * Whether attribution to the original source is required when using the translation.
+     */
+    attribution: 'required' | 'not-required';
+    /**
+     * Whether commercial use of the translation is allowed.
+     */
+    commercialUse: 'allowed' | 'not-allowed';
+    /**
+     * Whether creating and distributing derivative works of the translation is allowed.
+     */
+    derivatives: 'allowed' | 'not-allowed';
+    /**
+     * Whether derivative works must be distributed under the same license (i.e. a "share-alike" requirement).
+     */
+    copyleft: boolean;
+    /**
+     * Whether the translation has been dedicated to the public domain.
+     */
+    publicDomain: boolean;
 };
 
 /**
@@ -1578,6 +1608,10 @@ export type ApiDataset = {
      */
     totalNumberOfReferences: number;
     /**
+     * The total number of interlinear words that are contained in this dataset. Omitted if the dataset doesn't contain interlinear words.
+     */
+    totalNumberOfWords?: number;
+    /**
      * Gets the name of the language that the dataset is in. Null or undefined if the name of the language is not known.
      */
     languageName?: string;
@@ -1602,6 +1636,10 @@ export type ApiDataset = {
      */
     listOfPeopleGroupsApiLink?: string;
     /**
+     * The API link for the list of lexicon entries for this dataset. Relative to the API origin. Omitted if the dataset doesn't contain lexicon entries.
+     */
+    listOfLexiconApiLink?: string;
+    /**
      * The total number of people that are contained in this dataset. Omitted if the dataset doesn't contain people.
      */
     totalNumberOfPeople?: number;
@@ -1617,6 +1655,10 @@ export type ApiDataset = {
      * The total number of people groups that are contained in this dataset. Omitted if the dataset doesn't contain people groups.
      */
     totalNumberOfPeopleGroups?: number;
+    /**
+     * The total number of lexicon entries that are contained in this dataset. Omitted if the dataset doesn't contain lexicon entries.
+     */
+    totalNumberOfLexicon?: number;
 };
 
 /**
@@ -1751,9 +1793,15 @@ export type DatasetChapterData = {
 };
 
 /**
- * Defines the schema for information about a verse in a dataset chapter.
+ * Defines the schema for information about a verse in a dataset chapter. A verse carries either `references` (cross references) or `words` (interlinear words), depending on the dataset.
  */
-export type DatasetChapterVerseContent = {
+export type DatasetChapterVerseContent =
+    DatasetChapterVerseReferences | DatasetChapterVerseWords;
+
+/**
+ * Defines the schema for a verse in a dataset chapter that lists references to other verses.
+ */
+export type DatasetChapterVerseReferences = {
     /**
      * The number of the verse.
      */
@@ -1793,6 +1841,62 @@ export type ScoredVerseRef = {
      * The score for the verse reference. The meaning of the score is arbitrary and is determined by the dataset.
      */
     score: number;
+};
+
+/**
+ * Defines the schema for a verse in a dataset chapter that lists its original-language words.
+ */
+export type DatasetChapterVerseWords = {
+    /**
+     * The number of the verse.
+     */
+    verse: number;
+    /**
+     * The original-language words of the verse, in original-text order.
+     */
+    words: Array<DatasetInterlinearWord>;
+};
+
+/**
+ * Defines the schema for an original-language word in an interlinear dataset verse.
+ */
+export type DatasetInterlinearWord = {
+    /**
+     * The 1-based rank of the word in the original text's order.
+     */
+    pos: number;
+    /**
+     * The 1-based rank of the word in the Berean Standard Bible's English order.
+     */
+    bsbPos: number;
+    /**
+     * The language of the word.
+     */
+    language: 'hebrew' | 'aramaic' | 'greek';
+    /**
+     * The word in the original script. NFC-normalized.
+     */
+    text: string;
+    /**
+     * The transliteration of the word.
+     */
+    transliteration: string | null;
+    /**
+     * The short grammatical parsing code of the word.
+     */
+    parsing: string | null;
+    /**
+     * The spelled-out grammatical parsing of the word.
+     */
+    parsingFull: string | null;
+    /**
+     * The zero-padded Strong's number of the word, such as `H0430` or `G3056`. Matches the KJV's `.words.json` values. Other translations' values may need zero-padding and suffix stripping before joining. Null when the source gives the word no Strong's number.
+     */
+    strongs: string | null;
+    /**
+     * The Berean Standard Bible's English phrase for the word. Null when the BSB leaves the word untranslated.
+     */
+    gloss: string | null;
 };
 
 /**
@@ -2056,7 +2160,8 @@ export type DatasetEntityRef = {
 /**
  * The type of an entity in a dataset. Matches the collection segment of the entity API paths, so the API link for an entity can be constructed as `/api/d/{dataset}/{type}/{id}.json`.
  */
-export type DatasetEntityType = 'people' | 'places' | 'events' | 'groups';
+export type DatasetEntityType =
+    'people' | 'places' | 'events' | 'groups' | 'lexicon';
 
 /**
  * Defines a schema for verse references. A verse reference is a string that contains a book ID, chapter number, and verse number, such as "GEN 1:1". It can also contain an optional content part that comes after the verse reference, such as "GEN 1:1 In the beginning, God created the Heavens and the Earth." It can also contain optional endChapter and endVerse fields for references that span multiple chapters or verses, such as "GEN 1:1-2:3".
@@ -2509,6 +2614,112 @@ export type DatasetPeopleGroup = {
      * The list of Bible references that mention the people group. Sorted by book order, chapter, and verse. Consecutive verses in the same chapter are collapsed into a single reference using `endVerse`.
      */
     references: Array<VerseRef>;
+};
+
+/**
+ * The list of lexicon entries in a dataset. Maps to the /api/d/:datasetId/lexicon.json endpoint.
+ */
+export type ApiDatasetLexicon = {
+    /**
+     * The dataset information for the lexicon.
+     */
+    dataset: ApiDataset;
+    /**
+     * The list of lexicon entries that are available for the dataset.
+     */
+    lexicon: Array<ApiDatasetLexiconEntrySummary>;
+};
+
+/**
+ * Defines a summary of a lexicon entry in a dataset.
+ */
+export type ApiDatasetLexiconEntrySummary = {
+    /**
+     * The Strong's number of the lexicon entry.
+     */
+    id: string;
+    /**
+     * The language of the lexicon entry.
+     */
+    language: 'hebrew' | 'aramaic' | 'greek';
+    /**
+     * The name of the lexicon entry. This is the lemma of the entry's first sense.
+     */
+    name: string;
+    /**
+     * The API link for the lexicon entry. Relative to the API origin.
+     */
+    apiLink: string;
+};
+
+/**
+ * The information about a lexicon entry in a dataset. Maps to the /api/d/:datasetId/lexicon/:strongs.json endpoint.
+ */
+export type ApiDatasetLexiconEntry = {
+    /**
+     * The dataset information for the lexicon entry.
+     */
+    dataset: ApiDataset;
+    /**
+     * The lexicon entry.
+     */
+    entry: DatasetLexiconEntry;
+    /**
+     * The API link for this lexicon entry. Relative to the API origin.
+     */
+    thisLexiconEntryApiLink: string;
+};
+
+/**
+ * Defines the schema for a sense of a lexicon entry in a dataset.
+ */
+export type DatasetLexiconSense = {
+    /**
+     * The extended ID of the sense, such as `H0001G`. Equal to the base Strong's number when the number has a single sense.
+     */
+    id: string;
+    /**
+     * The language of the sense.
+     */
+    language: 'hebrew' | 'aramaic' | 'greek';
+    /**
+     * The lemma of the sense in the original script.
+     */
+    lemma: string;
+    /**
+     * The transliteration of the lemma.
+     */
+    transliteration: string | null;
+    /**
+     * The part of speech (morphology) code of the sense.
+     */
+    partOfSpeech: string | null;
+    /**
+     * The short English gloss of the sense.
+     */
+    gloss: string | null;
+    /**
+     * The definition of the sense as plain text. Paragraphs are separated by blank lines.
+     */
+    definition: string;
+};
+
+/**
+ * Defines the schema for a lexicon entry in a dataset. There is one entry per base Strong's number.
+ */
+export type DatasetLexiconEntry = {
+    /**
+     * The zero-padded Strong's number of the entry, such as `H0430` or `G3056`.
+     */
+    id: string;
+    /**
+     * The language of the entry. This is the language of the entry's first sense.
+     */
+    language: 'hebrew' | 'aramaic' | 'greek';
+    /**
+     * The senses of the entry, in ID order.
+     */
+    senses: Array<DatasetLexiconSense>;
 };
 
 export type GetAvailableTranslationsData = {
@@ -3254,3 +3465,65 @@ export type GetDatasetPeopleGroupResponses = {
 
 export type GetDatasetPeopleGroupResponse =
     GetDatasetPeopleGroupResponses[keyof GetDatasetPeopleGroupResponses];
+
+export type GetDatasetLexiconData = {
+    body?: never;
+    path: {
+        /**
+         * The dataset ID of the dataset to get the books or chapter content for.
+         */
+        dataset: string;
+    };
+    query?: never;
+    url: '/api/d/{dataset}/lexicon.json';
+};
+
+export type GetDatasetLexiconErrors = {
+    /**
+     * 404 Not Found - The specified dataset was not found or doesn't contain lexicon entries.
+     */
+    404: unknown;
+};
+
+export type GetDatasetLexiconResponses = {
+    /**
+     * 200 OK
+     */
+    200: ApiDatasetLexicon;
+};
+
+export type GetDatasetLexiconResponse =
+    GetDatasetLexiconResponses[keyof GetDatasetLexiconResponses];
+
+export type GetDatasetLexiconEntryData = {
+    body?: never;
+    path: {
+        /**
+         * The dataset ID of the dataset to get the books or chapter content for.
+         */
+        dataset: string;
+        /**
+         * The zero-padded Strong's number of the lexicon entry to get the information for. For example, "H0430" for the Hebrew word Elohim or "G3056" for the Greek word logos.
+         */
+        strongs: string;
+    };
+    query?: never;
+    url: '/api/d/{dataset}/lexicon/{strongs}.json';
+};
+
+export type GetDatasetLexiconEntryErrors = {
+    /**
+     * 404 Not Found - The specified dataset or lexicon entry was not found.
+     */
+    404: unknown;
+};
+
+export type GetDatasetLexiconEntryResponses = {
+    /**
+     * 200 OK
+     */
+    200: ApiDatasetLexiconEntry;
+};
+
+export type GetDatasetLexiconEntryResponse =
+    GetDatasetLexiconEntryResponses[keyof GetDatasetLexiconEntryResponses];
