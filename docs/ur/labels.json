@@ -42,7 +42,7 @@
         "compareColumns": {
             "account": "کوئی حساب نہیں۔",
             "usage": "استعمال کی کوئی حد نہیں۔",
-            "permission": "بے اجازت",
+            "permission": "بغیر کسی سوال کے",
             "storage": "ذخیرہ اور کیش*",
             "openSource": "اوپن سورس"
         },

@@ -42,7 +42,7 @@
         "compareColumns": {
             "account": "没有账户",
             "usage": "无使用限制",
-            "permission": "未经许可",
+            "permission": "不问缘由",
             "storage": "存储和缓存*",
             "openSource": "开源"
         },

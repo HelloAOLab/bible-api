@@ -42,7 +42,7 @@
         "compareColumns": {
             "account": "Nessun account",
             "usage": "Nessun limite di utilizzo",
-            "permission": "Senza autorizzazione",
+            "permission": "Senza fare domande",
             "storage": "Archivia e memorizza nella cache*",
             "openSource": "Open source"
         },

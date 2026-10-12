@@ -42,7 +42,7 @@
         "compareColumns": {
             "account": "Ayikho i-akhawunti",
             "usage": "Akukho mkhawulo wokusetshenziswa",
-            "permission": "Akunamvume",
+            "permission": "Akukho mibuzo ebuzwayo",
             "storage": "Isitolo kanye nenqolobane*",
             "openSource": "Umthombo ovulekile"
         },

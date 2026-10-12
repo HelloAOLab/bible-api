@@ -42,7 +42,7 @@
         "compareColumns": {
             "account": "መለያ የለም",
             "usage": "የአጠቃቀም ገደብ የለም",
-            "permission": "ፈቃድ የሌለው",
+            "permission": "ምንም ጥያቄ አይጠየቅም",
             "storage": "ማከማቻ እና መሸጎጫ*",
             "openSource": "ክፍት ምንጭ"
         },
