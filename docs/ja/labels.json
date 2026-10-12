@@ -42,7 +42,7 @@
         "compareColumns": {
             "account": "アカウントなし",
             "usage": "使用制限なし",
-            "permission": "許可不要",
+            "permission": "一切問われません",
             "storage": "保存とキャッシュ*",
             "openSource": "オープンソース"
         },

@@ -42,7 +42,7 @@
         "compareColumns": {
             "account": "खाता नहीं",
             "usage": "उपयोग की कोई सीमा नहीं",
-            "permission": "अनुमति रहित",
+            "permission": "बिना कोई सवाल पूछे",
             "storage": "स्टोर और कैश*",
             "openSource": "खुला स्त्रोत"
         },

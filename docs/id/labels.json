@@ -42,7 +42,7 @@
         "compareColumns": {
             "account": "Tidak ada akun",
             "usage": "Tidak ada batasan penggunaan.",
-            "permission": "Tanpa izin",
+            "permission": "Tanpa banyak tanya",
             "storage": "Simpan & cache*",
             "openSource": "Sumber terbuka"
         },

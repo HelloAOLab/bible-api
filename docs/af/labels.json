@@ -42,7 +42,7 @@
         "compareColumns": {
             "account": "Geen rekening nie",
             "usage": "Geen gebruikslimiet nie",
-            "permission": "Toestemmingsloos",
+            "permission": "Geen vrae gevra nie",
             "storage": "Stoor en kasgeheue*",
             "openSource": "Oopbron"
         },
