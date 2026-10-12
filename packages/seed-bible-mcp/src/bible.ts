@@ -188,6 +188,19 @@ export function chapterUrl(
     return `${apiBase}/${translation}/${book}/${chapter}.json`;
 }
 
+export const SEED_BIBLE_BASE = 'https://seedbible.org';
+
+/**
+ * Builds a link to a chapter on Seed Bible, e.g. https://seedbible.org/BSB/JHN/3
+ */
+export function seedBibleUrl(
+    translation: string,
+    book: string,
+    chapter: number
+): string {
+    return `${SEED_BIBLE_BASE}/${encodeURIComponent(translation)}/${encodeURIComponent(book)}/${chapter}`;
+}
+
 export function passageTitle(
     translation: string,
     book: string,

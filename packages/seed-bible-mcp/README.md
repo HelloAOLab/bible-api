@@ -1,13 +1,14 @@
 # Free Use Bible MCP Server
 
-An [MCP](https://modelcontextprotocol.io) server that exposes the [Free Use Bible API](https://bible.helloao.org) (BSB, WEB, Hebrew WLC, SBL Greek NT) through four tools:
+An [MCP](https://modelcontextprotocol.io) server that exposes the [Free Use Bible API](https://bible.helloao.org) (BSB, WEB, Hebrew WLC, SBL Greek NT) through five tools:
 
 - `getBibleReference` — turns a reference such as `John 3:16` or `Gen 1:1-3 WEB` into a passage result id.
 - `fetchChapter` — returns the passage text for a result id from `getBibleReference`.
 - `fetchVerse` — returns the text of a verse or verse range within one chapter, for a reference such as `John 3:16` or `Gen 1:1-3 WEB`.
+- `getSeedBibleLink` — returns a link to the chapter on [Seed Bible](https://seedbible.org) (`https://seedbible.org/{translationId}/{bookId}/{chapter}`) for a reference such as `John 3:16` or `Ps 23 WEB`.
 - `listTranslations` — lists the available translations, optionally filtered by language (e.g. `spa` or `Spanish`) and by name.
 
-`getBibleReference` and `fetchVerse` take an optional `translation` parameter that accepts any translation id from `listTranslations` (e.g. `spa_rv1909`). Without it, the translation is picked from the reference (BSB, WEB, WLC, or SBL), defaulting to BSB.
+`getBibleReference`, `fetchVerse`, and `getSeedBibleLink` take an optional `translation` parameter that accepts any translation id from `listTranslations` (e.g. `spa_rv1909`). Without it, the translation is picked from the reference (BSB, WEB, WLC, or SBL), defaulting to BSB.
 
 The server speaks the Streamable HTTP transport at `/mcp` and runs statelessly, so the same code runs on Node.js and on Cloudflare Workers.
 
