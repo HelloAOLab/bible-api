@@ -42,7 +42,7 @@
         "compareColumns": {
             "account": "No account",
             "usage": "No usage limit",
-            "permission": "Permissionless",
+            "permission": "No questions asked",
             "storage": "Store & cache*",
             "openSource": "Open source"
         },
