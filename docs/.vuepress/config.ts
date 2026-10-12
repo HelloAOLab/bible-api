@@ -181,22 +181,20 @@ const sidebar = (prefix: string, labels: Labels): SidebarOptions => ({
                 '',
                 {
                     text: labels.nav.translationsBooksChapters,
+                    link: 'translations/',
                     collapsible: true,
                     children: [
-                        'translations/',
                         'translations/standard',
                         'translations/simplified',
                     ],
                 },
                 {
                     text: labels.nav.commentaries,
-                    collapsible: true,
-                    children: ['commentaries/'],
+                    link: 'commentaries/',
                 },
                 {
                     text: labels.nav.datasets,
-                    collapsible: true,
-                    children: ['datasets/'],
+                    link: 'datasets/',
                 },
                 'openapi',
             ],
