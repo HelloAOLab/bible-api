@@ -25,6 +25,7 @@ import {
     importTranslations,
     initDb,
     listEBibleTranslations,
+    refreshEBibleLicenses,
     sourceTranslations,
     searchTypesenseVerses,
     uploadTestTranslation,
@@ -900,6 +901,22 @@ async function start() {
         )
         .action(async (search?: string) => {
             await listEBibleTranslations(search);
+        });
+
+    program
+        .command('refresh-ebible-licenses [translations...]')
+        .description(
+            'Detects the licenses of the eBible translations that are already in the database and stores them.\nOptionally limited to the given translation IDs.'
+        )
+        .option(
+            '--dir <dir>',
+            'The directory that the translations were sourced into. If provided, their metadata.json files are also updated so that the licenses are kept when they are re-imported.'
+        )
+        .action(async (translations: string[], options: any) => {
+            await refreshEBibleLicenses(translations, {
+                ...program.opts(),
+                ...options,
+            });
         });
 
     program

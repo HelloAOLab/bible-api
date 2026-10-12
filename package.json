@@ -24,6 +24,7 @@
         "fetch:bible:commentaries": "npm run cli fetch-tyndale-open-resources -- ./sources/comment/tyndale",
         "fetch:ebible": "npm run cli source-translations -- --convert-to-usx3 ./sources/ebible",
         "import:bible:ebible": "npm run cli import-translations -- --db ./free-use-bible-api.db ./sources/ebible",
+        "refresh:ebible:licenses": "npm run cli refresh-ebible-licenses -- --db ./free-use-bible-api.db --dir ./sources/ebible",
         "import:bible:metadata": "npm run cli import-bible-metadata -- --db ./free-use-bible-api.db ./sources/metadata",
         "import:bible:commentaries": "npm run cli import-commentaries -- --db ./free-use-bible-api.db ./sources/comment",
         "zip:sync": "npm run cli upload-api-files ./free-use-bible-api.zip",

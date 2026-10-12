@@ -3,6 +3,7 @@ import {
     extractCcLicenseFromDetailsHtml,
     isPublicDomainCopyrightText,
     detectEBibleLicense,
+    ebibleIdFromUrl,
 } from './ebible-license';
 
 describe('ccLicenseFromUrl()', () => {
@@ -154,6 +155,30 @@ describe('extractCcLicenseFromDetailsHtml()', () => {
     });
 });
 
+describe('ebibleIdFromUrl()', () => {
+    const cases = [
+        ['https://ebible.org/Scriptures/details.php?id=engwebp', 'engwebp'],
+        ['https://ebible.org/Scriptures/details.php?id=engDRA', 'engDRA'],
+        ['http://www.ebible.org/Scriptures/details.php?id=hin2017', 'hin2017'],
+        [
+            'https://EBIBLE.ORG/scriptures/DETAILS.php?foo=bar&id=arbnav',
+            'arbnav',
+        ],
+        ['https://ebible.org/Scriptures/details.php', null],
+        ['https://ebible.org/Scriptures/details.php?id=', null],
+        ['https://ebible.org/find/details.php?id=engwebp', null],
+        ['https://example.com/Scriptures/details.php?id=engwebp', null],
+        ['https://berean.bible/', null],
+        ['not a url at all', null],
+        [null, null],
+        [undefined, null],
+    ] as const;
+
+    it.each(cases)('should map %s to %s', (url, expected) => {
+        expect(ebibleIdFromUrl(url)).toBe(expected);
+    });
+});
+
 describe('isPublicDomainCopyrightText()', () => {
     const cases = [
         ['This work has been dedicated to the Public Domain.', true],
@@ -220,7 +245,9 @@ describe('detectEBibleLicense()', () => {
     });
 
     it('should fall back to the copyright text when the fetch fails', async () => {
-        global.fetch = jest.fn().mockRejectedValue(new Error('network error')) as any;
+        global.fetch = jest
+            .fn()
+            .mockRejectedValue(new Error('network error')) as any;
 
         const license = await detectEBibleLicense({
             id: 'engwmb',
