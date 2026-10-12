@@ -21,6 +21,7 @@ import {
     DatasetPlace,
     DatasetEvent,
     DatasetPeopleGroup,
+    DatasetLexiconEntry,
 } from './common-types.js';
 import {
     bookIdMap as defaultBookIdMap,
@@ -141,6 +142,11 @@ export interface DatasetDataset extends CommonDataset {
      * The list of people groups that are contained in the dataset.
      */
     peopleGroups?: DatasetPeopleGroup[];
+
+    /**
+     * The list of lexicon entries that are contained in the dataset.
+     */
+    lexicon?: DatasetLexiconEntry[];
 }
 
 export interface DatasetDatasetBook extends DatasetBook {

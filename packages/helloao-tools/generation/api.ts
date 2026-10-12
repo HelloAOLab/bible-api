@@ -21,6 +21,8 @@ import {
     DatasetEventSchema,
     DatasetPeopleGroup,
     DatasetPeopleGroupSchema,
+    DatasetLexiconEntrySchema,
+    OriginalLanguageSchema,
     DatasetPerson,
     DatasetPersonSchema,
     DatasetPlace,
@@ -233,6 +235,19 @@ export interface ApiOutput {
     datasetPeopleGroupContents?: ApiDatasetPeopleGroup[];
 
     /**
+     * The list of lexicon entries for each dataset.
+     * This maps to the /api/d/:datasetId/lexicon.json endpoint.
+     */
+    datasetLexicon?: ApiDatasetLexicon[];
+
+    /**
+     * The list of individual lexicon entries for each dataset.
+     * This maps to the following endpoint:
+     * - /api/d/:datasetId/lexicon/:strongs.json
+     */
+    datasetLexiconContents?: ApiDatasetLexiconEntry[];
+
+    /**
      * The complete translation data for each translation.
      * This maps to the /api/:translationId/complete.json endpoint.
      */
@@ -365,6 +380,15 @@ export const ApiDatasetSchema = DatasetSchema.extend({
     }),
 
     /**
+     * The total number of interlinear words that are contained in this dataset.
+     * Omitted if the dataset doesn't contain interlinear words.
+     */
+    totalNumberOfWords: z.number().optional().meta({
+        description:
+            "The total number of interlinear words that are contained in this dataset. Omitted if the dataset doesn't contain interlinear words.",
+    }),
+
+    /**
      * Gets the name of the language that the commentary is in.
      * Null or undefined if the name of the language is not known.
      */
@@ -419,6 +443,15 @@ export const ApiDatasetSchema = DatasetSchema.extend({
     }),
 
     /**
+     * The API link for the list of lexicon entries for this dataset.
+     * Omitted if the dataset doesn't contain lexicon entries.
+     */
+    listOfLexiconApiLink: z.string().optional().meta({
+        description:
+            "The API link for the list of lexicon entries for this dataset. Relative to the API origin. Omitted if the dataset doesn't contain lexicon entries.",
+    }),
+
+    /**
      * The total number of people that are contained in this dataset.
      * Omitted if the dataset doesn't contain people.
      */
@@ -452,6 +485,15 @@ export const ApiDatasetSchema = DatasetSchema.extend({
     totalNumberOfPeopleGroups: z.number().optional().meta({
         description:
             "The total number of people groups that are contained in this dataset. Omitted if the dataset doesn't contain people groups.",
+    }),
+
+    /**
+     * The total number of lexicon entries that are contained in this dataset.
+     * Omitted if the dataset doesn't contain lexicon entries.
+     */
+    totalNumberOfLexicon: z.number().optional().meta({
+        description:
+            "The total number of lexicon entries that are contained in this dataset. Omitted if the dataset doesn't contain lexicon entries.",
     }),
 }).meta({
     id: 'ApiDataset',
@@ -1439,6 +1481,121 @@ export const ApiDatasetPeopleGroupSchema = z
     });
 
 export type ApiDatasetPeopleGroup = z.infer<typeof ApiDatasetPeopleGroupSchema>;
+
+/**
+ * Defines a Zod schema for a summary of a lexicon entry in a dataset.
+ */
+export const ApiDatasetLexiconEntrySummarySchema = z
+    .object({
+        /**
+         * The Strong's number of the lexicon entry.
+         */
+        id: z.string().meta({
+            description: "The Strong's number of the lexicon entry.",
+        }),
+
+        /**
+         * The language of the lexicon entry.
+         */
+        language: OriginalLanguageSchema.meta({
+            description: 'The language of the lexicon entry.',
+        }),
+
+        /**
+         * The name of the lexicon entry. This is the lemma of the entry's first sense.
+         */
+        name: z.string().meta({
+            description:
+                "The name of the lexicon entry. This is the lemma of the entry's first sense.",
+        }),
+
+        /**
+         * The API link for the lexicon entry.
+         */
+        apiLink: z.string().meta({
+            description:
+                'The API link for the lexicon entry. Relative to the API origin.',
+        }),
+    })
+    .meta({
+        id: 'ApiDatasetLexiconEntrySummary',
+        description: 'Defines a summary of a lexicon entry in a dataset.',
+    });
+
+export type ApiDatasetLexiconEntrySummary = z.infer<
+    typeof ApiDatasetLexiconEntrySummarySchema
+>;
+
+/**
+ * Defines a Zod schema for the list of lexicon entries in a dataset.
+ * Maps to the /api/d/:datasetId/lexicon.json endpoint.
+ */
+export const ApiDatasetLexiconSchema = z
+    .object({
+        /**
+         * The dataset information for the lexicon.
+         */
+        dataset: z
+            .lazy(() => ApiDatasetSchema)
+            .meta({
+                description: 'The dataset information for the lexicon.',
+            }),
+
+        /**
+         * The list of lexicon entries that are available for the dataset.
+         */
+        lexicon: z.array(ApiDatasetLexiconEntrySummarySchema).meta({
+            description:
+                'The list of lexicon entries that are available for the dataset.',
+        }),
+    })
+    .meta({
+        id: 'ApiDatasetLexicon',
+        description:
+            'The list of lexicon entries in a dataset. Maps to the /api/d/:datasetId/lexicon.json endpoint.',
+    });
+
+export type ApiDatasetLexicon = z.infer<typeof ApiDatasetLexiconSchema>;
+
+/**
+ * Defines a Zod schema for a lexicon entry in a dataset.
+ * Maps to the /api/d/:datasetId/lexicon/:strongs.json endpoint.
+ */
+export const ApiDatasetLexiconEntrySchema = z
+    .object({
+        /**
+         * The dataset information for the lexicon entry.
+         */
+        dataset: z
+            .lazy(() => ApiDatasetSchema)
+            .meta({
+                description: 'The dataset information for the lexicon entry.',
+            }),
+
+        /**
+         * The lexicon entry.
+         */
+        entry: DatasetLexiconEntrySchema.meta({
+            description: 'The lexicon entry.',
+        }),
+
+        /**
+         * The API link for this lexicon entry.
+         */
+        thisLexiconEntryApiLink: z.string().meta({
+            description:
+                'The API link for this lexicon entry. Relative to the API origin.',
+        }),
+    })
+    .meta({
+        id: 'ApiDatasetLexiconEntry',
+        description:
+            'The information about a lexicon entry in a dataset. Maps to the /api/d/:datasetId/lexicon/:strongs.json endpoint.',
+    });
+
+export type ApiDatasetLexiconEntry = z.infer<
+    typeof ApiDatasetLexiconEntrySchema
+>;
 
 /**
  * Defines a Zod schema for a person that appears in a chapter of a dataset.
@@ -3771,6 +3928,7 @@ export function generateApiForDataset(
         places,
         events,
         peopleGroups,
+        lexicon,
         ...datasetInfo
     } of dataset.datasets ?? []) {
         const apiDataset: ApiDataset = {
@@ -3863,8 +4021,14 @@ export function generateApiForDataset(
 
                 // apiBookChapter.numberOfVerses += ;
                 for (let verse of chapter.content) {
-                    apiBookChapter.numberOfReferences +=
-                        verse.references.length;
+                    if ('references' in verse) {
+                        apiBookChapter.numberOfReferences +=
+                            verse.references.length;
+                    } else {
+                        apiDataset.totalNumberOfWords =
+                            (apiDataset.totalNumberOfWords ?? 0) +
+                            verse.words.length;
+                    }
                 }
 
                 apiBook.totalNumberOfVerses += apiBookChapter.numberOfVerses;
@@ -4177,6 +4341,51 @@ export function generateApiForDataset(
                 api.datasetPeopleGroups = [];
             }
             api.datasetPeopleGroups.push(datasetPeopleGroups);
+        }
+
+        if (lexicon) {
+            const datasetLexicon: ApiDatasetLexicon = {
+                dataset: apiDataset,
+                lexicon: [],
+            };
+
+            for (let entry of lexicon) {
+                const thisLexiconEntryApiLink = datasetEntityApiLink(
+                    datasetInfo.id,
+                    'lexicon',
+                    entry.id,
+                    'json',
+                    apiPathPrefix
+                );
+
+                datasetLexicon.lexicon.push({
+                    id: entry.id,
+                    language: entry.language,
+                    name: entry.senses[0].lemma,
+                    apiLink: thisLexiconEntryApiLink,
+                });
+
+                if (!api.datasetLexiconContents) {
+                    api.datasetLexiconContents = [];
+                }
+                api.datasetLexiconContents.push({
+                    dataset: apiDataset,
+                    entry,
+                    thisLexiconEntryApiLink,
+                });
+            }
+
+            apiDataset.listOfLexiconApiLink = listOfDatasetEntitiesApiLink(
+                datasetInfo.id,
+                'lexicon',
+                'json',
+                apiPathPrefix
+            );
+            apiDataset.totalNumberOfLexicon = lexicon.length;
+            if (!api.datasetLexicon) {
+                api.datasetLexicon = [];
+            }
+            api.datasetLexicon.push(datasetLexicon);
         }
 
         // Generate chapter-aligned entity data for datasets that contain
@@ -4654,6 +4863,19 @@ export function generateFilesForApi(api: ApiOutput): OutputFile[] {
 
     for (let group of api.datasetPeopleGroupContents ?? []) {
         files.push(jsonFile(group.thisPeopleGroupApiLink, group));
+    }
+
+    for (let datasetLexicon of api.datasetLexicon ?? []) {
+        files.push(
+            jsonFile(
+                datasetLexicon.dataset.listOfLexiconApiLink!,
+                datasetLexicon
+            )
+        );
+    }
+
+    for (let entry of api.datasetLexiconContents ?? []) {
+        files.push(jsonFile(entry.thisLexiconEntryApiLink, entry));
     }
 
     // for (let audio of api.translationBookChapterAudio) {

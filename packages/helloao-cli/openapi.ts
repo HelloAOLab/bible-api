@@ -9,6 +9,8 @@ import {
     ApiDatasetEntityBookChapterSchema,
     ApiDatasetEventSchema,
     ApiDatasetEventsSchema,
+    ApiDatasetLexiconEntrySchema,
+    ApiDatasetLexiconSchema,
     ApiDatasetPeopleGroupSchema,
     ApiDatasetPeopleGroupsSchema,
     ApiDatasetPeopleSchema,
@@ -75,6 +77,11 @@ const event = z.string().meta({
 const group = z.string().meta({
     description:
         'The ID of the people group to get the information for. For example, "tribe-of-benjamin" for the tribe of Benjamin.',
+});
+
+const strongs = z.string().meta({
+    description:
+        'The zero-padded Strong\'s number of the lexicon entry to get the information for. For example, "H0430" for the Hebrew word Elohim or "G3056" for the Greek word logos.',
 });
 
 export function createFreeUseBibleApiOpenApiDocument(): any {
@@ -533,7 +540,7 @@ export function createFreeUseBibleApiOpenApiDocument(): any {
                 get: {
                     operationId: 'getDatasetBookChapter',
                     description:
-                        'Get the content of a specific chapter of a specific book for a specific dataset. For cross reference datasets, this is the list of cross references for each verse in the chapter. For entity datasets (such as "theographic"), this is the people, places, and events that appear in the chapter.',
+                        'Get the content of a specific chapter of a specific book for a specific dataset. For cross reference datasets, this is the list of cross references for each verse in the chapter. For interlinear datasets (such as "bsb-interlinear"), this is the original-language words of each verse in the chapter. For entity datasets (such as "theographic"), this is the people, places, and events that appear in the chapter.',
                     requestParams: {
                         path: z.object({
                             dataset,
@@ -768,6 +775,59 @@ export function createFreeUseBibleApiOpenApiDocument(): any {
                         '404': {
                             description:
                                 '404 Not Found - The specified dataset or people group was not found.',
+                        },
+                    },
+                },
+            },
+            '/api/d/{dataset}/lexicon.json': {
+                get: {
+                    operationId: 'getDatasetLexicon',
+                    description:
+                        'Get the list of lexicon entries that are available for a specific dataset.',
+                    requestParams: {
+                        path: z.object({
+                            dataset,
+                        }),
+                    },
+                    responses: {
+                        '200': {
+                            description: '200 OK',
+                            content: {
+                                'application/json': {
+                                    schema: ApiDatasetLexiconSchema,
+                                },
+                            },
+                        },
+                        '404': {
+                            description:
+                                "404 Not Found - The specified dataset was not found or doesn't contain lexicon entries.",
+                        },
+                    },
+                },
+            },
+            '/api/d/{dataset}/lexicon/{strongs}.json': {
+                get: {
+                    operationId: 'getDatasetLexiconEntry',
+                    description:
+                        "Get the information about a specific lexicon entry for a specific dataset. Includes the senses (lemma, transliteration, part of speech, gloss, and definition) of the base Strong's number.",
+                    requestParams: {
+                        path: z.object({
+                            dataset,
+                            strongs,
+                        }),
+                    },
+                    responses: {
+                        '200': {
+                            description: '200 OK',
+                            content: {
+                                'application/json': {
+                                    schema: ApiDatasetLexiconEntrySchema,
+                                },
+                            },
+                        },
+                        '404': {
+                            description:
+                                '404 Not Found - The specified dataset or lexicon entry was not found.',
                         },
                     },
                 },

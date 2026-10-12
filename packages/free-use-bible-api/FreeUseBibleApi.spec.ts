@@ -46,6 +46,8 @@ const operationMethods = {
     GetDatasetEvent: 'getDatasetEvent',
     GetDatasetPeopleGroups: 'getDatasetPeopleGroups',
     GetDatasetPeopleGroup: 'getDatasetPeopleGroup',
+    GetDatasetLexicon: 'getDatasetLexicon',
+    GetDatasetLexiconEntry: 'getDatasetLexiconEntry',
 } as const satisfies Record<string, keyof FreeUseBibleApi>;
 
 describe('FreeUseBibleApi', () => {
@@ -495,6 +497,43 @@ describe('FreeUseBibleApi', () => {
         expect(fetchMock).toHaveBeenNthCalledWith(
             4,
             'https://bible.helloao.org/api/d/theographic/groups/tribe-of-benjamin.json'
+        );
+    });
+
+    it('gets the lexicon list and individual lexicon entries', async () => {
+        const listPayload = {
+            lexicon: [{ id: 'H0430', language: 'hebrew', name: 'אֱלֹהִים' }],
+        };
+        const entryPayload = {
+            entry: {
+                id: 'H0430',
+                language: 'hebrew',
+                senses: [{ id: 'H0430G', lemma: 'אֱלֹהִים' }],
+            },
+            thisLexiconEntryApiLink:
+                '/api/d/stepbible-lexicon/lexicon/H0430.json',
+        };
+        fetchMock
+            .mockResolvedValueOnce(jsonResponse(listPayload))
+            .mockResolvedValueOnce(jsonResponse(entryPayload));
+
+        const api = new FreeUseBibleApi();
+
+        const list = await api.getDatasetLexicon('stepbible-lexicon');
+        const entry = await api.getDatasetLexiconEntry(
+            'stepbible-lexicon',
+            'H0430'
+        );
+
+        expect(list).toEqual(listPayload);
+        expect(entry).toEqual(entryPayload);
+        expect(fetchMock).toHaveBeenNthCalledWith(
+            1,
+            'https://bible.helloao.org/api/d/stepbible-lexicon/lexicon.json'
+        );
+        expect(fetchMock).toHaveBeenNthCalledWith(
+            2,
+            'https://bible.helloao.org/api/d/stepbible-lexicon/lexicon/H0430.json'
         );
     });
 
