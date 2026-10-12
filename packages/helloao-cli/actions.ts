@@ -14,6 +14,7 @@ import {
     bookOrder,
     dataset,
     InputTranslationMetadata,
+    License,
 } from '@helloao/tools/generation/index.js';
 import * as theographic from '@helloao/tools/generation/theographic.js';
 import * as interlinear from '@helloao/tools/generation/interlinear.js';
@@ -65,7 +66,7 @@ import {
     convertUsfmToUsx3,
 } from './conversion.js';
 import { fetchEBibleMetadata } from './ebible.js';
-import { detectEBibleLicense } from './ebible-license.js';
+import { detectEBibleLicense, ebibleIdFromUrl } from './ebible-license.js';
 import { importDatasetOutput } from './db.js';
 import { groupBy } from 'es-toolkit/compat';
 
@@ -1596,6 +1597,162 @@ export async function listEBibleTranslations(
             'Tip: Try searching for language codes like "en", "es", "fr", etc.'
         );
     }
+}
+
+export interface RefreshEBibleLicensesOptions {
+    /**
+     * The database to update.
+     */
+    db?: string | null;
+
+    /**
+     * The directory that contains the sourced translations (e.g. the output directory of source-translations).
+     * If provided, the metadata.json files in this directory will also be updated with the detected licenses
+     * so that the licenses are preserved when the translations are re-imported.
+     */
+    dir?: string;
+}
+
+/**
+ * Detects the licenses of the eBible translations that are already in the database and stores them.
+ * This avoids having to re-download and re-import translations just to pick up license information.
+ * @param translations The IDs of the translations that should be refreshed. If empty, all eBible translations are refreshed.
+ * @param options The options.
+ */
+export async function refreshEBibleLicenses(
+    translations: string[],
+    options: RefreshEBibleLicensesOptions
+): Promise<void> {
+    const logger = log.getLogger();
+    const db = await database.getDb(options.db);
+    try {
+        const rows = db
+            .prepare('SELECT id, licenseUrl, website FROM Translation;')
+            .all() as { id: string; licenseUrl: string; website: string }[];
+
+        const requested = new Set(translations);
+        const targets: { id: string; ebibleId: string }[] = [];
+        for (let row of rows) {
+            if (requested.size > 0 && !requested.has(row.id)) {
+                continue;
+            }
+            const ebibleId =
+                ebibleIdFromUrl(row.licenseUrl) ?? ebibleIdFromUrl(row.website);
+            if (ebibleId) {
+                targets.push({ id: row.id, ebibleId });
+            } else if (requested.has(row.id)) {
+                logger.warn(
+                    `${row.id} is not an eBible translation. Skipping.`
+                );
+            }
+        }
+
+        for (let id of requested) {
+            if (!rows.some((r) => r.id === id)) {
+                logger.warn(`${id} was not found in the database. Skipping.`);
+            }
+        }
+
+        if (targets.length === 0) {
+            logger.log('No eBible translations found to refresh.');
+            return;
+        }
+
+        // The copyright text is used as a fallback when the details page has no Creative Commons license.
+        const copyrights = new Map<string, string>();
+        const storedSources = db
+            .prepare('SELECT id, copyright FROM EBibleSource;')
+            .all() as { id: string; copyright: string }[];
+        for (let source of storedSources) {
+            copyrights.set(source.id.toLowerCase(), source.copyright);
+        }
+        try {
+            for (let source of await fetchEBibleMetadata()) {
+                copyrights.set(source.id.toLowerCase(), source.copyright);
+            }
+        } catch (err) {
+            logger.warn(
+                'Failed to fetch the eBible translation list. Using the copyright text stored in the database.',
+                err
+            );
+        }
+
+        logger.log(`Refreshing licenses for ${targets.length} translations...`);
+
+        const updateLicense = db.prepare(
+            'UPDATE Translation SET license = @license WHERE id = @id;'
+        );
+        const licenses = new Map<string, License>();
+        for (let [index, target] of targets.entries()) {
+            const progress = `[${index + 1}/${targets.length}]`;
+            const license = await detectEBibleLicense({
+                id: target.ebibleId,
+                copyright: copyrights.get(target.ebibleId.toLowerCase()) ?? '',
+            });
+
+            if (!license) {
+                logger.log(
+                    `${progress} ${target.id}: No license detected. Leaving unchanged.`
+                );
+                continue;
+            }
+
+            updateLicense.run({
+                id: target.id,
+                license: JSON.stringify(license),
+            });
+            licenses.set(target.id, license);
+            logger.log(`${progress} ${target.id}: ${JSON.stringify(license)}`);
+        }
+
+        logger.log(
+            `Updated licenses for ${licenses.size} of ${targets.length} translations.`
+        );
+
+        if (options.dir) {
+            const updatedFiles = await updateMetadataLicenses(
+                options.dir,
+                licenses
+            );
+            logger.log(
+                `Updated ${updatedFiles} metadata.json files in ${options.dir}.`
+            );
+        }
+    } finally {
+        db.close();
+    }
+}
+
+/**
+ * Sets the license in the metadata.json file of each translation in the given directory.
+ * @param dir The directory that contains the translation directories.
+ * @param licenses The map of translation IDs to their licenses.
+ * @returns The number of metadata.json files that were updated.
+ */
+async function updateMetadataLicenses(
+    dir: string,
+    licenses: Map<string, License>
+): Promise<number> {
+    let updated = 0;
+    const entries = await readdir(dir, { withFileTypes: true });
+    for (let entry of entries) {
+        if (!entry.isDirectory()) {
+            continue;
+        }
+        const metadataPath = path.resolve(dir, entry.name, 'metadata.json');
+        if (!(await exists(metadataPath))) {
+            continue;
+        }
+        const metadata = JSON.parse(await readFile(metadataPath, 'utf-8'));
+        const license = licenses.get(metadata.id);
+        if (!license) {
+            continue;
+        }
+        metadata.license = license;
+        await writeFile(metadataPath, JSON.stringify(metadata, null, 2));
+        updated++;
+    }
+    return updated;
 }
 
 /**

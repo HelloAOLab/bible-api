@@ -44,6 +44,8 @@ Commands:
   upload-api-files [options] <dest>                      Uploads API files to the specified destination. For S3, use the format s3://bucket-name/path/to/folder.
   source-translations [options] <dir> [translations...]  Finds translation sources from ebible.org and downloads it.
   list-ebible-translations [search]                      List available eBible translations. Optionally filter by search term.
+  refresh-ebible-licenses [options] [translations...]    Detects the licenses of the eBible translations that are already in the database and stores them.
+                                                         Optionally limited to the given translation IDs.
   fetch-audio [options] <dir> [translations...]          Fetches the specified audio translations and places them in the given directory.
                                                          Translations should be in the format "translationId/audioId". e.g. "BSB/gilbert"
   fetch-bible-metadata <dir>                             Fetches the Theographic bible metadata and places it in the given directory.
@@ -51,6 +53,8 @@ Commands:
   fetch-tyndale-open-resources <dir>                     Fetches the Tyndale Open Bible Resources and places it in the given directory.
   help [command]                                         display help for command
 ```
+
+> **eBible licenses.** `source-translations` detects the license of each eBible translation (from the Creative Commons link on its ebible.org details page, falling back to a "public domain" copyright notice) and stores it in `metadata.json`. To add licenses to a database that was imported before license detection existed, run `helloao refresh-ebible-licenses --db <path> --dir <sourced translations dir>`. It updates the `license` column of each eBible translation in place, and `--dir` also writes the licenses into the matching `metadata.json` files so that a later re-import doesn't clear them. Translations whose license can't be detected are left unchanged.
 
 > **Audio timings.** The `import-audio-timings <file>` command loads per-verse start times for a chapter's audio into the database, from a JSON array of `{ translationId, bookId, chapterNumber, reader, verses }` records. To generate that file from the audio itself, see [`tools/audio-timings`](../../tools/audio-timings/README.md), which transcribes a chapter with whisperX and aligns the result against the chapter's known verse text.
 

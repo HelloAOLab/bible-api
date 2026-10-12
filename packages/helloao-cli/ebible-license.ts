@@ -110,6 +110,34 @@ export function extractCcLicenseFromDetailsHtml(html: string): License | null {
 }
 
 /**
+ * Gets the eBible translation ID from an ebible.org translation details page URL
+ * (e.g. `https://ebible.org/Scriptures/details.php?id=engwebp` returns `engwebp`).
+ * Returns null if the URL isn't an ebible.org details page URL.
+ */
+export function ebibleIdFromUrl(url: string | null | undefined): string | null {
+    if (!url) {
+        return null;
+    }
+
+    let parsed: URL;
+    try {
+        parsed = new URL(url);
+    } catch {
+        return null;
+    }
+
+    const host = parsed.hostname.toLowerCase();
+    if (host !== 'ebible.org' && host !== 'www.ebible.org') {
+        return null;
+    }
+    if (parsed.pathname.toLowerCase() !== '/scriptures/details.php') {
+        return null;
+    }
+
+    return parsed.searchParams.get('id') || null;
+}
+
+/**
  * Determines whether the given ebible.org copyright notice indicates that
  * the translation has been dedicated to the public domain.
  */
