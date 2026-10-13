@@ -1,5 +1,5 @@
 // CloudFront Function (cloudfront-js-2.0 runtime) for the viewer-request
-// event of the behavior that serves the docs from S3.
+// event of the behaviors that serve the site root and the docs from S3.
 //
 // CloudFront's Default Root Object only applies to the root of the
 // distribution, and the S3 REST origin has no notion of index documents, so
@@ -13,13 +13,21 @@
 // addresses with no trailing slash or extension (`/docs`, `/docs/guide`) to
 // the directory address so relative links resolve the same way as the build.
 //
+// The site root has no page of its own either, so `/` hit the same 404 page.
+// The docs are the home page of the site, so the root redirects to them.
+//
 // To deploy: create a CloudFront Function with this code, publish it, and
-// associate it with the viewer-request event of the `/docs*` cache behavior.
-// It leaves any other path alone, so it is also safe on the default behavior.
+// associate it with the viewer-request event of both the default (`*`) cache
+// behavior, which serves `/`, and the `/docs*` cache behavior. It leaves every
+// other path alone, so the API under the default behavior is unaffected.
 
 function handler(event) {
     var request = event.request;
     var uri = request.uri;
+
+    if (uri === '/') {
+        return redirect('/docs/', request.querystring);
+    }
 
     if (uri !== '/docs' && uri.indexOf('/docs/') !== 0) {
         return request;
@@ -32,17 +40,21 @@ function handler(event) {
 
     var lastSegment = uri.substring(uri.lastIndexOf('/') + 1);
     if (lastSegment.indexOf('.') === -1) {
-        var query = queryString(request.querystring);
-        return {
-            statusCode: 301,
-            statusDescription: 'Moved Permanently',
-            headers: {
-                location: { value: uri + '/' + (query ? '?' + query : '') },
-            },
-        };
+        return redirect(uri + '/', request.querystring);
     }
 
     return request;
+}
+
+function redirect(location, querystring) {
+    var query = queryString(querystring);
+    return {
+        statusCode: 301,
+        statusDescription: 'Moved Permanently',
+        headers: {
+            location: { value: location + (query ? '?' + query : '') },
+        },
+    };
 }
 
 function queryString(querystring) {

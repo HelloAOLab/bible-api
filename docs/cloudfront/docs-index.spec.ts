@@ -30,7 +30,7 @@ describe('docs-index', () => {
         '/docs/guide/getting-started.html',
         '/docs/assets/app-abc123.js',
         '/docs/404.html',
-        '/',
+        '/robots.txt',
         '/api/available_translations.json',
         '/documents/',
     ])('should leave %s alone', (uri) => {
@@ -38,6 +38,7 @@ describe('docs-index', () => {
     });
 
     it.each([
+        ['/', '/docs/'],
         ['/docs', '/docs/'],
         ['/docs/guide', '/docs/guide/'],
     ])('should redirect %s to %s', (uri, expected) => {
