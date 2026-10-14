@@ -1115,6 +1115,7 @@ The chapter is fetched from the Free Use Bible API (--api-url).
 Headings and footnotes are not read, and verse markers are ignored.
 Poetry is read line by line with a pause after each line. Prose is read with brief pauses after sentences.
 There are longer pauses between paragraphs, stanzas, and sections.
+Also writes the time that each verse starts in the audio, in the format that import-audio-timings reads.
 Use --dry-run to see the reading script (with VoiceStudio [pause] markers) without generating audio.`
         )
         .option(
@@ -1203,6 +1204,14 @@ Use --dry-run to see the reading script (with VoiceStudio [pause] markers) witho
         .option(
             '--subtitle-speed <multiplier>',
             `The speed multiplier for Hebrew subtitles. (default: ${READING.speed.subtitle})`
+        )
+        .option(
+            '--timings <file>',
+            'The file to write the verse timings to, in the format that import-audio-timings reads. Defaults to the output file with a ".timings.json" extension.'
+        )
+        .option(
+            '--reader <name>',
+            'The reader name to record in the verse timings. Defaults to --profile-id, or "voicestudio".'
         )
         .option(
             '--script <file>',

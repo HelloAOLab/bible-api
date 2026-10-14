@@ -8,6 +8,7 @@ import type {
     TranslationBookChapter,
 } from '@helloao/tools/generation/common-types.js';
 import { getBookId } from '@helloao/tools/utils.js';
+import type { AudioTimingRecord } from './actions.js';
 
 /**
  * The kinds of sections that a chapter is split into for reading.
@@ -117,6 +118,57 @@ export interface ReadingSpan {
      * The silence after the span, in milliseconds.
      */
     pauseAfterMs: number;
+
+    /**
+     * The verses that start in the span, with the character offset in `text` that they start at.
+     * Omitted when no verse starts in the span.
+     */
+    verseStarts?: VerseStart[];
+}
+
+/**
+ * The position in a span where a verse starts.
+ */
+export interface VerseStart {
+    verse: number;
+
+    /**
+     * The character offset in the span's text that the verse starts at.
+     */
+    offset: number;
+}
+
+/**
+ * Verse starts are tracked by embedding these private use characters in the text
+ * while it is split into spans. They are removed before the spans are returned.
+ */
+const VERSE_MARK_RE = /\uE000(\d+)\uE001/g;
+
+function verseMark(verse: number): string {
+    return `\uE000${verse}\uE001`;
+}
+
+function stripVerseMarks(text: string): string {
+    return text.replace(VERSE_MARK_RE, '');
+}
+
+/**
+ * Removes the verse marks from the given text and returns where each verse starts.
+ */
+function extractVerseMarks(text: string): {
+    text: string;
+    verseStarts: VerseStart[];
+} {
+    const verseStarts: VerseStart[] = [];
+    let result = '';
+    let last = 0;
+    for (const match of text.matchAll(VERSE_MARK_RE)) {
+        result += text.slice(last, match.index);
+        verseStarts.push({ verse: Number(match[1]), offset: result.length });
+        last = match.index! + match[0].length;
+    }
+    result += text.slice(last);
+    return { text: result, verseStarts };
 }
 
 /**
@@ -192,6 +244,10 @@ export function planChapterReading(
     let current: DraftSection | null = null;
     let pendingBreak = Break.None;
 
+    // The marks for verses that have started but have no text yet.
+    // They are attached to the next piece of text.
+    let pendingVerseMarks = '';
+
     // State used to decide whether a piece of poetry starts a new line.
     let lastPoem: {
         verse: number | null;
@@ -230,10 +286,12 @@ export function planChapterReading(
         verse: number | null,
         poem?: { level: number; wordsOfJesus: boolean }
     ) => {
-        const cleaned = cleanText(text);
+        let cleaned = cleanText(text);
         if (!cleaned) {
             return;
         }
+        cleaned = pendingVerseMarks + cleaned;
+        pendingVerseMarks = '';
 
         let section: DraftSection = current!;
         if (
@@ -314,6 +372,7 @@ export function planChapterReading(
     }
 
     function addVerse(verse: ChapterVerse) {
+        pendingVerseMarks += verseMark(verse.number);
         for (const item of verse.content) {
             if (typeof item === 'string') {
                 addText(item, 'prose', verse.number);
@@ -338,15 +397,21 @@ export function planChapterReading(
         }
     }
 
-    return drafts
-        .filter((d) => d.lines.length > 0)
-        .map((draft, index, all) =>
-            renderSection(
-                draft,
-                index < all.length - 1 ? draft.breakAfter : Break.None,
-                instructions
-            )
-        );
+    const nonEmpty = drafts.filter((d) => d.lines.length > 0);
+
+    // Verses at the end of the chapter that have no text start where the reading ends.
+    const lastLine = nonEmpty.at(-1)?.lines.at(-1);
+    if (pendingVerseMarks && lastLine) {
+        lastLine.pieces[lastLine.pieces.length - 1] += pendingVerseMarks;
+    }
+
+    return nonEmpty.map((draft, index, all) =>
+        renderSection(
+            draft,
+            index < all.length - 1 ? draft.breakAfter : Break.None,
+            instructions
+        )
+    );
 }
 
 function renderSection(
@@ -375,13 +440,29 @@ function renderSection(
             parts.forEach((part, partIndex) => {
                 const lastPart = partIndex === parts.length - 1;
                 const lastSentence = sentenceIndex === sentences.length - 1;
+                const { text, verseStarts } = extractVerseMarks(part);
+                const previous = spans.at(-1);
+                if (!text.trim()) {
+                    // Only verse marks. The verses start at the end of the previous span.
+                    if (previous) {
+                        previous.verseStarts = [
+                            ...(previous.verseStarts ?? []),
+                            ...verseStarts.map((v) => ({
+                                ...v,
+                                offset: previous.text.length,
+                            })),
+                        ];
+                    }
+                    return;
+                }
                 spans.push({
-                    text: part,
+                    text,
                     pauseAfterMs: !lastPart
                         ? instructions.clausePauseMs
                         : !lastSentence
                           ? instructions.sentencePauseMs
                           : pauseAfterLine,
+                    ...(verseStarts.length > 0 ? { verseStarts } : {}),
                 });
             });
         });
@@ -429,7 +510,7 @@ export function joinPieces(pieces: string[]): string {
     for (const piece of pieces) {
         if (
             !result ||
-            /^[,.;:!?)\]}”’»]/.test(piece) ||
+            /^[,.;:!?)\]}”’»]/.test(stripVerseMarks(piece)) ||
             /[(“‘«—]$/.test(result)
         ) {
             result += piece;
@@ -446,7 +527,7 @@ export function joinPieces(pieces: string[]): string {
  */
 export function splitSentences(text: string): string[] {
     return text
-        .split(/(?<=[.!?…]["'”’»)\]]*)\s+(?!\p{Ll})/u)
+        .split(/(?<=[.!?…]["'”’»)\]]*)\s+(?!(?:\uE000\d+\uE001)*\p{Ll})/u)
         .map((s) => s.trim())
         .filter((s) => s.length > 0);
 }
@@ -507,6 +588,11 @@ export interface VoiceStudioRequest {
     text: string;
 
     /**
+     * The spans that the request reads.
+     */
+    spans: ReadingSpan[];
+
+    /**
      * The silence to add after the generated audio, in milliseconds.
      */
     pauseAfterMs: number;
@@ -516,6 +602,10 @@ export interface VoiceStudioRequest {
  * Groups the spans of the given sections into requests.
  * Each section is sent separately (so that it can be read at its own speed) and
  * sections that are longer than the given number of characters are split between spans.
+ *
+ * A new request is also started at every span that begins a verse, so that the verse's start
+ * time in the audio is known exactly. This doesn't change how the text sounds, because
+ * VoiceStudio synthesizes the text between pause markers separately anyway.
  *
  * The pause after the last span of each request is added locally instead of being sent
  * as a trailing pause marker.
@@ -545,6 +635,7 @@ export function createVoiceStudioRequests(
             requests.push({
                 section,
                 text,
+                spans,
                 pauseAfterMs: spans[spans.length - 1].pauseAfterMs,
             });
             spans = [];
@@ -554,7 +645,8 @@ export function createVoiceStudioRequests(
         for (const span of section.spans) {
             if (
                 spans.length > 0 &&
-                length + span.text.length > maxRequestChars
+                (length + span.text.length > maxRequestChars ||
+                    span.verseStarts?.[0]?.offset === 0)
             ) {
                 flush();
             }
@@ -579,15 +671,119 @@ export function formatReadingScript(sections: ReadingSection[]): string {
                 : '';
             const header = `## ${section.kind}${verses} (speed ${section.speed})`;
             const body = section.spans
-                .map((span) =>
-                    span.pauseAfterMs > 0
-                        ? `${span.text} ${pauseMarker(span.pauseAfterMs)}`
-                        : span.text
-                )
+                .map((span) => {
+                    const text = showVerseStarts(span);
+                    return span.pauseAfterMs > 0
+                        ? `${text} ${pauseMarker(span.pauseAfterMs)}`
+                        : text;
+                })
                 .join('\n');
             return `${header}\n${body}`;
         })
         .join('\n\n');
+}
+
+/**
+ * Formats the span's text with `{N}` where each verse starts.
+ */
+function showVerseStarts(span: ReadingSpan): string {
+    let text = '';
+    let last = 0;
+    for (const { verse, offset } of span.verseStarts ?? []) {
+        text += span.text.slice(last, offset) + `{${verse}}`;
+        last = offset;
+    }
+    return text + span.text.slice(last);
+}
+
+/**
+ * Gets the numbers of the verses in the chapter, in order.
+ */
+export function getChapterVerseNumbers(
+    chapter: Pick<ChapterData, 'content'>
+): number[] {
+    const numbers: number[] = [];
+    for (const content of chapter.content) {
+        if (content.type === 'verse' && !numbers.includes(content.number)) {
+            numbers.push(content.number);
+        }
+    }
+    return numbers;
+}
+
+/**
+ * Calculates the time (in seconds) that each verse starts in the joined audio.
+ *
+ * Each request's audio is placed one after another with the request's pause after it.
+ * Within a request, the speech is the request's duration minus the pauses between its spans,
+ * and it is shared between the spans in proportion to their length. A verse that starts at the
+ * beginning of a request (which is most of them) is exact; one that starts partway through a
+ * span is an estimate.
+ *
+ * Verses that have no text start where the next verse starts (or where the audio ends).
+ * The result is never decreasing.
+ *
+ * @param requests The requests, in order.
+ * @param durations The duration (in seconds) of the audio for each request.
+ * @param verseNumbers The verse numbers to return the start times for, in order.
+ */
+export function calculateVerseTimings(
+    requests: Pick<VoiceStudioRequest, 'spans' | 'pauseAfterMs'>[],
+    durations: number[],
+    verseNumbers: number[]
+): number[] {
+    const starts = new Map<number, number>();
+    let time = 0;
+    requests.forEach((request, i) => {
+        const duration = durations[i];
+        const spans = request.spans;
+        const pauses = spans
+            .slice(0, -1)
+            .reduce((sum, span) => sum + span.pauseAfterMs / 1000, 0);
+        const chars = spans.reduce((sum, span) => sum + span.text.length, 0);
+        const speech = Math.max(0, duration - pauses);
+
+        let spanStart = time;
+        spans.forEach((span, spanIndex) => {
+            const spanDuration =
+                chars > 0 ? (speech * span.text.length) / chars : 0;
+            for (const { verse, offset } of span.verseStarts ?? []) {
+                if (!starts.has(verse)) {
+                    const fraction =
+                        span.text.length > 0 ? offset / span.text.length : 0;
+                    starts.set(verse, spanStart + spanDuration * fraction);
+                }
+            }
+            spanStart += spanDuration;
+            if (spanIndex < spans.length - 1) {
+                spanStart += span.pauseAfterMs / 1000;
+            }
+        });
+
+        time += duration;
+        if (i < requests.length - 1) {
+            time += request.pauseAfterMs / 1000;
+        }
+    });
+
+    const result: number[] = new Array(verseNumbers.length);
+    let next = time;
+    for (let i = verseNumbers.length - 1; i >= 0; i--) {
+        next = starts.get(verseNumbers[i]) ?? next;
+        result[i] = next;
+    }
+    let previous = 0;
+    return result.map((t) => {
+        previous = Math.max(previous, t);
+        return Math.round(previous * 1000) / 1000;
+    });
+}
+
+/**
+ * Gets the duration of the given audio in seconds.
+ */
+export function getWavDuration(audio: WavAudio): number {
+    return audio.data.length / audio.blockAlign / audio.sampleRate;
 }
 
 /**
@@ -713,6 +909,18 @@ export interface GenerateChapterAudioOptions {
      * The path that the audio should be written to.
      */
     output?: string;
+
+    /**
+     * The path that the verse timings should be written to.
+     * Defaults to the output path with a `.timings.json` extension.
+     */
+    timings?: string;
+
+    /**
+     * The name of the reader to record in the verse timings.
+     * Defaults to the profile ID, or "voicestudio".
+     */
+    reader?: string;
 
     /**
      * The path that the reading script should be written to.
@@ -846,6 +1054,7 @@ export async function generateChapterAudio(
     }
 
     const clips: { audio: WavAudio; silenceAfterMs: number }[] = [];
+    const durations: number[] = [];
     for (let i = 0; i < requests.length; i++) {
         const request = requests[i];
         logger.log(
@@ -870,9 +1079,10 @@ export async function generateChapterAudio(
             form.set('ref_audio', new Blob([refAudio.data]), refAudio.name);
         }
 
-        const wav = await postGenerate(baseUrl, form, apiKey);
+        const audio = parseWav(await postGenerate(baseUrl, form, apiKey));
+        durations.push(getWavDuration(audio));
         clips.push({
-            audio: parseWav(wav),
+            audio,
             silenceAfterMs: i < requests.length - 1 ? request.pauseAfterMs : 0,
         });
     }
@@ -881,6 +1091,26 @@ export async function generateChapterAudio(
         options.output ?? `${translationId}-${bookId}-${chapterNumber}.wav`;
     await writeFile(output, joinWavs(clips));
     logger.log('Wrote audio to', output);
+
+    const record: AudioTimingRecord = {
+        translationId,
+        bookId,
+        chapterNumber,
+        reader: options.reader ?? options.profileId ?? 'voicestudio',
+        verses: calculateVerseTimings(
+            requests,
+            durations,
+            getChapterVerseNumbers(chapter)
+        ),
+    };
+    const timings =
+        options.timings ?? output.replace(/\.wav$/i, '') + '.timings.json';
+    await writeFile(timings, JSON.stringify([record], null, 2) + '\n', 'utf-8');
+    logger.log(
+        'Wrote verse timings to',
+        timings,
+        '(import them with "helloao import-audio-timings")'
+    );
 }
 
 async function postGenerate(

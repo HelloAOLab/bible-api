@@ -1,10 +1,14 @@
 import {
+    calculateVerseTimings,
     createVoiceStudioRequests,
+    formatReadingScript,
+    getChapterVerseNumbers,
     DEFAULT_READING_INSTRUCTIONS,
     joinWavs,
     parseWav,
     planChapterReading,
     ReadingInstructions,
+    ReadingSection,
     splitLongText,
     splitSentences,
 } from './voicestudio';
@@ -22,8 +26,18 @@ const instructions: ReadingInstructions = {
     sectionPauseMs: 8,
 };
 
+function withoutVerseStarts(sections: ReadingSection[]): ReadingSection[] {
+    return sections.map((section) => ({
+        ...section,
+        spans: section.spans.map(({ verseStarts, ...span }) => span),
+    }));
+}
+
+/**
+ * Plans the chapter, without the verse starts (they are tested separately).
+ */
 function plan(content: ChapterContent[]) {
-    return planChapterReading({ content }, instructions);
+    return withoutVerseStarts(planChapterReading({ content }, instructions));
 }
 
 describe('planChapterReading()', () => {
@@ -274,19 +288,21 @@ describe('planChapterReading()', () => {
     });
 
     it('should split sentences that are too long at clause boundaries', () => {
-        const sections = planChapterReading(
-            {
-                content: [
-                    {
-                        type: 'verse',
-                        number: 1,
-                        content: [
-                            'Blessed be the God and Father of our Lord; who has blessed us, in the heavenly realms, with every spiritual blessing.',
-                        ],
-                    },
-                ],
-            },
-            { ...instructions, maxSpanChars: 60 }
+        const sections = withoutVerseStarts(
+            planChapterReading(
+                {
+                    content: [
+                        {
+                            type: 'verse',
+                            number: 1,
+                            content: [
+                                'Blessed be the God and Father of our Lord; who has blessed us, in the heavenly realms, with every spiritual blessing.',
+                            ],
+                        },
+                    ],
+                },
+                { ...instructions, maxSpanChars: 60 }
+            )
         );
 
         expect(sections[0].spans).toEqual([
@@ -433,5 +449,151 @@ describe('parseWav()', () => {
 
     it('should reject files that are not WAVs', () => {
         expect(() => parseWav(Buffer.from('not a wav file'))).toThrow();
+    });
+});
+
+describe('verse starts', () => {
+    const chapter: { content: ChapterContent[] } = {
+        content: [
+            { type: 'heading', content: ['Heading'] },
+            {
+                type: 'verse',
+                number: 1,
+                content: [
+                    'When Jesus saw the crowds, He sat down. His disciples came,',
+                ],
+            },
+            {
+                type: 'verse',
+                number: 2,
+                content: [{ noteId: 1 }, 'and He began to teach.'],
+            },
+            {
+                type: 'verse',
+                number: 3,
+                content: [
+                    { text: '“Blessed are the poor,', poem: 1 },
+                    { text: 'for theirs is the kingdom.', poem: 2 },
+                ],
+            },
+            { type: 'verse', number: 4, content: [{ noteId: 2 }] },
+            {
+                type: 'verse',
+                number: 5,
+                content: [{ text: 'Blessed are the meek.', poem: 1 }],
+            },
+            { type: 'verse', number: 6, content: [] },
+        ],
+    };
+    const sections = planChapterReading(chapter, instructions);
+
+    it('should record where each verse starts in the spans', () => {
+        expect(
+            sections.map((s) => s.spans.map((span) => span.verseStarts))
+        ).toEqual([
+            [[{ verse: 1, offset: 0 }], [{ verse: 2, offset: 20 }]],
+            [
+                [{ verse: 3, offset: 0 }],
+                undefined,
+                [
+                    // Verse 4 has no text, so it starts with verse 5.
+                    { verse: 4, offset: 0 },
+                    { verse: 5, offset: 0 },
+                    // Verse 6 has no text and is the last verse, so it starts at the end.
+                    { verse: 6, offset: 21 },
+                ],
+            ],
+        ]);
+        expect(sections[0].spans[1].text).toBe(
+            'His disciples came, and He began to teach.'
+        );
+    });
+
+    it('should show the verse starts in the reading script', () => {
+        expect(formatReadingScript(sections)).toBe(
+            [
+                '## prose v1-2 (speed 1)',
+                '{1}When Jesus saw the crowds, He sat down. [pause 1ms]',
+                'His disciples came, {2}and He began to teach. [pause 5ms]',
+                '',
+                '## poetry v3-5 (speed 0.95)',
+                '{3}“Blessed are the poor, [pause 3ms]',
+                'for theirs is the kingdom. [pause 4ms]',
+                '{4}{5}Blessed are the meek.{6}',
+            ].join('\n')
+        );
+    });
+
+    it('should start a new request at each span that starts a verse', () => {
+        const requests = createVoiceStudioRequests(sections, 1000);
+        expect(requests.map((r) => r.text)).toEqual([
+            'When Jesus saw the crowds, He sat down. [pause 1ms] His disciples came, and He began to teach.',
+            '“Blessed are the poor, [pause 3ms] for theirs is the kingdom.',
+            'Blessed are the meek.',
+        ]);
+    });
+
+    it('should calculate when each verse starts in the audio', () => {
+        const requests = createVoiceStudioRequests(sections, 1000);
+        // Request 1: 81 characters of speech plus a 1ms pause.
+        // Request 2: two spans with a 3ms pause. Request 3: one span.
+        const timings = calculateVerseTimings(
+            requests,
+            [8.101, 4.003, 2],
+            getChapterVerseNumbers(chapter)
+        );
+
+        const firstSpan = 'When Jesus saw the crowds, He sat down.'.length;
+        const verse2 = 8.1 * ((firstSpan + 20) / 81) + 0.001;
+        expect(timings).toEqual([
+            0,
+            Math.round(verse2 * 1000) / 1000,
+            // 8.101s of audio plus the 5ms transition pause.
+            8.106,
+            // Plus 4.003s of audio and the 4ms pause after the stanza line.
+            12.113,
+            12.113,
+            // The end of the audio.
+            14.113,
+        ]);
+    });
+
+    it('should never decrease', () => {
+        expect(
+            calculateVerseTimings(
+                [
+                    {
+                        pauseAfterMs: 0,
+                        spans: [
+                            {
+                                text: 'ab',
+                                pauseAfterMs: 0,
+                                verseStarts: [
+                                    { verse: 2, offset: 0 },
+                                    { verse: 1, offset: 1 },
+                                ],
+                            },
+                        ],
+                    },
+                ],
+                [2],
+                [1, 2, 3]
+            )
+        ).toEqual([1, 1, 2]);
+    });
+});
+
+describe('getChapterVerseNumbers()', () => {
+    it('should list the verse numbers in order', () => {
+        expect(
+            getChapterVerseNumbers({
+                content: [
+                    { type: 'heading', content: ['A'] },
+                    { type: 'verse', number: 1, content: ['a'] },
+                    { type: 'line_break' },
+                    { type: 'verse', number: 2, content: ['b'] },
+                ],
+            })
+        ).toEqual([1, 2]);
     });
 });
