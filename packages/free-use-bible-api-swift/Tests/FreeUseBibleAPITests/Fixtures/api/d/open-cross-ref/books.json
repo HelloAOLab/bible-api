@@ -1,0 +1,68 @@
+{
+  "dataset": {
+    "id": "open-cross-ref",
+    "name": "Bible Cross References",
+    "website": "https://www.openbible.info/labs/cross-references/",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+    "licenseNotes": "Changes were made to the data to fit the Free Use Bible API format.",
+    "englishName": "Bible Cross References",
+    "language": "eng",
+    "textDirection": "ltr",
+    "availableFormats": [
+      "json"
+    ],
+    "listOfBooksApiLink": "/api/d/open-cross-ref/books.json",
+    "numberOfBooks": 66,
+    "totalNumberOfChapters": 1189,
+    "totalNumberOfVerses": 29364,
+    "totalNumberOfReferences": 344799,
+    "languageName": "English",
+    "languageEnglishName": "English"
+  },
+  "books": [
+    {
+      "id": "GEN",
+      "datasetId": "open-cross-ref",
+      "order": 1,
+      "numberOfChapters": 50,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/open-cross-ref/GEN/1.json",
+      "lastChapterNumber": 50,
+      "lastChapterApiLink": "/api/d/open-cross-ref/GEN/50.json",
+      "totalNumberOfVerses": 1382,
+      "totalNumberOfReferences": 13327,
+      "firstChapterReference": {
+        "datasetId": "open-cross-ref",
+        "book": "GEN",
+        "chapter": 1
+      },
+      "lastChapterReference": {
+        "datasetId": "open-cross-ref",
+        "book": "GEN",
+        "chapter": 50
+      }
+    },
+    {
+      "id": "EXO",
+      "datasetId": "open-cross-ref",
+      "order": 2,
+      "numberOfChapters": 40,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/open-cross-ref/EXO/1.json",
+      "lastChapterNumber": 40,
+      "lastChapterApiLink": "/api/d/open-cross-ref/EXO/40.json",
+      "totalNumberOfVerses": 1084,
+      "totalNumberOfReferences": 9974,
+      "firstChapterReference": {
+        "datasetId": "open-cross-ref",
+        "book": "EXO",
+        "chapter": 1
+      },
+      "lastChapterReference": {
+        "datasetId": "open-cross-ref",
+        "book": "EXO",
+        "chapter": 40
+      }
+    }
+  ]
+}

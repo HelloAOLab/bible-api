@@ -1,0 +1,528 @@
+{
+  "translation": {
+    "id": "BSB",
+    "name": "Berean Standard Bible",
+    "englishName": "Berean Standard Bible",
+    "shortName": "BSB",
+    "language": "eng",
+    "licenseUrl": "https://berean.bible/terms.htm",
+    "website": "https://berean.bible",
+    "textDirection": "ltr",
+    "availableFormats": [
+      "json"
+    ],
+    "listOfBooksApiLink": "/api/BSB/books.json",
+    "completeTranslationApiLink": "/api/BSB/complete.json",
+    "simpleCompleteTranslationApiLink": "/api/BSB/complete.simple.json",
+    "numberOfBooks": 2,
+    "totalNumberOfChapters": 5,
+    "totalNumberOfVerses": 82
+  },
+  "book": {
+    "id": "GEN",
+    "name": "Genesis",
+    "commonName": "Genesis",
+    "title": "Genesis",
+    "order": 1,
+    "firstChapterNumber": 1,
+    "firstChapterApiLink": "/api/BSB/GEN/1.json",
+    "firstChapterReference": {
+      "translationId": "BSB",
+      "book": "GEN",
+      "chapter": 1
+    },
+    "lastChapterNumber": 2,
+    "lastChapterApiLink": "/api/BSB/GEN/2.json",
+    "lastChapterReference": {
+      "translationId": "BSB",
+      "book": "GEN",
+      "chapter": 2
+    },
+    "numberOfChapters": 2,
+    "totalNumberOfVerses": 56
+  },
+  "chapter": {
+    "number": 2,
+    "content": [
+      {
+        "type": "heading",
+        "content": [
+          "The Seventh Day"
+        ]
+      },
+      {
+        "type": "line_break"
+      },
+      {
+        "type": "verse",
+        "number": 1,
+        "content": [
+          {
+            "text": "Thus the heavens and the earth were completed in all their vast array.",
+            "poem": 2
+          }
+        ]
+      },
+      {
+        "type": "verse",
+        "number": 2,
+        "content": [
+          {
+            "text": "And by the seventh day God had finished the work He had been doing; so on that day He rested from all His work.",
+            "poem": 2
+          },
+          {
+            "noteId": 5
+          }
+        ]
+      },
+      {
+        "type": "line_break"
+      },
+      {
+        "type": "verse",
+        "number": 3,
+        "content": [
+          {
+            "text": "Then God blessed the seventh day and sanctified it, because on that day He rested from all the work of creation that He had accomplished.",
+            "poem": 2
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "content": [
+          "Man and Woman in the Garden"
+        ]
+      },
+      {
+        "type": "line_break"
+      },
+      {
+        "type": "verse",
+        "number": 4,
+        "content": [
+          {
+            "text": "This is the account of the heavens and the earth when they were created, in the day that the LORD",
+            "poem": 2
+          },
+          {
+            "noteId": 6
+          },
+          {
+            "text": "God made them.",
+            "poem": 2
+          }
+        ]
+      },
+      {
+        "type": "line_break"
+      },
+      {
+        "type": "verse",
+        "number": 5,
+        "content": [
+          {
+            "text": "Now no shrub of the field had yet appeared on the earth, nor had any plant of the field sprouted; for the LORD God had not yet sent rain upon the earth, and there was no man to cultivate the ground.",
+            "poem": 2
+          }
+        ]
+      },
+      {
+        "type": "verse",
+        "number": 6,
+        "content": [
+          {
+            "text": "But springs",
+            "poem": 2
+          },
+          {
+            "noteId": 7
+          },
+          {
+            "text": "welled up from the earth and watered the whole surface of the ground.",
+            "poem": 2
+          }
+        ]
+      },
+      {
+        "type": "line_break"
+      },
+      {
+        "type": "verse",
+        "number": 7,
+        "content": [
+          {
+            "text": "Then the LORD God formed man from the dust of the ground and breathed the breath of life into his nostrils, and the man became a living being.",
+            "poem": 2
+          },
+          {
+            "noteId": 8
+          }
+        ]
+      },
+      {
+        "type": "line_break"
+      },
+      {
+        "type": "verse",
+        "number": 8,
+        "content": [
+          {
+            "text": "And the LORD God planted a garden in Eden, in the east, where He placed the man He had formed.",
+            "poem": 2
+          }
+        ]
+      },
+      {
+        "type": "verse",
+        "number": 9,
+        "content": [
+          {
+            "text": "Out of the ground the LORD God gave growth to every tree that is pleasing to the eye and good for food. And in the middle of the garden were the tree of life and the tree of the knowledge of good and evil.",
+            "poem": 2
+          }
+        ]
+      },
+      {
+        "type": "line_break"
+      },
+      {
+        "type": "verse",
+        "number": 10,
+        "content": [
+          {
+            "text": "Now a river flowed out of Eden to water the garden, and from there it branched into four headwaters:",
+            "poem": 2
+          }
+        ]
+      },
+      {
+        "type": "line_break"
+      },
+      {
+        "type": "verse",
+        "number": 11,
+        "content": [
+          {
+            "text": "The name of the first river is Pishon; it winds through the whole land of Havilah, where there is gold.",
+            "poem": 2
+          }
+        ]
+      },
+      {
+        "type": "verse",
+        "number": 12,
+        "content": [
+          {
+            "text": "And the gold of that land is pure, and bdellium and onyx are found there.",
+            "poem": 2
+          }
+        ]
+      },
+      {
+        "type": "line_break"
+      },
+      {
+        "type": "verse",
+        "number": 13,
+        "content": [
+          {
+            "text": "The name of the second river is Gihon; it winds through the whole land of Cush.",
+            "poem": 2
+          }
+        ]
+      },
+      {
+        "type": "line_break"
+      },
+      {
+        "type": "verse",
+        "number": 14,
+        "content": [
+          {
+            "text": "The name of the third river is Hiddekel; it runs along the east side of Assyria.",
+            "poem": 2
+          },
+          {
+            "lineBreak": true
+          },
+          {
+            "text": "And the fourth river is the Euphrates.",
+            "poem": 2
+          }
+        ]
+      },
+      {
+        "type": "line_break"
+      },
+      {
+        "type": "verse",
+        "number": 15,
+        "content": [
+          {
+            "text": "Then the LORD God took the man and placed him in the Garden of Eden to cultivate and keep it.",
+            "poem": 2
+          }
+        ]
+      },
+      {
+        "type": "line_break"
+      },
+      {
+        "type": "verse",
+        "number": 16,
+        "content": [
+          {
+            "text": "And the LORD God commanded him, “You may eat freely from every tree of the garden,",
+            "poem": 2
+          }
+        ]
+      },
+      {
+        "type": "verse",
+        "number": 17,
+        "content": [
+          {
+            "text": "but you must not eat from the tree of the knowledge of good and evil; for in the day that you eat of it, you will surely die.”",
+            "poem": 2
+          }
+        ]
+      },
+      {
+        "type": "line_break"
+      },
+      {
+        "type": "verse",
+        "number": 18,
+        "content": [
+          {
+            "text": "The LORD God also said, “It is not good for the man to be alone. I will make for him a suitable helper.”",
+            "poem": 2
+          }
+        ]
+      },
+      {
+        "type": "line_break"
+      },
+      {
+        "type": "verse",
+        "number": 19,
+        "content": [
+          {
+            "text": "And out of the ground the LORD God formed every beast of the field and every bird of the air, and He brought them to the man to see what he would name each one. And whatever the man called each living creature, that was its name.",
+            "poem": 2
+          }
+        ]
+      },
+      {
+        "type": "verse",
+        "number": 20,
+        "content": [
+          {
+            "text": "The man gave names to all the livestock, to the birds of the air, and to every beast of the field. But for Adam",
+            "poem": 2
+          },
+          {
+            "noteId": 9
+          },
+          {
+            "text": "no suitable helper was found.",
+            "poem": 2
+          }
+        ]
+      },
+      {
+        "type": "line_break"
+      },
+      {
+        "type": "verse",
+        "number": 21,
+        "content": [
+          {
+            "text": "So the LORD God caused the man to fall into a deep sleep, and while he slept, He took one of the man’s ribs",
+            "poem": 2
+          },
+          {
+            "noteId": 10
+          },
+          {
+            "text": "and closed up the area with flesh.",
+            "poem": 2
+          }
+        ]
+      },
+      {
+        "type": "verse",
+        "number": 22,
+        "content": [
+          {
+            "text": "And from the rib that the LORD God had taken from the man, He made a woman and brought her to him.",
+            "poem": 2
+          }
+        ]
+      },
+      {
+        "type": "verse",
+        "number": 23,
+        "content": [
+          {
+            "text": "And the man said:",
+            "poem": 2
+          },
+          {
+            "lineBreak": true
+          },
+          {
+            "text": "“This is now bone of my bones",
+            "poem": 1
+          },
+          {
+            "text": "and flesh of my flesh;",
+            "poem": 2
+          },
+          {
+            "text": "she shall be called ‘woman,’",
+            "poem": 1
+          },
+          {
+            "text": "for out of man she was taken.”",
+            "poem": 2
+          }
+        ]
+      },
+      {
+        "type": "line_break"
+      },
+      {
+        "type": "verse",
+        "number": 24,
+        "content": [
+          {
+            "text": "For this reason a man will leave his father and mother and be united to his wife, and they will become one flesh.",
+            "poem": 2
+          },
+          {
+            "noteId": 11
+          }
+        ]
+      },
+      {
+        "type": "line_break"
+      },
+      {
+        "type": "verse",
+        "number": 25,
+        "content": [
+          {
+            "text": "And the man and his wife were both naked, and they were not ashamed.",
+            "poem": 2
+          }
+        ]
+      }
+    ],
+    "footnotes": [
+      {
+        "noteId": 5,
+        "text": "Cited in Hebrews 4:4",
+        "caller": "+",
+        "reference": {
+          "chapter": 2,
+          "verse": 2
+        }
+      },
+      {
+        "noteId": 6,
+        "text": "LORD or GOD, with capital letters, represents the proper name of the God of Israel and the one true God, transliterated from the Hebrew as YHWH; here and throughout the Scriptures.",
+        "caller": "+",
+        "reference": {
+          "chapter": 2,
+          "verse": 4
+        }
+      },
+      {
+        "noteId": 7,
+        "text": "Or mist",
+        "caller": "+",
+        "reference": {
+          "chapter": 2,
+          "verse": 6
+        }
+      },
+      {
+        "noteId": 8,
+        "text": "Or a living soul; cited in 1 Corinthians 15:45",
+        "caller": "+",
+        "reference": {
+          "chapter": 2,
+          "verse": 7
+        }
+      },
+      {
+        "noteId": 9,
+        "text": "Or the man, as in verses 19 and 21",
+        "caller": "+",
+        "reference": {
+          "chapter": 2,
+          "verse": 20
+        }
+      },
+      {
+        "noteId": 10,
+        "text": "Or took part of the man’s side; similarly in verse 22",
+        "caller": "+",
+        "reference": {
+          "chapter": 2,
+          "verse": 21
+        }
+      },
+      {
+        "noteId": 11,
+        "text": "LXX and the two will become one flesh; cited in Matthew 19:5, Mark 10:7–8, 1 Corinthians 6:16, and Ephesians 5:31",
+        "caller": "+",
+        "reference": {
+          "chapter": 2,
+          "verse": 24
+        }
+      }
+    ]
+  },
+  "thisChapterLink": "/api/BSB/GEN/2.json",
+  "thisChapterReference": {
+    "translationId": "BSB",
+    "book": "GEN",
+    "chapter": 2
+  },
+  "thisChapterAudioLinks": {
+    "hays": "https://audio.bible.helloao.org/api/BSB/GEN/2/audio/hays.mp3",
+    "souer": "https://audio.bible.helloao.org/api/BSB/GEN/2/audio/souer.mp3",
+    "david": "https://audio.bible.helloao.org/api/BSB/GEN/2/audio/david.mp3"
+  },
+  "nextChapterApiLink": "/api/BSB/PSA/1.json",
+  "nextChapterReference": {
+    "translationId": "BSB",
+    "book": "PSA",
+    "chapter": 1
+  },
+  "nextChapterAudioLinks": {
+    "hays": "https://audio.bible.helloao.org/api/BSB/PSA/1/audio/hays.mp3",
+    "souer": "https://audio.bible.helloao.org/api/BSB/PSA/1/audio/souer.mp3",
+    "david": "https://audio.bible.helloao.org/api/BSB/PSA/1/audio/david.mp3"
+  },
+  "previousChapterApiLink": "/api/BSB/GEN/1.json",
+  "previousChapterReference": {
+    "translationId": "BSB",
+    "book": "GEN",
+    "chapter": 1
+  },
+  "previousChapterAudioLinks": {
+    "hays": "https://audio.bible.helloao.org/api/BSB/GEN/1/audio/hays.mp3",
+    "souer": "https://audio.bible.helloao.org/api/BSB/GEN/1/audio/souer.mp3",
+    "david": "https://audio.bible.helloao.org/api/BSB/GEN/1/audio/david.mp3"
+  },
+  "thisChapterAudioTimings": {},
+  "nextChapterAudioTimings": {},
+  "previousChapterAudioTimings": {},
+  "numberOfVerses": 25,
+  "simpleChapterApiLink": "/api/BSB/GEN/2.simple.json"
+}

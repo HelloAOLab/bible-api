@@ -1,0 +1,638 @@
+{
+  "translation": {
+    "id": "engwebp",
+    "name": "World English Bible",
+    "englishName": "World English Bible",
+    "shortName": "WEB",
+    "language": "eng",
+    "licenseUrl": "https://worldenglish.bible/",
+    "website": "https://worldenglish.bible/",
+    "textDirection": "ltr",
+    "availableFormats": [
+      "json"
+    ],
+    "listOfBooksApiLink": "/api/engwebp/books.json",
+    "completeTranslationApiLink": "/api/engwebp/complete.json",
+    "simpleCompleteTranslationApiLink": "/api/engwebp/complete.simple.json",
+    "numberOfBooks": 1,
+    "totalNumberOfChapters": 1,
+    "totalNumberOfVerses": 51
+  },
+  "books": [
+    {
+      "id": "JHN",
+      "name": "John",
+      "commonName": "John",
+      "title": "The Good News According to John",
+      "order": 43,
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 51,
+      "chapters": [
+        {
+          "numberOfVerses": 51,
+          "thisChapterAudioLinks": {},
+          "thisChapterAudioTimings": {},
+          "chapter": {
+            "number": 1,
+            "content": [
+              {
+                "type": "line_break"
+              },
+              {
+                "type": "verse",
+                "number": 1,
+                "content": [
+                  "In the beginning was the Word, and the Word was with God, and the Word was God."
+                ]
+              },
+              {
+                "type": "verse",
+                "number": 2,
+                "content": [
+                  "The same was in the beginning with God."
+                ]
+              },
+              {
+                "type": "verse",
+                "number": 3,
+                "content": [
+                  "All things were made through him. Without him, nothing was made that has been made."
+                ]
+              },
+              {
+                "type": "verse",
+                "number": 4,
+                "content": [
+                  "In him was life, and the life was the light of men."
+                ]
+              },
+              {
+                "type": "verse",
+                "number": 5,
+                "content": [
+                  "The light shines in the darkness, and the darkness hasn’t overcome",
+                  {
+                    "noteId": 0
+                  },
+                  "it."
+                ]
+              },
+              {
+                "type": "line_break"
+              },
+              {
+                "type": "verse",
+                "number": 6,
+                "content": [
+                  "There came a man sent from God, whose name was John."
+                ]
+              },
+              {
+                "type": "verse",
+                "number": 7,
+                "content": [
+                  "The same came as a witness, that he might testify about the light, that all might believe through him."
+                ]
+              },
+              {
+                "type": "verse",
+                "number": 8,
+                "content": [
+                  "He was not the light, but was sent that he might testify about the light."
+                ]
+              },
+              {
+                "type": "verse",
+                "number": 9,
+                "content": [
+                  "The true light that enlightens everyone was coming into the world."
+                ]
+              },
+              {
+                "type": "line_break"
+              },
+              {
+                "type": "verse",
+                "number": 10,
+                "content": [
+                  "He was in the world, and the world was made through him, and the world didn’t recognize him."
+                ]
+              },
+              {
+                "type": "verse",
+                "number": 11,
+                "content": [
+                  "He came to his own, and those who were his own didn’t receive him."
+                ]
+              },
+              {
+                "type": "verse",
+                "number": 12,
+                "content": [
+                  "But as many as received him, to them he gave the right to become God’s children, to those who believe in his name:"
+                ]
+              },
+              {
+                "type": "verse",
+                "number": 13,
+                "content": [
+                  "who were born, not of blood, nor of the will of the flesh, nor of the will of man, but of God."
+                ]
+              },
+              {
+                "type": "line_break"
+              },
+              {
+                "type": "verse",
+                "number": 14,
+                "content": [
+                  "The Word became flesh and lived among us. We saw his glory, such glory as of the only born",
+                  {
+                    "noteId": 1
+                  },
+                  "Son of the Father, full of grace and truth."
+                ]
+              },
+              {
+                "type": "verse",
+                "number": 15,
+                "content": [
+                  "John testified about him. He cried out, saying, “This was he of whom I said, ‘He who comes after me has surpassed me, for he was before me.’”"
+                ]
+              },
+              {
+                "type": "verse",
+                "number": 16,
+                "content": [
+                  "From his fullness we all received grace upon grace."
+                ]
+              },
+              {
+                "type": "verse",
+                "number": 17,
+                "content": [
+                  "For the law was given through Moses. Grace and truth were realized through Jesus Christ.",
+                  {
+                    "noteId": 2
+                  }
+                ]
+              },
+              {
+                "type": "verse",
+                "number": 18,
+                "content": [
+                  "No one has seen God at any time. The only born",
+                  {
+                    "noteId": 3
+                  },
+                  "Son,",
+                  {
+                    "noteId": 4
+                  },
+                  "who is in the bosom of the Father, has declared him."
+                ]
+              },
+              {
+                "type": "line_break"
+              },
+              {
+                "type": "verse",
+                "number": 19,
+                "content": [
+                  "This is John’s testimony, when the Jews sent priests and Levites from Jerusalem to ask him, “Who are you?”"
+                ]
+              },
+              {
+                "type": "line_break"
+              },
+              {
+                "type": "verse",
+                "number": 20,
+                "content": [
+                  "He declared, and didn’t deny, but he declared, “I am not the Christ.”"
+                ]
+              },
+              {
+                "type": "line_break"
+              },
+              {
+                "type": "verse",
+                "number": 21,
+                "content": [
+                  "They asked him, “What then? Are you Elijah?”",
+                  {
+                    "lineBreak": true
+                  },
+                  "He said, “I am not.”",
+                  {
+                    "lineBreak": true
+                  },
+                  "“Are you the prophet?”",
+                  {
+                    "lineBreak": true
+                  },
+                  "He answered, “No.”"
+                ]
+              },
+              {
+                "type": "line_break"
+              },
+              {
+                "type": "verse",
+                "number": 22,
+                "content": [
+                  "They said therefore to him, “Who are you? Give us an answer to take back to those who sent us. What do you say about yourself?”"
+                ]
+              },
+              {
+                "type": "line_break"
+              },
+              {
+                "type": "verse",
+                "number": 23,
+                "content": [
+                  "He said, “I am the voice of one crying in the wilderness, ‘Make straight the way of the Lord,’ as Isaiah the prophet said.”"
+                ]
+              },
+              {
+                "type": "line_break"
+              },
+              {
+                "type": "verse",
+                "number": 24,
+                "content": [
+                  "The ones who had been sent were from the Pharisees."
+                ]
+              },
+              {
+                "type": "verse",
+                "number": 25,
+                "content": [
+                  "They asked him, “Why then do you baptize if you are not the Christ, nor Elijah, nor the prophet?”"
+                ]
+              },
+              {
+                "type": "line_break"
+              },
+              {
+                "type": "verse",
+                "number": 26,
+                "content": [
+                  "John answered them, “I baptize in water, but among you stands one whom you don’t know."
+                ]
+              },
+              {
+                "type": "verse",
+                "number": 27,
+                "content": [
+                  "He is the one who comes after me, who is preferred before me, whose sandal strap I’m not worthy to loosen.”"
+                ]
+              },
+              {
+                "type": "verse",
+                "number": 28,
+                "content": [
+                  "These things were done in Bethany beyond the Jordan, where John was baptizing."
+                ]
+              },
+              {
+                "type": "line_break"
+              },
+              {
+                "type": "verse",
+                "number": 29,
+                "content": [
+                  "The next day, he saw Jesus coming to him, and said, “Behold,",
+                  {
+                    "noteId": 5
+                  },
+                  "the Lamb of God, who takes away the sin of the world!"
+                ]
+              },
+              {
+                "type": "verse",
+                "number": 30,
+                "content": [
+                  "This is he of whom I said, ‘After me comes a man who is preferred before me, for he was before me.’"
+                ]
+              },
+              {
+                "type": "verse",
+                "number": 31,
+                "content": [
+                  "I didn’t know him, but for this reason I came baptizing in water, that he would be revealed to Israel.”"
+                ]
+              },
+              {
+                "type": "verse",
+                "number": 32,
+                "content": [
+                  "John testified, saying, “I have seen the Spirit descending like a dove out of heaven, and it remained on him."
+                ]
+              },
+              {
+                "type": "verse",
+                "number": 33,
+                "content": [
+                  "I didn’t recognize him, but he who sent me to baptize in water said to me, ‘On whomever you will see the Spirit descending and remaining on him is he who baptizes in the Holy Spirit.’"
+                ]
+              },
+              {
+                "type": "verse",
+                "number": 34,
+                "content": [
+                  "I have seen and have testified that this is the Son of God.”"
+                ]
+              },
+              {
+                "type": "line_break"
+              },
+              {
+                "type": "verse",
+                "number": 35,
+                "content": [
+                  "Again, the next day, John was standing with two of his disciples,"
+                ]
+              },
+              {
+                "type": "verse",
+                "number": 36,
+                "content": [
+                  "and he looked at Jesus as he walked, and said, “Behold, the Lamb of God!”"
+                ]
+              },
+              {
+                "type": "verse",
+                "number": 37,
+                "content": [
+                  "The two disciples heard him speak, and they followed Jesus."
+                ]
+              },
+              {
+                "type": "verse",
+                "number": 38,
+                "content": [
+                  "Jesus turned and saw them following, and said to them,",
+                  {
+                    "text": "“What are you looking for?”",
+                    "wordsOfJesus": true
+                  },
+                  {
+                    "lineBreak": true
+                  },
+                  "They said to him, “Rabbi” (which is to say, being interpreted, Teacher), “where are you staying?”"
+                ]
+              },
+              {
+                "type": "line_break"
+              },
+              {
+                "type": "verse",
+                "number": 39,
+                "content": [
+                  "He said to them,",
+                  {
+                    "text": "“Come and see.”",
+                    "wordsOfJesus": true
+                  },
+                  {
+                    "lineBreak": true
+                  },
+                  "They came and saw where he was staying, and they stayed with him that day. It was about the tenth hour.",
+                  {
+                    "noteId": 6
+                  }
+                ]
+              },
+              {
+                "type": "verse",
+                "number": 40,
+                "content": [
+                  "One of the two who heard John and followed him was Andrew, Simon Peter’s brother."
+                ]
+              },
+              {
+                "type": "verse",
+                "number": 41,
+                "content": [
+                  "He first found his own brother, Simon, and said to him, “We have found the Messiah!” (which is, being interpreted, Christ",
+                  {
+                    "noteId": 7
+                  },
+                  ")."
+                ]
+              },
+              {
+                "type": "verse",
+                "number": 42,
+                "content": [
+                  "He brought him to Jesus. Jesus looked at him and said,",
+                  {
+                    "text": "“You are Simon the son of Jonah. You shall be called Cephas”",
+                    "wordsOfJesus": true
+                  },
+                  "(which is by interpretation, Peter).",
+                  {
+                    "noteId": 8
+                  }
+                ]
+              },
+              {
+                "type": "line_break"
+              },
+              {
+                "type": "verse",
+                "number": 43,
+                "content": [
+                  "On the next day, he was determined to go out into Galilee, and he found Philip. Jesus said to him,",
+                  {
+                    "text": "“Follow me.”",
+                    "wordsOfJesus": true
+                  }
+                ]
+              },
+              {
+                "type": "verse",
+                "number": 44,
+                "content": [
+                  "Now Philip was from Bethsaida, the city of Andrew and Peter."
+                ]
+              },
+              {
+                "type": "verse",
+                "number": 45,
+                "content": [
+                  "Philip found Nathanael, and said to him, “We have found him of whom Moses in the law and also the prophets, wrote: Jesus of Nazareth, the son of Joseph.”"
+                ]
+              },
+              {
+                "type": "line_break"
+              },
+              {
+                "type": "verse",
+                "number": 46,
+                "content": [
+                  "Nathanael said to him, “Can any good thing come out of Nazareth?”",
+                  {
+                    "lineBreak": true
+                  },
+                  "Philip said to him, “Come and see.”"
+                ]
+              },
+              {
+                "type": "line_break"
+              },
+              {
+                "type": "verse",
+                "number": 47,
+                "content": [
+                  "Jesus saw Nathanael coming to him, and said about him,",
+                  {
+                    "text": "“Behold, an Israelite indeed, in whom is no deceit!”",
+                    "wordsOfJesus": true
+                  }
+                ]
+              },
+              {
+                "type": "line_break"
+              },
+              {
+                "type": "verse",
+                "number": 48,
+                "content": [
+                  "Nathanael said to him, “How do you know me?”",
+                  {
+                    "lineBreak": true
+                  },
+                  "Jesus answered him,",
+                  {
+                    "text": "“Before Philip called you, when you were under the fig tree, I saw you.”",
+                    "wordsOfJesus": true
+                  }
+                ]
+              },
+              {
+                "type": "line_break"
+              },
+              {
+                "type": "verse",
+                "number": 49,
+                "content": [
+                  "Nathanael answered him, “Rabbi, you are the Son of God! You are King of Israel!”"
+                ]
+              },
+              {
+                "type": "line_break"
+              },
+              {
+                "type": "verse",
+                "number": 50,
+                "content": [
+                  "Jesus answered him,",
+                  {
+                    "text": "“Because I told you, ‘I saw you underneath the fig tree,’ do you believe? You will see greater things than these!”",
+                    "wordsOfJesus": true
+                  }
+                ]
+              },
+              {
+                "type": "verse",
+                "number": 51,
+                "content": [
+                  "He said to him,",
+                  {
+                    "text": "“Most certainly, I tell you all, hereafter you will see heaven opened, and the angels of God ascending and descending on the Son of Man.”",
+                    "wordsOfJesus": true
+                  }
+                ]
+              }
+            ],
+            "footnotes": [
+              {
+                "noteId": 0,
+                "text": "The word translated “overcome” (κατέλαβεν) can also be translated “comprehended.” It refers to getting a grip on an enemy to defeat him.",
+                "caller": "+",
+                "reference": {
+                  "chapter": 1,
+                  "verse": 5
+                }
+              },
+              {
+                "noteId": 1,
+                "text": "The phrase “only born” is from the Greek word “μονογενους”, which is sometimes translated “only begotten” or “one and only”.",
+                "caller": "+",
+                "reference": {
+                  "chapter": 1,
+                  "verse": 14
+                }
+              },
+              {
+                "noteId": 2,
+                "text": "“Christ” means “Anointed One”.",
+                "caller": "+",
+                "reference": {
+                  "chapter": 1,
+                  "verse": 17
+                }
+              },
+              {
+                "noteId": 3,
+                "text": "The phrase “only born” is from the Greek word “μονογενη”, which is sometimes translated “only begotten” or “one and only”.",
+                "caller": "+",
+                "reference": {
+                  "chapter": 1,
+                  "verse": 18
+                }
+              },
+              {
+                "noteId": 4,
+                "text": "NU reads “God”",
+                "caller": "+",
+                "reference": {
+                  "chapter": 1,
+                  "verse": 18
+                }
+              },
+              {
+                "noteId": 5,
+                "text": "“Behold”, from “ἰδοὺ”, means look at, take notice, observe, see, or gaze at. It is often used as an interjection.",
+                "caller": "+",
+                "reference": {
+                  "chapter": 1,
+                  "verse": 29
+                }
+              },
+              {
+                "noteId": 6,
+                "text": "4:00 p.m.",
+                "caller": "+",
+                "reference": {
+                  "chapter": 1,
+                  "verse": 39
+                }
+              },
+              {
+                "noteId": 7,
+                "text": "“Messiah” (Hebrew) and “Christ” (Greek) both mean “Anointed One”.",
+                "caller": "+",
+                "reference": {
+                  "chapter": 1,
+                  "verse": 41
+                }
+              },
+              {
+                "noteId": 8,
+                "text": "“Cephas” (Aramaic) and “Peter” (Greek) both mean “Rock”.",
+                "caller": "+",
+                "reference": {
+                  "chapter": 1,
+                  "verse": 42
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

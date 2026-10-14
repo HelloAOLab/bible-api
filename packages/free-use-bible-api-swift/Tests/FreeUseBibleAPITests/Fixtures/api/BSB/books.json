@@ -1,0 +1,69 @@
+{
+  "translation": {
+    "id": "BSB",
+    "name": "Berean Standard Bible",
+    "englishName": "Berean Standard Bible",
+    "shortName": "BSB",
+    "language": "eng",
+    "licenseUrl": "https://berean.bible/terms.htm",
+    "website": "https://berean.bible",
+    "textDirection": "ltr",
+    "availableFormats": [
+      "json"
+    ],
+    "listOfBooksApiLink": "/api/BSB/books.json",
+    "completeTranslationApiLink": "/api/BSB/complete.json",
+    "simpleCompleteTranslationApiLink": "/api/BSB/complete.simple.json",
+    "numberOfBooks": 2,
+    "totalNumberOfChapters": 5,
+    "totalNumberOfVerses": 82
+  },
+  "books": [
+    {
+      "id": "GEN",
+      "name": "Genesis",
+      "commonName": "Genesis",
+      "title": "Genesis",
+      "order": 1,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/BSB/GEN/1.json",
+      "firstChapterReference": {
+        "translationId": "BSB",
+        "book": "GEN",
+        "chapter": 1
+      },
+      "lastChapterNumber": 2,
+      "lastChapterApiLink": "/api/BSB/GEN/2.json",
+      "lastChapterReference": {
+        "translationId": "BSB",
+        "book": "GEN",
+        "chapter": 2
+      },
+      "numberOfChapters": 2,
+      "totalNumberOfVerses": 56
+    },
+    {
+      "id": "PSA",
+      "name": "Psalm",
+      "commonName": "Psalms",
+      "title": "Psalm",
+      "order": 19,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/BSB/PSA/1.json",
+      "firstChapterReference": {
+        "translationId": "BSB",
+        "book": "PSA",
+        "chapter": 1
+      },
+      "lastChapterNumber": 3,
+      "lastChapterApiLink": "/api/BSB/PSA/3.json",
+      "lastChapterReference": {
+        "translationId": "BSB",
+        "book": "PSA",
+        "chapter": 3
+      },
+      "numberOfChapters": 3,
+      "totalNumberOfVerses": 26
+    }
+  ]
+}

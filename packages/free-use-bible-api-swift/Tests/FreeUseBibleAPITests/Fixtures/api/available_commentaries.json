@@ -1,0 +1,24 @@
+{
+  "commentaries": [
+    {
+      "id": "adam-clarke",
+      "name": "Adam Clarke Bible Commentary",
+      "website": "https://en.wikipedia.org/wiki/Adam_Clarke",
+      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "englishName": "Adam Clarke Bible Commentary",
+      "language": "eng",
+      "textDirection": "rtl",
+      "availableFormats": [
+        "json"
+      ],
+      "listOfBooksApiLink": "/api/c/adam-clarke/books.json",
+      "numberOfBooks": 57,
+      "totalNumberOfChapters": 854,
+      "totalNumberOfVerses": 13318,
+      "languageName": "English",
+      "languageEnglishName": "English",
+      "listOfProfilesApiLink": "/api/c/adam-clarke/profiles.json",
+      "totalNumberOfProfiles": 0
+    }
+  ]
+}

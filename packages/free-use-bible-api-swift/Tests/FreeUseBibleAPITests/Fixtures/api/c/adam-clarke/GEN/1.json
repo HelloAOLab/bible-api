@@ -1,0 +1,74 @@
+{
+  "commentary": {
+    "id": "adam-clarke",
+    "name": "Adam Clarke Bible Commentary",
+    "website": "https://en.wikipedia.org/wiki/Adam_Clarke",
+    "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+    "englishName": "Adam Clarke Bible Commentary",
+    "language": "eng",
+    "textDirection": "rtl",
+    "availableFormats": [
+      "json"
+    ],
+    "listOfBooksApiLink": "/api/c/adam-clarke/books.json",
+    "numberOfBooks": 57,
+    "totalNumberOfChapters": 854,
+    "totalNumberOfVerses": 13318,
+    "languageName": "English",
+    "languageEnglishName": "English",
+    "listOfProfilesApiLink": "/api/c/adam-clarke/profiles.json",
+    "totalNumberOfProfiles": 0
+  },
+  "book": {
+    "id": "GEN",
+    "commentaryId": "adam-clarke",
+    "name": "Genesis",
+    "commonName": "Genesis",
+    "introduction": "Preface to the Book of Genesis, Every believer in Divine revelation finds himself amply justified in taking for granted that the Pentateuch is the work of Moses. For more than 3000 years this has been the invariable opinion of those who were best qualified to form a correct judgment on this…",
+    "order": 1,
+    "numberOfChapters": 50,
+    "firstChapterNumber": 1,
+    "firstChapterApiLink": "/api/c/adam-clarke/GEN/1.json",
+    "lastChapterNumber": 50,
+    "lastChapterApiLink": "/api/c/adam-clarke/GEN/50.json",
+    "totalNumberOfVerses": 877,
+    "firstChapterReference": {
+      "commentaryId": "adam-clarke",
+      "book": "GEN",
+      "chapter": 1
+    },
+    "lastChapterReference": {
+      "commentaryId": "adam-clarke",
+      "book": "GEN",
+      "chapter": 50
+    }
+  },
+  "chapter": {
+    "number": 1,
+    "content": [
+      {
+        "type": "verse",
+        "number": 1,
+        "content": [
+          "God in the beginning created the heavens and the earth - בראשית ברא אלהים את השמים ואת הארץ Bereshith bara Elohim eth hashshamayim veeth haarets; God in the beginning created the heavens and the earth.\nMany attempts have been made to define the term God: as to the word itself, it is pure Anglo-Saxon, and among our ancestors signified, not only the Divine Being, now commonly designated by the…"
+        ]
+      }
+    ],
+    "introduction": ""
+  },
+  "thisChapterLink": "/api/c/adam-clarke/GEN/1.json",
+  "thisChapterReference": {
+    "commentaryId": "adam-clarke",
+    "book": "GEN",
+    "chapter": 1
+  },
+  "nextChapterApiLink": "/api/c/adam-clarke/GEN/2.json",
+  "nextChapterReference": {
+    "commentaryId": "adam-clarke",
+    "book": "GEN",
+    "chapter": 2
+  },
+  "previousChapterApiLink": null,
+  "previousChapterReference": null,
+  "numberOfVerses": 31
+}

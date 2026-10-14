@@ -1,0 +1,42 @@
+{
+  "translations": [
+    {
+      "id": "BSB",
+      "name": "Berean Standard Bible",
+      "englishName": "Berean Standard Bible",
+      "shortName": "BSB",
+      "language": "eng",
+      "licenseUrl": "https://berean.bible/terms.htm",
+      "website": "https://berean.bible",
+      "textDirection": "ltr",
+      "availableFormats": [
+        "json"
+      ],
+      "listOfBooksApiLink": "/api/BSB/books.json",
+      "completeTranslationApiLink": "/api/BSB/complete.json",
+      "simpleCompleteTranslationApiLink": "/api/BSB/complete.simple.json",
+      "numberOfBooks": 2,
+      "totalNumberOfChapters": 5,
+      "totalNumberOfVerses": 82
+    },
+    {
+      "id": "engwebp",
+      "name": "World English Bible",
+      "englishName": "World English Bible",
+      "shortName": "WEB",
+      "language": "eng",
+      "licenseUrl": "https://worldenglish.bible/",
+      "website": "https://worldenglish.bible/",
+      "textDirection": "ltr",
+      "availableFormats": [
+        "json"
+      ],
+      "listOfBooksApiLink": "/api/engwebp/books.json",
+      "completeTranslationApiLink": "/api/engwebp/complete.json",
+      "simpleCompleteTranslationApiLink": "/api/engwebp/complete.simple.json",
+      "numberOfBooks": 1,
+      "totalNumberOfChapters": 1,
+      "totalNumberOfVerses": 51
+    }
+  ]
+}

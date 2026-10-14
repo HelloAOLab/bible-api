@@ -1,0 +1,103 @@
+{
+  "dataset": {
+    "id": "open-cross-ref",
+    "name": "Bible Cross References",
+    "website": "https://www.openbible.info/labs/cross-references/",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+    "licenseNotes": "Changes were made to the data to fit the Free Use Bible API format.",
+    "englishName": "Bible Cross References",
+    "language": "eng",
+    "textDirection": "ltr",
+    "availableFormats": [
+      "json"
+    ],
+    "listOfBooksApiLink": "/api/d/open-cross-ref/books.json",
+    "numberOfBooks": 66,
+    "totalNumberOfChapters": 1189,
+    "totalNumberOfVerses": 29364,
+    "totalNumberOfReferences": 344799,
+    "languageName": "English",
+    "languageEnglishName": "English"
+  },
+  "book": {
+    "id": "REV",
+    "datasetId": "open-cross-ref",
+    "order": 66,
+    "numberOfChapters": 22,
+    "firstChapterNumber": 1,
+    "firstChapterApiLink": "/api/d/open-cross-ref/REV/1.json",
+    "lastChapterNumber": 22,
+    "lastChapterApiLink": "/api/d/open-cross-ref/REV/22.json",
+    "totalNumberOfVerses": 402,
+    "totalNumberOfReferences": 6495,
+    "firstChapterReference": {
+      "datasetId": "open-cross-ref",
+      "book": "REV",
+      "chapter": 1
+    },
+    "lastChapterReference": {
+      "datasetId": "open-cross-ref",
+      "book": "REV",
+      "chapter": 22
+    }
+  },
+  "chapter": {
+    "number": 22,
+    "content": [
+      {
+        "verse": 1,
+        "references": [
+          {
+            "book": "REV",
+            "chapter": 7,
+            "verse": 17,
+            "score": 74
+          },
+          {
+            "book": "JHN",
+            "chapter": 4,
+            "verse": 14,
+            "score": 62
+          },
+          {
+            "book": "PSA",
+            "chapter": 36,
+            "verse": 8,
+            "endVerse": 9,
+            "score": 59
+          },
+          {
+            "book": "JHN",
+            "chapter": 7,
+            "verse": 38,
+            "endVerse": 39,
+            "score": 59
+          },
+          {
+            "book": "JHN",
+            "chapter": 4,
+            "verse": 10,
+            "endVerse": 11,
+            "score": 55
+          }
+        ]
+      }
+    ]
+  },
+  "thisChapterLink": "/api/d/open-cross-ref/REV/22.json",
+  "nextChapterApiLink": null,
+  "previousChapterApiLink": "/api/d/open-cross-ref/REV/21.json",
+  "numberOfVerses": 21,
+  "numberOfReferences": 360,
+  "thisChapterReference": {
+    "datasetId": "open-cross-ref",
+    "book": "REV",
+    "chapter": 22
+  },
+  "nextChapterReference": null,
+  "previousChapterReference": {
+    "datasetId": "open-cross-ref",
+    "book": "REV",
+    "chapter": 21
+  }
+}

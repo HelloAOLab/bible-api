@@ -1,0 +1,93 @@
+{
+  "dataset": {
+    "id": "bsb-interlinear",
+    "name": "Berean Standard Bible Interlinear",
+    "website": "https://bereanbible.com/",
+    "licenseUrl": "https://berean.bible/terms.htm",
+    "licenseNotes": "The Berean Standard Bible and its interlinear tables are in the public domain. Changes were made to the data to fit the Free Use Bible API format.",
+    "englishName": "Berean Standard Bible Interlinear",
+    "language": "eng",
+    "textDirection": "ltr",
+    "availableFormats": [
+      "json"
+    ],
+    "listOfBooksApiLink": "/api/d/bsb-interlinear/books.json",
+    "numberOfBooks": 66,
+    "totalNumberOfChapters": 1189,
+    "totalNumberOfVerses": 31102,
+    "totalNumberOfReferences": 0,
+    "languageName": "English",
+    "languageEnglishName": "English",
+    "totalNumberOfWords": 443625
+  },
+  "book": {
+    "id": "GEN",
+    "datasetId": "bsb-interlinear",
+    "order": 1,
+    "numberOfChapters": 50,
+    "firstChapterNumber": 1,
+    "lastChapterNumber": 50,
+    "totalNumberOfVerses": 1533,
+    "totalNumberOfReferences": 0,
+    "firstChapterApiLink": "/api/d/bsb-interlinear/GEN/1.json",
+    "lastChapterApiLink": "/api/d/bsb-interlinear/GEN/50.json",
+    "firstChapterReference": {
+      "datasetId": "bsb-interlinear",
+      "book": "GEN",
+      "chapter": 1
+    },
+    "lastChapterReference": {
+      "datasetId": "bsb-interlinear",
+      "book": "GEN",
+      "chapter": 50
+    }
+  },
+  "chapter": {
+    "number": 1,
+    "content": [
+      {
+        "verse": 1,
+        "words": [
+          {
+            "pos": 1,
+            "bsbPos": 1,
+            "language": "hebrew",
+            "text": "בְּרֵאשִׁ֖ית",
+            "transliteration": "bə·rê·šîṯ",
+            "parsing": "Prep-b | N-fs",
+            "parsingFull": "Preposition-b | Noun - feminine singular",
+            "strongs": "H7225",
+            "gloss": "In the beginning"
+          },
+          {
+            "pos": 2,
+            "bsbPos": 4,
+            "language": "hebrew",
+            "text": "בָּרָ֣א",
+            "transliteration": "bā·rā",
+            "parsing": "V-Qal-Perf-3ms",
+            "parsingFull": "Verb - Qal - Perfect - third person masculine singular",
+            "strongs": "H1254",
+            "gloss": "created"
+          }
+        ]
+      }
+    ]
+  },
+  "thisChapterLink": "/api/d/bsb-interlinear/GEN/1.json",
+  "nextChapterApiLink": "/api/d/bsb-interlinear/GEN/2.json",
+  "previousChapterApiLink": null,
+  "numberOfVerses": 31,
+  "numberOfReferences": 0,
+  "thisChapterReference": {
+    "datasetId": "bsb-interlinear",
+    "book": "GEN",
+    "chapter": 1
+  },
+  "nextChapterReference": {
+    "datasetId": "bsb-interlinear",
+    "book": "GEN",
+    "chapter": 2
+  },
+  "previousChapterReference": null
+}

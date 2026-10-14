@@ -46,3 +46,8 @@ audio
 
 openapi.json
 /generated/prisma
+
+# Swift Package Manager
+.build
+.swiftpm
+Package.resolved

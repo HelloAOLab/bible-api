@@ -1,0 +1,72 @@
+{
+  "dataset": {
+    "id": "theographic",
+    "name": "Theographic Bible Metadata",
+    "website": "https://github.com/robertrouse/theographic-bible-metadata",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "licenseNotes": "Changes were made to the data to fit the Free Use Bible API format.",
+    "englishName": "Theographic Bible Metadata",
+    "language": "eng",
+    "textDirection": "ltr",
+    "availableFormats": [
+      "json"
+    ],
+    "listOfBooksApiLink": "/api/d/theographic/books.json",
+    "numberOfBooks": 66,
+    "totalNumberOfChapters": 1182,
+    "totalNumberOfVerses": 24547,
+    "totalNumberOfReferences": 53120,
+    "languageName": "English",
+    "languageEnglishName": "English",
+    "listOfPeopleApiLink": "/api/d/theographic/people.json",
+    "totalNumberOfPeople": 3067,
+    "listOfPlacesApiLink": "/api/d/theographic/places.json",
+    "totalNumberOfPlaces": 1274,
+    "listOfEventsApiLink": "/api/d/theographic/events.json",
+    "totalNumberOfEvents": 450,
+    "listOfPeopleGroupsApiLink": "/api/d/theographic/groups.json",
+    "totalNumberOfPeopleGroups": 23
+  },
+  "person": {
+    "id": "ananias_259",
+    "name": "Ananias (Disciple at Damascus)",
+    "gender": "Male",
+    "description": [
+      "A Christian at Damascus (Acts 9:10). He became Paul’s instructor; ..."
+    ],
+    "minYear": 35,
+    "maxYear": 60,
+    "events": [
+      {
+        "id": "saul-is-converted_326",
+        "type": "events",
+        "name": "Saul is converted",
+        "apiLink": "/api/d/theographic/events/saul-is-converted_326.json"
+      }
+    ],
+    "references": [
+      {
+        "book": "ACT",
+        "chapter": 9,
+        "verse": 10
+      },
+      {
+        "book": "ACT",
+        "chapter": 9,
+        "verse": 12,
+        "endVerse": 13
+      },
+      {
+        "book": "ACT",
+        "chapter": 9,
+        "verse": 17
+      },
+      {
+        "book": "ACT",
+        "chapter": 22,
+        "verse": 12
+      }
+    ]
+  },
+  "thisPersonApiLink": "/api/d/theographic/people/ananias_259.json"
+}
