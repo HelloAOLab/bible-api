@@ -1,0 +1,86 @@
+{
+  "datasets": [
+    {
+      "id": "theographic",
+      "name": "Theographic Bible Metadata",
+      "englishName": "Theographic Bible Metadata",
+      "website": "https://github.com/robertrouse/theographic-bible-metadata",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "licenseNotes": "Changes were made to the data to fit the Free Use Bible API format.",
+      "language": "eng",
+      "textDirection": "ltr",
+      "availableFormats": [
+        "json"
+      ],
+      "listOfBooksApiLink": "/api/d/theographic/books.json",
+      "numberOfBooks": 2,
+      "totalNumberOfChapters": 3,
+      "totalNumberOfVerses": 4,
+      "totalNumberOfReferences": 10,
+      "listOfPeopleApiLink": "/api/d/theographic/people.json",
+      "totalNumberOfPeople": 2,
+      "listOfPlacesApiLink": "/api/d/theographic/places.json",
+      "totalNumberOfPlaces": 1,
+      "listOfEventsApiLink": "/api/d/theographic/events.json",
+      "totalNumberOfEvents": 2,
+      "listOfPeopleGroupsApiLink": "/api/d/theographic/groups.json",
+      "totalNumberOfPeopleGroups": 1
+    },
+    {
+      "id": "bsb-interlinear",
+      "name": "Berean Standard Bible Interlinear",
+      "englishName": "Berean Standard Bible Interlinear",
+      "website": "https://bereanbible.com/",
+      "licenseUrl": "https://berean.bible/terms.htm",
+      "licenseNotes": "The Berean Standard Bible and its interlinear tables are in the public domain. Changes were made to the data to fit the Free Use Bible API format.",
+      "language": "eng",
+      "textDirection": "ltr",
+      "availableFormats": [
+        "json"
+      ],
+      "listOfBooksApiLink": "/api/d/bsb-interlinear/books.json",
+      "numberOfBooks": 66,
+      "totalNumberOfChapters": 67,
+      "totalNumberOfVerses": 67,
+      "totalNumberOfReferences": 0,
+      "totalNumberOfWords": 70
+    },
+    {
+      "id": "stepbible-lexicon",
+      "name": "STEPBible Brief Lexicons",
+      "englishName": "STEPBible Brief Lexicons",
+      "website": "https://github.com/STEPBible/STEPBible-Data",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "licenseNotes": "The Translators Brief lexicons of Extended Strongs (TBESH and TBESG) are by STEPBible.org / Tyndale House, Cambridge, and are licensed under CC BY 4.0. Changes were made to the data to fit the Free Use Bible API format.",
+      "language": "eng",
+      "textDirection": "ltr",
+      "availableFormats": [
+        "json"
+      ],
+      "listOfBooksApiLink": "/api/d/stepbible-lexicon/books.json",
+      "numberOfBooks": 0,
+      "totalNumberOfChapters": 0,
+      "totalNumberOfVerses": 0,
+      "totalNumberOfReferences": 0,
+      "listOfLexiconApiLink": "/api/d/stepbible-lexicon/lexicon.json",
+      "totalNumberOfLexicon": 3
+    },
+    {
+      "id": "default",
+      "englishName": "Default Dataset",
+      "name": "Default Dataset",
+      "language": "eng",
+      "textDirection": "ltr",
+      "licenseUrl": "https://example.com/terms.htm",
+      "website": "https://example.com",
+      "availableFormats": [
+        "json"
+      ],
+      "listOfBooksApiLink": "/api/d/default/books.json",
+      "numberOfBooks": 1,
+      "totalNumberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 1
+    }
+  ]
+}

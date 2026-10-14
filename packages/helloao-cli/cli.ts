@@ -39,6 +39,11 @@ import { confirm, input } from '@inquirer/prompts';
 import { log } from '@helloao/tools';
 import { createFreeUseBibleApiOpenApiDocument } from './openapi.js';
 import { createClient } from '@hey-api/openapi-ts';
+import {
+    FREE_USE_BIBLE_API_KOTLIN_MODEL_OPTIONS,
+    generateKotlinModels,
+    KOTLIN_MODELS_PATH,
+} from './kotlin.js';
 
 const OPENAPI_CLIENT_LANGUAGES = [
     // ['csharp', 'csharp'],
@@ -353,6 +358,28 @@ async function start() {
             }
 
             logger.log('OpenAPI client generation complete.');
+        });
+
+    program
+        .command('generate-kotlin-models')
+        .description(
+            'Generates the models for the Kotlin SDK (packages/free-use-bible-api-kotlin) from the OpenAPI document.'
+        )
+        .action(async () => {
+            const logger = log.getLogger();
+            const projectRoot = await findProjectRoot(process.cwd());
+            const outputPath = path.resolve(projectRoot, KOTLIN_MODELS_PATH);
+
+            const document = createFreeUseBibleApiOpenApiDocument();
+            const source = generateKotlinModels(
+                document as any,
+                FREE_USE_BIBLE_API_KOTLIN_MODEL_OPTIONS
+            );
+
+            await mkdir(path.dirname(outputPath), { recursive: true });
+            await writeFile(outputPath, source, { encoding: 'utf-8' });
+
+            logger.log('Kotlin models written to:', outputPath);
         });
 
     program

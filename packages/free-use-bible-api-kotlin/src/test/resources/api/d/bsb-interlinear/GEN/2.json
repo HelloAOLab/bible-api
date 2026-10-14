@@ -1,0 +1,83 @@
+{
+  "dataset": {
+    "id": "bsb-interlinear",
+    "name": "Berean Standard Bible Interlinear",
+    "englishName": "Berean Standard Bible Interlinear",
+    "website": "https://bereanbible.com/",
+    "licenseUrl": "https://berean.bible/terms.htm",
+    "licenseNotes": "The Berean Standard Bible and its interlinear tables are in the public domain. Changes were made to the data to fit the Free Use Bible API format.",
+    "language": "eng",
+    "textDirection": "ltr",
+    "availableFormats": [
+      "json"
+    ],
+    "listOfBooksApiLink": "/api/d/bsb-interlinear/books.json",
+    "numberOfBooks": 66,
+    "totalNumberOfChapters": 67,
+    "totalNumberOfVerses": 67,
+    "totalNumberOfReferences": 0,
+    "totalNumberOfWords": 70
+  },
+  "book": {
+    "id": "GEN",
+    "order": 1,
+    "firstChapterNumber": 1,
+    "firstChapterApiLink": "/api/d/bsb-interlinear/GEN/1.json",
+    "firstChapterReference": {
+      "datasetId": "bsb-interlinear",
+      "book": "GEN",
+      "chapter": 1
+    },
+    "lastChapterNumber": 2,
+    "lastChapterApiLink": "/api/d/bsb-interlinear/GEN/2.json",
+    "lastChapterReference": {
+      "datasetId": "bsb-interlinear",
+      "book": "GEN",
+      "chapter": 2
+    },
+    "numberOfChapters": 2,
+    "totalNumberOfVerses": 2,
+    "totalNumberOfReferences": 0
+  },
+  "chapter": {
+    "number": 2,
+    "content": [
+      {
+        "verse": 1,
+        "words": [
+          {
+            "pos": 1,
+            "bsbPos": 1,
+            "language": "hebrew",
+            "text": "ב",
+            "transliteration": null,
+            "parsing": null,
+            "parsingFull": null,
+            "strongs": "H0002",
+            "gloss": "b"
+          }
+        ]
+      }
+    ]
+  },
+  "thisChapterLink": "/api/d/bsb-interlinear/GEN/2.json",
+  "thisChapterReference": {
+    "datasetId": "bsb-interlinear",
+    "book": "GEN",
+    "chapter": 2
+  },
+  "nextChapterApiLink": "/api/d/bsb-interlinear/EXO/1.json",
+  "nextChapterReference": {
+    "datasetId": "bsb-interlinear",
+    "book": "EXO",
+    "chapter": 1
+  },
+  "previousChapterApiLink": "/api/d/bsb-interlinear/GEN/1.json",
+  "previousChapterReference": {
+    "datasetId": "bsb-interlinear",
+    "book": "GEN",
+    "chapter": 1
+  },
+  "numberOfVerses": 1,
+  "numberOfReferences": 0
+}

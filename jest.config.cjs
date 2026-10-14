@@ -16,6 +16,7 @@ module.exports = {
     },
     moduleNameMapper: {
         '^(\\.{1,2}/.*)\\.js$': '$1',
+        '^@helloao/tools/(.*)\\.js$': '<rootDir>/packages/helloao-tools/$1',
         '@helloao/tools': '<rootDir>/packages/helloao-tools',
     },
     testPathIgnorePatterns: ['/node_modules/', '/build/'],

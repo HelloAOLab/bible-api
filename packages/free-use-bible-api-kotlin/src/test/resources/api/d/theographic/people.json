@@ -1,0 +1,45 @@
+{
+  "dataset": {
+    "id": "theographic",
+    "name": "Theographic Bible Metadata",
+    "englishName": "Theographic Bible Metadata",
+    "website": "https://github.com/robertrouse/theographic-bible-metadata",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "licenseNotes": "Changes were made to the data to fit the Free Use Bible API format.",
+    "language": "eng",
+    "textDirection": "ltr",
+    "availableFormats": [
+      "json"
+    ],
+    "listOfBooksApiLink": "/api/d/theographic/books.json",
+    "numberOfBooks": 2,
+    "totalNumberOfChapters": 3,
+    "totalNumberOfVerses": 4,
+    "totalNumberOfReferences": 10,
+    "listOfPeopleApiLink": "/api/d/theographic/people.json",
+    "totalNumberOfPeople": 2,
+    "listOfPlacesApiLink": "/api/d/theographic/places.json",
+    "totalNumberOfPlaces": 1,
+    "listOfEventsApiLink": "/api/d/theographic/events.json",
+    "totalNumberOfEvents": 2,
+    "listOfPeopleGroupsApiLink": "/api/d/theographic/groups.json",
+    "totalNumberOfPeopleGroups": 1
+  },
+  "people": [
+    {
+      "id": "adam_2",
+      "name": "Adam",
+      "isProperName": true,
+      "gender": "Male",
+      "numberOfReferences": 2,
+      "thisPersonApiLink": "/api/d/theographic/people/adam_2.json"
+    },
+    {
+      "id": "seth_10",
+      "name": "Seth",
+      "gender": "Male",
+      "numberOfReferences": 1,
+      "thisPersonApiLink": "/api/d/theographic/people/seth_10.json"
+    }
+  ]
+}

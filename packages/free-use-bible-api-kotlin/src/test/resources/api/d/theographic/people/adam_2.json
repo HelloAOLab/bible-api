@@ -1,0 +1,74 @@
+{
+  "dataset": {
+    "id": "theographic",
+    "name": "Theographic Bible Metadata",
+    "englishName": "Theographic Bible Metadata",
+    "website": "https://github.com/robertrouse/theographic-bible-metadata",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "licenseNotes": "Changes were made to the data to fit the Free Use Bible API format.",
+    "language": "eng",
+    "textDirection": "ltr",
+    "availableFormats": [
+      "json"
+    ],
+    "listOfBooksApiLink": "/api/d/theographic/books.json",
+    "numberOfBooks": 2,
+    "totalNumberOfChapters": 3,
+    "totalNumberOfVerses": 4,
+    "totalNumberOfReferences": 10,
+    "listOfPeopleApiLink": "/api/d/theographic/people.json",
+    "totalNumberOfPeople": 2,
+    "listOfPlacesApiLink": "/api/d/theographic/places.json",
+    "totalNumberOfPlaces": 1,
+    "listOfEventsApiLink": "/api/d/theographic/events.json",
+    "totalNumberOfEvents": 2,
+    "listOfPeopleGroupsApiLink": "/api/d/theographic/groups.json",
+    "totalNumberOfPeopleGroups": 1
+  },
+  "person": {
+    "id": "adam_2",
+    "name": "Adam",
+    "isProperName": true,
+    "gender": "Male",
+    "description": [
+      "The first man (Gen. 1:26)."
+    ],
+    "children": [
+      {
+        "id": "seth_10",
+        "type": "people",
+        "name": "Seth",
+        "apiLink": "/api/d/theographic/people/seth_10.json"
+      }
+    ],
+    "memberOf": [
+      {
+        "id": "humanity",
+        "type": "groups",
+        "name": "Humanity",
+        "apiLink": "/api/d/theographic/groups/humanity.json"
+      }
+    ],
+    "events": [
+      {
+        "id": "creation-of-adam-and-eve_1",
+        "type": "events",
+        "name": "Creation of Adam and Eve",
+        "apiLink": "/api/d/theographic/events/creation-of-adam-and-eve_1.json"
+      }
+    ],
+    "references": [
+      {
+        "book": "GEN",
+        "chapter": 1,
+        "verse": 1
+      },
+      {
+        "book": "GEN",
+        "chapter": 2,
+        "verse": 1
+      }
+    ]
+  },
+  "thisPersonApiLink": "/api/d/theographic/people/adam_2.json"
+}
