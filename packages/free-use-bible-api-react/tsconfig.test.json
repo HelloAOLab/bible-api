@@ -1,0 +1,9 @@
+{
+    "extends": "../../tsconfig.test.json",
+    "compilerOptions": {
+        "baseUrl": ".",
+        "paths": {
+            "free-use-bible-api": ["../free-use-bible-api/index.ts"]
+        }
+    }
+}
