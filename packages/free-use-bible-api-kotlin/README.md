@@ -228,3 +228,7 @@ To build and test the library:
 ```
 
 The tests run against fixtures in `src/test/resources`, which were produced by the API generator in `packages/helloao-tools`. To check the models against a full build of the API files, set `FREE_USE_BIBLE_API_OUTPUT_DIR` to the directory that contains the generated `api` folder and run `./gradlew test`.
+
+### Releasing
+
+The library is published to Maven Central as `org.helloao:free-use-bible-api` by the [Release Kotlin SDK workflow](../../.github/workflows/release-kotlin-workflow.yml). To release a new version, bump `version` in `gradle.properties`, merge it, and publish a GitHub release (or run the workflow manually). The workflow skips publishing if that version is already on Maven Central.

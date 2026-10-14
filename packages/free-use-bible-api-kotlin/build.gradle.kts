@@ -1,10 +1,13 @@
+import com.vanniktech.maven.publish.JavadocJar
+import com.vanniktech.maven.publish.KotlinJvm
+import com.vanniktech.maven.publish.SourcesJar
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     kotlin("jvm") version "2.2.21"
     kotlin("plugin.serialization") version "2.2.21"
     `java-library`
-    `maven-publish`
+    id("com.vanniktech.maven.publish") version "0.36.0"
 }
 
 repositories {
@@ -23,7 +26,6 @@ java {
     // Java 8 bytecode keeps the library usable on Android and older JVMs.
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
-    withSourcesJar()
 }
 
 kotlin {
@@ -37,33 +39,49 @@ tasks.test {
     useJUnitPlatform()
 }
 
-publishing {
-    publications {
-        create<MavenPublication>("maven") {
-            artifactId = "free-use-bible-api"
-            from(components["java"])
+// Publishes to Maven Central (https://central.sonatype.com) under the org.helloao namespace.
+// See .github/workflows/release-kotlin-workflow.yml for the credentials that this needs.
+mavenPublishing {
+    configure(KotlinJvm(javadocJar = JavadocJar.Empty(), sourcesJar = SourcesJar.Sources()))
+    publishToMavenCentral()
 
-            pom {
-                name.set("Free Use Bible API")
-                description.set("Access over 1000 Bible translations in over 700 languages for free")
-                url.set("https://bible.helloao.org/docs/")
-                licenses {
-                    license {
-                        name.set("MIT")
-                        url.set("https://github.com/HelloAOLab/bible-api/blob/main/LICENSE")
-                    }
-                }
-                developers {
-                    developer {
-                        name.set("Kallyn Gowdy")
-                        email.set("kal@helloao.org")
-                    }
-                }
-                scm {
-                    url.set("https://github.com/HelloAOLab/bible-api")
-                    connection.set("scm:git:https://github.com/HelloAOLab/bible-api.git")
-                }
+    // Maven Central requires signed artifacts, but signing is skipped when no key is configured
+    // so that publishToMavenLocal works without one.
+    if (providers.gradleProperty("signingInMemoryKey").isPresent) {
+        signAllPublications()
+    }
+
+    coordinates(group.toString(), "free-use-bible-api", version.toString())
+
+    pom {
+        name.set("Free Use Bible API")
+        description.set("Access over 1000 Bible translations in over 700 languages for free")
+        inceptionYear.set("2026")
+        url.set("https://bible.helloao.org/docs/")
+        licenses {
+            license {
+                name.set("MIT")
+                url.set("https://github.com/HelloAOLab/bible-api/blob/main/LICENSE")
+                distribution.set("repo")
             }
+        }
+        developers {
+            developer {
+                id.set("KallynGowdy")
+                name.set("Kallyn Gowdy")
+                email.set("kal@helloao.org")
+                organization.set("HelloAO")
+                organizationUrl.set("https://helloao.org")
+            }
+        }
+        scm {
+            url.set("https://github.com/HelloAOLab/bible-api")
+            connection.set("scm:git:https://github.com/HelloAOLab/bible-api.git")
+            developerConnection.set("scm:git:ssh://git@github.com/HelloAOLab/bible-api.git")
+        }
+        issueManagement {
+            system.set("GitHub")
+            url.set("https://github.com/HelloAOLab/bible-api/issues")
         }
     }
 }
