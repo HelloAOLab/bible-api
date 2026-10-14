@@ -1,0 +1,1005 @@
+{
+  "translation": {
+    "id": "BSB",
+    "name": "Berean Standard Bible",
+    "englishName": "Berean Standard Bible",
+    "shortName": "BSB",
+    "language": "eng",
+    "licenseUrl": "https://berean.bible/terms.htm",
+    "website": "https://berean.bible",
+    "textDirection": "ltr",
+    "availableFormats": [
+      "json"
+    ],
+    "listOfBooksApiLink": "/api/BSB/books.json",
+    "completeTranslationApiLink": "/api/BSB/complete.json",
+    "simpleCompleteTranslationApiLink": "/api/BSB/complete.simple.json",
+    "numberOfBooks": 3,
+    "totalNumberOfChapters": 228,
+    "totalNumberOfVerses": 5030
+  },
+  "book": {
+    "id": "MAT",
+    "name": "Matthew",
+    "commonName": "Matthew",
+    "title": "Matthew",
+    "order": 40,
+    "firstChapterNumber": 1,
+    "firstChapterApiLink": "/api/BSB/MAT/1.json",
+    "firstChapterReference": {
+      "translationId": "BSB",
+      "book": "MAT",
+      "chapter": 1
+    },
+    "lastChapterNumber": 28,
+    "lastChapterApiLink": "/api/BSB/MAT/28.json",
+    "lastChapterReference": {
+      "translationId": "BSB",
+      "book": "MAT",
+      "chapter": 28
+    },
+    "numberOfChapters": 28,
+    "totalNumberOfVerses": 1068
+  },
+  "thisChapterLink": "/api/BSB/MAT/5.simple.json",
+  "thisChapterReference": {
+    "translationId": "BSB",
+    "book": "MAT",
+    "chapter": 5
+  },
+  "thisChapterAudioLinks": {
+    "hays": "https://audio.bible.helloao.org/api/BSB/MAT/5/audio/hays.mp3",
+    "souer": "https://audio.bible.helloao.org/api/BSB/MAT/5/audio/souer.mp3",
+    "david": "https://audio.bible.helloao.org/api/BSB/MAT/5/audio/david.mp3"
+  },
+  "nextChapterApiLink": "/api/BSB/MAT/6.simple.json",
+  "nextChapterReference": {
+    "translationId": "BSB",
+    "book": "MAT",
+    "chapter": 6
+  },
+  "nextChapterAudioLinks": {
+    "hays": "https://audio.bible.helloao.org/api/BSB/MAT/6/audio/hays.mp3",
+    "souer": "https://audio.bible.helloao.org/api/BSB/MAT/6/audio/souer.mp3",
+    "david": "https://audio.bible.helloao.org/api/BSB/MAT/6/audio/david.mp3"
+  },
+  "previousChapterApiLink": "/api/BSB/MAT/4.simple.json",
+  "previousChapterReference": {
+    "translationId": "BSB",
+    "book": "MAT",
+    "chapter": 4
+  },
+  "previousChapterAudioLinks": {
+    "hays": "https://audio.bible.helloao.org/api/BSB/MAT/4/audio/hays.mp3",
+    "souer": "https://audio.bible.helloao.org/api/BSB/MAT/4/audio/souer.mp3",
+    "david": "https://audio.bible.helloao.org/api/BSB/MAT/4/audio/david.mp3"
+  },
+  "thisChapterAudioTimings": {},
+  "nextChapterAudioTimings": {},
+  "previousChapterAudioTimings": {},
+  "numberOfVerses": 48,
+  "chapter": {
+    "number": 5,
+    "content": [
+      {
+        "type": "heading",
+        "text": "The Sermon on the Mount"
+      },
+      {
+        "type": "line_break"
+      },
+      {
+        "type": "verse",
+        "number": 1,
+        "text": "When Jesus saw the crowds, He went up on the mountain and sat down. His disciples came to Him,",
+        "footnotes": [],
+        "poem": [
+          {
+            "start": 0,
+            "end": 94,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "verse",
+        "number": 2,
+        "text": "and He began to teach them, saying:",
+        "footnotes": [],
+        "poem": [
+          {
+            "start": 0,
+            "end": 35,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "text": "The Beatitudes"
+      },
+      {
+        "type": "line_break"
+      },
+      {
+        "type": "verse",
+        "number": 3,
+        "text": "“Blessed are the poor in spirit,\nfor theirs is the kingdom of heaven.",
+        "footnotes": [],
+        "poem": [
+          {
+            "start": 0,
+            "end": 32,
+            "level": 1
+          },
+          {
+            "start": 33,
+            "end": 69,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "verse",
+        "number": 4,
+        "text": "Blessed are those who mourn,\nfor they will be comforted.",
+        "footnotes": [],
+        "poem": [
+          {
+            "start": 0,
+            "end": 28,
+            "level": 1
+          },
+          {
+            "start": 29,
+            "end": 56,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "verse",
+        "number": 5,
+        "text": "Blessed are the meek,\nfor they will inherit the earth.",
+        "footnotes": [
+          {
+            "noteId": 22,
+            "offset": 54,
+            "text": "Or Blessed are those who exercise strength under control, for they will inherit the land; see Psalm 37:11.",
+            "caller": "+"
+          }
+        ],
+        "poem": [
+          {
+            "start": 0,
+            "end": 21,
+            "level": 1
+          },
+          {
+            "start": 22,
+            "end": 54,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "verse",
+        "number": 6,
+        "text": "Blessed are those who hunger and thirst for righteousness,\nfor they will be filled.",
+        "footnotes": [],
+        "poem": [
+          {
+            "start": 0,
+            "end": 58,
+            "level": 1
+          },
+          {
+            "start": 59,
+            "end": 83,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "verse",
+        "number": 7,
+        "text": "Blessed are the merciful,\nfor they will be shown mercy.",
+        "footnotes": [],
+        "poem": [
+          {
+            "start": 0,
+            "end": 25,
+            "level": 1
+          },
+          {
+            "start": 26,
+            "end": 55,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "verse",
+        "number": 8,
+        "text": "Blessed are the pure in heart,\nfor they will see God.",
+        "footnotes": [],
+        "poem": [
+          {
+            "start": 0,
+            "end": 30,
+            "level": 1
+          },
+          {
+            "start": 31,
+            "end": 53,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "verse",
+        "number": 9,
+        "text": "Blessed are the peacemakers,\nfor they will be called sons of God.",
+        "footnotes": [],
+        "poem": [
+          {
+            "start": 0,
+            "end": 28,
+            "level": 1
+          },
+          {
+            "start": 29,
+            "end": 65,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "verse",
+        "number": 10,
+        "text": "Blessed are those who are persecuted because of righteousness,\nfor theirs is the kingdom of heaven.",
+        "footnotes": [],
+        "poem": [
+          {
+            "start": 0,
+            "end": 62,
+            "level": 1
+          },
+          {
+            "start": 63,
+            "end": 99,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "line_break"
+      },
+      {
+        "type": "verse",
+        "number": 11,
+        "text": "Blessed are you when people insult you, persecute you, and falsely say all kinds of evil against you because of Me.",
+        "footnotes": [],
+        "poem": [
+          {
+            "start": 0,
+            "end": 115,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "verse",
+        "number": 12,
+        "text": "Rejoice and be glad, because great is your reward in heaven; for in the same way they persecuted the prophets before you.",
+        "footnotes": [],
+        "poem": [
+          {
+            "start": 0,
+            "end": 121,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "text": "Salt and Light"
+      },
+      {
+        "type": "line_break"
+      },
+      {
+        "type": "verse",
+        "number": 13,
+        "text": "You are the salt of the earth. But if the salt loses its savor, how can it be made salty again? It is no longer good for anything, except to be thrown out and trampled by men.",
+        "footnotes": [],
+        "poem": [
+          {
+            "start": 0,
+            "end": 175,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "line_break"
+      },
+      {
+        "type": "verse",
+        "number": 14,
+        "text": "You are the light of the world. A city on a hill\ncannot be hidden.",
+        "footnotes": [
+          {
+            "noteId": 23,
+            "offset": 48,
+            "text": "Literally A city lying on a hill",
+            "caller": "+"
+          }
+        ],
+        "poem": [
+          {
+            "start": 0,
+            "end": 48,
+            "level": 2
+          },
+          {
+            "start": 49,
+            "end": 66,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "verse",
+        "number": 15,
+        "text": "Neither do people light a lamp and put it under a basket. Instead, they set it on a stand, and it gives light to everyone in the house.",
+        "footnotes": [],
+        "poem": [
+          {
+            "start": 0,
+            "end": 135,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "verse",
+        "number": 16,
+        "text": "In the same way, let your light shine before men, that they may see your good deeds and glorify your Father in heaven.",
+        "footnotes": [],
+        "poem": [
+          {
+            "start": 0,
+            "end": 118,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "text": "The Fulfillment of the Law"
+      },
+      {
+        "type": "line_break"
+      },
+      {
+        "type": "verse",
+        "number": 17,
+        "text": "Do not think that I have come to abolish the Law or the Prophets. I have not come to abolish them, but to fulfill them.",
+        "footnotes": [],
+        "poem": [
+          {
+            "start": 0,
+            "end": 119,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "verse",
+        "number": 18,
+        "text": "For I tell you truly, until heaven and earth pass away, not a single jot, not a stroke of a pen, will disappear from the Law until everything is accomplished.",
+        "footnotes": [],
+        "poem": [
+          {
+            "start": 0,
+            "end": 158,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "line_break"
+      },
+      {
+        "type": "verse",
+        "number": 19,
+        "text": "So then, whoever breaks one of the least of these commandments and teaches others to do likewise will be called least in the kingdom of heaven; but whoever practices and teaches them will be called great in the kingdom of heaven.",
+        "footnotes": [],
+        "poem": [
+          {
+            "start": 0,
+            "end": 229,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "verse",
+        "number": 20,
+        "text": "For I tell you that unless your righteousness exceeds that of the scribes and Pharisees, you will never enter the kingdom of heaven.",
+        "footnotes": [],
+        "poem": [
+          {
+            "start": 0,
+            "end": 132,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "text": "Anger and Reconciliation"
+      },
+      {
+        "type": "line_break"
+      },
+      {
+        "type": "verse",
+        "number": 21,
+        "text": "You have heard that it was said to the ancients, ‘Do not murder’\nand ‘Anyone who murders will be subject to judgment.’",
+        "footnotes": [
+          {
+            "noteId": 24,
+            "offset": 64,
+            "text": "Exodus 20:13; Deuteronomy 5:17",
+            "caller": "+"
+          }
+        ],
+        "poem": [
+          {
+            "start": 0,
+            "end": 64,
+            "level": 2
+          },
+          {
+            "start": 65,
+            "end": 118,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "verse",
+        "number": 22,
+        "text": "But I tell you that anyone who is angry with his brother\nwill be subject to judgment. Again, anyone who says to his brother, ‘Raca,’\nwill be subject to the Sanhedrin.\nBut anyone who says, ‘You fool!’ will be subject to the fire of hell.",
+        "footnotes": [
+          {
+            "noteId": 25,
+            "offset": 56,
+            "text": "BYZ and TR include without cause.",
+            "caller": "+"
+          },
+          {
+            "noteId": 26,
+            "offset": 132,
+            "text": "Raca is an Aramaic expression of contempt.",
+            "caller": "+"
+          },
+          {
+            "noteId": 27,
+            "offset": 166,
+            "text": "Or the Council",
+            "caller": "+"
+          },
+          {
+            "noteId": 28,
+            "offset": 236,
+            "text": "Or the hell of fire; Greek the Gehenna of fire",
+            "caller": "+"
+          }
+        ],
+        "poem": [
+          {
+            "start": 0,
+            "end": 56,
+            "level": 2
+          },
+          {
+            "start": 57,
+            "end": 132,
+            "level": 2
+          },
+          {
+            "start": 133,
+            "end": 166,
+            "level": 2
+          },
+          {
+            "start": 167,
+            "end": 236,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "line_break"
+      },
+      {
+        "type": "verse",
+        "number": 23,
+        "text": "So if you are offering your gift at the altar and there remember that your brother has something against you,",
+        "footnotes": [],
+        "poem": [
+          {
+            "start": 0,
+            "end": 109,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "verse",
+        "number": 24,
+        "text": "leave your gift there before the altar. First go and be reconciled to your brother; then come and offer your gift.",
+        "footnotes": [],
+        "poem": [
+          {
+            "start": 0,
+            "end": 114,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "line_break"
+      },
+      {
+        "type": "verse",
+        "number": 25,
+        "text": "Reconcile quickly with your adversary, while you are still on the way to court. Otherwise, he may hand you over to the judge, and the judge may hand you over to the officer, and you may be thrown into prison.",
+        "footnotes": [],
+        "poem": [
+          {
+            "start": 0,
+            "end": 208,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "verse",
+        "number": 26,
+        "text": "Truly I tell you, you will not get out until you have paid the last penny.",
+        "footnotes": [
+          {
+            "noteId": 29,
+            "offset": 74,
+            "text": "Greek kodrantēn; that is, a Roman copper coin worth about 1/64 of a denarius",
+            "caller": "+"
+          }
+        ],
+        "poem": [
+          {
+            "start": 0,
+            "end": 74,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "text": "Adultery"
+      },
+      {
+        "type": "line_break"
+      },
+      {
+        "type": "verse",
+        "number": 27,
+        "text": "You have heard that it was said, ‘Do not commit adultery.’",
+        "footnotes": [
+          {
+            "noteId": 30,
+            "offset": 58,
+            "text": "Exodus 20:14; Deuteronomy 5:18",
+            "caller": "+"
+          }
+        ],
+        "poem": [
+          {
+            "start": 0,
+            "end": 58,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "verse",
+        "number": 28,
+        "text": "But I tell you that anyone who looks at a woman to lust after her has already committed adultery with her in his heart.",
+        "footnotes": [],
+        "poem": [
+          {
+            "start": 0,
+            "end": 119,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "verse",
+        "number": 29,
+        "text": "If your right eye causes you to sin, gouge it out and throw it away. It is better for you to lose one part of your body than for your whole body to be thrown into hell.",
+        "footnotes": [
+          {
+            "noteId": 31,
+            "offset": 168,
+            "text": "Greek Gehenna; also in verse 30",
+            "caller": "+"
+          }
+        ],
+        "poem": [
+          {
+            "start": 0,
+            "end": 168,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "verse",
+        "number": 30,
+        "text": "And if your right hand causes you to sin, cut it off and throw it away. It is better for you to lose one part of your body than for your whole body to depart into hell.",
+        "footnotes": [],
+        "poem": [
+          {
+            "start": 0,
+            "end": 168,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "text": "Divorce"
+      },
+      {
+        "type": "line_break"
+      },
+      {
+        "type": "verse",
+        "number": 31,
+        "text": "It has also been said, ‘Whoever divorces his wife must give her a certificate of divorce.’",
+        "footnotes": [
+          {
+            "noteId": 32,
+            "offset": 90,
+            "text": "Deuteronomy 24:1",
+            "caller": "+"
+          }
+        ],
+        "poem": [
+          {
+            "start": 0,
+            "end": 90,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "verse",
+        "number": 32,
+        "text": "But I tell you that anyone who divorces his wife, except for sexual immorality, brings adultery upon her.\nAnd he who marries a divorced woman commits adultery.",
+        "footnotes": [
+          {
+            "noteId": 33,
+            "offset": 105,
+            "text": "Or causes her to commit adultery",
+            "caller": "+"
+          }
+        ],
+        "poem": [
+          {
+            "start": 0,
+            "end": 105,
+            "level": 2
+          },
+          {
+            "start": 106,
+            "end": 159,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "text": "Oaths and Vows"
+      },
+      {
+        "type": "line_break"
+      },
+      {
+        "type": "verse",
+        "number": 33,
+        "text": "Again, you have heard that it was said to the ancients, ‘Do not break your oath, but fulfill your vows to the Lord.’",
+        "footnotes": [
+          {
+            "noteId": 34,
+            "offset": 116,
+            "text": "Numbers 30:2",
+            "caller": "+"
+          }
+        ],
+        "poem": [
+          {
+            "start": 0,
+            "end": 116,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "verse",
+        "number": 34,
+        "text": "But I tell you not to swear at all: either by heaven, for it is God’s throne;",
+        "footnotes": [],
+        "poem": [
+          {
+            "start": 0,
+            "end": 77,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "verse",
+        "number": 35,
+        "text": "or by the earth, for it is His footstool; or by Jerusalem, for it is the city of the great King.",
+        "footnotes": [],
+        "poem": [
+          {
+            "start": 0,
+            "end": 96,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "verse",
+        "number": 36,
+        "text": "Nor should you swear by your head, for you cannot make a single hair white or black.",
+        "footnotes": [],
+        "poem": [
+          {
+            "start": 0,
+            "end": 84,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "verse",
+        "number": 37,
+        "text": "Simply let your ‘Yes’ be ‘Yes,’ and your ‘No,’ ‘No.’ Anything more comes from the evil one.",
+        "footnotes": [
+          {
+            "noteId": 35,
+            "offset": 91,
+            "text": "Or from evil",
+            "caller": "+"
+          }
+        ],
+        "poem": [
+          {
+            "start": 0,
+            "end": 91,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "text": "Love Your Enemies"
+      },
+      {
+        "type": "line_break"
+      },
+      {
+        "type": "verse",
+        "number": 38,
+        "text": "You have heard that it was said, ‘Eye for eye and tooth for tooth.’",
+        "footnotes": [
+          {
+            "noteId": 36,
+            "offset": 67,
+            "text": "Exodus 21:24; Leviticus 24:20; Deuteronomy 19:21",
+            "caller": "+"
+          }
+        ],
+        "poem": [
+          {
+            "start": 0,
+            "end": 67,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "verse",
+        "number": 39,
+        "text": "But I tell you not to resist an evil person. If someone slaps you on your right cheek, turn to him the other also;",
+        "footnotes": [],
+        "poem": [
+          {
+            "start": 0,
+            "end": 114,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "verse",
+        "number": 40,
+        "text": "if someone wants to sue you and take your tunic, let him have your cloak as well;",
+        "footnotes": [],
+        "poem": [
+          {
+            "start": 0,
+            "end": 81,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "verse",
+        "number": 41,
+        "text": "and if someone forces you to go one mile,\ngo with him two miles.",
+        "footnotes": [
+          {
+            "noteId": 37,
+            "offset": 41,
+            "text": "Greek one milion; that is, a Roman mile, approximately 4,855 feet or 1,480 meters",
+            "caller": "+"
+          },
+          {
+            "noteId": 38,
+            "offset": 64,
+            "text": "Literally go with him two.",
+            "caller": "+"
+          }
+        ],
+        "poem": [
+          {
+            "start": 0,
+            "end": 41,
+            "level": 2
+          },
+          {
+            "start": 42,
+            "end": 64,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "verse",
+        "number": 42,
+        "text": "Give to the one who asks you, and do not turn away from the one who wants to borrow from you.",
+        "footnotes": [],
+        "poem": [
+          {
+            "start": 0,
+            "end": 93,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "line_break"
+      },
+      {
+        "type": "verse",
+        "number": 43,
+        "text": "You have heard that it was said, ‘Love your neighbor’\nand ‘Hate your enemy.’",
+        "footnotes": [
+          {
+            "noteId": 39,
+            "offset": 53,
+            "text": "Leviticus 19:18",
+            "caller": "+"
+          }
+        ],
+        "poem": [
+          {
+            "start": 0,
+            "end": 53,
+            "level": 2
+          },
+          {
+            "start": 54,
+            "end": 76,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "verse",
+        "number": 44,
+        "text": "But I tell you, love your enemies and pray for those who persecute you,",
+        "footnotes": [
+          {
+            "noteId": 40,
+            "offset": 71,
+            "text": "BYZ and TR love your enemies, bless those who curse you, do good to those who hate you, and pray for those who spitefully accuse you and persecute you; see Luke 6:27–28.",
+            "caller": "+"
+          }
+        ],
+        "poem": [
+          {
+            "start": 0,
+            "end": 71,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "verse",
+        "number": 45,
+        "text": "that you may be sons of your Father in heaven. He causes His sun to rise on the evil and the good, and sends rain on the righteous and the unrighteous.",
+        "footnotes": [],
+        "poem": [
+          {
+            "start": 0,
+            "end": 151,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "verse",
+        "number": 46,
+        "text": "If you love those who love you, what reward will you get? Do not even tax collectors do the same?",
+        "footnotes": [],
+        "poem": [
+          {
+            "start": 0,
+            "end": 97,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "verse",
+        "number": 47,
+        "text": "And if you greet only your brothers, what are you doing more than others? Do not even Gentiles do the same?",
+        "footnotes": [],
+        "poem": [
+          {
+            "start": 0,
+            "end": 107,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "line_break"
+      },
+      {
+        "type": "verse",
+        "number": 48,
+        "text": "Be perfect, therefore, as your heavenly Father is perfect.",
+        "footnotes": [],
+        "poem": [
+          {
+            "start": 0,
+            "end": 58,
+            "level": 2
+          }
+        ]
+      }
+    ],
+    "footnotes": []
+  },
+  "fullChapterApiLink": "/api/BSB/MAT/5.json"
+}

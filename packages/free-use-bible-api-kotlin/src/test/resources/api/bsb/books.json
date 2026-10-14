@@ -1,0 +1,46 @@
+{
+  "translation": {
+    "id": "bsb",
+    "name": "Berean Standard Bible",
+    "englishName": "Berean Standard Bible",
+    "shortName": "BSB",
+    "language": "eng",
+    "licenseUrl": "https://berean.bible/terms.htm",
+    "website": "https://berean.bible",
+    "textDirection": "ltr",
+    "availableFormats": [
+      "json"
+    ],
+    "listOfBooksApiLink": "/api/bsb/books.json",
+    "completeTranslationApiLink": "/api/bsb/complete.json",
+    "simpleCompleteTranslationApiLink": "/api/bsb/complete.simple.json",
+    "numberOfBooks": 1,
+    "totalNumberOfChapters": 2,
+    "totalNumberOfVerses": 3
+  },
+  "books": [
+    {
+      "id": "GEN",
+      "name": "Genesis",
+      "commonName": "Genesis",
+      "title": "Genesis",
+      "order": 1,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/bsb/GEN/1.json",
+      "firstChapterReference": {
+        "translationId": "bsb",
+        "book": "GEN",
+        "chapter": 1
+      },
+      "lastChapterNumber": 2,
+      "lastChapterApiLink": "/api/bsb/GEN/2.json",
+      "lastChapterReference": {
+        "translationId": "bsb",
+        "book": "GEN",
+        "chapter": 2
+      },
+      "numberOfChapters": 2,
+      "totalNumberOfVerses": 3
+    }
+  ]
+}
