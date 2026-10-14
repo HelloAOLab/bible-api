@@ -113,11 +113,35 @@ The stylesheet uses `--fuba-*` CSS variables for every color and font, so you ca
 }
 ```
 
+### Light and dark mode
+
+The reader follows the device's light/dark setting. To force one, pass `theme`:
+
+```tsx
+<BibleReader readingState={readingState} theme={isDark ? 'dark' : 'light'} />
+```
+
+`theme` is `'system'` (the default), `'light'`, or `'dark'`. Without React, set `color-scheme` on the reader yourself: `.fuba-bible-reader { color-scheme: dark; }`.
+
+Each color variable holds both modes, as `light-dark(<light>, <dark>)`. A plain color in your override is used in both modes; to set the two separately, use `light-dark()` too:
+
+```css
+.my-app {
+    --fuba-accent-color: light-dark(rebeccapurple, plum);
+}
+```
+
+`light-dark()` needs Chrome 123, Firefox 120, or Safari 17.5 or newer. Older browsers fall back to the browser's default colors.
+
+### Rendering a chapter on its own
+
 To render a chapter without the reader around it, use `ChapterContent`:
 
 ```tsx
 <ChapterContent chapter={chapter} />
 ```
+
+It takes the same `theme`, `highlights`, and `elements` (the `scriptureElements` settings) as the reader.
 
 ## Highlighting verses
 

@@ -8,110 +8,109 @@
  * The defaults live on `:root` rather than on the reader: a value declared on
  * the reader itself would beat one inherited from an ancestor, so overriding on
  * an ancestor would silently do nothing.
+ *
+ * Colors hold both modes as `light-dark(<light>, <dark>)`, resolved by the
+ * `color-scheme` of whatever element uses them. That is what lets the `theme`
+ * prop force a mode by setting only `color-scheme` on the reader, without
+ * redeclaring any variable (which would beat an ancestor's override again).
  */
 :root {
     --fuba-font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
     --fuba-verse-font-family: Georgia, 'Times New Roman', serif;
-    --fuba-font-color: #1f2328;
-    --fuba-muted-color: #656d76;
-    --fuba-background: #ffffff;
-    --fuba-border-color: #d0d7de;
-    --fuba-accent-color: #0969da;
-    --fuba-words-of-jesus-color: #b42318;
-    --fuba-selected-verse-color: #0969da;
-    --fuba-emphasis-color: #fff2b3;
-    --fuba-skeleton-color: #eaeef2;
+    --fuba-font-color: light-dark(#1f2328, #e6edf3);
+    --fuba-muted-color: light-dark(#656d76, #8d96a0);
+    --fuba-background: light-dark(#ffffff, #0d1117);
+    --fuba-border-color: light-dark(#d0d7de, #30363d);
+    --fuba-accent-color: light-dark(#0969da, #4493f8);
+    --fuba-words-of-jesus-color: light-dark(#b42318, #ff7b72);
+    --fuba-selected-verse-color: light-dark(#0969da, #4493f8);
+    --fuba-emphasis-color: light-dark(#fff2b3, #5a4a00);
+    --fuba-skeleton-color: light-dark(#eaeef2, #21262d);
     --fuba-verse-line-height: 1.7;
 
-    /* Highlight presets: the ribbon color, plus a readable text color on top. */
-    --fuba-highlight-yellow-color: #fff59d;
-    --fuba-highlight-yellow-font-color: #333;
-    --fuba-highlight-yellow-words-of-jesus-font-color: #e07b4c;
-    --fuba-highlight-green-color: #a5d6a7;
-    --fuba-highlight-green-font-color: #333;
-    --fuba-highlight-green-words-of-jesus-font-color: #e07b4c;
-    --fuba-highlight-cyan-color: #80deea;
-    --fuba-highlight-cyan-font-color: #333;
-    --fuba-highlight-cyan-words-of-jesus-font-color: #e07b4c;
-    --fuba-highlight-blue-color: #90caf9;
-    --fuba-highlight-blue-font-color: #333;
-    --fuba-highlight-blue-words-of-jesus-font-color: #e07b4c;
-    --fuba-highlight-red-color: #ef9a9a;
-    --fuba-highlight-red-font-color: #333;
-    --fuba-highlight-red-words-of-jesus-font-color: #c62828;
-    --fuba-highlight-magenta-color: #ea80fc;
-    --fuba-highlight-magenta-font-color: #333;
-    --fuba-highlight-magenta-words-of-jesus-font-color: #e07b4c;
-    --fuba-highlight-pink-color: #f48fb1;
-    --fuba-highlight-pink-font-color: #333;
-    --fuba-highlight-pink-words-of-jesus-font-color: #e07b4c;
-    --fuba-highlight-purple-color: #ce93d8;
-    --fuba-highlight-purple-font-color: #333;
-    --fuba-highlight-purple-words-of-jesus-font-color: #e07b4c;
-    --fuba-highlight-orange-color: #ffcc80;
-    --fuba-highlight-orange-font-color: #333;
-    --fuba-highlight-orange-words-of-jesus-font-color: #e07b4c;
-    --fuba-highlight-cream-color: #fff8e1;
-    --fuba-highlight-cream-font-color: #333;
-    --fuba-highlight-cream-words-of-jesus-font-color: #e07b4c;
-    --fuba-highlight-gray-color: #cfd8dc;
-    --fuba-highlight-gray-font-color: #333;
-    --fuba-highlight-gray-words-of-jesus-font-color: #e07b4c;
-    --fuba-highlight-tan-color: #e0c9a6;
-    --fuba-highlight-tan-font-color: #333;
-    --fuba-highlight-tan-words-of-jesus-font-color: #e07b4c;
+    /* Highlight presets: the ribbon color, plus a readable text color on top.
+       Dark mode uses solid, darker hues so white text stays legible. */
+    --fuba-highlight-yellow-color: light-dark(#fff59d, #756a0a);
+    --fuba-highlight-yellow-font-color: light-dark(#333, #ffffff);
+    --fuba-highlight-yellow-words-of-jesus-font-color: light-dark(
+        #e07b4c,
+        #ff9e80
+    );
+    --fuba-highlight-green-color: light-dark(#a5d6a7, #2f6d3a);
+    --fuba-highlight-green-font-color: light-dark(#333, #ffffff);
+    --fuba-highlight-green-words-of-jesus-font-color: light-dark(
+        #e07b4c,
+        #ff9e80
+    );
+    --fuba-highlight-cyan-color: light-dark(#80deea, #1a6b73);
+    --fuba-highlight-cyan-font-color: light-dark(#333, #ffffff);
+    --fuba-highlight-cyan-words-of-jesus-font-color: light-dark(
+        #e07b4c,
+        #ff9e80
+    );
+    --fuba-highlight-blue-color: light-dark(#90caf9, #2f5f9e);
+    --fuba-highlight-blue-font-color: light-dark(#333, #ffffff);
+    --fuba-highlight-blue-words-of-jesus-font-color: light-dark(
+        #e07b4c,
+        #ff9e80
+    );
+    --fuba-highlight-red-color: light-dark(#ef9a9a, #8e3a3a);
+    --fuba-highlight-red-font-color: light-dark(#333, #ffffff);
+    --fuba-highlight-red-words-of-jesus-font-color: light-dark(
+        #c62828,
+        #ff9e80
+    );
+    --fuba-highlight-magenta-color: light-dark(#ea80fc, #7a2f6e);
+    --fuba-highlight-magenta-font-color: light-dark(#333, #ffffff);
+    --fuba-highlight-magenta-words-of-jesus-font-color: light-dark(
+        #e07b4c,
+        #ff9e80
+    );
+    --fuba-highlight-pink-color: light-dark(#f48fb1, #93395c);
+    --fuba-highlight-pink-font-color: light-dark(#333, #ffffff);
+    --fuba-highlight-pink-words-of-jesus-font-color: light-dark(
+        #e07b4c,
+        #ff9e80
+    );
+    --fuba-highlight-purple-color: light-dark(#ce93d8, #5b4489);
+    --fuba-highlight-purple-font-color: light-dark(#333, #ffffff);
+    --fuba-highlight-purple-words-of-jesus-font-color: light-dark(
+        #e07b4c,
+        #ff9e80
+    );
+    --fuba-highlight-orange-color: light-dark(#ffcc80, #98551c);
+    --fuba-highlight-orange-font-color: light-dark(#333, #ffffff);
+    --fuba-highlight-orange-words-of-jesus-font-color: light-dark(
+        #e07b4c,
+        #ff9e80
+    );
+    --fuba-highlight-cream-color: light-dark(#fff8e1, #6b6040);
+    --fuba-highlight-cream-font-color: light-dark(#333, #ffffff);
+    --fuba-highlight-cream-words-of-jesus-font-color: light-dark(
+        #e07b4c,
+        #ff9e80
+    );
+    --fuba-highlight-gray-color: light-dark(#cfd8dc, #4a4a4a);
+    --fuba-highlight-gray-font-color: light-dark(#333, #ffffff);
+    --fuba-highlight-gray-words-of-jesus-font-color: light-dark(
+        #e07b4c,
+        #ff9e80
+    );
+    --fuba-highlight-tan-color: light-dark(#e0c9a6, #6d4c33);
+    --fuba-highlight-tan-font-color: light-dark(#333, #ffffff);
+    --fuba-highlight-tan-words-of-jesus-font-color: light-dark(
+        #e07b4c,
+        #ff9e80
+    );
 }
 
-@media (prefers-color-scheme: dark) {
-    :root {
-        --fuba-font-color: #e6edf3;
-        --fuba-muted-color: #8d96a0;
-        --fuba-background: #0d1117;
-        --fuba-border-color: #30363d;
-        --fuba-accent-color: #4493f8;
-        --fuba-words-of-jesus-color: #ff7b72;
-        --fuba-selected-verse-color: #4493f8;
-        --fuba-emphasis-color: #5a4a00;
-        --fuba-skeleton-color: #21262d;
-
-        /* Solid, darker hues so white text stays legible on top. */
-        --fuba-highlight-yellow-color: #756a0a;
-        --fuba-highlight-yellow-font-color: #ffffff;
-        --fuba-highlight-yellow-words-of-jesus-font-color: #ff9e80;
-        --fuba-highlight-green-color: #2f6d3a;
-        --fuba-highlight-green-font-color: #ffffff;
-        --fuba-highlight-green-words-of-jesus-font-color: #ff9e80;
-        --fuba-highlight-cyan-color: #1a6b73;
-        --fuba-highlight-cyan-font-color: #ffffff;
-        --fuba-highlight-cyan-words-of-jesus-font-color: #ff9e80;
-        --fuba-highlight-blue-color: #2f5f9e;
-        --fuba-highlight-blue-font-color: #ffffff;
-        --fuba-highlight-blue-words-of-jesus-font-color: #ff9e80;
-        --fuba-highlight-red-color: #8e3a3a;
-        --fuba-highlight-red-font-color: #ffffff;
-        --fuba-highlight-red-words-of-jesus-font-color: #ff9e80;
-        --fuba-highlight-magenta-color: #7a2f6e;
-        --fuba-highlight-magenta-font-color: #ffffff;
-        --fuba-highlight-magenta-words-of-jesus-font-color: #ff9e80;
-        --fuba-highlight-pink-color: #93395c;
-        --fuba-highlight-pink-font-color: #ffffff;
-        --fuba-highlight-pink-words-of-jesus-font-color: #ff9e80;
-        --fuba-highlight-purple-color: #5b4489;
-        --fuba-highlight-purple-font-color: #ffffff;
-        --fuba-highlight-purple-words-of-jesus-font-color: #ff9e80;
-        --fuba-highlight-orange-color: #98551c;
-        --fuba-highlight-orange-font-color: #ffffff;
-        --fuba-highlight-orange-words-of-jesus-font-color: #ff9e80;
-        --fuba-highlight-cream-color: #6b6040;
-        --fuba-highlight-cream-font-color: #ffffff;
-        --fuba-highlight-cream-words-of-jesus-font-color: #ff9e80;
-        --fuba-highlight-gray-color: #4a4a4a;
-        --fuba-highlight-gray-font-color: #ffffff;
-        --fuba-highlight-gray-words-of-jesus-font-color: #ff9e80;
-        --fuba-highlight-tan-color: #6d4c33;
-        --fuba-highlight-tan-font-color: #ffffff;
-        --fuba-highlight-tan-words-of-jesus-font-color: #ff9e80;
-    }
+/* Follows the system's light/dark setting unless the `theme` prop (or your own
+   `color-scheme`) says otherwise. Set here rather than on :root so the host
+   page's own colors are left alone. A chapter rendered inside the reader
+   inherits the reader's scheme instead of resetting it. */
+.fuba-bible-reader,
+.fuba-chapter-content:not(.fuba-bible-reader *) {
+    color-scheme: light dark;
 }
 
 .fuba-bible-reader {

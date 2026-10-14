@@ -166,6 +166,19 @@ describe('ChapterContent highlights', () => {
     });
 });
 
+describe('ChapterContent theme', () => {
+    it('forces a color scheme on its own container', () => {
+        const { container } = render(
+            <ChapterContent chapter={GEN_1} theme="dark" />
+        );
+
+        expect(
+            container.querySelector<HTMLElement>('.fuba-chapter-content')!.style
+                .colorScheme
+        ).toBe('dark');
+    });
+});
+
 describe('HighlightLayer', () => {
     const realCreateRange = document.createRange;
 

@@ -15,6 +15,7 @@ import type {
     VerseDecoration,
 } from './BibleReadingManager.js';
 import { HighlightLayer, useHighlightRibbons } from './HighlightLayer.js';
+import { themeColorScheme } from './theme.js';
 
 /** Which parts of the text the reader shows. */
 export interface ScriptureElements {
@@ -33,6 +34,11 @@ export const DEFAULT_SCRIPTURE_ELEMENTS: ScriptureElements = {
     showRedLettering: true,
     showHighlights: true,
 };
+
+/**
+ * Light or dark colors. `system` follows the device's setting.
+ */
+export type ReaderTheme = 'system' | 'light' | 'dark';
 
 /**
  * A highlighted verse or range of verses, drawn as a rounded ribbon behind the
@@ -473,6 +479,11 @@ export interface ChapterContentProps {
     /** Extra classes for the container element. */
     className?: string;
     'aria-busy'?: AriaAttributes['aria-busy'];
+    /**
+     * Forces light or dark colors. Defaults to `system`. Inside a `BibleReader`,
+     * set the reader's `theme` instead; this chapter follows it.
+     */
+    theme?: ReaderTheme;
     /** Called when a verse is clicked. Omit to make verses non-interactive. */
     onVerseClick?: (verse: BibleSelectedVerse, event: MouseEvent) => void;
     onOpenFootnote?: (noteId: number, verse: ChapterVerse | null) => void;
@@ -827,6 +838,7 @@ export function ChapterContent(props: ChapterContentProps) {
                 .filter(Boolean)
                 .join(' ')}
             aria-busy={props['aria-busy']}
+            style={{ colorScheme: themeColorScheme(props.theme) }}
         >
             <HighlightLayer ribbons={ribbons} />
             {nodes}

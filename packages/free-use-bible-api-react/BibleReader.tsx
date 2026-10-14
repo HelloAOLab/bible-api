@@ -3,10 +3,12 @@ import type { BibleReadingState } from './BibleReadingManager.js';
 import {
     ChapterContent,
     DEFAULT_SCRIPTURE_ELEMENTS,
+    type ReaderTheme,
     type ScriptureElements,
     type VerseHighlight,
 } from './ChapterContent.js';
 import { useSignalValue } from './hooks.js';
+import { themeColorScheme } from './theme.js';
 
 /**
  * How long a chapter switch keeps showing the previous chapter (dimmed) before
@@ -66,6 +68,8 @@ export interface BibleReaderProps {
      * ones for the chapter on screen.
      */
     highlights?: VerseHighlight[];
+    /** Forces light or dark colors. Defaults to `system`, which follows the device. */
+    theme?: ReaderTheme;
 }
 
 const SKELETON_PARAGRAPHS = [
@@ -111,6 +115,7 @@ export function BibleReader(props: BibleReaderProps) {
         selectableVerses = true,
         headerActions,
         highlights,
+        theme,
     } = props;
     const elements: ScriptureElements = {
         ...DEFAULT_SCRIPTURE_ELEMENTS,
@@ -236,6 +241,7 @@ export function BibleReader(props: BibleReaderProps) {
                 chapterData?.translation.textDirection
             }
             lang={translation?.language ?? chapterData?.translation.language}
+            style={{ colorScheme: themeColorScheme(theme) }}
         >
             {showHeader && (
                 <div className="fuba-bible-reader-header">

@@ -294,6 +294,19 @@ describe('BibleReader', () => {
         ).toEqual(['fuba-highlight fuba-highlight-red']);
     });
 
+    it.each([
+        ['dark', 'dark'],
+        ['light', 'light'],
+        ['system', ''],
+        [undefined, ''],
+    ] as const)('theme %s sets color-scheme to "%s"', (theme, expected) => {
+        const { container } = renderReader(undefined, { theme });
+
+        const reader =
+            container.querySelector<HTMLElement>('.fuba-bible-reader')!;
+        expect(reader.style.colorScheme).toBe(expected);
+    });
+
     it('uses custom labels', async () => {
         renderReader(undefined, {
             labels: { nextChapter: 'Siguiente capítulo' },

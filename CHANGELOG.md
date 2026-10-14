@@ -22,6 +22,7 @@ This is the log of changes for the Free Use Bible API.
     -   `createBibleReadingState()` (or the `useBibleReadingState()` hook) tracks where the reader is and moves them between translations, books, and chapters. It also handles verse selection and verse decorations.
     -   `createBibleDataManager()` (or the `useBibleDataManager()` hook) loads and caches translations, book lists, and chapters, from the public API or a self-hosted endpoint.
     -   `BibleReader` and `ChapterContent` draw verse highlights as rounded ribbons behind the text, like Seed Bible. Neighbouring verses with the same color share one ribbon, and the ribbons follow ragged line ends, poetry indentation, and right-to-left text. There are 12 preset colors with light and dark mode values, and custom colors are supported.
+    -   The reader follows the device's light or dark mode, or can be forced to one with the `theme` prop (`'system'`, `'light'`, or `'dark'`). Colors and fonts are CSS variables that can be overridden on the reader or any element around it.
 
 ### :warning: Changes
 
