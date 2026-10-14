@@ -16,6 +16,7 @@ This is the log of changes for the Free Use Bible API.
 -   Entries in `/api/available_datasets.json` can now include `totalNumberOfWords`, `listOfLexiconApiLink`, and `totalNumberOfLexicon`.
 -   Added the `fetch-interlinear <dir>` and `import-interlinear <dir>` CLI commands (and the `fetch:bible:interlinear` and `import:bible:interlinear` scripts) for downloading and importing the interlinear sources.
 -   The `@helloao/free-use-bible-api` client has new `getDatasetLexicon()` and `getDatasetLexiconEntry()` methods.
+-   Added the `generate-chapter-audio <translation> <book> <chapter>` CLI command, which reads a chapter aloud with a [VoiceStudio](https://github.com/debpalash/VoiceStudio) server and writes a WAV file. Headings and footnotes are not read, and verse markers are ignored. Poetry is read line by line with a pause after each line, prose has brief pauses after sentences, and there are longer pauses between paragraphs, stanzas, and sections. Every pause and speed can be adjusted, and `--dry-run` prints the reading script without generating audio. It also writes the time that each verse starts in the audio, in the format that `import-audio-timings` reads.
 
 ### :warning: Changes
 
