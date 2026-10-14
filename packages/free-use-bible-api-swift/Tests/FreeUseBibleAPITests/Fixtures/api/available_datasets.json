@@ -1,0 +1,95 @@
+{
+  "datasets": [
+    {
+      "id": "open-cross-ref",
+      "name": "Bible Cross References",
+      "website": "https://www.openbible.info/labs/cross-references/",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "licenseNotes": "Changes were made to the data to fit the Free Use Bible API format.",
+      "englishName": "Bible Cross References",
+      "language": "eng",
+      "textDirection": "ltr",
+      "availableFormats": [
+        "json"
+      ],
+      "listOfBooksApiLink": "/api/d/open-cross-ref/books.json",
+      "numberOfBooks": 66,
+      "totalNumberOfChapters": 1189,
+      "totalNumberOfVerses": 29364,
+      "totalNumberOfReferences": 344799,
+      "languageName": "English",
+      "languageEnglishName": "English"
+    },
+    {
+      "id": "theographic",
+      "name": "Theographic Bible Metadata",
+      "website": "https://github.com/robertrouse/theographic-bible-metadata",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "licenseNotes": "Changes were made to the data to fit the Free Use Bible API format.",
+      "englishName": "Theographic Bible Metadata",
+      "language": "eng",
+      "textDirection": "ltr",
+      "availableFormats": [
+        "json"
+      ],
+      "listOfBooksApiLink": "/api/d/theographic/books.json",
+      "numberOfBooks": 66,
+      "totalNumberOfChapters": 1182,
+      "totalNumberOfVerses": 24547,
+      "totalNumberOfReferences": 53120,
+      "languageName": "English",
+      "languageEnglishName": "English",
+      "listOfPeopleApiLink": "/api/d/theographic/people.json",
+      "totalNumberOfPeople": 3067,
+      "listOfPlacesApiLink": "/api/d/theographic/places.json",
+      "totalNumberOfPlaces": 1274,
+      "listOfEventsApiLink": "/api/d/theographic/events.json",
+      "totalNumberOfEvents": 450,
+      "listOfPeopleGroupsApiLink": "/api/d/theographic/groups.json",
+      "totalNumberOfPeopleGroups": 23
+    },
+    {
+      "id": "bsb-interlinear",
+      "name": "Berean Standard Bible Interlinear",
+      "website": "https://bereanbible.com/",
+      "licenseUrl": "https://berean.bible/terms.htm",
+      "licenseNotes": "The Berean Standard Bible and its interlinear tables are in the public domain. Changes were made to the data to fit the Free Use Bible API format.",
+      "englishName": "Berean Standard Bible Interlinear",
+      "language": "eng",
+      "textDirection": "ltr",
+      "availableFormats": [
+        "json"
+      ],
+      "listOfBooksApiLink": "/api/d/bsb-interlinear/books.json",
+      "numberOfBooks": 66,
+      "totalNumberOfChapters": 1189,
+      "totalNumberOfVerses": 31102,
+      "totalNumberOfReferences": 0,
+      "languageName": "English",
+      "languageEnglishName": "English",
+      "totalNumberOfWords": 443625
+    },
+    {
+      "id": "stepbible-lexicon",
+      "name": "STEPBible Brief Lexicons",
+      "website": "https://github.com/STEPBible/STEPBible-Data",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "licenseNotes": "The Translators Brief lexicons of Extended Strongs (TBESH and TBESG) are by STEPBible.org / Tyndale House, Cambridge, and are licensed under CC BY 4.0. Changes were made to the data to fit the Free Use Bible API format.",
+      "englishName": "STEPBible Brief Lexicons",
+      "language": "eng",
+      "textDirection": "ltr",
+      "availableFormats": [
+        "json"
+      ],
+      "listOfBooksApiLink": "/api/d/stepbible-lexicon/books.json",
+      "numberOfBooks": 0,
+      "totalNumberOfChapters": 0,
+      "totalNumberOfVerses": 0,
+      "totalNumberOfReferences": 0,
+      "languageName": "English",
+      "languageEnglishName": "English",
+      "listOfLexiconApiLink": "/api/d/stepbible-lexicon/lexicon.json",
+      "totalNumberOfLexicon": 18085
+    }
+  ]
+}

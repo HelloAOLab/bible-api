@@ -1,0 +1,36 @@
+{
+  "translationId": "engwebp",
+  "bookId": "JHN",
+  "chapterNumber": 1,
+  "thisChapterLink": "/api/engwebp/JHN/1.simple.json",
+  "nextChapterLink": null,
+  "previousChapterLink": null,
+  "thisChapterWordsLink": "/api/engwebp/JHN/1.words.simple.json",
+  "nextChapterWordsLink": null,
+  "previousChapterWordsLink": null,
+  "verses": {
+    "1": [
+      {
+        "start": 0,
+        "end": 2,
+        "strongs": [
+          "G1722"
+        ]
+      },
+      {
+        "start": 3,
+        "end": 6,
+        "strongs": [
+          "G1722"
+        ]
+      },
+      {
+        "start": 7,
+        "end": 16,
+        "strongs": [
+          "G0746"
+        ]
+      }
+    ]
+  }
+}

@@ -39,6 +39,7 @@ import { confirm, input } from '@inquirer/prompts';
 import { log } from '@helloao/tools';
 import { createFreeUseBibleApiOpenApiDocument } from './openapi.js';
 import { createClient } from '@hey-api/openapi-ts';
+import { generateSwiftClient } from './swift.js';
 
 const OPENAPI_CLIENT_LANGUAGES = [
     // ['csharp', 'csharp'],
@@ -353,6 +354,41 @@ async function start() {
             }
 
             logger.log('OpenAPI client generation complete.');
+        });
+
+    program
+        .command('generate-swift-client [dir]')
+        .description(
+            'Generates the types and endpoint methods for the Swift SDK from the OpenAPI document. Writes to packages/free-use-bible-api-swift/Sources/FreeUseBibleAPI by default.'
+        )
+        .action(async (dir: string | undefined) => {
+            const logger = log.getLogger();
+            const outputDir = dir
+                ? path.resolve(dir)
+                : path.resolve(
+                      await findProjectRoot(process.cwd()),
+                      'packages',
+                      'free-use-bible-api-swift',
+                      'Sources',
+                      'FreeUseBibleAPI'
+                  );
+
+            const document = createFreeUseBibleApiOpenApiDocument();
+            const generated = generateSwiftClient(document);
+
+            await mkdir(outputDir, { recursive: true });
+            await writeFile(
+                path.resolve(outputDir, 'Types.gen.swift'),
+                generated.types,
+                'utf-8'
+            );
+            await writeFile(
+                path.resolve(outputDir, 'Operations.gen.swift'),
+                generated.operations,
+                'utf-8'
+            );
+
+            logger.log('Swift client written to:', outputDir);
         });
 
     program

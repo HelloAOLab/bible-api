@@ -27,6 +27,27 @@ jobs:
               env:
                   CI: true
 
+    swift-linux:
+        name: Swift SDK (Linux)
+        runs-on: ubuntu-latest
+        container: swift:6.1
+        steps:
+            - uses: actions/checkout@v4
+            - name: Build
+              run: swift build
+            - name: Test
+              run: swift test
+
+    swift-macos:
+        name: Swift SDK (macOS)
+        runs-on: macOS-latest
+        steps:
+            - uses: actions/checkout@v4
+            - name: Build
+              run: swift build
+            - name: Test
+              run: swift test
+
     audio-timings:
         name: Audio Timings Tool
         runs-on: ubuntu-latest

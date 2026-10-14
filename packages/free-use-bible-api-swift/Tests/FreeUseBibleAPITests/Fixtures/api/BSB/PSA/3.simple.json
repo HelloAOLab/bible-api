@@ -1,0 +1,266 @@
+{
+  "translation": {
+    "id": "BSB",
+    "name": "Berean Standard Bible",
+    "englishName": "Berean Standard Bible",
+    "shortName": "BSB",
+    "language": "eng",
+    "licenseUrl": "https://berean.bible/terms.htm",
+    "website": "https://berean.bible",
+    "textDirection": "ltr",
+    "availableFormats": [
+      "json"
+    ],
+    "listOfBooksApiLink": "/api/BSB/books.json",
+    "completeTranslationApiLink": "/api/BSB/complete.json",
+    "simpleCompleteTranslationApiLink": "/api/BSB/complete.simple.json",
+    "numberOfBooks": 2,
+    "totalNumberOfChapters": 5,
+    "totalNumberOfVerses": 82
+  },
+  "book": {
+    "id": "PSA",
+    "name": "Psalm",
+    "commonName": "Psalms",
+    "title": "Psalm",
+    "order": 19,
+    "firstChapterNumber": 1,
+    "firstChapterApiLink": "/api/BSB/PSA/1.json",
+    "firstChapterReference": {
+      "translationId": "BSB",
+      "book": "PSA",
+      "chapter": 1
+    },
+    "lastChapterNumber": 3,
+    "lastChapterApiLink": "/api/BSB/PSA/3.json",
+    "lastChapterReference": {
+      "translationId": "BSB",
+      "book": "PSA",
+      "chapter": 3
+    },
+    "numberOfChapters": 3,
+    "totalNumberOfVerses": 26
+  },
+  "thisChapterLink": "/api/BSB/PSA/3.simple.json",
+  "thisChapterReference": {
+    "translationId": "BSB",
+    "book": "PSA",
+    "chapter": 3
+  },
+  "thisChapterAudioLinks": {
+    "hays": "https://audio.bible.helloao.org/api/BSB/PSA/3/audio/hays.mp3",
+    "souer": "https://audio.bible.helloao.org/api/BSB/PSA/3/audio/souer.mp3",
+    "david": "https://audio.bible.helloao.org/api/BSB/PSA/3/audio/david.mp3"
+  },
+  "nextChapterApiLink": null,
+  "nextChapterReference": null,
+  "nextChapterAudioLinks": null,
+  "previousChapterApiLink": "/api/BSB/PSA/2.simple.json",
+  "previousChapterReference": {
+    "translationId": "BSB",
+    "book": "PSA",
+    "chapter": 2
+  },
+  "previousChapterAudioLinks": {
+    "hays": "https://audio.bible.helloao.org/api/BSB/PSA/2/audio/hays.mp3",
+    "souer": "https://audio.bible.helloao.org/api/BSB/PSA/2/audio/souer.mp3",
+    "david": "https://audio.bible.helloao.org/api/BSB/PSA/2/audio/david.mp3"
+  },
+  "thisChapterAudioTimings": {},
+  "nextChapterAudioTimings": null,
+  "previousChapterAudioTimings": {},
+  "numberOfVerses": 8,
+  "chapter": {
+    "number": 3,
+    "content": [
+      {
+        "type": "heading",
+        "text": "Deliver Me, O LORD!"
+      },
+      {
+        "type": "line_break"
+      },
+      {
+        "type": "hebrew_subtitle",
+        "text": "A Psalm of David, when he fled from his son Absalom.",
+        "footnotes": [],
+        "poem": [
+          {
+            "start": 0,
+            "end": 52,
+            "level": 1
+          }
+        ]
+      },
+      {
+        "type": "line_break"
+      },
+      {
+        "type": "verse",
+        "number": 1,
+        "text": "O LORD, how my foes have increased!\nHow many rise up against me!",
+        "footnotes": [],
+        "poem": [
+          {
+            "start": 0,
+            "end": 35,
+            "level": 1
+          },
+          {
+            "start": 36,
+            "end": 64,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "verse",
+        "number": 2,
+        "text": "Many say of me,\n“God will not deliver him.” Selah",
+        "footnotes": [
+          {
+            "noteId": 5,
+            "offset": 49,
+            "text": "Selah or Interlude is probably a musical or literary term; here and throughout the Psalms.",
+            "caller": "+"
+          }
+        ],
+        "poem": [
+          {
+            "start": 0,
+            "end": 15,
+            "level": 1
+          },
+          {
+            "start": 16,
+            "end": 49,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "verse",
+        "number": 3,
+        "text": "But You, O LORD, are a shield around me,\nmy glory, and the One who lifts my head.",
+        "footnotes": [],
+        "poem": [
+          {
+            "start": 0,
+            "end": 40,
+            "level": 1
+          },
+          {
+            "start": 41,
+            "end": 81,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "verse",
+        "number": 4,
+        "text": "To the LORD I cry aloud,\nand He answers me from His holy mountain. Selah",
+        "footnotes": [],
+        "poem": [
+          {
+            "start": 0,
+            "end": 24,
+            "level": 1
+          },
+          {
+            "start": 25,
+            "end": 72,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "verse",
+        "number": 5,
+        "text": "I lie down and sleep;\nI wake again, for the LORD sustains me.",
+        "footnotes": [],
+        "poem": [
+          {
+            "start": 0,
+            "end": 21,
+            "level": 1
+          },
+          {
+            "start": 22,
+            "end": 61,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "verse",
+        "number": 6,
+        "text": "I will not fear the myriads\nset against me on every side.",
+        "footnotes": [],
+        "poem": [
+          {
+            "start": 0,
+            "end": 27,
+            "level": 1
+          },
+          {
+            "start": 28,
+            "end": 57,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "line_break"
+      },
+      {
+        "type": "verse",
+        "number": 7,
+        "text": "Arise, O LORD!\nSave me, O my God!\nStrike all my enemies on the jaw;\nbreak the teeth of the wicked.",
+        "footnotes": [],
+        "poem": [
+          {
+            "start": 0,
+            "end": 14,
+            "level": 1
+          },
+          {
+            "start": 15,
+            "end": 33,
+            "level": 2
+          },
+          {
+            "start": 34,
+            "end": 67,
+            "level": 1
+          },
+          {
+            "start": 68,
+            "end": 98,
+            "level": 2
+          }
+        ]
+      },
+      {
+        "type": "verse",
+        "number": 8,
+        "text": "Salvation belongs to the LORD;\nmay Your blessing be on Your people. Selah",
+        "footnotes": [],
+        "poem": [
+          {
+            "start": 0,
+            "end": 30,
+            "level": 1
+          },
+          {
+            "start": 31,
+            "end": 73,
+            "level": 2
+          }
+        ]
+      }
+    ],
+    "footnotes": []
+  },
+  "fullChapterApiLink": "/api/BSB/PSA/3.json"
+}

@@ -12,6 +12,7 @@
         "esbuild": "tsx ./tools/build.ts",
         "clean": "jake -f ./jakefile.cjs clean",
         "build:docs": "cd docs && pnpm build",
+        "generate:swift": "npm run build && node ./packages/helloao-cli/dist/esm/cli.js generate-swift-client",
         "dev:docs": "cd docs && pnpm dev",
         "translate:docs": "tsx ./tools/translate-docs.ts",
         "fill:docs-verses": "tsx ./tools/fill-docs-verses.ts",

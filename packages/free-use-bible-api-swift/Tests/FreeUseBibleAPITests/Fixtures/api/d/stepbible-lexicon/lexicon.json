@@ -1,0 +1,38 @@
+{
+  "dataset": {
+    "id": "stepbible-lexicon",
+    "name": "STEPBible Brief Lexicons",
+    "website": "https://github.com/STEPBible/STEPBible-Data",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+    "licenseNotes": "The Translators Brief lexicons of Extended Strongs (TBESH and TBESG) are by STEPBible.org / Tyndale House, Cambridge, and are licensed under CC BY 4.0. Changes were made to the data to fit the Free Use Bible API format.",
+    "englishName": "STEPBible Brief Lexicons",
+    "language": "eng",
+    "textDirection": "ltr",
+    "availableFormats": [
+      "json"
+    ],
+    "listOfBooksApiLink": "/api/d/stepbible-lexicon/books.json",
+    "numberOfBooks": 0,
+    "totalNumberOfChapters": 0,
+    "totalNumberOfVerses": 0,
+    "totalNumberOfReferences": 0,
+    "languageName": "English",
+    "languageEnglishName": "English",
+    "listOfLexiconApiLink": "/api/d/stepbible-lexicon/lexicon.json",
+    "totalNumberOfLexicon": 18085
+  },
+  "lexicon": [
+    {
+      "id": "G0001",
+      "language": "greek",
+      "name": "α, Ἀλφα",
+      "apiLink": "/api/d/stepbible-lexicon/lexicon/G0001.json"
+    },
+    {
+      "id": "G0002",
+      "language": "greek",
+      "name": "Ἀαρών",
+      "apiLink": "/api/d/stepbible-lexicon/lexicon/G0002.json"
+    }
+  ]
+}

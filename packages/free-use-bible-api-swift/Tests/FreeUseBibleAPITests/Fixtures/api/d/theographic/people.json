@@ -1,0 +1,46 @@
+{
+  "dataset": {
+    "id": "theographic",
+    "name": "Theographic Bible Metadata",
+    "website": "https://github.com/robertrouse/theographic-bible-metadata",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "licenseNotes": "Changes were made to the data to fit the Free Use Bible API format.",
+    "englishName": "Theographic Bible Metadata",
+    "language": "eng",
+    "textDirection": "ltr",
+    "availableFormats": [
+      "json"
+    ],
+    "listOfBooksApiLink": "/api/d/theographic/books.json",
+    "numberOfBooks": 66,
+    "totalNumberOfChapters": 1182,
+    "totalNumberOfVerses": 24547,
+    "totalNumberOfReferences": 53120,
+    "languageName": "English",
+    "languageEnglishName": "English",
+    "listOfPeopleApiLink": "/api/d/theographic/people.json",
+    "totalNumberOfPeople": 3067,
+    "listOfPlacesApiLink": "/api/d/theographic/places.json",
+    "totalNumberOfPlaces": 1274,
+    "listOfEventsApiLink": "/api/d/theographic/events.json",
+    "totalNumberOfEvents": 450,
+    "listOfPeopleGroupsApiLink": "/api/d/theographic/groups.json",
+    "totalNumberOfPeopleGroups": 23
+  },
+  "people": [
+    {
+      "id": "paul_2479",
+      "name": "Paul",
+      "gender": "Male",
+      "numberOfReferences": 150,
+      "thisPersonApiLink": "/api/d/theographic/people/paul_2479.json"
+    },
+    {
+      "id": "peter_2745",
+      "name": "Simon Peter",
+      "gender": "Male",
+      "numberOfReferences": 129,
+      "thisPersonApiLink": "/api/d/theographic/people/peter_2745.json"
+    }
+  ]
+}

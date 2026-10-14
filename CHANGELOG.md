@@ -16,6 +16,7 @@ This is the log of changes for the Free Use Bible API.
 -   Entries in `/api/available_datasets.json` can now include `totalNumberOfWords`, `listOfLexiconApiLink`, and `totalNumberOfLexicon`.
 -   Added the `fetch-interlinear <dir>` and `import-interlinear <dir>` CLI commands (and the `fetch:bible:interlinear` and `import:bible:interlinear` scripts) for downloading and importing the interlinear sources.
 -   The `@helloao/free-use-bible-api` client has new `getDatasetLexicon()` and `getDatasetLexiconEntry()` methods.
+-   Added a Swift SDK (`FreeUseBibleAPI`), available with Swift Package Manager from this repository. Its types and endpoint methods are generated from the OpenAPI document with the new `generate-swift-client` CLI command (`npm run generate:swift`).
 
 ### :warning: Changes
 
