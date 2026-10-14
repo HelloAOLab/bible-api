@@ -1111,7 +1111,7 @@ async function start() {
         .command('generate-chapter-audio <translation> <book> <chapter>')
         .description(
             `Generates audio for a chapter using the VoiceStudio audio generation API (POST /generate).
-The chapter is loaded from --input, --db, or the Free Use Bible API (in that order).
+The chapter is fetched from the Free Use Bible API (--api-url).
 Headings and footnotes are not read, and verse markers are ignored.
 Poetry is read line by line with a pause after each line. Prose is read with brief pauses after sentences.
 There are longer pauses between paragraphs, stanzas, and sections.
@@ -1122,12 +1122,8 @@ Use --dry-run to see the reading script (with VoiceStudio [pause] markers) witho
             'The WAV file to write. Defaults to "{translation}-{book}-{chapter}.wav".'
         )
         .option(
-            '--input <file>',
-            'A chapter JSON file (a Free Use Bible API chapter response or its "chapter" object) to read from.'
-        )
-        .option(
             '--api-url <url>',
-            'The Free Use Bible API to fetch the chapter from when no --db or --input is given.',
+            'The Free Use Bible API to fetch the chapter from.',
             'https://bible.helloao.org/api'
         )
         .option(

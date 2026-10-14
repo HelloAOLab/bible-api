@@ -5,6 +5,7 @@ import type {
     ChapterContent,
     ChapterData,
     ChapterVerse,
+    TranslationBookChapter,
 } from '@helloao/tools/generation/common-types.js';
 import { getBookId } from '@helloao/tools/utils.js';
 
@@ -703,18 +704,8 @@ export function joinWavs(
 
 export interface GenerateChapterAudioOptions {
     /**
-     * The path to the database to load the chapter from.
-     */
-    db?: string | null;
-
-    /**
-     * The path to a chapter JSON file to load the chapter from.
-     * Either a `ChapterData` object or a Free Use Bible API chapter response.
-     */
-    input?: string;
-
-    /**
-     * The URL of the Free Use Bible API to load the chapter from when no database or input is given.
+     * The URL of the Free Use Bible API to load the chapter from.
+     * Defaults to https://bible.helloao.org/api.
      */
     apiUrl?: string;
 
@@ -806,11 +797,11 @@ export async function generateChapterAudio(
         throw new Error(`Invalid chapter number: ${chapterNumber}`);
     }
 
-    const chapter = await loadChapter(
+    const chapter = await fetchChapter(
         translationId,
         bookId,
         chapterNumber,
-        options
+        options.apiUrl
     );
     const instructions = getReadingInstructions(options);
     const sections = planChapterReading(chapter, instructions);
@@ -938,47 +929,17 @@ async function postGenerate(
     }
 }
 
-async function loadChapter(
+/**
+ * Fetches the given chapter from the Free Use Bible API.
+ */
+async function fetchChapter(
     translationId: string,
     bookId: string,
     chapterNumber: number,
-    options: GenerateChapterAudioOptions
+    apiUrl: string = 'https://bible.helloao.org/api'
 ): Promise<ChapterData> {
     const logger = log.getLogger();
-    if (options.input) {
-        return unwrapChapter(
-            JSON.parse(await readFile(options.input, 'utf-8'))
-        );
-    }
-
-    if (options.db) {
-        // Imported lazily so that the reading planner can be used without the database.
-        const { getDb } = await import('./db.js');
-        const db = await getDb(options.db);
-        try {
-            const row = db
-                .prepare(
-                    'SELECT json FROM Chapter WHERE translationId = ? AND bookId = ? AND number = ?;'
-                )
-                .get(translationId, bookId, chapterNumber) as
-                | { json: string }
-                | undefined;
-            if (!row) {
-                throw new Error(
-                    `Chapter not found in the database: ${translationId} ${bookId} ${chapterNumber}`
-                );
-            }
-            return unwrapChapter(JSON.parse(row.json));
-        } finally {
-            db.close();
-        }
-    }
-
-    const apiUrl = (options.apiUrl ?? 'https://bible.helloao.org/api').replace(
-        /\/+$/,
-        ''
-    );
-    const url = `${apiUrl}/${translationId}/${bookId}/${chapterNumber}.json`;
+    const url = `${apiUrl.replace(/\/+$/, '')}/${translationId}/${bookId}/${chapterNumber}.json`;
     logger.log('Fetching chapter from', url);
     const response = await fetch(url);
     if (!response.ok) {
@@ -986,18 +947,11 @@ async function loadChapter(
             `Failed to fetch ${url}: ${response.status} ${response.statusText}`
         );
     }
-    return unwrapChapter(await response.json());
-}
-
-/**
- * Gets the chapter data from either a `ChapterData` object or a chapter API response.
- */
-function unwrapChapter(json: any): ChapterData {
-    const chapter = json && !Array.isArray(json.content) ? json.chapter : json;
-    if (!chapter || !Array.isArray(chapter.content)) {
-        throw new Error('The chapter JSON does not contain any content.');
+    const json = (await response.json()) as Partial<TranslationBookChapter>;
+    if (!Array.isArray(json?.chapter?.content)) {
+        throw new Error(`The response from ${url} does not contain a chapter.`);
     }
-    return chapter;
+    return json.chapter;
 }
 
 function getReadingInstructions(
