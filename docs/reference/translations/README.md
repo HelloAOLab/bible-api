@@ -75,6 +75,25 @@ interface Translation {
     licenseUrl: string;
 
     /**
+     * The API-added notes for the license.
+     * Null or undefined if there are no notes.
+     */
+    licenseNotes?: string | null;
+
+    /**
+     * The notice that should be displayed when displaying content from the translation.
+     * Null or undefined if the translation doesn't have a notice.
+     */
+    licenseNotice?: string | null;
+
+    /**
+     * The structured license terms that were detected for the translation.
+     * Null or undefined if the terms could not be determined.
+     * In that case, check the page at licenseUrl for the terms.
+     */
+    license?: License | null;
+
+    /**
      * The short name for the translation.
      */
     shortName: string;
@@ -152,7 +171,59 @@ interface Translation {
      */
     totalNumberOfApocryphalVerses?: number;
 }
+
+/**
+ * Defines the structured license terms that were detected for a translation.
+ */
+interface License {
+    /**
+     * Whether attribution to the original source is required when using the translation.
+     */
+    attribution: 'required' | 'not-required';
+
+    /**
+     * Whether commercial use of the translation is allowed.
+     */
+    commercialUse: 'allowed' | 'not-allowed';
+
+    /**
+     * Whether creating and distributing derivative works of the translation is allowed.
+     */
+    derivatives: 'allowed' | 'not-allowed';
+
+    /**
+     * Whether derivative works must be distributed under the same license (i.e. a "share-alike" requirement).
+     */
+    copyleft: boolean;
+
+    /**
+     * Whether the translation has been dedicated to the public domain.
+     */
+    publicDomain: boolean;
+}
 ```
+
+### Licenses
+
+Each translation is published under its own license, so check a translation's terms before you use it.
+
+-   `licenseUrl` always links to the full license terms.
+-   `licenseNotice`, when present, is the copyright or attribution notice to display alongside content from the translation.
+-   `licenseNotes` contains notes added by the API, such as changes that were made to the source text.
+-   `license`, when present, summarizes the terms in a form your code can check. For example, you can filter the list down to translations that allow commercial use:
+
+```ts:no-line-numbers title="commercial-translations.js"
+fetch(`https://bible.helloao.org/api/available_translations.json`)
+    .then(request => request.json())
+    .then(({ translations }) => {
+        const commercial = translations.filter(
+            t => t.license?.commercialUse === 'allowed'
+        );
+        console.log('Translations that allow commercial use:', commercial);
+    });
+```
+
+`license` is only set when the terms could be detected automatically. Translations without it may still allow your use, so read the page at `licenseUrl` for those.
 
 ### Example
 
