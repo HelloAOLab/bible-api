@@ -4,5 +4,6 @@ import * as uploads from './uploads.js';
 import * as actions from './actions.js';
 import * as files from './files.js';
 import * as s3 from './s3.js';
+import * as voicestudio from './voicestudio.js';
 
-export { db, downloads, uploads, actions, files, s3 };
+export { db, downloads, uploads, actions, files, s3, voicestudio };

@@ -39,6 +39,10 @@ import { confirm, input } from '@inquirer/prompts';
 import { log } from '@helloao/tools';
 import { createFreeUseBibleApiOpenApiDocument } from './openapi.js';
 import { createClient } from '@hey-api/openapi-ts';
+import {
+    DEFAULT_READING_INSTRUCTIONS as READING,
+    generateChapterAudio,
+} from './voicestudio.js';
 
 const OPENAPI_CLIENT_LANGUAGES = [
     // ['csharp', 'csharp'],
@@ -1102,6 +1106,134 @@ async function start() {
                 ...options,
             });
         });
+
+    program
+        .command('generate-chapter-audio <translation> <book> <chapter>')
+        .description(
+            `Generates audio for a chapter using the VoiceStudio audio generation API (POST /generate).
+The chapter is loaded from --input, --db, or the Free Use Bible API (in that order).
+Headings and footnotes are not read, and verse markers are ignored.
+Poetry is read line by line with a pause after each line. Prose is read with brief pauses after sentences.
+There are longer pauses between paragraphs, stanzas, and sections.
+Use --dry-run to see the reading script (with VoiceStudio [pause] markers) without generating audio.`
+        )
+        .option(
+            '-o, --output <file>',
+            'The WAV file to write. Defaults to "{translation}-{book}-{chapter}.wav".'
+        )
+        .option(
+            '--input <file>',
+            'A chapter JSON file (a Free Use Bible API chapter response or its "chapter" object) to read from.'
+        )
+        .option(
+            '--api-url <url>',
+            'The Free Use Bible API to fetch the chapter from when no --db or --input is given.',
+            'https://bible.helloao.org/api'
+        )
+        .option(
+            '--voicestudio-url <url>',
+            'The URL of the VoiceStudio server. Defaults to $VOICESTUDIO_URL or http://localhost:3900.'
+        )
+        .option(
+            '--api-key <key>',
+            'The VoiceStudio API key, if the server requires one. Defaults to $VOICESTUDIO_API_KEY.'
+        )
+        .option(
+            '--profile-id <id>',
+            'The VoiceStudio voice profile to read with.'
+        )
+        .option(
+            '--ref-audio <file>',
+            'A reference audio clip to clone the voice from.'
+        )
+        .option('--ref-text <text>', 'The transcript of --ref-audio.')
+        .option(
+            '--instruct <attributes>',
+            'VoiceStudio voice design attributes, e.g. "male, middle-aged, low pitch".'
+        )
+        .option('--language <language>', 'The language of the text.')
+        .option('--engine <engine>', 'The VoiceStudio TTS engine to use.')
+        .option(
+            '--seed <seed>',
+            'The seed to use, for a consistent voice between requests.'
+        )
+        .option('--num-step <steps>', 'The number of synthesis steps.')
+        .option('--speed <speed>', 'The base reading speed.', '1')
+        .option(
+            '--max-request-chars <chars>',
+            'The most characters to send in one request. Longer sections are split between sentences or lines.',
+            '1500'
+        )
+        .option(
+            '--sentence-pause <ms>',
+            `The pause after a sentence. (default: ${READING.sentencePauseMs})`
+        )
+        .option(
+            '--clause-pause <ms>',
+            `The pause where a very long sentence is split. (default: ${READING.clausePauseMs})`
+        )
+        .option(
+            '--line-pause <ms>',
+            `The pause after a line of poetry. (default: ${READING.poetryLinePauseMs})`
+        )
+        .option(
+            '--line-group-pause <ms>',
+            `The pause after a line of poetry that ends a group of lines (the next line is less indented). (default: ${READING.poetryLineGroupPauseMs})`
+        )
+        .option(
+            '--transition-pause <ms>',
+            `The pause where prose flows into poetry (or back) without a paragraph break. (default: ${READING.transitionPauseMs})`
+        )
+        .option(
+            '--paragraph-pause <ms>',
+            `The pause between paragraphs and stanzas. (default: ${READING.paragraphPauseMs})`
+        )
+        .option(
+            '--subtitle-pause <ms>',
+            `The pause after a Hebrew subtitle. (default: ${READING.subtitlePauseMs})`
+        )
+        .option(
+            '--section-pause <ms>',
+            `The pause between sections (where a heading is). (default: ${READING.sectionPauseMs})`
+        )
+        .option(
+            '--prose-speed <multiplier>',
+            `The speed multiplier for prose. (default: ${READING.speed.prose})`
+        )
+        .option(
+            '--poetry-speed <multiplier>',
+            `The speed multiplier for poetry. (default: ${READING.speed.poetry})`
+        )
+        .option(
+            '--subtitle-speed <multiplier>',
+            `The speed multiplier for Hebrew subtitles. (default: ${READING.speed.subtitle})`
+        )
+        .option(
+            '--script <file>',
+            'Writes the reading script to the given file.'
+        )
+        .option(
+            '--dry-run',
+            'Prints the reading script without generating audio.'
+        )
+        .action(
+            async (
+                translation: string,
+                book: string,
+                chapter: string,
+                options: any
+            ) => {
+                await generateChapterAudio(
+                    translation,
+                    book,
+                    parseInt(chapter, 10),
+                    {
+                        ...program.opts(),
+                        ...options,
+                    }
+                );
+            }
+        );
 
     await program.parseAsync(process.argv);
 }
