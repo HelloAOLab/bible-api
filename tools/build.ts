@@ -26,6 +26,10 @@ const fubaIndex = path.resolve(fuba, 'index.ts');
 const fubaPackageJson = path.resolve(fuba, 'package.json');
 const fubaDist = path.resolve(fuba, 'dist');
 
+const fubaReact = path.resolve(packages, 'free-use-bible-api-react');
+const fubaReactPackageJson = path.resolve(fubaReact, 'package.json');
+const fubaReactDist = path.resolve(fubaReact, 'dist');
+
 function getExternals(packageJson: string) {
     const packageData = JSON.parse(
         readFileSync(packageJson, { encoding: 'utf-8' })
@@ -53,13 +57,19 @@ const esmOptions: BuildOptions = {
     platform: 'neutral',
 };
 
-async function entryPoints(path: string): Promise<string[]> {
+async function entryPoints(
+    path: string,
+    ignore: string[] = []
+): Promise<string[]> {
     return await fg([
         `${path}/**/*.[tj]s`,
+        `${path}/**/*.tsx`,
         `!${path}/**/*.spec.ts`,
+        `!${path}/**/*.spec.tsx`,
         `!${path}/**/*.d.ts`,
         `!${path}/dist/**/*`,
         `!${path}/node_modules/**/*`,
+        ...ignore.map((pattern) => `!${path}/${pattern}`),
     ]);
 }
 
@@ -138,10 +148,45 @@ async function buildClient() {
     console.log('Client built successfully!');
 }
 
+async function buildReact() {
+    const packageData = JSON.parse(
+        readFileSync(fubaReactPackageJson, { encoding: 'utf-8' })
+    );
+    const external = [
+        ...Object.keys(packageData.dependencies),
+        ...Object.keys(packageData.peerDependencies),
+        'react/jsx-runtime',
+    ];
+    const options: BuildOptions = {
+        entryPoints: await entryPoints('packages/free-use-bible-api-react', [
+            'test/**/*',
+        ]),
+        jsx: 'automatic',
+    };
+
+    await Promise.all([
+        esbuild.build({
+            ...esmOptions,
+            ...options,
+            outdir: path.resolve(fubaReactDist, 'esm'),
+        }),
+        esbuild.build({
+            ...cjsOptions,
+            ...options,
+            entryPoints: [path.resolve(fubaReact, 'index.ts')],
+            external,
+            outdir: path.resolve(fubaReactDist, 'cjs'),
+        }),
+    ]);
+
+    console.log('React package built successfully!');
+}
+
 async function build() {
     await buildTools();
     await buildCli();
     await buildClient();
+    await buildReact();
 }
 
 build();

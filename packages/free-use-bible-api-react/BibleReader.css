@@ -1,0 +1,587 @@
+/*
+ * Default styles for free-use-bible-api-react.
+ *
+ * Import once with `import 'free-use-bible-api-react/styles.css'`. Every color
+ * and font comes from a `--fuba-*` variable, so you can restyle the reader by
+ * overriding them on `.fuba-bible-reader` or any ancestor.
+ *
+ * The defaults live on `:root` rather than on the reader: a value declared on
+ * the reader itself would beat one inherited from an ancestor, so overriding on
+ * an ancestor would silently do nothing.
+ *
+ * Colors hold both modes as `light-dark(<light>, <dark>)`, resolved by the
+ * `color-scheme` of whatever element uses them. That is what lets the `theme`
+ * prop force a mode by setting only `color-scheme` on the reader, without
+ * redeclaring any variable (which would beat an ancestor's override again).
+ */
+:root {
+    --fuba-font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --fuba-verse-font-family: Georgia, 'Times New Roman', serif;
+    --fuba-font-color: light-dark(#1f2328, #e6edf3);
+    --fuba-muted-color: light-dark(#656d76, #8d96a0);
+    --fuba-background: light-dark(#ffffff, #0d1117);
+    --fuba-border-color: light-dark(#d0d7de, #30363d);
+    --fuba-accent-color: light-dark(#0969da, #4493f8);
+    --fuba-words-of-jesus-color: light-dark(#b42318, #ff7b72);
+    --fuba-selected-verse-color: light-dark(#0969da, #4493f8);
+    --fuba-emphasis-color: light-dark(#fff2b3, #5a4a00);
+    --fuba-skeleton-color: light-dark(#eaeef2, #21262d);
+    --fuba-verse-line-height: 1.7;
+
+    /* Highlight presets: the ribbon color, plus a readable text color on top.
+       Dark mode uses solid, darker hues so white text stays legible. */
+    --fuba-highlight-yellow-color: light-dark(#fff59d, #756a0a);
+    --fuba-highlight-yellow-font-color: light-dark(#333, #ffffff);
+    --fuba-highlight-yellow-words-of-jesus-font-color: light-dark(
+        #e07b4c,
+        #ff9e80
+    );
+    --fuba-highlight-green-color: light-dark(#a5d6a7, #2f6d3a);
+    --fuba-highlight-green-font-color: light-dark(#333, #ffffff);
+    --fuba-highlight-green-words-of-jesus-font-color: light-dark(
+        #e07b4c,
+        #ff9e80
+    );
+    --fuba-highlight-cyan-color: light-dark(#80deea, #1a6b73);
+    --fuba-highlight-cyan-font-color: light-dark(#333, #ffffff);
+    --fuba-highlight-cyan-words-of-jesus-font-color: light-dark(
+        #e07b4c,
+        #ff9e80
+    );
+    --fuba-highlight-blue-color: light-dark(#90caf9, #2f5f9e);
+    --fuba-highlight-blue-font-color: light-dark(#333, #ffffff);
+    --fuba-highlight-blue-words-of-jesus-font-color: light-dark(
+        #e07b4c,
+        #ff9e80
+    );
+    --fuba-highlight-red-color: light-dark(#ef9a9a, #8e3a3a);
+    --fuba-highlight-red-font-color: light-dark(#333, #ffffff);
+    --fuba-highlight-red-words-of-jesus-font-color: light-dark(
+        #c62828,
+        #ff9e80
+    );
+    --fuba-highlight-magenta-color: light-dark(#ea80fc, #7a2f6e);
+    --fuba-highlight-magenta-font-color: light-dark(#333, #ffffff);
+    --fuba-highlight-magenta-words-of-jesus-font-color: light-dark(
+        #e07b4c,
+        #ff9e80
+    );
+    --fuba-highlight-pink-color: light-dark(#f48fb1, #93395c);
+    --fuba-highlight-pink-font-color: light-dark(#333, #ffffff);
+    --fuba-highlight-pink-words-of-jesus-font-color: light-dark(
+        #e07b4c,
+        #ff9e80
+    );
+    --fuba-highlight-purple-color: light-dark(#ce93d8, #5b4489);
+    --fuba-highlight-purple-font-color: light-dark(#333, #ffffff);
+    --fuba-highlight-purple-words-of-jesus-font-color: light-dark(
+        #e07b4c,
+        #ff9e80
+    );
+    --fuba-highlight-orange-color: light-dark(#ffcc80, #98551c);
+    --fuba-highlight-orange-font-color: light-dark(#333, #ffffff);
+    --fuba-highlight-orange-words-of-jesus-font-color: light-dark(
+        #e07b4c,
+        #ff9e80
+    );
+    --fuba-highlight-cream-color: light-dark(#fff8e1, #6b6040);
+    --fuba-highlight-cream-font-color: light-dark(#333, #ffffff);
+    --fuba-highlight-cream-words-of-jesus-font-color: light-dark(
+        #e07b4c,
+        #ff9e80
+    );
+    --fuba-highlight-gray-color: light-dark(#cfd8dc, #4a4a4a);
+    --fuba-highlight-gray-font-color: light-dark(#333, #ffffff);
+    --fuba-highlight-gray-words-of-jesus-font-color: light-dark(
+        #e07b4c,
+        #ff9e80
+    );
+    --fuba-highlight-tan-color: light-dark(#e0c9a6, #6d4c33);
+    --fuba-highlight-tan-font-color: light-dark(#333, #ffffff);
+    --fuba-highlight-tan-words-of-jesus-font-color: light-dark(
+        #e07b4c,
+        #ff9e80
+    );
+}
+
+/* Follows the system's light/dark setting unless the `theme` prop (or your own
+   `color-scheme`) says otherwise. Set here rather than on :root so the host
+   page's own colors are left alone. A chapter rendered inside the reader
+   inherits the reader's scheme instead of resetting it. */
+.fuba-bible-reader,
+.fuba-chapter-content:not(.fuba-bible-reader *) {
+    color-scheme: light dark;
+}
+
+.fuba-bible-reader {
+    font-family: var(--fuba-font-family);
+    color: var(--fuba-font-color);
+    background: var(--fuba-background);
+}
+
+.fuba-visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* ── Header ─────────────────────────────────────────────────────────────── */
+
+.fuba-bible-reader-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding-block: 0.5rem;
+}
+
+.fuba-bible-reader-heading {
+    display: flex;
+    flex: 1;
+    align-items: baseline;
+    gap: 0.5rem;
+    min-width: 0;
+}
+
+.fuba-bible-reader-title {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.fuba-bible-reader-translation {
+    color: var(--fuba-muted-color);
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.fuba-bible-reader-nav {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    padding: 0;
+    border: 1px solid var(--fuba-border-color);
+    border-radius: 999px;
+    background: transparent;
+    color: inherit;
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.fuba-bible-reader-nav:hover:not(:disabled) {
+    border-color: var(--fuba-accent-color);
+    color: var(--fuba-accent-color);
+}
+
+.fuba-bible-reader-nav:disabled {
+    opacity: 0.35;
+    cursor: default;
+}
+
+/* Arrows point the way the text reads. */
+.fuba-bible-reader[dir='rtl'] .fuba-bible-reader-nav span {
+    display: inline-block;
+    transform: scaleX(-1);
+}
+
+/* ── Chapter text ───────────────────────────────────────────────────────── */
+
+.fuba-chapter-content {
+    font-family: var(--fuba-verse-font-family);
+    line-height: var(--fuba-verse-line-height);
+    transition: opacity 0.1s ease;
+
+    /* Positioning context and its own stacking context, so the highlight layer
+       can sit behind the text (z-index: -1) without slipping behind the page
+       background. */
+    position: relative;
+    isolation: isolate;
+}
+
+.fuba-chapter-content-stale {
+    opacity: 0.35;
+    pointer-events: none;
+}
+
+.fuba-chapter-heading {
+    margin: 1.25em 0 0.5em;
+    font-family: var(--fuba-font-family);
+    font-size: 1.125em;
+    line-height: 1.2;
+}
+
+.fuba-line-break {
+    height: 0.625em;
+}
+
+.fuba-subtitle {
+    font-style: italic;
+    color: var(--fuba-muted-color);
+}
+
+.fuba-verse {
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.fuba-verse[role='button'] {
+    cursor: pointer;
+}
+
+.fuba-verse:focus-visible {
+    outline: 2px solid var(--fuba-accent-color);
+    outline-offset: 2px;
+}
+
+.fuba-verse-poetry,
+.fuba-verse-line {
+    display: block;
+}
+
+.fuba-verse-line .fuba-verse-number {
+    margin-inline-start: -1.2em;
+}
+
+.fuba-verse-selected .fuba-verse-decorator {
+    text-decoration: underline dotted;
+    text-decoration-color: var(--fuba-selected-verse-color);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.4em;
+}
+
+/* The leading margin is what separates a verse number from the end of the
+   previous verse, since verse text carries no spaces of its own. */
+.fuba-verse-number {
+    position: relative;
+    top: -0.4em;
+    margin-inline-start: 0.625em;
+    margin-inline-end: 0.3125em;
+    font-family: var(--fuba-font-family);
+    font-size: 0.6em;
+    font-weight: 500;
+    white-space: nowrap;
+    vertical-align: middle;
+    opacity: 0.7;
+}
+
+.fuba-words-of-jesus {
+    color: var(--fuba-words-of-jesus-color);
+}
+
+.fuba-inline-footnote {
+    white-space: nowrap;
+}
+
+.fuba-inline-footnote-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.125rem;
+    height: 1.125rem;
+    margin-inline-end: 0.25rem;
+    padding: 0;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--fuba-muted-color);
+    font-size: 0.8em;
+    vertical-align: super;
+    cursor: pointer;
+}
+
+.fuba-inline-footnote-button:hover {
+    color: var(--fuba-accent-color);
+}
+
+/* ── Highlights ─────────────────────────────────────────────────────────── */
+
+/* Highlights are drawn as rounded ribbons in an SVG layer behind the text, so
+   they can be padded and rounded without shifting a line or covering a glyph. */
+.fuba-highlight-layer {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+}
+
+/* Keep the duration in sync with RIBBON_FADE_MS in HighlightLayer.tsx. */
+.fuba-highlight-ribbon {
+    opacity: 1;
+    transition:
+        opacity 0.25s ease,
+        fill 0.25s ease;
+}
+
+/* Only new highlights fade in; a highlight that changes shape snaps. */
+@starting-style {
+    .fuba-highlight-ribbon-enter {
+        opacity: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .fuba-highlight-ribbon {
+        transition: none;
+    }
+}
+
+/* The wrapper around a highlighted run adds no box of its own; it only carries
+   the text color and the fill the ribbon layer reads. */
+.fuba-highlight {
+    display: contents;
+}
+
+.fuba-highlight-yellow {
+    color: var(--fuba-highlight-yellow-font-color);
+}
+
+.fuba-highlight-yellow .fuba-words-of-jesus {
+    color: var(--fuba-highlight-yellow-words-of-jesus-font-color);
+}
+
+.fuba-highlight-green {
+    color: var(--fuba-highlight-green-font-color);
+}
+
+.fuba-highlight-green .fuba-words-of-jesus {
+    color: var(--fuba-highlight-green-words-of-jesus-font-color);
+}
+
+.fuba-highlight-cyan {
+    color: var(--fuba-highlight-cyan-font-color);
+}
+
+.fuba-highlight-cyan .fuba-words-of-jesus {
+    color: var(--fuba-highlight-cyan-words-of-jesus-font-color);
+}
+
+.fuba-highlight-blue {
+    color: var(--fuba-highlight-blue-font-color);
+}
+
+.fuba-highlight-blue .fuba-words-of-jesus {
+    color: var(--fuba-highlight-blue-words-of-jesus-font-color);
+}
+
+.fuba-highlight-red {
+    color: var(--fuba-highlight-red-font-color);
+}
+
+.fuba-highlight-red .fuba-words-of-jesus {
+    color: var(--fuba-highlight-red-words-of-jesus-font-color);
+}
+
+.fuba-highlight-magenta {
+    color: var(--fuba-highlight-magenta-font-color);
+}
+
+.fuba-highlight-magenta .fuba-words-of-jesus {
+    color: var(--fuba-highlight-magenta-words-of-jesus-font-color);
+}
+
+.fuba-highlight-pink {
+    color: var(--fuba-highlight-pink-font-color);
+}
+
+.fuba-highlight-pink .fuba-words-of-jesus {
+    color: var(--fuba-highlight-pink-words-of-jesus-font-color);
+}
+
+.fuba-highlight-purple {
+    color: var(--fuba-highlight-purple-font-color);
+}
+
+.fuba-highlight-purple .fuba-words-of-jesus {
+    color: var(--fuba-highlight-purple-words-of-jesus-font-color);
+}
+
+.fuba-highlight-orange {
+    color: var(--fuba-highlight-orange-font-color);
+}
+
+.fuba-highlight-orange .fuba-words-of-jesus {
+    color: var(--fuba-highlight-orange-words-of-jesus-font-color);
+}
+
+.fuba-highlight-cream {
+    color: var(--fuba-highlight-cream-font-color);
+}
+
+.fuba-highlight-cream .fuba-words-of-jesus {
+    color: var(--fuba-highlight-cream-words-of-jesus-font-color);
+}
+
+.fuba-highlight-gray {
+    color: var(--fuba-highlight-gray-font-color);
+}
+
+.fuba-highlight-gray .fuba-words-of-jesus {
+    color: var(--fuba-highlight-gray-words-of-jesus-font-color);
+}
+
+.fuba-highlight-tan {
+    color: var(--fuba-highlight-tan-font-color);
+}
+
+.fuba-highlight-tan .fuba-words-of-jesus {
+    color: var(--fuba-highlight-tan-words-of-jesus-font-color);
+}
+
+/* Applied by `emphasizeVerses()`: a background that fades out as the
+   decoration's timer runs. */
+.fuba-verse-decoration-diminish {
+    animation: fuba-diminish 3s ease-out forwards;
+}
+
+@keyframes fuba-diminish {
+    from {
+        background-color: var(--fuba-emphasis-color);
+    }
+    to {
+        background-color: transparent;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .fuba-verse-decoration-diminish {
+        animation: none;
+        background-color: var(--fuba-emphasis-color);
+    }
+}
+
+.fuba-translation-license-notice,
+.fuba-translation-website {
+    color: var(--fuba-muted-color);
+    font-size: 0.8125rem;
+}
+
+.fuba-translation-website a {
+    color: var(--fuba-accent-color);
+}
+
+/* ── Loading, error, and not-found states ───────────────────────────────── */
+
+.fuba-chapter-skeleton-paragraph {
+    margin-block: 1em;
+}
+
+.fuba-chapter-skeleton-line {
+    height: 0.9em;
+    margin-block: 0.55em;
+    border-radius: 0.25em;
+    background: var(--fuba-skeleton-color);
+}
+
+.fuba-reader-error,
+.fuba-reader-not-found {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 2rem 1.25rem;
+    text-align: center;
+}
+
+.fuba-reader-error-title,
+.fuba-reader-not-found-title {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 600;
+}
+
+.fuba-reader-error-message,
+.fuba-reader-not-found-body {
+    margin: 0;
+    max-width: 28rem;
+    color: var(--fuba-muted-color);
+}
+
+.fuba-reader-error-retry,
+.fuba-reader-not-found-action {
+    margin-top: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--fuba-border-color);
+    border-radius: 999px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+}
+
+.fuba-reader-error-retry:hover,
+.fuba-reader-not-found-action:hover {
+    border-color: var(--fuba-accent-color);
+    color: var(--fuba-accent-color);
+}
+
+/* ── Footnote dialog ────────────────────────────────────────────────────── */
+
+.fuba-footnote-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    box-sizing: border-box;
+    background: rgba(0, 0, 0, 0.45);
+}
+
+.fuba-footnote-dialog {
+    display: flex;
+    flex-direction: column;
+    width: min(28.4375rem, 100%);
+    max-height: min(40rem, calc(100dvh - 2rem));
+    padding: 1.125rem 1rem 1.5rem;
+    box-sizing: border-box;
+    border: 1px solid var(--fuba-border-color);
+    border-radius: 0.875rem;
+    background: var(--fuba-background);
+    color: var(--fuba-font-color);
+    box-shadow: 0 20px 48px #00000040;
+}
+
+.fuba-footnote-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 0.625rem;
+    border-bottom: 1px solid var(--fuba-border-color);
+}
+
+.fuba-footnote-title {
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+.fuba-footnote-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border: none;
+    background: transparent;
+    color: inherit;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+.fuba-footnote-content {
+    margin-top: 1rem;
+    line-height: 1.6;
+    overflow: auto;
+}

@@ -1547,3 +1547,216 @@ describe('FreeUseBibleApi', () => {
         expect(text).toBe('First line\nSecond line');
     });
 });
+
+describe('FreeUseBibleApi request cancellation', () => {
+    interface PendingFetch {
+        url: string;
+        signal: AbortSignal | undefined;
+        respond: (data: unknown) => void;
+    }
+    let pending: PendingFetch[];
+
+    beforeEach(() => {
+        pending = [];
+        // Like a real fetch: stays pending until answered, and rejects with an
+        // AbortError when its signal aborts.
+        global.fetch = jest.fn(
+            (url: string, init?: { signal?: AbortSignal }) =>
+                new Promise((resolve, reject) => {
+                    const signal = init?.signal;
+                    signal?.addEventListener('abort', () => {
+                        const error = new Error('aborted');
+                        error.name = 'AbortError';
+                        reject(error);
+                    });
+                    pending.push({
+                        url,
+                        signal,
+                        respond: (data) =>
+                            resolve({
+                                status: 200,
+                                statusText: 'OK',
+                                json: async () => data,
+                            }),
+                    });
+                })
+        ) as unknown as typeof fetch;
+    });
+
+    afterEach(() => {
+        jest.resetAllMocks();
+    });
+
+    const BOOKS_URL = 'https://bible.helloao.org/api/BSB/books.json';
+
+    /**
+     * Marks a promise the test awaits later as handled, so if a regression
+     * rejects it early, the test fails on its assertion instead of Node
+     * crashing on an unhandled rejection.
+     */
+    function awaitedLater<T>(promise: Promise<T>): Promise<T> {
+        promise.catch(() => {});
+        return promise;
+    }
+
+    it('cancels the download when its only caller aborts', async () => {
+        const api = new FreeUseBibleApi();
+        const controller = new AbortController();
+
+        const request = api.getTranslationBooks('BSB', undefined, {
+            signal: controller.signal,
+        });
+        controller.abort();
+
+        await expect(request).rejects.toMatchObject({ name: 'AbortError' });
+        expect(pending).toHaveLength(1);
+        expect(pending[0]!.signal?.aborted).toBe(true);
+
+        // The cancelled download is not cached, so asking again downloads anew.
+        const retry = api.getTranslationBooks('BSB');
+        expect(pending).toHaveLength(2);
+        pending[1]!.respond({ books: ['GEN'] });
+        await expect(retry).resolves.toEqual({ books: ['GEN'] });
+    });
+
+    it('keeps downloading while another caller is still waiting', async () => {
+        const api = new FreeUseBibleApi();
+        const first = new AbortController();
+        const second = new AbortController();
+
+        const firstRequest = api.getTranslationBooks('BSB', undefined, {
+            signal: first.signal,
+        });
+        const secondRequest = awaitedLater(
+            api.getTranslationBooks('BSB', undefined, {
+                signal: second.signal,
+            })
+        );
+        first.abort();
+
+        await expect(firstRequest).rejects.toMatchObject({
+            name: 'AbortError',
+        });
+        expect(pending).toHaveLength(1);
+        expect(pending[0]!.signal?.aborted).toBe(false);
+
+        pending[0]!.respond({ books: ['GEN'] });
+        await expect(secondRequest).resolves.toEqual({ books: ['GEN'] });
+    });
+
+    it('never cancels a download that a caller without a signal is waiting on', async () => {
+        const api = new FreeUseBibleApi();
+        const controller = new AbortController();
+
+        const unsignalled = awaitedLater(api.getTranslationBooks('BSB'));
+        const signalled = api.getTranslationBooks('BSB', undefined, {
+            signal: controller.signal,
+        });
+        controller.abort();
+
+        await expect(signalled).rejects.toMatchObject({ name: 'AbortError' });
+        expect(global.fetch).toHaveBeenCalledWith(BOOKS_URL);
+
+        pending[0]!.respond({ books: ['GEN'] });
+        await expect(unsignalled).resolves.toEqual({ books: ['GEN'] });
+    });
+
+    it('cancels a shared download once every caller has aborted', async () => {
+        const api = new FreeUseBibleApi();
+        const first = new AbortController();
+        const second = new AbortController();
+
+        const requests = [
+            api.getTranslationBooks('BSB', undefined, { signal: first.signal }),
+            api.getTranslationBooks('BSB', undefined, {
+                signal: second.signal,
+            }),
+        ];
+        first.abort();
+        second.abort();
+
+        for (const request of requests) {
+            await expect(request).rejects.toMatchObject({ name: 'AbortError' });
+        }
+        expect(pending[0]!.signal?.aborted).toBe(true);
+    });
+
+    it('starts a fresh download for a caller arriving right after a cancellation', async () => {
+        const api = new FreeUseBibleApi();
+        const controller = new AbortController();
+
+        const cancelled = api.getTranslationBooks('BSB', undefined, {
+            signal: controller.signal,
+        });
+        controller.abort();
+        // Synchronously after the abort, before its rejection has landed.
+        const next = awaitedLater(api.getTranslationBooks('BSB'));
+
+        await expect(cancelled).rejects.toMatchObject({ name: 'AbortError' });
+        expect(pending).toHaveLength(2);
+        pending[1]!.respond({ books: ['GEN'] });
+        await expect(next).resolves.toEqual({ books: ['GEN'] });
+    });
+
+    it('rejects an already-aborted signal without downloading', async () => {
+        const api = new FreeUseBibleApi();
+        const controller = new AbortController();
+        controller.abort();
+
+        await expect(
+            api.getTranslationBooks('BSB', undefined, {
+                signal: controller.signal,
+            })
+        ).rejects.toMatchObject({ name: 'AbortError' });
+        expect(pending).toHaveLength(0);
+    });
+
+    it('ignores an abort after the response has arrived', async () => {
+        const api = new FreeUseBibleApi();
+        const controller = new AbortController();
+
+        const request = api.getTranslationBooks('BSB', undefined, {
+            signal: controller.signal,
+        });
+        pending[0]!.respond({ books: ['GEN'] });
+        await expect(request).resolves.toEqual({ books: ['GEN'] });
+        controller.abort();
+
+        // Still cached: no new download.
+        await expect(api.getTranslationBooks('BSB')).resolves.toEqual({
+            books: ['GEN'],
+        });
+        expect(pending).toHaveLength(1);
+    });
+
+    it("passes the caller's signal straight through for uncached requests", async () => {
+        const api = new FreeUseBibleApi();
+        const controller = new AbortController();
+
+        const request = api.getCompleteTranslation('BSB', undefined, {
+            signal: controller.signal,
+        });
+        controller.abort();
+
+        await expect(request).rejects.toMatchObject({ name: 'AbortError' });
+        expect(pending[0]!.signal).toBe(controller.signal);
+    });
+
+    it('accepts a signal on link-following methods', async () => {
+        const api = new FreeUseBibleApi();
+        const controller = new AbortController();
+        const chapter = {
+            nextChapterApiLink: '/api/BSB/GEN/2.json',
+        } as ApiTranslationBookChapter;
+
+        const request = api.getNextChapter(chapter, undefined, {
+            signal: controller.signal,
+        });
+        controller.abort();
+
+        await expect(request).rejects.toMatchObject({ name: 'AbortError' });
+        expect(pending[0]!.url).toBe(
+            'https://bible.helloao.org/api/BSB/GEN/2.json'
+        );
+    });
+});

@@ -1,0 +1,72 @@
+{
+    "name": "free-use-bible-api-react",
+    "version": "1.15.0",
+    "description": "React components and state managers for reading the Bible with the Free Use Bible API",
+    "keywords": [
+        "bible",
+        "bible-api",
+        "scripture",
+        "react",
+        "bible-reader",
+        "translations",
+        "typescript"
+    ],
+    "homepage": "https://bible.helloao.org/docs/",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/HelloAOLab/bible-api.git",
+        "directory": "packages/free-use-bible-api-react"
+    },
+    "bugs": {
+        "url": "https://github.com/HelloAOLab/bible-api/issues"
+    },
+    "type": "module",
+    "main": "./dist/cjs/index.cjs",
+    "module": "./dist/esm/index.js",
+    "types": "./dist/types/index.d.ts",
+    "exports": {
+        ".": {
+            "import": {
+                "types": "./dist/types/index.d.ts",
+                "default": "./dist/esm/index.js"
+            },
+            "require": {
+                "types": "./dist/types/index.d.ts",
+                "default": "./dist/cjs/index.cjs"
+            }
+        },
+        "./styles.css": "./BibleReader.css"
+    },
+    "scripts": {},
+    "author": "Kallyn Gowdy <kal@helloao.org>",
+    "license": "MIT",
+    "sideEffects": [
+        "*.css"
+    ],
+    "dependencies": {
+        "@preact/signals-core": "^1.14.4",
+        "free-use-bible-api": "workspace:^"
+    },
+    "peerDependencies": {
+        "react": "^18.0.0 || ^19.0.0"
+    },
+    "devDependencies": {
+        "@testing-library/dom": "^10.4.2",
+        "@testing-library/react": "^16.3.3",
+        "@types/react": "^19.3.0",
+        "@types/react-dom": "^19.3.0",
+        "jest-environment-jsdom": "29.7.0",
+        "react": "^19.3.0",
+        "react-dom": "^19.3.0"
+    },
+    "files": [
+        "/README.md",
+        "/LICENSE.txt",
+        "/BibleReader.css",
+        "**/*.js",
+        "**/*.cjs",
+        "**/*.js.map",
+        "**/*.cjs.map",
+        "**/*.d.ts"
+    ]
+}

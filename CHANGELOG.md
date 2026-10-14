@@ -16,6 +16,13 @@ This is the log of changes for the Free Use Bible API.
 -   Entries in `/api/available_datasets.json` can now include `totalNumberOfWords`, `listOfLexiconApiLink`, and `totalNumberOfLexicon`.
 -   Added the `fetch-interlinear <dir>` and `import-interlinear <dir>` CLI commands (and the `fetch:bible:interlinear` and `import:bible:interlinear` scripts) for downloading and importing the interlinear sources.
 -   The `@helloao/free-use-bible-api` client has new `getDatasetLexicon()` and `getDatasetLexiconEntry()` methods.
+-   Every `free-use-bible-api` client request method now takes an optional last argument, `{ signal }`, for cancelling the request with an `AbortSignal`. Because callers asking for the same URL share one download, aborting stops only that call from waiting; the download is cancelled once every caller waiting on it has aborted.
+-   Added the `free-use-bible-api-react` package, which brings Seed Bible's Bible reader to any React app.
+    -   `BibleReader` shows a chapter with its headings, poetry, footnotes, and words of Jesus in red, plus previous/next chapter buttons and loading, error, and "book not found" states.
+    -   `createBibleReadingState()` (or the `useBibleReadingState()` hook) tracks where the reader is and moves them between translations, books, and chapters. It also handles verse selection and verse decorations.
+    -   `createBibleDataManager()` (or the `useBibleDataManager()` hook) loads and caches translations, book lists, and chapters, from the public API or a self-hosted endpoint.
+    -   `BibleReader` and `ChapterContent` draw verse highlights as rounded ribbons behind the text, like Seed Bible. Neighbouring verses with the same color share one ribbon, and the ribbons follow ragged line ends, poetry indentation, and right-to-left text. There are 12 preset colors with light and dark mode values, and custom colors are supported.
+    -   The reader follows the device's light or dark mode, or can be forced to one with the `theme` prop (`'system'`, `'light'`, or `'dark'`). Colors and fonts are CSS variables that can be overridden on the reader or any element around it.
 -   Added a Kotlin SDK (`packages/free-use-bible-api-kotlin`) for the JVM and Android. It has the same methods as the JavaScript/TypeScript client, as `suspend` functions, and its kotlinx.serialization models are generated from the OpenAPI document with the new `generate-kotlin-models` CLI command (`pnpm generate:kotlin`).
 
 ### :warning: Changes
