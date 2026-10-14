@@ -4,7 +4,8 @@ name: Release Kotlin SDK
 # to Maven Central as org.helloao:free-use-bible-api.
 #
 # To release, bump the "version" in packages/free-use-bible-api-kotlin/gradle.properties,
-# merge it, and then publish a GitHub release (or run this workflow manually).
+# merge it, and then publish a GitHub release whose tag starts with "kotlin-sdk/v"
+# (e.g. kotlin-sdk/v1.2.0), or run this workflow manually. Releases with other tags are ignored.
 # If that version is already on Maven Central, publishing is skipped.
 #
 # Runs in the "maven-central" environment, which needs these secrets:
@@ -32,6 +33,7 @@ concurrency:
 jobs:
     release:
         name: Build, Test, and Publish
+        if: github.event_name != 'release' || startsWith(github.event.release.tag_name, 'kotlin-sdk/v')
         runs-on: ubuntu-latest
         environment: maven-central
         permissions:
