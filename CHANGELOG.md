@@ -16,6 +16,7 @@ This is the log of changes for the Free Use Bible API.
 -   Entries in `/api/available_datasets.json` can now include `totalNumberOfWords`, `listOfLexiconApiLink`, and `totalNumberOfLexicon`.
 -   Added the `fetch-interlinear <dir>` and `import-interlinear <dir>` CLI commands (and the `fetch:bible:interlinear` and `import:bible:interlinear` scripts) for downloading and importing the interlinear sources.
 -   The `@helloao/free-use-bible-api` client has new `getDatasetLexicon()` and `getDatasetLexiconEntry()` methods.
+-   Every `free-use-bible-api` client request method now takes an optional last argument, `{ signal }`, for cancelling the request with an `AbortSignal`. Because callers asking for the same URL share one download, aborting stops only that call from waiting; the download is cancelled once every caller waiting on it has aborted.
 -   Added the `free-use-bible-api-react` package, which brings Seed Bible's Bible reader to any React app.
     -   `BibleReader` shows a chapter with its headings, poetry, footnotes, and words of Jesus in red, plus previous/next chapter buttons and loading, error, and "book not found" states.
     -   `createBibleReadingState()` (or the `useBibleReadingState()` hook) tracks where the reader is and moves them between translations, books, and chapters. It also handles verse selection and verse decorations.
