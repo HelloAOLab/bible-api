@@ -4,7 +4,7 @@
 
 React components and state managers for reading the Bible with the [Free Use Bible API](https://bible.helloao.org/docs/). They are the reading core of [Seed Bible](https://seedbible.org), packaged so any React app can use them.
 
--   **`BibleReader`** — a ready-made reader: the chapter text (headings, poetry, footnotes, words of Jesus in red), previous/next buttons, and loading, error, and "book not found" states.
+-   **`BibleReader`** — a ready-made reader: the chapter text (headings, poetry, footnotes, words of Jesus in red), verse highlights, previous/next buttons, and loading, error, and "book not found" states.
 -   **`BibleReadingState`** — where the reader is and how to move them: select a translation, book, or chapter; go to the next or previous chapter (crossing book boundaries); select verses; decorate verses.
 -   **`BibleDataManager`** — loads and caches translations, book lists, and chapters, from the public API or your own endpoint.
 
@@ -118,6 +118,63 @@ To render a chapter without the reader around it, use `ChapterContent`:
 ```tsx
 <ChapterContent chapter={chapter} />
 ```
+
+## Highlighting verses
+
+Pass highlights to the reader and it draws them as rounded ribbons behind the text, the way Seed Bible does. Neighbouring verses with the same color join into one continuous ribbon, and the ribbons follow the shape of the text: ragged line ends, poetry indentation, and right-to-left translations. New highlights fade in and removed ones fade out.
+
+```tsx
+<BibleReader
+    readingState={readingState}
+    highlights={[
+        { bookId: 'JHN', chapterNumber: 3, verse: 16, colorId: 'yellow' },
+        { bookId: 'JHN', chapterNumber: 3, verse: [17, 18], colorId: 'green' },
+        {
+            bookId: 'JHN',
+            chapterNumber: 3,
+            verse: 21,
+            colorId: 'custom',
+            customColor: '#d8b4fe',
+            customFontColor: '#3b0764',
+        },
+    ]}
+/>
+```
+
+Pass every highlight you have; the reader shows the ones for the chapter on screen. Add `translationId` to limit a highlight to one translation. Storing highlights is up to your app. For example, to highlight the verses the reader has selected:
+
+```tsx
+const [highlights, setHighlights] = useState<VerseHighlight[]>([]);
+const selectedVerses = useSignalValue(readingState.selectedVerses);
+
+const highlightSelection = (colorId: string) => {
+    setHighlights([
+        ...highlights,
+        ...selectedVerses.map((selected) => ({
+            bookId: selected.bookId,
+            chapterNumber: selected.chapterNumber,
+            verse: selected.verse.number,
+            colorId,
+        })),
+    ]);
+    readingState.clearSelectedVerses();
+};
+```
+
+The preset colors are `yellow`, `green`, `cyan`, `blue`, `red`, `magenta`, `pink`, `purple`, `orange`, `cream`, `gray`, and `tan`, with separate light and dark mode values. Each is a set of CSS variables you can override, and you can add your own color IDs the same way:
+
+```css
+:root {
+    --fuba-highlight-mint-color: #b9f6ca; /* the ribbon */
+    --fuba-highlight-mint-font-color: #1b4332; /* text on top of it */
+    --fuba-highlight-mint-words-of-jesus-font-color: #c62828;
+}
+.fuba-highlight-mint {
+    color: var(--fuba-highlight-mint-font-color);
+}
+```
+
+Turn highlights off with `scriptureElements={{ showHighlights: false }}`.
 
 ## Decorating verses
 

@@ -5,6 +5,7 @@ import type {
 import {
     Fragment,
     useRef,
+    type AriaAttributes,
     type CSSProperties,
     type MouseEvent,
     type ReactNode,
@@ -13,6 +14,7 @@ import type {
     BibleSelectedVerse,
     VerseDecoration,
 } from './BibleReadingManager.js';
+import { HighlightLayer, useHighlightRibbons } from './HighlightLayer.js';
 
 /** Which parts of the text the reader shows. */
 export interface ScriptureElements {
@@ -21,6 +23,7 @@ export interface ScriptureElements {
     showFootnotes: boolean;
     /** Shows the words of Jesus in red. */
     showRedLettering: boolean;
+    showHighlights: boolean;
 }
 
 export const DEFAULT_SCRIPTURE_ELEMENTS: ScriptureElements = {
@@ -28,7 +31,36 @@ export const DEFAULT_SCRIPTURE_ELEMENTS: ScriptureElements = {
     showVerseNumbers: true,
     showFootnotes: true,
     showRedLettering: true,
+    showHighlights: true,
 };
+
+/**
+ * A highlighted verse or range of verses, drawn as a rounded ribbon behind the
+ * text.
+ */
+export interface VerseHighlight {
+    /** Book identifier (for example: GEN, JHN). */
+    bookId: string;
+    chapterNumber: number;
+    /** A verse number, or an inclusive `[first, last]` range. */
+    verse: number | [number, number];
+    /**
+     * A preset color: yellow, green, cyan, blue, red, magenta, pink, purple,
+     * orange, cream, gray, or tan. Presets follow the light/dark theme through
+     * the `--fuba-highlight-<colorId>-*` CSS variables, so you can also define
+     * your own color IDs in CSS.
+     */
+    colorId: string;
+    /** Any CSS color. Overrides `colorId`. */
+    customColor?: string;
+    /** Text color for a `customColor` highlight. Defaults to the normal text color. */
+    customFontColor?: string;
+    /**
+     * Limits the highlight to one translation. Omit to show it in every
+     * translation.
+     */
+    translationId?: string | null;
+}
 
 type VersePart = ChapterVerse['content'][number];
 
@@ -436,6 +468,11 @@ export interface ChapterContentProps {
     elements?: ScriptureElements;
     selectedVerses?: BibleSelectedVerse[];
     decorations?: VerseDecoration[];
+    /** Highlights to draw. Ones for other chapters are ignored. */
+    highlights?: VerseHighlight[];
+    /** Extra classes for the container element. */
+    className?: string;
+    'aria-busy'?: AriaAttributes['aria-busy'];
     /** Called when a verse is clicked. Omit to make verses non-interactive. */
     onVerseClick?: (verse: BibleSelectedVerse, event: MouseEvent) => void;
     onOpenFootnote?: (noteId: number, verse: ChapterVerse | null) => void;
@@ -452,9 +489,32 @@ export function ChapterContent(props: ChapterContentProps) {
         elements = DEFAULT_SCRIPTURE_ELEMENTS,
         selectedVerses = [],
         decorations = [],
+        highlights = [],
         onVerseClick,
         onOpenFootnote = () => {},
     } = props;
+
+    const contentRef = useRef<HTMLDivElement>(null);
+    const chapterKey = `${chapter.translation.id}:${chapter.book.id}:${chapter.chapter.number}`;
+    const ribbons = useHighlightRibbons(contentRef, chapterKey);
+
+    const chapterHighlights = elements.showHighlights
+        ? highlights.filter(
+              (highlight) =>
+                  (!highlight.translationId ||
+                      highlight.translationId === chapter.translation.id) &&
+                  highlight.bookId === chapter.book.id &&
+                  highlight.chapterNumber === chapter.chapter.number
+          )
+        : [];
+    const getVerseHighlight = (verseNumber: number) =>
+        chapterHighlights.find((highlight) => {
+            const [first, last] =
+                typeof highlight.verse === 'number'
+                    ? [highlight.verse, highlight.verse]
+                    : highlight.verse;
+            return verseNumber >= first && verseNumber <= last;
+        }) ?? null;
 
     // Pointer type of the most recent `pointerdown` on a poetry verse, read by
     // that verse's click handler to decide how forgiving its tap area is.
@@ -638,8 +698,11 @@ export function ChapterContent(props: ChapterContentProps) {
     // would run together ("...your fill.Do not..."), so add a real space.
     const needsVerseSpacing = !elements.showVerseNumbers;
     let previousWasVerse = false;
+    // Index just past the last verse already rendered inside a highlight run.
+    let highlightRunEnd = 0;
+    const entries = chapter.chapter.content;
 
-    chapter.chapter.content.forEach((entry, i) => {
+    entries.forEach((entry, i) => {
         if (!entry || typeof entry !== 'object') {
             return;
         }
@@ -687,13 +750,127 @@ export function ChapterContent(props: ChapterContentProps) {
         }
 
         if (isVerseEntry(entry)) {
+            if (i < highlightRunEnd) {
+                // Already rendered as part of a highlight run that started at an
+                // earlier verse.
+                return;
+            }
             if (needsVerseSpacing && previousWasVerse) {
                 nodes.push(<Fragment key={`space-${i}`}> </Fragment>);
             }
             previousWasVerse = true;
-            nodes.push(renderVerseNode(entry, i));
+
+            const highlight = getVerseHighlight(entry.number);
+            if (!highlight) {
+                nodes.push(renderVerseNode(entry, i));
+                return;
+            }
+
+            // Contiguous same-color prose verses share one wrapper, so the layer
+            // draws a single continuous ribbon across them. Poetry stays one verse
+            // per wrapper: its indented lines already read as a connected shape.
+            const colorKey = highlightColorKey(highlight);
+            const runEntries: ChapterVerse[] = [entry];
+            let j = i + 1;
+            if (!isPoetryVerse(entry)) {
+                while (j < entries.length) {
+                    const nextEntry = entries[j];
+                    if (!isVerseEntry(nextEntry)) break;
+                    const nextHighlight = getVerseHighlight(nextEntry.number);
+                    if (
+                        !nextHighlight ||
+                        highlightColorKey(nextHighlight) !== colorKey ||
+                        isPoetryVerse(nextEntry)
+                    ) {
+                        break;
+                    }
+                    runEntries.push(nextEntry);
+                    j += 1;
+                }
+            }
+            highlightRunEnd = j;
+
+            const presentation = highlightPresentation(highlight);
+            const firstVerse = runEntries[0]!.number;
+            const lastVerse = runEntries[runEntries.length - 1]!.number;
+            nodes.push(
+                <span
+                    key={`highlight-run-${i}`}
+                    className={presentation.className}
+                    style={presentation.style}
+                    data-highlight-fill={presentation.fill}
+                    data-highlight-key={`${firstVerse}-${lastVerse}`}
+                >
+                    {runEntries.flatMap((runEntry, runIndex) => {
+                        const verseNode = renderVerseNode(
+                            runEntry,
+                            i + runIndex
+                        );
+                        return needsVerseSpacing && runIndex > 0
+                            ? [
+                                  <Fragment key={`space-${i + runIndex}`}>
+                                      {' '}
+                                  </Fragment>,
+                                  verseNode,
+                              ]
+                            : [verseNode];
+                    })}
+                </span>
+            );
         }
     });
 
-    return <>{nodes}</>;
+    return (
+        <div
+            ref={contentRef}
+            className={['fuba-chapter-content', props.className]
+                .filter(Boolean)
+                .join(' ')}
+            aria-busy={props['aria-busy']}
+        >
+            <HighlightLayer ribbons={ribbons} />
+            {nodes}
+        </div>
+    );
+}
+
+function isPoetryVerse(verse: ChapterVerse): boolean {
+    return splitVerseIntoSegments(verse.content).some(
+        (segment) => segment.type === 'poetry'
+    );
+}
+
+function highlightColorKey(highlight: VerseHighlight): string {
+    return highlight.customColor
+        ? `custom:${highlight.customColor}:${highlight.customFontColor ?? ''}`
+        : highlight.colorId;
+}
+
+/**
+ * How a highlighted run's wrapper looks. The wrapper paints no background itself
+ * — the ribbon layer draws that behind the text, reading `fill` back off the
+ * DOM. The wrapper only carries the readable text color.
+ */
+function highlightPresentation(highlight: VerseHighlight): {
+    className: string;
+    style: CSSProperties | undefined;
+    fill: string;
+} {
+    if (highlight.customColor) {
+        return {
+            className: 'fuba-highlight',
+            style: highlight.customFontColor
+                ? { color: highlight.customFontColor }
+                : undefined,
+            fill: highlight.customColor,
+        };
+    }
+    // The `transparent` fallback matters: a color ID with no matching variable
+    // would otherwise make `fill` invalid, and SVG `fill` then falls back to
+    // black — a solid black bar behind the verse.
+    return {
+        className: `fuba-highlight fuba-highlight-${highlight.colorId}`,
+        style: undefined,
+        fill: `var(--fuba-highlight-${highlight.colorId}-color, transparent)`,
+    };
 }

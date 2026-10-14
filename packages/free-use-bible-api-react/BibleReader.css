@@ -3,9 +3,13 @@
  *
  * Import once with `import 'free-use-bible-api-react/styles.css'`. Every color
  * and font comes from a `--fuba-*` variable, so you can restyle the reader by
- * overriding them on `.fuba-bible-reader` (or any ancestor).
+ * overriding them on `.fuba-bible-reader` or any ancestor.
+ *
+ * The defaults live on `:root` rather than on the reader: a value declared on
+ * the reader itself would beat one inherited from an ancestor, so overriding on
+ * an ancestor would silently do nothing.
  */
-.fuba-bible-reader {
+:root {
     --fuba-font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
     --fuba-verse-font-family: Georgia, 'Times New Roman', serif;
     --fuba-font-color: #1f2328;
@@ -19,13 +23,47 @@
     --fuba-skeleton-color: #eaeef2;
     --fuba-verse-line-height: 1.7;
 
-    font-family: var(--fuba-font-family);
-    color: var(--fuba-font-color);
-    background: var(--fuba-background);
+    /* Highlight presets: the ribbon color, plus a readable text color on top. */
+    --fuba-highlight-yellow-color: #fff59d;
+    --fuba-highlight-yellow-font-color: #333;
+    --fuba-highlight-yellow-words-of-jesus-font-color: #e07b4c;
+    --fuba-highlight-green-color: #a5d6a7;
+    --fuba-highlight-green-font-color: #333;
+    --fuba-highlight-green-words-of-jesus-font-color: #e07b4c;
+    --fuba-highlight-cyan-color: #80deea;
+    --fuba-highlight-cyan-font-color: #333;
+    --fuba-highlight-cyan-words-of-jesus-font-color: #e07b4c;
+    --fuba-highlight-blue-color: #90caf9;
+    --fuba-highlight-blue-font-color: #333;
+    --fuba-highlight-blue-words-of-jesus-font-color: #e07b4c;
+    --fuba-highlight-red-color: #ef9a9a;
+    --fuba-highlight-red-font-color: #333;
+    --fuba-highlight-red-words-of-jesus-font-color: #c62828;
+    --fuba-highlight-magenta-color: #ea80fc;
+    --fuba-highlight-magenta-font-color: #333;
+    --fuba-highlight-magenta-words-of-jesus-font-color: #e07b4c;
+    --fuba-highlight-pink-color: #f48fb1;
+    --fuba-highlight-pink-font-color: #333;
+    --fuba-highlight-pink-words-of-jesus-font-color: #e07b4c;
+    --fuba-highlight-purple-color: #ce93d8;
+    --fuba-highlight-purple-font-color: #333;
+    --fuba-highlight-purple-words-of-jesus-font-color: #e07b4c;
+    --fuba-highlight-orange-color: #ffcc80;
+    --fuba-highlight-orange-font-color: #333;
+    --fuba-highlight-orange-words-of-jesus-font-color: #e07b4c;
+    --fuba-highlight-cream-color: #fff8e1;
+    --fuba-highlight-cream-font-color: #333;
+    --fuba-highlight-cream-words-of-jesus-font-color: #e07b4c;
+    --fuba-highlight-gray-color: #cfd8dc;
+    --fuba-highlight-gray-font-color: #333;
+    --fuba-highlight-gray-words-of-jesus-font-color: #e07b4c;
+    --fuba-highlight-tan-color: #e0c9a6;
+    --fuba-highlight-tan-font-color: #333;
+    --fuba-highlight-tan-words-of-jesus-font-color: #e07b4c;
 }
 
 @media (prefers-color-scheme: dark) {
-    .fuba-bible-reader {
+    :root {
         --fuba-font-color: #e6edf3;
         --fuba-muted-color: #8d96a0;
         --fuba-background: #0d1117;
@@ -35,7 +73,51 @@
         --fuba-selected-verse-color: #4493f8;
         --fuba-emphasis-color: #5a4a00;
         --fuba-skeleton-color: #21262d;
+
+        /* Solid, darker hues so white text stays legible on top. */
+        --fuba-highlight-yellow-color: #756a0a;
+        --fuba-highlight-yellow-font-color: #ffffff;
+        --fuba-highlight-yellow-words-of-jesus-font-color: #ff9e80;
+        --fuba-highlight-green-color: #2f6d3a;
+        --fuba-highlight-green-font-color: #ffffff;
+        --fuba-highlight-green-words-of-jesus-font-color: #ff9e80;
+        --fuba-highlight-cyan-color: #1a6b73;
+        --fuba-highlight-cyan-font-color: #ffffff;
+        --fuba-highlight-cyan-words-of-jesus-font-color: #ff9e80;
+        --fuba-highlight-blue-color: #2f5f9e;
+        --fuba-highlight-blue-font-color: #ffffff;
+        --fuba-highlight-blue-words-of-jesus-font-color: #ff9e80;
+        --fuba-highlight-red-color: #8e3a3a;
+        --fuba-highlight-red-font-color: #ffffff;
+        --fuba-highlight-red-words-of-jesus-font-color: #ff9e80;
+        --fuba-highlight-magenta-color: #7a2f6e;
+        --fuba-highlight-magenta-font-color: #ffffff;
+        --fuba-highlight-magenta-words-of-jesus-font-color: #ff9e80;
+        --fuba-highlight-pink-color: #93395c;
+        --fuba-highlight-pink-font-color: #ffffff;
+        --fuba-highlight-pink-words-of-jesus-font-color: #ff9e80;
+        --fuba-highlight-purple-color: #5b4489;
+        --fuba-highlight-purple-font-color: #ffffff;
+        --fuba-highlight-purple-words-of-jesus-font-color: #ff9e80;
+        --fuba-highlight-orange-color: #98551c;
+        --fuba-highlight-orange-font-color: #ffffff;
+        --fuba-highlight-orange-words-of-jesus-font-color: #ff9e80;
+        --fuba-highlight-cream-color: #6b6040;
+        --fuba-highlight-cream-font-color: #ffffff;
+        --fuba-highlight-cream-words-of-jesus-font-color: #ff9e80;
+        --fuba-highlight-gray-color: #4a4a4a;
+        --fuba-highlight-gray-font-color: #ffffff;
+        --fuba-highlight-gray-words-of-jesus-font-color: #ff9e80;
+        --fuba-highlight-tan-color: #6d4c33;
+        --fuba-highlight-tan-font-color: #ffffff;
+        --fuba-highlight-tan-words-of-jesus-font-color: #ff9e80;
     }
+}
+
+.fuba-bible-reader {
+    font-family: var(--fuba-font-family);
+    color: var(--fuba-font-color);
+    background: var(--fuba-background);
 }
 
 .fuba-visually-hidden {
@@ -117,6 +199,12 @@
     font-family: var(--fuba-verse-font-family);
     line-height: var(--fuba-verse-line-height);
     transition: opacity 0.1s ease;
+
+    /* Positioning context and its own stacking context, so the highlight layer
+       can sit behind the text (z-index: -1) without slipping behind the page
+       background. */
+    position: relative;
+    isolation: isolate;
 }
 
 .fuba-chapter-content-stale {
@@ -213,6 +301,143 @@
 
 .fuba-inline-footnote-button:hover {
     color: var(--fuba-accent-color);
+}
+
+/* ── Highlights ─────────────────────────────────────────────────────────── */
+
+/* Highlights are drawn as rounded ribbons in an SVG layer behind the text, so
+   they can be padded and rounded without shifting a line or covering a glyph. */
+.fuba-highlight-layer {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+}
+
+/* Keep the duration in sync with RIBBON_FADE_MS in HighlightLayer.tsx. */
+.fuba-highlight-ribbon {
+    opacity: 1;
+    transition:
+        opacity 0.25s ease,
+        fill 0.25s ease;
+}
+
+/* Only new highlights fade in; a highlight that changes shape snaps. */
+@starting-style {
+    .fuba-highlight-ribbon-enter {
+        opacity: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .fuba-highlight-ribbon {
+        transition: none;
+    }
+}
+
+/* The wrapper around a highlighted run adds no box of its own; it only carries
+   the text color and the fill the ribbon layer reads. */
+.fuba-highlight {
+    display: contents;
+}
+
+.fuba-highlight-yellow {
+    color: var(--fuba-highlight-yellow-font-color);
+}
+
+.fuba-highlight-yellow .fuba-words-of-jesus {
+    color: var(--fuba-highlight-yellow-words-of-jesus-font-color);
+}
+
+.fuba-highlight-green {
+    color: var(--fuba-highlight-green-font-color);
+}
+
+.fuba-highlight-green .fuba-words-of-jesus {
+    color: var(--fuba-highlight-green-words-of-jesus-font-color);
+}
+
+.fuba-highlight-cyan {
+    color: var(--fuba-highlight-cyan-font-color);
+}
+
+.fuba-highlight-cyan .fuba-words-of-jesus {
+    color: var(--fuba-highlight-cyan-words-of-jesus-font-color);
+}
+
+.fuba-highlight-blue {
+    color: var(--fuba-highlight-blue-font-color);
+}
+
+.fuba-highlight-blue .fuba-words-of-jesus {
+    color: var(--fuba-highlight-blue-words-of-jesus-font-color);
+}
+
+.fuba-highlight-red {
+    color: var(--fuba-highlight-red-font-color);
+}
+
+.fuba-highlight-red .fuba-words-of-jesus {
+    color: var(--fuba-highlight-red-words-of-jesus-font-color);
+}
+
+.fuba-highlight-magenta {
+    color: var(--fuba-highlight-magenta-font-color);
+}
+
+.fuba-highlight-magenta .fuba-words-of-jesus {
+    color: var(--fuba-highlight-magenta-words-of-jesus-font-color);
+}
+
+.fuba-highlight-pink {
+    color: var(--fuba-highlight-pink-font-color);
+}
+
+.fuba-highlight-pink .fuba-words-of-jesus {
+    color: var(--fuba-highlight-pink-words-of-jesus-font-color);
+}
+
+.fuba-highlight-purple {
+    color: var(--fuba-highlight-purple-font-color);
+}
+
+.fuba-highlight-purple .fuba-words-of-jesus {
+    color: var(--fuba-highlight-purple-words-of-jesus-font-color);
+}
+
+.fuba-highlight-orange {
+    color: var(--fuba-highlight-orange-font-color);
+}
+
+.fuba-highlight-orange .fuba-words-of-jesus {
+    color: var(--fuba-highlight-orange-words-of-jesus-font-color);
+}
+
+.fuba-highlight-cream {
+    color: var(--fuba-highlight-cream-font-color);
+}
+
+.fuba-highlight-cream .fuba-words-of-jesus {
+    color: var(--fuba-highlight-cream-words-of-jesus-font-color);
+}
+
+.fuba-highlight-gray {
+    color: var(--fuba-highlight-gray-font-color);
+}
+
+.fuba-highlight-gray .fuba-words-of-jesus {
+    color: var(--fuba-highlight-gray-words-of-jesus-font-color);
+}
+
+.fuba-highlight-tan {
+    color: var(--fuba-highlight-tan-font-color);
+}
+
+.fuba-highlight-tan .fuba-words-of-jesus {
+    color: var(--fuba-highlight-tan-words-of-jesus-font-color);
 }
 
 /* Applied by `emphasizeVerses()`: a background that fades out as the

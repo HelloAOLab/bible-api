@@ -266,6 +266,34 @@ describe('BibleReader', () => {
         expect(screen.queryByText('Book not found')).toBeNull();
     });
 
+    it('draws the highlights for the chapter on screen', async () => {
+        const { container } = renderReader(undefined, {
+            highlights: [
+                { bookId: 'GEN', chapterNumber: 1, verse: 2, colorId: 'blue' },
+                { bookId: 'GEN', chapterNumber: 2, verse: 1, colorId: 'red' },
+            ],
+        });
+        await screen.findByText('Genesis 1 heading');
+
+        const runs = Array.from(
+            container.querySelectorAll('[data-highlight-fill]')
+        );
+        expect(runs.map((run) => run.className)).toEqual([
+            'fuba-highlight fuba-highlight-blue',
+        ]);
+        expect(runs[0]!.querySelector('[data-verse-number="2"]')).toBeTruthy();
+        expect(container.querySelector('.fuba-highlight-layer')).toBeTruthy();
+
+        fireEvent.click(screen.getByRole('button', { name: 'Next chapter' }));
+        await screen.findByText('Genesis 2 heading');
+
+        expect(
+            Array.from(container.querySelectorAll('[data-highlight-fill]')).map(
+                (run) => run.className
+            )
+        ).toEqual(['fuba-highlight fuba-highlight-red']);
+    });
+
     it('uses custom labels', async () => {
         renderReader(undefined, {
             labels: { nextChapter: 'Siguiente capítulo' },

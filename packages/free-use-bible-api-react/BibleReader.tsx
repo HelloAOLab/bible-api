@@ -4,6 +4,7 @@ import {
     ChapterContent,
     DEFAULT_SCRIPTURE_ELEMENTS,
     type ScriptureElements,
+    type VerseHighlight,
 } from './ChapterContent.js';
 import { useSignalValue } from './hooks.js';
 
@@ -60,6 +61,11 @@ export interface BibleReaderProps {
     selectableVerses?: boolean;
     /** Extra content shown at the end of the header, such as your own buttons. */
     headerActions?: ReactNode;
+    /**
+     * Highlights to draw behind the text. Pass all of them; the reader shows the
+     * ones for the chapter on screen.
+     */
+    highlights?: VerseHighlight[];
 }
 
 const SKELETON_PARAGRAPHS = [
@@ -104,6 +110,7 @@ export function BibleReader(props: BibleReaderProps) {
         showNavigation = true,
         selectableVerses = true,
         headerActions,
+        highlights,
     } = props;
     const elements: ScriptureElements = {
         ...DEFAULT_SCRIPTURE_ELEMENTS,
@@ -309,34 +316,32 @@ export function BibleReader(props: BibleReaderProps) {
                         <ChapterSkeleton label={labels.loading} />
                     ) : (
                         chapterData && (
-                            <div
-                                className={`fuba-chapter-content${
+                            <ChapterContent
+                                className={
                                     dimStaleChapter
-                                        ? ' fuba-chapter-content-stale'
-                                        : ''
-                                }`}
+                                        ? 'fuba-chapter-content-stale'
+                                        : undefined
+                                }
                                 aria-busy={dimStaleChapter || undefined}
-                            >
-                                <ChapterContent
-                                    chapter={chapterData}
-                                    elements={elements}
-                                    selectedVerses={selectedVerses}
-                                    decorations={decorations}
-                                    onVerseClick={
-                                        selectableVerses
-                                            ? (verse, event) =>
-                                                  readingState.selectVerse(
-                                                      verse,
-                                                      event.clientX,
-                                                      event.clientY
-                                                  )
-                                            : undefined
-                                    }
-                                    onOpenFootnote={(noteId) =>
-                                        readingState.selectFootnote(noteId)
-                                    }
-                                />
-                            </div>
+                                chapter={chapterData}
+                                elements={elements}
+                                selectedVerses={selectedVerses}
+                                decorations={decorations}
+                                highlights={highlights}
+                                onVerseClick={
+                                    selectableVerses
+                                        ? (verse, event) =>
+                                              readingState.selectVerse(
+                                                  verse,
+                                                  event.clientX,
+                                                  event.clientY
+                                              )
+                                        : undefined
+                                }
+                                onOpenFootnote={(noteId) =>
+                                    readingState.selectFootnote(noteId)
+                                }
+                            />
                         )
                     ))}
 
