@@ -1,0 +1,246 @@
+{
+  "translation": {
+    "id": "BSB",
+    "name": "Berean Standard Bible",
+    "englishName": "Berean Standard Bible",
+    "shortName": "BSB",
+    "language": "eng",
+    "licenseUrl": "https://berean.bible/terms.htm",
+    "website": "https://berean.bible",
+    "textDirection": "ltr",
+    "availableFormats": [
+      "json"
+    ],
+    "listOfBooksApiLink": "/api/BSB/books.json",
+    "completeTranslationApiLink": "/api/BSB/complete.json",
+    "simpleCompleteTranslationApiLink": "/api/BSB/complete.simple.json",
+    "numberOfBooks": 3,
+    "totalNumberOfChapters": 228,
+    "totalNumberOfVerses": 5030
+  },
+  "book": {
+    "id": "PSA",
+    "name": "Psalm",
+    "commonName": "Psalms",
+    "title": "Psalm",
+    "order": 19,
+    "firstChapterNumber": 1,
+    "firstChapterApiLink": "/api/BSB/PSA/1.json",
+    "firstChapterReference": {
+      "translationId": "BSB",
+      "book": "PSA",
+      "chapter": 1
+    },
+    "lastChapterNumber": 150,
+    "lastChapterApiLink": "/api/BSB/PSA/150.json",
+    "lastChapterReference": {
+      "translationId": "BSB",
+      "book": "PSA",
+      "chapter": 150
+    },
+    "numberOfChapters": 150,
+    "totalNumberOfVerses": 2429
+  },
+  "chapter": {
+    "number": 23,
+    "content": [
+      {
+        "type": "heading",
+        "content": [
+          "The LORD Is My Shepherd"
+        ]
+      },
+      {
+        "type": "line_break"
+      },
+      {
+        "type": "hebrew_subtitle",
+        "content": [
+          {
+            "text": "A Psalm of David.",
+            "poem": 2
+          }
+        ]
+      },
+      {
+        "type": "verse",
+        "number": 1,
+        "content": [
+          {
+            "text": "The LORD is my shepherd;",
+            "poem": 1
+          },
+          {
+            "noteId": 50
+          },
+          {
+            "text": "I shall not want.",
+            "poem": 2
+          }
+        ]
+      },
+      {
+        "type": "verse",
+        "number": 2,
+        "content": [
+          {
+            "text": "He makes me lie down in green pastures;",
+            "poem": 1
+          },
+          {
+            "text": "He leads me beside quiet waters.",
+            "poem": 2
+          }
+        ]
+      },
+      {
+        "type": "verse",
+        "number": 3,
+        "content": [
+          {
+            "text": "He restores my soul;",
+            "poem": 1
+          },
+          {
+            "text": "He guides me in the paths of righteousness",
+            "poem": 2
+          },
+          {
+            "text": "for the sake of His name.",
+            "poem": 2
+          }
+        ]
+      },
+      {
+        "type": "verse",
+        "number": 4,
+        "content": [
+          {
+            "text": "Even though I walk through the valley of the shadow of death,",
+            "poem": 1
+          },
+          {
+            "noteId": 51
+          },
+          {
+            "text": "I will fear no evil,",
+            "poem": 2
+          },
+          {
+            "text": "for You are with me;",
+            "poem": 1
+          },
+          {
+            "text": "Your rod and Your staff, they comfort me.",
+            "poem": 2
+          }
+        ]
+      },
+      {
+        "type": "line_break"
+      },
+      {
+        "type": "verse",
+        "number": 5,
+        "content": [
+          {
+            "text": "You prepare a table before me",
+            "poem": 1
+          },
+          {
+            "text": "in the presence of my enemies.",
+            "poem": 2
+          },
+          {
+            "text": "You anoint my head with oil;",
+            "poem": 1
+          },
+          {
+            "text": "my cup overflows.",
+            "poem": 2
+          }
+        ]
+      },
+      {
+        "type": "verse",
+        "number": 6,
+        "content": [
+          {
+            "text": "Surely goodness and mercy will follow me",
+            "poem": 1
+          },
+          {
+            "text": "all the days of my life,",
+            "poem": 2
+          },
+          {
+            "text": "and I will dwell in the house of the LORD",
+            "poem": 1
+          },
+          {
+            "text": "forever.",
+            "poem": 2
+          }
+        ]
+      }
+    ],
+    "footnotes": [
+      {
+        "noteId": 50,
+        "text": "See Revelation 7:17.",
+        "caller": "+",
+        "reference": {
+          "chapter": 23,
+          "verse": 1
+        }
+      },
+      {
+        "noteId": 51,
+        "text": "Or the valley of deep darkness",
+        "caller": "+",
+        "reference": {
+          "chapter": 23,
+          "verse": 4
+        }
+      }
+    ]
+  },
+  "thisChapterLink": "/api/BSB/PSA/23.json",
+  "thisChapterReference": {
+    "translationId": "BSB",
+    "book": "PSA",
+    "chapter": 23
+  },
+  "thisChapterAudioLinks": {
+    "hays": "https://audio.bible.helloao.org/api/BSB/PSA/23/audio/hays.mp3",
+    "souer": "https://audio.bible.helloao.org/api/BSB/PSA/23/audio/souer.mp3",
+    "david": "https://audio.bible.helloao.org/api/BSB/PSA/23/audio/david.mp3"
+  },
+  "nextChapterApiLink": "/api/BSB/PSA/24.json",
+  "nextChapterReference": {
+    "translationId": "BSB",
+    "book": "PSA",
+    "chapter": 24
+  },
+  "nextChapterAudioLinks": {
+    "hays": "https://audio.bible.helloao.org/api/BSB/PSA/24/audio/hays.mp3",
+    "souer": "https://audio.bible.helloao.org/api/BSB/PSA/24/audio/souer.mp3",
+    "david": "https://audio.bible.helloao.org/api/BSB/PSA/24/audio/david.mp3"
+  },
+  "previousChapterApiLink": "/api/BSB/PSA/22.json",
+  "previousChapterReference": {
+    "translationId": "BSB",
+    "book": "PSA",
+    "chapter": 22
+  },
+  "previousChapterAudioLinks": {
+    "hays": "https://audio.bible.helloao.org/api/BSB/PSA/22/audio/hays.mp3",
+    "souer": "https://audio.bible.helloao.org/api/BSB/PSA/22/audio/souer.mp3",
+    "david": "https://audio.bible.helloao.org/api/BSB/PSA/22/audio/david.mp3"
+  },
+  "thisChapterAudioTimings": {},
+  "nextChapterAudioTimings": {},
+  "previousChapterAudioTimings": {},
+  "numberOfVerses": 6,
+  "simpleChapterApiLink": "/api/BSB/PSA/23.simple.json"
+}

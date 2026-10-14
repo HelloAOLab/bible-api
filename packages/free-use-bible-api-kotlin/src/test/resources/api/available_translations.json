@@ -1,0 +1,23 @@
+{
+  "translations": [
+    {
+      "id": "bsb",
+      "name": "Berean Standard Bible",
+      "englishName": "Berean Standard Bible",
+      "shortName": "BSB",
+      "language": "eng",
+      "licenseUrl": "https://berean.bible/terms.htm",
+      "website": "https://berean.bible",
+      "textDirection": "ltr",
+      "availableFormats": [
+        "json"
+      ],
+      "listOfBooksApiLink": "/api/bsb/books.json",
+      "completeTranslationApiLink": "/api/bsb/complete.json",
+      "simpleCompleteTranslationApiLink": "/api/bsb/complete.simple.json",
+      "numberOfBooks": 1,
+      "totalNumberOfChapters": 2,
+      "totalNumberOfVerses": 3
+    }
+  ]
+}

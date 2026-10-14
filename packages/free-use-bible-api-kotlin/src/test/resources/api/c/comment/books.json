@@ -1,0 +1,45 @@
+{
+  "commentary": {
+    "id": "comment",
+    "name": "Commentary",
+    "englishName": "Commentary",
+    "language": "eng",
+    "licenseUrl": "https://example.com/terms.htm",
+    "website": "https://example.com",
+    "textDirection": "ltr",
+    "availableFormats": [
+      "json"
+    ],
+    "listOfBooksApiLink": "/api/c/comment/books.json",
+    "listOfProfilesApiLink": "/api/c/comment/profiles.json",
+    "numberOfBooks": 1,
+    "totalNumberOfChapters": 1,
+    "totalNumberOfVerses": 1,
+    "totalNumberOfProfiles": 0
+  },
+  "books": [
+    {
+      "id": "GEN",
+      "order": 1,
+      "commonName": "Genesis",
+      "name": "Genesis",
+      "introduction": "Genesis Book Intro",
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/c/comment/GEN/1.json",
+      "firstChapterReference": {
+        "commentaryId": "comment",
+        "book": "GEN",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/c/comment/GEN/1.json",
+      "lastChapterReference": {
+        "commentaryId": "comment",
+        "book": "GEN",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1
+    }
+  ]
+}
