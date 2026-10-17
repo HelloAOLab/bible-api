@@ -18,6 +18,7 @@ import {
 } from '@helloao/tools/generation/index.js';
 import * as theographic from '@helloao/tools/generation/theographic.js';
 import * as interlinear from '@helloao/tools/generation/interlinear.js';
+import * as historyGlobe from '@helloao/tools/generation/history-globe.js';
 import fsExtra from 'fs-extra';
 const { exists, readFile } = fsExtra;
 import { copyFile } from 'node:fs/promises';
@@ -750,6 +751,128 @@ export async function importInterlinear(
             translations: [],
             commentaries: [],
             datasets,
+        });
+    } finally {
+        db.close();
+    }
+}
+
+/**
+ * Fetches the History Globe open data (the places and the verse files of every book) and places it in the given directory.
+ * @param dir The directory that the files should be placed in.
+ */
+export async function fetchHistoryGlobe(dir: string) {
+    const logger = log.getLogger();
+
+    // Every file is downloaded to a temporary path first and moved into place only once
+    // all of them have been downloaded and checked, with the index (which lists the books) last.
+    // So a failed fetch never leaves a partial file, or a new index next to old verse files, behind.
+    const downloaded: string[] = [];
+    async function fetchJsonFile(file: string): Promise<any> {
+        const url = `${historyGlobe.HISTORY_GLOBE_API_URL}/${file}`;
+        const partPath = `${path.resolve(dir, file)}.part`;
+        await mkdir(path.dirname(partPath), { recursive: true });
+        downloaded.push(file);
+        await downloadFile(url, partPath);
+        // Error pages that were served with a success status are not valid JSON.
+        return JSON.parse(await readFile(partPath, 'utf-8'));
+    }
+
+    let books: string[];
+    try {
+        const index = await fetchJsonFile('index.json');
+        books = index.books;
+        if (!Array.isArray(books) || books.length <= 0) {
+            throw new Error(
+                'The History Globe index.json does not list any books.'
+            );
+        }
+        const unknownBooks = books.filter(
+            (book) => !theographic.osisBookMap.has(book)
+        );
+        if (unknownBooks.length > 0) {
+            throw new Error(
+                `The History Globe index.json lists unknown books: ${unknownBooks.join(', ')}`
+            );
+        }
+        await fetchJsonFile('places.json');
+        // Wait for every download to settle, so none is still writing when the files are removed.
+        const results = await Promise.allSettled(
+            books.map((book) => fetchJsonFile(`verses/${book}.json`))
+        );
+        for (let result of results) {
+            if (result.status === 'rejected') {
+                throw result.reason;
+            }
+        }
+    } catch (err) {
+        for (let file of downloaded) {
+            await rm(`${path.resolve(dir, file)}.part`, { force: true });
+        }
+        throw err;
+    }
+
+    for (let file of [...downloaded.slice(1), downloaded[0]]) {
+        const fullPath = path.resolve(dir, file);
+        await rename(`${fullPath}.part`, fullPath);
+    }
+
+    logger.log(
+        `Saved the History Globe places and the verse files of ${books.length} books.`
+    );
+}
+
+/**
+ * Imports the History Globe places dataset from the given directory into the database.
+ * The directory should contain the files that are downloaded by the fetch-history-globe command.
+ * @param dir The directory that the History Globe files are located in.
+ * @param options The options.
+ */
+export async function importHistoryGlobe(
+    dir: string,
+    options: ImportTranslationOptions
+) {
+    const logger = log.getLogger();
+
+    async function readJsonFile(name: string): Promise<any> {
+        const filePath = path.resolve(dir, name);
+        if (!existsSync(filePath)) {
+            throw new Error(
+                `Could not find ${name} in ${dir}. Run the fetch-history-globe command first.`
+            );
+        }
+        return JSON.parse(await readFile(filePath, 'utf-8'));
+    }
+
+    const index = await readJsonFile('index.json');
+    if (
+        !Array.isArray(index.books) ||
+        !index.books.every((book: string) => theographic.osisBookMap.has(book))
+    ) {
+        throw new Error(
+            `The index.json in ${dir} does not list valid books. Run the fetch-history-globe command again.`
+        );
+    }
+    const files: historyGlobe.HistoryGlobeFiles = {
+        places: await readJsonFile('places.json'),
+        verses: {},
+    };
+    for (let book of index.books as string[]) {
+        Object.assign(files.verses, await readJsonFile(`verses/${book}.json`));
+    }
+
+    logger.log('Generating the History Globe dataset...');
+    const historyGlobeDataset =
+        historyGlobe.generateDatasetFromHistoryGlobe(files);
+
+    logger.log(`Generated ${historyGlobeDataset.places?.length ?? 0} places.`);
+
+    const db = await database.getDb(options.db);
+    try {
+        importDatasetOutput(db, {
+            translations: [],
+            commentaries: [],
+            datasets: [historyGlobeDataset],
         });
     } finally {
         db.close();

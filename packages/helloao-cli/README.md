@@ -33,6 +33,8 @@ Commands:
                                                          The directory should contain the JSON files downloaded by the fetch-bible-metadata command.
   import-interlinear <dir>                               Imports the Berean interlinear words and the STEPBible lexicons from the given directory into the database.
                                                          The directory should contain the files downloaded by the fetch-interlinear command.
+  import-history-globe <dir>                             Imports the History Globe places from the given directory into the database.
+                                                         The directory should contain the files downloaded by the fetch-history-globe command.
   upload-test-translation [options] <input>              Uploads a translation to the HelloAO Free Bible API test S3 bucket.
                                                          Requires access to the HelloAO Free Bible API test S3 bucket.
                                                          For inquiries, please contact hello@helloao.org.
@@ -50,6 +52,7 @@ Commands:
                                                          Translations should be in the format "translationId/audioId". e.g. "BSB/gilbert"
   fetch-bible-metadata <dir>                             Fetches the Theographic bible metadata and places it in the given directory.
   fetch-interlinear <dir>                                Fetches the Berean interlinear table and the STEPBible lexicons (with their license) and places them in the given directory.
+  fetch-history-globe <dir>                              Fetches the History Globe places and their verse references and places them in the given directory.
   fetch-tyndale-open-resources <dir>                     Fetches the Tyndale Open Bible Resources and places it in the given directory.
   help [command]                                         display help for command
 ```
