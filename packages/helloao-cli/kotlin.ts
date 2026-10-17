@@ -234,6 +234,23 @@ class KotlinModelGenerator {
             }
         }
 
+        const discriminatedUnions = [...this._declarations.values()].filter(
+            (d): d is UnionDeclaration =>
+                d.kind === 'union' && !!d.discriminator
+        );
+        if (discriminatedUnions.length > 0) {
+            blocks.push(
+                [
+                    'internal val UnknownContentSerializersModule = SerializersModule {',
+                    ...discriminatedUnions.map(
+                        (d) =>
+                            `    polymorphic(${d.name}::class) { defaultDeserializer { Unknown${d.name}.serializer() } }`
+                    ),
+                    '}',
+                ].join('\n')
+            );
+        }
+
         const header = [
             `// This file was generated from the Free Use Bible API OpenAPI document. Do not edit it by hand.`,
             this._options.generatedBy
@@ -260,6 +277,8 @@ class KotlinModelGenerator {
             'import kotlinx.serialization.json.JsonElement',
             'import kotlinx.serialization.json.JsonObject',
             'import kotlinx.serialization.json.JsonPrimitive',
+            'import kotlinx.serialization.modules.SerializersModule',
+            'import kotlinx.serialization.modules.polymorphic',
         ].filter((line) => line !== null);
 
         return header.join('\n') + '\n\n' + blocks.join('\n\n') + '\n';
@@ -575,10 +594,6 @@ class KotlinModelGenerator {
         const parents = [...(this._parents.get(name) ?? [])];
         const supertypes = parents.length > 0 ? ` : ${parents.join(', ')}` : '';
 
-        if (declaration.discriminator) {
-            return `${prefix}@Serializable\n@JsonClassDiscriminator(${JSON.stringify(declaration.discriminator)})\npublic sealed interface ${name}${supertypes}`;
-        }
-
         const serializerName = `${name}Serializer`;
         const objectVariants = declaration.variants.filter(
             (v) => v !== this._stringVariantName
@@ -589,29 +604,50 @@ class KotlinModelGenerator {
                 `        element is JsonPrimitive && element.isString -> ${this._stringVariantName}.serializer()`
             );
         }
-        for (const variant of objectVariants) {
-            const key = this._findDistinguishingProperty(
-                variant,
-                objectVariants
-            );
+        for (const variant of declaration.discriminator ? [] : objectVariants) {
+            const condition = this._variantCondition(variant, objectVariants);
+            const grouped = condition.includes(' || ')
+                ? `(${condition})`
+                : condition;
             cases.push(
-                `        element is JsonObject && ${JSON.stringify(key)} in element -> ${variant}.serializer()`
+                `        element is JsonObject && ${grouped} -> ${variant}.serializer()`
             );
         }
-        cases.push(
-            `        else -> throw SerializationException("Unable to determine the type of ${name} from: $element")`
-        );
+        cases.push(`        else -> Unknown${name}.serializer()`);
 
-        return [
-            `${prefix}@Serializable(with = ${serializerName}::class)`,
-            `public sealed interface ${name}${supertypes}`,
+        const rawUnknown = [
+            `@Serializable(with = Unknown${name}Serializer::class)`,
+            `public data class Unknown${name}(public val raw: JsonElement) : ${name}`,
             '',
-            `internal object ${serializerName} : JsonContentPolymorphicSerializer<${name}>(${name}::class) {`,
-            `    override fun selectDeserializer(element: JsonElement): DeserializationStrategy<${name}> = when {`,
-            ...cases,
-            '    }',
-            '}',
+            `internal object Unknown${name}Serializer : KSerializer<Unknown${name}> {`,
+            `    override val descriptor: SerialDescriptor = JsonElement.serializer().descriptor`,
+            `    override fun deserialize(decoder: Decoder): Unknown${name} {`,
+            `        return Unknown${name}(decoder.decodeSerializableValue(JsonElement.serializer()))`,
+            `    }`,
+            `    override fun serialize(encoder: Encoder, value: Unknown${name}) {`,
+            `        encoder.encodeSerializableValue(JsonElement.serializer(), value.raw)`,
+            `    }`,
+            `}`,
         ].join('\n');
+
+        if (declaration.discriminator) {
+            return `${prefix}@Serializable\n@JsonClassDiscriminator(${JSON.stringify(declaration.discriminator)})\npublic sealed interface ${name}${supertypes}\n\n${rawUnknown}`;
+        }
+
+        return (
+            [
+                `${prefix}@Serializable(with = ${serializerName}::class)`,
+                `public sealed interface ${name}${supertypes}`,
+                '',
+                `internal object ${serializerName} : JsonContentPolymorphicSerializer<${name}>(${name}::class) {`,
+                `    override fun selectDeserializer(element: JsonElement): DeserializationStrategy<${name}> = when {`,
+                ...cases,
+                '    }',
+                '}',
+            ].join('\n') +
+            '\n\n' +
+            rawUnknown
+        );
     }
 
     private _renderAlias(declaration: AliasDeclaration): string {
@@ -646,20 +682,31 @@ class KotlinModelGenerator {
         ].join('\n');
     }
 
-    /**
-     * Finds a required property of the given variant that none of the other variants have.
-     */
-    private _findDistinguishingProperty(
-        variant: string,
-        variants: string[]
-    ): string {
+    /** Selects a shape by its unique property or a distinct literal value. */
+    private _variantCondition(variant: string, variants: string[]): string {
         const schema = this._objectSchema(variant);
         const others = variants
             .filter((v) => v !== variant)
             .map((v) => this._objectSchema(v));
         for (const prop of schema.required ?? []) {
             if (others.every((o) => !o.properties?.[prop])) {
-                return prop;
+                return `${JSON.stringify(prop)} in element`;
+            }
+        }
+        for (const [prop, property] of Object.entries(
+            schema.properties ?? {}
+        )) {
+            if (
+                property.const !== undefined &&
+                others.every(
+                    (o) => o.properties?.[prop]?.const !== property.const
+                )
+            ) {
+                const literal = `JsonPrimitive(${JSON.stringify(property.const)})`;
+                const match = `element[${JSON.stringify(prop)}] == ${literal}`;
+                return schema.required?.includes(prop)
+                    ? match
+                    : `${JSON.stringify(prop)} !in element || ${match}`;
             }
         }
         throw new Error(
@@ -667,11 +714,27 @@ class KotlinModelGenerator {
         );
     }
 
+    /** Gets the common shape when a variant is itself a union. */
     private _objectSchema(name: string): JsonSchema {
         const declaration = this._declarations.get(name);
-        if (!declaration || declaration.kind !== 'object') {
-            throw new Error(`${name} is not an object.`);
+        if (declaration?.kind === 'union') {
+            const schemas = declaration.variants.map((v) =>
+                this._objectSchema(v)
+            );
+            const first = schemas[0];
+            return {
+                properties: Object.fromEntries(
+                    Object.entries(first.properties ?? {}).filter(([key]) =>
+                        schemas.every((s) => s.properties?.[key])
+                    )
+                ),
+                required: first.required?.filter((key) =>
+                    schemas.every((s) => s.required?.includes(key))
+                ),
+            };
         }
+        if (!declaration || declaration.kind !== 'object')
+            throw new Error(`${name} is not an object.`);
         return declaration.schema;
     }
 

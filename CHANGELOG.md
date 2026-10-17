@@ -2,6 +2,12 @@
 
 This is the log of changes for the Free Use Bible API.
 
+## Unreleased
+
+### :warning: Changes
+
+-   Chapter responses now include paragraph items, each preceded by a line break. Publish the updated Kotlin SDK before deploying regenerated chapter data; older Kotlin SDK versions cannot decode paragraph items.
+
 ## V1.16.0
 
 ### :rocket: Features

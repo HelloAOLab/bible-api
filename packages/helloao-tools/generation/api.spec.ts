@@ -39,6 +39,57 @@ describe('generateApiForDataset', () => {
         globalThis.Node = Node as any; // window.Node;
     });
 
+    it('passes chapter and inline paragraphs through standard and simplified APIs', () => {
+        const metadata: InputTranslationMetadata = {
+            id: 'fixture',
+            name: 'Fixture',
+            englishName: 'Fixture',
+            shortName: 'F',
+            language: 'eng',
+            direction: 'ltr',
+            licenseUrl: 'https://example.com',
+            website: 'https://example.com',
+        };
+        const dataset = generateDataset(
+            [
+                {
+                    fileType: 'usfm',
+                    metadata,
+                    content:
+                        '\\id GEN\n\\c 1\n\\p\n\\v 1 Au commencement\\p Dieu créa.',
+                },
+            ],
+            new DOMParser() as any
+        );
+        const api = generateApiForDataset(dataset, {
+            generateSimpleChapterFiles: true,
+        });
+        expect(api.translationBookChapters[0].chapter.content).toEqual([
+            { type: 'line_break' },
+            { type: 'paragraph', style: 'p' },
+            {
+                type: 'verse',
+                number: 1,
+                content: [
+                    'Au commencement',
+                    { lineBreak: true, paragraph: true, style: 'p' },
+                    'Dieu créa.',
+                ],
+            },
+        ]);
+        expect(api.simpleTranslationBookChapters![0].chapter.content).toEqual([
+            { type: 'line_break' },
+            { type: 'paragraph', style: 'p' },
+            {
+                type: 'verse',
+                number: 1,
+                text: 'Au commencement\nDieu créa.',
+                footnotes: [],
+                paragraphs: [{ offset: 16, style: 'p' }],
+            },
+        ]);
+    });
+
     it('should output a file tree', () => {
         let translation1: InputTranslationMetadata = {
             id: 'bsb',
@@ -200,6 +251,8 @@ describe('generateApiForDataset', () => {
                         {
                             type: 'line_break',
                         },
+                        { type: 'line_break' },
+                        { type: 'paragraph', style: 'm' },
                         {
                             type: 'verse',
                             number: 1,
@@ -210,6 +263,8 @@ describe('generateApiForDataset', () => {
                         {
                             type: 'line_break',
                         },
+                        { type: 'line_break' },
+                        { type: 'paragraph', style: 'm' },
                         {
                             type: 'verse',
                             number: 2,
@@ -277,6 +332,8 @@ describe('generateApiForDataset', () => {
                         {
                             type: 'line_break',
                         },
+                        { type: 'line_break' },
+                        { type: 'paragraph', style: 'm' },
                         {
                             type: 'verse',
                             number: 1,
@@ -464,6 +521,8 @@ describe('generateApiForDataset', () => {
                         {
                             type: 'line_break',
                         },
+                        { type: 'line_break' },
+                        { type: 'paragraph', style: 'm' },
                         {
                             type: 'verse',
                             number: 1,
@@ -474,6 +533,8 @@ describe('generateApiForDataset', () => {
                         {
                             type: 'line_break',
                         },
+                        { type: 'line_break' },
+                        { type: 'paragraph', style: 'm' },
                         {
                             type: 'verse',
                             number: 2,
@@ -541,6 +602,8 @@ describe('generateApiForDataset', () => {
                         {
                             type: 'line_break',
                         },
+                        { type: 'line_break' },
+                        { type: 'paragraph', style: 'm' },
                         {
                             type: 'verse',
                             number: 1,
@@ -586,6 +649,8 @@ describe('generateApiForDataset', () => {
                                         {
                                             type: 'line_break',
                                         },
+                                        { type: 'line_break' },
+                                        { type: 'paragraph', style: 'm' },
                                         {
                                             type: 'verse',
                                             number: 1,
@@ -596,6 +661,8 @@ describe('generateApiForDataset', () => {
                                         {
                                             type: 'line_break',
                                         },
+                                        { type: 'line_break' },
+                                        { type: 'paragraph', style: 'm' },
                                         {
                                             type: 'verse',
                                             number: 2,
@@ -634,6 +701,8 @@ describe('generateApiForDataset', () => {
                                         {
                                             type: 'line_break',
                                         },
+                                        { type: 'line_break' },
+                                        { type: 'paragraph', style: 'm' },
                                         {
                                             type: 'verse',
                                             number: 1,
@@ -685,6 +754,8 @@ describe('generateApiForDataset', () => {
                                         {
                                             type: 'line_break',
                                         },
+                                        { type: 'line_break' },
+                                        { type: 'paragraph', style: 'm' },
                                         {
                                             type: 'verse',
                                             number: 1,
@@ -694,6 +765,8 @@ describe('generateApiForDataset', () => {
                                         {
                                             type: 'line_break',
                                         },
+                                        { type: 'line_break' },
+                                        { type: 'paragraph', style: 'm' },
                                         {
                                             type: 'verse',
                                             number: 2,
@@ -729,6 +802,8 @@ describe('generateApiForDataset', () => {
                                         {
                                             type: 'line_break',
                                         },
+                                        { type: 'line_break' },
+                                        { type: 'paragraph', style: 'm' },
                                         {
                                             type: 'verse',
                                             number: 1,
@@ -942,6 +1017,8 @@ describe('generateApiForDataset', () => {
                             type: 'heading',
                             content: ['The Creation'],
                         },
+                        { type: 'line_break' },
+                        { type: 'paragraph', style: 'm' },
                         {
                             type: 'verse',
                             number: 1,
@@ -1034,6 +1111,8 @@ describe('generateApiForDataset', () => {
                             type: 'heading',
                             content: ['The Seventh Day'],
                         },
+                        { type: 'line_break' },
+                        { type: 'paragraph', style: 'm' },
                         {
                             type: 'verse',
                             number: 1,
@@ -1293,6 +1372,8 @@ describe('generateApiForDataset', () => {
                         {
                             type: 'line_break',
                         },
+                        { type: 'line_break' },
+                        { type: 'paragraph', style: 'm' },
                         {
                             type: 'verse',
                             number: 1,
@@ -1303,6 +1384,8 @@ describe('generateApiForDataset', () => {
                         {
                             type: 'line_break',
                         },
+                        { type: 'line_break' },
+                        { type: 'paragraph', style: 'm' },
                         {
                             type: 'verse',
                             number: 2,
@@ -1370,6 +1453,8 @@ describe('generateApiForDataset', () => {
                         {
                             type: 'line_break',
                         },
+                        { type: 'line_break' },
+                        { type: 'paragraph', style: 'm' },
                         {
                             type: 'verse',
                             number: 1,
@@ -1522,6 +1607,8 @@ describe('generateApiForDataset', () => {
                         {
                             type: 'line_break',
                         },
+                        { type: 'line_break' },
+                        { type: 'paragraph', style: 'm' },
                         {
                             type: 'verse',
                             number: 1,
@@ -1664,6 +1751,8 @@ describe('generateApiForDataset', () => {
                         {
                             type: 'line_break',
                         },
+                        { type: 'line_break' },
+                        { type: 'paragraph', style: 'm' },
                         {
                             type: 'verse',
                             number: 1,
@@ -1823,6 +1912,8 @@ describe('generateApiForDataset', () => {
                         {
                             type: 'line_break',
                         },
+                        { type: 'line_break' },
+                        { type: 'paragraph', style: 'm' },
                         {
                             type: 'verse',
                             number: 1,
@@ -2951,6 +3042,8 @@ describe('generateApiForDataset', () => {
                 chapter: {
                     number: 1,
                     content: [
+                        { type: 'line_break' },
+                        { type: 'paragraph', style: 'p' },
                         {
                             type: 'verse',
                             number: 1,
@@ -2958,6 +3051,8 @@ describe('generateApiForDataset', () => {
                                 'And king Astyages was gathered to his fathers, and Cyrus of Persia received his kingdom.',
                             ],
                         },
+                        { type: 'line_break' },
+                        { type: 'paragraph', style: 'p' },
                         {
                             type: 'verse',
                             number: 2,
@@ -2965,6 +3060,8 @@ describe('generateApiForDataset', () => {
                                 'And Daniel conversed with the king, and was honoured above all his friends.',
                             ],
                         },
+                        { type: 'line_break' },
+                        { type: 'paragraph', style: 'p' },
                         {
                             type: 'verse',
                             number: 3,
@@ -3026,6 +3123,8 @@ describe('generateApiForDataset', () => {
                 chapter: {
                     number: 1,
                     content: [
+                        { type: 'line_break' },
+                        { type: 'paragraph', style: 'p' },
                         {
                             type: 'verse',
                             number: 1,
@@ -3033,6 +3132,8 @@ describe('generateApiForDataset', () => {
                                 'The brethren, the Jews that be at Jerusalem and in the land of Judea, wish unto the brethren, the Jews that are throughout Egypt health and peace:',
                             ],
                         },
+                        { type: 'line_break' },
+                        { type: 'paragraph', style: 'p' },
                         {
                             type: 'verse',
                             number: 2,
@@ -3040,6 +3141,8 @@ describe('generateApiForDataset', () => {
                                 'God be gracious unto you, and remember his covenant that he made with Abraham, Isaac, and Jacob, his faithful servants;',
                             ],
                         },
+                        { type: 'line_break' },
+                        { type: 'paragraph', style: 'p' },
                         {
                             type: 'verse',
                             number: 3,
@@ -3047,6 +3150,8 @@ describe('generateApiForDataset', () => {
                                 'And give you all an heart to serve him, and to do his will, with a good courage and a willing mind;',
                             ],
                         },
+                        { type: 'line_break' },
+                        { type: 'paragraph', style: 'p' },
                         {
                             type: 'verse',
                             number: 4,
@@ -3054,6 +3159,8 @@ describe('generateApiForDataset', () => {
                                 'And open your hearts in his law and commandments, and send you peace,',
                             ],
                         },
+                        { type: 'line_break' },
+                        { type: 'paragraph', style: 'p' },
                         {
                             type: 'verse',
                             number: 5,
@@ -3206,6 +3313,8 @@ describe('generateApiForDataset', () => {
                 chapter: {
                     number: 1,
                     content: [
+                        { type: 'line_break' },
+                        { type: 'paragraph', style: 'p' },
                         {
                             type: 'verse',
                             number: 1,
@@ -3360,6 +3469,8 @@ describe('generateApiForDataset', () => {
                 chapter: {
                     number: 1,
                     content: [
+                        { type: 'line_break' },
+                        { type: 'paragraph', style: 'p' },
                         {
                             type: 'verse',
                             number: 1,
@@ -3588,6 +3699,8 @@ describe('generateApiForDataset', () => {
                 chapter: {
                     number: 1,
                     content: [
+                        { type: 'line_break' },
+                        { type: 'paragraph', style: 'p' },
                         {
                             type: 'verse',
                             number: 1,
@@ -3651,6 +3764,8 @@ describe('generateApiForDataset', () => {
                 chapter: {
                     number: 1,
                     content: [
+                        { type: 'line_break' },
+                        { type: 'paragraph', style: 'p' },
                         {
                             type: 'verse',
                             number: 1,
@@ -3972,6 +4087,8 @@ describe('generateApiForDataset() simplified chapters', () => {
                 {
                     type: 'line_break',
                 },
+                { type: 'line_break' },
+                { type: 'paragraph', style: 'm' },
                 {
                     type: 'verse',
                     number: 1,
@@ -3981,6 +4098,8 @@ describe('generateApiForDataset() simplified chapters', () => {
                 {
                     type: 'line_break',
                 },
+                { type: 'line_break' },
+                { type: 'paragraph', style: 'm' },
                 {
                     type: 'verse',
                     number: 2,
@@ -4122,6 +4241,8 @@ describe('generateApiForDataset() simplified chapters', () => {
                     {
                         type: 'line_break',
                     },
+                    { type: 'line_break' },
+                    { type: 'paragraph', style: 'm' },
                     {
                         type: 'verse',
                         number: 1,
@@ -4131,6 +4252,8 @@ describe('generateApiForDataset() simplified chapters', () => {
                     {
                         type: 'line_break',
                     },
+                    { type: 'line_break' },
+                    { type: 'paragraph', style: 'm' },
                     {
                         type: 'verse',
                         number: 2,

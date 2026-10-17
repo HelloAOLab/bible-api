@@ -430,7 +430,7 @@ export type ApiTranslationBookChapter = {
 };
 
 /**
- * Defines a union type that represents a single piece of chapter content. A piece of chapter content can be one of the following things: A heading, a line break, a verse, or a Hebrew Subtitle.
+ * Defines a union type that represents a heading, line break, paragraph, verse, or Hebrew Subtitle.
  */
 export type ChapterContent =
     | ({
@@ -439,6 +439,9 @@ export type ChapterContent =
     | ({
           type: 'line_break';
       } & ChapterLineBreak)
+    | ({
+          type: 'paragraph';
+      } & ChapterParagraph)
     | ({
           type: 'verse';
       } & ChapterVerse)
@@ -462,6 +465,17 @@ export type ChapterHeading = {
  */
 export type ChapterLineBreak = {
     type: 'line_break';
+};
+
+/**
+ * Defines a paragraph start in a chapter.
+ */
+export type ChapterParagraph = {
+    type: 'paragraph';
+    /**
+     * The source paragraph marker without its backslash.
+     */
+    style?: string;
 };
 
 /**
@@ -516,8 +530,26 @@ export type InlineHeading = {
 /**
  * Defines the schema for a line break that is embedded in a verse.
  */
-export type InlineLineBreak = {
+export type InlineLineBreak = PlainInlineLineBreak | InlineParagraph;
+
+/**
+ * A line break inside a verse.
+ */
+export type PlainInlineLineBreak = {
     lineBreak: true;
+    paragraph?: false;
+};
+
+/**
+ * A paragraph start inside a verse.
+ */
+export type InlineParagraph = {
+    lineBreak: true;
+    paragraph: true;
+    /**
+     * The source paragraph marker without its backslash.
+     */
+    style: string;
 };
 
 /**
@@ -695,6 +727,9 @@ export type SimpleChapterContent =
           type: 'line_break';
       } & ChapterLineBreak)
     | ({
+          type: 'paragraph';
+      } & ChapterParagraph)
+    | ({
           type: 'verse';
       } & SimpleChapterVerse)
     | ({
@@ -733,6 +768,10 @@ export type SimpleChapterVerse = {
      * The headings that occur in the middle of the verse. Omitted if the verse contains no inline headings.
      */
     headings?: Array<SimpleInlineHeading>;
+    /**
+     * The positions and source styles of paragraphs that start inside the verse.
+     */
+    paragraphs?: Array<SimpleVerseParagraph>;
     /**
      * The ranges of the verse text that represent the Words of Jesus. Omitted if the verse contains none.
      */
@@ -777,6 +816,20 @@ export type SimpleInlineHeading = {
      * The text of the heading.
      */
     text: string;
+};
+
+/**
+ * A paragraph start in the text of a simplified verse.
+ */
+export type SimpleVerseParagraph = {
+    /**
+     * The index in the verse text, measured in UTF-16 code units.
+     */
+    offset: number;
+    /**
+     * The source paragraph marker without its backslash.
+     */
+    style: string;
 };
 
 /**
@@ -827,6 +880,10 @@ export type SimpleChapterHebrewSubtitle = {
      * The headings that occur in the middle of the verse. Omitted if the verse contains no inline headings.
      */
     headings?: Array<SimpleInlineHeading>;
+    /**
+     * The positions and source styles of paragraphs that start inside the verse.
+     */
+    paragraphs?: Array<SimpleVerseParagraph>;
     /**
      * The ranges of the verse text that represent the Words of Jesus. Omitted if the verse contains none.
      */

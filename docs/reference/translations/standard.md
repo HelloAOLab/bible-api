@@ -41,6 +41,10 @@ curl https://bible.helloao.org/api/BSB/GEN/1.json
 
 ### Structure
 
+Chapter content can include `{ "type": "paragraph", "style": "p" }` at the start of a source paragraph. Each chapter-level paragraph item is immediately preceded by a `line_break`; blank-line markers remain `line_break` items without a paragraph. The optional `style` is the source marker without its backslash (for example `p`, `m`, `pi1`, `mi`, or `pc`). `\nb` continues the current paragraph and emits neither item. A paragraph that begins inside a verse is represented in verse content as `{ "lineBreak": true, "paragraph": true, "style": "p" }`.
+
+For example, the beginning of `fra_lsg` Genesis 1 includes a `line_break` and `paragraph` pair before the first verse. The paragraph item follows any heading or reference heading.
+
 ```typescript:no-line-numbers title="chapter.ts"
 export interface TranslationBookChapter {
     /**

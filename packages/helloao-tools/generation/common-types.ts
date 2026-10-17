@@ -13,8 +13,7 @@ export interface InputFileBase {
 }
 
 export type InputFileMetadata =
-    | InputTranslationMetadata
-    | InputCommentaryMetadata;
+    InputTranslationMetadata | InputCommentaryMetadata;
 
 export interface InputTranslationFile extends InputFileBase {
     fileType: 'usfm' | 'usx' | 'json' | 'lockman';
@@ -93,50 +92,53 @@ export interface MetadataBase {
 /**
  * Defines a Zod schema for the structured license terms of a translation.
  */
-export const LicenseSchema = z.object({
-    /**
-     * Whether attribution to the original source is required when using the translation.
-     */
-    attribution: z.enum(['required', 'not-required']).meta({
-        description:
-            'Whether attribution to the original source is required when using the translation.',
-    }),
+export const LicenseSchema = z
+    .object({
+        /**
+         * Whether attribution to the original source is required when using the translation.
+         */
+        attribution: z.enum(['required', 'not-required']).meta({
+            description:
+                'Whether attribution to the original source is required when using the translation.',
+        }),
 
-    /**
-     * Whether commercial use of the translation is allowed.
-     */
-    commercialUse: z.enum(['allowed', 'not-allowed']).meta({
-        description: 'Whether commercial use of the translation is allowed.',
-    }),
+        /**
+         * Whether commercial use of the translation is allowed.
+         */
+        commercialUse: z.enum(['allowed', 'not-allowed']).meta({
+            description:
+                'Whether commercial use of the translation is allowed.',
+        }),
 
-    /**
-     * Whether creating and distributing derivative works of the translation is allowed.
-     */
-    derivatives: z.enum(['allowed', 'not-allowed']).meta({
-        description:
-            'Whether creating and distributing derivative works of the translation is allowed.',
-    }),
+        /**
+         * Whether creating and distributing derivative works of the translation is allowed.
+         */
+        derivatives: z.enum(['allowed', 'not-allowed']).meta({
+            description:
+                'Whether creating and distributing derivative works of the translation is allowed.',
+        }),
 
-    /**
-     * Whether derivative works must be distributed under the same license (i.e. a "share-alike" requirement).
-     */
-    copyleft: z.boolean().meta({
-        description:
-            'Whether derivative works must be distributed under the same license (i.e. a "share-alike" requirement).',
-    }),
+        /**
+         * Whether derivative works must be distributed under the same license (i.e. a "share-alike" requirement).
+         */
+        copyleft: z.boolean().meta({
+            description:
+                'Whether derivative works must be distributed under the same license (i.e. a "share-alike" requirement).',
+        }),
 
-    /**
-     * Whether the translation has been dedicated to the public domain.
-     */
-    publicDomain: z.boolean().meta({
+        /**
+         * Whether the translation has been dedicated to the public domain.
+         */
+        publicDomain: z.boolean().meta({
+            description:
+                'Whether the translation has been dedicated to the public domain.',
+        }),
+    })
+    .meta({
+        id: 'License',
         description:
-            'Whether the translation has been dedicated to the public domain.',
-    }),
-}).meta({
-    id: 'License',
-    description:
-        'Defines the structured license terms that were detected for a translation.',
-});
+            'Defines the structured license terms that were detected for a translation.',
+    });
 
 export type License = z.infer<typeof LicenseSchema>;
 
@@ -1752,6 +1754,19 @@ export const ChapterLineBreakSchema = z
 
 export type ChapterLineBreak = z.infer<typeof ChapterLineBreakSchema>;
 
+export const ChapterParagraphSchema = z
+    .object({
+        type: z.literal('paragraph'),
+        style: z.string().optional().meta({
+            description: 'The source paragraph marker without its backslash.',
+        }),
+    })
+    .meta({
+        id: 'ChapterParagraph',
+        description: 'Defines a paragraph start in a chapter.',
+    });
+export type ChapterParagraph = z.infer<typeof ChapterParagraphSchema>;
+
 /**
  * A Zod schema for a Hebrew Subtitle in a chapter.
  * These are often used included as informational content that appeared in the original manuscripts.
@@ -1843,13 +1858,14 @@ export const ChapterContentSchema = z
     .discriminatedUnion('type', [
         ChapterHeadingSchema,
         ChapterLineBreakSchema,
+        ChapterParagraphSchema,
         ChapterVerseSchema,
         ChapterHebrewSubtitleSchema,
     ])
     .meta({
         id: 'ChapterContent',
         description:
-            'Defines a union type that represents a single piece of chapter content. A piece of chapter content can be one of the following things: A heading, a line break, a verse, or a Hebrew Subtitle.',
+            'Defines a union type that represents a heading, line break, paragraph, verse, or Hebrew Subtitle.',
     });
 
 /**
@@ -1923,10 +1939,31 @@ export type InlineHeading = z.infer<typeof InlineHeadingSchema>;
 /**
  * A Zod schema for a line break that is embedded in a verse.
  */
-export const InlineLineBreakSchema = z
+export const PlainInlineLineBreakSchema = z
     .object({
         lineBreak: z.literal(true),
+        paragraph: z.literal(false).optional(),
     })
+    .meta({
+        id: 'PlainInlineLineBreak',
+        description: 'A line break inside a verse.',
+    });
+
+export const InlineParagraphSchema = z
+    .object({
+        lineBreak: z.literal(true),
+        paragraph: z.literal(true),
+        style: z.string().meta({
+            description: 'The source paragraph marker without its backslash.',
+        }),
+    })
+    .meta({
+        id: 'InlineParagraph',
+        description: 'A paragraph start inside a verse.',
+    });
+
+export const InlineLineBreakSchema = z
+    .union([PlainInlineLineBreakSchema, InlineParagraphSchema])
     .meta({
         id: 'InlineLineBreak',
         description:
@@ -2142,6 +2179,24 @@ export const SimpleInlineHeadingSchema = z
 
 export type SimpleInlineHeading = z.infer<typeof SimpleInlineHeadingSchema>;
 
+/** A paragraph start in the text of a simplified verse. */
+export const SimpleVerseParagraphSchema = z
+    .object({
+        offset: z.number().meta({
+            description:
+                'The index in the verse text, measured in UTF-16 code units.',
+        }),
+        style: z.string().meta({
+            description: 'The source paragraph marker without its backslash.',
+        }),
+    })
+    .meta({
+        id: 'SimpleVerseParagraph',
+        description: 'A paragraph start in the text of a simplified verse.',
+    });
+
+export type SimpleVerseParagraph = z.infer<typeof SimpleVerseParagraphSchema>;
+
 /**
  * A Zod schema for a verse in a simplified chapter.
  */
@@ -2180,6 +2235,11 @@ export const SimpleChapterVerseSchema = z
         headings: z.array(SimpleInlineHeadingSchema).optional().meta({
             description:
                 'The headings that occur in the middle of the verse. Omitted if the verse contains no inline headings.',
+        }),
+
+        paragraphs: z.array(SimpleVerseParagraphSchema).optional().meta({
+            description:
+                'The positions and source styles of paragraphs that start inside the verse.',
         }),
 
         /**
@@ -2265,6 +2325,7 @@ export const SimpleChapterContentSchema = z
     .discriminatedUnion('type', [
         SimpleChapterHeadingSchema,
         ChapterLineBreakSchema,
+        ChapterParagraphSchema,
         SimpleChapterVerseSchema,
         SimpleChapterHebrewSubtitleSchema,
     ])

@@ -114,10 +114,59 @@ public data class Thing(
             '@Serializable\n@JsonClassDiscriminator("type")\npublic sealed interface Content'
         );
         expect(source).toContain(
+            'public data class UnknownContent(public val raw: JsonElement) : Content'
+        );
+        expect(source).toContain(
+            'polymorphic(Content::class) { defaultDeserializer { UnknownContent.serializer() } }'
+        );
+        expect(source).toContain(
             '@Serializable\n@SerialName("heading")\npublic data class Heading(\n    public val text: String,\n) : Content'
         );
         expect(source).toContain(
             '@Serializable\n@SerialName("line_break")\npublic data object Break : Content'
+        );
+    });
+
+    it('selects plain and paragraph breaks inside a nested shape union', () => {
+        const source = generate({
+            VerseContent: {
+                anyOf: [
+                    { $ref: '#/components/schemas/InlineLineBreak' },
+                    { type: 'string' },
+                ],
+            },
+            InlineLineBreak: {
+                anyOf: [
+                    { $ref: '#/components/schemas/PlainBreak' },
+                    { $ref: '#/components/schemas/Paragraph' },
+                ],
+            },
+            PlainBreak: {
+                type: 'object',
+                properties: {
+                    lineBreak: { type: 'boolean', const: true },
+                    paragraph: { type: 'boolean', const: false },
+                },
+                required: ['lineBreak'],
+            },
+            Paragraph: {
+                type: 'object',
+                properties: {
+                    lineBreak: { type: 'boolean', const: true },
+                    paragraph: { type: 'boolean', const: true },
+                    style: { type: 'string' },
+                },
+                required: ['lineBreak', 'paragraph', 'style'],
+            },
+        });
+        expect(source).toContain(
+            'element is JsonObject && "lineBreak" in element -> InlineLineBreak.serializer()'
+        );
+        expect(source).toContain(
+            'element is JsonObject && ("paragraph" !in element || element["paragraph"] == JsonPrimitive(false)) -> PlainBreak.serializer()'
+        );
+        expect(source).toContain(
+            'element is JsonObject && "style" in element -> Paragraph.serializer()'
         );
     });
 
@@ -169,6 +218,10 @@ public data class Thing(
         );
         expect(source).toContain(
             'element is JsonObject && "noteId" in element -> Note.serializer()'
+        );
+        expect(source).toContain('else -> UnknownVerseContent.serializer()');
+        expect(source).toContain(
+            'public data class UnknownVerseContent(public val raw: JsonElement) : VerseContent'
         );
         expect(source).toContain(') : VerseContent\n');
         expect(source).toContain('public data class PlainText(');

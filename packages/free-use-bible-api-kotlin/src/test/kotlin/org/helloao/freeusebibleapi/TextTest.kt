@@ -48,7 +48,7 @@ class TextTest {
     fun `getVerseText supports formatted text and line breaks`() {
         assertEquals(
             "Hello\nworld",
-            api.getVerseText(verse(FormattedText(text = "Hello", wordsOfJesus = true), InlineLineBreak(), PlainText("world"))),
+            api.getVerseText(verse(FormattedText(text = "Hello", wordsOfJesus = true), PlainInlineLineBreak(), PlainText("world"))),
         )
     }
 

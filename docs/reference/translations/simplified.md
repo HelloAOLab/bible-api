@@ -53,6 +53,8 @@ curl https://bible.helloao.org/api/BSB/GEN/1.simple.json
 
 ### Offsets
 
+Simplified chapter content preserves chapter-level `line_break` and `paragraph` items. When a paragraph begins inside a verse, the verse text contains a newline and the optional `paragraphs` array records `{ offset, style }`; `offset` points to the first character after the newline. For example, a mid-verse `p` after `Au commencement` has an offset at the start of the next line.
+
 All of the offsets in the simplified format - `offset`, `start`, and `end` - are indexes into the `text` of the verse that contains them. They are measured in UTF-16 code units, which is what JavaScript's `String.prototype.length` and `String.prototype.slice()` use.
 
 `start` is inclusive and `end` is exclusive, so `text.slice(start, end)` returns exactly the range of text that was marked. Footnote offsets are the position that the footnote's caller belongs at, so `text.slice(0, offset)` is the text that comes before it.

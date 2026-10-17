@@ -1,3 +1,4 @@
+import { isInlineParagraph } from '../parser/paragraphs.js';
 import {
     ChapterData,
     ChapterFootnote,
@@ -12,6 +13,7 @@ import {
     SimpleChapterWord,
     SimpleCommentaryChapterData,
     SimpleInlineHeading,
+    SimpleVerseParagraph,
     SimplePoemRange,
     SimpleTextRange,
     SimpleVerseFootnote,
@@ -23,8 +25,7 @@ import {
  * The types of content that can be contained in a verse or Hebrew Subtitle.
  */
 type VerseContent =
-    | ChapterVerse['content'][number]
-    | ChapterHebrewSubtitle['content'][number];
+    ChapterVerse['content'][number] | ChapterHebrewSubtitle['content'][number];
 
 /**
  * The result of flattening the content of a verse into a single string.
@@ -44,6 +45,7 @@ export interface SimplifiedVerseContent {
      * The headings that occur in the middle of the verse.
      */
     headings: SimpleInlineHeading[];
+    paragraphs: SimpleVerseParagraph[];
 
     /**
      * The ranges of text that represent the Words of Jesus.
@@ -93,6 +95,7 @@ export function simplifyVerseContent(
     let text = '';
     const verseFootnotes: SimpleVerseFootnote[] = [];
     const headings: SimpleInlineHeading[] = [];
+    const paragraphs: SimpleVerseParagraph[] = [];
     const wordsOfJesus: SimpleTextRange[] = [];
     const poem: SimplePoemRange[] = [];
     const verseWords: SimpleChapterWord[] = [];
@@ -107,6 +110,16 @@ export function simplifyVerseContent(
         arr.push(word);
     }
 
+    const mapOffsets = (f: (offset: number) => number) => {
+        for (const marker of [...verseFootnotes, ...headings, ...paragraphs]) {
+            marker.offset = f(marker.offset);
+        }
+        for (const range of [...wordsOfJesus, ...poem, ...verseWords]) {
+            range.start = f(range.start);
+            range.end = f(range.end);
+        }
+    };
+
     /**
      * Removes the given number of characters from the end of the text and moves any
      * offsets that pointed into the removed region back to the new end of the text.
@@ -116,16 +129,7 @@ export function simplifyVerseContent(
             return;
         }
         text = text.slice(0, length);
-        for (let footnote of verseFootnotes) {
-            footnote.offset = Math.min(footnote.offset, length);
-        }
-        for (let heading of headings) {
-            heading.offset = Math.min(heading.offset, length);
-        }
-        for (let range of [...wordsOfJesus, ...poem, ...verseWords]) {
-            range.start = Math.min(range.start, length);
-            range.end = Math.min(range.end, length);
-        }
+        mapOffsets((offset) => Math.min(offset, length));
     };
 
     /**
@@ -219,6 +223,9 @@ export function simplifyVerseContent(
             if (text.length > 0 && !text.endsWith('\n')) {
                 startNewLine();
             }
+            if (isInlineParagraph(part)) {
+                paragraphs.push({ offset: text.length, style: part.style });
+            }
         } else if ('noteId' in part) {
             const footnote = footnotes.get(part.noteId);
             if (footnote) {
@@ -250,22 +257,14 @@ export function simplifyVerseContent(
     const leading = text.length - text.replace(/^\s+/, '').length;
     if (leading > 0) {
         text = text.slice(leading);
-        for (let footnote of verseFootnotes) {
-            footnote.offset = Math.max(0, footnote.offset - leading);
-        }
-        for (let heading of headings) {
-            heading.offset = Math.max(0, heading.offset - leading);
-        }
-        for (let range of [...wordsOfJesus, ...poem, ...verseWords]) {
-            range.start = Math.max(0, range.start - leading);
-            range.end = Math.max(0, range.end - leading);
-        }
+        mapOffsets((offset) => Math.max(0, offset - leading));
     }
 
     return {
         text,
         footnotes: verseFootnotes,
         headings,
+        paragraphs,
         wordsOfJesus: mergeAdjacentRanges(wordsOfJesus, text),
         poem: poem.filter((range) => range.start < range.end),
         words: verseWords.filter((word) => word.start < word.end),
@@ -365,6 +364,9 @@ function omitEmptyProperties(content: SimplifiedVerseContent) {
         text: content.text,
         footnotes: content.footnotes,
         ...(content.headings.length > 0 ? { headings: content.headings } : {}),
+        ...(content.paragraphs.length > 0
+            ? { paragraphs: content.paragraphs }
+            : {}),
         ...(content.wordsOfJesus.length > 0
             ? { wordsOfJesus: content.wordsOfJesus }
             : {}),
@@ -443,6 +445,8 @@ export function simplifyChapter(
             content.push({
                 type: 'line_break',
             });
+        } else if (c.type === 'paragraph') {
+            content.push({ ...c });
         }
     }
 

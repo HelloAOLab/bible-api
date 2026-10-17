@@ -266,6 +266,107 @@ describe('UsfmParser', () => {
     });
 
     describe('parse()', () => {
+        it('keeps nb at chapter start free of break items', () => {
+            const tree = parser.parse(
+                '\\id GEN\n\\c 1\n\\nb\n\\v 1 Continued.'
+            );
+            const chapter = tree.content.find((c) => c.type === 'chapter')!;
+            expect(chapter.content).toEqual([
+                { type: 'verse', number: 1, content: ['Continued.'] },
+            ]);
+        });
+        it('preserves a chapter-level indented paragraph', () => {
+            const tree = parser.parse(
+                '\\id GEN\n\\c 1\n\\pi1\n\\v 1 Indented.'
+            );
+            const chapter = tree.content.find((c) => c.type === 'chapter')!;
+            expect(chapter.content).toEqual([
+                { type: 'line_break' },
+                { type: 'paragraph', style: 'pi1' },
+                { type: 'verse', number: 1, content: ['Indented.'] },
+            ]);
+        });
+        it('keeps a stanza break between poetry lines inline', () => {
+            const tree = parser.parse(
+                '\\id GEN\n\\c 1\n\\q1\n\\v 1 First line\n\\b\n\\q1 Second line'
+            );
+            const chapter = tree.content.find((c) => c.type === 'chapter')!;
+            expect(chapter.content).toEqual([
+                {
+                    type: 'verse',
+                    number: 1,
+                    content: [
+                        { text: 'First line', poem: 1 },
+                        { lineBreak: true },
+                        { text: 'Second line', poem: 1 },
+                    ],
+                },
+            ]);
+        });
+        it('emits paragraph items from paragraph markers after headings', () => {
+            const tree = parser.parse(
+                '\\id GEN\n\\c 1\n\\s1 Creation\n\\r Gen 1\n\\p\n\\v 1 \\x + \\xo 1:1 \\xt John 1:1\\x* \\w In|strong="H7225"\\w* beginning.\n\\m\n\\v 2 Next.'
+            );
+            const chapter = tree.content.find((c) => c.type === 'chapter')!;
+            expect(
+                chapter.content.map((c) => (c.type === 'verse' ? c.content : c))
+            ).toEqual([
+                { type: 'heading', content: ['Creation'] },
+                { type: 'line_break' },
+                { type: 'paragraph', style: 'p' },
+                ['In beginning.'],
+                { type: 'line_break' },
+                { type: 'paragraph', style: 'm' },
+                ['Next.'],
+            ]);
+        });
+        it('preserves inline paragraphs and resets poetry state', () => {
+            const tree = parser.parse(
+                '\\id GEN\n\\c 1\n\\v 1 \\q1 A line\\p prose\\v 2 \\pi1 Indented\\nb continued.'
+            );
+            const chapter = tree.content.find((c) => c.type === 'chapter')!;
+            const verse = chapter.content.find((c) => c.type === 'verse')!;
+            expect(verse.content).toContainEqual({
+                lineBreak: true,
+                paragraph: true,
+                style: 'p',
+            });
+            expect(verse.content[0]).toMatchObject({ text: 'A line', poem: 1 });
+            expect(verse.content[2]).toEqual('prose');
+            const verse2 = chapter.content.filter((c) => c.type === 'verse')[1];
+            expect(verse2.content).toContainEqual({
+                lineBreak: true,
+                paragraph: true,
+                style: 'pi1',
+            });
+            expect(
+                verse2.content.filter((c) => typeof c === 'string').join('')
+            ).toBe('Indented continued.');
+        });
+        it('moves a trailing paragraph after a reference line to chapter content', () => {
+            const tree = parser.parse(
+                '\\id GEN\n\\c 1\n\\v 1 First.\\r Gen 1:2\n\\p\n\\v 2 Second.'
+            );
+            const chapter = tree.content.find((c) => c.type === 'chapter')!;
+            expect(
+                chapter.content.map((item) =>
+                    item.type === 'verse' ? item.number : item
+                )
+            ).toEqual([
+                1,
+                { type: 'line_break' },
+                { type: 'paragraph', style: 'p' },
+                2,
+            ]);
+            expect(
+                (
+                    chapter.content[0] as Extract<
+                        (typeof chapter.content)[number],
+                        { type: 'verse' }
+                    >
+                ).content
+            ).toEqual(['First.']);
+        });
         it('should produce a list of chapters', () => {
             const tree = parser.parse(`\\c 1
                 \\v 1 In the beginning God created the heavens and the earth.
@@ -274,7 +375,7 @@ describe('UsfmParser', () => {
                 \\v 1 Thus the heavens and the earth were completed in all their vast array.
             `);
 
-            expect(tree).toEqual({
+            expect(withoutParagraphItems(tree)).toEqual({
                 type: 'root',
                 content: [
                     {
@@ -333,7 +434,7 @@ describe('UsfmParser', () => {
                 \\q1 
             `);
 
-            expect(tree).toEqual({
+            expect(withoutParagraphItems(tree)).toEqual({
                 type: 'root',
                 content: [
                     {
@@ -418,7 +519,7 @@ describe('UsfmParser', () => {
                 \\v 1 In the beginning God created the heavens and the earth. 
             `);
 
-            expect(tree).toEqual({
+            expect(withoutParagraphItems(tree)).toEqual({
                 type: 'root',
                 title: 'Genesis',
                 header: 'Genesis',
@@ -431,6 +532,9 @@ describe('UsfmParser', () => {
                             {
                                 type: 'heading',
                                 content: ['The Creation'],
+                            },
+                            {
+                                type: 'line_break',
                             },
                             {
                                 type: 'line_break',
@@ -462,7 +566,7 @@ describe('UsfmParser', () => {
                 \\v 1 In the beginning God created the heavens and the earth. 
             `);
 
-            expect(tree).toEqual({
+            expect(withoutParagraphItems(tree)).toEqual({
                 type: 'root',
                 title: 'Genesis',
                 header: 'Genesis',
@@ -475,6 +579,9 @@ describe('UsfmParser', () => {
                             {
                                 type: 'heading',
                                 content: ['The Creation'],
+                            },
+                            {
+                                type: 'line_break',
                             },
                             {
                                 type: 'line_break',
@@ -503,7 +610,7 @@ describe('UsfmParser', () => {
                 \\v 1 Thus the heavens and the earth were completed in all their vast array.
             `);
 
-            expect(tree).toEqual({
+            expect(withoutParagraphItems(tree)).toEqual({
                 type: 'root',
                 content: [
                     {
@@ -559,7 +666,7 @@ describe('UsfmParser', () => {
                 \\v 21 وَمِنْ ذُرِّيَّةِ رَحَبْيَا: الْبِكْرُ يَشِّيَّا.
             `);
 
-            expect(tree).toEqual({
+            expect(withoutParagraphItems(tree)).toEqual({
                 type: 'root',
                 content: [
                     {
@@ -581,11 +688,11 @@ describe('UsfmParser', () => {
                                 ],
                             },
                             {
-                                type: 'line_break',
-                            },
-                            {
                                 type: 'heading',
                                 content: ['بقية اللاويين'],
+                            },
+                            {
+                                type: 'line_break',
                             },
                             {
                                 type: 'verse',
@@ -618,7 +725,7 @@ describe('UsfmParser', () => {
                 \\v 2 Now the earth was formless and void, and darkness was over the surface of the deep. And the Spirit of God was hovering over the surface of the waters.
             `);
 
-            expect(tree).toEqual({
+            expect(withoutParagraphItems(tree)).toEqual({
                 type: 'root',
                 content: [
                     {
@@ -656,7 +763,7 @@ describe('UsfmParser', () => {
                 \\v 1 Thus the heavens and the earth were completed in all their vast array.
             `);
 
-            expect(tree).toEqual({
+            expect(withoutParagraphItems(tree)).toEqual({
                 type: 'root',
                 content: [
                     {
@@ -714,7 +821,7 @@ describe('UsfmParser', () => {
                 \\v 1 Thus the heavens and the earth were completed in all their vast array.
             `);
 
-            expect(tree).toEqual({
+            expect(withoutParagraphItems(tree)).toEqual({
                 type: 'root',
                 id: 'GEN',
                 content: [
@@ -769,7 +876,7 @@ describe('UsfmParser', () => {
                 \\v 1 Thus the heavens and the earth were completed in all their vast array.
             `);
 
-            expect(tree).toEqual({
+            expect(withoutParagraphItems(tree)).toEqual({
                 type: 'root',
                 title: 'The Title of the Book',
                 content: [
@@ -822,7 +929,7 @@ describe('UsfmParser', () => {
                 \\v 1 Thus the heavens and the earth were completed in all their vast array.
             `);
 
-            expect(tree).toEqual({
+            expect(withoutParagraphItems(tree)).toEqual({
                 type: 'root',
                 header: 'Genesis',
                 content: [
@@ -874,7 +981,7 @@ describe('UsfmParser', () => {
                 \\v 1 Thus the heavens and the earth were completed in all their vast array.
             `);
 
-            expect(tree).toEqual({
+            expect(withoutParagraphItems(tree)).toEqual({
                 type: 'root',
                 content: [
                     {
@@ -924,7 +1031,7 @@ describe('UsfmParser', () => {
             const tree = parser.parse(`\\s1 The Creation
             `);
 
-            expect(tree).toEqual({
+            expect(withoutParagraphItems(tree)).toEqual({
                 type: 'root',
                 content: [
                     {
@@ -944,7 +1051,7 @@ describe('UsfmParser', () => {
                 \\v 1 Thus the heavens and the earth were completed in all their vast array.
             `);
 
-            expect(tree).toEqual({
+            expect(withoutParagraphItems(tree)).toEqual({
                 type: 'root',
                 content: [
                     {
@@ -1016,7 +1123,7 @@ describe('UsfmParser', () => {
                 \\v 1 Thus the heavens and the earth were completed in all their vast array.
             `);
 
-            expect(tree).toEqual({
+            expect(withoutParagraphItems(tree)).toEqual({
                 type: 'root',
                 content: [
                     {
@@ -1084,7 +1191,7 @@ describe('UsfmParser', () => {
                 \\ip The Holy Bible is translated into many languages, and being translated into many more, so that everyone may have an opportunity to hear the Good News about Jesus Christ.\\f + \\fr 1:0  \\ft “Christ” means “Anointed One”.\\f* 
             `);
 
-            expect(tree).toEqual({
+            expect(withoutParagraphItems(tree)).toEqual({
                 type: 'root',
                 content: [
                     // {
@@ -1106,7 +1213,7 @@ describe('UsfmParser', () => {
                 \\v 1 Thus the heavens and the earth were completed in all their vast array.
             `);
 
-            expect(tree).toEqual({
+            expect(withoutParagraphItems(tree)).toEqual({
                 type: 'root',
                 content: [
                     {
@@ -1161,7 +1268,7 @@ describe('UsfmParser', () => {
                 \\q1 
             `);
 
-            expect(tree).toEqual({
+            expect(withoutParagraphItems(tree)).toEqual({
                 type: 'root',
                 content: [
                     {
@@ -1222,7 +1329,7 @@ describe('UsfmParser', () => {
                 \\v 1  \\w In|strong="H0430"\\w* \\w the|strong="H0853"\\w* \\w beginning|strong="H7225"\\w*, \\w God|strong="H0430"\\w* \\w created|strong="H1254"\\w* \\w the|strong="H0853"\\w* \\w heavens|strong="H8064"\\w* \\w and|strong="H0430"\\w* \\w the|strong="H0853"\\w* \\w earth|strong="H0776"\\w*.
             `);
 
-            expect(tree).toEqual({
+            expect(withoutParagraphItems(tree)).toEqual({
                 type: 'root',
                 content: [
                     {
@@ -1253,7 +1360,7 @@ describe('UsfmParser', () => {
                     \\q2 \\wj  \\+w for|strong="G3754"\\+w* \\+w theirs|strong="G0846"\\+w* \\+w is|strong="G1510"\\+w* \\+w the|strong="G3588"\\+w* \\+w Kingdom|strong="G0932"\\+w* \\+w of|strong="G0932"\\+w* \\+w Heaven|strong="G3772"\\+w*.\\wj*\\x + \\xo 5:3  \\xt Isaiah 57:15; 66:2\\x*
                 `);
 
-            expect(tree).toEqual({
+            expect(withoutParagraphItems(tree)).toEqual({
                 type: 'root',
                 content: [
                     {
@@ -1308,7 +1415,7 @@ describe('UsfmParser', () => {
                 \\v 13  \\w Jesus|strong="G2424"\\w* \\w said|strong="G3004"\\w* \\w to|strong="G3004"\\w* \\w the|strong="G3588"\\w* \\w centurion|strong="G1543"\\w*, \\wj “\\+w Go|strong="G5217"\\+w* \\+w your|strong="G2532"\\+w* \\+w way|strong="G1722"\\+w*. \\+w Let|strong="G1096"\\+w* \\+w it|strong="G2532"\\+w* \\+w be|strong="G1096"\\+w* \\+w done|strong="G1096"\\+w* \\+w for|strong="G1722"\\+w* \\+w you|strong="G4771"\\+w* \\+w as|strong="G5613"\\+w* \\+w you|strong="G4771"\\+w* \\+w have|strong="G2532"\\+w* \\+w believed|strong="G4100"\\+w*.”\\wj* \\w His|strong="G5613"\\w* \\w servant|strong="G3816"\\w* \\w was|strong="G2424"\\w* \\w healed|strong="G2390"\\w* \\w in|strong="G1722"\\w* \\w that|strong="G1565"\\w* \\w hour|strong="G5610"\\w*. 
             `);
 
-            expect(tree).toEqual({
+            expect(withoutParagraphItems(tree)).toEqual({
                 type: 'root',
                 content: [
                     {
@@ -1370,7 +1477,7 @@ describe('UsfmParser', () => {
             \\v 11  \\wj I tell you that many will come \\wj* \\wj from the east and the west, and will sit down with Abraham, Isaac, and Jacob in the Kingdom of Heaven, \\wj*
             `);
 
-            expect(tree).toEqual({
+            expect(withoutParagraphItems(tree)).toEqual({
                 type: 'root',
                 content: [
                     {
@@ -1423,7 +1530,7 @@ describe('UsfmParser', () => {
             \\q1 It is only right that they adore you.
             `);
 
-            expect(tree).toEqual({
+            expect(withoutParagraphItems(tree)).toEqual({
                 type: 'root',
                 content: [
                     {
@@ -1543,7 +1650,7 @@ describe('UsfmParser', () => {
             \\v 2 Hello
             `);
 
-            expect(tree).toEqual({
+            expect(withoutParagraphItems(tree)).toEqual({
                 type: 'root',
                 content: [
                     {
@@ -1724,3 +1831,19 @@ describe('isWhitespace()', () => {
         }
     });
 });
+
+function withoutParagraphItems(tree: import('./types.js').ParseTree) {
+    return {
+        ...tree,
+        content: tree.content.map((item) =>
+            item.type === 'chapter'
+                ? {
+                      ...item,
+                      content: item.content.filter(
+                          (part) => part.type !== 'paragraph'
+                      ),
+                  }
+                : item
+        ),
+    };
+}

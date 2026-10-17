@@ -7,8 +7,14 @@ import {
     FootnoteReference,
     Footnote,
     Text,
+    InlineLineBreak,
 } from './types.js';
 import { getLogger } from '../log.js';
+import {
+    paragraphStyle,
+    paragraphBreak,
+    hoistTrailingBreaks,
+} from './paragraphs.js';
 
 /**
  * Defines a class that can tokenize a stream of characters into tokens.
@@ -46,11 +52,8 @@ export class UsfmTokenizer {
 
     private _parseToken(): SimpleToken | null {
         let state:
-            | 'none'
-            | 'marker_start'
-            | 'marker_number'
-            | 'whitespace'
-            | 'word' = 'none';
+            'none' | 'marker_start' | 'marker_number' | 'whitespace' | 'word' =
+            'none';
         let kind: T | null = null;
         this._start = this._index;
 
@@ -238,7 +241,9 @@ export class UsfmParser {
         let verse: Verse | null = null;
         let subtitle: HebrewSubtitle | null = null;
         let words: string[] = [];
-        let verseContent: (Text | FootnoteReference | string)[] = [];
+        let verseContent: (
+            Text | FootnoteReference | InlineLineBreak | string
+        )[] = [];
         let sectionContent: string = '';
         let currentFootnoteId = 0;
         let footnote: Footnote | null = null;
@@ -298,14 +303,13 @@ export class UsfmParser {
                     verse.content.splice(i, 1);
                 } else if (
                     typeof content === 'object' &&
-                    'lineBreak' in content &&
-                    content.lineBreak
+                    'lineBreak' in content
                 ) {
-                    // move line breaks that occur at the end of a verse to the chapter
-                    chapterContent.unshift({
-                        type: 'line_break',
-                    });
-                    verse.content.splice(i, 1);
+                    // Move trailing line breaks and paragraphs to chapter level.
+                    chapterContent.unshift(
+                        ...hoistTrailingBreaks(verse.content)
+                    );
+                    i = verse.content.length;
                 } else {
                     break;
                 }
@@ -365,6 +369,9 @@ export class UsfmParser {
 
         for (let token of tokens) {
             if (token.kind === 'marker') {
+                const style = paragraphStyle(
+                    token.command.slice(1) + (token.number ?? '')
+                );
                 if (token.command === '\\c') {
                     addWordsToVerseOrSubtitle();
                     cleanupVerse();
@@ -416,7 +423,7 @@ export class UsfmParser {
 
                         chapter.content.push(subtitle);
                     }
-                } else if (token.command === '\\b' || token.command === '\\p') {
+                } else if (token.command === '\\b') {
                     if (!chapter) {
                         this._throwError(
                             input,
@@ -439,9 +446,21 @@ export class UsfmParser {
                 } else if (token.command === '\\q') {
                     addWordsToVerseOrSubtitle();
                     this._poem = token.number;
-                } else if (token.command === '\\p') {
-                    addWordsToVerseOrSubtitle();
-                    this._poem = null;
+                } else if (style) {
+                    completeSection();
+                    if (verse) {
+                        addWordsToVerseOrSubtitle();
+                        this._poem = null;
+                        verse.content.push({
+                            lineBreak: true,
+                            paragraph: true,
+                            style,
+                        });
+                    } else {
+                        completeVerseOrSubtitle(token);
+                        this._poem = null;
+                        chapter?.content.push(...paragraphBreak(style));
+                    }
                 } else if (token.command === '\\id') {
                     expectingId = 1;
                 } else if (token.command === '\\h') {
