@@ -16,6 +16,11 @@ This is the log of changes for the Free Use Bible API.
 -   Entries in `/api/available_datasets.json` can now include `totalNumberOfWords`, `listOfLexiconApiLink`, and `totalNumberOfLexicon`.
 -   Added the `fetch-interlinear <dir>` and `import-interlinear <dir>` CLI commands (and the `fetch:bible:interlinear` and `import:bible:interlinear` scripts) for downloading and importing the interlinear sources.
 -   The `@helloao/free-use-bible-api` client has new `getDatasetLexicon()` and `getDatasetLexiconEntry()` methods.
+-   Added the [History Globe](https://historyglobe.app) places dataset (`history-globe`), which contains more than 1,200 places named in the Bible, with their coordinates, feature types, and the verses that name them. It is licensed under CC BY 4.0 and builds on the OpenBible.info Bible Geocoding Data (CC BY 4.0).
+    -   `GET /api/d/history-globe/places.json`
+    -   `GET /api/d/history-globe/places/{id}.json` (e.g. `/api/d/history-globe/places/a15257a.json`)
+    -   `GET /api/d/history-globe/{book}/{chapter}.json` (e.g. `/api/d/history-globe/ACT/27.json`) returns the places that appear in the chapter, with the verse numbers where each one is named.
+-   Added the `fetch-history-globe <dir>` and `import-history-globe <dir>` CLI commands (and the `fetch:bible:history-globe` and `import:bible:history-globe` scripts) for downloading and importing the History Globe data.
 -   Every `free-use-bible-api` client request method now takes an optional last argument, `{ signal }`, for cancelling the request with an `AbortSignal`. Because callers asking for the same URL share one download, aborting stops only that call from waiting; the download is cancelled once every caller waiting on it has aborted.
 -   Added the `free-use-bible-api-react` package, which brings Seed Bible's Bible reader to any React app.
     -   `BibleReader` shows a chapter with its headings, poetry, footnotes, and words of Jesus in red, plus previous/next chapter buttons and loading, error, and "book not found" states.

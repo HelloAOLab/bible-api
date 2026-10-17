@@ -260,6 +260,28 @@ export interface Dataset {
             "languageEnglishName": "English",
             "listOfLexiconApiLink": "/api/d/stepbible-lexicon/lexicon.json",
             "totalNumberOfLexicon": 18085
+        },
+        {
+            "id": "history-globe",
+            "name": "History Globe",
+            "website": "https://historyglobe.app",
+            "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+            "licenseNotes": "History Globe by Vadym Arnaut (https://historyglobe.app) is licensed under CC BY 4.0. Its places, verse tags, and coordinates start from the OpenBible.info Bible Geocoding Data (CC BY 4.0), with corrections, and some coordinates are from Wikidata (CC0). Changes were made to the data to fit the Free Use Bible API format.",
+            "englishName": "History Globe",
+            "language": "eng",
+            "textDirection": "ltr",
+            "availableFormats": [
+                "json"
+            ],
+            "listOfBooksApiLink": "/api/d/history-globe/books.json",
+            "numberOfBooks": 61,
+            "totalNumberOfChapters": 849,
+            "totalNumberOfVerses": 5546,
+            "totalNumberOfReferences": 8617,
+            "languageName": "English",
+            "languageEnglishName": "English",
+            "listOfPlacesApiLink": "/api/d/history-globe/places.json",
+            "totalNumberOfPlaces": 1231
         }
     ]
 }
@@ -666,6 +688,8 @@ interface DatasetReference {
 
 Some datasets - such as the [Theographic Bible Metadata](https://github.com/robertrouse/theographic-bible-metadata) dataset (`theographic`) - contain entities: people, places, events, and people groups, along with the relationships between them and the Bible verses that mention them.
 
+The [History Globe](https://historyglobe.app) dataset (`history-globe`) contains places only: the places named in the Bible, with their coordinates and the verses that name them. Its place IDs (e.g. `a15257a` for Jerusalem) are History Globe's stable place IDs, the same ones that its own [open data API](https://historyglobe.app/docs/api.html) uses, so they do not change when a name is corrected. Its `featureType` values follow the ones that the Theographic dataset uses (`City`, `Region`, `Water`, and so on), and `featureSubType` carries the more specific kind where there is one (e.g. `River`, `Gate`, `Spring`).
+
 Datasets that contain entities include `listOfPeopleApiLink`, `listOfPlacesApiLink`, `listOfEventsApiLink`, and `listOfPeopleGroupsApiLink` properties in their entry in `/api/available_datasets.json`.
 
 Entity datasets also provide chapter-aligned data: `/api/d/{dataset}/books.json` lists the books whose chapters contain entity data, and `/api/d/{dataset}/{book}/{chapter}.json` returns the people, places, and events that appear in that chapter, along with the verse numbers where each one is mentioned. See [Get the Entities in a Chapter](#get-the-entities-in-a-chapter).
@@ -720,6 +744,10 @@ export interface VerseRef {
     endVerse?: number;
 }
 ```
+
+### History Globe Attribution
+
+The History Globe data is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). If you use it, credit History Globe (https://historyglobe.app) and the OpenBible.info Bible Geocoding Data that it builds on, and note any changes. The `licenseNotes` property of the dataset carries the credit.
 
 ## Get the Entities in a Chapter
 
