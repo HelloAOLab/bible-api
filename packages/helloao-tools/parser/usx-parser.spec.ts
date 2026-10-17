@@ -18,6 +18,108 @@ describe('USXParser', () => {
     });
 
     describe('parse()', () => {
+        it('hoists all trailing inline paragraphs and breaks in order', () => {
+            const tree = parser.parse(
+                '<usx version="3.0"><book code="GEN"/><chapter number="1"/><para style="p"><verse number="1"/>First.</para><para style="b"/><para style="b"/><para style="m"><verse number="2"/>Second.</para></usx>'
+            );
+            const chapter = tree.content.find((c) => c.type === 'chapter')!;
+            expect(chapter.content).toEqual([
+                { type: 'line_break' },
+                { type: 'paragraph', style: 'p' },
+                { type: 'verse', number: 1, content: ['First.'] },
+                { type: 'line_break' },
+                { type: 'line_break' },
+                { type: 'line_break' },
+                { type: 'paragraph', style: 'm' },
+                { type: 'verse', number: 2, content: ['Second.'] },
+            ]);
+        });
+        it('emits paragraph markers before paragraphs', () => {
+            const tree = parser.parse(
+                `<usx version="3.0"><book code="GEN"/><chapter number="1"/><para style="ms1">Ancient times</para><para style="mr">Genesis 1</para><para style="s1">Creation</para><para style="r">Genesis 1</para><para style="p"><verse number="1"/>In the beginning<note style="x" caller="+"><char style="xt">John 1:1</char></note><char style="w"> God</char><verse eid="GEN 1:1"/></para><para style="pi1"><verse number="2"/>Next.<verse eid="GEN 1:2"/></para><para style="p"/></usx>`
+            );
+            const chapter = tree.content.find((c) => c.type === 'chapter')!;
+            expect(
+                chapter.content.map((c) => (c.type === 'verse' ? c.number : c))
+            ).toEqual([
+                { type: 'heading', content: ['Creation'] },
+                { type: 'line_break' },
+                { type: 'paragraph', style: 'p' },
+                1,
+                { type: 'line_break' },
+                { type: 'paragraph', style: 'pi1' },
+                2,
+            ]);
+        });
+        it('records a paragraph that starts inside a verse and ignores nb', () => {
+            const tree = parser.parse(
+                `<usx version="3.0"><book code="GEN"/><chapter number="1"/><para style="p"><verse number="1"/>Au commencement</para><para style="m">Suite<verse eid="GEN 1:1"/></para><para style="nb"><verse number="2"/>Continue<verse eid="GEN 1:2"/></para><para style="b"/></usx>`
+            );
+            const chapter = tree.content.find((c) => c.type === 'chapter')!;
+            const verses = chapter.content.filter((c) => c.type === 'verse');
+            expect(verses[0].content).toContainEqual({
+                lineBreak: true,
+                paragraph: true,
+                style: 'm',
+            });
+            expect(
+                chapter.content.filter((c) => c.type === 'paragraph')
+            ).toEqual([{ type: 'paragraph', style: 'p' }]);
+            expect(chapter.content.at(-1)).toEqual({ type: 'line_break' });
+        });
+        it('ignores whitespace-only paragraphs inside an open verse before nb continuation', () => {
+            const tree = parser.parse(
+                `<usx version="3.0"><book code="GEN"/><chapter number="1"/><para style="p"><verse number="1"/>First.</para><para style="m"> </para><para style="nb">More.<verse eid="GEN 1:1"/></para></usx>`
+            );
+            const chapter = tree.content.find((c) => c.type === 'chapter')!;
+            const verse = chapter.content.find((c) => c.type === 'verse')!;
+            expect(verse.content).not.toContainEqual({
+                lineBreak: true,
+                paragraph: true,
+                style: 'm',
+            });
+            expect(verse.content.join('')).toBe('First. More.');
+        });
+        it.each([
+            [
+                'USX 2 adjacent paragraphs',
+                '<para style="p"><verse number="1"/>First.</para><para style="m"><verse number="2"/>Second.</para>',
+            ],
+            [
+                'USX 2 spaced paragraphs',
+                '<para style="p"><verse number="1"/>First.</para>\n<para style="m"><verse number="2"/>Second.</para>',
+            ],
+            [
+                'USX 3 adjacent eids',
+                '<para style="p"><verse number="1"/>First.<verse eid="GEN 1:1"/></para><para style="m"><verse number="2"/>Second.<verse eid="GEN 1:2"/></para>',
+            ],
+            [
+                'USX 3 spaced eids',
+                '<para style="p"><verse number="1"/>First.<verse eid="GEN 1:1"/></para>\n<para style="m"><verse number="2"/>Second.<verse eid="GEN 1:2"/></para>',
+            ],
+        ])(
+            'keeps a paragraph after the previous verse ends (%s)',
+            (_name, paragraphs) => {
+                const tree = parser.parse(
+                    `<usx version="3.0"><book code="GEN"/><chapter number="1"/>${paragraphs}</usx>`
+                );
+                const chapter = tree.content.find((c) => c.type === 'chapter')!;
+                expect(
+                    chapter.content.map((item) =>
+                        item.type === 'verse'
+                            ? [item.number, item.content.join('')]
+                            : item
+                    )
+                ).toEqual([
+                    { type: 'line_break' },
+                    { type: 'paragraph', style: 'p' },
+                    [1, 'First.'],
+                    { type: 'line_break' },
+                    { type: 'paragraph', style: 'm' },
+                    [2, 'Second.'],
+                ]);
+            }
+        );
         it('should parse a simple USX file', () => {
             const usx = `
                 <usx version="3.0">
@@ -1556,23 +1658,23 @@ describe('USXParser', () => {
 
         it('should be able to parse a whole book', () => {
             const tree = parser.parse(Matthew);
-            expect(withoutWords(tree)).toMatchSnapshot();
+            expect(withoutWordsOnly(tree)).toMatchSnapshot();
         });
 
         it('should be able to parse John', () => {
             const tree = parser.parse(John);
-            expect(withoutWords(tree)).toMatchSnapshot();
+            expect(withoutWordsOnly(tree)).toMatchSnapshot();
         });
 
         it('should be able to parse 1SA', () => {
             const tree = parser.parse(Sa);
-            expect(withoutWords(tree)).toMatchSnapshot();
+            expect(withoutWordsOnly(tree)).toMatchSnapshot();
         });
 
         it('should not ignore the first word of a verse', () => {
             const usx = firstXLines(John, 38) + '\n</usx>';
             const tree = parser.parse(usx);
-            expect(withoutWords(tree)).toMatchSnapshot();
+            expect(withoutWordsOnly(tree)).toMatchSnapshot();
         });
 
         it('should not ignore the first word of continuation on a verse', () => {
@@ -1693,9 +1795,9 @@ describe('USXParser', () => {
                                 number: 1,
                                 content: [
                                     'In the beginning God created the heavens and the earth.',
-                                    { lineBreak: true },
                                 ],
                             },
+                            { type: 'line_break' },
                             {
                                 type: 'verse',
                                 number: 2,
@@ -2165,9 +2267,73 @@ function withoutWords(tree: ParseTree): ParseTree {
     return {
         ...tree,
         content: tree.content.map((content) => {
-            if (content.type !== 'chapter' || !content.words) {
+            if (content.type !== 'chapter') {
                 return content;
             }
+            const { words, ...chapter } = content;
+            return {
+                ...chapter,
+                content: chapter.content
+                    .filter(
+                        (item, index, items) =>
+                            item.type !== 'paragraph' &&
+                            !(
+                                item.type === 'line_break' &&
+                                items[index + 1]?.type === 'paragraph'
+                            )
+                    )
+                    .map((item) =>
+                        item.type === 'verse'
+                            ? {
+                                  ...item,
+                                  content: item.content
+                                      .map((part, index) => {
+                                          if (
+                                              typeof part === 'object' &&
+                                              'paragraph' in part
+                                          ) {
+                                              const previous =
+                                                  item.content[index - 1];
+                                              return typeof previous ===
+                                                  'object' &&
+                                                  previous !== null &&
+                                                  'lineBreak' in previous
+                                                  ? ''
+                                                  : ' ';
+                                          }
+                                          return part;
+                                      })
+                                      .reduce(
+                                          (result, part) => {
+                                              if (part === '') return result;
+                                              const previous = result.at(-1);
+                                              if (
+                                                  typeof previous ===
+                                                      'string' &&
+                                                  typeof part === 'string'
+                                              ) {
+                                                  result[result.length - 1] =
+                                                      previous + part;
+                                              } else {
+                                                  result.push(part);
+                                              }
+                                              return result;
+                                          },
+                                          [] as typeof item.content
+                                      ),
+                              }
+                            : item
+                    ),
+            };
+        }),
+    };
+}
+
+function withoutWordsOnly(tree: ParseTree): ParseTree {
+    return {
+        ...tree,
+        content: tree.content.map((content) => {
+            if (content.type !== 'chapter') return content;
             const { words, ...chapter } = content;
             return chapter;
         }),

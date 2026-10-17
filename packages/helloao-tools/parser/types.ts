@@ -42,7 +42,13 @@ export interface Heading {
     content: string[];
 }
 
-export type ChapterContent = Heading | Verse | HebrewSubtitle | LineBreak;
+export type ChapterContent =
+    Heading | Verse | HebrewSubtitle | LineBreak | ChapterParagraph;
+
+export interface ChapterParagraph {
+    type: 'paragraph';
+    style?: string;
+}
 
 export type VerseContent = string | FootnoteReference | Text;
 
@@ -162,11 +168,7 @@ export interface Verse {
      * The contents of the verse.
      */
     content: (
-        | string
-        | Text
-        | InlineHeading
-        | InlineLineBreak
-        | FootnoteReference
+        string | Text | InlineHeading | InlineLineBreak | FootnoteReference
     )[];
 }
 
@@ -216,9 +218,9 @@ export interface InlineHeading {
 /**
  * Defines an interface that represents a line break that is embedded in a verse.
  */
-export interface InlineLineBreak {
-    lineBreak: true;
-}
+export type InlineLineBreak =
+    | { lineBreak: true; paragraph?: false }
+    | { lineBreak: true; paragraph: true; style: string };
 
 export interface FootnoteReference {
     /**

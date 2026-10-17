@@ -10,6 +10,6 @@
         "emitDeclarationOnly": true
     },
     "exclude": ["node_modules", "lib", "**/*.spec.ts", "dist"],
-    "include": ["./**/*.ts", "./typings/**/*"],
+    "include": ["./**/*.ts", "./**/*.mts", "./typings/**/*"],
     "references": [{ "path": "../helloao-tools" }]
 }

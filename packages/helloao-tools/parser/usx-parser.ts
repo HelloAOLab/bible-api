@@ -31,6 +31,11 @@ import {
     trimWordRange,
 } from './words.js';
 import { KNOWN_SKIPPED_VERSES } from '../utils.js';
+import {
+    paragraphStyle,
+    paragraphBreak,
+    hoistTrailingBreaks,
+} from './paragraphs.js';
 
 enum NodeType {
     Text = 3,
@@ -40,7 +45,7 @@ enum NodeType {
  * The version of the parser.
  * Used to determine whether input files need to be re-parsed.
  */
-export const PARSER_VERSION = 4;
+export const PARSER_VERSION = 5;
 
 /**
  * Defines a class that is able to parse USX content.
@@ -193,6 +198,7 @@ export class USXParser {
                 break;
             } else if (element.nodeName === 'para') {
                 const style = element.getAttribute('style');
+                const paragraph = paragraphStyle(style);
                 if (
                     style === 's1' ||
                     style === 's2' ||
@@ -211,15 +217,30 @@ export class USXParser {
                     };
                 } else if (style === 'd') {
                     yield* this.parseHebrewSubtitle(element, chapter, nodes);
+                } else if (paragraph) {
+                    if (element.querySelector('verse[number]')) {
+                        yield* paragraphBreak(paragraph);
+                    }
                 }
             } else if (element.nodeName === 'verse') {
                 if (element.hasAttribute('eid')) {
                     continue;
                 }
 
-                yield this.parseVerse(element, chapter, nodes);
+                const verse = this.parseVerse(element, chapter, nodes);
+                const trailing = hoistTrailingBreaks(verse.content);
+                yield verse;
+                yield* trailing;
             }
         }
+    }
+
+    private paraStartsVerse(para: Element, verseNumber: number): boolean {
+        return [...para.querySelectorAll('verse[number]')].some(
+            (start) =>
+                parseInt(start.getAttribute('number') || '0', 10) ===
+                verseNumber
+        );
     }
 
     *iterateVerseContent(
@@ -235,6 +256,7 @@ export class USXParser {
         | AnnotatedContent<string | Text>
     > {
         let lastParent: Element | null = null;
+        let lastParagraph: Element | null = null;
         while (true) {
             const { done, value: node } = nodes.next();
             if (done) {
@@ -242,6 +264,26 @@ export class USXParser {
             }
 
             if (node.nodeName === 'verse') {
+                const parent = node.parentElement;
+                const paragraph =
+                    parent?.nodeName === 'para'
+                        ? paragraphStyle(parent.getAttribute('style'))
+                        : null;
+                const startsCurrentVerse =
+                    parent?.nodeName === 'para' &&
+                    this.paraStartsVerse(parent, verse.number);
+                if (
+                    paragraph &&
+                    !startsCurrentVerse &&
+                    parent !== lastParagraph
+                ) {
+                    lastParagraph = parent;
+                    yield {
+                        lineBreak: true,
+                        paragraph: true,
+                        style: paragraph,
+                    };
+                }
                 if (!(node instanceof Element) || !node.hasAttribute('eid')) {
                     nodes.rewind(1);
                 }
@@ -254,6 +296,25 @@ export class USXParser {
 
             if (parent.nodeName === 'para') {
                 const style = parent.getAttribute('style');
+                const paragraph = paragraphStyle(style);
+                if (
+                    paragraph &&
+                    parent !== lastParagraph &&
+                    parent.textContent?.trim()
+                ) {
+                    lastParagraph = parent;
+                    const startsCurrentVerse = this.paraStartsVerse(
+                        parent,
+                        verse.number
+                    );
+                    if (!startsCurrentVerse) {
+                        yield {
+                            lineBreak: true,
+                            paragraph: true,
+                            style: paragraph,
+                        };
+                    }
+                }
                 if (
                     style === 'q1' ||
                     style === 'q2' ||

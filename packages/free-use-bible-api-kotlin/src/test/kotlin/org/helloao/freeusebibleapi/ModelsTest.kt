@@ -55,7 +55,7 @@ class ModelsTest {
                 PlainText("Hello"),
                 FormattedText(text = "world", poem = 1),
                 InlineHeading("Heading"),
-                InlineLineBreak(),
+                PlainInlineLineBreak(),
                 VerseFootnoteReference(noteId = 2),
             ),
         )
@@ -75,6 +75,41 @@ class ModelsTest {
             """{"type":"heading","content":["Title"],"somethingNew":true}""",
         )
         assertEquals(ChapterHeading(content = listOf("Title")), heading)
+    }
+
+    @Test
+    fun `decodes paragraphs and unknown content variants`() {
+        assertEquals(
+            ChapterParagraph(style = "p"),
+            json.decodeFromString(ChapterContent.serializer(), """{"type":"paragraph","style":"p"}"""),
+        )
+        assertEquals(
+            UnknownChapterContent(json.parseToJsonElement("""{"type":"future_item","payload":{"keep":[1,true]}}""")),
+            json.decodeFromString(ChapterContent.serializer(), """{"type":"future_item","payload":{"keep":[1,true]}}"""),
+        )
+        assertEquals(
+            UnknownSimpleChapterContent(json.parseToJsonElement("""{"type":"future_item","payload":{"keep":[1,true]}}""")),
+            json.decodeFromString(SimpleChapterContent.serializer(), """{"type":"future_item","payload":{"keep":[1,true]}}"""),
+        )
+        assertEquals(
+            UnknownVerseContent(JsonObject(mapOf("future" to JsonPrimitive(true)))),
+            json.decodeFromString(VerseContent.serializer(), """{"future":true}"""),
+        )
+        assertEquals(
+            InlineParagraph(style = "p"),
+            json.decodeFromString(VerseContent.serializer(), """{"lineBreak":true,"paragraph":true,"style":"p"}"""),
+        )
+    }
+
+    @Test
+    fun `unknown discriminated variants preserve their raw payload when re-encoded`() {
+        val raw = json.parseToJsonElement("""{"type":"future_item","payload":{"keep":[1,true]}}""")
+        val chapter = json.decodeFromString(ChapterContent.serializer(), raw.toString()) as UnknownChapterContent
+        val simple = json.decodeFromString(SimpleChapterContent.serializer(), raw.toString()) as UnknownSimpleChapterContent
+        assertEquals(raw, chapter.raw)
+        assertEquals(raw, simple.raw)
+        assertEquals(raw, json.encodeToJsonElement(UnknownChapterContent.serializer(), chapter))
+        assertEquals(raw, json.encodeToJsonElement(UnknownSimpleChapterContent.serializer(), simple))
     }
 
     private fun checkFile(path: String, text: String) {

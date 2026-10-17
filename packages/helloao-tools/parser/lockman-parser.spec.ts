@@ -217,6 +217,7 @@ describe('LockmanParser', () => {
                             {
                                 type: 'line_break',
                             },
+                            { type: 'paragraph', style: 'p' },
                             {
                                 type: 'verse',
                                 number: 2,

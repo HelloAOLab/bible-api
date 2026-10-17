@@ -67,6 +67,10 @@ exports[`LockmanParser should parse Genesis 1 and 2 from NASB 1`] = `
             "type": "line_break",
           },
           {
+            "style": "p",
+            "type": "paragraph",
+          },
+          {
             "content": [
               "Then God said, “Let there be ",
               {
@@ -109,6 +113,10 @@ exports[`LockmanParser should parse Genesis 1 and 2 from NASB 1`] = `
           },
           {
             "type": "line_break",
+          },
+          {
+            "style": "p",
+            "type": "paragraph",
           },
           {
             "content": [
@@ -188,6 +196,10 @@ exports[`LockmanParser should parse Genesis 1 and 2 from NASB 1`] = `
           },
           {
             "type": "line_break",
+          },
+          {
+            "style": "p",
+            "type": "paragraph",
           },
           {
             "content": [
@@ -284,6 +296,10 @@ exports[`LockmanParser should parse Genesis 1 and 2 from NASB 1`] = `
             "type": "line_break",
           },
           {
+            "style": "p",
+            "type": "paragraph",
+          },
+          {
             "content": [
               "Then God said, “Let the waters ",
               {
@@ -327,6 +343,10 @@ exports[`LockmanParser should parse Genesis 1 and 2 from NASB 1`] = `
             "type": "line_break",
           },
           {
+            "style": "p",
+            "type": "paragraph",
+          },
+          {
             "content": [
               "Then God said, “Let the earth bring forth living creatures after ",
               {
@@ -358,6 +378,10 @@ exports[`LockmanParser should parse Genesis 1 and 2 from NASB 1`] = `
           },
           {
             "type": "line_break",
+          },
+          {
+            "style": "p",
+            "type": "paragraph",
           },
           {
             "content": [
@@ -877,6 +901,10 @@ exports[`LockmanParser should parse Genesis 1 and 2 from NASB 1`] = `
             "type": "line_break",
           },
           {
+            "style": "p",
+            "type": "paragraph",
+          },
+          {
             "content": [
               {
                 "noteId": 2,
@@ -939,6 +967,10 @@ exports[`LockmanParser should parse Genesis 1 and 2 from NASB 1`] = `
           },
           {
             "type": "line_break",
+          },
+          {
+            "style": "p",
+            "type": "paragraph",
           },
           {
             "content": [
@@ -1007,6 +1039,10 @@ exports[`LockmanParser should parse Genesis 1 and 2 from NASB 1`] = `
             "type": "line_break",
           },
           {
+            "style": "p",
+            "type": "paragraph",
+          },
+          {
             "content": [
               "Then the LORD God took the man and put him into the garden of Eden to cultivate it and keep it.",
             ],
@@ -1033,6 +1069,10 @@ exports[`LockmanParser should parse Genesis 1 and 2 from NASB 1`] = `
           },
           {
             "type": "line_break",
+          },
+          {
+            "style": "p",
+            "type": "paragraph",
           },
           {
             "content": [
@@ -1637,6 +1677,10 @@ exports[`LockmanParser should parse red lettering as wordsOfJesus 1`] = `
           },
           {
             "type": "line_break",
+          },
+          {
+            "style": "p",
+            "type": "paragraph",
           },
           {
             "content": [
