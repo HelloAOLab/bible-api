@@ -11,10 +11,12 @@ import {
     uploadOpenApiDocument,
 } from './uploads.js';
 import {
+    convertOsisToUsfmFiles,
     askForMetadata,
     copyOpenBibleAudio,
     fetchAudio,
     fetchInterlinear,
+    fetchOsisTranslations,
     generateTranslationFiles,
     generateTranslationsFiles,
     importApi,
@@ -380,6 +382,14 @@ async function start() {
             await writeFile(outputPath, source, { encoding: 'utf-8' });
 
             logger.log('Kotlin models written to:', outputPath);
+        });
+
+    program
+        .command('convert-osis-to-usfm <file> <dir>')
+        .description('Converts an OSIS XML file into per-book USFM files.')
+        .option('--overwrite', 'Whether to overwrite existing files.')
+        .action(async (file: string, dir: string, options: any) => {
+            await convertOsisToUsfmFiles(file, dir, options);
         });
 
     program
@@ -1011,6 +1021,15 @@ async function start() {
         )
         .action(async (dir: string) => {
             await fetchInterlinear(dir);
+        });
+
+    program
+        .command('fetch-osis-translations <dir>')
+        .description(
+            'Fetches the pinned OSIS translations (such as the Japanese Kougo-yaku), checks their SHA-256 hashes, converts them to USFM and places them in the given directory.'
+        )
+        .action(async (dir: string) => {
+            await fetchOsisTranslations(dir);
         });
 
     program

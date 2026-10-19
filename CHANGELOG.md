@@ -24,6 +24,9 @@ This is the log of changes for the Free Use Bible API.
     -   `BibleReader` and `ChapterContent` draw verse highlights as rounded ribbons behind the text, like Seed Bible. Neighbouring verses with the same color share one ribbon, and the ribbons follow ragged line ends, poetry indentation, and right-to-left text. There are 12 preset colors with light and dark mode values, and custom colors are supported.
     -   The reader follows the device's light or dark mode, or can be forced to one with the `theme` prop (`'system'`, `'light'`, or `'dark'`). Colors and fonts are CSS variables that can be overridden on the reader or any element around it.
 -   Added a Kotlin SDK (`packages/free-use-bible-api-kotlin`) for the JVM and Android. It has the same methods as the JavaScript/TypeScript client, as `suspend` functions, and its kotlinx.serialization models are generated from the OpenAPI document with the new `generate-kotlin-models` CLI command (`pnpm generate:kotlin`).
+-   Added `jpn_kou` (口語訳, Japanese Kougo-yaku 1954/1955), a complete 66-book public domain Japanese Bible with furigana removed. It is downloaded from a pinned [open-bibles](https://github.com/seven1m/open-bibles) commit with `pnpm fetch:bible:osis` and imported with `pnpm import:bible:osis`.
+-   Added the `fetch-osis-translations <dir>` CLI command, which downloads the pinned OSIS translations, checks their SHA-256 hashes, and converts them into importable USFM translation directories.
+-   Added the `convert-osis-to-usfm <file> <dir> [--overwrite]` CLI command for converting OSIS Bible sources into per-book USFM files.
 
 ### :warning: Changes
 

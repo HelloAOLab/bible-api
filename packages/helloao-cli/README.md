@@ -25,6 +25,7 @@ Options:
 Commands:
   init [options] [path]                                  Initialize a new Bible API DB.
   generate-translation-metadata                          Generates a metadata file for a translation.
+  convert-osis-to-usfm [options] <file> <dir>            Converts an OSIS XML file into per-book USFM files.
   import-translation [options] <dir> [dirs...]           Imports a translation from the given directory into the database.
   import-translations [options] <dir>                    Imports all translations from the given directory into the database.
   import-commentary [options] <dir> [dirs...]            Imports a commentary from the given directory into the database.
@@ -50,6 +51,7 @@ Commands:
                                                          Translations should be in the format "translationId/audioId". e.g. "BSB/gilbert"
   fetch-bible-metadata <dir>                             Fetches the Theographic bible metadata and places it in the given directory.
   fetch-interlinear <dir>                                Fetches the Berean interlinear table and the STEPBible lexicons (with their license) and places them in the given directory.
+  fetch-osis-translations <dir>                          Fetches the pinned OSIS translations (such as the Japanese Kougo-yaku), checks their hashes, converts them to USFM and places them in the given directory.
   fetch-tyndale-open-resources <dir>                     Fetches the Tyndale Open Bible Resources and places it in the given directory.
   help [command]                                         display help for command
 ```

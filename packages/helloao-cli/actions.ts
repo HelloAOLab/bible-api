@@ -70,6 +70,8 @@ import { detectEBibleLicense, ebibleIdFromUrl } from './ebible-license.js';
 import { importDatasetOutput } from './db.js';
 import { groupBy } from 'es-toolkit/compat';
 
+export { convertOsisToUsfmFiles, fetchOsisTranslations } from './osis.js';
+
 export interface GetTranslationsItem {
     id: string;
     language: string;
