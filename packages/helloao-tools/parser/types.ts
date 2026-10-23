@@ -22,6 +22,11 @@ export interface ParseTree {
     title?: string;
 
     /**
+     * The short name (abbreviation) that was associated with the tree.
+     */
+    shortName?: string;
+
+    /**
      * The list of chapters for the tree.
      */
     content: (Heading | Chapter)[];

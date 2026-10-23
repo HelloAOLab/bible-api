@@ -6417,6 +6417,7 @@ exports[`USXParser parse() should be able to parse 1SA 1`] = `
   ],
   "header": "1 Samuel",
   "id": "1SA",
+  "shortName": "1 Samuel",
   "title": "The First Book of Samuel",
   "type": "root",
 }
@@ -14970,6 +14971,7 @@ exports[`USXParser parse() should be able to parse John 1`] = `
   ],
   "header": "John",
   "id": "JHN",
+  "shortName": "John",
   "title": "The Good News According to John",
   "type": "root",
 }
@@ -26611,6 +26613,7 @@ exports[`USXParser parse() should be able to parse a whole book 1`] = `
   ],
   "header": "Matthew",
   "id": "MAT",
+  "shortName": "Matthew",
   "title": "The Good News According to Matthew",
   "type": "root",
 }
@@ -27136,6 +27139,7 @@ exports[`USXParser parse() should not ignore the first word of a verse 1`] = `
   ],
   "header": "John",
   "id": "JHN",
+  "shortName": "John",
   "title": "The Good News According to John",
   "type": "root",
 }

@@ -269,6 +269,10 @@ export type ApiTranslationBook = {
      */
     commonName: string;
     /**
+     * The short name (abbreviation) that the translation provided for the book. If not available, then one was not provided by the translation.
+     */
+    shortName?: string;
+    /**
      * The title of the book. This is usually a more descriptive version of the book name. If not available, then one was not provided by the translation.
      */
     title: string | null;
@@ -1096,6 +1100,10 @@ export type ApiTranslationCompleteBook = {
      */
     commonName: string;
     /**
+     * The short name (abbreviation) that the translation provided for the book. If not available, then one was not provided by the translation.
+     */
+    shortName?: string;
+    /**
      * The title of the book. This is usually a more descriptive version of the book name. If not available, then one was not provided by the translation.
      */
     title: string | null;
@@ -1194,6 +1202,10 @@ export type ApiSimpleTranslationCompleteBook = {
      * The common name for the book.
      */
     commonName: string;
+    /**
+     * The short name (abbreviation) that the translation provided for the book. If not available, then one was not provided by the translation.
+     */
+    shortName?: string;
     /**
      * The title of the book. This is usually a more descriptive version of the book name. If not available, then one was not provided by the translation.
      */
