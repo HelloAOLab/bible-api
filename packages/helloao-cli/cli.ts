@@ -27,7 +27,10 @@ import {
     importTranslations,
     initDb,
     listEBibleTranslations,
+    listFetchBibleTranslations,
     refreshEBibleLicenses,
+    sourceAllTranslations,
+    sourceFetchBibleTranslations,
     sourceTranslations,
     searchTypesenseVerses,
     uploadTestTranslation,
@@ -35,6 +38,10 @@ import {
     uploadTypesenseVerses,
 } from './actions.js';
 import { getPrismaDb } from './db.js';
+import {
+    FETCH_BIBLE_COLLECTION_URL,
+    FETCH_BIBLE_MANIFEST_URL,
+} from './fetch-bible.js';
 import { confirm, input } from '@inquirer/prompts';
 import { log } from '@helloao/tools';
 import { createFreeUseBibleApiOpenApiDocument } from './openapi.js';
@@ -933,6 +940,105 @@ async function start() {
                 ...program.opts(),
                 ...sourceOptions,
             });
+        });
+
+    program
+        .command('source-fetch-bible-translations <dir> [translations...]')
+        .description(
+            'Finds translation sources from fetch.bible and downloads them.\nTranslations that are already provided by eBible are skipped.'
+        )
+        .option(
+            '--convert-to-usx3',
+            'Convert USFM files to USX3 format after download'
+        )
+        .option(
+            '--bible-multi-converter-path <path>',
+            'Path to BibleMultiConverter.jar file'
+        )
+        .option(
+            '--overwrite',
+            'Overwrite existing translations in the output directory (when database tracking is disabled)'
+        )
+        .option('--no-database', 'Disable database tracking for downloads')
+        .option(
+            '--ebible-dir <dir>',
+            'The directory that eBible translations were sourced into. Translations in it are not downloaded from fetch.bible.'
+        )
+        .option(
+            '--include-ebible',
+            'Also download translations that are already provided by eBible'
+        )
+        .option(
+            '--manifest-url <url>',
+            'The URL of the fetch.bible manifest',
+            FETCH_BIBLE_MANIFEST_URL
+        )
+        .option(
+            '--collection-url <url>',
+            'The base URL of the fetch.bible collection files',
+            FETCH_BIBLE_COLLECTION_URL
+        )
+        .action(async (dir, translations, options) => {
+            await sourceFetchBibleTranslations(dir, translations, {
+                ...program.opts(),
+                convertToUsx3: options.convertToUsx3,
+                bibleMultiConverterPath: options.bibleMultiConverterPath,
+                useDatabase: options.database !== false,
+                overwrite: options.overwrite,
+                ebibleDir: options.ebibleDir,
+                includeEBible: options.includeEbible,
+                manifestUrl: options.manifestUrl,
+                collectionUrl: options.collectionUrl,
+            });
+        });
+
+    program
+        .command('source-all-translations <dir> [translations...]')
+        .description(
+            'Finds translation sources from eBible and fetch.bible, and downloads them into the given directory so that they can be imported with import-translations.\nTranslations available from eBible are downloaded from eBible, and the rest are downloaded from fetch.bible. Only new and changed translations are downloaded.'
+        )
+        .option(
+            '--no-convert-to-usx3',
+            'Keep USFM files instead of converting them to USX3'
+        )
+        .option(
+            '--bible-multi-converter-path <path>',
+            'Path to BibleMultiConverter.jar file'
+        )
+        .option(
+            '--overwrite',
+            'Overwrite existing translations in the output directory (when database tracking is disabled)'
+        )
+        .option('--no-database', 'Disable database tracking for downloads')
+        .option(
+            '--manifest-url <url>',
+            'The URL of the fetch.bible manifest',
+            FETCH_BIBLE_MANIFEST_URL
+        )
+        .option(
+            '--collection-url <url>',
+            'The base URL of the fetch.bible collection files',
+            FETCH_BIBLE_COLLECTION_URL
+        )
+        .action(async (dir, translations, options) => {
+            await sourceAllTranslations(dir, translations, {
+                ...program.opts(),
+                convertToUsx3: options.convertToUsx3,
+                bibleMultiConverterPath: options.bibleMultiConverterPath,
+                useDatabase: options.database !== false,
+                overwrite: options.overwrite,
+                manifestUrl: options.manifestUrl,
+                collectionUrl: options.collectionUrl,
+            });
+        });
+
+    program
+        .command('list-fetch-bible-translations [search]')
+        .description(
+            'List available fetch.bible translations. Optionally filter by search term.'
+        )
+        .action(async (search?: string) => {
+            await listFetchBibleTranslations(search);
         });
 
     program

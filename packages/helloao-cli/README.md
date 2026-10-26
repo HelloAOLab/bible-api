@@ -43,6 +43,13 @@ Commands:
   generate-translations-files [options] <input> <dir>    Generates API files from the given input translations.
   upload-api-files [options] <dest>                      Uploads API files to the specified destination. For S3, use the format s3://bucket-name/path/to/folder.
   source-translations [options] <dir> [translations...]  Finds translation sources from ebible.org and downloads it.
+  source-fetch-bible-translations [options] <dir> [translations...]
+                                                         Finds translation sources from fetch.bible and downloads them.
+                                                         Translations that are already provided by eBible are skipped.
+  source-all-translations [options] <dir> [translations...]
+                                                         Finds translation sources from eBible and fetch.bible, and downloads them into the given directory so that they can be imported with import-translations.
+                                                         Translations available from eBible are downloaded from eBible, and the rest are downloaded from fetch.bible. Only new and changed translations are downloaded.
+  list-fetch-bible-translations [search]                 List available fetch.bible translations. Optionally filter by search term.
   list-ebible-translations [search]                      List available eBible translations. Optionally filter by search term.
   refresh-ebible-licenses [options] [translations...]    Detects the licenses of the eBible translations that are already in the database and stores them.
                                                          Optionally limited to the given translation IDs.
@@ -55,6 +62,8 @@ Commands:
 ```
 
 > **eBible licenses.** `source-translations` detects the license of each eBible translation (from the Creative Commons link on its ebible.org details page, falling back to a "public domain" copyright notice) and stores it in `metadata.json`. To add licenses to a database that was imported before license detection existed, run `helloao refresh-ebible-licenses --db <path> --dir <sourced translations dir>`. It updates the `license` column of each eBible translation in place, and `--dir` also writes the licenses into the matching `metadata.json` files so that a later re-import doesn't clear them. Translations whose license can't be detected are left unchanged.
+
+> **Sourcing translations.** `source-all-translations <dir>` is the one command for keeping a directory of translations up to date. It reconciles the translation lists from [eBible](https://ebible.org) and [fetch.bible](https://fetch.bible) so that each translation is downloaded from only one source: translations that eBible has are downloaded from eBible (like `source-translations`), and translations that only fetch.bible has (or that eBible lists but has no USFM download for) are downloaded from the [fetch.bible collection](https://github.com/gracious-tech/fetch_collection). Downloads are tracked in the database (`--db`), so later runs only download new and changed translations. USFM files are converted to USX3 with [BibleMultiConverter](https://github.com/schierlm/BibleMultiConverter) (use `--no-convert-to-usx3` to keep the USFM files), and every translation gets a `metadata.json` (including its license), so the directory can be imported straight away with `import-translations <dir>`. Translations listed in `<dir>/ignorelist.txt` (by eBible ID, fetch.bible ID, or translation ID) are never downloaded. To only download from fetch.bible, use `source-fetch-bible-translations <dir>`, which skips translations that the database (or `--ebible-dir`) shows were already downloaded from eBible. Translations that came from fetch.bible have a `fetch-bible.txt` file in their directory.
 
 > **Audio timings.** The `import-audio-timings <file>` command loads per-verse start times for a chapter's audio into the database, from a JSON array of `{ translationId, bookId, chapterNumber, reader, verses }` records. To generate that file from the audio itself, see [`tools/audio-timings`](../../tools/audio-timings/README.md), which transcribes a chapter with whisperX and aligns the result against the chapter's known verse text.
 

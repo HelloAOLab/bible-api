@@ -66,6 +66,20 @@ import {
     convertUsfmToUsx3,
 } from './conversion.js';
 import { fetchEBibleMetadata } from './ebible.js';
+import {
+    createEBibleCoverage,
+    createFetchBibleMetadata,
+    EBibleCoverage,
+    FETCH_BIBLE_COLLECTION_URL,
+    downloadFetchBibleTranslation,
+    FetchBibleCatalogEntry,
+    fetchFetchBibleCatalog,
+    isCoveredByEBible,
+    isFetchBibleSourceIgnored,
+    loadDownloadedEBibleCoverage,
+    mapConcurrent,
+    matchesFetchBibleTranslation,
+} from './fetch-bible.js';
 import { detectEBibleLicense, ebibleIdFromUrl } from './ebible-license.js';
 import { importDatasetOutput } from './db.js';
 import { groupBy } from 'es-toolkit/compat';
@@ -156,6 +170,73 @@ export interface SourceTranslationsOptions {
      * The database to use for tracking downloads.
      */
     db?: string | null;
+
+    /**
+     * The eBible sources to use. If omitted, then they will be downloaded from ebible.org.
+     */
+    sources?: EBibleSource[];
+}
+
+export interface SourceFetchBibleTranslationsOptions extends Omit<
+    SourceTranslationsOptions,
+    'sources'
+> {
+    /**
+     * The directory that eBible translations were sourced into (e.g. the output directory of source-translations).
+     * Translations in this directory that came from eBible won't be downloaded from fetch.bible.
+     */
+    ebibleDir?: string;
+
+    /**
+     * Whether to also download translations that are already provided by eBible.
+     */
+    includeEBible?: boolean;
+
+    /**
+     * The translations that are provided by eBible.
+     * If omitted, then they will be determined from the database and the ebibleDir.
+     */
+    ebibleCoverage?: EBibleCoverage;
+
+    /**
+     * The fetch.bible translations to use. If omitted, then they will be downloaded from fetch.bible.
+     */
+    catalog?: FetchBibleCatalogEntry[];
+
+    /**
+     * The URL of the fetch.bible manifest.
+     */
+    manifestUrl?: string;
+
+    /**
+     * The base URL of the fetch.bible collection files.
+     */
+    collectionUrl?: string;
+}
+
+export interface SourceAllTranslationsOptions extends Omit<
+    SourceFetchBibleTranslationsOptions,
+    'ebibleDir' | 'includeEBible' | 'ebibleCoverage' | 'catalog'
+> {}
+
+/**
+ * The result of sourcing translations.
+ */
+export interface SourceTranslationsResult {
+    /**
+     * The IDs of the translations that were downloaded.
+     */
+    downloaded: string[];
+
+    /**
+     * The IDs of the translations that failed to download or convert.
+     */
+    failed: string[];
+
+    /**
+     * The IDs of the translations that the source does not provide files for.
+     */
+    unavailable: string[];
 }
 
 let dirname = __dirname;
@@ -183,6 +264,44 @@ export async function getMetaPath() {
 }
 
 /**
+ * Loads the override metadata for the given translation from the meta directory, if it has one.
+ */
+async function loadMetadataOverride(
+    translationId: string
+): Promise<InputTranslationMetadata | null> {
+    const logger = log.getLogger();
+    const metaDir = await getMetaPath();
+    if (!metaDir) {
+        return null;
+    }
+
+    const overridePath = path.resolve(metaDir, `${translationId}.json`);
+    if (!(await exists(overridePath))) {
+        return null;
+    }
+
+    logger.log(`Using override metadata file: ${overridePath}`);
+    const overrideMetadata = await readFile(overridePath, 'utf-8');
+    return JSON.parse(overrideMetadata);
+}
+
+/**
+ * Reads the ignorelist.txt file from the given directory.
+ * Each line is the ID of a translation that should not be downloaded. Lines starting with # are comments.
+ */
+async function readIgnorelist(dir: string): Promise<string[]> {
+    const ignorelistPath = path.resolve(dir, 'ignorelist.txt');
+    if (!(await exists(ignorelistPath))) {
+        return [];
+    }
+    const ignorelistContent = await readFile(ignorelistPath, 'utf-8');
+    return ignorelistContent
+        .split('\n')
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0 && !line.startsWith('#'));
+}
+
+/**
  * Creates metadata.json file in the output directory based on EBible source information.
  */
 async function createMetadataJson(
@@ -198,21 +317,7 @@ async function createMetadataJson(
         logger.log(`Metadata file already exists: ${metadataPath}`);
         return;
     }
-    const metaDir = await getMetaPath();
-
-    let metadata: InputTranslationMetadata | null = null;
-    if (metaDir) {
-        const overridePath = path.resolve(
-            metaDir,
-            `${source.translationId}.json`
-        );
-        const overrideExists = await exists(overridePath);
-        if (overrideExists) {
-            logger.log(`Using override metadata file: ${overridePath}`);
-            const overrideMetadata = await readFile(overridePath, 'utf-8');
-            metadata = JSON.parse(overrideMetadata);
-        }
-    }
+    let metadata = await loadMetadataOverride(source.translationId);
 
     if (!metadata) {
         const language = normalizeLanguage(source.languageCode);
@@ -986,6 +1091,20 @@ function matchesTranslation(
 }
 
 /**
+ * Determines whether the given eBible source is in the given ignore list.
+ * The ignore list can contain eBible IDs or API translation IDs.
+ */
+function isEBibleSourceIgnored(
+    source: EBibleSource,
+    ignorelist: string[]
+): boolean {
+    return (
+        ignorelist.includes(source.id) ||
+        ignorelist.includes(source.translationId)
+    );
+}
+
+/**
  * Groups sources by which translation query they match
  */
 function groupSourcesByTranslation(
@@ -1081,7 +1200,7 @@ export async function sourceTranslations(
     outputDir: string,
     translations?: string[],
     options: SourceTranslationsOptions = {}
-): Promise<void> {
+): Promise<SourceTranslationsResult> {
     const logger = log.getLogger();
     let {
         convertToUsx3 = false,
@@ -1090,8 +1209,17 @@ export async function sourceTranslations(
         overwrite = false,
     } = options;
 
-    logger.log('Fetching eBible metadata...');
-    const ebibleSources = await fetchEBibleMetadata();
+    const result: SourceTranslationsResult = {
+        downloaded: [],
+        failed: [],
+        unavailable: [],
+    };
+
+    let ebibleSources = options.sources;
+    if (!ebibleSources) {
+        logger.log('Fetching eBible metadata...');
+        ebibleSources = await fetchEBibleMetadata();
+    }
     logger.log(`Total eBible sources found: ${ebibleSources.length}`);
 
     logger.log('');
@@ -1129,22 +1257,13 @@ export async function sourceTranslations(
     let sourceExists: any = null;
     let sourceUpsert: any = null;
 
-    let ignorelist: string[] = [];
-    const ignorelistPath = path.resolve(outputDir, 'ignorelist.txt');
-    if (await exists(ignorelistPath)) {
-        const ignorelistContent = await readFile(ignorelistPath, 'utf-8');
-        ignorelist = ignorelistContent
-            .split('\n')
-            .map((line) => line.trim())
-            .filter((line) => line.length > 0 && !line.startsWith('#'));
-    }
-
+    const ignorelist = await readIgnorelist(outputDir);
     if (ignorelist.length > 0) {
         logger.log(
-            `Applying ignorelist from ${ignorelistPath}: ${ignorelist.length} entries`
+            `Applying ignorelist from ${outputDir}: ${ignorelist.length} entries`
         );
         filteredSources = filteredSources.filter(
-            (source) => !ignorelist.includes(source.id)
+            (source) => !isEBibleSourceIgnored(source, ignorelist)
         );
     }
 
@@ -1174,7 +1293,11 @@ export async function sourceTranslations(
             };
             sourcesChecked++;
             if (existingSource) {
-                if (!existingSource.usfmDownloadDate) {
+                if (
+                    !existingSource.usfmDownloadDate ||
+                    !existsSync(path.resolve(outputDir, source.translationId))
+                ) {
+                    // Not downloaded yet, or downloaded to a different directory
                     notDownloaded++;
                     return true;
                 }
@@ -1264,7 +1387,7 @@ export async function sourceTranslations(
             logger.log(
                 'Tip: Use the "list-ebible-translations" command to find available translations.'
             );
-            return;
+            return result;
         }
 
         logger.log(`Processing ${sourceGroups.size} translation(s)...\n`);
@@ -1279,7 +1402,7 @@ export async function sourceTranslations(
 
         if (selectedSources.length === 0) {
             logger.log('No sources selected for download.');
-            return;
+            return result;
         }
 
         logger.log(
@@ -1290,7 +1413,7 @@ export async function sourceTranslations(
         selectedSources = filteredSources;
         if (selectedSources.length === 0) {
             logger.log('No sources found.');
-            return;
+            return result;
         }
     }
 
@@ -1331,7 +1454,7 @@ export async function sourceTranslations(
                 'BibleMultiConverter JAR not found. Cannot convert USFM to USX3.'
             );
             printConversionInstructions();
-            return;
+            return result;
         }
 
         console.log(
@@ -1347,6 +1470,7 @@ export async function sourceTranslations(
                 sources.map(async (source) => {
                     try {
                         logger.log(`Processing: ${source.translationId}`);
+                        let downloaded = false;
 
                         // Check if USFM zip file exists
                         const detailsPage = await fetch(
@@ -1365,6 +1489,7 @@ export async function sourceTranslations(
 
                             if (usfmResult.status === 404) {
                                 source.usfmZipUrl = null;
+                                result.unavailable.push(source.translationId);
                             } else if (usfmResult.status === 200) {
                                 source.usfmZipEtag =
                                     usfmResult.headers.get('etag') || null;
@@ -1397,9 +1522,9 @@ export async function sourceTranslations(
 
                                     if (existsSync(finalOutputPath)) {
                                         logger.log(
-                                            `Overwriting existing directory: ${downloadDir}`
+                                            `Overwriting existing directory: ${finalOutputPath}`
                                         );
-                                        await rm(downloadDir, {
+                                        await rm(finalOutputPath, {
                                             recursive: true,
                                             force: true,
                                         });
@@ -1441,6 +1566,9 @@ export async function sourceTranslations(
                                         logger.warn(
                                             `No USFM files found for ${source.translationId}.`
                                         );
+                                        result.unavailable.push(
+                                            source.translationId
+                                        );
                                     }
                                 } else {
                                     source.usfmDownloadDate =
@@ -1449,27 +1577,32 @@ export async function sourceTranslations(
                                 }
 
                                 numDownloaded++;
+                                downloaded = true;
                             } else {
                                 numErrored += 1;
+                                result.failed.push(source.translationId);
                             }
                         } else {
                             logger.warn(
                                 `No USFM zip found for ${source.translationId}. Skipping.`
                             );
                             numErrored++;
+                            result.unavailable.push(source.translationId);
                             return;
                         }
 
-                        if (!convertToUsx3) {
+                        if (!convertToUsx3 && downloaded) {
                             source.usfmDownloadDate =
                                 DateTime.utc().toISO() as any;
                             source.usfmDownloadPath = outputDir;
                             if (sourceUpsert) {
                                 sourceUpsert.run(source);
                             }
+                            result.downloaded.push(source.translationId);
                         }
                     } catch (error) {
                         numErrored++;
+                        result.failed.push(source.translationId);
                         logger.error(
                             `Error processing ${source.translationId}:`,
                             error
@@ -1527,8 +1660,10 @@ export async function sourceTranslations(
                                 sourceUpsert.run(source);
                             }
                             numConverted++;
+                            result.downloaded.push(source.translationId);
                         } else {
                             numErrored++;
+                            result.failed.push(source.translationId);
                         }
                     })
                 );
@@ -1552,6 +1687,529 @@ export async function sourceTranslations(
         if (db) {
             db.close();
         }
+    }
+
+    return result;
+}
+
+/**
+ * Downloads translations from fetch.bible (https://fetch.bible).
+ * Translations that are already provided by eBible are skipped, and changes are tracked in the database
+ * so that only new and changed translations are downloaded.
+ * Can optionally convert USFM files to USX3 format.
+ * @param outputDir The directory that the translations should be downloaded to. Each translation is placed in a subdirectory named after its translation ID.
+ * @param translations The translations that should be downloaded. If omitted, then all translations are downloaded.
+ * @param options The options.
+ */
+export async function sourceFetchBibleTranslations(
+    outputDir: string,
+    translations?: string[],
+    options: SourceFetchBibleTranslationsOptions = {}
+): Promise<SourceTranslationsResult> {
+    const logger = log.getLogger();
+    const {
+        convertToUsx3 = false,
+        useDatabase = true,
+        bibleMultiConverterPath,
+        overwrite = false,
+        includeEBible = false,
+    } = options;
+    const collectionUrl = options.collectionUrl ?? FETCH_BIBLE_COLLECTION_URL;
+    const hasTranslations = !!translations && translations.length > 0;
+
+    const result: SourceTranslationsResult = {
+        downloaded: [],
+        failed: [],
+        unavailable: [],
+    };
+
+    let catalog = options.catalog;
+    if (!catalog) {
+        logger.log('Fetching fetch.bible metadata...');
+        catalog = await fetchFetchBibleCatalog({
+            manifestUrl: options.manifestUrl,
+            collectionUrl,
+        });
+    }
+    logger.log(`Total fetch.bible sources found: ${catalog.length}`);
+
+    let selected = catalog;
+    if (hasTranslations) {
+        selected = selected.filter((entry) =>
+            translations.some((t) =>
+                matchesFetchBibleTranslation(t, entry.source)
+            )
+        );
+        if (selected.length === 0) {
+            logger.log(
+                'No matching fetch.bible sources found for any of the specified translations.'
+            );
+            logger.log(
+                'Tip: Use the "list-fetch-bible-translations" command to find available translations.'
+            );
+            return result;
+        }
+    }
+
+    const ignorelist = await readIgnorelist(outputDir);
+    if (ignorelist.length > 0) {
+        logger.log(
+            `Applying ignorelist from ${outputDir}: ${ignorelist.length} entries`
+        );
+        selected = selected.filter(
+            (entry) => !isFetchBibleSourceIgnored(entry.source, ignorelist)
+        );
+    }
+
+    let db: Database | null = null;
+    const tempDir = path.join(
+        tmpdir(),
+        'bible-api',
+        'fetch-bible',
+        'usfm-downloads'
+    );
+
+    try {
+        if (useDatabase) {
+            logger.log('Connecting to database for download tracking...');
+            db = await database.getDb(options.db);
+        } else {
+            logger.log('Database connection skipped (tracking disabled)');
+        }
+
+        if (!includeEBible) {
+            const coverage = await loadDownloadedEBibleCoverage(
+                db,
+                options.ebibleDir
+            );
+            if (options.ebibleCoverage) {
+                for (const id of options.ebibleCoverage.ebibleIds) {
+                    coverage.ebibleIds.add(id);
+                }
+                for (const id of options.ebibleCoverage.translationIds) {
+                    coverage.translationIds.add(id);
+                }
+            }
+
+            let providedByEBible = 0;
+            selected = selected.filter((entry) => {
+                if (isCoveredByEBible(entry.source, coverage)) {
+                    providedByEBible++;
+                    if (hasTranslations) {
+                        logger.log(
+                            `Skipping ${entry.source.id} because ${entry.source.translationId} is provided by eBible. Use --include-ebible to download it anyway.`
+                        );
+                    }
+                    return false;
+                }
+                return true;
+            });
+            logger.log(
+                `eBible reconciliation: Skipped ${providedByEBible} translations that are provided by eBible.`
+            );
+        }
+
+        let sourceUpsert: Sql.Statement | null = null;
+        if (db) {
+            const sourceExists = db.prepare(
+                'SELECT sha256, downloadDate, downloadPath FROM FetchBibleSource WHERE id = @id;'
+            );
+            let unchanged = 0;
+            let newSources = 0;
+            let changedSources = 0;
+
+            selected = selected.filter((entry) => {
+                const existing = sourceExists.get({ id: entry.source.id }) as
+                    | {
+                          sha256: string | null;
+                          downloadDate: string | null;
+                          downloadPath: string | null;
+                      }
+                    | undefined;
+                const outputPath = path.resolve(
+                    outputDir,
+                    entry.source.translationId
+                );
+
+                if (
+                    !existing ||
+                    !existing.downloadDate ||
+                    existing.downloadPath !== outputPath ||
+                    !existsSync(outputPath)
+                ) {
+                    newSources++;
+                    return true;
+                } else if (existing.sha256 !== entry.source.sha256) {
+                    changedSources++;
+                    return true;
+                } else if (hasTranslations) {
+                    // Explicitly requested translations are always re-downloaded
+                    return true;
+                }
+
+                unchanged++;
+                return false;
+            });
+
+            logger.log(`Database filtering:`);
+            logger.log(`   • Skipped (unchanged): ${unchanged}`);
+            logger.log(`   • New: ${newSources}`);
+            logger.log(`   • Needs Update: ${changedSources}`);
+
+            sourceUpsert = db.prepare(`INSERT INTO FetchBibleSource(
+                id, translationId, languageCode, name, englishName, abbreviation, textDirection, year,
+                ebibleId, sourceService, sourceFormat, sourceUpdated, sourceRevision,
+                attribution, attributionUrl, downloadDate, downloadPath, sha256
+            ) VALUES (
+                @id, @translationId, @languageCode, @name, @englishName, @abbreviation, @textDirection, @year,
+                @ebibleId, @sourceService, @sourceFormat, @sourceUpdated, @sourceRevision,
+                @attribution, @attributionUrl, @downloadDate, @downloadPath, @sha256
+            ) ON CONFLICT(id) DO UPDATE SET
+                translationId = excluded.translationId, languageCode = excluded.languageCode,
+                name = excluded.name, englishName = excluded.englishName, abbreviation = excluded.abbreviation,
+                textDirection = excluded.textDirection, year = excluded.year, ebibleId = excluded.ebibleId,
+                sourceService = excluded.sourceService, sourceFormat = excluded.sourceFormat,
+                sourceUpdated = excluded.sourceUpdated, sourceRevision = excluded.sourceRevision,
+                attribution = excluded.attribution, attributionUrl = excluded.attributionUrl,
+                downloadDate = excluded.downloadDate, downloadPath = excluded.downloadPath,
+                sha256 = excluded.sha256;
+            `);
+        } else if (!overwrite) {
+            const before = selected.length;
+            selected = selected.filter(
+                (entry) =>
+                    !existsSync(
+                        path.resolve(outputDir, entry.source.translationId)
+                    )
+            );
+            logger.log(
+                `Skipped ${before - selected.length} translations that already exist in ${outputDir}. Use --overwrite to download them anyway.`
+            );
+        }
+
+        logger.log(`Found ${selected.length} fetch.bible sources to process`);
+        if (selected.length === 0) {
+            return result;
+        }
+
+        let jarPath: string | null = null;
+        const needsConversion =
+            convertToUsx3 &&
+            selected.some((entry) => entry.source.sourceFormat === 'usfm');
+        if (needsConversion) {
+            jarPath =
+                (await findBibleMultiConverterJar(bibleMultiConverterPath)) ??
+                (await promptForBibleMultiConverter());
+            if (!jarPath) {
+                logger.error(
+                    'BibleMultiConverter JAR not found. Cannot convert USFM to USX3.'
+                );
+                printConversionInstructions();
+                return result;
+            }
+        }
+
+        const recordDownload = (
+            entry: FetchBibleCatalogEntry,
+            outputPath: string
+        ) => {
+            entry.source.downloadDate = DateTime.utc().toISO() as any;
+            entry.source.downloadPath = outputPath;
+            sourceUpsert?.run(entry.source);
+            result.downloaded.push(entry.source.translationId);
+        };
+
+        const conversionsNeeded: {
+            tempPath: string;
+            outputPath: string;
+            entry: FetchBibleCatalogEntry;
+        }[] = [];
+
+        await mapConcurrent(selected, 5, async (entry) => {
+            const { source } = entry;
+            const format = source.sourceFormat;
+            const outputPath = path.resolve(outputDir, source.translationId);
+            const convert = format === 'usfm' && convertToUsx3;
+            const downloadDir = convert
+                ? path.resolve(tempDir, source.translationId)
+                : outputPath;
+
+            try {
+                logger.log(
+                    `Processing: ${source.id} -> ${source.translationId}`
+                );
+
+                if (entry.books.length === 0) {
+                    logger.warn(
+                        `No books found for ${source.translationId}. Skipping.`
+                    );
+                    result.unavailable.push(source.translationId);
+                    return;
+                }
+
+                const metadata =
+                    (await loadMetadataOverride(source.translationId)) ??
+                    createFetchBibleMetadata(entry);
+                await downloadFetchBibleTranslation(entry, {
+                    collectionUrl,
+                    outputPath,
+                    downloadDir,
+                    metadata,
+                });
+
+                if (convert) {
+                    conversionsNeeded.push({
+                        tempPath: downloadDir,
+                        outputPath,
+                        entry,
+                    });
+                } else {
+                    recordDownload(entry, outputPath);
+                }
+            } catch (err) {
+                logger.error(`Error processing ${source.translationId}:`, err);
+                result.failed.push(source.translationId);
+            }
+        });
+
+        logger.log('');
+        logger.log('DOWNLOAD SUMMARY:');
+        logger.log(
+            `   Downloaded: ${result.downloaded.length + conversionsNeeded.length} sources`
+        );
+        logger.log(`   Errored: ${result.failed.length} sources`);
+        logger.log('');
+
+        if (conversionsNeeded.length > 0) {
+            logger.log(
+                `${conversionsNeeded.length} translations need conversion to USX3.`
+            );
+            logger.log(`Starting automatic conversion using: ${jarPath}`);
+
+            let numConverted = 0;
+            await mapConcurrent(
+                conversionsNeeded,
+                10,
+                async ({ tempPath, outputPath, entry }) => {
+                    logger.log(`Converting ${entry.source.translationId}...`);
+                    const success = await convertUsfmToUsx3(
+                        tempPath,
+                        outputPath,
+                        jarPath!
+                    );
+                    if (success) {
+                        recordDownload(entry, outputPath);
+                        numConverted++;
+                    } else {
+                        result.failed.push(entry.source.translationId);
+                    }
+                }
+            );
+
+            logger.log(`CONVERSION SUMMARY:`);
+            logger.log(`   Converted: ${numConverted}`);
+            logger.log(
+                `   Errored: ${conversionsNeeded.length - numConverted}`
+            );
+        }
+    } finally {
+        if (existsSync(tempDir)) {
+            logger.log(`Cleaning up temporary directory: ${tempDir}`);
+            await rm(tempDir, { recursive: true, force: true });
+        }
+        if (db) {
+            db.close();
+        }
+    }
+
+    return result;
+}
+
+/**
+ * Downloads translations from both eBible and fetch.bible into a single directory, ready to be imported with import-translations.
+ *
+ * The translation lists from both sources are reconciled so that each translation is downloaded from only one source:
+ * - Translations that are available from eBible are downloaded from eBible.
+ * - Translations that are only available from fetch.bible (or that eBible doesn't provide files for) are downloaded from fetch.bible.
+ *
+ * Only new and changed translations are downloaded (when database tracking is enabled),
+ * USFM files are converted to USX3 (unless disabled), and a metadata.json is created for each translation.
+ * @param outputDir The directory that the translations should be downloaded to.
+ * @param translations The translations that should be downloaded. If omitted, then all translations are downloaded.
+ * @param options The options.
+ */
+export async function sourceAllTranslations(
+    outputDir: string,
+    translations?: string[],
+    options: SourceAllTranslationsOptions = {}
+): Promise<SourceTranslationsResult> {
+    const logger = log.getLogger();
+    const { convertToUsx3 = true } = options;
+    const result: SourceTranslationsResult = {
+        downloaded: [],
+        failed: [],
+        unavailable: [],
+    };
+
+    let bibleMultiConverterPath = options.bibleMultiConverterPath;
+    if (convertToUsx3) {
+        bibleMultiConverterPath =
+            (await findBibleMultiConverterJar(bibleMultiConverterPath)) ??
+            (await promptForBibleMultiConverter()) ??
+            undefined;
+        if (!bibleMultiConverterPath) {
+            logger.error(
+                'BibleMultiConverter JAR not found. Cannot convert USFM to USX3.'
+            );
+            printConversionInstructions();
+            return result;
+        }
+    }
+
+    logger.log('Fetching eBible and fetch.bible metadata...');
+    const [ebibleSources, catalog] = await Promise.all([
+        fetchEBibleMetadata(),
+        fetchFetchBibleCatalog({
+            manifestUrl: options.manifestUrl,
+            collectionUrl: options.collectionUrl,
+        }),
+    ]);
+
+    // eBible sources that source-translations is able to download
+    const ignorelist = await readIgnorelist(outputDir);
+    const ebibleAvailable = ebibleSources.filter(
+        (source) =>
+            !!source.FCBHID && !isEBibleSourceIgnored(source, ignorelist)
+    );
+    const ebibleCatalogCoverage = createEBibleCoverage(ebibleAvailable);
+    const fetchBibleOnly = catalog.filter(
+        (entry) => !isCoveredByEBible(entry.source, ebibleCatalogCoverage)
+    );
+
+    logger.log('');
+    logger.log('TRANSLATION SOURCES:');
+    logger.log(`   eBible: ${ebibleAvailable.length} translations`);
+    logger.log(
+        `   fetch.bible: ${catalog.length} translations (${catalog.length - fetchBibleOnly.length} are also available from eBible)`
+    );
+    logger.log(
+        `   Translations that will be sourced from fetch.bible: ${fetchBibleOnly.length}`
+    );
+    logger.log('');
+
+    logger.log('=== Sourcing translations from eBible ===');
+    const ebibleResult = await sourceTranslations(outputDir, translations, {
+        ...options,
+        convertToUsx3,
+        bibleMultiConverterPath,
+        sources: ebibleSources,
+    });
+
+    // Translations that eBible lists but doesn't provide files for can be sourced from fetch.bible instead.
+    const ebibleUnavailable = new Set(
+        ebibleResult.unavailable.map((id) => id.toLowerCase())
+    );
+    if (ebibleUnavailable.size > 0) {
+        logger.log(
+            `${ebibleUnavailable.size} translations could not be downloaded from eBible. They will be sourced from fetch.bible if available.`
+        );
+    }
+    const ebibleCoverage = createEBibleCoverage(
+        ebibleAvailable.filter(
+            (source) =>
+                !ebibleUnavailable.has(source.translationId.toLowerCase())
+        )
+    );
+
+    logger.log('');
+    logger.log('=== Sourcing translations from fetch.bible ===');
+    const fetchBibleResult = await sourceFetchBibleTranslations(
+        outputDir,
+        translations,
+        {
+            ...options,
+            convertToUsx3,
+            bibleMultiConverterPath,
+            catalog,
+            ebibleCoverage,
+            ebibleDir: outputDir,
+        }
+    );
+
+    const fetchBibleDownloaded = new Set(fetchBibleResult.downloaded);
+    result.downloaded = [
+        ...ebibleResult.downloaded,
+        ...fetchBibleResult.downloaded,
+    ];
+    result.failed = [...ebibleResult.failed, ...fetchBibleResult.failed];
+    result.unavailable = [
+        ...ebibleResult.unavailable.filter(
+            (id) => !fetchBibleDownloaded.has(id)
+        ),
+        ...fetchBibleResult.unavailable,
+    ];
+
+    logger.log('');
+    logger.log('SOURCING SUMMARY:');
+    logger.log(`   Downloaded from eBible: ${ebibleResult.downloaded.length}`);
+    logger.log(
+        `   Downloaded from fetch.bible: ${fetchBibleResult.downloaded.length}`
+    );
+    logger.log(`   Errored: ${result.failed.length}`);
+    if (result.downloaded.length > 0) {
+        logger.log('');
+        logger.log(
+            `Import the translations with: helloao import-translations ${outputDir}`
+        );
+    }
+
+    return result;
+}
+
+/**
+ * Lists the translations that are available from fetch.bible.
+ * @param searchTerm The term to filter the translations by.
+ */
+export async function listFetchBibleTranslations(
+    searchTerm?: string,
+    options: Pick<
+        SourceFetchBibleTranslationsOptions,
+        'manifestUrl' | 'collectionUrl'
+    > = {}
+): Promise<void> {
+    const logger = log.getLogger();
+    logger.log('Fetching fetch.bible metadata...');
+    let catalog = await fetchFetchBibleCatalog(options);
+
+    if (searchTerm) {
+        const lowerSearch = searchTerm.toLowerCase();
+        catalog = catalog.filter(
+            (entry) =>
+                matchesFetchBibleTranslation(searchTerm, entry.source) ||
+                entry.source.name.toLowerCase().includes(lowerSearch) ||
+                !!entry.source.englishName
+                    ?.toLowerCase()
+                    .includes(lowerSearch) ||
+                entry.source.languageCode.toLowerCase() === lowerSearch
+        );
+    }
+
+    if (catalog.length === 0) {
+        logger.log(
+            searchTerm
+                ? `No translations found matching "${searchTerm}".`
+                : 'No translations found.'
+        );
+        return;
+    }
+
+    logger.log(`Found ${catalog.length} translations:`);
+    logger.log('');
+    for (const { source } of catalog) {
+        const ebible = source.ebibleId ? ` | eBible: ${source.ebibleId}` : '';
+        logger.log(
+            `${source.id} -> ${source.translationId} | ${source.englishName || source.name} | ${source.languageCode} | ${source.sourceFormat}${ebible}`
+        );
     }
 }
 
