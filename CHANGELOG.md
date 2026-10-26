@@ -23,12 +23,15 @@ This is the log of changes for the Free Use Bible API.
     -   `createBibleDataManager()` (or the `useBibleDataManager()` hook) loads and caches translations, book lists, and chapters, from the public API or a self-hosted endpoint.
     -   `BibleReader` and `ChapterContent` draw verse highlights as rounded ribbons behind the text, like Seed Bible. Neighbouring verses with the same color share one ribbon, and the ribbons follow ragged line ends, poetry indentation, and right-to-left text. There are 12 preset colors with light and dark mode values, and custom colors are supported.
     -   The reader follows the device's light or dark mode, or can be forced to one with the `theme` prop (`'system'`, `'light'`, or `'dark'`). Colors and fonts are CSS variables that can be overridden on the reader or any element around it.
+-   Added the `sync` CLI command (and the `sync` script), which keeps a database and API up to date from a JSON config that lists the sources and destinations. It imports only the new and changed sources, removes deleted or excluded ones from the database and every destination, reprocesses sources when the code that processes them changes, and uploads only the items whose content changed. Only the items from the configured sources are uploaded, so private translations can be kept out of a public API. See the [CLI README](./packages/helloao-cli/README.md#keeping-an-api-up-to-date-with-sync).
 -   Added a Kotlin SDK (`packages/free-use-bible-api-kotlin`) for the JVM and Android. It has the same methods as the JavaScript/TypeScript client, as `suspend` functions, and its kotlinx.serialization models are generated from the OpenAPI document with the new `generate-kotlin-models` CLI command (`pnpm generate:kotlin`).
 
 ### :warning: Changes
 
 -   The content of a verse in a dataset chapter (`DatasetChapterVerseContent`) is now either `{ verse, references }` (cross reference datasets) or `{ verse, words }` (interlinear datasets). JSON responses for the existing `open-cross-ref` and `theographic` datasets are unchanged. TypeScript clients that read `verse.references` need to narrow the type first (e.g. `'references' in verse`).
 -   `DatasetEntityType` now includes `lexicon`.
+-   The `sha256` hashes that are stored for translations, commentaries, and datasets now cover everything that the API is generated from, including license fields, apocryphal flags, audio links and timings, chapter words, and commentary profiles. Numbers were previously left out of the hashes. `import-audio-timings` now updates the hashes of the translations that it changes.
+-   The CLI's `Uploader` interface has a new optional `delete()` method, which `S3Uploader` and `FilesUploader` implement.
 
 ## V1.15.0
 

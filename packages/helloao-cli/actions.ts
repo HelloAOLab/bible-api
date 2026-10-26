@@ -600,6 +600,27 @@ export async function importBibleMetadata(
     dir: string,
     options: ImportTranslationOptions
 ) {
+    const theographicDataset = await loadTheographicDataset(dir);
+
+    const db = await database.getDb(options.db);
+    try {
+        importDatasetOutput(db, {
+            translations: [],
+            commentaries: [],
+            datasets: [theographicDataset],
+        });
+    } finally {
+        db.close();
+    }
+}
+
+/**
+ * Loads the Theographic Bible Metadata from the given directory and generates the dataset for it.
+ * @param dir The directory that the Theographic JSON files are located in.
+ */
+export async function loadTheographicDataset(
+    dir: string
+): Promise<DatasetDataset> {
     const logger = log.getLogger();
 
     async function readJsonFile(name: string): Promise<any> {
@@ -632,16 +653,7 @@ export async function importBibleMetadata(
             `and ${theographicDataset.peopleGroups?.length ?? 0} people groups.`
     );
 
-    const db = await database.getDb(options.db);
-    try {
-        importDatasetOutput(db, {
-            translations: [],
-            commentaries: [],
-            datasets: [theographicDataset],
-        });
-    } finally {
-        db.close();
-    }
+    return theographicDataset;
 }
 
 const STEPBIBLE_LEXICONS_URL =
@@ -716,6 +728,27 @@ export async function importInterlinear(
     dir: string,
     options: ImportTranslationOptions
 ) {
+    const datasets = await loadInterlinearDatasets(dir);
+
+    const db = await database.getDb(options.db);
+    try {
+        importDatasetOutput(db, {
+            translations: [],
+            commentaries: [],
+            datasets,
+        });
+    } finally {
+        db.close();
+    }
+}
+
+/**
+ * Loads the interlinear source files from the given directory and generates the interlinear and lexicon datasets for them.
+ * @param dir The directory that the interlinear source files are located in.
+ */
+export async function loadInterlinearDatasets(
+    dir: string
+): Promise<DatasetDataset[]> {
     const logger = log.getLogger();
 
     async function readSourceFile(name: string): Promise<string> {
@@ -744,16 +777,7 @@ export async function importInterlinear(
             `and ${lexicon.lexicon?.length ?? 0} lexicon entries.`
     );
 
-    const db = await database.getDb(options.db);
-    try {
-        importDatasetOutput(db, {
-            translations: [],
-            commentaries: [],
-            datasets,
-        });
-    } finally {
-        db.close();
-    }
+    return datasets;
 }
 
 /**
@@ -820,6 +844,12 @@ export async function importAudioTimings(
         });
         importTimings();
         logger.log(`Imported ${records.length} audio timing records.`);
+
+        // The translation hashes include the audio timings,
+        // so they need to be updated for the timings to be picked up by uploads.
+        database.updateTranslationHashes(db, [
+            ...new Set(records.map((r) => r.translationId)),
+        ]);
     } finally {
         db.close();
     }

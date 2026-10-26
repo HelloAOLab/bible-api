@@ -4,6 +4,8 @@ import {
     open,
     readFile,
     readdir,
+    rm,
+    rmdir,
     writeFile,
 } from 'fs/promises';
 import { basename, extname } from 'path';
@@ -80,6 +82,14 @@ export interface Uploader {
     upload(file: SerializedFile, overwrite: boolean): Promise<boolean>;
 
     /**
+     * Deletes the files at the given paths.
+     * Paths that don't exist are ignored.
+     * Optional because some destinations (like zip files) are always written from scratch.
+     * @param paths The paths of the files to delete.
+     */
+    delete?(paths: string[]): Promise<void>;
+
+    /**
      * Disposes resources that the uploader uses.
      */
     dispose?(): Promise<void>;
@@ -149,23 +159,7 @@ export async function* serializeOutputFiles(
 
     let serializedFiles: SerializedFile[] = [];
     for (let [path, files] of mergableFiles) {
-        let content: object = {};
-        for (let file of files) {
-            if (!content) {
-                content = file.content;
-            } else {
-                content = mergeWith(
-                    content,
-                    file.content,
-                    (objValue, srcValue) => {
-                        if (Array.isArray(objValue)) {
-                            return objValue.concat(srcValue);
-                        }
-                        return undefined;
-                    }
-                );
-            }
-        }
+        const content = mergeFileContents(files.map((f) => f.content));
 
         if (content) {
             const serialized = await serializeFile(path, content, options);
@@ -176,6 +170,24 @@ export async function* serializeOutputFiles(
     }
 
     yield serializedFiles;
+}
+
+/**
+ * Merges the contents of mergable files (like available_translations.json) into a single object.
+ * Arrays are concatenated in the order that the contents are given.
+ * @param contents The contents that should be merged.
+ */
+export function mergeFileContents(contents: any[]): object {
+    let content: object = {};
+    for (let c of contents) {
+        content = mergeWith(content, c, (objValue, srcValue) => {
+            if (Array.isArray(objValue)) {
+                return objValue.concat(srcValue);
+            }
+            return undefined;
+        });
+    }
+    return content;
 }
 
 /**
@@ -947,7 +959,7 @@ function stripEntityRefApiLinks(entity: any): any {
  * @param translation The translation that the metadata should be loaded for.
  * @returns
  */
-async function loadTranslationMetadata(
+export async function loadTranslationMetadata(
     translation: string
 ): Promise<InputTranslationMetadata | null> {
     const logger = log.getLogger();
@@ -990,7 +1002,7 @@ async function loadTranslationMetadata(
  * @param commentary The path to the directory that the commentary is stored in.
  * @returns
  */
-async function loadCommentaryMetadata(
+export async function loadCommentaryMetadata(
     commentary: string
 ): Promise<InputCommentaryMetadata | null> {
     const logger = log.getLogger();
@@ -1104,6 +1116,26 @@ export class FilesUploader implements Uploader {
         }
 
         return false;
+    }
+
+    async delete(paths: string[]): Promise<void> {
+        const root = path.resolve(this._dir);
+        for (let p of paths) {
+            const filePath = path.resolve(root, makeRelativePath(p));
+            await rm(filePath, { force: true });
+
+            // Remove the directories that are left empty, up to the root directory.
+            let dir = path.dirname(filePath);
+            while (dir.startsWith(root + path.sep)) {
+                try {
+                    await rmdir(dir);
+                } catch {
+                    // The directory isn't empty (or was already removed).
+                    break;
+                }
+                dir = path.dirname(dir);
+            }
+        }
     }
 }
 

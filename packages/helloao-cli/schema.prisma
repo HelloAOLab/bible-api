@@ -492,3 +492,78 @@ model DatasetReference {
     endVerseNumber Int?
     score Int?
 }
+// A source (a translation, commentary, or dataset directory) that is tracked by the sync command.
+// Used to determine which sources are new, have changed, or have been deleted since the last sync.
+model SyncSource {
+    // The unique key of the source. Formatted as "{type}:{path}".
+    key String @id
+
+    // The type of the source.
+    // One of "translation", "commentary", "theographic", or "interlinear".
+    type String
+
+    // The path to the source directory, relative to the sync config file.
+    path String
+
+    // The SHA-256 hash of the names, sizes, and modification times of the files in the source.
+    // Used to quickly skip sources that haven't been touched.
+    statHash String
+
+    // The SHA-256 hash of the names and contents of the files in the source.
+    sha256 String
+
+    // The version of the processor that the source was imported with.
+    // Sources are re-imported when the processor changes.
+    processorVersion String
+
+    // JSON array of the items ({ kind, id }) that were imported from the source.
+    itemsJson String
+
+    importedAt DateTime
+}
+
+// An item (translation, commentary, or dataset) that has been uploaded to a destination by the sync command.
+model SyncUpload {
+    // The destination that the item was uploaded to.
+    destination String
+
+    // One of "translation", "commentary", or "dataset".
+    itemKind String
+    itemId String
+
+    // The SHA-256 hash of the item at the time it was uploaded.
+    sha256 String
+
+    // The version of the API generator (and generation options) that the item was uploaded with.
+    generatorVersion String
+
+    // Deflated JSON array of the paths of the files that were uploaded for the item.
+    paths Bytes
+
+    // JSON object that maps the paths of mergable files (like available_translations.json) to the item's portion of them.
+    mergedJson String
+
+    uploadedAt DateTime
+
+    @@id([destination, itemKind, itemId])
+}
+
+// A file that should be deleted from a destination because the item that it belonged to changed or was removed.
+model SyncPendingDelete {
+    destination String
+    itemKind String
+    itemId String
+    path String
+
+    @@id([destination, path])
+}
+
+// The state of the mergable files (like available_translations.json) that were uploaded to a destination.
+model SyncDestination {
+    destination String @id
+
+    // The SHA-256 hash of the mergable files that were last uploaded.
+    mergedSha256 String
+
+    uploadedAt DateTime
+}
