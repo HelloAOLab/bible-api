@@ -245,6 +245,11 @@ public data class ApiTranslationBook(
     public val commonName: String,
 
     /**
+     * The short name (abbreviation) that the translation provided for the book. If not available, then one was not provided by the translation.
+     */
+    public val shortName: String? = null,
+
+    /**
      * The title of the book. This is usually a more descriptive version of the book name. If not available, then one was not provided by the translation.
      */
     public val title: String? = null,
@@ -1170,6 +1175,11 @@ public data class ApiTranslationCompleteBook(
     public val commonName: String,
 
     /**
+     * The short name (abbreviation) that the translation provided for the book. If not available, then one was not provided by the translation.
+     */
+    public val shortName: String? = null,
+
+    /**
      * The title of the book. This is usually a more descriptive version of the book name. If not available, then one was not provided by the translation.
      */
     public val title: String? = null,
@@ -1271,6 +1281,11 @@ public data class ApiSimpleTranslationCompleteBook(
      * The common name for the book.
      */
     public val commonName: String,
+
+    /**
+     * The short name (abbreviation) that the translation provided for the book. If not available, then one was not provided by the translation.
+     */
+    public val shortName: String? = null,
 
     /**
      * The title of the book. This is usually a more descriptive version of the book name. If not available, then one was not provided by the translation.

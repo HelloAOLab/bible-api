@@ -139,6 +139,7 @@ model Book {
 
     name String
     commonName String
+    shortName String?
     title String?
     order Int
 

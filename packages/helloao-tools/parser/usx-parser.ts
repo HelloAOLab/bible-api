@@ -99,6 +99,12 @@ export class USXParser {
             root.header = header.textContent || '';
         }
 
+        const shortName = usxElement.querySelector('para[style="toc3"]');
+        const shortNameText = shortName?.textContent?.trim();
+        if (shortNameText) {
+            root.shortName = shortNameText;
+        }
+
         const titles = usxElement.querySelectorAll(
             'para[style="mt1"], para[style="mt2"], para[style="mt3"]'
         );

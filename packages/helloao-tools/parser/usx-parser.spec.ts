@@ -18,6 +18,27 @@ describe('USXParser', () => {
     });
 
     describe('parse()', () => {
+        it('should parse the toc3 paragraph as the short name', () => {
+            const usx = `
+                <usx version="3.0">
+                    <book code="GEN" style="id">- Berean Study Bible</book>
+                    <para style="h">Genesis</para>
+                    <para style="toc1">The First Book of Moses</para>
+                    <para style="toc2">Genesis</para>
+                    <para style="toc3">Gen</para>
+                    <para style="mt1">Genesis</para>
+                    <chapter number="1" style="c" sid="GEN 1"/>
+                    <para style="m">
+                        <verse number="1" style="v" sid="GEN 1:1"/>In the beginning God created the heavens and the earth.<verse eid="GEN 1:1"/>
+                    </para>
+                </usx>
+            `;
+            const tree = parser.parse(usx);
+            expect(tree.header).toBe('Genesis');
+            expect(tree.shortName).toBe('Gen');
+            expect(tree.title).toBe('Genesis');
+        });
+
         it('should parse a simple USX file', () => {
             const usx = `
                 <usx version="3.0">

@@ -377,6 +377,7 @@ interface TranslationBookChapterAudioTimingsLinks {
         "translationId": "BSB",
         "name": "Genesis",
         "commonName": "Genesis",
+        "shortName": "Gen",
         "title": "Genesis",
         "order": 1,
         "numberOfChapters": 50,
@@ -998,6 +999,12 @@ export interface TranslationCompleteBook {
     commonName: string;
 
     /**
+     * The short name (abbreviation) that the translation provided for the book.
+     * If not available, then one was not provided by the translation.
+     */
+    shortName?: string;
+
+    /**
      * The title of the book.
      */
     title: string | null;
@@ -1105,6 +1112,7 @@ interface TranslationBookChapterAudioTimingsMap {
       "id": "GEN",
       "name": "Genesis",
       "commonName": "Genesis",
+      "shortName": "Gen",
       "title": "Genesis",
       "order": 1,
       "numberOfChapters": 50,
