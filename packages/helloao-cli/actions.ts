@@ -70,10 +70,11 @@ import {
     createEBibleCoverage,
     createFetchBibleMetadata,
     EBibleCoverage,
-    FETCH_BIBLE_COLLECTION_URL,
     downloadFetchBibleTranslation,
     FetchBibleCatalogEntry,
+    FetchBibleCatalogOptions,
     fetchFetchBibleCatalog,
+    hasFetchBibleSourceChanged,
     isCoveredByEBible,
     isFetchBibleSourceIgnored,
     loadDownloadedEBibleCoverage,
@@ -177,10 +178,10 @@ export interface SourceTranslationsOptions {
     sources?: EBibleSource[];
 }
 
-export interface SourceFetchBibleTranslationsOptions extends Omit<
-    SourceTranslationsOptions,
-    'sources'
-> {
+export interface SourceFetchBibleTranslationsOptions
+    extends
+        Omit<SourceTranslationsOptions, 'sources'>,
+        FetchBibleCatalogOptions {
     /**
      * The directory that eBible translations were sourced into (e.g. the output directory of source-translations).
      * Translations in this directory that came from eBible won't be downloaded from fetch.bible.
@@ -202,16 +203,6 @@ export interface SourceFetchBibleTranslationsOptions extends Omit<
      * The fetch.bible translations to use. If omitted, then they will be downloaded from fetch.bible.
      */
     catalog?: FetchBibleCatalogEntry[];
-
-    /**
-     * The URL of the fetch.bible manifest.
-     */
-    manifestUrl?: string;
-
-    /**
-     * The base URL of the fetch.bible collection files.
-     */
-    collectionUrl?: string;
 }
 
 export interface SourceAllTranslationsOptions extends Omit<
@@ -1714,7 +1705,6 @@ export async function sourceFetchBibleTranslations(
         overwrite = false,
         includeEBible = false,
     } = options;
-    const collectionUrl = options.collectionUrl ?? FETCH_BIBLE_COLLECTION_URL;
     const hasTranslations = !!translations && translations.length > 0;
 
     const result: SourceTranslationsResult = {
@@ -1726,10 +1716,7 @@ export async function sourceFetchBibleTranslations(
     let catalog = options.catalog;
     if (!catalog) {
         logger.log('Fetching fetch.bible metadata...');
-        catalog = await fetchFetchBibleCatalog({
-            manifestUrl: options.manifestUrl,
-            collectionUrl,
-        });
+        catalog = await fetchFetchBibleCatalog(options);
     }
     logger.log(`Total fetch.bible sources found: ${catalog.length}`);
 
@@ -1812,7 +1799,7 @@ export async function sourceFetchBibleTranslations(
         let sourceUpsert: Sql.Statement | null = null;
         if (db) {
             const sourceExists = db.prepare(
-                'SELECT sha256, downloadDate, downloadPath FROM FetchBibleSource WHERE id = @id;'
+                'SELECT sha256, gitTreeSha, downloadDate, downloadPath FROM FetchBibleSource WHERE id = @id;'
             );
             let unchanged = 0;
             let newSources = 0;
@@ -1822,6 +1809,7 @@ export async function sourceFetchBibleTranslations(
                 const existing = sourceExists.get({ id: entry.source.id }) as
                     | {
                           sha256: string | null;
+                          gitTreeSha: string | null;
                           downloadDate: string | null;
                           downloadPath: string | null;
                       }
@@ -1839,7 +1827,7 @@ export async function sourceFetchBibleTranslations(
                 ) {
                     newSources++;
                     return true;
-                } else if (existing.sha256 !== entry.source.sha256) {
+                } else if (hasFetchBibleSourceChanged(existing, entry.source)) {
                     changedSources++;
                     return true;
                 } else if (hasTranslations) {
@@ -1859,11 +1847,11 @@ export async function sourceFetchBibleTranslations(
             sourceUpsert = db.prepare(`INSERT INTO FetchBibleSource(
                 id, translationId, languageCode, name, englishName, abbreviation, textDirection, year,
                 ebibleId, sourceService, sourceFormat, sourceUpdated, sourceRevision,
-                attribution, attributionUrl, downloadDate, downloadPath, sha256
+                attribution, attributionUrl, gitCommitSha, gitTreeSha, downloadDate, downloadPath, sha256
             ) VALUES (
                 @id, @translationId, @languageCode, @name, @englishName, @abbreviation, @textDirection, @year,
                 @ebibleId, @sourceService, @sourceFormat, @sourceUpdated, @sourceRevision,
-                @attribution, @attributionUrl, @downloadDate, @downloadPath, @sha256
+                @attribution, @attributionUrl, @gitCommitSha, @gitTreeSha, @downloadDate, @downloadPath, @sha256
             ) ON CONFLICT(id) DO UPDATE SET
                 translationId = excluded.translationId, languageCode = excluded.languageCode,
                 name = excluded.name, englishName = excluded.englishName, abbreviation = excluded.abbreviation,
@@ -1871,6 +1859,7 @@ export async function sourceFetchBibleTranslations(
                 sourceService = excluded.sourceService, sourceFormat = excluded.sourceFormat,
                 sourceUpdated = excluded.sourceUpdated, sourceRevision = excluded.sourceRevision,
                 attribution = excluded.attribution, attributionUrl = excluded.attributionUrl,
+                gitCommitSha = excluded.gitCommitSha, gitTreeSha = excluded.gitTreeSha,
                 downloadDate = excluded.downloadDate, downloadPath = excluded.downloadPath,
                 sha256 = excluded.sha256;
             `);
@@ -1951,7 +1940,6 @@ export async function sourceFetchBibleTranslations(
                     (await loadMetadataOverride(source.translationId)) ??
                     createFetchBibleMetadata(entry);
                 await downloadFetchBibleTranslation(entry, {
-                    collectionUrl,
                     outputPath,
                     downloadDir,
                     metadata,
@@ -2069,10 +2057,7 @@ export async function sourceAllTranslations(
     logger.log('Fetching eBible and fetch.bible metadata...');
     const [ebibleSources, catalog] = await Promise.all([
         fetchEBibleMetadata(),
-        fetchFetchBibleCatalog({
-            manifestUrl: options.manifestUrl,
-            collectionUrl: options.collectionUrl,
-        }),
+        fetchFetchBibleCatalog(options),
     ]);
 
     // eBible sources that source-translations is able to download
@@ -2172,10 +2157,7 @@ export async function sourceAllTranslations(
  */
 export async function listFetchBibleTranslations(
     searchTerm?: string,
-    options: Pick<
-        SourceFetchBibleTranslationsOptions,
-        'manifestUrl' | 'collectionUrl'
-    > = {}
+    options: FetchBibleCatalogOptions = {}
 ): Promise<void> {
     const logger = log.getLogger();
     logger.log('Fetching fetch.bible metadata...');

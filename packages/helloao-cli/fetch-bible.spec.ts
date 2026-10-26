@@ -16,11 +16,13 @@ import {
     FETCH_BIBLE_MARKER_FILE,
     fetchBibleLicense,
     fetchFetchBibleCatalog,
+    fetchFetchBibleCollectionRevision,
     FetchBibleCatalogEntry,
     FetchBibleCollectionMeta,
     FetchBibleManifestItem,
     getFetchBibleBooks,
     getFetchBibleBookUrl,
+    hasFetchBibleSourceChanged,
     isCoveredByEBible,
     isFetchBibleSourceIgnored,
     isFetchBibleTranslationDir,
@@ -95,14 +97,26 @@ function collectionMeta(
 function catalogEntry(
     id: string,
     item: FetchBibleManifestItem,
-    meta: FetchBibleCollectionMeta
+    meta: FetchBibleCollectionMeta,
+    git: { commitSha?: string; treeSha?: string } = {}
 ): FetchBibleCatalogEntry {
     return {
-        source: createFetchBibleSource(id, item, meta, JSON.stringify(meta)),
+        source: createFetchBibleSource(
+            id,
+            item,
+            meta,
+            JSON.stringify(meta),
+            git
+        ),
         item,
         meta,
         books: getFetchBibleBooks(item, BOOKS_ORDERED),
+        collectionUrl: 'https://collection.test',
     };
+}
+
+function jsonResponse(body: any, status: number = 200): Response {
+    return new Response(JSON.stringify(body), { status });
 }
 
 function textResponse(body: string, status: number = 200): Response {
@@ -167,6 +181,8 @@ describe('createFetchBibleSource()', () => {
             textDirection: 'ltr',
             year: 1983,
             ebibleId: 'abt-maprik',
+            gitCommitSha: null,
+            gitTreeSha: null,
             sourceService: 'ebible',
             sourceFormat: 'usfm',
             sourceUpdated: '2013-01-04',
@@ -175,6 +191,19 @@ describe('createFetchBibleSource()', () => {
             downloadPath: null,
         });
         expect(source.sha256).toMatch(/^[0-9a-f]{64}$/);
+    });
+
+    it('should record the git revision', () => {
+        const meta = collectionMeta();
+        const source = createFetchBibleSource(
+            'abt_map',
+            manifestItem(),
+            meta,
+            JSON.stringify(meta),
+            { commitSha: 'commit1', treeSha: 'tree1' }
+        );
+        expect(source.gitCommitSha).toBe('commit1');
+        expect(source.gitTreeSha).toBe('tree1');
     });
 
     it('should map known translation IDs', () => {
@@ -221,6 +250,56 @@ describe('createFetchBibleSource()', () => {
         expect(a.sha256).not.toBe(b.sha256);
         expect(a.sha256).not.toBe(c.sha256);
         expect(a.sha256).toBe(same.sha256);
+    });
+});
+
+describe('hasFetchBibleSourceChanged()', () => {
+    it('should detect changes to the git tree', () => {
+        expect(
+            hasFetchBibleSourceChanged(
+                { sha256: 'a', gitTreeSha: 'tree1' },
+                { sha256: 'a', gitTreeSha: 'tree2' }
+            )
+        ).toBe(true);
+    });
+
+    it('should detect changes to the metadata', () => {
+        expect(
+            hasFetchBibleSourceChanged(
+                { sha256: 'a', gitTreeSha: 'tree1' },
+                { sha256: 'b', gitTreeSha: 'tree1' }
+            )
+        ).toBe(true);
+    });
+
+    it('should not report unchanged sources', () => {
+        expect(
+            hasFetchBibleSourceChanged(
+                { sha256: 'a', gitTreeSha: 'tree1' },
+                { sha256: 'a', gitTreeSha: 'tree1' }
+            )
+        ).toBe(false);
+    });
+
+    it('should fall back to the metadata when a git tree SHA is unknown', () => {
+        expect(
+            hasFetchBibleSourceChanged(
+                { sha256: 'a', gitTreeSha: null },
+                { sha256: 'a', gitTreeSha: 'tree1' }
+            )
+        ).toBe(false);
+        expect(
+            hasFetchBibleSourceChanged(
+                { sha256: 'a', gitTreeSha: 'tree1' },
+                { sha256: 'a', gitTreeSha: null }
+            )
+        ).toBe(false);
+        expect(
+            hasFetchBibleSourceChanged(
+                { sha256: 'a', gitTreeSha: null },
+                { sha256: 'b', gitTreeSha: null }
+            )
+        ).toBe(true);
     });
 });
 
@@ -472,26 +551,133 @@ describe('fetch.bible downloads', () => {
         await rm(dir, { recursive: true, force: true });
     });
 
+    const API = 'https://api.test';
+    const RAW = 'https://raw.test';
+    const collection = {
+        repo: 'owner/collection',
+        ref: 'main',
+        githubApiUrl: API,
+        githubRawUrl: RAW,
+    };
+
+    /**
+     * Mocks the GitHub API responses for a collection whose bibles directory contains the given trees.
+     */
+    function githubApi(
+        url: string,
+        trees: Record<string, string>,
+        truncated: boolean = false
+    ): Response | null {
+        if (url === `${API}/repos/owner/collection/commits/main`) {
+            return jsonResponse({
+                sha: 'commit1',
+                commit: { tree: { sha: 'root1' } },
+            });
+        } else if (url === `${API}/repos/owner/collection/git/trees/root1`) {
+            return jsonResponse({
+                sha: 'root1',
+                tree: [
+                    { path: 'README.md', type: 'blob', sha: 'readme' },
+                    { path: 'bibles', type: 'tree', sha: 'bibles1' },
+                ],
+                truncated: false,
+            });
+        } else if (url === `${API}/repos/owner/collection/git/trees/bibles1`) {
+            return jsonResponse({
+                sha: 'bibles1',
+                tree: Object.entries(trees).map(([path, sha]) => ({
+                    path,
+                    type: 'tree',
+                    sha,
+                })),
+                truncated,
+            });
+        }
+        return null;
+    }
+
+    describe('fetchFetchBibleCollectionRevision()', () => {
+        it('should get the commit and the tree of each translation', async () => {
+            const requests: [string, any][] = [];
+            global.fetch = jest.fn(async (url: any, init: any) => {
+                requests.push([url, init]);
+                return (
+                    githubApi(url, {
+                        abt_map: 'tree-abt',
+                        xyz_new: 'tree-xyz',
+                    }) ?? textResponse('', 404)
+                );
+            }) as any;
+
+            const revision = await fetchFetchBibleCollectionRevision({
+                ...collection,
+                githubToken: 'token123',
+            });
+
+            expect(revision.commitSha).toBe('commit1');
+            expect([...revision.trees]).toEqual([
+                ['abt_map', 'tree-abt'],
+                ['xyz_new', 'tree-xyz'],
+            ]);
+            expect(requests).toHaveLength(3);
+            expect(requests[0][1].headers.Authorization).toBe(
+                'Bearer token123'
+            );
+        });
+
+        it('should throw when the listing is truncated', async () => {
+            global.fetch = jest.fn(
+                async (url: any) =>
+                    githubApi(url, { abt_map: 'tree-abt' }, true) ??
+                    textResponse('', 404)
+            ) as any;
+
+            await expect(
+                fetchFetchBibleCollectionRevision(collection)
+            ).rejects.toThrow('truncated');
+        });
+
+        it('should throw when the GitHub API fails', async () => {
+            global.fetch = jest.fn(async () =>
+                textResponse('rate limited', 403)
+            ) as any;
+
+            await expect(
+                fetchFetchBibleCollectionRevision(collection)
+            ).rejects.toThrow('403');
+        });
+    });
+
     describe('fetchFetchBibleCatalog()', () => {
-        it('should combine the manifest and collection metadata', async () => {
-            const meta = collectionMeta();
-            const usxMeta = collectionMeta({
-                ids: {},
-                source: {
-                    service: 'dbl',
-                    format: 'usx',
-                    url: null,
-                    updated: '2024-01-01',
-                    revision: 1,
-                },
-            });
-            const badMeta = collectionMeta({
-                source: { ...meta.source, format: 'other' as any },
-            });
+        const meta = collectionMeta();
+        const usxMeta = collectionMeta({
+            ids: {},
+            source: {
+                service: 'dbl',
+                format: 'usx',
+                url: null,
+                updated: '2024-01-01',
+                revision: 1,
+            },
+        });
+        const badMeta = collectionMeta({
+            source: { ...meta.source, format: 'other' as any },
+        });
+
+        function mockCollection(useApi: boolean) {
             const urls: string[] = [];
             global.fetch = jest.fn(async (url: any) => {
                 urls.push(url);
-                if (url === 'https://manifest.test/manifest.json') {
+                const api = useApi
+                    ? githubApi(url, {
+                          abt_map: 'tree-abt',
+                          xyz_new: 'tree-xyz',
+                          bad_fmt: 'tree-bad',
+                      })
+                    : null;
+                if (api) {
+                    return api;
+                } else if (url === 'https://manifest.test/manifest.json') {
                     return textResponse(
                         JSON.stringify({
                             bibles: {
@@ -511,10 +697,15 @@ describe('fetch.bible downloads', () => {
                 }
                 return textResponse('', 404);
             }) as any;
+            return urls;
+        }
+
+        it('should combine the manifest, collection metadata, and git revision', async () => {
+            const urls = mockCollection(true);
 
             const catalog = await fetchFetchBibleCatalog({
+                ...collection,
                 manifestUrl: 'https://manifest.test/manifest.json',
-                collectionUrl: 'https://collection.test',
             });
 
             expect(catalog.map((e) => e.source.id)).toEqual([
@@ -524,8 +715,38 @@ describe('fetch.bible downloads', () => {
             expect(catalog[0].books).toEqual(['mat', 'mrk']);
             expect(catalog[1].books).toEqual(BOOKS_ORDERED.slice(39));
             expect(catalog[1].source.sourceFormat).toBe('usx');
+            expect(catalog[0].source.gitCommitSha).toBe('commit1');
+            expect(catalog[0].source.gitTreeSha).toBe('tree-abt');
+            expect(catalog[1].source.gitTreeSha).toBe('tree-xyz');
+
+            // Files are downloaded from the commit, not the branch
+            expect(catalog[0].collectionUrl).toBe(
+                `${RAW}/owner/collection/commit1`
+            );
             expect(urls).toContain(
-                'https://collection.test/bibles/abt_map/meta.json'
+                `${RAW}/owner/collection/commit1/bibles/abt_map/meta.json`
+            );
+        });
+
+        it('should fall back to the ref when the GitHub API is unavailable', async () => {
+            const urls = mockCollection(false);
+
+            const catalog = await fetchFetchBibleCatalog({
+                ...collection,
+                manifestUrl: 'https://manifest.test/manifest.json',
+            });
+
+            expect(catalog.map((e) => e.source.id)).toEqual([
+                'abt_map',
+                'xyz_new',
+            ]);
+            expect(catalog[0].source.gitCommitSha).toBeNull();
+            expect(catalog[0].source.gitTreeSha).toBeNull();
+            expect(catalog[0].collectionUrl).toBe(
+                `${RAW}/owner/collection/main`
+            );
+            expect(urls).toContain(
+                `${RAW}/owner/collection/main/bibles/abt_map/meta.json`
             );
         });
     });
@@ -565,7 +786,6 @@ describe('fetch.bible downloads', () => {
             await writeFile(path.join(outputPath, 'OLD.usx'), '');
 
             await downloadFetchBibleTranslation(entry, {
-                collectionUrl: 'https://collection.test',
                 outputPath,
                 metadata: createFetchBibleMetadata(entry),
             });
@@ -591,6 +811,35 @@ describe('fetch.bible downloads', () => {
             expect(isFetchBibleTranslationDir(outputPath)).toBe(true);
         });
 
+        it('should record the git revision in the marker file', async () => {
+            mockBooks();
+            const entry = catalogEntry('xyz_new', manifestItem(), usxMeta, {
+                commitSha: 'commit1',
+                treeSha: 'tree1',
+            });
+            const outputPath = path.join(dir, 'xyz_new');
+
+            await downloadFetchBibleTranslation(entry, {
+                outputPath,
+                metadata: createFetchBibleMetadata(entry),
+            });
+
+            expect(
+                await readFile(
+                    path.join(outputPath, FETCH_BIBLE_MARKER_FILE),
+                    'utf-8'
+                )
+            ).toBe(
+                [
+                    'This translation was downloaded from fetch.bible (xyz_new).',
+                    'Source: https://collection.test/bibles/xyz_new/',
+                    'Commit: commit1',
+                    'Tree: tree1',
+                    '',
+                ].join('\n')
+            );
+        });
+
         it('should write the books to the download directory', async () => {
             mockBooks();
             const entry = catalogEntry(
@@ -602,7 +851,6 @@ describe('fetch.bible downloads', () => {
             const downloadDir = path.join(dir, 'temp', 'abt_map');
 
             await downloadFetchBibleTranslation(entry, {
-                collectionUrl: 'https://collection.test',
                 outputPath,
                 downloadDir,
                 metadata: createFetchBibleMetadata(entry),
@@ -631,7 +879,6 @@ describe('fetch.bible downloads', () => {
 
             await expect(
                 downloadFetchBibleTranslation(entry, {
-                    collectionUrl: 'https://collection.test',
                     outputPath,
                     metadata: createFetchBibleMetadata(entry),
                 })

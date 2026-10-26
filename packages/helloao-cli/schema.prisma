@@ -130,6 +130,12 @@ model FetchBibleSource {
     attribution String?
     attributionUrl String?
 
+    // The SHA of the fetch.bible collection commit that the source was read from
+    gitCommitSha String?
+    // The git tree SHA of the translation's directory in the fetch.bible collection
+    // Changes whenever any of the translation's files change
+    gitTreeSha String?
+
     // The date that the source was downloaded
     downloadDate DateTime?
 

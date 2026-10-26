@@ -39,7 +39,8 @@ import {
 } from './actions.js';
 import { getPrismaDb } from './db.js';
 import {
-    FETCH_BIBLE_COLLECTION_URL,
+    FETCH_BIBLE_COLLECTION_REF,
+    FETCH_BIBLE_COLLECTION_REPO,
     FETCH_BIBLE_MANIFEST_URL,
 } from './fetch-bible.js';
 import { confirm, input } from '@inquirer/prompts';
@@ -974,9 +975,14 @@ async function start() {
             FETCH_BIBLE_MANIFEST_URL
         )
         .option(
-            '--collection-url <url>',
-            'The base URL of the fetch.bible collection files',
-            FETCH_BIBLE_COLLECTION_URL
+            '--collection-repo <repo>',
+            'The GitHub repository (owner/name) of the fetch.bible collection',
+            FETCH_BIBLE_COLLECTION_REPO
+        )
+        .option(
+            '--collection-ref <ref>',
+            'The branch (or other git ref) of the fetch.bible collection to download from',
+            FETCH_BIBLE_COLLECTION_REF
         )
         .action(async (dir, translations, options) => {
             await sourceFetchBibleTranslations(dir, translations, {
@@ -988,7 +994,8 @@ async function start() {
                 ebibleDir: options.ebibleDir,
                 includeEBible: options.includeEbible,
                 manifestUrl: options.manifestUrl,
-                collectionUrl: options.collectionUrl,
+                repo: options.collectionRepo,
+                ref: options.collectionRef,
             });
         });
 
@@ -1016,9 +1023,14 @@ async function start() {
             FETCH_BIBLE_MANIFEST_URL
         )
         .option(
-            '--collection-url <url>',
-            'The base URL of the fetch.bible collection files',
-            FETCH_BIBLE_COLLECTION_URL
+            '--collection-repo <repo>',
+            'The GitHub repository (owner/name) of the fetch.bible collection',
+            FETCH_BIBLE_COLLECTION_REPO
+        )
+        .option(
+            '--collection-ref <ref>',
+            'The branch (or other git ref) of the fetch.bible collection to download from',
+            FETCH_BIBLE_COLLECTION_REF
         )
         .action(async (dir, translations, options) => {
             await sourceAllTranslations(dir, translations, {
@@ -1028,7 +1040,8 @@ async function start() {
                 useDatabase: options.database !== false,
                 overwrite: options.overwrite,
                 manifestUrl: options.manifestUrl,
-                collectionUrl: options.collectionUrl,
+                repo: options.collectionRepo,
+                ref: options.collectionRef,
             });
         });
 

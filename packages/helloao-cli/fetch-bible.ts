@@ -23,10 +23,24 @@ import {
 export const FETCH_BIBLE_MANIFEST_URL = 'https://v1.fetch.bible/manifest.json';
 
 /**
- * The base URL that the files in the fetch.bible collection repository (https://github.com/gracious-tech/fetch_collection) can be downloaded from.
+ * The GitHub repository that the fetch.bible collection is stored in.
  */
-export const FETCH_BIBLE_COLLECTION_URL =
-    'https://raw.githubusercontent.com/gracious-tech/fetch_collection/main';
+export const FETCH_BIBLE_COLLECTION_REPO = 'gracious-tech/fetch_collection';
+
+/**
+ * The branch (or other git ref) of the fetch.bible collection repository that translations are downloaded from.
+ */
+export const FETCH_BIBLE_COLLECTION_REF = 'main';
+
+/**
+ * The base URL of the GitHub REST API.
+ */
+export const GITHUB_API_URL = 'https://api.github.com';
+
+/**
+ * The base URL that raw files in GitHub repositories can be downloaded from.
+ */
+export const GITHUB_RAW_URL = 'https://raw.githubusercontent.com';
 
 export interface FetchBibleName {
     local: string;
@@ -115,18 +129,63 @@ export interface FetchBibleCatalogEntry {
      * The (lowercase) IDs of the books that fetch.bible publishes for the translation.
      */
     books: string[];
+
+    /**
+     * The base URL that the translation's collection files should be downloaded from.
+     * Points at the commit that the catalog was created from (when it is known), so that the downloaded files match the recorded git tree SHA.
+     */
+    collectionUrl: string;
 }
 
-export interface FetchBibleCatalogOptions {
+export interface FetchBibleCollectionOptions {
+    /**
+     * The GitHub repository ("owner/name") that the fetch.bible collection is stored in.
+     */
+    repo?: string;
+
+    /**
+     * The branch (or other git ref) of the collection repository to use.
+     */
+    ref?: string;
+
+    /**
+     * The base URL of the GitHub REST API.
+     */
+    githubApiUrl?: string;
+
+    /**
+     * The base URL that raw files in GitHub repositories can be downloaded from.
+     */
+    githubRawUrl?: string;
+
+    /**
+     * The GitHub token to use for GitHub API requests.
+     * Defaults to the GITHUB_TOKEN or GH_TOKEN environment variable. Not required, but raises the GitHub API rate limit.
+     */
+    githubToken?: string;
+}
+
+/**
+ * The git revision of the fetch.bible collection.
+ */
+export interface FetchBibleCollectionRevision {
+    /**
+     * The SHA of the commit that the ref points to.
+     */
+    commitSha: string;
+
+    /**
+     * The git tree SHA of each translation's directory (bibles/<id>), keyed by fetch.bible ID.
+     * A directory's tree SHA changes whenever any of the files in it change.
+     */
+    trees: Map<string, string>;
+}
+
+export interface FetchBibleCatalogOptions extends FetchBibleCollectionOptions {
     /**
      * The URL of the fetch.bible manifest.
      */
     manifestUrl?: string;
-
-    /**
-     * The base URL of the fetch.bible collection files.
-     */
-    collectionUrl?: string;
 
     /**
      * The number of collection meta.json files to download at once.
@@ -153,16 +212,18 @@ export interface EBibleCoverage {
 /**
  * Fetches the given URL, retrying when the request fails because of a network error, rate limiting, or a server error.
  * @param url The URL to fetch.
+ * @param init The request options.
  * @param retries The number of times to retry.
  */
 export async function fetchWithRetry(
     url: string,
+    init?: RequestInit,
     retries: number = 4
 ): Promise<Response> {
     let delay = 2000;
     for (let attempt = 0; ; attempt++) {
         try {
-            const response = await fetch(url);
+            const response = await fetch(url, init);
             if (
                 attempt < retries &&
                 (response.status === 429 || response.status >= 500)
@@ -218,6 +279,86 @@ export async function fetchFetchBibleManifest(
         );
     }
     return (await response.json()) as FetchBibleManifest;
+}
+
+/**
+ * Gets the base URL that the collection files can be downloaded from at the given git ref or commit SHA.
+ */
+export function getFetchBibleCollectionUrl(
+    options: FetchBibleCollectionOptions,
+    refOrSha?: string | null
+): string {
+    const rawUrl = (options.githubRawUrl ?? GITHUB_RAW_URL).replace(/\/+$/, '');
+    const repo = options.repo ?? FETCH_BIBLE_COLLECTION_REPO;
+    return `${rawUrl}/${repo}/${refOrSha || (options.ref ?? FETCH_BIBLE_COLLECTION_REF)}`;
+}
+
+/**
+ * Fetches the current git revision of the fetch.bible collection from the GitHub API:
+ * the commit that the ref points to and the tree SHA of every translation's directory.
+ * Only needs 3 GitHub API requests.
+ */
+export async function fetchFetchBibleCollectionRevision(
+    options: FetchBibleCollectionOptions = {}
+): Promise<FetchBibleCollectionRevision> {
+    const apiUrl = (options.githubApiUrl ?? GITHUB_API_URL).replace(/\/+$/, '');
+    const repo = options.repo ?? FETCH_BIBLE_COLLECTION_REPO;
+    const ref = options.ref ?? FETCH_BIBLE_COLLECTION_REF;
+    const token =
+        options.githubToken ?? process.env.GITHUB_TOKEN ?? process.env.GH_TOKEN;
+    const headers: Record<string, string> = {
+        Accept: 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28',
+    };
+    if (token) {
+        headers.Authorization = `Bearer ${token}`;
+    }
+
+    const getJson = async (url: string) => {
+        const response = await fetchWithRetry(url, { headers });
+        if (!response.ok) {
+            throw new Error(
+                `Failed to fetch ${url}: ${response.status} ${response.statusText}`
+            );
+        }
+        return (await response.json()) as any;
+    };
+
+    const commit = await getJson(
+        `${apiUrl}/repos/${repo}/commits/${encodeURIComponent(ref)}`
+    );
+    const commitSha: string = commit.sha;
+    const rootTreeSha: string = commit.commit.tree.sha;
+
+    const rootTree = await getJson(
+        `${apiUrl}/repos/${repo}/git/trees/${rootTreeSha}`
+    );
+    const biblesTree = (rootTree.tree as any[]).find(
+        (entry) => entry.path === 'bibles' && entry.type === 'tree'
+    );
+    if (!biblesTree) {
+        throw new Error(
+            `Could not find the bibles directory in ${repo} at ${commitSha}`
+        );
+    }
+
+    const bibles = await getJson(
+        `${apiUrl}/repos/${repo}/git/trees/${biblesTree.sha}`
+    );
+    if (bibles.truncated) {
+        throw new Error(
+            `The bibles directory listing for ${repo} at ${commitSha} was truncated by the GitHub API`
+        );
+    }
+
+    const trees = new Map<string, string>();
+    for (const entry of bibles.tree as any[]) {
+        if (entry.type === 'tree') {
+            trees.set(entry.path, entry.sha);
+        }
+    }
+
+    return { commitSha, trees };
 }
 
 /**
@@ -298,12 +439,14 @@ export function getFetchBibleLanguage(id: string): string {
  * @param item The manifest entry for the translation.
  * @param meta The collection meta.json for the translation.
  * @param metaText The raw text of the meta.json file. Used to detect when the translation changes.
+ * @param git The git commit SHA of the collection and the git tree SHA of the translation's directory, if they are known.
  */
 export function createFetchBibleSource(
     id: string,
     item: FetchBibleManifestItem,
     meta: FetchBibleCollectionMeta,
-    metaText: string
+    metaText: string,
+    git: { commitSha?: string | null; treeSha?: string | null } = {}
 ): FetchBibleSource {
     const name = item.name ?? meta.name;
     const source: FetchBibleSource = {
@@ -322,6 +465,8 @@ export function createFetchBibleSource(
         sourceRevision: meta.source?.revision ?? null,
         attribution: item.copyright?.attribution || null,
         attributionUrl: item.copyright?.attribution_url || null,
+        gitCommitSha: git.commitSha ?? null,
+        gitTreeSha: git.treeSha ?? null,
         downloadDate: null,
         downloadPath: null,
         sha256: null,
@@ -338,15 +483,60 @@ export function createFetchBibleSource(
 }
 
 /**
+ * Determines whether the given fetch.bible translation has changed since it was last downloaded.
+ * When the git tree SHA of the translation's directory is known for both, it is compared,
+ * because it changes whenever any of the translation's files change.
+ * The hash of the translation's metadata is also compared, so that changes to the manifest are picked up.
+ * @param existing The source as it was recorded when the translation was last downloaded.
+ * @param source The current source.
+ */
+export function hasFetchBibleSourceChanged(
+    existing: Pick<FetchBibleSource, 'sha256' | 'gitTreeSha'>,
+    source: Pick<FetchBibleSource, 'sha256' | 'gitTreeSha'>
+): boolean {
+    if (
+        existing.gitTreeSha &&
+        source.gitTreeSha &&
+        existing.gitTreeSha !== source.gitTreeSha
+    ) {
+        return true;
+    }
+    return existing.sha256 !== source.sha256;
+}
+
+/**
  * Fetches the list of translations that are available from fetch.bible.
  * Translations that are stored in a format that can't be imported (i.e. not USFM or USX) are skipped.
+ *
+ * The current git revision of the collection is looked up with the GitHub API, so that each translation records
+ * the commit and the git tree SHA of its directory, and its files are downloaded from that commit.
+ * If the GitHub API is unavailable (e.g. because of rate limiting), the files are downloaded from the ref instead
+ * and changes are only detected from the translation's metadata.
  */
 export async function fetchFetchBibleCatalog(
     options: FetchBibleCatalogOptions = {}
 ): Promise<FetchBibleCatalogEntry[]> {
     const logger = log.getLogger();
-    const collectionUrl = options.collectionUrl ?? FETCH_BIBLE_COLLECTION_URL;
-    const manifest = await fetchFetchBibleManifest(options.manifestUrl);
+    const [manifest, revision] = await Promise.all([
+        fetchFetchBibleManifest(options.manifestUrl),
+        fetchFetchBibleCollectionRevision(options).catch((err) => {
+            logger.warn(
+                'Could not get the git revision of the fetch.bible collection from the GitHub API. Changes will only be detected from the translation metadata. Set GITHUB_TOKEN to raise the GitHub API rate limit.',
+                err
+            );
+            return null;
+        }),
+    ]);
+
+    if (revision) {
+        logger.log(
+            `fetch.bible collection is at commit ${revision.commitSha} (${revision.trees.size} translations)`
+        );
+    }
+    const collectionUrl = getFetchBibleCollectionUrl(
+        options,
+        revision?.commitSha
+    );
 
     const ids = Object.keys(manifest.bibles);
 
@@ -373,11 +563,22 @@ export async function fetchFetchBibleCatalog(
                     return null;
                 }
 
+                const treeSha = revision?.trees.get(id) ?? null;
+                if (revision && !treeSha) {
+                    logger.warn(
+                        `Could not find bibles/${id} in the fetch.bible collection at ${revision.commitSha}.`
+                    );
+                }
+
                 return {
-                    source: createFetchBibleSource(id, item, meta, text),
+                    source: createFetchBibleSource(id, item, meta, text, {
+                        commitSha: revision?.commitSha,
+                        treeSha,
+                    }),
                     item,
                     meta,
                     books: getFetchBibleBooks(item, manifest.books_ordered),
+                    collectionUrl,
                 };
             } catch (err) {
                 logger.error(
@@ -646,11 +847,6 @@ export async function loadDownloadedEBibleCoverage(
 
 export interface DownloadFetchBibleTranslationOptions {
     /**
-     * The base URL of the fetch.bible collection files.
-     */
-    collectionUrl: string;
-
-    /**
      * The directory that the translation's metadata.json should be written to.
      * This directory is replaced.
      */
@@ -679,7 +875,7 @@ export interface DownloadFetchBibleTranslationOptions {
  * Throws if any of the books fail to download.
  */
 export async function downloadFetchBibleTranslation(
-    entry: Pick<FetchBibleCatalogEntry, 'source' | 'books'>,
+    entry: Pick<FetchBibleCatalogEntry, 'source' | 'books' | 'collectionUrl'>,
     options: DownloadFetchBibleTranslationOptions
 ): Promise<void> {
     const logger = log.getLogger();
@@ -693,7 +889,7 @@ export async function downloadFetchBibleTranslation(
         options.concurrency ?? 8,
         async (book) => {
             const url = getFetchBibleBookUrl(
-                options.collectionUrl,
+                entry.collectionUrl,
                 source.id,
                 format,
                 book
@@ -727,8 +923,18 @@ export async function downloadFetchBibleTranslation(
         path.resolve(outputPath, 'metadata.json'),
         JSON.stringify(options.metadata, null, 2)
     );
+    const marker = [
+        `This translation was downloaded from fetch.bible (${source.id}).`,
+        `Source: ${getFetchBibleFileUrl(entry.collectionUrl, source.id, '')}`,
+    ];
+    if (source.gitCommitSha) {
+        marker.push(`Commit: ${source.gitCommitSha}`);
+    }
+    if (source.gitTreeSha) {
+        marker.push(`Tree: ${source.gitTreeSha}`);
+    }
     await writeFile(
         path.resolve(outputPath, FETCH_BIBLE_MARKER_FILE),
-        `This translation was downloaded from fetch.bible (${source.id}).\nhttps://github.com/gracious-tech/fetch_collection/tree/main/bibles/${source.id}\n`
+        marker.join('\n') + '\n'
     );
 }
