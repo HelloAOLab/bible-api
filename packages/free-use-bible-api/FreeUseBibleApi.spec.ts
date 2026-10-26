@@ -15,6 +15,7 @@ import type {
     ApiTranslationBookChapterWords,
     ChapterVerse,
     SimpleChapterVerse,
+    SimpleChapterHebrewSubtitle,
     SimpleTranslationCompleteChapter,
     TranslationCompleteChapter,
 } from './types.gen.js';
@@ -56,6 +57,16 @@ describe('FreeUseBibleApi', () => {
     beforeEach(() => {
         fetchMock = jest.fn();
         global.fetch = fetchMock as unknown as typeof fetch;
+    });
+
+    it('accepts generated paragraph offsets on simplified Hebrew subtitles', () => {
+        const subtitle: SimpleChapterHebrewSubtitle = {
+            type: 'hebrew_subtitle',
+            text: '',
+            footnotes: [],
+            paragraphs: [{ offset: 0, style: 'p' }],
+        };
+        expect(subtitle.paragraphs).toEqual([{ offset: 0, style: 'p' }]);
     });
 
     afterEach(() => {

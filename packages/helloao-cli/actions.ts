@@ -158,12 +158,6 @@ export interface SourceTranslationsOptions {
     db?: string | null;
 }
 
-let dirname = __dirname;
-if (!dirname) {
-    // @ts-ignore
-    dirname = import.meta.dirname;
-}
-
 let metaDir: string | null = null;
 export async function getMetaPath() {
     if (metaDir) {
@@ -172,7 +166,7 @@ export async function getMetaPath() {
     const metaPaths = ['../../meta'];
 
     for (let metaPath of metaPaths) {
-        const fullPath = path.resolve(dirname, metaPath);
+        const fullPath = path.resolve(__dirname, metaPath);
         if (await exists(fullPath)) {
             metaDir = fullPath;
             return fullPath;

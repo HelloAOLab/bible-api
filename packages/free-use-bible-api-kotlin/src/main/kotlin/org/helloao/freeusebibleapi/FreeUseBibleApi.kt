@@ -96,6 +96,7 @@ public class FreeUseBibleApi(
          * Unknown properties are ignored so that new additions to the API don't break existing clients.
          */
         public val json: Json = Json {
+            serializersModule = UnknownContentSerializersModule
             ignoreUnknownKeys = true
             explicitNulls = false
             encodeDefaults = true
@@ -601,6 +602,7 @@ public class FreeUseBibleApi(
     ): ApiDatasetBookChapterResult? = when (chapter) {
         is ApiDatasetBookChapter -> getNextChapter(chapter, endpoint)
         is ApiDatasetEntityBookChapter -> getNextChapter(chapter, endpoint)
+        is UnknownApiDatasetBookChapterResult -> null
     }
 
     /**
@@ -681,6 +683,7 @@ public class FreeUseBibleApi(
     ): ApiDatasetBookChapterResult? = when (chapter) {
         is ApiDatasetBookChapter -> getPreviousChapter(chapter, endpoint)
         is ApiDatasetEntityBookChapter -> getPreviousChapter(chapter, endpoint)
+        is UnknownApiDatasetBookChapterResult -> null
     }
 
     /**
@@ -775,6 +778,7 @@ public class FreeUseBibleApi(
                 }
                 is InlineLineBreak -> content.append('\n')
                 is InlineHeading, is VerseFootnoteReference -> content.append(' ')
+                is UnknownVerseContent -> Unit
             }
         }
         return content.toString().trim()

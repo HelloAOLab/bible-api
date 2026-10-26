@@ -1045,9 +1045,9 @@ async function loadFile(
         .update(content)
 
         // Hack to ensure that file hashes are different for different versions of the parser.
+        // PARSER_VERSION covers both the USX and USFM parsers, so bump it when either changes.
         .update(
-            (fileType === 'lockman' ? LOCKMAN_PARSER_VERSION : PARSER_VERSION) +
-                DATASET_VERSION
+            `${fileType === 'lockman' ? LOCKMAN_PARSER_VERSION : PARSER_VERSION}:${DATASET_VERSION}`
         )
         .digest('hex');
 

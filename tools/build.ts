@@ -88,6 +88,8 @@ async function buildCli() {
             bundle: true,
             format: 'esm',
             platform: 'node',
+            // __dirname doesn't exist in ES modules.
+            define: { __dirname: 'import.meta.dirname' },
             // sourcemap: true,
             // platform: 'node',
             // format: 'esm',

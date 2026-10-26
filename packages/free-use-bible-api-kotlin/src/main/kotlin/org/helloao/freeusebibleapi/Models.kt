@@ -10,7 +10,6 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -21,6 +20,8 @@ import kotlinx.serialization.json.JsonContentPolymorphicSerializer
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.polymorphic
 
 /**
  * A piece of plain text in a union of text and objects.
@@ -440,6 +441,26 @@ public data class ApiTranslationBookChapter(
 public sealed interface ChapterContent
 
 /**
+ * A ChapterContent that this version of the SDK does not recognize.
+ * The original JSON is kept in [raw].
+ */
+@Serializable(with = UnknownChapterContentSerializer::class)
+public data class UnknownChapterContent(public val raw: JsonElement) : ChapterContent
+
+/**
+ * Reads and writes [UnknownChapterContent] as its raw JSON.
+ */
+internal object UnknownChapterContentSerializer : KSerializer<UnknownChapterContent> {
+    override val descriptor: SerialDescriptor = JsonElement.serializer().descriptor
+    override fun deserialize(decoder: Decoder): UnknownChapterContent {
+        return UnknownChapterContent(decoder.decodeSerializableValue(JsonElement.serializer()))
+    }
+    override fun serialize(encoder: Encoder, value: UnknownChapterContent) {
+        encoder.encodeSerializableValue(JsonElement.serializer(), value.raw)
+    }
+}
+
+/**
  * Defines the schema for a heading in a chapter.
  */
 @Serializable
@@ -456,7 +477,12 @@ public data class ChapterHeading(
  */
 @Serializable
 @SerialName("line_break")
-public data object ChapterLineBreak : ChapterContent, SimpleChapterContent
+public data class ChapterLineBreak(
+    /**
+     * The source paragraph marker (without its backslash) when the line break starts a new paragraph, for example `p`, `m`, `pi1` or `mi`. Omitted for plain line breaks.
+     */
+    public val paragraph: String? = null,
+) : ChapterContent, SimpleChapterContent
 
 /**
  * Defines the schema for a verse in a chapter.
@@ -513,6 +539,11 @@ public data class InlineHeading(
 @Serializable
 public data class InlineLineBreak(
     public val lineBreak: Boolean = true,
+
+    /**
+     * The source paragraph marker (without its backslash) when the line break starts a new paragraph, for example `p`, `m`, `pi1` or `mi`. Omitted for plain line breaks.
+     */
+    public val paragraph: String? = null,
 ) : VerseContent
 
 /**
@@ -704,6 +735,26 @@ public data class SimpleChapterData(
 public sealed interface SimpleChapterContent
 
 /**
+ * A SimpleChapterContent that this version of the SDK does not recognize.
+ * The original JSON is kept in [raw].
+ */
+@Serializable(with = UnknownSimpleChapterContentSerializer::class)
+public data class UnknownSimpleChapterContent(public val raw: JsonElement) : SimpleChapterContent
+
+/**
+ * Reads and writes [UnknownSimpleChapterContent] as its raw JSON.
+ */
+internal object UnknownSimpleChapterContentSerializer : KSerializer<UnknownSimpleChapterContent> {
+    override val descriptor: SerialDescriptor = JsonElement.serializer().descriptor
+    override fun deserialize(decoder: Decoder): UnknownSimpleChapterContent {
+        return UnknownSimpleChapterContent(decoder.decodeSerializableValue(JsonElement.serializer()))
+    }
+    override fun serialize(encoder: Encoder, value: UnknownSimpleChapterContent) {
+        encoder.encodeSerializableValue(JsonElement.serializer(), value.raw)
+    }
+}
+
+/**
  * Defines the schema for a heading in a simplified chapter.
  */
 @Serializable
@@ -740,6 +791,11 @@ public data class SimpleChapterVerse(
      * The headings that occur in the middle of the verse. Omitted if the verse contains no inline headings.
      */
     public val headings: List<SimpleInlineHeading>? = null,
+
+    /**
+     * The positions and source styles of paragraphs that start inside the verse.
+     */
+    public val paragraphs: List<SimpleVerseParagraph>? = null,
 
     /**
      * The ranges of the verse text that represent the Words of Jesus. Omitted if the verse contains none.
@@ -792,6 +848,22 @@ public data class SimpleInlineHeading(
      * The text of the heading.
      */
     public val text: String,
+)
+
+/**
+ * A paragraph start in the text of a simplified verse.
+ */
+@Serializable
+public data class SimpleVerseParagraph(
+    /**
+     * The index in the verse text, measured in UTF-16 code units.
+     */
+    public val offset: Int,
+
+    /**
+     * The source paragraph marker without its backslash.
+     */
+    public val style: String,
 )
 
 /**
@@ -851,6 +923,11 @@ public data class SimpleChapterHebrewSubtitle(
      * The headings that occur in the middle of the verse. Omitted if the verse contains no inline headings.
      */
     public val headings: List<SimpleInlineHeading>? = null,
+
+    /**
+     * The positions and source styles of paragraphs that start inside the verse.
+     */
+    public val paragraphs: List<SimpleVerseParagraph>? = null,
 
     /**
      * The ranges of the verse text that represent the Words of Jesus. Omitted if the verse contains none.
@@ -2038,7 +2115,27 @@ internal object DatasetChapterVerseContentSerializer : JsonContentPolymorphicSer
     override fun selectDeserializer(element: JsonElement): DeserializationStrategy<DatasetChapterVerseContent> = when {
         element is JsonObject && "references" in element -> DatasetChapterVerseReferences.serializer()
         element is JsonObject && "words" in element -> DatasetChapterVerseWords.serializer()
-        else -> throw SerializationException("Unable to determine the type of DatasetChapterVerseContent from: $element")
+        else -> UnknownDatasetChapterVerseContent.serializer()
+    }
+}
+
+/**
+ * A DatasetChapterVerseContent that this version of the SDK does not recognize.
+ * The original JSON is kept in [raw].
+ */
+@Serializable(with = UnknownDatasetChapterVerseContentSerializer::class)
+public data class UnknownDatasetChapterVerseContent(public val raw: JsonElement) : DatasetChapterVerseContent
+
+/**
+ * Reads and writes [UnknownDatasetChapterVerseContent] as its raw JSON.
+ */
+internal object UnknownDatasetChapterVerseContentSerializer : KSerializer<UnknownDatasetChapterVerseContent> {
+    override val descriptor: SerialDescriptor = JsonElement.serializer().descriptor
+    override fun deserialize(decoder: Decoder): UnknownDatasetChapterVerseContent {
+        return UnknownDatasetChapterVerseContent(decoder.decodeSerializableValue(JsonElement.serializer()))
+    }
+    override fun serialize(encoder: Encoder, value: UnknownDatasetChapterVerseContent) {
+        encoder.encodeSerializableValue(JsonElement.serializer(), value.raw)
     }
 }
 
@@ -3164,7 +3261,27 @@ internal object ApiDatasetBookChapterResultSerializer : JsonContentPolymorphicSe
     override fun selectDeserializer(element: JsonElement): DeserializationStrategy<ApiDatasetBookChapterResult> = when {
         element is JsonObject && "numberOfVerses" in element -> ApiDatasetBookChapter.serializer()
         element is JsonObject && "numberOfPeople" in element -> ApiDatasetEntityBookChapter.serializer()
-        else -> throw SerializationException("Unable to determine the type of ApiDatasetBookChapterResult from: $element")
+        else -> UnknownApiDatasetBookChapterResult.serializer()
+    }
+}
+
+/**
+ * A ApiDatasetBookChapterResult that this version of the SDK does not recognize.
+ * The original JSON is kept in [raw].
+ */
+@Serializable(with = UnknownApiDatasetBookChapterResultSerializer::class)
+public data class UnknownApiDatasetBookChapterResult(public val raw: JsonElement) : ApiDatasetBookChapterResult
+
+/**
+ * Reads and writes [UnknownApiDatasetBookChapterResult] as its raw JSON.
+ */
+internal object UnknownApiDatasetBookChapterResultSerializer : KSerializer<UnknownApiDatasetBookChapterResult> {
+    override val descriptor: SerialDescriptor = JsonElement.serializer().descriptor
+    override fun deserialize(decoder: Decoder): UnknownApiDatasetBookChapterResult {
+        return UnknownApiDatasetBookChapterResult(decoder.decodeSerializableValue(JsonElement.serializer()))
+    }
+    override fun serialize(encoder: Encoder, value: UnknownApiDatasetBookChapterResult) {
+        encoder.encodeSerializableValue(JsonElement.serializer(), value.raw)
     }
 }
 
@@ -3199,7 +3316,27 @@ internal object VerseContentSerializer : JsonContentPolymorphicSerializer<VerseC
         element is JsonObject && "heading" in element -> InlineHeading.serializer()
         element is JsonObject && "lineBreak" in element -> InlineLineBreak.serializer()
         element is JsonObject && "noteId" in element -> VerseFootnoteReference.serializer()
-        else -> throw SerializationException("Unable to determine the type of VerseContent from: $element")
+        else -> UnknownVerseContent.serializer()
+    }
+}
+
+/**
+ * A VerseContent that this version of the SDK does not recognize.
+ * The original JSON is kept in [raw].
+ */
+@Serializable(with = UnknownVerseContentSerializer::class)
+public data class UnknownVerseContent(public val raw: JsonElement) : VerseContent
+
+/**
+ * Reads and writes [UnknownVerseContent] as its raw JSON.
+ */
+internal object UnknownVerseContentSerializer : KSerializer<UnknownVerseContent> {
+    override val descriptor: SerialDescriptor = JsonElement.serializer().descriptor
+    override fun deserialize(decoder: Decoder): UnknownVerseContent {
+        return UnknownVerseContent(decoder.decodeSerializableValue(JsonElement.serializer()))
+    }
+    override fun serialize(encoder: Encoder, value: UnknownVerseContent) {
+        encoder.encodeSerializableValue(JsonElement.serializer(), value.raw)
     }
 }
 
@@ -3211,7 +3348,27 @@ internal object HebrewSubtitleContentSerializer : JsonContentPolymorphicSerializ
         element is JsonPrimitive && element.isString -> PlainText.serializer()
         element is JsonObject && "text" in element -> FormattedText.serializer()
         element is JsonObject && "noteId" in element -> VerseFootnoteReference.serializer()
-        else -> throw SerializationException("Unable to determine the type of HebrewSubtitleContent from: $element")
+        else -> UnknownHebrewSubtitleContent.serializer()
+    }
+}
+
+/**
+ * A HebrewSubtitleContent that this version of the SDK does not recognize.
+ * The original JSON is kept in [raw].
+ */
+@Serializable(with = UnknownHebrewSubtitleContentSerializer::class)
+public data class UnknownHebrewSubtitleContent(public val raw: JsonElement) : HebrewSubtitleContent
+
+/**
+ * Reads and writes [UnknownHebrewSubtitleContent] as its raw JSON.
+ */
+internal object UnknownHebrewSubtitleContentSerializer : KSerializer<UnknownHebrewSubtitleContent> {
+    override val descriptor: SerialDescriptor = JsonElement.serializer().descriptor
+    override fun deserialize(decoder: Decoder): UnknownHebrewSubtitleContent {
+        return UnknownHebrewSubtitleContent(decoder.decodeSerializableValue(JsonElement.serializer()))
+    }
+    override fun serialize(encoder: Encoder, value: UnknownHebrewSubtitleContent) {
+        encoder.encodeSerializableValue(JsonElement.serializer(), value.raw)
     }
 }
 
@@ -3245,3 +3402,11 @@ public data class CommentaryChapterData(
      */
     public val content: List<ChapterVerse>,
 )
+
+/**
+ * Decodes unrecognized members of discriminated unions as their Unknown variants.
+ */
+internal val UnknownContentSerializersModule = SerializersModule {
+    polymorphic(ChapterContent::class) { defaultDeserializer { UnknownChapterContent.serializer() } }
+    polymorphic(SimpleChapterContent::class) { defaultDeserializer { UnknownSimpleChapterContent.serializer() } }
+}

@@ -168,12 +168,14 @@ for (content in chapter.chapter.content) {
         is ChapterHeading -> println("## ${content.content.joinToString(" ")}")
         is ChapterVerse -> println("${content.number}: ${api.getVerseText(content)}")
         is ChapterHebrewSubtitle -> println("(${content.content.size} subtitle parts)")
-        ChapterLineBreak -> println()
+        is ChapterLineBreak -> println()
+        // Content types added in newer API versions decode as UnknownChapterContent.
+        is UnknownChapterContent -> Unit
     }
 }
 ```
 
-The items in a verse's `content` are `VerseContent`s: `PlainText`, `FormattedText`, `InlineHeading`, `InlineLineBreak`, or `VerseFootnoteReference`.
+The items in a verse's `content` are `VerseContent`s: `PlainText`, `FormattedText`, `InlineHeading`, `InlineLineBreak`, `VerseFootnoteReference`, or `UnknownVerseContent`. `ChapterLineBreak` and `InlineLineBreak` have a `paragraph` property with the source paragraph marker (such as `p` or `m`) when the break starts a new paragraph.
 
 ## Examples
 

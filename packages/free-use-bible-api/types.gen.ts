@@ -466,6 +466,10 @@ export type ChapterHeading = {
  */
 export type ChapterLineBreak = {
     type: 'line_break';
+    /**
+     * The source paragraph marker (without its backslash) when the line break starts a new paragraph, for example `p`, `m`, `pi1` or `mi`. Omitted for plain line breaks.
+     */
+    paragraph?: string;
 };
 
 /**
@@ -522,6 +526,10 @@ export type InlineHeading = {
  */
 export type InlineLineBreak = {
     lineBreak: true;
+    /**
+     * The source paragraph marker (without its backslash) when the line break starts a new paragraph, for example `p`, `m`, `pi1` or `mi`. Omitted for plain line breaks.
+     */
+    paragraph?: string;
 };
 
 /**
@@ -738,6 +746,10 @@ export type SimpleChapterVerse = {
      */
     headings?: Array<SimpleInlineHeading>;
     /**
+     * The positions and source styles of paragraphs that start inside the verse.
+     */
+    paragraphs?: Array<SimpleVerseParagraph>;
+    /**
      * The ranges of the verse text that represent the Words of Jesus. Omitted if the verse contains none.
      */
     wordsOfJesus?: Array<SimpleTextRange>;
@@ -781,6 +793,20 @@ export type SimpleInlineHeading = {
      * The text of the heading.
      */
     text: string;
+};
+
+/**
+ * A paragraph start in the text of a simplified verse.
+ */
+export type SimpleVerseParagraph = {
+    /**
+     * The index in the verse text, measured in UTF-16 code units.
+     */
+    offset: number;
+    /**
+     * The source paragraph marker without its backslash.
+     */
+    style: string;
 };
 
 /**
@@ -831,6 +857,10 @@ export type SimpleChapterHebrewSubtitle = {
      * The headings that occur in the middle of the verse. Omitted if the verse contains no inline headings.
      */
     headings?: Array<SimpleInlineHeading>;
+    /**
+     * The positions and source styles of paragraphs that start inside the verse.
+     */
+    paragraphs?: Array<SimpleVerseParagraph>;
     /**
      * The ranges of the verse text that represent the Words of Jesus. Omitted if the verse contains none.
      */

@@ -53,6 +53,8 @@ curl https://bible.helloao.org/api/BSB/GEN/1.simple.json
 
 ### Offsets
 
+Simplified chapter content keeps the chapter-level `line_break` items, including their `paragraph` property. When a paragraph starts inside a verse, the verse text contains a newline at that point and the verse's `paragraphs` array records it as `{ offset, style }`, where `offset` is the index of the first character after the newline.
+
 All of the offsets in the simplified format - `offset`, `start`, and `end` - are indexes into the `text` of the verse that contains them. They are measured in UTF-16 code units, which is what JavaScript's `String.prototype.length` and `String.prototype.slice()` use.
 
 `start` is inclusive and `end` is exclusive, so `text.slice(start, end)` returns exactly the range of text that was marked. Footnote offsets are the position that the footnote's caller belongs at, so `text.slice(0, offset)` is the text that comes before it.
@@ -187,6 +189,11 @@ interface ChapterLineBreak {
      * Indicates that the content represents a line break.
      */
     type: 'line_break';
+
+    /**
+     * The source paragraph marker (without its backslash) when the line break starts a new paragraph, for example `p`, `m`, `pi1` or `mi`. Omitted for plain line breaks.
+     */
+    paragraph?: string;
 }
 
 /**
@@ -219,6 +226,12 @@ interface SimpleChapterVerse {
      * Omitted if the verse contains no inline headings.
      */
     headings?: SimpleInlineHeading[];
+
+    /**
+     * The paragraphs that start in the middle of the verse.
+     * Omitted if the verse contains none.
+     */
+    paragraphs?: SimpleVerseParagraph[];
 
     /**
      * The ranges of the verse text that represent the Words of Jesus.
@@ -286,6 +299,21 @@ interface SimpleInlineHeading {
      * The text of the heading.
      */
     text: string;
+}
+
+/**
+ * A paragraph that starts in the middle of a verse.
+ */
+interface SimpleVerseParagraph {
+    /**
+     * The index in the verse text that the paragraph starts at.
+     */
+    offset: number;
+
+    /**
+     * The source paragraph marker without its backslash, for example `p` or `m`.
+     */
+    style: string;
 }
 
 /**

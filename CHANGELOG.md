@@ -24,11 +24,17 @@ This is the log of changes for the Free Use Bible API.
     -   `BibleReader` and `ChapterContent` draw verse highlights as rounded ribbons behind the text, like Seed Bible. Neighbouring verses with the same color share one ribbon, and the ribbons follow ragged line ends, poetry indentation, and right-to-left text. There are 12 preset colors with light and dark mode values, and custom colors are supported.
     -   The reader follows the device's light or dark mode, or can be forced to one with the `theme` prop (`'system'`, `'light'`, or `'dark'`). Colors and fonts are CSS variables that can be overridden on the reader or any element around it.
 -   Added a Kotlin SDK (`packages/free-use-bible-api-kotlin`) for the JVM and Android. It has the same methods as the JavaScript/TypeScript client, as `suspend` functions, and its kotlinx.serialization models are generated from the OpenAPI document with the new `generate-kotlin-models` CLI command (`pnpm generate:kotlin`).
+    -   Every sealed interface has an `Unknown*` variant (for example `UnknownChapterContent`) that keeps the raw JSON of content types the SDK doesn't know yet, so new item types don't break decoding. Exhaustive `when` expressions need a branch for it.
+-   Line breaks that start a source paragraph now carry the paragraph marker: `{ "type": "line_break", "paragraph": "p" }` in chapter content and `{ "lineBreak": true, "paragraph": "p" }` inside a verse. Clients that only understand line breaks can ignore `paragraph`.
+    -   The USX parser now turns paragraph styles (`p`, `m`, `pi1`, `mi`, …) into line breaks. Before, many eBible translations (such as `fra_lsg`) had no paragraph breaks at all. The USFM parser now handles every paragraph marker, not just `\p`, and Lockman `<PM>` markers produce `paragraph: "p"`.
+    -   A blank line directly followed by a paragraph (`\b` + `\m`) becomes a single line break, while `\b\b` stays two. `\nb` produces no line break.
+    -   Simplified verses (`.simple.json`) list paragraphs that start in the middle of the verse in `paragraphs: [{ offset, style }]`.
 
 ### :warning: Changes
 
 -   The content of a verse in a dataset chapter (`DatasetChapterVerseContent`) is now either `{ verse, references }` (cross reference datasets) or `{ verse, words }` (interlinear datasets). JSON responses for the existing `open-cross-ref` and `theographic` datasets are unchanged. TypeScript clients that read `verse.references` need to narrow the type first (e.g. `'references' in verse`).
 -   `DatasetEntityType` now includes `lexicon`.
+-   Translations are re-parsed with the new paragraph handling. Verses that contain a paragraph marker are split at it, and prose after a paragraph marker is no longer marked as `poem`. Verse text is otherwise unchanged.
 
 ## V1.15.0
 

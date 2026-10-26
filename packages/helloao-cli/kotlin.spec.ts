@@ -114,6 +114,12 @@ public data class Thing(
             '@Serializable\n@JsonClassDiscriminator("type")\npublic sealed interface Content'
         );
         expect(source).toContain(
+            'public data class UnknownContent(public val raw: JsonElement) : Content'
+        );
+        expect(source).toContain(
+            'polymorphic(Content::class) { defaultDeserializer { UnknownContent.serializer() } }'
+        );
+        expect(source).toContain(
             '@Serializable\n@SerialName("heading")\npublic data class Heading(\n    public val text: String,\n) : Content'
         );
         expect(source).toContain(
@@ -169,6 +175,10 @@ public data class Thing(
         );
         expect(source).toContain(
             'element is JsonObject && "noteId" in element -> Note.serializer()'
+        );
+        expect(source).toContain('else -> UnknownVerseContent.serializer()');
+        expect(source).toContain(
+            'public data class UnknownVerseContent(public val raw: JsonElement) : VerseContent'
         );
         expect(source).toContain(') : VerseContent\n');
         expect(source).toContain('public data class PlainText(');

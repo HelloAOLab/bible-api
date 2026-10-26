@@ -266,6 +266,97 @@ describe('UsfmParser', () => {
     });
 
     describe('parse()', () => {
+        it('keeps nb at chapter start free of break items', () => {
+            const tree = parser.parse(
+                '\\id GEN\n\\c 1\n\\nb\n\\v 1 Continued.'
+            );
+            const chapter = tree.content.find((c) => c.type === 'chapter')!;
+            expect(chapter.content).toEqual([
+                { type: 'verse', number: 1, content: ['Continued.'] },
+            ]);
+        });
+        it('preserves a chapter-level indented paragraph', () => {
+            const tree = parser.parse(
+                '\\id GEN\n\\c 1\n\\pi1\n\\v 1 Indented.'
+            );
+            const chapter = tree.content.find((c) => c.type === 'chapter')!;
+            expect(chapter.content).toEqual([
+                { type: 'line_break', paragraph: 'pi1' },
+                { type: 'verse', number: 1, content: ['Indented.'] },
+            ]);
+        });
+        it('keeps a stanza break between poetry lines inline', () => {
+            const tree = parser.parse(
+                '\\id GEN\n\\c 1\n\\q1\n\\v 1 First line\n\\b\n\\q1 Second line'
+            );
+            const chapter = tree.content.find((c) => c.type === 'chapter')!;
+            expect(chapter.content).toEqual([
+                {
+                    type: 'verse',
+                    number: 1,
+                    content: [
+                        { text: 'First line', poem: 1 },
+                        { lineBreak: true },
+                        { text: 'Second line', poem: 1 },
+                    ],
+                },
+            ]);
+        });
+        it('emits paragraph items from paragraph markers after headings', () => {
+            const tree = parser.parse(
+                '\\id GEN\n\\c 1\n\\s1 Creation\n\\r Gen 1\n\\p\n\\v 1 \\x + \\xo 1:1 \\xt John 1:1\\x* \\w In|strong="H7225"\\w* beginning.\n\\m\n\\v 2 Next.'
+            );
+            const chapter = tree.content.find((c) => c.type === 'chapter')!;
+            expect(
+                chapter.content.map((c) => (c.type === 'verse' ? c.content : c))
+            ).toEqual([
+                { type: 'heading', content: ['Creation'] },
+                { type: 'line_break', paragraph: 'p' },
+                ['In beginning.'],
+                { type: 'line_break', paragraph: 'm' },
+                ['Next.'],
+            ]);
+        });
+        it('preserves inline paragraphs and resets poetry state', () => {
+            const tree = parser.parse(
+                '\\id GEN\n\\c 1\n\\v 1 \\q1 A line\\p prose\\v 2 \\pi1 Indented\\nb continued.'
+            );
+            const chapter = tree.content.find((c) => c.type === 'chapter')!;
+            const verse = chapter.content.find((c) => c.type === 'verse')!;
+            expect(verse.content).toContainEqual({
+                lineBreak: true,
+                paragraph: 'p',
+            });
+            expect(verse.content[0]).toMatchObject({ text: 'A line', poem: 1 });
+            expect(verse.content[2]).toEqual('prose');
+            const verse2 = chapter.content.filter((c) => c.type === 'verse')[1];
+            expect(verse2.content).toContainEqual({
+                lineBreak: true,
+                paragraph: 'pi1',
+            });
+            expect(
+                verse2.content.filter((c) => typeof c === 'string').join('')
+            ).toBe('Indented continued.');
+        });
+        it('moves a trailing paragraph after a reference line to chapter content', () => {
+            const tree = parser.parse(
+                '\\id GEN\n\\c 1\n\\v 1 First.\\r Gen 1:2\n\\p\n\\v 2 Second.'
+            );
+            const chapter = tree.content.find((c) => c.type === 'chapter')!;
+            expect(
+                chapter.content.map((item) =>
+                    item.type === 'verse' ? item.number : item
+                )
+            ).toEqual([1, { type: 'line_break', paragraph: 'p' }, 2]);
+            expect(
+                (
+                    chapter.content[0] as Extract<
+                        (typeof chapter.content)[number],
+                        { type: 'verse' }
+                    >
+                ).content
+            ).toEqual(['First.']);
+        });
         it('should produce a list of chapters', () => {
             const tree = parser.parse(`\\c 1
                 \\v 1 In the beginning God created the heavens and the earth.
@@ -434,6 +525,7 @@ describe('UsfmParser', () => {
                             },
                             {
                                 type: 'line_break',
+                                paragraph: 'm',
                             },
                             {
                                 type: 'verse',
@@ -478,6 +570,7 @@ describe('UsfmParser', () => {
                             },
                             {
                                 type: 'line_break',
+                                paragraph: 'm',
                             },
                             {
                                 type: 'verse',
@@ -581,11 +674,12 @@ describe('UsfmParser', () => {
                                 ],
                             },
                             {
-                                type: 'line_break',
-                            },
-                            {
                                 type: 'heading',
                                 content: ['بقية اللاويين'],
+                            },
+                            {
+                                type: 'line_break',
+                                paragraph: 'p',
                             },
                             {
                                 type: 'verse',
@@ -672,6 +766,7 @@ describe('UsfmParser', () => {
                             },
                             {
                                 type: 'line_break',
+                                paragraph: 'p',
                             },
                             {
                                 type: 'verse',
@@ -682,6 +777,7 @@ describe('UsfmParser', () => {
                             },
                             {
                                 type: 'line_break',
+                                paragraph: 'p',
                             },
                         ],
                         footnotes: [],
@@ -1262,6 +1358,7 @@ describe('UsfmParser', () => {
                         content: [
                             {
                                 type: 'line_break',
+                                paragraph: 'p',
                             },
                             {
                                 type: 'verse',
