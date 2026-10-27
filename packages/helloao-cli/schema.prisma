@@ -100,6 +100,53 @@ model EBibleSource {
     sha256 String?
 }
 
+// A translation that is available from the fetch.bible collection
+// (https://github.com/gracious-tech/fetch_collection)
+model FetchBibleSource {
+    // The fetch.bible ID of the translation (e.g. "abt_map")
+    id String @id
+
+    // The ID of the translation that the source is for
+    translationId String
+
+    languageCode String
+    name String
+    englishName String?
+    abbreviation String?
+    textDirection String
+    year Int?
+
+    // The eBible ID of the translation, if fetch.bible knows of one
+    ebibleId String?
+
+    // Where fetch.bible got the translation from (e.g. "ebible", "dbl", "manual")
+    sourceService String?
+    // The format that fetch.bible stores the translation in ("usfm" or "usx")
+    sourceFormat String
+    // The date that fetch.bible last updated the translation from its source
+    sourceUpdated String?
+    sourceRevision Int?
+
+    attribution String?
+    attributionUrl String?
+
+    // The SHA of the fetch.bible collection commit that the source was read from
+    gitCommitSha String?
+    // The git tree SHA of the translation's directory in the fetch.bible collection
+    // Changes whenever any of the translation's files change
+    gitTreeSha String?
+
+    // The date that the source was downloaded
+    downloadDate DateTime?
+
+    // The path that the source was downloaded to
+    downloadPath String?
+
+    // The SHA-256 hash of the source metadata
+    // Can be used to determine if the source has changed
+    sha256 String?
+}
+
 // Files that were input into the API generator
 model InputFile {
     // The ID of the translation that the file is for

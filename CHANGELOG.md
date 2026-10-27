@@ -24,6 +24,20 @@ This is the log of changes for the Free Use Bible API.
     -   `BibleReader` and `ChapterContent` draw verse highlights as rounded ribbons behind the text, like Seed Bible. Neighbouring verses with the same color share one ribbon, and the ribbons follow ragged line ends, poetry indentation, and right-to-left text. There are 12 preset colors with light and dark mode values, and custom colors are supported.
     -   The reader follows the device's light or dark mode, or can be forced to one with the `theme` prop (`'system'`, `'light'`, or `'dark'`). Colors and fonts are CSS variables that can be overridden on the reader or any element around it.
 -   Added a Kotlin SDK (`packages/free-use-bible-api-kotlin`) for the JVM and Android. It has the same methods as the JavaScript/TypeScript client, as `suspend` functions, and its kotlinx.serialization models are generated from the OpenAPI document with the new `generate-kotlin-models` CLI command (`pnpm generate:kotlin`).
+-   Added the `source-all-translations <dir>` CLI command (and the `fetch:translations` and `import:bible:translations` scripts), which downloads translations from both eBible and [fetch.bible](https://fetch.bible) into one directory, ready for `import-translations`.
+    -   The translation lists are reconciled so that each translation comes from one source. Translations that eBible has are downloaded from eBible. Translations that only fetch.bible has, or that eBible lists without a USFM download, are downloaded from the [fetch.bible collection](https://github.com/gracious-tech/fetch_collection) in USX or USFM.
+    -   Only new and changed translations are downloaded. fetch.bible downloads are tracked in a new `FetchBibleSource` database table, which records the collection commit and the git tree SHA of each translation's directory. A translation is re-downloaded when its tree SHA changes, and its files are downloaded from that exact commit.
+    -   USFM files are converted to USX3, and each translation gets a `metadata.json` with its license and attribution.
+    -   fetch.bible translations can be kept in their own directory with `--fetch-bible-dir`. A translation that later becomes available from eBible is removed from the fetch.bible directory, so that it isn't imported twice.
+-   `import-translations` now accepts more than one directory (e.g. `import-translations ./sources/ebible ./sources/fetch-bible`).
+-   Added the `source-fetch-bible-translations <dir>` and `list-fetch-bible-translations` CLI commands for downloading and listing fetch.bible translations on their own. Translations that were already downloaded from eBible are skipped.
+
+### :bug: Bug Fixes
+
+-   `source-translations` now replaces a translation's existing directory when it is re-downloaded, instead of leaving the old files next to the new ones.
+-   `source-translations` no longer records an eBible translation as downloaded when its USFM download fails (without `--convert-to-usx3`).
+-   `source-translations` re-downloads translations that are tracked in the database but missing from the output directory.
+-   `ignorelist.txt` entries can now also be translation IDs (e.g. `abt_map`), not just eBible IDs.
 
 ### :warning: Changes
 
