@@ -2356,21 +2356,30 @@ Datasets that contain verse categories include `listOfVersesApiLink`, `listOfCat
 
 ### Picking a Verse of the Day
 
-The API is made of static files, so it doesn't pick a verse for you. To give everyone the same verse on the same day, pick from a list using the date. This example picks from one category; use `/api/d/verse-of-the-day/verses.json` (and its `verses` array) to pick from every verse instead:
+The API is made of static files, so it doesn't pick a verse for you. Instead, there is a convention for picking one, so that every app that follows it shows the same verse on the same day. Apps are free to pick differently; the convention just gives them a shared default.
+
+The convention picks from the verses in `/api/d/verse-of-the-day/verses.json`:
+
+1. Each verse gets a sort key: the 32-bit [FNV-1a](https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function) hash of the UTF-8 bytes of `"{seed}|{book} {chapter}:{verse}"`, passed through the [MurmurHash3](https://en.wikipedia.org/wiki/MurmurHash#Algorithm) `fmix32` finalizer. The seed is an empty string by default, so the key for John 3:16 is `"|JHN 3:16"`. Passages use their first verse.
+2. The verses are sorted by their key, as an unsigned number. If two keys are equal, they are sorted by the key's string.
+3. The verse at position `day mod n` (counting from 0) is the verse of the day, where `day` is the number of days from 1970-01-01 to the date (negative before 1970) and `n` is the number of verses.
+
+This gives a shuffled order that every verse appears in exactly once every `n` days. The dataset has more than 366 verses, so a verse never repeats within a year, and the same date always gives the same verse. Because the order comes from each verse's own reference, it doesn't depend on the order of the list. Adding or removing verses does change which verse falls on which day.
+
+To use your own order, pick a seed of your own (for example, the name of your app): it gives a different shuffle with the same guarantees. You can also pick from a single category's verses, but every category has fewer verses than there are days in a year, so its verses repeat sooner.
+
+The SDKs follow the convention:
 
 ```ts:no-line-numbers title="verse-of-the-day.js"
-const category = await fetch(
-    'https://bible.helloao.org/api/d/verse-of-the-day/categories/hope.json'
-).then((r) => r.json());
+import { FreeUseBibleApi } from 'free-use-bible-api';
 
-// The number of days since 1970-01-01 (UTC), so the pick changes once a day.
-const day = Math.floor(Date.now() / (24 * 60 * 60 * 1000));
-const ref = category.category.verses[day % category.category.verses.length];
+const api = new FreeUseBibleApi();
+
+// A date as YYYY-MM-DD, or a Date (its local calendar date is used). Defaults to today.
+const ref = await api.getVerseOfTheDay('2026-01-01');
 
 // Get the text of the verse from a translation.
-const chapter = await fetch(
-    `https://bible.helloao.org/api/BSB/${ref.book}/${ref.chapter}.json`
-).then((r) => r.json());
+const chapter = await api.getTranslationBookChapter('BSB', ref.book, ref.chapter);
 const verses = chapter.chapter.content.filter(
     (c) =>
         c.type === 'verse' &&
@@ -2380,7 +2389,9 @@ const verses = chapter.chapter.content.filter(
 console.log(ref, verses);
 ```
 
-The `@helloao/tools` package has the same list and a `getVerseOfTheDay(date, category?)` function in `@helloao/tools/generation/verse-of-the-day.js`.
+-   `getVerseOfTheDay(date?, { seed?, category?, dataset? }?)` downloads the verse list and picks from it. `pickVerseOfTheDay(verses, date?, { seed?, category? }?)` picks from a list you already have.
+-   The Kotlin SDK has `getVerseOfTheDay(date?, seed?, category?)` and `pickVerseOfTheDay(verses, date?, seed?, category?)`, which take the date as a `YYYY-MM-DD` string.
+-   The `@helloao/tools` package has the same list and a `getVerseOfTheDay(date?, { seed?, category? }?)` function in `@helloao/tools/generation/verse-of-the-day.js`.
 
 ### License
 

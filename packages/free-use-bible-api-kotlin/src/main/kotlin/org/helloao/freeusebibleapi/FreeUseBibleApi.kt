@@ -296,6 +296,26 @@ public class FreeUseBibleApi(
         getJson(ApiDatasetVerses.serializer(), "api/d/${encode(dataset)}/verses.json", endpoint)
 
     /**
+     * Gets the verse of the day for the given date from the verse-of-the-day dataset.
+     * The same date always gives the same verse, and a verse doesn't repeat within a year.
+     * See [pickVerseOfTheDay] for how the verse is picked.
+     * @param date The date to get the verse for, as a `YYYY-MM-DD` string (e.g. "2026-01-01"). Defaults to today.
+     * @param seed The seed that the order of the verses is derived from. Different seeds give different (but equally valid) orders.
+     * @param category Only pick from the verses in this category.
+     * @param dataset The ID of the dataset to pick from.
+     * @param endpoint The API endpoint to use for the request. If not provided, the default endpoint will be used.
+     * @return The verse (its reference and categories), or null if the dataset has no verses to pick from.
+     */
+    public suspend fun getVerseOfTheDay(
+        date: String = todayIsoDate(),
+        seed: String = "",
+        category: String? = null,
+        dataset: String = "verse-of-the-day",
+        endpoint: String? = null,
+    ): ApiDatasetCategorizedVerse? =
+        pickVerseOfTheDay(getDatasetVerses(dataset, endpoint).verses, date, seed, category)
+
+    /**
      * Gets the list of verse categories for a given dataset.
      * @param dataset The ID of the dataset to get the categories for. For example, "verse-of-the-day".
      * @param endpoint The API endpoint to use for the request. If not provided, the default endpoint will be used.

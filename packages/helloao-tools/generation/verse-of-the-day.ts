@@ -1515,39 +1515,127 @@ export const VERSES_OF_THE_DAY: VerseOfTheDay[] = [
 ];
 
 /**
- * The number of milliseconds in a day.
+ * The options for picking the verse of the day.
  */
-const MS_PER_DAY = 24 * 60 * 60 * 1000;
+export interface VerseOfTheDayOptions {
+    /**
+     * The seed that the order of the verses is derived from.
+     * Different seeds give different (but equally valid) orders. Defaults to "" (the standard order).
+     */
+    seed?: string;
+
+    /**
+     * Only pick from the verses in this category.
+     * Every category has fewer verses than there are days in a year, so its verses repeat sooner.
+     */
+    category?: VerseOfTheDayCategory;
+
+    /**
+     * The list of verses to pick from. Defaults to {@link VERSES_OF_THE_DAY}.
+     */
+    verses?: readonly VerseOfTheDay[];
+}
 
 /**
  * Picks the verse of the day for the given date.
  *
- * The pick only depends on the UTC calendar date, so every caller gets the same verse on the same day,
- * and consecutive days get consecutive verses from the list.
+ * The pick follows a fixed convention, so every implementation picks the same verse on the same day
+ * (the free-use-bible-api client's `pickVerseOfTheDay()` and the Kotlin SDK use the same one):
  *
- * @param date The date to get the verse for. Defaults to now.
- * @param category The category to pick from. Omit to pick from every verse.
- * @param verses The list of verses to pick from. Defaults to {@link VERSES_OF_THE_DAY}.
+ * 1. Each verse gets a sort key: the 32-bit FNV-1a hash of the UTF-8 bytes of `"{seed}|{book} {chapter}:{verse}"`
+ *    (e.g. `"|JHN 3:16"`), passed through the MurmurHash3 `fmix32` finalizer.
+ * 2. The verses are sorted by their key (as an unsigned number), then by the key's string if two keys are equal.
+ * 3. The verse at position `day mod n` is picked, where `day` is the number of days from 1970-01-01 to the date
+ *    and `n` is the number of verses.
+ *
+ * Every verse appears once in every `n` consecutive days, so with 366 or more verses a verse never repeats within a year.
+ *
+ * @param date The date to pick the verse for: a `YYYY-MM-DD` string, or a `Date` (its local calendar date is used). Defaults to today.
+ * @param options The options.
  * @returns The picked verse, or null if no verses match.
  */
 export function getVerseOfTheDay(
-    date: Date = new Date(),
-    category?: VerseOfTheDayCategory,
-    verses: VerseOfTheDay[] = VERSES_OF_THE_DAY
+    date: Date | string = new Date(),
+    options: VerseOfTheDayOptions = {}
 ): VerseOfTheDay | null {
-    const candidates = category
-        ? verses.filter((v) => v.categories.includes(category))
+    const seed = options.seed ?? '';
+    const verses = options.verses ?? VERSES_OF_THE_DAY;
+    const candidates = options.category
+        ? verses.filter((v) => v.categories.includes(options.category!))
         : verses;
     if (candidates.length <= 0) {
         return null;
     }
-    const day = Math.floor(
-        Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()) /
-            MS_PER_DAY
-    );
-    const index =
-        ((day % candidates.length) + candidates.length) % candidates.length;
-    return candidates[index];
+
+    const sorted = candidates
+        .map((verse) => {
+            const key = `${seed}|${verse.book} ${verse.chapter}:${verse.verse}`;
+            return { verse, key, hash: hashVerseOfTheDayKey(key) };
+        })
+        .sort((a, b) =>
+            a.hash !== b.hash
+                ? a.hash - b.hash
+                : a.key < b.key
+                  ? -1
+                  : a.key > b.key
+                    ? 1
+                    : 0
+        );
+
+    const day = getDayNumber(date);
+    const index = ((day % sorted.length) + sorted.length) % sorted.length;
+    return sorted[index].verse;
+}
+
+/**
+ * Gets the number of days from 1970-01-01 to the given date.
+ * @param date A `YYYY-MM-DD` string, or a `Date` (its local calendar date is used).
+ */
+export function getDayNumber(date: Date | string): number {
+    let year: number, month: number, day: number;
+    if (typeof date === 'string') {
+        const match = /^(-?\d{4,})-(\d{2})-(\d{2})$/.exec(date);
+        if (!match) {
+            throw new Error(
+                `Invalid date "${date}". Use the YYYY-MM-DD format.`
+            );
+        }
+        year = parseInt(match[1], 10);
+        month = parseInt(match[2], 10);
+        day = parseInt(match[3], 10);
+    } else {
+        year = date.getFullYear();
+        month = date.getMonth() + 1;
+        day = date.getDate();
+    }
+    const utc = new Date(0);
+    utc.setUTCFullYear(year, month - 1, day);
+    if (
+        utc.getUTCFullYear() !== year ||
+        utc.getUTCMonth() !== month - 1 ||
+        utc.getUTCDate() !== day
+    ) {
+        throw new Error(`Invalid date "${date}".`);
+    }
+    return Math.round(utc.getTime() / 86_400_000);
+}
+
+/**
+ * Gets the sort key of the given string: its 32-bit FNV-1a hash (of the UTF-8 bytes),
+ * passed through the MurmurHash3 fmix32 finalizer. Returns an unsigned 32-bit number.
+ */
+export function hashVerseOfTheDayKey(key: string): number {
+    let hash = 0x811c9dc5;
+    for (let byte of new TextEncoder().encode(key)) {
+        hash ^= byte;
+        hash = Math.imul(hash, 0x01000193);
+    }
+    hash ^= hash >>> 16;
+    hash = Math.imul(hash, 0x85ebca6b);
+    hash ^= hash >>> 13;
+    hash = Math.imul(hash, 0xc2b2ae35);
+    hash ^= hash >>> 16;
+    return hash >>> 0;
 }
 
 /**

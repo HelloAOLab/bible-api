@@ -8,6 +8,7 @@ import type {
     ApiDatasetBook,
     ApiDatasetBookChapter,
     ApiDatasetBooks,
+    ApiDatasetCategorizedVerse,
     ApiDatasetCategories,
     ApiDatasetCategory,
     ApiDatasetEntityBookChapter,
@@ -40,6 +41,10 @@ import type {
     TranslationChapterReference,
     TranslationCompleteChapter,
 } from './types.gen.js';
+import {
+    pickVerseOfTheDay,
+    PickVerseOfTheDayOptions,
+} from './verseOfTheDay.js';
 
 /**
  * Options for the FreeUseBibleApi class.
@@ -552,6 +557,31 @@ export class FreeUseBibleApi {
             endpoint,
             options
         );
+    }
+
+    /**
+     * Gets the verse of the day for the given date from the verse-of-the-day dataset.
+     * The same date always gives the same verse, and a verse doesn't repeat within a year.
+     * See {@link pickVerseOfTheDay} for how the verse is picked.
+     * @param date The date to get the verse for: a `YYYY-MM-DD` string (e.g. "2026-01-01"), or a `Date` (its local calendar date is used). Defaults to today.
+     * @param options The options for picking the verse. Pass a `seed` to use a different (but equally valid) order, or a `category` to only pick from one category. `dataset` defaults to "verse-of-the-day".
+     * @param endpoint The endpoint to use for the request. If not provided, then the default endpoint will be used.
+     * @param requestOptions Options for the request, such as an `AbortSignal` that cancels it.
+     * @returns The verse (its reference and categories), or null if the dataset has no verses to pick from.
+     */
+    async getVerseOfTheDay(
+        date: Date | string = new Date(),
+        options: PickVerseOfTheDayOptions & { dataset?: string } = {},
+        endpoint?: string,
+        requestOptions?: RequestOptions
+    ): Promise<ApiDatasetCategorizedVerse | null> {
+        const { dataset = 'verse-of-the-day', ...pickOptions } = options;
+        const verses = await this.getDatasetVerses(
+            dataset,
+            endpoint,
+            requestOptions
+        );
+        return pickVerseOfTheDay(verses.verses, date, pickOptions);
     }
 
     /**

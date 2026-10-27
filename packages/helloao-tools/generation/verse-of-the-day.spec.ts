@@ -2,7 +2,9 @@ import { readdirSync, readFileSync } from 'fs';
 import path from 'path';
 import {
     generateVerseOfTheDayDataset,
+    getDayNumber,
     getVerseOfTheDay,
+    hashVerseOfTheDayKey,
     VERSES_OF_THE_DAY,
     VERSE_OF_THE_DAY_CATEGORIES,
     VERSE_OF_THE_DAY_CATEGORY_DESCRIPTIONS,
@@ -11,6 +13,7 @@ import {
 import { bookOrderMap } from './book-order.js';
 import { generateApiForDataset, generateFilesForApi } from './api.js';
 import { DatasetOutput } from './dataset.js';
+import { pickVerseOfTheDay } from '../../free-use-bible-api/verseOfTheDay.js';
 
 const BSB_DIR = path.resolve(__dirname, '../../../bible/bsb');
 
@@ -138,38 +141,138 @@ describe('VERSES_OF_THE_DAY', () => {
 });
 
 describe('getVerseOfTheDay()', () => {
-    it('should return the same verse for the whole UTC day', () => {
-        const morning = getVerseOfTheDay(new Date('2026-10-27T00:00:00Z'));
-        const night = getVerseOfTheDay(new Date('2026-10-27T23:59:59Z'));
-        expect(morning).not.toBeNull();
-        expect(night).toBe(morning);
-    });
+    const ref = (v: VerseOfTheDay | null) =>
+        v ? `${v.book} ${v.chapter}:${v.verse}` : null;
 
-    it('should return consecutive verses on consecutive days', () => {
-        const today = getVerseOfTheDay(new Date('2026-10-27T12:00:00Z'))!;
-        const tomorrow = getVerseOfTheDay(new Date('2026-10-28T12:00:00Z'))!;
-        const index = VERSES_OF_THE_DAY.indexOf(today);
-        expect(VERSES_OF_THE_DAY.indexOf(tomorrow)).toBe(
-            (index + 1) % VERSES_OF_THE_DAY.length
+    function addDays(date: string, days: number): string {
+        const d = new Date(`${date}T00:00:00Z`);
+        d.setUTCDate(d.getUTCDate() + days);
+        return d.toISOString().slice(0, 10);
+    }
+
+    // These pin the convention. If the list of verses changes, the verse for a day changes too.
+    it('should pick the conventional verse for a date', () => {
+        expect(ref(getVerseOfTheDay('2926-01-01'))).toBe('PRO 17:22');
+        expect(ref(getVerseOfTheDay('2926-01-02'))).toBe('ROM 8:6');
+        expect(ref(getVerseOfTheDay('2926-01-01', { seed: 'my-app' }))).toBe(
+            'LUK 9:23'
         );
     });
 
-    it('should only pick verses from the given category', () => {
-        let date = new Date('2026-01-01T00:00:00Z');
+    it('should pick the same verse for the same day', () => {
+        expect(getVerseOfTheDay('2026-10-27')).toBe(
+            getVerseOfTheDay('2026-10-27')
+        );
+        expect(getVerseOfTheDay(new Date(2026, 9, 27, 0, 0, 1))).toBe(
+            getVerseOfTheDay('2026-10-27')
+        );
+        expect(getVerseOfTheDay(new Date(2026, 9, 27, 23, 59, 59))).toBe(
+            getVerseOfTheDay('2026-10-27')
+        );
+    });
+
+    it.each(['', 'my-app'])(
+        'should not repeat a verse within a year (seed %j)',
+        (seed) => {
+            for (let year of [2024, 2025, 2100, 2400, 2926]) {
+                const isLeap =
+                    year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+                const days = isLeap ? 366 : 365;
+                const picks = new Set<string | null>();
+                for (let i = 0; i < days; i++) {
+                    picks.add(
+                        ref(
+                            getVerseOfTheDay(addDays(`${year}-01-01`, i), {
+                                seed,
+                            })
+                        )
+                    );
+                }
+                expect([year, picks.size]).toEqual([year, days]);
+            }
+        }
+    );
+
+    it('should only repeat a verse after every other verse has been picked', () => {
+        const lastSeen = new Map<string | null, number>();
+        for (let i = 0; i < VERSES_OF_THE_DAY.length * 2; i++) {
+            const pick = ref(getVerseOfTheDay(addDays('2026-01-01', i)));
+            if (lastSeen.has(pick)) {
+                expect(i - lastSeen.get(pick)!).toBe(VERSES_OF_THE_DAY.length);
+            }
+            lastSeen.set(pick, i);
+        }
+        expect(lastSeen.size).toBe(VERSES_OF_THE_DAY.length);
+    });
+
+    it('should not depend on the order of the list', () => {
+        const reversed = [...VERSES_OF_THE_DAY].reverse();
         for (let i = 0; i < 30; i++) {
-            const verse = getVerseOfTheDay(date, 'peace');
-            expect(verse?.categories).toContain('peace');
-            date = new Date(date.getTime() + 24 * 60 * 60 * 1000);
+            const date = addDays('2026-01-01', i);
+            expect(getVerseOfTheDay(date, { verses: reversed })).toBe(
+                getVerseOfTheDay(date)
+            );
         }
     });
 
-    it('should work for dates before 1970', () => {
-        const verse = getVerseOfTheDay(new Date('1900-01-01T00:00:00Z'));
-        expect(VERSES_OF_THE_DAY).toContain(verse);
+    it('should pick the same verses as the free-use-bible-api client', () => {
+        for (let i = 0; i < 100; i++) {
+            const date = addDays('2026-01-01', i * 7);
+            expect(pickVerseOfTheDay(VERSES_OF_THE_DAY, date)).toBe(
+                getVerseOfTheDay(date)
+            );
+            expect(
+                pickVerseOfTheDay(VERSES_OF_THE_DAY, date, { seed: 'x' })
+            ).toBe(getVerseOfTheDay(date, { seed: 'x' }));
+        }
+    });
+
+    it('should only pick verses from the given category', () => {
+        for (let i = 0; i < 30; i++) {
+            const verse = getVerseOfTheDay(addDays('2026-01-01', i), {
+                category: 'peace',
+            });
+            expect(verse?.categories).toContain('peace');
+        }
+    });
+
+    it('should work for dates before 1970 and far in the future', () => {
+        expect(VERSES_OF_THE_DAY).toContain(getVerseOfTheDay('1900-01-01'));
+        expect(VERSES_OF_THE_DAY).toContain(getVerseOfTheDay('9999-12-31'));
+    });
+
+    it('should reject invalid dates', () => {
+        expect(() => getVerseOfTheDay('2026-1-1')).toThrow();
+        expect(() => getVerseOfTheDay('2026-02-30')).toThrow();
     });
 
     it('should return null when there are no verses', () => {
-        expect(getVerseOfTheDay(new Date(), undefined, [])).toBeNull();
+        expect(getVerseOfTheDay(new Date(), { verses: [] })).toBeNull();
+    });
+});
+
+describe('hashVerseOfTheDayKey()', () => {
+    // The same values are checked by the free-use-bible-api client and the Kotlin SDK.
+    it.each([
+        ['', 2872998923],
+        ['a', 444641715],
+        ['|JHN 3:16', 3773609941],
+        ['my-app|PSA 23:1', 3194902081],
+        ['é|GEN 1:1', 3708505705],
+    ])('should hash %j to %d', (key, hash) => {
+        expect(hashVerseOfTheDayKey(key)).toBe(hash);
+    });
+});
+
+describe('getDayNumber()', () => {
+    it.each([
+        ['1970-01-01', 0],
+        ['1969-12-31', -1],
+        ['2026-10-27', 20753],
+        ['2926-01-01', 349172],
+        ['0001-01-01', -719162],
+    ])('should count the days from 1970-01-01 to %s', (date, day) => {
+        expect(getDayNumber(date)).toBe(day);
     });
 });
 

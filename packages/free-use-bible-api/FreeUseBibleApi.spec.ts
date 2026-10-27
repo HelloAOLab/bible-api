@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { FreeUseBibleApi, VerseReference } from './FreeUseBibleApi.js';
+import { pickVerseOfTheDay } from './verseOfTheDay.js';
 import type {
     ApiCommentaryBook,
     ApiCommentaryBookChapter,
@@ -572,6 +573,31 @@ describe('FreeUseBibleApi', () => {
         expect(fetchMock).toHaveBeenCalledWith(
             'https://bible.helloao.org/api/d/verse-of-the-day/verses.json'
         );
+    });
+
+    it('gets the verse of the day from the verse list', async () => {
+        const payload = {
+            verses: [
+                { book: 'PSA', chapter: 23, verse: 1, categories: ['comfort'] },
+                { book: 'JHN', chapter: 3, verse: 16, categories: ['love'] },
+                { book: 'ROM', chapter: 8, verse: 28, categories: ['hope'] },
+            ],
+        };
+        fetchMock.mockResolvedValue(jsonResponse(payload));
+
+        const api = new FreeUseBibleApi();
+        const verse = await api.getVerseOfTheDay('2926-01-01');
+        const hope = await api.getVerseOfTheDay('2926-01-01', {
+            category: 'hope',
+        });
+
+        expect(verse).toBe(pickVerseOfTheDay(payload.verses, '2926-01-01'));
+        expect(hope).toEqual(payload.verses[2]);
+        expect(fetchMock).toHaveBeenCalledWith(
+            'https://bible.helloao.org/api/d/verse-of-the-day/verses.json'
+        );
+        // The verse list is cached, so it's only downloaded once.
+        expect(fetchMock).toHaveBeenCalledTimes(1);
     });
 
     it('gets the category list and individual categories', async () => {
