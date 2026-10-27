@@ -1682,6 +1682,10 @@ export type ApiDataset = {
      */
     listOfLexiconApiLink?: string;
     /**
+     * The API link for the list of verse categories for this dataset. Relative to the API origin. Omitted if the dataset doesn't contain verse categories.
+     */
+    listOfCategoriesApiLink?: string;
+    /**
      * The total number of people that are contained in this dataset. Omitted if the dataset doesn't contain people.
      */
     totalNumberOfPeople?: number;
@@ -1701,6 +1705,10 @@ export type ApiDataset = {
      * The total number of lexicon entries that are contained in this dataset. Omitted if the dataset doesn't contain lexicon entries.
      */
     totalNumberOfLexicon?: number;
+    /**
+     * The total number of verse categories that are contained in this dataset. Omitted if the dataset doesn't contain verse categories.
+     */
+    totalNumberOfCategories?: number;
 };
 
 /**
@@ -1835,10 +1843,12 @@ export type DatasetChapterData = {
 };
 
 /**
- * Defines the schema for information about a verse in a dataset chapter. A verse carries either `references` (cross references) or `words` (interlinear words), depending on the dataset.
+ * Defines the schema for information about a verse in a dataset chapter. A verse carries `references` (cross references), `words` (interlinear words), or `categories` (verse of the day candidates), depending on the dataset.
  */
 export type DatasetChapterVerseContent =
-    DatasetChapterVerseReferences | DatasetChapterVerseWords;
+    | DatasetChapterVerseReferences
+    | DatasetChapterVerseWords
+    | DatasetChapterVerseCategories;
 
 /**
  * Defines the schema for a verse in a dataset chapter that lists references to other verses.
@@ -1939,6 +1949,24 @@ export type DatasetInterlinearWord = {
      * The Berean Standard Bible's English phrase for the word. Null when the BSB leaves the word untranslated.
      */
     gloss: string | null;
+};
+
+/**
+ * Defines the schema for a verse (or short passage) in a dataset chapter that lists the categories it belongs to.
+ */
+export type DatasetChapterVerseCategories = {
+    /**
+     * The number of the verse. If `endVerse` is present, then this is the verse that the passage starts at.
+     */
+    verse: number;
+    /**
+     * The verse that the passage ends at. Omitted if the entry is a single verse.
+     */
+    endVerse?: number;
+    /**
+     * The IDs of the categories that the verse belongs to, most relevant first. Each ID matches a category in the `categories` collection of the dataset (`/api/d/{dataset}/categories/{id}.json`).
+     */
+    categories: Array<string>;
 };
 
 /**
@@ -2203,7 +2231,12 @@ export type DatasetEntityRef = {
  * The type of an entity in a dataset. Matches the collection segment of the entity API paths, so the API link for an entity can be constructed as `/api/d/{dataset}/{type}/{id}.json`.
  */
 export type DatasetEntityType =
-    'people' | 'places' | 'events' | 'groups' | 'lexicon';
+    | 'people'
+    | 'places'
+    | 'events'
+    | 'groups'
+    | 'lexicon'
+    | 'categories';
 
 /**
  * Defines a schema for verse references. A verse reference is a string that contains a book ID, chapter number, and verse number, such as "GEN 1:1". It can also contain an optional content part that comes after the verse reference, such as "GEN 1:1 In the beginning, God created the Heavens and the Earth." It can also contain optional endChapter and endVerse fields for references that span multiple chapters or verses, such as "GEN 1:1-2:3".
@@ -2762,6 +2795,86 @@ export type DatasetLexiconEntry = {
      * The senses of the entry, in ID order.
      */
     senses: Array<DatasetLexiconSense>;
+};
+
+/**
+ * The list of verse categories in a dataset. Maps to the /api/d/:datasetId/categories.json endpoint.
+ */
+export type ApiDatasetCategories = {
+    /**
+     * The dataset information for the categories.
+     */
+    dataset: ApiDataset;
+    /**
+     * The list of verse categories that are available for the dataset.
+     */
+    categories: Array<ApiDatasetCategorySummary>;
+};
+
+/**
+ * Defines a summary of a verse category in a dataset.
+ */
+export type ApiDatasetCategorySummary = {
+    /**
+     * The ID of the category, such as `hope`.
+     */
+    id: string;
+    /**
+     * The English name of the category, such as `Hope`.
+     */
+    name: string;
+    /**
+     * The description of what the verses in the category are about.
+     */
+    description: string;
+    /**
+     * The number of verses (or short passages) that belong to the category.
+     */
+    numberOfVerses: number;
+    /**
+     * The API link for the category. Relative to the API origin.
+     */
+    apiLink: string;
+};
+
+/**
+ * The information about a verse category in a dataset. Maps to the /api/d/:datasetId/categories/:categoryId.json endpoint.
+ */
+export type ApiDatasetCategory = {
+    /**
+     * The dataset information for the category.
+     */
+    dataset: ApiDataset;
+    /**
+     * The category, with the verses that belong to it.
+     */
+    category: DatasetCategory;
+    /**
+     * The API link for this category. Relative to the API origin.
+     */
+    thisCategoryApiLink: string;
+};
+
+/**
+ * Defines the schema for a category of verses in a dataset.
+ */
+export type DatasetCategory = {
+    /**
+     * The ID of the category, such as `hope`.
+     */
+    id: string;
+    /**
+     * The English name of the category, such as `Hope`.
+     */
+    name: string;
+    /**
+     * The description of what the verses in the category are about.
+     */
+    description: string;
+    /**
+     * The verses (or short passages) that belong to the category, in canonical order.
+     */
+    verses: Array<VerseRef>;
 };
 
 export type GetAvailableTranslationsData = {
@@ -3569,3 +3682,65 @@ export type GetDatasetLexiconEntryResponses = {
 
 export type GetDatasetLexiconEntryResponse =
     GetDatasetLexiconEntryResponses[keyof GetDatasetLexiconEntryResponses];
+
+export type GetDatasetCategoriesData = {
+    body?: never;
+    path: {
+        /**
+         * The dataset ID of the dataset to get the books or chapter content for.
+         */
+        dataset: string;
+    };
+    query?: never;
+    url: '/api/d/{dataset}/categories.json';
+};
+
+export type GetDatasetCategoriesErrors = {
+    /**
+     * 404 Not Found - The specified dataset was not found or doesn't contain verse categories.
+     */
+    404: unknown;
+};
+
+export type GetDatasetCategoriesResponses = {
+    /**
+     * 200 OK
+     */
+    200: ApiDatasetCategories;
+};
+
+export type GetDatasetCategoriesResponse =
+    GetDatasetCategoriesResponses[keyof GetDatasetCategoriesResponses];
+
+export type GetDatasetCategoryData = {
+    body?: never;
+    path: {
+        /**
+         * The dataset ID of the dataset to get the books or chapter content for.
+         */
+        dataset: string;
+        /**
+         * The ID of the verse category to get the information for. For example, "hope" in the verse-of-the-day dataset.
+         */
+        category: string;
+    };
+    query?: never;
+    url: '/api/d/{dataset}/categories/{category}.json';
+};
+
+export type GetDatasetCategoryErrors = {
+    /**
+     * 404 Not Found - The specified dataset or verse category was not found.
+     */
+    404: unknown;
+};
+
+export type GetDatasetCategoryResponses = {
+    /**
+     * 200 OK
+     */
+    200: ApiDatasetCategory;
+};
+
+export type GetDatasetCategoryResponse =
+    GetDatasetCategoryResponses[keyof GetDatasetCategoryResponses];

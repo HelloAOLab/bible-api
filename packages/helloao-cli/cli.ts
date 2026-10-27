@@ -23,6 +23,7 @@ import {
     importApi,
     importBibleMetadata,
     importHistoryGlobe,
+    importVerseOfTheDay,
     importInterlinear,
     importAudioTimings,
     importCommentaries,
@@ -497,6 +498,18 @@ async function start() {
         )
         .action(async (dir: string, options: any) => {
             await importHistoryGlobe(dir, {
+                ...program.opts(),
+                ...options,
+            });
+        });
+
+    program
+        .command('import-verse-of-the-day')
+        .description(
+            'Imports the verse of the day dataset into the database.\nThe dataset is built into @helloao/tools, so it does not need to be fetched first.'
+        )
+        .action(async (options: any) => {
+            await importVerseOfTheDay({
                 ...program.opts(),
                 ...options,
             });
@@ -1220,14 +1233,14 @@ async function start() {
         });
 
     program
-       .command('fetch-osis-translations <dir>')
+        .command('fetch-osis-translations <dir>')
         .description(
             'Fetches the pinned OSIS translations (such as the Japanese Kougo-yaku), checks their SHA-256 hashes, converts them to USFM and places them in the given directory.'
         )
         .action(async (dir: string) => {
             await fetchOsisTranslations(dir);
         });
-  
+
     program
         .command('fetch-history-globe <dir>')
         .description(

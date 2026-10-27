@@ -287,6 +287,32 @@ public class FreeUseBibleApi(
         )
 
     /**
+     * Gets the list of verse categories for a given dataset.
+     * @param dataset The ID of the dataset to get the categories for. For example, "verse-of-the-day".
+     * @param endpoint The API endpoint to use for the request. If not provided, the default endpoint will be used.
+     */
+    public suspend fun getDatasetCategories(dataset: String, endpoint: String? = null): ApiDatasetCategories =
+        getJson(ApiDatasetCategories.serializer(), "api/d/${encode(dataset)}/categories.json", endpoint)
+
+    /**
+     * Gets the information about a specific verse category for a given dataset.
+     * Includes the verses that belong to the category.
+     * @param dataset The ID of the dataset to get the category for. For example, "verse-of-the-day".
+     * @param category The ID of the category to get. For example, "hope".
+     * @param endpoint The API endpoint to use for the request. If not provided, the default endpoint will be used.
+     */
+    public suspend fun getDatasetCategory(
+        dataset: String,
+        category: String,
+        endpoint: String? = null,
+    ): ApiDatasetCategory =
+        getJson(
+            ApiDatasetCategory.serializer(),
+            "api/d/${encode(dataset)}/categories/${encode(category)}.json",
+            endpoint,
+        )
+
+    /**
      * Gets the content of a specific chapter of a specific book for a specific Bible translation.
      * @param translation The ID of the translation to get the chapter for.
      * @param book The ID of the book to get the chapter for. (e.g. "GEN")

@@ -1,0 +1,80 @@
+{
+  "dataset": {
+    "id": "verse-of-the-day",
+    "name": "Verse of the Day",
+    "website": "https://github.com/HelloAOLab/bible-api/blob/main/packages/helloao-tools/generation/verse-of-the-day.ts",
+    "licenseUrl": "https://github.com/HelloAOLab/bible-api/blob/main/LICENSE",
+    "licenseNotes": "A curated list of well-known verses by AO Lab, released under the MIT License.",
+    "englishName": "Verse of the Day",
+    "language": "eng",
+    "textDirection": "ltr",
+    "availableFormats": [
+      "json"
+    ],
+    "listOfBooksApiLink": "/api/d/verse-of-the-day/books.json",
+    "numberOfBooks": 47,
+    "totalNumberOfChapters": 172,
+    "totalNumberOfVerses": 223,
+    "totalNumberOfReferences": 0,
+    "languageName": "English",
+    "languageEnglishName": "English",
+    "listOfCategoriesApiLink": "/api/d/verse-of-the-day/categories.json",
+    "totalNumberOfCategories": 17
+  },
+  "book": {
+    "id": "PRO",
+    "datasetId": "verse-of-the-day",
+    "order": 20,
+    "numberOfChapters": 9,
+    "firstChapterNumber": 3,
+    "firstChapterApiLink": "/api/d/verse-of-the-day/PRO/3.json",
+    "firstChapterReference": {
+      "datasetId": "verse-of-the-day",
+      "book": "PRO",
+      "chapter": 3
+    },
+    "lastChapterNumber": 27,
+    "lastChapterApiLink": "/api/d/verse-of-the-day/PRO/27.json",
+    "lastChapterReference": {
+      "datasetId": "verse-of-the-day",
+      "book": "PRO",
+      "chapter": 27
+    },
+    "totalNumberOfVerses": 10,
+    "totalNumberOfReferences": 0
+  },
+  "chapter": {
+    "number": 3,
+    "content": [
+      {
+        "verse": 5,
+        "endVerse": 6,
+        "categories": [
+          "faith",
+          "guidance",
+          "wisdom"
+        ]
+      }
+    ]
+  },
+  "thisChapterLink": "/api/d/verse-of-the-day/PRO/3.json",
+  "thisChapterReference": {
+    "datasetId": "verse-of-the-day",
+    "book": "PRO",
+    "chapter": 3
+  },
+  "nextChapterApiLink": "/api/d/verse-of-the-day/PRO/4.json",
+  "nextChapterReference": {
+    "datasetId": "verse-of-the-day",
+    "book": "PRO",
+    "chapter": 4
+  },
+  "previousChapterApiLink": "/api/d/verse-of-the-day/PSA/150.json",
+  "previousChapterReference": {
+    "datasetId": "verse-of-the-day",
+    "book": "PSA",
+    "chapter": 150
+  },
+  "numberOfVerses": 1,
+  "numberOfReferences": 0
+}

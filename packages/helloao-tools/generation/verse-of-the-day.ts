@@ -1,3 +1,24 @@
+import { Dataset, DatasetCategory } from './common-types.js';
+import { DatasetDataset, DatasetDatasetBook } from './dataset.js';
+import { bookOrderMap } from './book-order.js';
+import { BookId } from '../utils.js';
+
+/**
+ * The dataset information for the verse of the day dataset.
+ */
+export const VERSE_OF_THE_DAY_DATASET: Dataset = {
+    id: 'verse-of-the-day',
+    name: 'Verse of the Day',
+    englishName: 'Verse of the Day',
+    website:
+        'https://github.com/HelloAOLab/bible-api/blob/main/packages/helloao-tools/generation/verse-of-the-day.ts',
+    licenseUrl: 'https://github.com/HelloAOLab/bible-api/blob/main/LICENSE',
+    licenseNotes:
+        'A curated list of well-known verses by AO Lab, released under the MIT License.',
+    language: 'eng',
+    textDirection: 'ltr',
+};
+
 /**
  * The categories that verse of the day candidates can belong to.
  * Every candidate has between one and three of these.
@@ -27,6 +48,32 @@ export const VERSE_OF_THE_DAY_CATEGORIES = [
  */
 export type VerseOfTheDayCategory =
     (typeof VERSE_OF_THE_DAY_CATEGORIES)[number];
+
+/**
+ * The English name of each verse of the day category.
+ */
+export const VERSE_OF_THE_DAY_CATEGORY_NAMES: Record<
+    VerseOfTheDayCategory,
+    string
+> = {
+    comfort: 'Comfort',
+    courage: 'Courage',
+    faith: 'Faith',
+    forgiveness: 'Forgiveness',
+    gratitude: 'Gratitude',
+    guidance: 'Guidance',
+    hope: 'Hope',
+    inspiration: 'Inspiration',
+    joy: 'Joy',
+    love: 'Love',
+    peace: 'Peace',
+    praise: 'Praise',
+    prayer: 'Prayer',
+    provision: 'Provision',
+    salvation: 'Salvation',
+    strength: 'Strength',
+    wisdom: 'Wisdom',
+};
 
 /**
  * Describes what each verse of the day category is for.
@@ -701,4 +748,73 @@ export function getVerseOfTheDay(
     const index =
         ((day % candidates.length) + candidates.length) % candidates.length;
     return candidates[index];
+}
+
+/**
+ * Generates the verse of the day dataset from the given list of verses.
+ *
+ * The dataset has a chapter for every chapter that contains a candidate, listing the
+ * candidates and their categories, and a category entity for every category, listing its verses.
+ *
+ * @param verses The list of verses. Defaults to {@link VERSES_OF_THE_DAY}.
+ * @param dataset The dataset information to use. Defaults to {@link VERSE_OF_THE_DAY_DATASET}.
+ */
+export function generateVerseOfTheDayDataset(
+    verses: VerseOfTheDay[] = VERSES_OF_THE_DAY,
+    dataset: Dataset = VERSE_OF_THE_DAY_DATASET
+): DatasetDataset {
+    const sorted = [...verses].sort(
+        (a, b) =>
+            (bookOrderMap.get(a.book) ?? 9999) -
+                (bookOrderMap.get(b.book) ?? 9999) ||
+            a.chapter - b.chapter ||
+            a.verse - b.verse
+    );
+
+    const books: DatasetDatasetBook[] = [];
+    for (let v of sorted) {
+        let book = books[books.length - 1];
+        if (!book || book.id !== v.book) {
+            book = {
+                id: v.book as BookId,
+                order: bookOrderMap.get(v.book) ?? 9999,
+                chapters: [],
+            };
+            books.push(book);
+        }
+        let chapter = book.chapters[book.chapters.length - 1]?.chapter;
+        if (!chapter || chapter.number !== v.chapter) {
+            chapter = { number: v.chapter, content: [] };
+            book.chapters.push({ chapter });
+        }
+        chapter.content.push({
+            verse: v.verse,
+            ...(v.endVerse !== undefined ? { endVerse: v.endVerse } : {}),
+            categories: [...v.categories],
+        });
+    }
+
+    const categories: DatasetCategory[] = VERSE_OF_THE_DAY_CATEGORIES.map(
+        (id) => ({
+            id,
+            name: VERSE_OF_THE_DAY_CATEGORY_NAMES[id],
+            description: VERSE_OF_THE_DAY_CATEGORY_DESCRIPTIONS[id],
+            verses: sorted
+                .filter((v) => v.categories.includes(id))
+                .map((v) => ({
+                    book: v.book as BookId,
+                    chapter: v.chapter,
+                    verse: v.verse,
+                    ...(v.endVerse !== undefined
+                        ? { endVerse: v.endVerse }
+                        : {}),
+                })),
+        })
+    ).filter((c) => c.verses.length > 0);
+
+    return {
+        ...dataset,
+        books,
+        categories,
+    };
 }

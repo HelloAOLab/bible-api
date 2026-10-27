@@ -22,6 +22,7 @@ import {
     DatasetPeopleGroup,
     DatasetPeopleGroupSchema,
     DatasetLexiconEntrySchema,
+    DatasetCategorySchema,
     OriginalLanguageSchema,
     DatasetPerson,
     DatasetPersonSchema,
@@ -248,6 +249,19 @@ export interface ApiOutput {
     datasetLexiconContents?: ApiDatasetLexiconEntry[];
 
     /**
+     * The list of verse categories for each dataset.
+     * This maps to the /api/d/:datasetId/categories.json endpoint.
+     */
+    datasetCategories?: ApiDatasetCategories[];
+
+    /**
+     * The list of individual verse categories for each dataset.
+     * This maps to the following endpoint:
+     * - /api/d/:datasetId/categories/:categoryId.json
+     */
+    datasetCategoryContents?: ApiDatasetCategory[];
+
+    /**
      * The complete translation data for each translation.
      * This maps to the /api/:translationId/complete.json endpoint.
      */
@@ -452,6 +466,15 @@ export const ApiDatasetSchema = DatasetSchema.extend({
     }),
 
     /**
+     * The API link for the list of verse categories for this dataset.
+     * Omitted if the dataset doesn't contain verse categories.
+     */
+    listOfCategoriesApiLink: z.string().optional().meta({
+        description:
+            "The API link for the list of verse categories for this dataset. Relative to the API origin. Omitted if the dataset doesn't contain verse categories.",
+    }),
+
+    /**
      * The total number of people that are contained in this dataset.
      * Omitted if the dataset doesn't contain people.
      */
@@ -494,6 +517,15 @@ export const ApiDatasetSchema = DatasetSchema.extend({
     totalNumberOfLexicon: z.number().optional().meta({
         description:
             "The total number of lexicon entries that are contained in this dataset. Omitted if the dataset doesn't contain lexicon entries.",
+    }),
+
+    /**
+     * The total number of verse categories that are contained in this dataset.
+     * Omitted if the dataset doesn't contain verse categories.
+     */
+    totalNumberOfCategories: z.number().optional().meta({
+        description:
+            "The total number of verse categories that are contained in this dataset. Omitted if the dataset doesn't contain verse categories.",
     }),
 }).meta({
     id: 'ApiDataset',
@@ -1596,6 +1628,127 @@ export const ApiDatasetLexiconEntrySchema = z
 export type ApiDatasetLexiconEntry = z.infer<
     typeof ApiDatasetLexiconEntrySchema
 >;
+
+/**
+ * Defines a Zod schema for a summary of a verse category in a dataset.
+ */
+export const ApiDatasetCategorySummarySchema = z
+    .object({
+        /**
+         * The ID of the category.
+         */
+        id: z.string().meta({
+            description: 'The ID of the category, such as `hope`.',
+        }),
+
+        /**
+         * The English name of the category.
+         */
+        name: z.string().meta({
+            description: 'The English name of the category, such as `Hope`.',
+        }),
+
+        /**
+         * The description of what the verses in the category are about.
+         */
+        description: z.string().meta({
+            description:
+                'The description of what the verses in the category are about.',
+        }),
+
+        /**
+         * The number of verses (or short passages) that belong to the category.
+         */
+        numberOfVerses: z.number().meta({
+            description:
+                'The number of verses (or short passages) that belong to the category.',
+        }),
+
+        /**
+         * The API link for the category.
+         */
+        apiLink: z.string().meta({
+            description:
+                'The API link for the category. Relative to the API origin.',
+        }),
+    })
+    .meta({
+        id: 'ApiDatasetCategorySummary',
+        description: 'Defines a summary of a verse category in a dataset.',
+    });
+
+export type ApiDatasetCategorySummary = z.infer<
+    typeof ApiDatasetCategorySummarySchema
+>;
+
+/**
+ * Defines a Zod schema for the list of verse categories in a dataset.
+ * Maps to the /api/d/:datasetId/categories.json endpoint.
+ */
+export const ApiDatasetCategoriesSchema = z
+    .object({
+        /**
+         * The dataset information for the categories.
+         */
+        dataset: z
+            .lazy(() => ApiDatasetSchema)
+            .meta({
+                description: 'The dataset information for the categories.',
+            }),
+
+        /**
+         * The list of categories that are available for the dataset.
+         */
+        categories: z.array(ApiDatasetCategorySummarySchema).meta({
+            description:
+                'The list of verse categories that are available for the dataset.',
+        }),
+    })
+    .meta({
+        id: 'ApiDatasetCategories',
+        description:
+            'The list of verse categories in a dataset. Maps to the /api/d/:datasetId/categories.json endpoint.',
+    });
+
+export type ApiDatasetCategories = z.infer<typeof ApiDatasetCategoriesSchema>;
+
+/**
+ * Defines a Zod schema for a verse category in a dataset.
+ * Maps to the /api/d/:datasetId/categories/:categoryId.json endpoint.
+ */
+export const ApiDatasetCategorySchema = z
+    .object({
+        /**
+         * The dataset information for the category.
+         */
+        dataset: z
+            .lazy(() => ApiDatasetSchema)
+            .meta({
+                description: 'The dataset information for the category.',
+            }),
+
+        /**
+         * The category.
+         */
+        category: DatasetCategorySchema.meta({
+            description: 'The category, with the verses that belong to it.',
+        }),
+
+        /**
+         * The API link for this category.
+         */
+        thisCategoryApiLink: z.string().meta({
+            description:
+                'The API link for this category. Relative to the API origin.',
+        }),
+    })
+    .meta({
+        id: 'ApiDatasetCategory',
+        description:
+            'The information about a verse category in a dataset. Maps to the /api/d/:datasetId/categories/:categoryId.json endpoint.',
+    });
+
+export type ApiDatasetCategory = z.infer<typeof ApiDatasetCategorySchema>;
 
 /**
  * Defines a Zod schema for a person that appears in a chapter of a dataset.
@@ -3930,6 +4083,7 @@ export function generateApiForDataset(
         events,
         peopleGroups,
         lexicon,
+        categories,
         ...datasetInfo
     } of dataset.datasets ?? []) {
         const apiDataset: ApiDataset = {
@@ -4025,7 +4179,7 @@ export function generateApiForDataset(
                     if ('references' in verse) {
                         apiBookChapter.numberOfReferences +=
                             verse.references.length;
-                    } else {
+                    } else if ('words' in verse) {
                         apiDataset.totalNumberOfWords =
                             (apiDataset.totalNumberOfWords ?? 0) +
                             verse.words.length;
@@ -4387,6 +4541,52 @@ export function generateApiForDataset(
                 api.datasetLexicon = [];
             }
             api.datasetLexicon.push(datasetLexicon);
+        }
+
+        if (categories) {
+            const datasetCategories: ApiDatasetCategories = {
+                dataset: apiDataset,
+                categories: [],
+            };
+
+            for (let category of categories) {
+                const thisCategoryApiLink = datasetEntityApiLink(
+                    datasetInfo.id,
+                    'categories',
+                    category.id,
+                    'json',
+                    apiPathPrefix
+                );
+
+                datasetCategories.categories.push({
+                    id: category.id,
+                    name: category.name,
+                    description: category.description,
+                    numberOfVerses: category.verses.length,
+                    apiLink: thisCategoryApiLink,
+                });
+
+                if (!api.datasetCategoryContents) {
+                    api.datasetCategoryContents = [];
+                }
+                api.datasetCategoryContents.push({
+                    dataset: apiDataset,
+                    category,
+                    thisCategoryApiLink,
+                });
+            }
+
+            apiDataset.listOfCategoriesApiLink = listOfDatasetEntitiesApiLink(
+                datasetInfo.id,
+                'categories',
+                'json',
+                apiPathPrefix
+            );
+            apiDataset.totalNumberOfCategories = categories.length;
+            if (!api.datasetCategories) {
+                api.datasetCategories = [];
+            }
+            api.datasetCategories.push(datasetCategories);
         }
 
         // Generate chapter-aligned entity data for datasets that contain
@@ -4877,6 +5077,19 @@ export function generateFilesForApi(api: ApiOutput): OutputFile[] {
 
     for (let entry of api.datasetLexiconContents ?? []) {
         files.push(jsonFile(entry.thisLexiconEntryApiLink, entry));
+    }
+
+    for (let datasetCategories of api.datasetCategories ?? []) {
+        files.push(
+            jsonFile(
+                datasetCategories.dataset.listOfCategoriesApiLink!,
+                datasetCategories
+            )
+        );
+    }
+
+    for (let category of api.datasetCategoryContents ?? []) {
+        files.push(jsonFile(category.thisCategoryApiLink, category));
     }
 
     // for (let audio of api.translationBookChapterAudio) {

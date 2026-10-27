@@ -734,18 +734,60 @@ export type DatasetChapterVerseWords = z.infer<
 >;
 
 /**
+ * Defines a Zod schema for a verse in a dataset chapter that lists the categories it belongs to.
+ */
+export const DatasetChapterVerseCategoriesSchema = z
+    .object({
+        /**
+         * The number of the verse.
+         * If `endVerse` is present, then this is the verse that the passage starts at.
+         */
+        verse: z.number().meta({
+            description:
+                'The number of the verse. If `endVerse` is present, then this is the verse that the passage starts at.',
+        }),
+
+        /**
+         * The verse that the passage ends at.
+         * Omitted if the entry is a single verse.
+         */
+        endVerse: z.number().optional().meta({
+            description:
+                'The verse that the passage ends at. Omitted if the entry is a single verse.',
+        }),
+
+        /**
+         * The IDs of the categories that the verse belongs to, most relevant first.
+         */
+        categories: z.array(z.string()).meta({
+            description:
+                'The IDs of the categories that the verse belongs to, most relevant first. Each ID matches a category in the `categories` collection of the dataset (`/api/d/{dataset}/categories/{id}.json`).',
+        }),
+    })
+    .meta({
+        id: 'DatasetChapterVerseCategories',
+        description:
+            'Defines the schema for a verse (or short passage) in a dataset chapter that lists the categories it belongs to.',
+    });
+
+export type DatasetChapterVerseCategories = z.infer<
+    typeof DatasetChapterVerseCategoriesSchema
+>;
+
+/**
  * Defines a Zod schema for information about a verse in a dataset chapter.
- * A verse carries either `references` or `words`, depending on the dataset.
+ * A verse carries `references`, `words`, or `categories`, depending on the dataset.
  */
 export const DatasetChapterVerseContentSchema = z
     .union([
         DatasetChapterVerseReferencesSchema,
         DatasetChapterVerseWordsSchema,
+        DatasetChapterVerseCategoriesSchema,
     ])
     .meta({
         id: 'DatasetChapterVerseContent',
         description:
-            'Defines the schema for information about a verse in a dataset chapter. A verse carries either `references` (cross references) or `words` (interlinear words), depending on the dataset.',
+            'Defines the schema for information about a verse in a dataset chapter. A verse carries `references` (cross references), `words` (interlinear words), or `categories` (verse of the day candidates), depending on the dataset.',
     });
 
 export type DatasetChapterVerseContent = z.infer<
@@ -776,7 +818,7 @@ export type ScoredVerseRef = z.infer<typeof ScoredVerseRefSchema>;
  * Matches the collection segment of the entity API paths.
  */
 export const DatasetEntityTypeSchema = z
-    .enum(['people', 'places', 'events', 'groups', 'lexicon'])
+    .enum(['people', 'places', 'events', 'groups', 'lexicon', 'categories'])
     .meta({
         id: 'DatasetEntityType',
         description:
@@ -1417,6 +1459,49 @@ export const DatasetLexiconEntrySchema = z
     });
 
 export type DatasetLexiconEntry = z.infer<typeof DatasetLexiconEntrySchema>;
+
+/**
+ * Defines a Zod schema for a category of verses in a dataset.
+ */
+export const DatasetCategorySchema = z
+    .object({
+        /**
+         * The ID of the category. e.g. "hope"
+         */
+        id: z.string().meta({
+            description: 'The ID of the category, such as `hope`.',
+        }),
+
+        /**
+         * The English name of the category.
+         */
+        name: z.string().meta({
+            description: 'The English name of the category, such as `Hope`.',
+        }),
+
+        /**
+         * The description of what the verses in the category are about.
+         */
+        description: z.string().meta({
+            description:
+                'The description of what the verses in the category are about.',
+        }),
+
+        /**
+         * The verses that belong to the category, in canonical order.
+         */
+        verses: z.array(VerseRefSchema).meta({
+            description:
+                'The verses (or short passages) that belong to the category, in canonical order.',
+        }),
+    })
+    .meta({
+        id: 'DatasetCategory',
+        description:
+            'Defines the schema for a category of verses in a dataset.',
+    });
+
+export type DatasetCategory = z.infer<typeof DatasetCategorySchema>;
 
 /**
  * Defines a Zod schema for information about a profile in a commentary.

@@ -103,6 +103,8 @@ The client provides callable methods for all 30 public API operations.
 -   `getDatasetPeopleGroup(dataset, group, endpoint?)`
 -   `getDatasetLexicon(dataset, endpoint?)`
 -   `getDatasetLexiconEntry(dataset, strongs, endpoint?)`
+-   `getDatasetCategories(dataset, endpoint?)`
+-   `getDatasetCategory(dataset, category, endpoint?)`
 
 ### Chapter Navigation Helpers
 

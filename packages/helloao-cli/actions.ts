@@ -19,6 +19,7 @@ import {
 import * as theographic from '@helloao/tools/generation/theographic.js';
 import * as interlinear from '@helloao/tools/generation/interlinear.js';
 import * as historyGlobe from '@helloao/tools/generation/history-globe.js';
+import * as verseOfTheDay from '@helloao/tools/generation/verse-of-the-day.js';
 import fsExtra from 'fs-extra';
 const { exists, readFile } = fsExtra;
 import { copyFile } from 'node:fs/promises';
@@ -1007,6 +1008,33 @@ export async function importHistoryGlobe(
             translations: [],
             commentaries: [],
             datasets: [historyGlobeDataset],
+        });
+    } finally {
+        db.close();
+    }
+}
+
+/**
+ * Imports the verse of the day dataset into the database.
+ * The dataset is built into @helloao/tools, so it doesn't need to be fetched first.
+ * @param options The options.
+ */
+export async function importVerseOfTheDay(options: ImportTranslationOptions) {
+    const logger = log.getLogger();
+
+    logger.log('Generating the verse of the day dataset...');
+    const verseOfTheDayDataset = verseOfTheDay.generateVerseOfTheDayDataset();
+
+    logger.log(
+        `Generated ${verseOfTheDay.VERSES_OF_THE_DAY.length} verses in ${verseOfTheDayDataset.categories?.length ?? 0} categories.`
+    );
+
+    const db = await database.getDb(options.db);
+    try {
+        importDatasetOutput(db, {
+            translations: [],
+            commentaries: [],
+            datasets: [verseOfTheDayDataset],
         });
     } finally {
         db.close();

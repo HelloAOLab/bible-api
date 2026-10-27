@@ -1905,6 +1905,11 @@ public data class ApiDataset(
     public val listOfLexiconApiLink: String? = null,
 
     /**
+     * The API link for the list of verse categories for this dataset. Relative to the API origin. Omitted if the dataset doesn't contain verse categories.
+     */
+    public val listOfCategoriesApiLink: String? = null,
+
+    /**
      * The total number of people that are contained in this dataset. Omitted if the dataset doesn't contain people.
      */
     public val totalNumberOfPeople: Int? = null,
@@ -1928,6 +1933,11 @@ public data class ApiDataset(
      * The total number of lexicon entries that are contained in this dataset. Omitted if the dataset doesn't contain lexicon entries.
      */
     public val totalNumberOfLexicon: Int? = null,
+
+    /**
+     * The total number of verse categories that are contained in this dataset. Omitted if the dataset doesn't contain verse categories.
+     */
+    public val totalNumberOfCategories: Int? = null,
 )
 
 /**
@@ -2106,7 +2116,7 @@ public data class DatasetChapterData(
 )
 
 /**
- * Defines the schema for information about a verse in a dataset chapter. A verse carries either `references` (cross references) or `words` (interlinear words), depending on the dataset.
+ * Defines the schema for information about a verse in a dataset chapter. A verse carries `references` (cross references), `words` (interlinear words), or `categories` (verse of the day candidates), depending on the dataset.
  */
 @Serializable(with = DatasetChapterVerseContentSerializer::class)
 public sealed interface DatasetChapterVerseContent
@@ -2115,6 +2125,7 @@ internal object DatasetChapterVerseContentSerializer : JsonContentPolymorphicSer
     override fun selectDeserializer(element: JsonElement): DeserializationStrategy<DatasetChapterVerseContent> = when {
         element is JsonObject && "references" in element -> DatasetChapterVerseReferences.serializer()
         element is JsonObject && "words" in element -> DatasetChapterVerseWords.serializer()
+        element is JsonObject && "categories" in element -> DatasetChapterVerseCategories.serializer()
         else -> UnknownDatasetChapterVerseContent.serializer()
     }
 }
@@ -2262,6 +2273,27 @@ public data class DatasetInterlinearWord(
      */
     public val gloss: String? = null,
 )
+
+/**
+ * Defines the schema for a verse (or short passage) in a dataset chapter that lists the categories it belongs to.
+ */
+@Serializable
+public data class DatasetChapterVerseCategories(
+    /**
+     * The number of the verse. If `endVerse` is present, then this is the verse that the passage starts at.
+     */
+    public val verse: Int,
+
+    /**
+     * The verse that the passage ends at. Omitted if the entry is a single verse.
+     */
+    public val endVerse: Int? = null,
+
+    /**
+     * The IDs of the categories that the verse belongs to, most relevant first. Each ID matches a category in the `categories` collection of the dataset (`/api/d/{dataset}/categories/{id}.json`).
+     */
+    public val categories: List<String>,
+) : DatasetChapterVerseContent
 
 /**
  * The entities (people, places, and events) that appear in a chapter of a book for a dataset. Maps to the /api/d/:datasetId/:bookId/:chapterNumber.json endpoint for datasets that contain entities.
@@ -3249,6 +3281,100 @@ public data class DatasetLexiconEntry(
      * The senses of the entry, in ID order.
      */
     public val senses: List<DatasetLexiconSense>,
+)
+
+/**
+ * The list of verse categories in a dataset. Maps to the /api/d/:datasetId/categories.json endpoint.
+ */
+@Serializable
+public data class ApiDatasetCategories(
+    /**
+     * The dataset information for the categories.
+     */
+    public val dataset: ApiDataset,
+
+    /**
+     * The list of verse categories that are available for the dataset.
+     */
+    public val categories: List<ApiDatasetCategorySummary>,
+)
+
+/**
+ * Defines a summary of a verse category in a dataset.
+ */
+@Serializable
+public data class ApiDatasetCategorySummary(
+    /**
+     * The ID of the category, such as `hope`.
+     */
+    public val id: String,
+
+    /**
+     * The English name of the category, such as `Hope`.
+     */
+    public val name: String,
+
+    /**
+     * The description of what the verses in the category are about.
+     */
+    public val description: String,
+
+    /**
+     * The number of verses (or short passages) that belong to the category.
+     */
+    public val numberOfVerses: Int,
+
+    /**
+     * The API link for the category. Relative to the API origin.
+     */
+    public val apiLink: String,
+)
+
+/**
+ * The information about a verse category in a dataset. Maps to the /api/d/:datasetId/categories/:categoryId.json endpoint.
+ */
+@Serializable
+public data class ApiDatasetCategory(
+    /**
+     * The dataset information for the category.
+     */
+    public val dataset: ApiDataset,
+
+    /**
+     * The category, with the verses that belong to it.
+     */
+    public val category: DatasetCategory,
+
+    /**
+     * The API link for this category. Relative to the API origin.
+     */
+    public val thisCategoryApiLink: String,
+)
+
+/**
+ * Defines the schema for a category of verses in a dataset.
+ */
+@Serializable
+public data class DatasetCategory(
+    /**
+     * The ID of the category, such as `hope`.
+     */
+    public val id: String,
+
+    /**
+     * The English name of the category, such as `Hope`.
+     */
+    public val name: String,
+
+    /**
+     * The description of what the verses in the category are about.
+     */
+    public val description: String,
+
+    /**
+     * The verses (or short passages) that belong to the category, in canonical order.
+     */
+    public val verses: List<VerseRef>,
 )
 
 /**

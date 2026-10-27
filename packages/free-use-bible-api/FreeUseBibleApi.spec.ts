@@ -49,6 +49,8 @@ const operationMethods = {
     GetDatasetPeopleGroup: 'getDatasetPeopleGroup',
     GetDatasetLexicon: 'getDatasetLexicon',
     GetDatasetLexiconEntry: 'getDatasetLexiconEntry',
+    GetDatasetCategories: 'getDatasetCategories',
+    GetDatasetCategory: 'getDatasetCategory',
 } as const satisfies Record<string, keyof FreeUseBibleApi>;
 
 describe('FreeUseBibleApi', () => {
@@ -545,6 +547,49 @@ describe('FreeUseBibleApi', () => {
         expect(fetchMock).toHaveBeenNthCalledWith(
             2,
             'https://bible.helloao.org/api/d/stepbible-lexicon/lexicon/H0430.json'
+        );
+    });
+
+    it('gets the category list and individual categories', async () => {
+        const listPayload = {
+            categories: [
+                {
+                    id: 'hope',
+                    name: 'Hope',
+                    numberOfVerses: 30,
+                    apiLink: '/api/d/verse-of-the-day/categories/hope.json',
+                },
+            ],
+        };
+        const categoryPayload = {
+            category: {
+                id: 'hope',
+                name: 'Hope',
+                verses: [{ book: 'JER', chapter: 29, verse: 11 }],
+            },
+            thisCategoryApiLink: '/api/d/verse-of-the-day/categories/hope.json',
+        };
+        fetchMock
+            .mockResolvedValueOnce(jsonResponse(listPayload))
+            .mockResolvedValueOnce(jsonResponse(categoryPayload));
+
+        const api = new FreeUseBibleApi();
+
+        const list = await api.getDatasetCategories('verse-of-the-day');
+        const category = await api.getDatasetCategory(
+            'verse-of-the-day',
+            'hope'
+        );
+
+        expect(list).toEqual(listPayload);
+        expect(category).toEqual(categoryPayload);
+        expect(fetchMock).toHaveBeenNthCalledWith(
+            1,
+            'https://bible.helloao.org/api/d/verse-of-the-day/categories.json'
+        );
+        expect(fetchMock).toHaveBeenNthCalledWith(
+            2,
+            'https://bible.helloao.org/api/d/verse-of-the-day/categories/hope.json'
         );
     });
 

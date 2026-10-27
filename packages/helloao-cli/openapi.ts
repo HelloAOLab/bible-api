@@ -6,6 +6,8 @@ import {
     ApiCommentaryBooksSchema,
     ApiDatasetBookChapterSchema,
     ApiDatasetBooksSchema,
+    ApiDatasetCategoriesSchema,
+    ApiDatasetCategorySchema,
     ApiDatasetEntityBookChapterSchema,
     ApiDatasetEventSchema,
     ApiDatasetEventsSchema,
@@ -82,6 +84,11 @@ const group = z.string().meta({
 const strongs = z.string().meta({
     description:
         'The zero-padded Strong\'s number of the lexicon entry to get the information for. For example, "H0430" for the Hebrew word Elohim or "G3056" for the Greek word logos.',
+});
+
+const category = z.string().meta({
+    description:
+        'The ID of the verse category to get the information for. For example, "hope" in the verse-of-the-day dataset.',
 });
 
 export function createFreeUseBibleApiOpenApiDocument(): any {
@@ -828,6 +835,59 @@ export function createFreeUseBibleApiOpenApiDocument(): any {
                         '404': {
                             description:
                                 '404 Not Found - The specified dataset or lexicon entry was not found.',
+                        },
+                    },
+                },
+            },
+            '/api/d/{dataset}/categories.json': {
+                get: {
+                    operationId: 'getDatasetCategories',
+                    description:
+                        'Get the list of verse categories that are available for a specific dataset, such as the categories of the verse-of-the-day dataset.',
+                    requestParams: {
+                        path: z.object({
+                            dataset,
+                        }),
+                    },
+                    responses: {
+                        '200': {
+                            description: '200 OK',
+                            content: {
+                                'application/json': {
+                                    schema: ApiDatasetCategoriesSchema,
+                                },
+                            },
+                        },
+                        '404': {
+                            description:
+                                "404 Not Found - The specified dataset was not found or doesn't contain verse categories.",
+                        },
+                    },
+                },
+            },
+            '/api/d/{dataset}/categories/{category}.json': {
+                get: {
+                    operationId: 'getDatasetCategory',
+                    description:
+                        'Get the information about a specific verse category for a specific dataset, including the verses that belong to it.',
+                    requestParams: {
+                        path: z.object({
+                            dataset,
+                            category,
+                        }),
+                    },
+                    responses: {
+                        '200': {
+                            description: '200 OK',
+                            content: {
+                                'application/json': {
+                                    schema: ApiDatasetCategorySchema,
+                                },
+                            },
+                        },
+                        '404': {
+                            description:
+                                '404 Not Found - The specified dataset or verse category was not found.',
                         },
                     },
                 },

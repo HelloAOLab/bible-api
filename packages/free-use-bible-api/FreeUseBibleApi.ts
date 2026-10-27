@@ -8,6 +8,8 @@ import type {
     ApiDatasetBook,
     ApiDatasetBookChapter,
     ApiDatasetBooks,
+    ApiDatasetCategories,
+    ApiDatasetCategory,
     ApiDatasetEntityBookChapter,
     ApiDatasetEvent,
     ApiDatasetEvents,
@@ -526,6 +528,48 @@ export class FreeUseBibleApi {
         const encodedStrongs = encodeURIComponent(strongs);
         return this._getJson<ApiDatasetLexiconEntry>(
             `api/d/${encodedDataset}/lexicon/${encodedStrongs}.json`,
+            endpoint,
+            options
+        );
+    }
+
+    /**
+     * Gets the list of verse categories for a given dataset.
+     * @param dataset The ID of the dataset to get the categories for. For example, "verse-of-the-day".
+     * @param endpoint The endpoint to use for the request. If not provided, then the default endpoint will be used.
+     * @param options Options for the request, such as an `AbortSignal` that cancels it.
+     */
+    async getDatasetCategories(
+        dataset: string,
+        endpoint?: string,
+        options?: RequestOptions
+    ): Promise<ApiDatasetCategories> {
+        const encodedDataset = encodeURIComponent(dataset);
+        return this._getJson<ApiDatasetCategories>(
+            `api/d/${encodedDataset}/categories.json`,
+            endpoint,
+            options
+        );
+    }
+
+    /**
+     * Gets the information about a specific verse category for a given dataset.
+     * Includes the verses that belong to the category.
+     * @param dataset The ID of the dataset to get the category for. For example, "verse-of-the-day".
+     * @param category The ID of the category to get. For example, "hope".
+     * @param endpoint The endpoint to use for the request. If not provided, then the default endpoint will be used.
+     * @param options Options for the request, such as an `AbortSignal` that cancels it.
+     */
+    async getDatasetCategory(
+        dataset: string,
+        category: string,
+        endpoint?: string,
+        options?: RequestOptions
+    ): Promise<ApiDatasetCategory> {
+        const encodedDataset = encodeURIComponent(dataset);
+        const encodedCategory = encodeURIComponent(category);
+        return this._getJson<ApiDatasetCategory>(
+            `api/d/${encodedDataset}/categories/${encodedCategory}.json`,
             endpoint,
             options
         );

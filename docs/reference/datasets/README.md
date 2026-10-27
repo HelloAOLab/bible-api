@@ -1,6 +1,6 @@
 # Datasets
 
-Endpoints for browsing supplementary Bible datasets - such as cross references, biblical entities (people, places, events, and people groups), original-language interlinear words, and lexicons - and fetching their books, chapter content, entities, and lexicon entries.
+Endpoints for browsing supplementary Bible datasets - such as cross references, biblical entities (people, places, events, and people groups), original-language interlinear words, lexicons, and verse of the day candidates - and fetching their books, chapter content, entities, lexicon entries, and verse categories.
 
 ## Available Datasets
 
@@ -162,6 +162,18 @@ export interface Dataset {
      * Omitted if the dataset doesn't contain lexicon entries.
      */
     totalNumberOfLexicon?: number;
+
+    /**
+     * The API link for the list of verse categories in the dataset.
+     * Omitted if the dataset doesn't contain verse categories.
+     */
+    listOfCategoriesApiLink?: string;
+
+    /**
+     * The total number of verse categories that are contained in the dataset.
+     * Omitted if the dataset doesn't contain verse categories.
+     */
+    totalNumberOfCategories?: number;
 }
 ```
 
@@ -282,6 +294,28 @@ export interface Dataset {
             "languageEnglishName": "English",
             "listOfPlacesApiLink": "/api/d/history-globe/places.json",
             "totalNumberOfPlaces": 1231
+        },
+        {
+            "id": "verse-of-the-day",
+            "name": "Verse of the Day",
+            "website": "https://github.com/HelloAOLab/bible-api/blob/main/packages/helloao-tools/generation/verse-of-the-day.ts",
+            "licenseUrl": "https://github.com/HelloAOLab/bible-api/blob/main/LICENSE",
+            "licenseNotes": "A curated list of well-known verses by AO Lab, released under the MIT License.",
+            "englishName": "Verse of the Day",
+            "language": "eng",
+            "textDirection": "ltr",
+            "availableFormats": [
+                "json"
+            ],
+            "listOfBooksApiLink": "/api/d/verse-of-the-day/books.json",
+            "numberOfBooks": 47,
+            "totalNumberOfChapters": 172,
+            "totalNumberOfVerses": 223,
+            "totalNumberOfReferences": 0,
+            "languageName": "English",
+            "languageEnglishName": "English",
+            "listOfCategoriesApiLink": "/api/d/verse-of-the-day/categories.json",
+            "totalNumberOfCategories": 17
         }
     ]
 }
@@ -445,7 +479,7 @@ interface DatasetBook {
 
 Gets the content of a single chapter for a given book and dataset.
 
-For cross reference datasets (such as `open-cross-ref`), the chapter contains the list of cross references for each verse. For interlinear datasets (such as `bsb-interlinear`), the chapter contains the original-language words of each verse - see [Interlinear Datasets](#interlinear-datasets). For entity datasets (such as `theographic`), the chapter contains the people, places, and events that appear in the chapter - see [Get the Entities in a Chapter](#get-the-entities-in-a-chapter).
+For cross reference datasets (such as `open-cross-ref`), the chapter contains the list of cross references for each verse. For interlinear datasets (such as `bsb-interlinear`), the chapter contains the original-language words of each verse - see [Interlinear Datasets](#interlinear-datasets). For entity datasets (such as `theographic`), the chapter contains the people, places, and events that appear in the chapter - see [Get the Entities in a Chapter](#get-the-entities-in-a-chapter). For the `verse-of-the-day` dataset, the chapter contains the verse of the day candidates in the chapter and their categories - see [Verse of the Day](#verse-of-the-day).
 
 -   `dataset` the ID of the dataset (e.g. `open-cross-ref`).
 -   `book` is the ID of the book (e.g. `GEN` for Genesis).
@@ -533,10 +567,14 @@ interface DatasetChapterData {
 }
 
 /**
- * A verse carries either `references` (cross reference datasets) or `words` (interlinear datasets).
- * Check which one is present with `'words' in verse`.
+ * A verse carries `references` (cross reference datasets), `words` (interlinear datasets),
+ * or `categories` (the verse-of-the-day dataset).
+ * Check which one is present with `'words' in verse` or `'categories' in verse`.
  */
-type DatasetVerse = DatasetReferencesVerse | DatasetWordsVerse;
+type DatasetVerse =
+    | DatasetReferencesVerse
+    | DatasetWordsVerse
+    | DatasetCategoriesVerse;
 
 interface DatasetReferencesVerse {
     /**
@@ -563,6 +601,26 @@ interface DatasetWordsVerse {
      * See "Interlinear Datasets" below.
      */
     words: InterlinearWord[];
+}
+
+interface DatasetCategoriesVerse {
+    /**
+     * The number of the verse.
+     * If `endVerse` is present, then this is the verse that the passage starts at.
+     */
+    verse: number;
+
+    /**
+     * The verse that the passage ends at.
+     * Omitted if the entry is a single verse.
+     */
+    endVerse?: number;
+
+    /**
+     * The IDs of the categories that the verse belongs to, most relevant first.
+     * See "Verse of the Day" below.
+     */
+    categories: string[];
 }
 
 interface DatasetReference {
@@ -2253,5 +2311,311 @@ export interface DatasetLexiconSense {
         ]
     },
     "thisLexiconEntryApiLink": "/api/d/stepbible-lexicon/lexicon/H1254.json"
+}
+```
+
+
+## Verse of the Day
+
+The verse of the day dataset (`verse-of-the-day`) is a curated list of more than 200 well-known verses and short passages (at most three verses) that make good candidates for a "verse of the day". Each one makes sense on its own and has one to three categories, most relevant first, from this fixed set:
+
+| ID            | Description                                                 |
+| ------------- | ----------------------------------------------------------- |
+| `comfort`     | God's nearness and care in grief, trouble, and loneliness.  |
+| `courage`     | Standing firm and not being afraid.                         |
+| `faith`       | Trusting God and His promises.                              |
+| `forgiveness` | God's forgiveness of sin and forgiving others.              |
+| `gratitude`   | Giving thanks to God.                                       |
+| `guidance`    | God directing our steps, plans, and decisions.              |
+| `hope`        | Confidence in the future that God has promised.             |
+| `inspiration` | Encouragement to live out the faith and do good.            |
+| `joy`         | Rejoicing and gladness in God.                              |
+| `love`        | God's love for us and our love for God and others.          |
+| `peace`       | Rest, stillness, and freedom from anxiety.                  |
+| `praise`      | Worship and declarations of God's greatness.                |
+| `prayer`      | Calling on God and His promise to hear.                     |
+| `provision`   | God supplying what we need.                                 |
+| `salvation`   | Redemption, grace, and new life in Christ.                  |
+| `strength`    | God giving strength and endurance.                          |
+| `wisdom`      | Godly wisdom and practical instruction for life.            |
+
+The dataset only contains references, not verse text, so it works with every translation. Verse numbers use the standard English numbering (the same as the BSB). The data can be read two ways:
+
+-   [`/api/d/verse-of-the-day/categories/{category}.json`](#get-a-category-from-a-dataset) lists every verse in a category. This is the easiest way to pick a verse of the day.
+-   [`/api/d/verse-of-the-day/{book}/{chapter}.json`](#get-a-chapter-from-a-dataset) lists the candidates in a chapter, with their categories. Only chapters that contain a candidate are available; use the book's chapter links or `/api/d/verse-of-the-day/books.json` to find them.
+
+Datasets that contain verse categories include `listOfCategoriesApiLink` and `totalNumberOfCategories` in their entry in `/api/available_datasets.json`.
+
+### Picking a Verse of the Day
+
+The API is made of static files, so it doesn't pick a verse for you. To give everyone the same verse on the same day, pick from a category's list using the date:
+
+```ts:no-line-numbers title="verse-of-the-day.js"
+const category = await fetch(
+    'https://bible.helloao.org/api/d/verse-of-the-day/categories/hope.json'
+).then((r) => r.json());
+
+// The number of days since 1970-01-01 (UTC), so the pick changes once a day.
+const day = Math.floor(Date.now() / (24 * 60 * 60 * 1000));
+const ref = category.category.verses[day % category.category.verses.length];
+
+// Get the text of the verse from a translation.
+const chapter = await fetch(
+    `https://bible.helloao.org/api/BSB/${ref.book}/${ref.chapter}.json`
+).then((r) => r.json());
+const verses = chapter.chapter.content.filter(
+    (c) =>
+        c.type === 'verse' &&
+        c.number >= ref.verse &&
+        c.number <= (ref.endVerse ?? ref.verse)
+);
+console.log(ref, verses);
+```
+
+The `@helloao/tools` package has the same list and a `getVerseOfTheDay(date, category?)` function in `@helloao/tools/generation/verse-of-the-day.js`.
+
+### License
+
+The list was put together by AO Lab and is released under the [MIT License](https://github.com/HelloAOLab/bible-api/blob/main/LICENSE). The verse text comes from whichever translation you fetch it from.
+
+
+## List Categories in a Dataset
+
+`GET https://bible.helloao.org/api/d/{dataset}/categories.json`
+
+Gets the list of verse categories that are available for a dataset.
+
+-   `dataset` the ID of the dataset (e.g. `verse-of-the-day`).
+
+### Code Example
+
+::: code-tabs#lang
+
+@tab JavaScript
+
+```ts:no-line-numbers title="fetch-categories.js"
+fetch(`https://bible.helloao.org/api/d/verse-of-the-day/categories.json`)
+    .then(request => request.json())
+    .then(categories => {
+        console.log('The dataset has the following categories:', categories.categories);
+    });
+```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/d/verse-of-the-day/categories.json
+```
+
+:::
+
+### Structure
+
+```typescript:no-line-numbers title="dataset-categories.ts"
+export interface DatasetCategories {
+    /**
+     * The dataset information for the categories.
+     */
+    dataset: Dataset;
+
+    /**
+     * The list of verse categories that are available for the dataset.
+     */
+    categories: DatasetCategorySummary[];
+}
+
+export interface DatasetCategorySummary {
+    /**
+     * The ID of the category. e.g. "hope".
+     */
+    id: string;
+
+    /**
+     * The English name of the category. e.g. "Hope".
+     */
+    name: string;
+
+    /**
+     * The description of what the verses in the category are about.
+     */
+    description: string;
+
+    /**
+     * The number of verses (or short passages) that belong to the category.
+     */
+    numberOfVerses: number;
+
+    /**
+     * The API link for the category.
+     */
+    apiLink: string;
+}
+```
+
+### Example
+
+```json:no-line-numbers title="/api/d/verse-of-the-day/categories.json"
+{
+    "dataset": {
+        "id": "verse-of-the-day",
+        "name": "Verse of the Day",
+        "totalNumberOfCategories": 17
+        // ...
+    },
+    "categories": [
+        {
+            "id": "comfort",
+            "name": "Comfort",
+            "description": "God's nearness and care in grief, trouble, and loneliness.",
+            "numberOfVerses": 25,
+            "apiLink": "/api/d/verse-of-the-day/categories/comfort.json"
+        },
+        {
+            "id": "courage",
+            "name": "Courage",
+            "description": "Standing firm and not being afraid.",
+            "numberOfVerses": 18,
+            "apiLink": "/api/d/verse-of-the-day/categories/courage.json"
+        }
+        // ...
+    ]
+}
+```
+
+
+## Get a Category from a Dataset
+
+`GET https://bible.helloao.org/api/d/{dataset}/categories/{category}.json`
+
+Gets a single verse category, with every verse that belongs to it.
+
+-   `dataset` the ID of the dataset (e.g. `verse-of-the-day`).
+-   `category` is the ID of the category (e.g. `hope`).
+
+### Code Example
+
+::: code-tabs#lang
+
+@tab JavaScript
+
+```ts:no-line-numbers title="fetch-category.js"
+fetch(`https://bible.helloao.org/api/d/verse-of-the-day/categories/hope.json`)
+    .then(request => request.json())
+    .then(category => {
+        console.log('Verses about hope:', category.category.verses);
+    });
+```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/d/verse-of-the-day/categories/hope.json
+```
+
+:::
+
+### Structure
+
+```typescript:no-line-numbers title="dataset-category.ts"
+export interface DatasetCategoryResponse {
+    /**
+     * The dataset information for the category.
+     */
+    dataset: Dataset;
+
+    /**
+     * The category, with the verses that belong to it.
+     */
+    category: DatasetCategory;
+
+    /**
+     * The API link for this category.
+     */
+    thisCategoryApiLink: string;
+}
+
+export interface DatasetCategory {
+    /**
+     * The ID of the category. e.g. "hope".
+     */
+    id: string;
+
+    /**
+     * The English name of the category. e.g. "Hope".
+     */
+    name: string;
+
+    /**
+     * The description of what the verses in the category are about.
+     */
+    description: string;
+
+    /**
+     * The verses (or short passages) that belong to the category, in canonical order.
+     */
+    verses: VerseRef[];
+}
+
+export interface VerseRef {
+    /**
+     * The ID of the book. e.g. "JER".
+     */
+    book: string;
+
+    /**
+     * The chapter number.
+     */
+    chapter: number;
+
+    /**
+     * The verse number.
+     * If `endVerse` is present, then this is the verse that the passage starts at.
+     */
+    verse: number;
+
+    /**
+     * The verse that the passage ends at.
+     * Omitted if the reference is a single verse.
+     */
+    endVerse?: number;
+}
+```
+
+### Example
+
+```json:no-line-numbers title="/api/d/verse-of-the-day/categories/hope.json"
+{
+    "dataset": {
+        "id": "verse-of-the-day",
+        "name": "Verse of the Day",
+        "totalNumberOfCategories": 17
+        // ...
+    },
+    "category": {
+        "id": "hope",
+        "name": "Hope",
+        "description": "Confidence in the future that God has promised.",
+        "verses": [
+            {
+                "book": "GEN",
+                "chapter": 50,
+                "verse": 20
+            },
+            // ...
+            {
+                "book": "ISA",
+                "chapter": 43,
+                "verse": 18,
+                "endVerse": 19
+            },
+            {
+                "book": "JER",
+                "chapter": 29,
+                "verse": 11
+            }
+            // ...
+        ]
+    },
+    "thisCategoryApiLink": "/api/d/verse-of-the-day/categories/hope.json"
 }
 ```

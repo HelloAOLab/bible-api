@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync } from 'fs';
 import path from 'path';
 import {
+    generateVerseOfTheDayDataset,
     getVerseOfTheDay,
     VERSES_OF_THE_DAY,
     VERSE_OF_THE_DAY_CATEGORIES,
@@ -8,6 +9,8 @@ import {
     VerseOfTheDay,
 } from './verse-of-the-day.js';
 import { bookOrderMap } from './book-order.js';
+import { generateApiForDataset, generateFilesForApi } from './api.js';
+import { DatasetOutput } from './dataset.js';
 
 const BSB_DIR = path.resolve(__dirname, '../../../bible/bsb');
 
@@ -163,5 +166,163 @@ describe('getVerseOfTheDay()', () => {
 
     it('should return null when there are no verses', () => {
         expect(getVerseOfTheDay(new Date(), undefined, [])).toBeNull();
+    });
+});
+
+describe('generateVerseOfTheDayDataset()', () => {
+    const verses: VerseOfTheDay[] = [
+        { book: 'JHN', chapter: 3, verse: 17, categories: ['salvation'] },
+        {
+            book: 'JHN',
+            chapter: 3,
+            verse: 16,
+            categories: ['love', 'salvation'],
+        },
+        {
+            book: 'PRO',
+            chapter: 3,
+            verse: 5,
+            endVerse: 6,
+            categories: ['faith', 'guidance', 'wisdom'],
+        },
+    ];
+
+    it('should group the verses into books and chapters in canonical order', () => {
+        const dataset = generateVerseOfTheDayDataset(verses);
+
+        expect(dataset.id).toBe('verse-of-the-day');
+        expect(dataset.books.map((b) => [b.id, b.order])).toEqual([
+            ['PRO', 20],
+            ['JHN', 43],
+        ]);
+        expect(dataset.books[0].chapters).toEqual([
+            {
+                chapter: {
+                    number: 3,
+                    content: [
+                        {
+                            verse: 5,
+                            endVerse: 6,
+                            categories: ['faith', 'guidance', 'wisdom'],
+                        },
+                    ],
+                },
+            },
+        ]);
+        expect(dataset.books[1].chapters[0].chapter.content).toEqual([
+            { verse: 16, categories: ['love', 'salvation'] },
+            { verse: 17, categories: ['salvation'] },
+        ]);
+    });
+
+    it('should only include the categories that have verses', () => {
+        const dataset = generateVerseOfTheDayDataset(verses);
+
+        expect(dataset.categories!.map((c) => c.id)).toEqual([
+            'faith',
+            'guidance',
+            'love',
+            'salvation',
+            'wisdom',
+        ]);
+        expect(dataset.categories!.find((c) => c.id === 'salvation')).toEqual({
+            id: 'salvation',
+            name: 'Salvation',
+            description: 'Redemption, grace, and new life in Christ.',
+            verses: [
+                { book: 'JHN', chapter: 3, verse: 16 },
+                { book: 'JHN', chapter: 3, verse: 17 },
+            ],
+        });
+        expect(
+            dataset.categories!.find((c) => c.id === 'faith')!.verses
+        ).toEqual([{ book: 'PRO', chapter: 3, verse: 5, endVerse: 6 }]);
+    });
+
+    it('should include every curated verse and category by default', () => {
+        const dataset = generateVerseOfTheDayDataset();
+
+        const count = dataset.books
+            .flatMap((b) => b.chapters)
+            .reduce((n, c) => n + c.chapter.content.length, 0);
+        expect(count).toBe(VERSES_OF_THE_DAY.length);
+        expect(dataset.categories!.map((c) => c.id)).toEqual([
+            ...VERSE_OF_THE_DAY_CATEGORIES,
+        ]);
+    });
+
+    describe('generateApiForDataset()', () => {
+        function createDatasetOutput(): DatasetOutput {
+            return {
+                translations: [],
+                commentaries: [],
+                datasets: [generateVerseOfTheDayDataset(verses)],
+            };
+        }
+
+        it('should list the dataset in available datasets with a categories link', () => {
+            const api = generateApiForDataset(createDatasetOutput());
+
+            expect(api.availableDatasets?.datasets).toMatchObject([
+                {
+                    id: 'verse-of-the-day',
+                    listOfBooksApiLink: '/api/d/verse-of-the-day/books.json',
+                    numberOfBooks: 2,
+                    totalNumberOfChapters: 2,
+                    totalNumberOfVerses: 3,
+                    totalNumberOfReferences: 0,
+                    listOfCategoriesApiLink:
+                        '/api/d/verse-of-the-day/categories.json',
+                    totalNumberOfCategories: 5,
+                },
+            ]);
+            expect(
+                api.availableDatasets!.datasets[0].totalNumberOfWords
+            ).toBeUndefined();
+        });
+
+        it('should generate the category list and contents', () => {
+            const api = generateApiForDataset(createDatasetOutput());
+
+            expect(api.datasetCategories).toHaveLength(1);
+            expect(api.datasetCategories![0].categories).toContainEqual({
+                id: 'salvation',
+                name: 'Salvation',
+                description: 'Redemption, grace, and new life in Christ.',
+                numberOfVerses: 2,
+                apiLink: '/api/d/verse-of-the-day/categories/salvation.json',
+            });
+
+            const salvation = api.datasetCategoryContents!.find(
+                (c) => c.category.id === 'salvation'
+            )!;
+            expect(salvation.thisCategoryApiLink).toBe(
+                '/api/d/verse-of-the-day/categories/salvation.json'
+            );
+            expect(salvation.category.verses).toHaveLength(2);
+        });
+
+        it('should generate files for the category and chapter endpoints', () => {
+            const api = generateApiForDataset(createDatasetOutput());
+            const files = generateFilesForApi(api);
+
+            const paths = files.map((f) => f.path);
+            expect(paths).toContain('/api/available_datasets.json');
+            expect(paths).toContain('/api/d/verse-of-the-day/books.json');
+            expect(paths).toContain('/api/d/verse-of-the-day/categories.json');
+            expect(paths).toContain(
+                '/api/d/verse-of-the-day/categories/salvation.json'
+            );
+            expect(paths).toContain('/api/d/verse-of-the-day/PRO/3.json');
+            expect(paths).toContain('/api/d/verse-of-the-day/JHN/3.json');
+
+            const chapter = api.datasetBookChapters!.find(
+                (c) => c.book.id === 'JHN'
+            )!;
+            expect(chapter.numberOfVerses).toBe(2);
+            expect(chapter.previousChapterApiLink).toBe(
+                '/api/d/verse-of-the-day/PRO/3.json'
+            );
+        });
     });
 });

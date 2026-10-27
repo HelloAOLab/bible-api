@@ -36,6 +36,8 @@ Commands:
                                                          The directory should contain the files downloaded by the fetch-interlinear command.
   import-history-globe <dir>                             Imports the History Globe places from the given directory into the database.
                                                          The directory should contain the files downloaded by the fetch-history-globe command.
+  import-verse-of-the-day                                Imports the verse of the day dataset into the database.
+                                                         The dataset is built into @helloao/tools, so it does not need to be fetched first.
   upload-test-translation [options] <input>              Uploads a translation to the HelloAO Free Bible API test S3 bucket.
                                                          Requires access to the HelloAO Free Bible API test S3 bucket.
                                                          For inquiries, please contact hello@helloao.org.
