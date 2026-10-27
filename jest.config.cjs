@@ -17,7 +17,7 @@ module.exports = {
             },
         ],
         '^.+\\.tsx?$': [
-            'ts-jest',
+            '<rootDir>/tools/tsJestTransformer.cjs',
             {
                 tsconfig: 'tsconfig.test.json',
                 useESM: true,
@@ -25,6 +25,9 @@ module.exports = {
         ],
     },
     moduleNameMapper: {
+        // The generated Prisma client imports the ES module builds of its query compiler.
+        // Jest runs the tests as CommonJS, so use the CommonJS builds instead.
+        '^@prisma/client/runtime/(.*)\\.mjs$': '@prisma/client/runtime/$1.js',
         '^(\\.{1,2}/.*)\\.js$': '$1',
         '^@helloao/tools/(.*)\\.js$': '<rootDir>/packages/helloao-tools/$1',
         '@helloao/tools': '<rootDir>/packages/helloao-tools',

@@ -3,7 +3,7 @@ import path from 'path';
 import Sql, { Database } from 'better-sqlite3';
 import fsExtra from 'fs-extra';
 const { exists, readdir, readFile } = fsExtra;
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import {
     DatasetCommentary,
     DatasetCommentaryBook,
@@ -38,8 +38,6 @@ import {
     loadTranslationFiles,
     serializeOutputFiles,
 } from './files.js';
-import hash from 'hash.js';
-const { sha256 } = hash;
 import type { DOMParser } from 'linkedom';
 import { Readable } from 'stream';
 import { getEnglishName, getNativeName } from 'all-iso-language-codes';
@@ -55,7 +53,9 @@ if (!dirname) {
 }
 
 export async function getMigrationsPath() {
-    const migrationsPaths = ['../../migrations'];
+    // The migrations are two directories up from the built files (dist/esm),
+    // and next to the source files when they are run directly (e.g. in tests).
+    const migrationsPaths = ['../../migrations', './migrations'];
 
     for (let migrationsPath of migrationsPaths) {
         const fullPath = path.resolve(dirname, migrationsPath);
@@ -220,11 +220,20 @@ export function importDatasetOutput(db: Database, output: DatasetOutput) {
     const logger = log.getLogger();
 
     insertTranslations(db, output.translations);
-    updateTranslationHashes(db, output.translations);
+    updateTranslationHashes(
+        db,
+        output.translations.map((t) => t.id)
+    );
     insertCommentaries(db, output.commentaries);
-    updateCommentaryHashes(db, output.commentaries);
+    updateCommentaryHashes(
+        db,
+        output.commentaries.map((c) => c.id)
+    );
     insertDatasets(db, output.datasets ?? []);
-    updateDatasetHashes(db, output.datasets ?? []);
+    updateDatasetHashes(
+        db,
+        (output.datasets ?? []).map((d) => d.id)
+    );
     insertWarningMetadata(db, output.parseMessages);
 
     logger.log(`Inserted ${output.translations.length} translations into DB`);
@@ -293,6 +302,88 @@ export function insertFileMetadata(db: Database, files: InputFile[]) {
     });
 
     insertManyFiles(files);
+}
+
+/**
+ * Deletes the given translations and everything that is stored for them from the database.
+ * @param db The database to delete the translations from.
+ * @param translationIds The IDs of the translations to delete.
+ */
+export function deleteTranslations(db: Database, translationIds: string[]) {
+    // Child tables first, so that the foreign keys are never violated.
+    const statements = [
+        'DELETE FROM ChapterFootnote WHERE translationId = ?;',
+        'DELETE FROM ChapterVerse WHERE translationId = ?;',
+        'DELETE FROM ChapterAudioUrl WHERE translationId = ?;',
+        'DELETE FROM ChapterAudioTiming WHERE translationId = ?;',
+        'DELETE FROM ChapterWords WHERE translationId = ?;',
+        'DELETE FROM Chapter WHERE translationId = ?;',
+        'DELETE FROM Book WHERE translationId = ?;',
+        'DELETE FROM InputFile WHERE translationId = ?;',
+        'DELETE FROM Translation WHERE id = ?;',
+    ].map((sql) => db.prepare(sql));
+
+    const deleteAll = db.transaction(() => {
+        for (let id of translationIds) {
+            for (let statement of statements) {
+                statement.run(id);
+            }
+        }
+    });
+
+    deleteAll();
+}
+
+/**
+ * Deletes the given commentaries and everything that is stored for them from the database.
+ * @param db The database to delete the commentaries from.
+ * @param commentaryIds The IDs of the commentaries to delete.
+ */
+export function deleteCommentaries(db: Database, commentaryIds: string[]) {
+    const statements = [
+        'DELETE FROM CommentaryChapterVerse WHERE commentaryId = ?;',
+        'DELETE FROM CommentaryChapter WHERE commentaryId = ?;',
+        'DELETE FROM CommentaryProfile WHERE commentaryId = ?;',
+        'DELETE FROM CommentaryBook WHERE commentaryId = ?;',
+        'DELETE FROM InputFile WHERE translationId = ?;',
+        'DELETE FROM Commentary WHERE id = ?;',
+    ].map((sql) => db.prepare(sql));
+
+    const deleteAll = db.transaction(() => {
+        for (let id of commentaryIds) {
+            for (let statement of statements) {
+                statement.run(id);
+            }
+        }
+    });
+
+    deleteAll();
+}
+
+/**
+ * Deletes the given datasets and everything that is stored for them from the database.
+ * @param db The database to delete the datasets from.
+ * @param datasetIds The IDs of the datasets to delete.
+ */
+export function deleteDatasets(db: Database, datasetIds: string[]) {
+    const statements = [
+        'DELETE FROM DatasetReference WHERE datasetId = ?;',
+        'DELETE FROM DatasetChapterVerse WHERE datasetId = ?;',
+        'DELETE FROM DatasetChapter WHERE datasetId = ?;',
+        'DELETE FROM DatasetBook WHERE datasetId = ?;',
+        'DELETE FROM DatasetEntity WHERE datasetId = ?;',
+        'DELETE FROM Dataset WHERE id = ?;',
+    ].map((sql) => db.prepare(sql));
+
+    const deleteAll = db.transaction(() => {
+        for (let id of datasetIds) {
+            for (let statement of statements) {
+                statement.run(id);
+            }
+        }
+    });
+
+    deleteAll();
 }
 
 export function insertTranslations(
@@ -705,16 +796,52 @@ export function upsertChapterAudioTiming(
 }
 
 /**
- * Updates the hashes for the translations in the database.
- * @param db The database to update the hashes in.
- * @param translations The translations to update the hashes for.
+ * Creates a SHA-256 hash of the given values.
+ * Each value is serialized as JSON so that numbers, booleans, and missing values all affect the hash
+ * and so that adjacent values can't run together.
+ * @param values The values to hash.
  */
-function updateTranslationHashes(
+function hashValues(...values: unknown[]): string {
+    const hash = createHash('sha256');
+    for (let value of values) {
+        hash.update(JSON.stringify(value ?? null));
+        hash.update('\n');
+    }
+    return hash.digest('hex');
+}
+
+/**
+ * Groups the given rows by their chapter number.
+ * @param rows The rows to group.
+ */
+function groupByChapterNumber<T extends { number: number }>(
+    rows: T[]
+): Map<number, T[]> {
+    const map = new Map<number, T[]>();
+    for (let row of rows) {
+        let list = map.get(row.number);
+        if (!list) {
+            list = [];
+            map.set(row.number, list);
+        }
+        list.push(row);
+    }
+    return map;
+}
+
+/**
+ * Updates the hashes for the translations in the database.
+ * The hash of a translation covers everything that is stored for it, including its metadata, license, books, chapters,
+ * audio links, audio timings, and words. So it changes whenever anything that the API is generated from changes.
+ * @param db The database to update the hashes in.
+ * @param translationIds The IDs of the translations to update the hashes for.
+ */
+export function updateTranslationHashes(
     db: Database,
-    translations: DatasetTranslation[]
+    translationIds: string[]
 ) {
     const logger = log.getLogger();
-    logger.log(`Updating hashes for ${translations.length} translations.`);
+    logger.log(`Updating hashes for ${translationIds.length} translations.`);
 
     const updateTranslationHash = db.prepare(
         `UPDATE Translation SET sha256 = @sha256 WHERE id = @translationId;`
@@ -726,119 +853,151 @@ function updateTranslationHashes(
         `UPDATE Chapter SET sha256 = @sha256 WHERE translationId = @translationId AND bookId = @bookId AND number = @chapterNumber;`
     );
 
-    const getBooks = db.prepare('SELECT * FROM Book WHERE translationId = ?;');
+    const getTranslation = db.prepare(
+        'SELECT * FROM Translation WHERE id = ?;'
+    );
+    const getBooks = db.prepare(
+        'SELECT * FROM Book WHERE translationId = ? ORDER BY `order` ASC, id ASC;'
+    );
     const getChapters = db.prepare(
-        'SELECT * FROM Chapter WHERE translationId = @translationId AND bookId = @bookId;'
+        'SELECT * FROM Chapter WHERE translationId = @translationId AND bookId = @bookId ORDER BY number ASC;'
+    );
+    const getAudioUrls = db.prepare(
+        'SELECT * FROM ChapterAudioUrl WHERE translationId = @translationId AND bookId = @bookId ORDER BY number ASC, reader ASC;'
+    );
+    const getAudioTimings = db.prepare(
+        'SELECT * FROM ChapterAudioTiming WHERE translationId = @translationId AND bookId = @bookId ORDER BY number ASC, reader ASC;'
+    );
+    const getWords = db.prepare(
+        'SELECT * FROM ChapterWords WHERE translationId = @translationId AND bookId = @bookId ORDER BY number ASC;'
     );
 
-    for (let translation of translations) {
-        const translationSha = sha256()
-            .update(translation.id)
-            .update(translation.name)
-            .update(translation.language)
-            .update(translation.licenseUrl)
-            .update(translation.textDirection)
-            .update(translation.website)
-            .update(translation.englishName)
-            .update(translation.shortName);
+    const updateHashes = db.transaction((translationId: string) => {
+        const translation = getTranslation.get(translationId) as
+            | {
+                  id: string;
+                  name: string;
+                  website: string;
+                  licenseUrl: string;
+                  licenseNotes: string | null;
+                  licenseNotice: string | null;
+                  license: string | null;
+                  shortName: string | null;
+                  englishName: string;
+                  language: string;
+                  textDirection: string;
+              }
+            | undefined;
 
-        const books = getBooks.all(translation.id) as {
+        if (!translation) {
+            return;
+        }
+
+        const books = getBooks.all(translationId) as {
             id: string;
             order: number;
-            title: string;
+            title: string | null;
             translationId: string;
             name: string;
             commonName: string;
             shortName: string | null;
             numberOfChapters: number;
-            sha256: string;
+            isApocryphal: number | null;
         }[];
 
+        const bookHashes: string[] = [];
         for (let book of books) {
-            const chapters = getChapters.all({
-                translationId: translation.id,
-                bookId: book.id,
-            }) as {
-                number: string;
-                bookId: string;
-                translationId: string;
+            const query = { translationId, bookId: book.id };
+            const chapters = getChapters.all(query) as {
+                number: number;
                 json: string;
-                sha256: string;
             }[];
+            const audioUrls = groupByChapterNumber(
+                getAudioUrls.all(query) as {
+                    number: number;
+                    reader: string;
+                    url: string;
+                }[]
+            );
+            const audioTimings = groupByChapterNumber(
+                getAudioTimings.all(query) as {
+                    number: number;
+                    reader: string;
+                    timingsJson: string;
+                }[]
+            );
+            const words = groupByChapterNumber(
+                getWords.all(query) as { number: number; wordsJson: string }[]
+            );
 
-            const bookSha = sha256()
-                .update(book.translationId)
-                .update(book.id)
-                .update(book.numberOfChapters)
-                .update(book.order)
-                .update(book.name)
-                .update(book.title)
-                .update(book.commonName);
-
-            // Only include the short name when it is present so that
-            // the hashes of existing books don't change.
-            if (book.shortName) {
-                bookSha.update(book.shortName);
-            }
-
+            const chapterHashes: string[] = [];
             for (let chapter of chapters) {
-                const hash = sha256()
-                    .update(chapter.translationId)
-                    .update(chapter.bookId)
-                    .update(chapter.number)
-                    .update(chapter.json)
-                    .digest('hex');
-
-                chapter.sha256 = hash;
-
-                bookSha.update(hash);
-            }
-
-            const updateChapters = db.transaction(() => {
-                for (let chapter of chapters) {
-                    updateChapterHash.run({
-                        sha256: chapter.sha256,
-                        translationId: chapter.translationId,
-                        bookId: chapter.bookId,
-                        chapterNumber: chapter.number,
-                    });
-                }
-            });
-
-            updateChapters();
-
-            const bookHash = bookSha.digest('hex');
-            book.sha256 = bookHash;
-
-            translationSha.update(bookHash);
-        }
-
-        const updateBooks = db.transaction(() => {
-            for (let book of books) {
-                updateBookHash.run({
-                    sha256: book.sha256,
-                    translationId: book.translationId,
+                const hash = hashValues(
+                    translationId,
+                    book.id,
+                    chapter.number,
+                    chapter.json,
+                    (audioUrls.get(chapter.number) ?? []).map((a) => [
+                        a.reader,
+                        a.url,
+                    ]),
+                    (audioTimings.get(chapter.number) ?? []).map((t) => [
+                        t.reader,
+                        t.timingsJson,
+                    ]),
+                    (words.get(chapter.number) ?? []).map((w) => w.wordsJson)
+                );
+                chapterHashes.push(hash);
+                updateChapterHash.run({
+                    sha256: hash,
+                    translationId,
                     bookId: book.id,
+                    chapterNumber: chapter.number,
                 });
             }
-        });
 
-        updateBooks();
-
-        const hash = translationSha.digest('hex');
-        (translation as any).sha256 = hash;
-    }
-
-    const updateTranslations = db.transaction(() => {
-        for (let translation of translations) {
-            updateTranslationHash.run({
-                sha256: (translation as any).sha256,
-                translationId: translation.id,
+            const bookHash = hashValues(
+                translationId,
+                book.id,
+                book.order,
+                book.name,
+                book.commonName,
+                book.shortName,
+                book.title,
+                book.numberOfChapters,
+                !!book.isApocryphal,
+                chapterHashes
+            );
+            bookHashes.push(bookHash);
+            updateBookHash.run({
+                sha256: bookHash,
+                translationId,
+                bookId: book.id,
             });
         }
+
+        updateTranslationHash.run({
+            sha256: hashValues(
+                translation.id,
+                translation.name,
+                translation.language,
+                translation.shortName,
+                translation.englishName,
+                translation.textDirection,
+                translation.website,
+                translation.licenseUrl,
+                translation.licenseNotes,
+                translation.licenseNotice,
+                translation.license,
+                bookHashes
+            ),
+            translationId,
+        });
     });
 
-    updateTranslations();
+    for (let id of translationIds) {
+        updateHashes(id);
+    }
 
     logger.log(`Updated.`);
 }
@@ -1131,17 +1290,15 @@ export function insertCommentaryContent(
 
 /**
  * Updates the hashes for the commentaries in the database.
+ * The hash of a commentary covers everything that is stored for it, including its metadata, books, chapters, and profiles.
  * @param db The database to update the hashes in.
- * @param commentaries The commentaries to update the hashes for.
+ * @param commentaryIds The IDs of the commentaries to update the hashes for.
  */
-function updateCommentaryHashes(
-    db: Database,
-    commentaries: DatasetCommentary[]
-) {
+export function updateCommentaryHashes(db: Database, commentaryIds: string[]) {
     const logger = log.getLogger();
-    logger.log(`Updating hashes for ${commentaries.length} commentaries.`);
+    logger.log(`Updating hashes for ${commentaryIds.length} commentaries.`);
 
-    const updateTranslationHash = db.prepare(
+    const updateCommentaryHash = db.prepare(
         `UPDATE Commentary SET sha256 = @sha256 WHERE id = @commentaryId;`
     );
     const updateBookHash = db.prepare(
@@ -1150,166 +1307,135 @@ function updateCommentaryHashes(
     const updateChapterHash = db.prepare(
         `UPDATE CommentaryChapter SET sha256 = @sha256 WHERE commentaryId = @commentaryId AND bookId = @bookId AND number = @chapterNumber;`
     );
-
-    const getBooks = db.prepare(
-        'SELECT * FROM CommentaryBook WHERE commentaryId = ?;'
-    );
-    const getChapters = db.prepare(
-        'SELECT * FROM CommentaryChapter WHERE commentaryId = @commentaryId AND bookId = @bookId;'
-    );
-
     const updateProfileHash = db.prepare(
         `UPDATE CommentaryProfile SET sha256 = @sha256 WHERE commentaryId = @commentaryId AND id = @profileId;`
     );
 
+    const getCommentary = db.prepare('SELECT * FROM Commentary WHERE id = ?;');
+    const getBooks = db.prepare(
+        'SELECT * FROM CommentaryBook WHERE commentaryId = ? ORDER BY `order` ASC, id ASC;'
+    );
+    const getChapters = db.prepare(
+        'SELECT * FROM CommentaryChapter WHERE commentaryId = @commentaryId AND bookId = @bookId ORDER BY number ASC;'
+    );
     const getProfiles = db.prepare(
-        'SELECT * FROM CommentaryProfile WHERE commentaryId = ?;'
+        'SELECT * FROM CommentaryProfile WHERE commentaryId = ? ORDER BY id ASC;'
     );
 
-    for (let commentary of commentaries) {
-        const commentarySha = sha256()
-            .update(commentary.id)
-            .update(commentary.name)
-            .update(commentary.language)
-            .update(commentary.licenseUrl)
-            .update(commentary.textDirection)
-            .update(commentary.website)
-            .update(commentary.englishName);
+    const updateHashes = db.transaction((commentaryId: string) => {
+        const commentary = getCommentary.get(commentaryId) as
+            | {
+                  id: string;
+                  name: string;
+                  website: string;
+                  licenseUrl: string;
+                  licenseNotes: string | null;
+                  licenseNotice: string | null;
+                  englishName: string;
+                  language: string;
+                  textDirection: string;
+              }
+            | undefined;
 
-        const books = getBooks.all(commentary.id) as {
+        if (!commentary) {
+            return;
+        }
+
+        const books = getBooks.all(commentaryId) as {
             id: string;
             order: number;
-            title: string;
-            commentaryId: string;
             name: string;
             commonName: string;
             numberOfChapters: number;
-            sha256: string;
-            introduction: string;
+            introduction: string | null;
+            introductionSummary: string | null;
         }[];
 
+        const bookHashes: string[] = [];
         for (let book of books) {
             const chapters = getChapters.all({
-                commentaryId: commentary.id,
+                commentaryId,
                 bookId: book.id,
             }) as {
-                number: string;
-                bookId: string;
-                commentaryId: string;
-                introduction: string;
+                number: number;
+                introduction: string | null;
                 json: string;
-                sha256: string;
             }[];
 
-            const bookSha = sha256()
-                .update(book.commentaryId)
-                .update(book.id)
-                .update(book.numberOfChapters)
-                .update(book.order)
-                .update(book.name)
-                .update(book.title)
-                .update(book.commonName)
-                .update(book.introduction);
-
+            const chapterHashes: string[] = [];
             for (let chapter of chapters) {
-                const hash = sha256()
-                    .update(chapter.commentaryId)
-                    .update(chapter.bookId)
-                    .update(chapter.number)
-                    .update(chapter.introduction)
-                    .update(chapter.json)
-                    .digest('hex');
-
-                chapter.sha256 = hash;
-
-                bookSha.update(hash);
-            }
-
-            const updateChapters = db.transaction(() => {
-                for (let chapter of chapters) {
-                    updateChapterHash.run({
-                        sha256: chapter.sha256,
-                        commentaryId: chapter.commentaryId,
-                        bookId: chapter.bookId,
-                        chapterNumber: chapter.number,
-                    });
-                }
-            });
-
-            updateChapters();
-
-            const bookHash = bookSha.digest('hex');
-            book.sha256 = bookHash;
-
-            commentarySha.update(bookHash);
-        }
-
-        const updateBooks = db.transaction(() => {
-            for (let book of books) {
-                updateBookHash.run({
-                    sha256: book.sha256,
-                    commentaryId: book.commentaryId,
+                const hash = hashValues(
+                    commentaryId,
+                    book.id,
+                    chapter.number,
+                    chapter.introduction,
+                    chapter.json
+                );
+                chapterHashes.push(hash);
+                updateChapterHash.run({
+                    sha256: hash,
+                    commentaryId,
                     bookId: book.id,
+                    chapterNumber: chapter.number,
                 });
             }
-        });
 
-        updateBooks();
+            const bookHash = hashValues(
+                commentaryId,
+                book.id,
+                book.order,
+                book.name,
+                book.commonName,
+                book.numberOfChapters,
+                book.introduction,
+                book.introductionSummary,
+                chapterHashes
+            );
+            bookHashes.push(bookHash);
+            updateBookHash.run({
+                sha256: bookHash,
+                commentaryId,
+                bookId: book.id,
+            });
+        }
 
-        const profiles = getProfiles.all(commentary.id) as {
+        const profiles = getProfiles.all(commentaryId) as {
             id: string;
-            commentaryId: string;
-            subject: string;
-            content: string;
-            referenceBook: string | null;
-            referenceChapter: number | null;
-            referenceVerse: number | null;
-            referenceEndChapter: number | null;
-            referenceEndVerse: number | null;
-            sha256: string;
+            json: string;
         }[];
 
+        const profileHashes: string[] = [];
         for (let profile of profiles) {
-            const profileSha = sha256()
-                .update(profile.commentaryId)
-                .update(profile.id)
-                .update(profile.subject)
-                .update(profile.content)
-                .update(profile.referenceBook)
-                .update(profile.referenceChapter)
-                .update(profile.referenceVerse)
-                .update(profile.referenceEndChapter)
-                .update(profile.referenceEndVerse);
-
-            profile.sha256 = profileSha.digest('hex');
-        }
-
-        const updateProfiles = db.transaction(() => {
-            for (let profile of profiles) {
-                updateProfileHash.run({
-                    sha256: profile.sha256,
-                    commentaryId: profile.commentaryId,
-                    profileId: profile.id,
-                });
-            }
-        });
-
-        updateProfiles();
-
-        const hash = commentarySha.digest('hex');
-        (commentary as any).sha256 = hash;
-    }
-
-    const updateCommentaries = db.transaction(() => {
-        for (let commentary of commentaries) {
-            updateTranslationHash.run({
-                sha256: (commentary as any).sha256,
-                commentaryId: commentary.id,
+            const hash = hashValues(commentaryId, profile.id, profile.json);
+            profileHashes.push(hash);
+            updateProfileHash.run({
+                sha256: hash,
+                commentaryId,
+                profileId: profile.id,
             });
         }
+
+        updateCommentaryHash.run({
+            sha256: hashValues(
+                commentary.id,
+                commentary.name,
+                commentary.language,
+                commentary.englishName,
+                commentary.textDirection,
+                commentary.website,
+                commentary.licenseUrl,
+                commentary.licenseNotes,
+                commentary.licenseNotice,
+                bookHashes,
+                profileHashes
+            ),
+            commentaryId,
+        });
     });
 
-    updateCommentaries();
+    for (let id of commentaryIds) {
+        updateHashes(id);
+    }
 
     logger.log(`Updated.`);
 }
@@ -1571,14 +1697,15 @@ export function insertDatasetContent(
 
 /**
  * Updates the hashes for the datasets in the database.
+ * The hash of a dataset covers everything that is stored for it, including its metadata, books, chapters, and entities.
  * @param db The database to update the hashes in.
- * @param datasets The datasets to update the hashes for.
+ * @param datasetIds The IDs of the datasets to update the hashes for.
  */
-function updateDatasetHashes(db: Database, datasets: Dataset[]) {
+export function updateDatasetHashes(db: Database, datasetIds: string[]) {
     const logger = log.getLogger();
-    logger.log(`Updating hashes for ${datasets.length} datasets.`);
+    logger.log(`Updating hashes for ${datasetIds.length} datasets.`);
 
-    const updateTranslationHash = db.prepare(
+    const updateDatasetHash = db.prepare(
         `UPDATE Dataset SET sha256 = @sha256 WHERE id = @datasetId;`
     );
     const updateBookHash = db.prepare(
@@ -1587,148 +1714,130 @@ function updateDatasetHashes(db: Database, datasets: Dataset[]) {
     const updateChapterHash = db.prepare(
         `UPDATE DatasetChapter SET sha256 = @sha256 WHERE datasetId = @datasetId AND bookId = @bookId AND number = @chapterNumber;`
     );
-
-    const getBooks = db.prepare(
-        'SELECT * FROM DatasetBook WHERE datasetId = ?;'
-    );
-    const getChapters = db.prepare(
-        'SELECT * FROM DatasetChapter WHERE datasetId = @datasetId AND bookId = @bookId;'
-    );
-    const getEntities = db.prepare(
-        'SELECT * FROM DatasetEntity WHERE datasetId = ? ORDER BY type ASC, id ASC;'
-    );
     const updateEntityHash = db.prepare(
         `UPDATE DatasetEntity SET sha256 = @sha256 WHERE datasetId = @datasetId AND type = @type AND id = @entityId;`
     );
 
-    for (let dataset of datasets) {
-        const commentarySha = sha256()
-            .update(dataset.id)
-            .update(dataset.name)
-            .update(dataset.language)
-            .update(dataset.licenseUrl)
-            .update(dataset.textDirection)
-            .update(dataset.website)
-            .update(dataset.englishName);
+    const getDataset = db.prepare('SELECT * FROM Dataset WHERE id = ?;');
+    const getBooks = db.prepare(
+        'SELECT * FROM DatasetBook WHERE datasetId = ? ORDER BY `order` ASC, id ASC;'
+    );
+    const getChapters = db.prepare(
+        'SELECT * FROM DatasetChapter WHERE datasetId = @datasetId AND bookId = @bookId ORDER BY number ASC;'
+    );
+    const getEntities = db.prepare(
+        'SELECT * FROM DatasetEntity WHERE datasetId = ? ORDER BY type ASC, id ASC;'
+    );
 
-        const books = getBooks.all(dataset.id) as {
+    const updateHashes = db.transaction((datasetId: string) => {
+        const dataset = getDataset.get(datasetId) as
+            | {
+                  id: string;
+                  name: string;
+                  website: string;
+                  licenseUrl: string;
+                  licenseNotes: string | null;
+                  englishName: string;
+                  language: string;
+                  textDirection: string;
+              }
+            | undefined;
+
+        if (!dataset) {
+            return;
+        }
+
+        const books = getBooks.all(datasetId) as {
             id: string;
-            datasetId: string;
             order: number;
             numberOfChapters: number;
-            sha256: string;
         }[];
 
+        const bookHashes: string[] = [];
         for (let book of books) {
             const chapters = getChapters.all({
-                datasetId: dataset.id,
+                datasetId,
                 bookId: book.id,
             }) as {
-                number: string;
-                bookId: string;
-                datasetId: string;
+                number: number;
                 json: string;
-                sha256: string;
             }[];
 
-            const bookSha = sha256()
-                .update(book.datasetId)
-                .update(book.id)
-                .update(book.numberOfChapters)
-                .update(book.order);
-
+            const chapterHashes: string[] = [];
             for (let chapter of chapters) {
-                const hash = sha256()
-                    .update(chapter.datasetId)
-                    .update(chapter.bookId)
-                    .update(chapter.number)
-                    .update(chapter.json)
-                    .digest('hex');
-
-                chapter.sha256 = hash;
-
-                bookSha.update(hash);
-            }
-
-            const updateChapters = db.transaction(() => {
-                for (let chapter of chapters) {
-                    updateChapterHash.run({
-                        sha256: chapter.sha256,
-                        datasetId: chapter.datasetId,
-                        bookId: chapter.bookId,
-                        chapterNumber: chapter.number,
-                    });
-                }
-            });
-
-            updateChapters();
-
-            const bookHash = bookSha.digest('hex');
-            book.sha256 = bookHash;
-
-            commentarySha.update(bookHash);
-        }
-
-        const updateBooks = db.transaction(() => {
-            for (let book of books) {
-                updateBookHash.run({
-                    sha256: book.sha256,
-                    datasetId: book.datasetId,
+                const hash = hashValues(
+                    datasetId,
+                    book.id,
+                    chapter.number,
+                    chapter.json
+                );
+                chapterHashes.push(hash);
+                updateChapterHash.run({
+                    sha256: hash,
+                    datasetId,
                     bookId: book.id,
+                    chapterNumber: chapter.number,
                 });
             }
-        });
 
-        updateBooks();
+            const bookHash = hashValues(
+                datasetId,
+                book.id,
+                book.order,
+                book.numberOfChapters,
+                chapterHashes
+            );
+            bookHashes.push(bookHash);
+            updateBookHash.run({
+                sha256: bookHash,
+                datasetId,
+                bookId: book.id,
+            });
+        }
 
-        const entities = getEntities.all(dataset.id) as {
+        const entities = getEntities.all(datasetId) as {
             id: string;
-            datasetId: string;
             type: string;
-            name: string;
             json: string;
-            sha256: string;
         }[];
 
+        const entityHashes: string[] = [];
         for (let entity of entities) {
-            const entityHash = sha256()
-                .update(entity.datasetId)
-                .update(entity.type)
-                .update(entity.id)
-                .update(entity.json)
-                .digest('hex');
-
-            entity.sha256 = entityHash;
-            commentarySha.update(entityHash);
-        }
-
-        const updateEntities = db.transaction(() => {
-            for (let entity of entities) {
-                updateEntityHash.run({
-                    sha256: entity.sha256,
-                    datasetId: entity.datasetId,
-                    type: entity.type,
-                    entityId: entity.id,
-                });
-            }
-        });
-
-        updateEntities();
-
-        const hash = commentarySha.digest('hex');
-        (dataset as any).sha256 = hash;
-    }
-
-    const updateDatasets = db.transaction(() => {
-        for (let dataset of datasets) {
-            updateTranslationHash.run({
-                sha256: (dataset as any).sha256,
-                datasetId: dataset.id,
+            const hash = hashValues(
+                datasetId,
+                entity.type,
+                entity.id,
+                entity.json
+            );
+            entityHashes.push(hash);
+            updateEntityHash.run({
+                sha256: hash,
+                datasetId,
+                type: entity.type,
+                entityId: entity.id,
             });
         }
+
+        updateDatasetHash.run({
+            sha256: hashValues(
+                dataset.id,
+                dataset.name,
+                dataset.language,
+                dataset.englishName,
+                dataset.textDirection,
+                dataset.website,
+                dataset.licenseUrl,
+                dataset.licenseNotes,
+                bookHashes,
+                entityHashes
+            ),
+            datasetId,
+        });
     });
 
-    updateDatasets();
+    for (let id of datasetIds) {
+        updateHashes(id);
+    }
 
     logger.log(`Updated.`);
 }
@@ -1881,7 +1990,11 @@ export async function* loadTranslationDatasets(
     let pageSize = translationsPerBatch;
 
     logger.log('Generating translation datasets in batches of', pageSize);
-    const totalTranslations = await db.translation.count();
+    const totalTranslations = await db.translation.count(
+        translationsToLoad && translationsToLoad.length > 0
+            ? { where: { id: { in: translationsToLoad } } }
+            : undefined
+    );
     const totalBatches = Math.ceil(totalTranslations / pageSize);
     let batchNumber = 1;
 
@@ -2072,7 +2185,11 @@ export async function* loadCommentaryDatasets(
     let pageSize = perBatch;
 
     logger.log('Generating commentaries datasets in batches of', pageSize);
-    const totalCommentaries = await db.commentary.count();
+    const totalCommentaries = await db.commentary.count(
+        commentariesToLoad && commentariesToLoad.length > 0
+            ? { where: { id: { in: commentariesToLoad } } }
+            : undefined
+    );
     const totalBatches = Math.ceil(totalCommentaries / pageSize);
     let batchNumber = 1;
 
@@ -2193,7 +2310,11 @@ export async function* loadDatasetDatasets(
     let pageSize = perBatch;
 
     logger.log('Generating dataset datasets in batches of', pageSize);
-    const totalDatasets = await db.dataset.count();
+    const totalDatasets = await db.dataset.count(
+        datasetsToLoad && datasetsToLoad.length > 0
+            ? { where: { id: { in: datasetsToLoad } } }
+            : undefined
+    );
     const totalBatches = Math.ceil(totalDatasets / pageSize);
     let batchNumber = 1;
 
@@ -2363,7 +2484,7 @@ export function serializeDatasets(
     );
 }
 
-function insertWarningMetadata(
+export function insertWarningMetadata(
     db: Database,
     parseMessages: DatasetOutput['parseMessages'] | undefined
 ) {

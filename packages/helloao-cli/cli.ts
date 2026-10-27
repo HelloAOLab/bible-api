@@ -38,6 +38,7 @@ import {
     uploadTypesenseVerses,
 } from './actions.js';
 import { getPrismaDb } from './db.js';
+import { sync } from './sync.js';
 import {
     FETCH_BIBLE_COLLECTION_REF,
     FETCH_BIBLE_COLLECTION_REPO,
@@ -869,6 +870,63 @@ async function start() {
                 db.$disconnect();
             }
         });
+    program
+        .command('sync [config]')
+        .description(
+            'Imports the new, changed, and deleted sources from the given sync config into the database, and uploads the changed translations, commentaries, and datasets to the destinations in the config.\n' +
+                'Only the sources in the config are kept in the database and uploaded. Sources are reprocessed when they change or when the code that processes them changes.\n' +
+                'The config defaults to ./sync.config.json. See the README for its format.'
+        )
+        .option(
+            '--dry-run',
+            'Only report what would change, without changing the database or any destination.'
+        )
+        .option(
+            '--skip-import',
+            'Skip importing the sources into the database.'
+        )
+        .option('--skip-upload', 'Skip uploading to the destinations.')
+        .option(
+            '--destination <urls...>',
+            'Only upload to the given destinations from the config.'
+        )
+        .option(
+            '--reprocess-all',
+            'Re-import every source, even ones that have not changed.'
+        )
+        .option(
+            '--reupload-all',
+            'Re-upload every item, even ones that have not changed.'
+        )
+        .option(
+            '--ignore-processor-changes',
+            'Do not reprocess sources just because the processor changed. Use when you know a processor change does not affect the existing sources.'
+        )
+        .option(
+            '--batch-size <size>',
+            'The number of items to load from the database and upload at a time.',
+            '10'
+        )
+        .option('--verbose', 'Log details about every source and item.')
+        .action(async (config: string | undefined, options: any) => {
+            const result = await sync(config ?? './sync.config.json', {
+                db: program.opts().db,
+                dryRun: options.dryRun,
+                skipImport: options.skipImport,
+                skipUpload: options.skipUpload,
+                destinations: options.destination,
+                reprocessAll: options.reprocessAll,
+                reuploadAll: options.reuploadAll,
+                ignoreProcessorChanges: options.ignoreProcessorChanges,
+                batchSize: parseInt(options.batchSize),
+                verbose: options.verbose,
+            });
+
+            if (result.errors.length > 0) {
+                process.exitCode = 1;
+            }
+        });
+
     program
         .command('upload-open-api-document')
         .argument(

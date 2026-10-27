@@ -42,6 +42,7 @@ Commands:
   generate-translation-files [options] <input> <dir>     Generates API files from the given input translation.
   generate-translations-files [options] <input> <dir>    Generates API files from the given input translations.
   upload-api-files [options] <dest>                      Uploads API files to the specified destination. For S3, use the format s3://bucket-name/path/to/folder.
+  sync [options] [config]                                Imports the new, changed, and deleted sources from the given sync config into the database, and uploads the changed translations, commentaries, and datasets to the destinations in the config.
   source-translations [options] <dir> [translations...]  Finds translation sources from ebible.org and downloads it.
   source-fetch-bible-translations [options] <dir> [translations...]
                                                          Finds translation sources from fetch.bible and downloads them.
@@ -67,11 +68,62 @@ Commands:
 
 > **Audio timings.** The `import-audio-timings <file>` command loads per-verse start times for a chapter's audio into the database, from a JSON array of `{ translationId, bookId, chapterNumber, reader, verses }` records. To generate that file from the audio itself, see [`tools/audio-timings`](../../tools/audio-timings/README.md), which transcribes a chapter with whisperX and aligns the result against the chapter's known verse text.
 
+### Keeping an API up to date with `sync`
+
+The `sync` command runs the whole pipeline (import into the database, generate, and upload) incrementally, from a JSON config that lists exactly which sources make up the API:
+
+```json
+{
+    "db": "./free-use-bible-api.db",
+    "exclude": ["eng_kjv*"],
+    "sources": [
+        { "type": "translations", "path": "./sources/ebible" },
+        { "type": "translation", "path": "./bible/bsb" },
+        { "type": "commentaries", "path": "./sources/comment" },
+        { "type": "theographic", "path": "./sources/metadata" },
+        { "type": "interlinear", "path": "./sources/interlinear" }
+    ],
+    "destinations": [
+        { "url": "s3://my-bucket", "profile": "my-aws-profile" },
+        { "url": "./api.zip" }
+    ]
+}
+```
+
+```
+helloao sync ./sync.config.json [--dry-run] [--skip-import] [--skip-upload] [--destination <urls...>]
+                                [--reprocess-all] [--reupload-all] [--ignore-processor-changes] [--verbose]
+```
+
+Paths in the config are relative to the config file, and `--db` overrides `db`. See `sync.config.example.json` in the repository for a starting point.
+
+-   **Sources.** `translations` and `commentaries` are directories where every subdirectory is a translation or commentary. `translation` and `commentary` are a single one. `theographic` and `interlinear` are the directories written by `fetch-bible-metadata` and `fetch-interlinear`. A configured directory that is missing is an error, so an unmounted drive can't be mistaken for every source being deleted.
+-   **Include and exclude.** `include` and `exclude` lists can be set for the whole config and for each source. They match translation, commentary, and dataset IDs (and the names of translation and commentary directories), case-insensitively, with `*` and `?` wildcards. Excluded sources are never parsed or imported.
+-   **Change detection.** Each source is fingerprinted by the names, sizes, and modification times of its files, so untouched sources are skipped without being read. When the fingerprint changes, the file contents are hashed, and the source is only reprocessed if they changed. This includes `metadata.json`, so metadata and license changes are picked up.
+-   **Deletions.** When a source is deleted or becomes excluded, its translations, commentaries, or datasets are removed from the database and their files are deleted from every destination. When a source changes, it is replaced as a whole, so books and chapters that were removed from it are deleted too. Audio timings that were loaded with `import-audio-timings` are kept.
+-   **Processor changes.** Sources are reprocessed when the code that processes them changes. The build hashes the minified code of the parsers and dataset generators (so comments and formatting don't count), and each source records the version it was imported with. Translations and commentaries, the Theographic dataset, and the interlinear datasets are versioned separately. If you know that a change doesn't affect the output, `--ignore-processor-changes` skips the reprocessing. Changes to the import code in this package are tracked by `IMPORT_VERSION` in `processor.ts`, which should be incremented by hand.
+-   **Uploads.** For each destination, the sync records what was uploaded for every item. Only items whose content (`sha256`) changed, or that were never uploaded, are generated and uploaded. When the API generator code or the destination's options change, every item is re-uploaded (S3 still skips files whose checksum matches). `available_translations.json` and the other merged files are rebuilt from the recorded parts of every item, so they always list exactly the synced items. Files for removed items, and files that an item no longer has, are deleted from S3 and local directories only after the merged files stop linking to them. Zip files are rewritten from scratch whenever anything changes.
+
+Only the items imported by the sync are uploaded, so translations that were imported into the same database by other commands are never published. To keep private translations out of a public API, give the private pipeline its own config and database:
+
+```json
+{
+    "db": "./private.db",
+    "sources": [
+        { "type": "translations", "path": "./sources/ebible" },
+        { "type": "translations", "path": "./private/translations" }
+    ],
+    "destinations": [{ "url": "s3://my-private-bucket" }]
+}
+```
+
+The sync state is stored in the `SyncSource`, `SyncUpload`, `SyncPendingDelete`, and `SyncDestination` tables of the database. The first sync of an existing database imports every source and uploads every item once.
+
 The `@helloao/cli` package can also be used as a library.
 
 The library exports a variety of actions, utilities, and supporting classes designed to assist with generating and managing a Free Use Bible API.
 
-There are 6 main exports:
+There are 7 main exports:
 
 -   `actions` - This export contains function versions of the CLI commands. They make it easy to call a CLI command from a script.
 -   `db` - This export contains functions that make working with a database easier. It supports operations like importing translations into a database, inserting chapters, verses, etc. and getting an updated database instance from a path.
@@ -79,6 +131,7 @@ There are 6 main exports:
 -   `files` - This export contains functions that make working with files easier. It has functions to load files from a translation, discover translation metadata from the filesystem, and classes that support uploading API files to the local file system or to a zip archive.
 -   `uploads` - This export contains functions that make it easy to upload an API to a destination like S3, the local filesystem, or a zip archive.
 -   `s3` - This export contains a class that can upload files to S3.
+-   `sync` - This export contains the function version of the `sync` command (`sync()` and `syncWithConfig()`) and the functions that find, import, and upload the sources in a sync config.
 
 Here are some common operations that you might want to perform:
 
