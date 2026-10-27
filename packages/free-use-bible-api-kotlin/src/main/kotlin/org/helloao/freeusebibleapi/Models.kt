@@ -1905,6 +1905,11 @@ public data class ApiDataset(
     public val listOfLexiconApiLink: String? = null,
 
     /**
+     * The API link for the list of every verse in this dataset, with its categories. Relative to the API origin. Omitted if the verses of the dataset don't have categories.
+     */
+    public val listOfVersesApiLink: String? = null,
+
+    /**
      * The API link for the list of verse categories for this dataset. Relative to the API origin. Omitted if the dataset doesn't contain verse categories.
      */
     public val listOfCategoriesApiLink: String? = null,
@@ -3281,6 +3286,53 @@ public data class DatasetLexiconEntry(
      * The senses of the entry, in ID order.
      */
     public val senses: List<DatasetLexiconSense>,
+)
+
+/**
+ * The list of every verse in a dataset whose verses have categories. Maps to the /api/d/:datasetId/verses.json endpoint.
+ */
+@Serializable
+public data class ApiDatasetVerses(
+    /**
+     * The dataset information for the verses.
+     */
+    public val dataset: ApiDataset,
+
+    /**
+     * Every verse (or short passage) in the dataset, with its categories, in canonical order.
+     */
+    public val verses: List<ApiDatasetCategorizedVerse>,
+)
+
+/**
+ * Defines a verse (or short passage) in a dataset, with the categories it belongs to.
+ */
+@Serializable
+public data class ApiDatasetCategorizedVerse(
+    /**
+     * IDs for books. Follows the USFM standard (https://ubsicap.github.io/usfm/identification/books.html)
+     */
+    public val book: BookId,
+
+    /**
+     * The chapter number.
+     */
+    public val chapter: Int,
+
+    /**
+     * The verse number. If `endVerse` is present, then this is the verse that the passage starts at.
+     */
+    public val verse: Int,
+
+    /**
+     * The verse that the passage ends at. Omitted if the entry is a single verse.
+     */
+    public val endVerse: Int? = null,
+
+    /**
+     * The IDs of the categories that the verse belongs to, most relevant first. Each ID matches a category in the `categories` collection of the dataset (`/api/d/{dataset}/categories/{id}.json`).
+     */
+    public val categories: List<String>,
 )
 
 /**

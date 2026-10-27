@@ -21,6 +21,7 @@ import type {
     ApiDatasetPerson,
     ApiDatasetPlace,
     ApiDatasetPlaces,
+    ApiDatasetVerses,
     ApiSimpleCommentaryBookChapter,
     ApiSimpleTranslationBookChapter,
     ApiSimpleTranslationBookChapterWords,
@@ -528,6 +529,26 @@ export class FreeUseBibleApi {
         const encodedStrongs = encodeURIComponent(strongs);
         return this._getJson<ApiDatasetLexiconEntry>(
             `api/d/${encodedDataset}/lexicon/${encodedStrongs}.json`,
+            endpoint,
+            options
+        );
+    }
+
+    /**
+     * Gets every verse in a given dataset, with the categories that each verse belongs to, in canonical order.
+     * Only available for datasets whose verses have categories, such as "verse-of-the-day".
+     * @param dataset The ID of the dataset to get the verses for. For example, "verse-of-the-day".
+     * @param endpoint The endpoint to use for the request. If not provided, then the default endpoint will be used.
+     * @param options Options for the request, such as an `AbortSignal` that cancels it.
+     */
+    async getDatasetVerses(
+        dataset: string,
+        endpoint?: string,
+        options?: RequestOptions
+    ): Promise<ApiDatasetVerses> {
+        const encodedDataset = encodeURIComponent(dataset);
+        return this._getJson<ApiDatasetVerses>(
+            `api/d/${encodedDataset}/verses.json`,
             endpoint,
             options
         );

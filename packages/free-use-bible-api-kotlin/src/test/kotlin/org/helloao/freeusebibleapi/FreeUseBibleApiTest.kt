@@ -262,6 +262,14 @@ class FreeUseBibleApiTest {
     }
 
     @Test
+    fun `gets every verse in a dataset`() = runTest {
+        val verses = api.getDatasetVerses("verse-of-the-day").verses
+        assertEquals(listOf("PRO" to 5, "JHN" to 16, "JHN" to 17), verses.map { it.book to it.verse })
+        assertEquals(6, verses.first().endVerse)
+        assertEquals(listOf("love", "salvation"), verses[1].categories)
+    }
+
+    @Test
     fun `gets verse of the day chapters`() = runTest {
         val chapter = api.getDatasetBookChapter("verse-of-the-day", "PRO", 3)
         assertIs<ApiDatasetBookChapter>(chapter)

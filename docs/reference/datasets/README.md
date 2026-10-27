@@ -164,6 +164,12 @@ export interface Dataset {
     totalNumberOfLexicon?: number;
 
     /**
+     * The API link for the list of every verse in the dataset, with its categories.
+     * Omitted if the verses of the dataset don't have categories.
+     */
+    listOfVersesApiLink?: string;
+
+    /**
      * The API link for the list of verse categories in the dataset.
      * Omitted if the dataset doesn't contain verse categories.
      */
@@ -314,6 +320,7 @@ export interface Dataset {
             "totalNumberOfReferences": 0,
             "languageName": "English",
             "languageEnglishName": "English",
+            "listOfVersesApiLink": "/api/d/verse-of-the-day/verses.json",
             "listOfCategoriesApiLink": "/api/d/verse-of-the-day/categories.json",
             "totalNumberOfCategories": 17
         }
@@ -2339,16 +2346,17 @@ The verse of the day dataset (`verse-of-the-day`) is a curated list of more than
 | `strength`    | God giving strength and endurance.                          |
 | `wisdom`      | Godly wisdom and practical instruction for life.            |
 
-The dataset only contains references, not verse text, so it works with every translation. Verse numbers use the standard English numbering (the same as the BSB). The data can be read two ways:
+The dataset only contains references, not verse text, so it works with every translation. Verse numbers use the standard English numbering (the same as the BSB). The data can be read three ways:
 
--   [`/api/d/verse-of-the-day/categories/{category}.json`](#get-a-category-from-a-dataset) lists every verse in a category. This is the easiest way to pick a verse of the day.
+-   [`/api/d/verse-of-the-day/verses.json`](#list-verses-in-a-dataset) lists every verse in the dataset with its categories, in one file.
+-   [`/api/d/verse-of-the-day/categories/{category}.json`](#get-a-category-from-a-dataset) lists every verse in a category. This is the easiest way to pick a verse of the day from one category.
 -   [`/api/d/verse-of-the-day/{book}/{chapter}.json`](#get-a-chapter-from-a-dataset) lists the candidates in a chapter, with their categories. Only chapters that contain a candidate are available; use the book's chapter links or `/api/d/verse-of-the-day/books.json` to find them.
 
-Datasets that contain verse categories include `listOfCategoriesApiLink` and `totalNumberOfCategories` in their entry in `/api/available_datasets.json`.
+Datasets that contain verse categories include `listOfVersesApiLink`, `listOfCategoriesApiLink`, and `totalNumberOfCategories` in their entry in `/api/available_datasets.json`.
 
 ### Picking a Verse of the Day
 
-The API is made of static files, so it doesn't pick a verse for you. To give everyone the same verse on the same day, pick from a category's list using the date:
+The API is made of static files, so it doesn't pick a verse for you. To give everyone the same verse on the same day, pick from a list using the date. This example picks from one category; use `/api/d/verse-of-the-day/verses.json` (and its `verses` array) to pick from every verse instead:
 
 ```ts:no-line-numbers title="verse-of-the-day.js"
 const category = await fetch(
@@ -2377,6 +2385,118 @@ The `@helloao/tools` package has the same list and a `getVerseOfTheDay(date, cat
 ### License
 
 The list was put together by AO Lab and is released under the [MIT License](https://github.com/HelloAOLab/bible-api/blob/main/LICENSE). The verse text comes from whichever translation you fetch it from.
+
+
+## List Verses in a Dataset
+
+`GET https://bible.helloao.org/api/d/{dataset}/verses.json`
+
+Gets every verse (or short passage) in a dataset, with the categories that each one belongs to, in canonical order. Only available for datasets whose verses have categories, such as `verse-of-the-day`.
+
+-   `dataset` the ID of the dataset (e.g. `verse-of-the-day`).
+
+### Code Example
+
+::: code-tabs#lang
+
+@tab JavaScript
+
+```ts:no-line-numbers title="fetch-verses.js"
+fetch(`https://bible.helloao.org/api/d/verse-of-the-day/verses.json`)
+    .then(request => request.json())
+    .then(verses => {
+        console.log('The dataset has', verses.verses.length, 'verses');
+    });
+```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/d/verse-of-the-day/verses.json
+```
+
+:::
+
+### Structure
+
+```typescript:no-line-numbers title="dataset-verses.ts"
+export interface DatasetVerses {
+    /**
+     * The dataset information for the verses.
+     */
+    dataset: Dataset;
+
+    /**
+     * Every verse (or short passage) in the dataset, with its categories, in canonical order.
+     */
+    verses: DatasetCategorizedVerse[];
+}
+
+export interface DatasetCategorizedVerse {
+    /**
+     * The ID of the book. e.g. "PRO".
+     */
+    book: string;
+
+    /**
+     * The chapter number.
+     */
+    chapter: number;
+
+    /**
+     * The verse number.
+     * If `endVerse` is present, then this is the verse that the passage starts at.
+     */
+    verse: number;
+
+    /**
+     * The verse that the passage ends at.
+     * Omitted if the entry is a single verse.
+     */
+    endVerse?: number;
+
+    /**
+     * The IDs of the categories that the verse belongs to, most relevant first.
+     */
+    categories: string[];
+}
+```
+
+### Example
+
+```json:no-line-numbers title="/api/d/verse-of-the-day/verses.json"
+{
+    "dataset": {
+        "id": "verse-of-the-day",
+        "name": "Verse of the Day",
+        "listOfVersesApiLink": "/api/d/verse-of-the-day/verses.json"
+        // ...
+    },
+    "verses": [
+        {
+            "book": "GEN",
+            "chapter": 1,
+            "verse": 1,
+            "categories": ["praise"]
+        },
+        {
+            "book": "GEN",
+            "chapter": 28,
+            "verse": 15,
+            "categories": ["comfort", "guidance"]
+        },
+        // ...
+        {
+            "book": "PRO",
+            "chapter": 3,
+            "verse": 5,
+            "endVerse": 6,
+            "categories": ["faith", "guidance", "wisdom"]
+        }
+        // ...
+    ]
+}
+```
 
 
 ## List Categories in a Dataset

@@ -7,11 +7,12 @@ This is the log of changes for the Free Use Bible API.
 ### :rocket: Features
 
 -   Added the verse of the day dataset (`verse-of-the-day`), a curated list of more than 200 well-known verses and short passages (at most three verses) that make good "verse of the day" candidates. Each one has one to three categories from a fixed set: `comfort`, `courage`, `faith`, `forgiveness`, `gratitude`, `guidance`, `hope`, `inspiration`, `joy`, `love`, `peace`, `praise`, `prayer`, `provision`, `salvation`, `strength`, and `wisdom`.
+    -   `GET /api/d/verse-of-the-day/verses.json` lists every verse in the dataset as `{ book, chapter, verse, endVerse?, categories }`, in canonical order.
     -   `GET /api/d/verse-of-the-day/categories.json` lists the categories with their descriptions and number of verses.
     -   `GET /api/d/verse-of-the-day/categories/{category}.json` (e.g. `/api/d/verse-of-the-day/categories/hope.json`) returns `{ dataset, category, thisCategoryApiLink }`, where `category.verses` lists the verses in the category in canonical order.
     -   `GET /api/d/verse-of-the-day/{book}/{chapter}.json` (e.g. `/api/d/verse-of-the-day/PRO/3.json`) returns `{ verse, endVerse?, categories }` for every candidate in the chapter. Dataset chapter verses can now carry `categories` in addition to `references` and `words`.
-    -   Entries in `/api/available_datasets.json` can now include `listOfCategoriesApiLink` and `totalNumberOfCategories`.
-    -   The `free-use-bible-api` client and the Kotlin SDK have new `getDatasetCategories()` and `getDatasetCategory()` methods.
+    -   Entries in `/api/available_datasets.json` can now include `listOfVersesApiLink`, `listOfCategoriesApiLink`, and `totalNumberOfCategories`.
+    -   The `free-use-bible-api` client and the Kotlin SDK have new `getDatasetVerses()`, `getDatasetCategories()`, and `getDatasetCategory()` methods.
     -   Added the `import-verse-of-the-day` CLI command (and the `import:bible:verse-of-the-day` script). The list is built into `@helloao/tools` (`generation/verse-of-the-day.ts`, also exported as `verseOfTheDay`), along with `getVerseOfTheDay(date?, category?)`, which picks a verse from the UTC date so every caller gets the same verse on the same day.
 -   Added the Berean interlinear dataset (`bsb-interlinear`), which lists the original-language (Hebrew, Aramaic, and Greek) words of every verse in original-text order, with their transliteration, parsing, Strong's number, and the Berean Standard Bible's English phrase. It is based on the public domain [Berean Standard Bible interlinear tables](https://bereanbible.com/).
     -   `GET /api/d/bsb-interlinear/books.json`

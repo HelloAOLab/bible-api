@@ -84,6 +84,7 @@
       "totalNumberOfReferences": 0,
       "languageName": "English",
       "languageEnglishName": "English",
+      "listOfVersesApiLink": "/api/d/verse-of-the-day/verses.json",
       "listOfCategoriesApiLink": "/api/d/verse-of-the-day/categories.json",
       "totalNumberOfCategories": 17
     },

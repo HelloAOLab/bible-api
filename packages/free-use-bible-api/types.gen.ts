@@ -1682,6 +1682,10 @@ export type ApiDataset = {
      */
     listOfLexiconApiLink?: string;
     /**
+     * The API link for the list of every verse in this dataset, with its categories. Relative to the API origin. Omitted if the verses of the dataset don't have categories.
+     */
+    listOfVersesApiLink?: string;
+    /**
      * The API link for the list of verse categories for this dataset. Relative to the API origin. Omitted if the dataset doesn't contain verse categories.
      */
     listOfCategoriesApiLink?: string;
@@ -2798,6 +2802,43 @@ export type DatasetLexiconEntry = {
 };
 
 /**
+ * The list of every verse in a dataset whose verses have categories. Maps to the /api/d/:datasetId/verses.json endpoint.
+ */
+export type ApiDatasetVerses = {
+    /**
+     * The dataset information for the verses.
+     */
+    dataset: ApiDataset;
+    /**
+     * Every verse (or short passage) in the dataset, with its categories, in canonical order.
+     */
+    verses: Array<ApiDatasetCategorizedVerse>;
+};
+
+/**
+ * Defines a verse (or short passage) in a dataset, with the categories it belongs to.
+ */
+export type ApiDatasetCategorizedVerse = {
+    book: BookId;
+    /**
+     * The chapter number.
+     */
+    chapter: number;
+    /**
+     * The verse number. If `endVerse` is present, then this is the verse that the passage starts at.
+     */
+    verse: number;
+    /**
+     * The verse that the passage ends at. Omitted if the entry is a single verse.
+     */
+    endVerse?: number;
+    /**
+     * The IDs of the categories that the verse belongs to, most relevant first. Each ID matches a category in the `categories` collection of the dataset (`/api/d/{dataset}/categories/{id}.json`).
+     */
+    categories: Array<string>;
+};
+
+/**
  * The list of verse categories in a dataset. Maps to the /api/d/:datasetId/categories.json endpoint.
  */
 export type ApiDatasetCategories = {
@@ -3682,6 +3723,35 @@ export type GetDatasetLexiconEntryResponses = {
 
 export type GetDatasetLexiconEntryResponse =
     GetDatasetLexiconEntryResponses[keyof GetDatasetLexiconEntryResponses];
+
+export type GetDatasetVersesData = {
+    body?: never;
+    path: {
+        /**
+         * The dataset ID of the dataset to get the books or chapter content for.
+         */
+        dataset: string;
+    };
+    query?: never;
+    url: '/api/d/{dataset}/verses.json';
+};
+
+export type GetDatasetVersesErrors = {
+    /**
+     * 404 Not Found - The specified dataset was not found or its verses don't have categories.
+     */
+    404: unknown;
+};
+
+export type GetDatasetVersesResponses = {
+    /**
+     * 200 OK
+     */
+    200: ApiDatasetVerses;
+};
+
+export type GetDatasetVersesResponse =
+    GetDatasetVersesResponses[keyof GetDatasetVersesResponses];
 
 export type GetDatasetCategoriesData = {
     body?: never;

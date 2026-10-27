@@ -302,6 +302,71 @@ describe('generateVerseOfTheDayDataset()', () => {
             expect(salvation.category.verses).toHaveLength(2);
         });
 
+        it('should list every verse with its categories in canonical order', () => {
+            const api = generateApiForDataset(createDatasetOutput());
+
+            expect(api.availableDatasets!.datasets[0].listOfVersesApiLink).toBe(
+                '/api/d/verse-of-the-day/verses.json'
+            );
+            expect(api.datasetVerses).toHaveLength(1);
+            expect(api.datasetVerses![0].dataset.id).toBe('verse-of-the-day');
+            expect(api.datasetVerses![0].verses).toEqual([
+                {
+                    book: 'PRO',
+                    chapter: 3,
+                    verse: 5,
+                    endVerse: 6,
+                    categories: ['faith', 'guidance', 'wisdom'],
+                },
+                {
+                    book: 'JHN',
+                    chapter: 3,
+                    verse: 16,
+                    categories: ['love', 'salvation'],
+                },
+                {
+                    book: 'JHN',
+                    chapter: 3,
+                    verse: 17,
+                    categories: ['salvation'],
+                },
+            ]);
+        });
+
+        it('should not list the verses of datasets without categories', () => {
+            const api = generateApiForDataset({
+                translations: [],
+                commentaries: [],
+                datasets: [
+                    {
+                        ...generateVerseOfTheDayDataset([]),
+                        id: 'cross-refs',
+                        books: [
+                            {
+                                id: 'GEN',
+                                order: 1,
+                                chapters: [
+                                    {
+                                        chapter: {
+                                            number: 1,
+                                            content: [
+                                                { verse: 1, references: [] },
+                                            ],
+                                        },
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                ],
+            });
+
+            expect(api.datasetVerses).toBeUndefined();
+            expect(
+                api.availableDatasets!.datasets[0].listOfVersesApiLink
+            ).toBeUndefined();
+        });
+
         it('should generate files for the category and chapter endpoints', () => {
             const api = generateApiForDataset(createDatasetOutput());
             const files = generateFilesForApi(api);
@@ -310,6 +375,7 @@ describe('generateVerseOfTheDayDataset()', () => {
             expect(paths).toContain('/api/available_datasets.json');
             expect(paths).toContain('/api/d/verse-of-the-day/books.json');
             expect(paths).toContain('/api/d/verse-of-the-day/categories.json');
+            expect(paths).toContain('/api/d/verse-of-the-day/verses.json');
             expect(paths).toContain(
                 '/api/d/verse-of-the-day/categories/salvation.json'
             );

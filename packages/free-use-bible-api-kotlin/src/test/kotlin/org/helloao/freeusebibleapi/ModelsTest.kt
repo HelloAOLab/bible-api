@@ -147,6 +147,7 @@ class ModelsTest {
             Regex("api/d/[^/]+/groups/[^/]+\\.json$").containsMatchIn(p) -> ApiDatasetPeopleGroup.serializer()
             Regex("api/d/[^/]+/lexicon\\.json$").containsMatchIn(p) -> ApiDatasetLexicon.serializer()
             Regex("api/d/[^/]+/lexicon/[^/]+\\.json$").containsMatchIn(p) -> ApiDatasetLexiconEntry.serializer()
+            Regex("api/d/[^/]+/verses\\.json$").containsMatchIn(p) -> ApiDatasetVerses.serializer()
             Regex("api/d/[^/]+/categories\\.json$").containsMatchIn(p) -> ApiDatasetCategories.serializer()
             Regex("api/d/[^/]+/categories/[^/]+\\.json$").containsMatchIn(p) -> ApiDatasetCategory.serializer()
             Regex("api/d/[^/]+/[^/]+/\\d+\\.json$").containsMatchIn(p) -> ApiDatasetBookChapterResult.serializer()

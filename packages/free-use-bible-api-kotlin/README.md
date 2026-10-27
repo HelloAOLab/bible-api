@@ -122,6 +122,7 @@ Only some chapters have audio timings. The keys of a chapter's `thisChapterAudio
 - `getDatasetPeopleGroup(dataset, group, endpoint?)`
 - `getDatasetLexicon(dataset, endpoint?)`
 - `getDatasetLexiconEntry(dataset, strongs, endpoint?)`
+- `getDatasetVerses(dataset, endpoint?)`
 - `getDatasetCategories(dataset, endpoint?)`
 - `getDatasetCategory(dataset, category, endpoint?)`
 

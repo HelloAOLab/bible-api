@@ -262,6 +262,12 @@ export interface ApiOutput {
     datasetCategoryContents?: ApiDatasetCategory[];
 
     /**
+     * The list of every verse in each dataset whose verses have categories.
+     * This maps to the /api/d/:datasetId/verses.json endpoint.
+     */
+    datasetVerses?: ApiDatasetVerses[];
+
+    /**
      * The complete translation data for each translation.
      * This maps to the /api/:translationId/complete.json endpoint.
      */
@@ -463,6 +469,15 @@ export const ApiDatasetSchema = DatasetSchema.extend({
     listOfLexiconApiLink: z.string().optional().meta({
         description:
             "The API link for the list of lexicon entries for this dataset. Relative to the API origin. Omitted if the dataset doesn't contain lexicon entries.",
+    }),
+
+    /**
+     * The API link for the list of every verse in this dataset, with its categories.
+     * Omitted if the verses of the dataset don't have categories.
+     */
+    listOfVersesApiLink: z.string().optional().meta({
+        description:
+            "The API link for the list of every verse in this dataset, with its categories. Relative to the API origin. Omitted if the verses of the dataset don't have categories.",
     }),
 
     /**
@@ -1749,6 +1764,90 @@ export const ApiDatasetCategorySchema = z
     });
 
 export type ApiDatasetCategory = z.infer<typeof ApiDatasetCategorySchema>;
+
+/**
+ * Defines a Zod schema for a verse (or short passage) in a dataset, with the categories it belongs to.
+ */
+export const ApiDatasetCategorizedVerseSchema = z
+    .object({
+        /**
+         * The ID of the book.
+         */
+        book: BookIdSchema,
+
+        /**
+         * The chapter number.
+         */
+        chapter: z.number().meta({
+            description: 'The chapter number.',
+        }),
+
+        /**
+         * The verse number.
+         * If `endVerse` is present, then this is the verse that the passage starts at.
+         */
+        verse: z.number().meta({
+            description:
+                'The verse number. If `endVerse` is present, then this is the verse that the passage starts at.',
+        }),
+
+        /**
+         * The verse that the passage ends at.
+         * Omitted if the entry is a single verse.
+         */
+        endVerse: z.number().optional().meta({
+            description:
+                'The verse that the passage ends at. Omitted if the entry is a single verse.',
+        }),
+
+        /**
+         * The IDs of the categories that the verse belongs to, most relevant first.
+         */
+        categories: z.array(z.string()).meta({
+            description:
+                'The IDs of the categories that the verse belongs to, most relevant first. Each ID matches a category in the `categories` collection of the dataset (`/api/d/{dataset}/categories/{id}.json`).',
+        }),
+    })
+    .meta({
+        id: 'ApiDatasetCategorizedVerse',
+        description:
+            'Defines a verse (or short passage) in a dataset, with the categories it belongs to.',
+    });
+
+export type ApiDatasetCategorizedVerse = z.infer<
+    typeof ApiDatasetCategorizedVerseSchema
+>;
+
+/**
+ * Defines a Zod schema for the list of every verse in a dataset.
+ * Maps to the /api/d/:datasetId/verses.json endpoint.
+ */
+export const ApiDatasetVersesSchema = z
+    .object({
+        /**
+         * The dataset information for the verses.
+         */
+        dataset: z
+            .lazy(() => ApiDatasetSchema)
+            .meta({
+                description: 'The dataset information for the verses.',
+            }),
+
+        /**
+         * Every verse in the dataset, in canonical order.
+         */
+        verses: z.array(ApiDatasetCategorizedVerseSchema).meta({
+            description:
+                'Every verse (or short passage) in the dataset, with its categories, in canonical order.',
+        }),
+    })
+    .meta({
+        id: 'ApiDatasetVerses',
+        description:
+            'The list of every verse in a dataset whose verses have categories. Maps to the /api/d/:datasetId/verses.json endpoint.',
+    });
+
+export type ApiDatasetVerses = z.infer<typeof ApiDatasetVersesSchema>;
 
 /**
  * Defines a Zod schema for a person that appears in a chapter of a dataset.
@@ -4111,6 +4210,7 @@ export function generateApiForDataset(
         };
 
         let datasetChapters: ApiDatasetBookChapter[] = [];
+        let categorizedVerses: ApiDatasetCategorizedVerse[] = [];
 
         for (let { chapters, ...book } of books) {
             const firstChapterNumber = chapters[0]?.chapter.number ?? null;
@@ -4183,6 +4283,12 @@ export function generateApiForDataset(
                         apiDataset.totalNumberOfWords =
                             (apiDataset.totalNumberOfWords ?? 0) +
                             verse.words.length;
+                    } else if ('categories' in verse) {
+                        categorizedVerses.push({
+                            book: book.id,
+                            chapter: chapter.number,
+                            ...verse,
+                        });
                     }
                 }
 
@@ -4203,6 +4309,20 @@ export function generateApiForDataset(
             apiDataset.totalNumberOfVerses += apiBook.totalNumberOfVerses;
             apiDataset.totalNumberOfReferences +=
                 apiBook.totalNumberOfReferences;
+        }
+
+        if (categorizedVerses.length > 0) {
+            apiDataset.listOfVersesApiLink = listOfDatasetVersesApiLink(
+                datasetInfo.id,
+                apiPathPrefix
+            );
+            if (!api.datasetVerses) {
+                api.datasetVerses = [];
+            }
+            api.datasetVerses.push({
+                dataset: apiDataset,
+                verses: categorizedVerses,
+            });
         }
 
         for (let i = 0; i < datasetChapters.length; i++) {
@@ -5092,6 +5212,12 @@ export function generateFilesForApi(api: ApiOutput): OutputFile[] {
         files.push(jsonFile(category.thisCategoryApiLink, category));
     }
 
+    for (let datasetVerses of api.datasetVerses ?? []) {
+        files.push(
+            jsonFile(datasetVerses.dataset.listOfVersesApiLink!, datasetVerses)
+        );
+    }
+
     // for (let audio of api.translationBookChapterAudio) {
     //     files.push(downloadedFile(audio.link, audio.originalUrl));
     // }
@@ -5165,6 +5291,18 @@ export function listOfDatasetBooksApiLink(
     prefix: string = ''
 ): string {
     return `${prefix}/api/d/${datasetId}/books.json`;
+}
+
+/**
+ * Gets the API link for the list of every verse in a dataset.
+ * @param datasetId The ID of the dataset.
+ * @param prefix The prefix to use for the API link.
+ */
+export function listOfDatasetVersesApiLink(
+    datasetId: string,
+    prefix: string = ''
+): string {
+    return `${prefix}/api/d/${datasetId}/verses.json`;
 }
 
 /**

@@ -19,6 +19,7 @@ import {
     ApiDatasetPersonSchema,
     ApiDatasetPlaceSchema,
     ApiDatasetPlacesSchema,
+    ApiDatasetVersesSchema,
     ApiSimpleCommentaryBookChapterSchema,
     ApiSimpleTranslationBookChapterSchema,
     ApiSimpleTranslationBookChapterWordsSchema,
@@ -835,6 +836,32 @@ export function createFreeUseBibleApiOpenApiDocument(): any {
                         '404': {
                             description:
                                 '404 Not Found - The specified dataset or lexicon entry was not found.',
+                        },
+                    },
+                },
+            },
+            '/api/d/{dataset}/verses.json': {
+                get: {
+                    operationId: 'getDatasetVerses',
+                    description:
+                        'Get every verse in a specific dataset, with the categories that each verse belongs to, in canonical order. Only available for datasets whose verses have categories, such as the verse-of-the-day dataset.',
+                    requestParams: {
+                        path: z.object({
+                            dataset,
+                        }),
+                    },
+                    responses: {
+                        '200': {
+                            description: '200 OK',
+                            content: {
+                                'application/json': {
+                                    schema: ApiDatasetVersesSchema,
+                                },
+                            },
+                        },
+                        '404': {
+                            description:
+                                "404 Not Found - The specified dataset was not found or its verses don't have categories.",
                         },
                     },
                 },

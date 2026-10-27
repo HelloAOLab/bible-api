@@ -809,6 +809,7 @@ export async function loadDatasetsFromDirectory(
         for (let bookId of booksList) {
             if (
                 bookId === 'books.json' ||
+                bookId === 'verses.json' ||
                 entityListFiles.has(bookId) ||
                 entityDirs.has(bookId)
             ) {

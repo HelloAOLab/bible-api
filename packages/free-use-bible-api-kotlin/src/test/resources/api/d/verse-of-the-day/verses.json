@@ -1,0 +1,55 @@
+{
+  "dataset": {
+    "id": "verse-of-the-day",
+    "name": "Verse of the Day",
+    "website": "https://github.com/HelloAOLab/bible-api/blob/main/packages/helloao-tools/generation/verse-of-the-day.ts",
+    "licenseUrl": "https://github.com/HelloAOLab/bible-api/blob/main/LICENSE",
+    "licenseNotes": "A curated list of well-known verses by AO Lab, released under the MIT License.",
+    "englishName": "Verse of the Day",
+    "language": "eng",
+    "textDirection": "ltr",
+    "availableFormats": [
+      "json"
+    ],
+    "listOfBooksApiLink": "/api/d/verse-of-the-day/books.json",
+    "numberOfBooks": 47,
+    "totalNumberOfChapters": 172,
+    "totalNumberOfVerses": 223,
+    "totalNumberOfReferences": 0,
+    "languageName": "English",
+    "languageEnglishName": "English",
+    "listOfVersesApiLink": "/api/d/verse-of-the-day/verses.json",
+    "listOfCategoriesApiLink": "/api/d/verse-of-the-day/categories.json",
+    "totalNumberOfCategories": 17
+  },
+  "verses": [
+    {
+      "book": "PRO",
+      "chapter": 3,
+      "verse": 5,
+      "endVerse": 6,
+      "categories": [
+        "faith",
+        "guidance",
+        "wisdom"
+      ]
+    },
+    {
+      "book": "JHN",
+      "chapter": 3,
+      "verse": 16,
+      "categories": [
+        "love",
+        "salvation"
+      ]
+    },
+    {
+      "book": "JHN",
+      "chapter": 3,
+      "verse": 17,
+      "categories": [
+        "salvation"
+      ]
+    }
+  ]
+}

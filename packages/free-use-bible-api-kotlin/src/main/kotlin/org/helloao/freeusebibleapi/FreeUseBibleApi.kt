@@ -287,6 +287,15 @@ public class FreeUseBibleApi(
         )
 
     /**
+     * Gets every verse in a given dataset, with the categories that each verse belongs to, in canonical order.
+     * Only available for datasets whose verses have categories, such as "verse-of-the-day".
+     * @param dataset The ID of the dataset to get the verses for. For example, "verse-of-the-day".
+     * @param endpoint The API endpoint to use for the request. If not provided, the default endpoint will be used.
+     */
+    public suspend fun getDatasetVerses(dataset: String, endpoint: String? = null): ApiDatasetVerses =
+        getJson(ApiDatasetVerses.serializer(), "api/d/${encode(dataset)}/verses.json", endpoint)
+
+    /**
      * Gets the list of verse categories for a given dataset.
      * @param dataset The ID of the dataset to get the categories for. For example, "verse-of-the-day".
      * @param endpoint The API endpoint to use for the request. If not provided, the default endpoint will be used.

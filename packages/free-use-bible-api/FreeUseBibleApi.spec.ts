@@ -49,6 +49,7 @@ const operationMethods = {
     GetDatasetPeopleGroup: 'getDatasetPeopleGroup',
     GetDatasetLexicon: 'getDatasetLexicon',
     GetDatasetLexiconEntry: 'getDatasetLexiconEntry',
+    GetDatasetVerses: 'getDatasetVerses',
     GetDatasetCategories: 'getDatasetCategories',
     GetDatasetCategory: 'getDatasetCategory',
 } as const satisfies Record<string, keyof FreeUseBibleApi>;
@@ -547,6 +548,29 @@ describe('FreeUseBibleApi', () => {
         expect(fetchMock).toHaveBeenNthCalledWith(
             2,
             'https://bible.helloao.org/api/d/stepbible-lexicon/lexicon/H0430.json'
+        );
+    });
+
+    it('gets every verse in a dataset', async () => {
+        const payload = {
+            verses: [
+                {
+                    book: 'PRO',
+                    chapter: 3,
+                    verse: 5,
+                    endVerse: 6,
+                    categories: ['faith', 'guidance', 'wisdom'],
+                },
+            ],
+        };
+        fetchMock.mockResolvedValueOnce(jsonResponse(payload));
+
+        const api = new FreeUseBibleApi();
+        const verses = await api.getDatasetVerses('verse-of-the-day');
+
+        expect(verses).toEqual(payload);
+        expect(fetchMock).toHaveBeenCalledWith(
+            'https://bible.helloao.org/api/d/verse-of-the-day/verses.json'
         );
     });
 
