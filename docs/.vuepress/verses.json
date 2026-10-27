@@ -5,9 +5,27 @@
         "translationAbbreviation": "AAB",
         "translationId": "AAB"
     },
-    "stewards": {
-        "text": "As good stewards of the manifold grace of God, each of you should use whatever gift he has received to serve one another.",
-        "bookName": "1 Peter",
+    "charge": {
+        "text": "I charge you before the Lord to have this letter **read to all the brothers.**",
+        "bookName": "1 Thessalonians",
+        "translationAbbreviation": "AAB",
+        "translationId": "AAB"
+    },
+    "hinder": {
+        "text": "…we put up with anything rather than hinder the gospel of Christ.",
+        "bookName": "1 Corinthians",
+        "translationAbbreviation": "AAB",
+        "translationId": "AAB"
+    },
+    "glory": {
+        "text": "Not to us, O LORD, not to us, but to Your name be the glory…",
+        "bookName": "Psalm",
+        "translationAbbreviation": "AAB",
+        "translationId": "AAB"
+    },
+    "worry": {
+        "text": "Therefore I tell you, do not worry about your life, what you will eat or drink; or about your body, what you will wear. Is not life more than food, and the body more than clothes? Look at the birds of the air: They do not sow or reap or gather into barns, and yet your heavenly Father feeds them. Are you not much more valuable than they? Who of you by worrying can add a single hour to his life? And why do you worry about clothes? Consider how the lilies of the field grow: They do not labor or spin. Yet I tell you that not even Solomon in all his glory was adorned like one of these. If that is how God clothes the grass of the field, which is here today and tomorrow is thrown into the furnace, will He not much more clothe you, O you of little faith? Therefore do not worry, saying, ‘What shall we eat?’ or ‘What shall we drink?’ or ‘What shall we wear?’ For the Gentiles strive after all these things, and your heavenly Father knows that you need them. But seek first the kingdom of God and His righteousness, and all these things will be added unto you. Therefore do not worry about tomorrow, for tomorrow will worry about itself. Today has enough trouble of its own.",
+        "bookName": "Matthew",
         "translationAbbreviation": "AAB",
         "translationId": "AAB"
     }

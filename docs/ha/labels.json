@@ -21,32 +21,30 @@
         "noApiKeyDetail": "Babu abin da za a yi rijista a kai",
         "noUsageLimits": "Babu iyakokin amfani",
         "noUsageLimitsDetail": "Kyauta har abada",
-        "welcome": "Barka da zuwa ga 'yanci.",
-        "welcomeDetail": "Fara yau **ba tare da iyaka ba** kuma **babu ja da baya** .",
-        "compareLink": "Kwatanta mu da sauran API na Littafi Mai Tsarki",
         "translationsTitle": "Fassarorin Littafi Mai Tsarki",
-        "translationsBody": "Fassara {{ count }} a matsayin JSON mai tsayayye, tare da kanun labarai, waƙoƙi, hutun layi da bayanan ƙasa a ajiye su.",
         "translationsLink": "Nassoshin API",
         "audioTitle": "Sautin Littafi Mai Tsarki",
-        "audioBody": "An karanta littafi mai tsarki a sarari kuma an yi shi a cikin wasan kwaikwayo, don sauƙin sauraro da sauƙin fahimta.",
         "audioLink": "Ƙarshen sauti",
         "datasetsTitle": "Saitin Bayanan Littafi Mai Tsarki",
-        "datasetsBody": "Nassoshi daban-daban da sauran bayanan Littafi Mai Tsarki, a cikin tsare-tsare da za ku iya ginawa da su maimakon yin bita a kusa.",
         "datasetsLink": "Duba bayanai",
-        "seedBibleTitle": "Takardun Masu Haɓaka Littafi Mai Tsarki na Seed",
-        "seedBibleBody": "Yi amfani da kuma faɗaɗa dandalinmu na buɗe maimakon farawa daga farko.",
-        "seedBibleComing": "Disamba mai zuwa",
-        "compareTitle": "Kwatanta APIs na Littafi Mai Tsarki kaɗan",
-        "compareCaption": "Abin da Free Use Bible API da kuma Littafi Mai Tsarki API guda uku da ake amfani da su sosai ke ba ku damar yi",
-        "compareCorner": "Abin da za ku iya yi",
-        "compareColumns": {
+        "buildTitle": "Bari mu fara ginawa.",
+        "newsletterPrompt": "Kuna son ci gaba da kasancewa a cikin madauki?",
+        "newsletterLink": "Yi rijista don wasiƙar labarai",
+        "newsletterBody": "Sabuntawa daga mutanen da ke gina shi, a cikin akwatin saƙonku.",
+        "contributeDiscord": "Ba da gudummawa kan Discord"
+    },
+    "compare": {
+        "title": "Kwatanta APIs na Littafi Mai Tsarki kaɗan",
+        "caption": "Abin da Free Use Bible API da kuma Littafi Mai Tsarki API guda uku da ake amfani da su sosai ke ba ku damar yi",
+        "corner": "Abin da za ku iya yi",
+        "columns": {
             "account": "Babu asusu",
             "usage": "Babu iyaka ga amfani",
             "permission": "Ba tare da tambaya ba",
             "storage": "Ajiya & adana bayanai*",
             "openSource": "Buɗaɗɗen tushe"
         },
-        "compareRows": {
+        "rows": {
             "ours": {
                 "account": "Babu asusu, maɓalli ko amincewa",
                 "usage": "Babu iyaka ga amfani da aka buga",
@@ -79,17 +77,7 @@
         "markYes": "Ee",
         "markConditional": "Sharaɗi",
         "markNotGranted": "Ba a ba da izini ba",
-        "storageNote": "*Kwafi ka adana a kan kayan aikinka, sabar, ko kuma a kan na'ura don ta yi aiki ba tare da intanet ba.",
-        "contributeTitle": "Taimaka mana mu faɗaɗa iyaka.",
-        "contributeBody": "Bari mu ƙirƙiri tsarin halitta mai buɗewa na abubuwan da ke cikin yankin jama'a da kayan aikin buɗe tushen.",
-        "contributeDiscord": "Ba da gudummawa kan Discord",
-        "buildTitle": "Bari mu fara ginawa.",
-        "newsletterPrompt": "Kuna son ci gaba da kasancewa a cikin madauki?",
-        "newsletterLink": "Yi rijista don wasiƙar labarai",
-        "newsletterBody": "Sabuntawa daga mutanen da ke gina shi, a cikin akwatin saƙonku.",
-        "examplesPrompt": "Kana son wani abu da za ka kwafi?",
-        "examplesLink": "Duba misalai",
-        "examplesBody": "Buƙatu na yau da kullun da tsarin aiki da za ku iya daidaitawa."
+        "storageNote": "*Kwafi ka adana a kan kayan aikinka, sabar, ko kuma a kan na'ura don ta yi aiki ba tare da intanet ba."
     },
     "footer": {
         "madeWith": "An yi shi da {{ love }} ta {{ aoLab }}",

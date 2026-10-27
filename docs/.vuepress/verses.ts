@@ -13,16 +13,30 @@
  * they can be edited by hand.
  */
 
+/** A verse, or with `endVerse` a passage from `verse` through `endVerse`. */
+export interface VerseRef {
+    book: string;
+    chapter: number;
+    verse: number;
+    endVerse?: number;
+}
+
 /** Which verses the home page quotes. */
 export const HOME_VERSES = {
     freelyGive: { book: 'MAT', chapter: 10, verse: 8 },
-    stewards: { book: '1PE', chapter: 4, verse: 10 },
-} as const;
+    charge: { book: '1TH', chapter: 5, verse: 27 },
+    hinder: { book: '1CO', chapter: 9, verse: 12 },
+    glory: { book: 'PSA', chapter: 115, verse: 1 },
+    worry: { book: 'MAT', chapter: 6, verse: 25, endVerse: 34 },
+} as const satisfies Record<string, VerseRef>;
 
 export type HomeVerse = keyof typeof HOME_VERSES;
 
 export interface VerseText {
-    /** The text of the verse, without quotation marks. */
+    /**
+     * The text of the verse, without quotation marks. `**…**` marks words to
+     * emphasize, for text edited by hand.
+     */
     text: string;
     /** The translation's name for the book, e.g. "Matthew". */
     bookName: string;

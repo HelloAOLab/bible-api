@@ -26,7 +26,12 @@ import {
     FreeUseBibleApi,
     type ChapterVerse,
 } from '../packages/free-use-bible-api/index.ts';
-import type { HomeVerse, Verses, VerseText } from '../docs/.vuepress/verses.ts';
+import type {
+    HomeVerse,
+    VerseRef,
+    Verses,
+    VerseText,
+} from '../docs/.vuepress/verses.ts';
 // The docs package is CommonJS, so its named exports are only reachable
 // through the default export when imported from here.
 import versesModule from '../docs/.vuepress/verses.ts';
@@ -88,21 +93,29 @@ async function fetchVerse(
     translationId: string,
     key: HomeVerse
 ): Promise<Omit<VerseText, 'language'>> {
-    const { book, chapter, verse } = HOME_VERSES[key];
+    const {
+        book,
+        chapter,
+        verse,
+        endVerse = verse,
+    }: VerseRef = HOME_VERSES[key];
     const result = await api.getTranslationBookChapter(
         translationId,
         book,
         chapter
     );
-    const found = result.chapter.content.find(
+    const found = result.chapter.content.filter(
         (content): content is ChapterVerse =>
-            content.type === 'verse' && content.number === verse
+            content.type === 'verse' &&
+            content.number >= verse &&
+            content.number <= endVerse
     );
-    if (!found) {
-        throw new Error(`${translationId} has no ${book} ${chapter}:${verse}.`);
+    if (found.length !== endVerse - verse + 1) {
+        const range = endVerse === verse ? verse : `${verse}-${endVerse}`;
+        throw new Error(`${translationId} has no ${book} ${chapter}:${range}.`);
     }
     return {
-        text: verseText(api, found),
+        text: found.map((v) => verseText(api, v)).join(' '),
         bookName: result.book.name || result.book.commonName,
         translationAbbreviation:
             result.translation.shortName || result.translation.id,

@@ -21,32 +21,30 @@
         "noApiKeyDetail": "Tidak ada yang perlu didaftarkan",
         "noUsageLimits": "Tidak ada batasan penggunaan.",
         "noUsageLimitsDetail": "Gratis selamanya",
-        "welcome": "Selamat datang di kebebasan.",
-        "welcomeDetail": "Mulailah hari ini **tanpa batasan** dan **tanpa birokrasi yang rumit** .",
-        "compareLink": "Bandingkan kami dengan API Alkitab lainnya",
         "translationsTitle": "Terjemahan Alkitab",
-        "translationsBody": "{{ count }} terjemahan sebagai JSON statis, dengan judul, puisi, jeda baris, dan catatan kaki tetap utuh.",
         "translationsLink": "Referensi API",
         "audioTitle": "Audio Alkitab",
-        "audioBody": "Ayat-ayat Alkitab dibacakan dengan jelas dan didramatisasi, agar mudah didengarkan dan diakses.",
         "audioLink": "Titik akhir audio",
         "datasetsTitle": "Kumpulan Data Alkitab",
-        "datasetsBody": "Referensi silang dan kumpulan data Alkitab lainnya, dalam format yang dapat Anda gunakan untuk membangun sesuatu, bukan untuk diuraikan.",
         "datasetsLink": "Telusuri kumpulan data",
-        "seedBibleTitle": "Dokumen Pengembang Seed Bible",
-        "seedBibleBody": "Manfaatkan dan kembangkan platform terbuka kami daripada memulai dari awal.",
-        "seedBibleComing": "Akan datang bulan Desember",
-        "compareTitle": "Perbandingan Beberapa API Alkitab",
-        "compareCaption": "Apa yang dapat Anda lakukan dengan Free Use Bible API dan tiga API Alkitab yang banyak digunakan",
-        "compareCorner": "Apa yang dapat Anda lakukan",
-        "compareColumns": {
+        "buildTitle": "Mari kita mulai membangun.",
+        "newsletterPrompt": "Ingin tetap mendapatkan informasi terbaru?",
+        "newsletterLink": "Daftar untuk menerima buletin",
+        "newsletterBody": "Dapatkan pembaruan dari orang-orang yang membangunnya, langsung di kotak masuk Anda.",
+        "contributeDiscord": "Berkontribusi di Discord"
+    },
+    "compare": {
+        "title": "Perbandingan Beberapa API Alkitab",
+        "caption": "Apa yang dapat Anda lakukan dengan Free Use Bible API dan tiga API Alkitab yang banyak digunakan",
+        "corner": "Apa yang dapat Anda lakukan",
+        "columns": {
             "account": "Tidak ada akun",
             "usage": "Tidak ada batasan penggunaan.",
             "permission": "Tanpa banyak tanya",
             "storage": "Simpan & cache*",
             "openSource": "Sumber terbuka"
         },
-        "compareRows": {
+        "rows": {
             "ours": {
                 "account": "Tidak ada akun, kunci, atau persetujuan.",
                 "usage": "Tidak ada batasan penggunaan yang dipublikasikan.",
@@ -79,17 +77,7 @@
         "markYes": "Ya",
         "markConditional": "Bersyarat",
         "markNotGranted": "Tidak diberikan",
-        "storageNote": "*Salin dan simpan di perangkat keras, server, atau perangkat Anda sendiri agar dapat berfungsi secara offline.",
-        "contributeTitle": "Bantu kami memperluas cakrawala.",
-        "contributeBody": "Mari kita ciptakan ekosistem terbuka untuk konten domain publik dan perangkat lunak sumber terbuka.",
-        "contributeDiscord": "Berkontribusi di Discord",
-        "buildTitle": "Mari kita mulai membangun.",
-        "newsletterPrompt": "Ingin tetap mendapatkan informasi terbaru?",
-        "newsletterLink": "Daftar untuk menerima buletin",
-        "newsletterBody": "Dapatkan pembaruan dari orang-orang yang membangunnya, langsung di kotak masuk Anda.",
-        "examplesPrompt": "Ingin sesuatu untuk disalin?",
-        "examplesLink": "Lihat contoh",
-        "examplesBody": "Permintaan umum dan pola kerja yang dapat Anda adaptasi."
+        "storageNote": "*Salin dan simpan di perangkat keras, server, atau perangkat Anda sendiri agar dapat berfungsi secara offline."
     },
     "footer": {
         "madeWith": "Dibuat dengan {{ love }} kali {{ aoLab }}",

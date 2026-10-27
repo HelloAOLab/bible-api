@@ -1,22 +1,16 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
-import {
-    RouteLink,
-    usePageFrontmatter,
-    usePageLang,
-    withBase,
-} from 'vuepress/client';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { RouteLink, usePageFrontmatter, usePageLang } from 'vuepress/client';
 import SiteFooter from './SiteFooter.vue';
-import {
-    useLabels,
-    useLocale,
-    useLocalePath,
-} from '../composables/useLocale';
+import SupportWall from './SupportWall.vue';
+import HomeVerse from './HomeVerse.vue';
+import { useLabels, useLocale, useLocalePath } from '../composables/useLocale';
 import { fillLabel, labelHtml } from '../composables/formatLabel';
 import type { Labels } from '../labels';
 import {
     HOME_VERSES,
-    type HomeVerse,
+    type HomeVerse as HomeVerseKey,
+    type VerseRef,
     type Verses,
     type VerseText,
 } from '../verses';
@@ -27,9 +21,11 @@ declare const __SITE_VERSES__: Record<string, Verses>;
 const DONATE_URL = 'https://better.giving/marketplace/1118469';
 const DISCORD_URL = 'https://discord.com/invite/NbEZMCJmqC';
 const NEWSLETTER_URL = 'https://helloao.org';
+const CASE_PAGE = '/guide/a-biblical-model-for-licensing-the-bible.html';
 
 const localePath = useLocalePath();
 const labels = useLabels();
+const home = computed(() => labels.value.home);
 const frontmatter = usePageFrontmatter();
 const lang = usePageLang();
 const locale = useLocale();
@@ -40,28 +36,41 @@ const locale = useLocale();
 const verses = computed(() => {
     const code = locale.value === '/' ? 'en' : locale.value.slice(1, -1);
     return Object.fromEntries(
-        (Object.keys(HOME_VERSES) as HomeVerse[]).map((key) => {
+        (Object.keys(HOME_VERSES) as HomeVerseKey[]).map((key) => {
             const own = __SITE_VERSES__[locale.value]?.[key];
             const verse = own ?? __SITE_VERSES__['/'][key]!;
-            const { book, chapter, verse: number } = HOME_VERSES[key];
-            const reference = `${verse.bookName} ${chapter}:${number}`;
+            const {
+                book,
+                chapter,
+                verse: number,
+                endVerse,
+            }: VerseRef = HOME_VERSES[key];
+            const reference =
+                `${verse.bookName} ${chapter}:${number}` +
+                (endVerse ? `–${endVerse}` : '');
             return [
                 key,
                 {
                     ...verse,
+                    html: labelHtml(verse.text),
+                    // A verse short enough to stand as a screen's headline.
+                    short: verse.text.length <= 80,
                     lang: verse.language ?? (own ? code : 'en'),
                     reference,
                     open: fillLabel(labels.value.home.openVerse, { reference }),
                     url:
                         'https://seedbible.org/?translation=' +
                         encodeURIComponent(verse.translationId) +
-                        `&book=${book}&chapter=${chapter}&verse=${number}`,
+                        `&book=${book}&chapter=${chapter}&verse=${number}` +
+                        (endVerse ? `-${endVerse}` : ''),
                 },
             ];
         })
     ) as Record<
-        HomeVerse,
+        HomeVerseKey,
         VerseText & {
+            html: string;
+            short: boolean;
             lang: string;
             reference: string;
             open: string;
@@ -69,9 +78,6 @@ const verses = computed(() => {
         }
     >;
 });
-
-const logo = withBase('/seed_bible_logo.png');
-const logoDark = withBase('/seed_bible_logo_dark.png');
 
 // The catalog grows. Fill the printed numbers from the live endpoint rather
 // than letting them rot, but only once a session: the file is large.
@@ -93,7 +99,7 @@ const formatCount = (n: number) => {
 const translations = computed(() => formatCount(translationCount.value));
 const languages = computed(() => formatCount(languageCount.value));
 
-onMounted(() => {
+function fetchCounts() {
     let hit: string | null = null;
     try {
         hit = sessionStorage.getItem('fuba-counts');
@@ -133,105 +139,244 @@ onMounted(() => {
     } else {
         setTimeout(go, 1200);
     }
-});
+}
+
+/** The five ways Scripture has always been passed on. */
+type Use = keyof Labels['home']['uses'];
+const USES: Use[] = ['copy', 'translate', 'revise', 'adapt', 'distribute'];
+
+// The licence term that forbids each use, on the "copyright terms forbid" screen.
+const FORBIDDEN_BY: Record<Use, 'allRightsReserved' | 'noDerivatives'> = {
+    copy: 'allRightsReserved',
+    translate: 'noDerivatives',
+    revise: 'noDerivatives',
+    adapt: 'noDerivatives',
+    distribute: 'allRightsReserved',
+};
+
+// Modern Bible translations worldwide, estimated by AO Lab in October 2026.
+const WORLD_OBEY = 100;
+const WORLD_DISOBEY = 5000;
 
 type Mark = 'y' | 'p' | 'n';
+type Licence = keyof Labels['home']['licences'];
+
+// The API's translations by licence, from our licence audit (October 2026),
+// with what each licence lets you do for each of the five uses.
+const LICENCES: { id: Licence; obey: boolean; count: number; marks: Mark[] }[] =
+    [
+        {
+            id: 'publicDomain',
+            obey: true,
+            count: 102,
+            marks: ['y', 'y', 'y', 'y', 'y'],
+        },
+        {
+            id: 'attribution',
+            obey: true,
+            count: 36,
+            marks: ['y', 'y', 'y', 'y', 'y'],
+        },
+        {
+            id: 'shareAlike',
+            obey: false,
+            count: 283,
+            marks: ['y', 'p', 'p', 'p', 'y'],
+        },
+        {
+            id: 'noDerivatives',
+            obey: false,
+            count: 92,
+            marks: ['y', 'n', 'n', 'n', 'y'],
+        },
+        {
+            id: 'nonCommercial',
+            obey: false,
+            count: 1,
+            marks: ['p', 'p', 'p', 'p', 'p'],
+        },
+        {
+            id: 'nonCommercialNoDerivatives',
+            obey: false,
+            count: 728,
+            marks: ['p', 'n', 'n', 'n', 'p'],
+        },
+        {
+            id: 'custom',
+            obey: false,
+            count: 14,
+            marks: ['p', 'p', 'p', 'p', 'p'],
+        },
+    ];
+const LICENCE_TOTAL = LICENCES.reduce((sum, l) => sum + l.count, 0);
+
 const markLabel = computed<Record<Mark, string>>(() => ({
-    y: labels.value.home.markYes,
-    p: labels.value.home.markConditional,
-    n: labels.value.home.markNotGranted,
+    y: home.value.allowed,
+    p: home.value.someCases,
+    n: home.value.forbidden,
 }));
 
-type CompareColumn = keyof Labels['home']['compareColumns'];
-const COMPARE_COLUMNS: CompareColumn[] = [
-    'account',
-    'usage',
-    'permission',
-    'storage',
-    'openSource',
-];
-
-// The notes for each cell are in labels.json, under the same row and column.
-const COMPARE_ROWS: {
-    id: keyof Labels['home']['compareRows'];
-    name: string;
-    ours?: boolean;
-    marks: Mark[];
-}[] = [
-    {
-        id: 'ours',
-        name: 'Free Use Bible API',
-        ours: true,
-        marks: ['y', 'y', 'y', 'y', 'y'],
-    },
-    { id: 'apiBible', name: 'API.Bible', marks: ['n', 'n', 'n', 'p', 'p'] },
-    {
-        id: 'youVersion',
-        name: 'YouVersion Platform',
-        marks: ['n', 'n', 'n', 'p', 'p'],
-    },
-    {
-        id: 'bibleBrain',
-        name: 'Bible Brain',
-        marks: ['n', 'n', 'n', 'p', 'y'],
-    },
-];
-
-const compareRows = computed(() =>
-    COMPARE_ROWS.map((row) => ({
-        ...row,
-        cells: COMPARE_COLUMNS.map(
-            (column, i) =>
-                [
-                    row.marks[i],
-                    labels.value.home.compareRows[row.id][column],
-                ] as [Mark, string]
-        ),
-    }))
+const licenceGroups = computed(() =>
+    [true, false].map((obey) => {
+        const rows = LICENCES.filter((l) => l.obey === obey);
+        return {
+            obey,
+            name: obey ? home.value.obeyGroup : home.value.disobeyGroup,
+            count: formatCount(rows.reduce((sum, l) => sum + l.count, 0)),
+            rows: rows.map((l) => ({
+                ...home.value.licences[l.id],
+                id: l.id,
+                count: formatCount(l.count),
+                width: `${((l.count / LICENCE_TOTAL) * 100).toFixed(2)}%`,
+                marks: l.marks.map((mark, i) => ({
+                    mark,
+                    use: home.value.uses[USES[i]],
+                    title: `${home.value.uses[USES[i]]}: ${markLabel.value[mark].toLocaleLowerCase(lang.value)}`,
+                })),
+            })),
+        };
+    })
 );
+
+const FAQ: (keyof Labels['home']['faq'])[] = [
+    'problem',
+    'attribution',
+    'money',
+    'nonCommercial',
+];
+// The verse each FAQ answer opens with, if any.
+const FAQ_VERSES: Partial<Record<(typeof FAQ)[number], HomeVerseKey>> = {
+    attribution: 'glory',
+    money: 'worry',
+};
+const faqAnswer = (id: (typeof FAQ)[number]) => {
+    const entry = home.value.faq[id] as { answer?: string };
+    return entry.answer ? labelHtml(entry.answer) : '';
+};
+
+// The relay: one mark per generation, from Paul's letters to the reader.
+const RELAY_MARKS = 66;
+
+const root = ref<HTMLElement>();
+const relay = ref<HTMLElement>();
+const struck = ref<HTMLElement>();
+const relayOn = ref(false);
+// The strike-through animation is only armed once script runs, so without it
+// the words are simply struck.
+const struckArmed = ref(false);
+const struckOn = ref(false);
+
+const cueHidden = ref(false);
+const cueOnInvert = ref(false);
+
+function updateCue() {
+    const el = root.value;
+    if (!el) return;
+    cueHidden.value =
+        scrollY + innerHeight >= document.documentElement.scrollHeight - 160;
+    const cue = el.querySelector('.scroll-cue');
+    if (!cue) return;
+    const c = cue.getBoundingClientRect();
+    const y = c.top + c.height / 2;
+    cueOnInvert.value = [...el.querySelectorAll('section.invert')].some((x) => {
+        const r = x.getBoundingClientRect();
+        return y >= r.top && y <= r.bottom;
+    });
+}
+
+function scrollToNext() {
+    const el = root.value;
+    if (!el) return;
+    const head =
+        (document.querySelector('.vp-navbar') as HTMLElement | null)
+            ?.offsetHeight ?? 0;
+    const next = [
+        ...el.querySelectorAll<HTMLElement>('main > section, footer'),
+    ].find(
+        (s) => s.getBoundingClientRect().top > head + 8 && s.offsetHeight > 150
+    );
+    next?.scrollIntoView({
+        behavior: matchMedia('(prefers-reduced-motion: reduce)').matches
+            ? 'auto'
+            : 'smooth',
+    });
+}
+
+const observers: IntersectionObserver[] = [];
+
+/** Runs `go` once `el` has scrolled into view. */
+function whenSeen(
+    el: HTMLElement | undefined,
+    threshold: number,
+    go: () => void
+) {
+    if (!el) return;
+    if (!('IntersectionObserver' in window)) {
+        go();
+        return;
+    }
+    const io = new IntersectionObserver(
+        (entries) => {
+            if (entries[0].isIntersecting) {
+                go();
+                io.disconnect();
+            }
+        },
+        { threshold }
+    );
+    io.observe(el);
+    observers.push(io);
+}
+
+onMounted(() => {
+    fetchCounts();
+
+    whenSeen(relay.value, 0.6, () => (relayOn.value = true));
+    if ('IntersectionObserver' in window) {
+        struckArmed.value = true;
+        whenSeen(struck.value, 0.25, () => (struckOn.value = true));
+    }
+
+    addEventListener('scroll', updateCue, { passive: true });
+    addEventListener('resize', updateCue);
+    updateCue();
+});
+
+onBeforeUnmount(() => {
+    observers.forEach((io) => io.disconnect());
+    removeEventListener('scroll', updateCue);
+    removeEventListener('resize', updateCue);
+});
 </script>
 
 <template>
-    <div class="fuba-home">
+    <div ref="root" class="fuba-home">
         <main>
             <section class="hero">
                 <div class="shell">
                     <h1>{{ frontmatter.title }}</h1>
-                    <p class="sub">{{ labels.home.tagline }}</p>
+                    <p class="sub">{{ home.tagline }}</p>
                     <div class="cta">
-                        <RouteLink class="btn primary" :to="localePath('/guide/getting-started.html')">
-                            {{ labels.home.quickStart }}
+                        <RouteLink
+                            class="btn primary"
+                            :to="localePath('/guide/getting-started.html')"
+                        >
+                            {{ home.quickStart }}
                             <span aria-hidden="true">&rarr;</span>
                         </RouteLink>
-                        <a class="btn secondary" :href="DONATE_URL">{{
-                            labels.home.donate
-                        }}</a>
+                        <RouteLink
+                            class="btn secondary"
+                            :to="localePath('/compare.html')"
+                        >
+                            {{ home.compareApis }}
+                        </RouteLink>
                     </div>
-                </div>
-            </section>
-
-            <section class="demo">
-                <div class="shell">
-                    <a
-                        class="verse"
-                        :href="verses.freelyGive.url"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        :aria-label="verses.freelyGive.open"
-                    >
-                        <blockquote :lang="verses.freelyGive.lang" dir="auto">
-                            &ldquo;{{ verses.freelyGive.text }}&rdquo;
-                        </blockquote>
-                        <span class="ref">
-                            <img class="seed light-only" :src="logo" alt="" />
-                            <img class="seed dark-only" :src="logoDark" alt="" />
-                            <span :lang="verses.freelyGive.lang"
-                                >{{ verses.freelyGive.reference }} &middot;
-                                {{ verses.freelyGive.translationAbbreviation }}
-                                &#8599;</span
-                            >
-                        </span>
-                    </a>
+                    <p class="more">
+                        {{ home.more }}
+                        <a href="#ecosystem"
+                            >{{ home.learnMore }}&nbsp;&darr;</a
+                        >
+                    </p>
                 </div>
             </section>
 
@@ -239,191 +384,310 @@ const compareRows = computed(() =>
                 <div class="shell proof-grid">
                     <div>
                         <strong>{{
-                            fillLabel(labels.home.translationCount, {
+                            fillLabel(home.translationCount, {
                                 count: translations,
                             })
                         }}</strong>
                         <span>{{
-                            fillLabel(labels.home.languageCount, {
+                            fillLabel(home.languageCount, {
                                 count: languages,
                             })
                         }}</span>
                     </div>
                     <div>
-                        <strong>{{ labels.home.noApiKey }}</strong>
-                        <span>{{ labels.home.noApiKeyDetail }}</span>
+                        <strong>{{ home.noApiKey }}</strong>
+                        <span>{{ home.noApiKeyDetail }}</span>
                     </div>
                     <div>
-                        <strong>{{ labels.home.noUsageLimits }}</strong>
-                        <span>{{ labels.home.noUsageLimitsDetail }}</span>
+                        <strong>{{ home.noUsageLimits }}</strong>
+                        <span>{{ home.noUsageLimitsDetail }}</span>
                     </div>
                 </div>
             </section>
 
-            <section class="section ecosystem" id="ecosystem">
+            <section class="section" id="cause">
+                <div class="shell">
+                    <div class="cause-top">
+                        <h2 class="m-h">{{ home.causeTitle }}</h2>
+                        <a class="btn primary cause-cta" :href="DONATE_URL">
+                            {{ home.donate }}
+                            <span aria-hidden="true">&rarr;</span>
+                        </a>
+                    </div>
+                    <SupportWall />
+                </div>
+            </section>
+
+            <section class="section alt" id="ecosystem">
                 <div class="shell">
                     <div class="head">
-                        <h2>{{ labels.home.welcome }}</h2>
-                        <p v-html="labelHtml(labels.home.welcomeDetail)"></p>
-                        <p class="tiny-link">
-                            <a href="#compare">
-                                {{ labels.home.compareLink }} &rarr;
-                            </a>
-                        </p>
+                        <h2>{{ home.welcome }}</h2>
+                        <p v-html="labelHtml(home.welcomeDetail)"></p>
                     </div>
                     <div class="cards">
-                        <RouteLink class="card" :to="localePath('/reference/translations/')">
-                            <h3>{{ labels.home.translationsTitle }}</h3>
-                            <p>
-                                {{
-                                    fillLabel(labels.home.translationsBody, {
-                                        count: translations,
-                                    })
-                                }}
-                            </p>
+                        <RouteLink
+                            class="card"
+                            :to="localePath('/reference/translations/')"
+                        >
+                            <h3>{{ home.translationsTitle }}</h3>
+                            <p>{{ home.translationsBody }}</p>
                             <span class="go"
-                                >{{ labels.home.translationsLink }} &rarr;</span
+                                >{{ home.translationsLink }} &rarr;</span
                             >
                         </RouteLink>
                         <RouteLink
                             class="card"
-                            :to="localePath('/reference/translations/standard.html#get-the-audio-timings-for-a-chapter')"
+                            :to="
+                                localePath(
+                                    '/reference/translations/standard.html#get-the-audio-timings-for-a-chapter'
+                                )
+                            "
                         >
-                            <h3>{{ labels.home.audioTitle }}</h3>
-                            <p>{{ labels.home.audioBody }}</p>
-                            <span class="go"
-                                >{{ labels.home.audioLink }} &rarr;</span
-                            >
+                            <h3>{{ home.audioTitle }}</h3>
+                            <p>{{ home.audioBody }}</p>
+                            <span class="go">{{ home.audioLink }} &rarr;</span>
                         </RouteLink>
-                        <RouteLink class="card" :to="localePath('/reference/datasets/')">
-                            <h3>{{ labels.home.datasetsTitle }}</h3>
-                            <p>{{ labels.home.datasetsBody }}</p>
+                        <RouteLink
+                            class="card"
+                            :to="localePath('/reference/datasets/')"
+                        >
+                            <h3>{{ home.datasetsTitle }}</h3>
+                            <p>{{ home.datasetsBody }}</p>
                             <span class="go"
-                                >{{ labels.home.datasetsLink }} &rarr;</span
+                                >{{ home.datasetsLink }} &rarr;</span
                             >
                         </RouteLink>
                         <div class="card">
-                            <h3>{{ labels.home.seedBibleTitle }}</h3>
-                            <p>{{ labels.home.seedBibleBody }}</p>
+                            <h3>{{ home.seedBibleTitle }}</h3>
+                            <p>{{ home.seedBibleBody }}</p>
                             <span class="go pending">{{
-                                labels.home.seedBibleComing
+                                home.seedBibleComing
                             }}</span>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <section class="section compare" id="compare">
+            <section class="section beat fg" id="freely">
                 <div class="shell">
-                    <div class="head">
-                        <h2>{{ labels.home.compareTitle }}</h2>
-                    </div>
-                    <div class="matrix-wrap">
-                        <table class="matrix">
-                            <caption class="vh">
-                                {{ labels.home.compareCaption }}
-                            </caption>
-                            <thead>
-                                <tr>
-                                    <th scope="col" class="matrix-corner">
-                                        {{ labels.home.compareCorner }}
-                                    </th>
-                                    <th
-                                        v-for="col in COMPARE_COLUMNS"
-                                        :key="col"
-                                        scope="col"
-                                    >
-                                        <span>{{
-                                            labels.home.compareColumns[col]
-                                        }}</span>
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr
-                                    v-for="row in compareRows"
-                                    :key="row.name"
-                                    :class="{ 'ours-row': row.ours }"
-                                >
-                                    <th scope="row">{{ row.name }}</th>
-                                    <td
-                                        v-for="([mark, note], i) in row.cells"
-                                        :key="i"
-                                    >
-                                        <span
-                                            class="m"
-                                            :class="mark"
-                                            :title="note"
-                                        ></span>
-                                        <span class="vh">
-                                            {{ markLabel[mark] }}. {{ note }}
-                                        </span>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="matrix-foot">
-                        <p class="legend">
-                            <span
-                                ><span class="m y"></span>
-                                {{ labels.home.markYes }}</span
-                            >
-                            <span
-                                ><span class="m p"></span>
-                                {{ labels.home.markConditional }}</span
-                            >
-                            <span
-                                ><span class="m n"></span>
-                                {{ labels.home.markNotGranted }}</span
-                            >
+                    <h2 class="fg-h">{{ home.freelyTitle }}</h2>
+                    <HomeVerse
+                        class="fg-verse"
+                        :class="{ 'fg-big': verses.freelyGive.short }"
+                        :verse="verses.freelyGive"
+                    />
+                </div>
+            </section>
+
+            <section class="section beat fg alt" id="charge">
+                <div class="shell">
+                    <h2 class="fg-h">{{ home.chargeTitle }}</h2>
+                    <HomeVerse class="fg-verse" :verse="verses.charge" />
+                </div>
+            </section>
+
+            <section class="section beat fg" id="since">
+                <div class="shell">
+                    <h2 class="fg-h">{{ home.sinceTitle }}</h2>
+                    <p class="fg-p" v-html="labelHtml(home.sinceBody)"></p>
+                    <figure
+                        ref="relay"
+                        class="relay"
+                        :class="{ go: relayOn }"
+                        role="img"
+                        :aria-label="home.relayLabel"
+                    >
+                        <div class="relay-line">
+                            <i
+                                v-for="n in RELAY_MARKS"
+                                :key="n"
+                                :class="{ you: n === 1 || n === RELAY_MARKS }"
+                                :style="{ '--n': n - 1 }"
+                            ></i>
+                        </div>
+                        <figcaption>
+                            <span>{{ home.relayFrom }}</span>
+                            <span>{{ home.relayTo }}</span>
+                        </figcaption>
+                    </figure>
+                </div>
+            </section>
+
+            <section class="section beat fg invert" id="forbid">
+                <div class="shell">
+                    <h2 class="meant-h">{{ home.forbidTitle }}</h2>
+                    <p class="fg-p">{{ home.forbidLead }}</p>
+                    <ul
+                        ref="struck"
+                        class="struck"
+                        :class="{ armed: struckArmed, go: struckOn }"
+                    >
+                        <li v-for="(use, i) in USES" :key="use">
+                            <strong :style="{ '--n': i }">{{
+                                home.forbid[use].name
+                            }}</strong>
+                            <p class="ex">{{ home.forbid[use].example }}</p>
+                            <p class="lic">{{ home[FORBIDDEN_BY[use]] }}</p>
+                        </li>
+                    </ul>
+                </div>
+            </section>
+
+            <section class="section beat fg" id="free-use">
+                <div class="shell">
+                    <h2 class="fg-h">{{ home.freeUseTitle }}</h2>
+                    <figure
+                        class="obey"
+                        role="img"
+                        :aria-label="
+                            fillLabel(home.obeyLabel, {
+                                obey: formatCount(WORLD_OBEY),
+                                disobey: formatCount(WORLD_DISOBEY),
+                            })
+                        "
+                    >
+                        <p class="ob-title">
+                            {{ home.obeyTitle }}<sup>&dagger;</sup>
                         </p>
-                        <p class="legend-note">
-                            {{ labels.home.storageNote }}
+                        <div class="obey-bar">
+                            <span class="ob-yes" style="width: 2%"></span>
+                            <span class="ob-no" style="width: 98%"></span>
+                        </div>
+                        <figcaption>
+                            <span class="ob-k"
+                                ><b>~{{ formatCount(WORLD_OBEY) }}</b
+                                >{{ home.obey }}*</span
+                            >
+                            <span class="ob-k ob-k-no"
+                                ><b>~{{ formatCount(WORLD_DISOBEY) }}</b
+                                >{{ home.disobey }}</span
+                            >
+                        </figcaption>
+                    </figure>
+                    <p class="tiny-link fg-links">
+                        <RouteLink :to="localePath(CASE_PAGE)"
+                            >{{ home.readCase }} &rarr;</RouteLink
+                        >
+                    </p>
+                    <p class="fine ob-note">
+                        *{{ home.obeyNote }}<br />&dagger;{{ home.obeySource }}
+                    </p>
+                </div>
+            </section>
+
+            <section class="section beat fg" id="english">
+                <div class="shell">
+                    <h2 class="fg-h">{{ home.englishTitle }}</h2>
+                    <p class="fg-p fg-p-wide">{{ home.englishBody }}</p>
+                </div>
+            </section>
+
+            <section class="section beat fg alt" id="frontier">
+                <div class="shell">
+                    <h2 class="fg-h">{{ home.frontierTitle }}</h2>
+                    <div class="lic-groups">
+                        <p class="lr-head" aria-hidden="true">
+                            <span></span>
+                            <span class="lr-cols">
+                                <span v-for="use in USES" :key="use">{{
+                                    home.uses[use]
+                                }}</span>
+                            </span>
+                            <span></span>
+                        </p>
+                        <div
+                            v-for="group in licenceGroups"
+                            :key="String(group.obey)"
+                            class="lg"
+                            :class="{ 'lg-no': !group.obey }"
+                        >
+                            <p class="lg-h">
+                                <span>{{ group.name }}</span
+                                ><b>{{ group.count }}</b>
+                            </p>
+                            <ul class="lr">
+                                <li v-for="row in group.rows" :key="row.id">
+                                    <span class="lr-name">{{ row.name }}</span>
+                                    <span class="lr-why">{{ row.why }}</span>
+                                    <span class="lr-marks">
+                                        <span
+                                            v-for="m in row.marks"
+                                            :key="m.use"
+                                            class="lr-m"
+                                        >
+                                            <span
+                                                class="m"
+                                                :class="m.mark"
+                                                :title="m.title"
+                                            ></span>
+                                            <span
+                                                class="lr-v"
+                                                aria-hidden="true"
+                                                >{{ m.use }}</span
+                                            >
+                                            <span class="vh"
+                                                >{{ m.title }}.</span
+                                            >
+                                        </span>
+                                    </span>
+                                    <b class="lr-n">{{ row.count }}</b>
+                                    <span class="lr-bar"
+                                        ><span
+                                            :style="{ width: row.width }"
+                                        ></span
+                                    ></span>
+                                </li>
+                            </ul>
+                        </div>
+                        <p class="lr-legend">
+                            <span
+                                ><span class="m y"></span
+                                >{{ home.allowed }}</span
+                            >
+                            <span
+                                ><span class="m p"></span
+                                >{{ home.someCases }}</span
+                            >
+                            <span
+                                ><span class="m n"></span
+                                >{{ home.forbidden }}</span
+                            >
                         </p>
                     </div>
                 </div>
             </section>
 
-            <section class="section contribute" id="contribute">
-                <div class="shell contribute-grid">
-                    <h2 class="contribute-title">
-                        {{ labels.home.contributeTitle }}
+            <section class="section beat fg" id="hinder">
+                <div class="shell">
+                    <HomeVerse
+                        class="fg-verse"
+                        :class="{ 'fg-solo': verses.hinder.short }"
+                        :verse="verses.hinder"
+                    />
+                </div>
+            </section>
+
+            <section class="section alt" id="involve">
+                <div class="shell">
+                    <h2 class="m-h">
+                        {{ home.involveTitle }}<br />{{ home.involveTitle2 }}
                     </h2>
-                    <div class="contribute-copy">
-                        <p>{{ labels.home.contributeBody }}</p>
-                        <div class="cta">
+                    <div id="fund">
+                        <p class="m-p">{{ home.involveBody }}</p>
+                        <div class="cta left">
                             <a class="btn primary" :href="DONATE_URL">
-                                {{ labels.home.donate }}
+                                {{ home.showSupport }}
                                 <span aria-hidden="true">&rarr;</span>
                             </a>
-                            <a class="btn secondary" :href="DISCORD_URL">
-                                {{ labels.home.contributeDiscord }}
-                                <span aria-hidden="true">&#8599;</span>
-                            </a>
+                            <RouteLink
+                                class="btn secondary"
+                                :to="localePath(CASE_PAGE)"
+                            >
+                                {{ home.readCaseSupport }}
+                                <span aria-hidden="true">&rarr;</span>
+                            </RouteLink>
                         </div>
                     </div>
-
-                    <a
-                        class="verse"
-                        :href="verses.stewards.url"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        :aria-label="verses.stewards.open"
-                    >
-                        <blockquote :lang="verses.stewards.lang" dir="auto">
-                            &ldquo;{{ verses.stewards.text }}&rdquo;
-                        </blockquote>
-                        <span class="ref">
-                            <img class="seed light-only" :src="logo" alt="" />
-                            <img class="seed dark-only" :src="logoDark" alt="" />
-                            <span :lang="verses.stewards.lang"
-                                >{{ verses.stewards.reference }} &middot;
-                                {{ verses.stewards.translationAbbreviation }}
-                                &#8599;</span
-                            >
-                        </span>
-                    </a>
                 </div>
             </section>
 
@@ -431,34 +695,86 @@ const compareRows = computed(() =>
                 <div class="shell">
                     <div class="build-card">
                         <div class="build-main">
-                            <h3>{{ labels.home.buildTitle }}</h3>
-                            <RouteLink class="btn" :to="localePath('/guide/getting-started.html')">
-                                {{ labels.home.quickStart }}
+                            <h3>{{ home.buildTitle }}</h3>
+                            <RouteLink
+                                class="btn"
+                                :to="localePath('/guide/getting-started.html')"
+                            >
+                                {{ home.quickStart }}
                                 <span aria-hidden="true">&rarr;</span>
                             </RouteLink>
                         </div>
                         <div class="build-opts">
                             <a :href="NEWSLETTER_URL">
-                                <small>{{ labels.home.newsletterPrompt }}</small>
+                                <small>{{ home.newsletterPrompt }}</small>
                                 <strong
-                                    >{{ labels.home.newsletterLink }} &rarr;</strong
+                                    >{{ home.newsletterLink }} &rarr;</strong
                                 >
-                                <p>{{ labels.home.newsletterBody }}</p>
+                                <p>{{ home.newsletterBody }}</p>
                             </a>
-                            <RouteLink :to="localePath('/guide/making-requests.html#examples')">
-                                <small>{{ labels.home.examplesPrompt }}</small>
+                            <a
+                                :href="DISCORD_URL"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                <small>{{ home.discordPrompt }}</small>
                                 <strong
-                                    >{{ labels.home.examplesLink }} &rarr;</strong
+                                    >{{
+                                        home.contributeDiscord
+                                    }}
+                                    &#8599;</strong
                                 >
-                                <p>{{ labels.home.examplesBody }}</p>
-                            </RouteLink>
+                                <p>{{ home.discordBody }}</p>
+                            </a>
                         </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section alt" id="faq">
+                <div class="shell">
+                    <h2 class="faq-h">{{ home.faqTitle }}</h2>
+                    <div class="faq">
+                        <details v-for="id in FAQ" :key="id" class="faq-q">
+                            <summary>{{ home.faq[id].question }}</summary>
+                            <div class="faq-a">
+                                <HomeVerse
+                                    v-if="FAQ_VERSES[id]"
+                                    :verse="verses[FAQ_VERSES[id]!]"
+                                />
+                                <p
+                                    v-if="faqAnswer(id)"
+                                    v-html="faqAnswer(id)"
+                                ></p>
+                            </div>
+                        </details>
                     </div>
                 </div>
             </section>
         </main>
 
         <SiteFooter />
+
+        <button
+            type="button"
+            class="scroll-cue"
+            :class="{ 'on-invert': cueOnInvert }"
+            :hidden="cueHidden"
+            :aria-label="home.scrollCue"
+            @click="scrollToNext"
+        >
+            <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+            >
+                <path d="M12 5v14M6 13l6 6 6-6" />
+            </svg>
+        </button>
     </div>
 </template>
 
@@ -506,6 +822,9 @@ const compareRows = computed(() =>
         line-height: 1.05;
         font-weight: 700;
     }
+    h2 {
+        text-wrap: balance;
+    }
     :focus-visible {
         outline: 2px solid var(--line-strong);
         outline-offset: 3px;
@@ -515,6 +834,9 @@ const compareRows = computed(() =>
         max-width: var(--max);
         margin: 0 auto;
         padding: 0 28px;
+    }
+    section[id] {
+        scroll-margin-top: var(--navbar-height);
     }
 
     // swap the black and white logo with the theme
@@ -535,27 +857,64 @@ const compareRows = computed(() =>
         font-size: 15px;
         font-weight: 600;
         transition:
-            background 0.15s ease,
-            color 0.15s ease;
+            background-color 0.15s ease,
+            color 0.15s ease,
+            border-color 0.15s ease,
+            box-shadow 0.15s ease,
+            transform 0.15s ease;
+    }
+    .btn > span[aria-hidden] {
+        display: inline-block;
+        transition: transform 0.15s ease;
     }
     .btn.primary {
         background: var(--btn-bg);
         color: var(--btn-fg);
     }
-    .btn.primary:hover {
-        background: var(--text-2);
-    }
     .btn.secondary {
         background: transparent;
         color: var(--text);
     }
-    .btn.secondary:hover {
-        background: var(--surface);
+    @media (hover: hover) {
+        // every button lifts a pixel, and its arrow leans the way it points
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgb(0 0 0 / 14%);
+        }
+        .btn:hover > span[aria-hidden] {
+            transform: translateX(3px);
+        }
+        // outlined buttons take a light tint and stay outlined
+        .btn:not(.primary):hover {
+            background: color-mix(in srgb, var(--text) 6%, transparent);
+            border-color: var(--text);
+            color: var(--text);
+        }
+        // solid buttons step one shade lighter and stay solid
+        .btn.primary:hover {
+            background: var(--text-2);
+            border-color: var(--text-2);
+            color: var(--btn-fg);
+        }
+    }
+    .btn:active {
+        transform: translateY(0);
+        box-shadow: none;
+    }
+    .cta {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 12px;
+        margin-top: 28px;
+    }
+    .cta.left {
+        justify-content: flex-start;
     }
 
     /* ---------- hero ---------- */
     .hero {
-        padding: clamp(48px, 6.5vw, 84px) 0 clamp(40px, 4.6vw, 58px);
+        padding: clamp(48px, 6.5vw, 84px) 0 clamp(72px, 11vw, 160px);
         text-align: center;
     }
     .hero h1 {
@@ -569,15 +928,34 @@ const compareRows = computed(() =>
         letter-spacing: -0.015em;
         text-wrap: balance;
     }
-    .cta {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 12px;
-        margin-top: 28px;
+    .more {
+        margin: 26px 0 0;
+        font-size: 14px;
+        color: var(--muted);
     }
-    .demo {
-        padding: 0 0 clamp(54px, 6vw, 78px);
+    .more a {
+        font-weight: 600;
+        color: var(--text);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+    }
+    @media (min-width: 721px) {
+        .hero {
+            min-height: calc(100svh - var(--navbar-height) - 105px - 15svh);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: clamp(40px, 5vw, 64px) 0;
+        }
+        .hero .sub {
+            margin-top: 22px;
+        }
+        .hero .cta {
+            margin-top: 38px;
+        }
+        .hero .more {
+            margin-top: 34px;
+        }
     }
 
     /* ---------- verses ---------- */
@@ -617,23 +995,6 @@ const compareRows = computed(() =>
     .verse:hover .ref {
         color: var(--text);
     }
-    .demo .verse {
-        margin: 0 auto;
-        padding: 0;
-        border-left: 0;
-        text-align: center;
-    }
-    .demo .verse blockquote {
-        max-width: 30ch;
-        margin: 0 auto;
-        font-size: clamp(21px, 2.3vw, 27px);
-        font-weight: 500;
-        line-height: 1.3;
-    }
-    .demo .verse .ref {
-        justify-content: center;
-        margin-top: 11px;
-    }
 
     /* ---------- proof row ---------- */
     .proof {
@@ -666,18 +1027,18 @@ const compareRows = computed(() =>
     .section {
         padding: clamp(64px, 8vw, 100px) 0;
     }
-    .ecosystem {
-        padding-bottom: clamp(36px, 4.4vw, 56px);
+    .section.alt {
+        background: var(--surface);
+        border-top: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
     }
-    .compare {
-        padding-top: clamp(28px, 3.6vw, 48px);
+    .invert {
+        background: var(--btn-bg);
+        color: var(--btn-fg);
     }
     .head {
-        max-width: 720px;
-        margin-bottom: 36px;
-    }
-    .ecosystem .head {
         max-width: 1040px;
+        margin-bottom: 36px;
     }
     .head h2 {
         font-size: clamp(30px, 4vw, 48px);
@@ -692,11 +1053,20 @@ const compareRows = computed(() =>
         color: var(--text);
         font-weight: 700;
     }
+    .m-h {
+        margin: 0;
+        font-size: clamp(30px, 4vw, 48px);
+        letter-spacing: -0.04em;
+    }
+    .m-p {
+        margin: 18px 0 0;
+        color: var(--text-2);
+        font-size: 18px;
+        line-height: 1.55;
+        max-width: 68ch;
+    }
     .tiny-link {
         margin: 14px 0 0;
-        font-size: 15px;
-    }
-    .head p.tiny-link {
         font-size: 15px;
     }
     .tiny-link a {
@@ -704,6 +1074,39 @@ const compareRows = computed(() =>
         color: var(--text);
         text-decoration: underline;
         text-underline-offset: 3px;
+    }
+    .fine {
+        margin: 30px 0 0;
+        font-size: 13.5px;
+        color: var(--muted);
+        max-width: 80ch;
+    }
+    .vh {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        padding: 0;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+        border: 0;
+    }
+
+    /* ---------- the support wall ---------- */
+    .cause-top {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 14px 40px;
+    }
+    .cause-top .m-h {
+        flex: 0 1 auto;
+    }
+    .cause-cta {
+        flex: none;
+        margin-bottom: 0.3em;
     }
 
     /* ---------- cards ---------- */
@@ -721,10 +1124,15 @@ const compareRows = computed(() =>
         border-radius: 12px;
         background: var(--bg);
         min-height: 190px;
+        transition: border-color 0.15s ease;
     }
     @media (hover: hover) {
         a.card:hover {
             border-color: var(--line-strong);
+        }
+        a.card:hover .go {
+            text-decoration: underline;
+            text-underline-offset: 4px;
         }
     }
     .card h3 {
@@ -747,194 +1155,465 @@ const compareRows = computed(() =>
         color: var(--muted);
     }
 
-    /* ---------- the feature matrix ---------- */
-    .matrix-wrap {
-        overflow-x: auto;
-        border: 1px solid var(--line);
-        border-radius: 12px;
-        -webkit-overflow-scrolling: touch;
+    /* ---------- beats: one statement owns the screen ---------- */
+    .beat {
+        min-height: 86svh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
     }
-    .matrix {
-        display: table;
+    .beat > .shell {
         width: 100%;
-        margin: 0;
-        border-collapse: collapse;
-        font-size: 14px;
-        min-width: 560px;
     }
-    .matrix tr {
-        border: 0;
-        background: none;
-    }
-    .matrix th,
-    .matrix td {
-        padding: 0;
-        border: 0;
+    .fg .shell {
         text-align: center;
-        vertical-align: middle;
     }
-    .matrix thead th {
-        padding: 14px 8px;
-        background: var(--surface);
-        border-bottom: 1px solid var(--line);
-        font-size: 11px;
-        font-weight: 700;
-        letter-spacing: 0.07em;
-        text-transform: uppercase;
-        color: var(--muted);
-        line-height: 1.3;
+    .fg-h {
+        margin: 0;
+        font-size: clamp(32px, 4.4vw, 60px);
+        font-weight: 800;
+        letter-spacing: -0.04em;
+        line-height: 1.06;
     }
-    .matrix thead th span {
-        display: block;
-        max-width: 15ch;
+    #english .fg-h {
+        font-size: clamp(32px, 3.9vw, 54px);
+    }
+    #english {
+        border-top: 1px solid var(--line);
+    }
+    .meant-h {
         margin: 0 auto;
+        text-align: center;
+        font-size: clamp(40px, 6.2vw, 88px);
+        font-weight: 800;
+        letter-spacing: -0.045em;
+        line-height: 1.04;
     }
-    .matrix .matrix-corner {
-        text-align: left;
+    .fg-p {
+        margin: clamp(20px, 2.6vh, 30px) auto 0;
+        max-width: 44ch;
+        color: var(--text-2);
+        font-size: clamp(18px, 1.7vw, 21px);
+        line-height: 1.5;
+        letter-spacing: -0.012em;
     }
-    .matrix tbody th {
-        position: sticky;
-        left: 0;
-        z-index: 1;
-        padding: 13px 16px;
-        text-align: left;
-        background: var(--bg);
-        border-bottom: 1px solid var(--line);
-        border-right: 1px solid var(--line);
-        font-size: 14.5px;
-        font-weight: 600;
-        white-space: nowrap;
+    .fg-p strong {
+        color: var(--text);
+        font-weight: 750;
     }
-    .matrix thead th:first-child {
-        position: sticky;
-        left: 0;
-        z-index: 3;
-        text-align: left;
-        padding-left: 16px;
-        border-right: 1px solid var(--line);
+    .fg-p-wide {
+        max-width: 52ch;
     }
-    .matrix tbody td {
-        position: relative;
-        padding: 13px 8px;
-        border-bottom: 1px solid var(--line);
+    .invert .fg-p {
+        color: var(--btn-fg);
+        opacity: 0.86;
     }
-    .matrix tbody tr:last-child th,
-    .matrix tbody tr:last-child td {
-        border-bottom: 0;
+    .fg-verse {
+        margin: clamp(34px, 5vh, 60px) auto 0;
+        padding: 0;
+        border-left: 0;
     }
-    .matrix .ours-row th,
-    .matrix .ours-row td {
-        background: var(--surface-2);
+    .fg-verse blockquote {
+        max-width: 34ch;
+        margin: 0 auto;
+        font-size: clamp(21px, 2.3vw, 29px);
+        font-weight: 400;
+        line-height: 1.36;
+        letter-spacing: -0.02em;
+    }
+    .fg-verse blockquote strong {
+        font-weight: 750;
+    }
+    .fg-verse .ref {
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 8px;
+        row-gap: 6px;
+        margin-top: clamp(16px, 2.2vh, 22px);
+        font-size: 12px;
         font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
     }
-    .m {
-        display: inline-block;
-        width: 12px;
-        height: 12px;
-        border-radius: 999px;
-        border: 1.5px solid var(--line-strong);
-        cursor: help;
+    // the page's few key statements keep the massive size
+    .fg-big {
+        margin-top: clamp(22px, 3.4vh, 40px);
     }
-    .m.y {
-        background: var(--line-strong);
+    .fg-big blockquote {
+        max-width: none;
+        font-size: clamp(40px, 6.2vw, 88px);
+        font-weight: 800;
+        letter-spacing: -0.045em;
+        line-height: 1.04;
+        text-wrap: balance;
     }
-    .m.p {
-        background: linear-gradient(
-            90deg,
-            var(--line-strong) 50%,
-            transparent 50%
-        );
+    .fg-big .ref {
+        margin-top: clamp(28px, 4.4vh, 52px);
     }
-    .m.n {
-        border-color: var(--muted);
-        opacity: 0.38;
+    // a verse that is the screen's whole statement takes the heading's type
+    #hinder .fg-verse {
+        margin-top: 0;
     }
-    .matrix-foot {
+    .fg-solo blockquote {
+        max-width: none;
+        font-size: clamp(32px, 4.4vw, 60px);
+        font-weight: 800;
+        letter-spacing: -0.04em;
+        line-height: 1.06;
+        text-wrap: balance;
+    }
+    .fg-solo .ref {
+        margin-top: clamp(20px, 3vh, 32px);
+    }
+    .fg-links {
         display: flex;
         flex-wrap: wrap;
-        align-items: baseline;
-        gap: 10px clamp(18px, 3vw, 40px);
-        margin-top: 16px;
-    }
-    .legend {
-        margin: 0;
-        display: flex;
-        gap: 18px;
-        font-size: 13.5px;
-        font-weight: 600;
-        white-space: nowrap;
-    }
-    .legend span span.m {
-        margin-right: 6px;
-        vertical-align: -1px;
-        cursor: default;
-    }
-    .legend-note {
-        margin: 0;
-        flex: 1 1 380px;
-        max-width: 74ch;
-        font-size: 13.5px;
-        line-height: 1.5;
-        color: var(--muted);
-    }
-    .vh {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        margin: -1px;
-        padding: 0;
-        overflow: hidden;
-        clip: rect(0 0 0 0);
-        white-space: nowrap;
-        border: 0;
+        justify-content: center;
+        gap: 12px 28px;
+        margin-top: clamp(36px, 5vh, 52px);
     }
 
-    /* ---------- contribute ---------- */
-    .contribute {
-        padding: clamp(48px, 6vw, 76px) 0;
-        background: var(--surface);
-        border-top: 1px solid var(--line);
+    /* the relay: one mark per generation from the first letters to the
+       reader, filled in order */
+    .relay {
+        margin: clamp(44px, 6.5vh, 76px) auto 0;
+        max-width: 880px;
+    }
+    .relay-line {
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        height: 14px;
+    }
+    .relay-line::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 50%;
+        height: 1px;
+        background: var(--line);
+    }
+    .relay-line i {
+        position: relative;
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: var(--text);
+        opacity: 0.28;
+    }
+    .relay-line i.you {
+        width: 13px;
+        height: 13px;
+        opacity: 1;
+    }
+    .relay figcaption {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 14px;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--muted);
+    }
+    .relay figcaption span:last-child {
+        color: var(--text);
+    }
+    .relay.go .relay-line i {
+        animation: fuba-relay-on 0.5s ease forwards;
+        animation-delay: calc(var(--n) * 28ms);
+    }
+    .relay.go .relay-line i.you {
+        animation: fuba-relay-you 0.6s ease forwards;
+        animation-delay: calc(var(--n) * 28ms);
+    }
+
+    /* the five words return, struck through: what is forbidden, and the
+       licence term that forbids it */
+    .struck {
+        list-style: none;
+        margin: clamp(44px, 6vh, 76px) auto 0;
+        padding: 0;
+        max-width: 700px;
+    }
+    .struck li + li {
+        margin-top: clamp(30px, 4.4vh, 46px);
+    }
+    .struck strong {
+        position: relative;
+        display: inline-block;
+        font-size: clamp(34px, 3.2vw, 46px);
+        font-weight: 800;
+        letter-spacing: -0.045em;
+        line-height: 1.1;
+    }
+    .struck strong::after {
+        content: '';
+        position: absolute;
+        left: -4%;
+        right: -4%;
+        top: 55%;
+        height: 0.075em;
+        background: currentColor;
+        transform-origin: left center;
+    }
+    .struck.armed strong::after {
+        transform: scaleX(0);
+        transition: transform 0.45s cubic-bezier(0.6, 0, 0.25, 1);
+        transition-delay: calc(var(--n) * 160ms + 120ms);
+    }
+    .struck.armed.go strong::after {
+        transform: scaleX(1);
+    }
+    .struck .ex {
+        margin: 10px auto 0;
+        max-width: 40ch;
+        font-size: clamp(17px, 1.5vw, 20px);
+        line-height: 1.45;
+        opacity: 0.86;
+    }
+    .struck .lic {
+        margin: 6px 0 0;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        opacity: 0.62;
+    }
+
+    /* obedience: translations worldwide, by whether they allow all five */
+    .obey {
+        margin: clamp(40px, 6vh, 68px) auto 0;
+        max-width: 880px;
+    }
+    .ob-title {
+        margin: 0 0 12px;
+        text-align: left;
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+    }
+    .ob-title sup {
+        font-size: 0.75em;
+        margin-left: 1px;
+    }
+    .obey-bar {
+        display: flex;
+        height: 14px;
+        border-radius: 2px;
+        overflow: hidden;
+        gap: 3px;
+    }
+    .ob-yes {
+        background: var(--text);
+    }
+    .ob-no {
+        background: repeating-linear-gradient(
+            135deg,
+            color-mix(in srgb, var(--text) 30%, var(--bg)) 0 2px,
+            transparent 2px 6px
+        );
+        box-shadow: inset 0 0 0 1px
+            color-mix(in srgb, var(--text) 22%, var(--bg));
+    }
+    .obey figcaption {
+        display: flex;
+        justify-content: space-between;
+        gap: 20px;
+        margin-top: 16px;
+        text-align: left;
+    }
+    .ob-k {
+        display: flex;
+        flex-direction: column;
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--text-2);
+    }
+    .ob-k b {
+        margin-bottom: 6px;
+        font-size: clamp(34px, 3.6vw, 52px);
+        font-weight: 800;
+        letter-spacing: -0.04em;
+        line-height: 1;
+        color: var(--text);
+    }
+    .ob-k-no {
+        text-align: right;
+        align-items: flex-end;
+    }
+    .ob-note {
+        margin: clamp(40px, 6vh, 64px) auto 0;
+        text-align: center;
+        font-size: 12.5px;
+        line-height: 1.7;
+    }
+
+    /* the API's own translations, by licence: obey above, disobey below */
+    .lic-groups {
+        max-width: 880px;
+        margin: clamp(40px, 6vh, 64px) auto 0;
+        text-align: left;
+    }
+    .lg + .lg {
+        margin-top: clamp(36px, 5vh, 52px);
+    }
+    .lg-h {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin: 0;
+        padding-bottom: 10px;
+        border-bottom: 2px solid var(--text);
+    }
+    .lg-h span {
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+    }
+    .lg-h b {
+        font-size: clamp(30px, 3.2vw, 44px);
+        font-weight: 800;
+        letter-spacing: -0.04em;
+        line-height: 1;
+    }
+    .lr {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+    .lr li {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto 56px;
+        column-gap: 24px;
+        padding: 16px 0 18px;
         border-bottom: 1px solid var(--line);
     }
-    .contribute-grid {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-        gap: clamp(22px, 2.6vw, 34px) clamp(36px, 5vw, 80px);
-        align-items: center;
-    }
-    .contribute-title {
+    .lr-name {
         grid-column: 1;
-        grid-row: 1;
-        margin: 0;
-        text-wrap: balance;
-        font-size: clamp(30px, 4vw, 48px);
-        letter-spacing: -0.04em;
+        font-size: 17px;
+        font-weight: 700;
+        letter-spacing: -0.01em;
     }
-    .contribute-copy {
+    .lr-why {
         grid-column: 1;
-        grid-row: 2;
+        margin-top: 3px;
+        font-size: 15px;
+        line-height: 1.45;
+        color: var(--text-2);
     }
-    .contribute-copy p {
-        margin: 0;
-        max-width: 44ch;
-        color: var(--muted);
-        font-size: 18px;
-    }
-    .contribute-copy .cta {
-        justify-content: flex-start;
-        margin-top: 26px;
-    }
-    .contribute .verse {
+    .lr-marks {
         grid-column: 2;
         grid-row: 1 / span 2;
         align-self: center;
-        margin: 0;
-        padding-left: clamp(20px, 2.2vw, 28px);
+        display: grid;
+        grid-template-columns: repeat(5, 88px);
     }
-    .contribute .verse blockquote {
-        max-width: 34ch;
-        font-size: clamp(20px, 1.7vw, 24px);
-        line-height: 1.4;
+    .lr-m {
+        display: flex;
+        justify-content: center;
+    }
+    .lr-v {
+        display: none;
+    }
+    .lr-n {
+        grid-column: 3;
+        grid-row: 1 / span 2;
+        align-self: center;
+        text-align: right;
+        font-size: clamp(20px, 2vw, 26px);
+        font-weight: 800;
+        letter-spacing: -0.03em;
+    }
+    .lr-bar {
+        grid-column: 1 / -1;
+        display: block;
+        height: 4px;
+        margin-top: 12px;
+        border-radius: 2px;
+        overflow: hidden;
+        background: color-mix(in srgb, var(--text) 8%, transparent);
+    }
+    .lr-bar span {
+        display: block;
+        height: 100%;
+        min-width: 3px;
+        background: var(--text);
+    }
+    .lg-no .lr-bar span {
+        background: color-mix(in srgb, var(--text) 42%, transparent);
+    }
+    .lr-head {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto 56px;
+        column-gap: 24px;
+        margin: 0 0 10px;
+    }
+    .lr-cols {
+        display: grid;
+        grid-template-columns: repeat(5, 88px);
+    }
+    .lr-cols span {
+        text-align: center;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+    }
+    .lr-legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 22px;
+        margin: 20px 0 0;
+        font-size: 13px;
+        color: var(--muted);
+    }
+    .lr-legend span span.m {
+        margin-right: 7px;
+        vertical-align: -1px;
+    }
+    // here "forbidden" is the point, so it carries full ink: a ring with a
+    // bar through it
+    .m {
+        position: relative;
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        border-radius: 999px;
+        border: 1.5px solid var(--text);
+        cursor: help;
+    }
+    .lr-legend .m {
+        cursor: default;
+    }
+    .m.y {
+        background: var(--text);
+    }
+    .m.p {
+        background: linear-gradient(90deg, var(--text) 50%, transparent 50%);
+    }
+    .m.n::after {
+        content: '';
+        position: absolute;
+        left: 50%;
+        top: -1px;
+        bottom: -1px;
+        width: 1.5px;
+        margin-left: -0.75px;
+        background: var(--text);
+        transform: rotate(45deg);
+    }
+
+    /* ---------- get involved ---------- */
+    #involve {
+        padding-bottom: clamp(24px, 3vw, 40px);
+    }
+    #fund {
+        padding-bottom: clamp(24px, 3vw, 40px);
     }
 
     /* ---------- start building ---------- */
@@ -962,9 +1641,13 @@ const compareRows = computed(() =>
         border-color: var(--bg);
         white-space: nowrap;
     }
-    .build-main .btn:hover {
-        background: var(--card-dim);
-        color: var(--text);
+    @media (hover: hover) {
+        // the light button on the inverted panel greys a step and stays solid
+        .build-main .btn:hover {
+            background: color-mix(in srgb, var(--bg) 84%, var(--text));
+            border-color: color-mix(in srgb, var(--bg) 84%, var(--text));
+            color: var(--text);
+        }
     }
     .build-opts {
         display: grid;
@@ -1001,6 +1684,122 @@ const compareRows = computed(() =>
         color: var(--card-dim);
     }
 
+    /* ---------- FAQ: one column, each question opens in place ---------- */
+    .faq-h {
+        margin: 0;
+        font-size: clamp(30px, 4vw, 48px);
+        letter-spacing: -0.04em;
+    }
+    .faq {
+        margin: clamp(24px, 3vw, 36px) 0 0;
+        border-top: 1px solid var(--line);
+    }
+    .faq-q {
+        border-bottom: 1px solid var(--line);
+    }
+    .faq-q summary {
+        list-style: none;
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 24px;
+        padding: 22px 0;
+        cursor: pointer;
+        font-size: clamp(18px, 1.7vw, 21px);
+        font-weight: 700;
+        letter-spacing: -0.015em;
+    }
+    .faq-q summary::-webkit-details-marker {
+        display: none;
+    }
+    .faq-q summary::after {
+        content: '+';
+        flex: none;
+        font-size: 24px;
+        font-weight: 400;
+        line-height: 1;
+        color: var(--muted);
+    }
+    .faq-q[open] summary::after {
+        content: '\2212';
+    }
+    @media (hover: hover) {
+        .faq-q summary:hover::after {
+            color: var(--text);
+        }
+    }
+    .faq-a {
+        padding: 0 0 26px;
+    }
+    .faq-a p {
+        margin: 0;
+        color: var(--text-2);
+        font-size: 17px;
+        line-height: 1.6;
+    }
+    .faq-a .verse {
+        margin: 4px 0 18px;
+    }
+    .faq-a .verse blockquote {
+        font-size: clamp(17px, 1.6vw, 19px);
+    }
+    .faq-a strong,
+    .faq-a em {
+        color: var(--text);
+    }
+    .faq-a em {
+        font-style: normal;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        text-decoration-thickness: 1.5px;
+    }
+
+    /* ---------- scroll cue: a quiet down arrow, bottom right ---------- */
+    .scroll-cue {
+        position: fixed;
+        right: clamp(16px, 2.4vw, 32px);
+        bottom: clamp(16px, 2.4vw, 32px);
+        z-index: 40;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: 0;
+        background: none;
+        color: var(--muted);
+        cursor: pointer;
+        transition:
+            opacity 0.25s ease,
+            color 0.2s ease;
+    }
+    .scroll-cue.on-invert {
+        color: color-mix(in srgb, var(--btn-fg) 72%, transparent);
+    }
+    .scroll-cue svg {
+        width: 22px;
+        height: 22px;
+        // a small sway every few seconds: enough motion to catch the eye
+        animation: fuba-cue-sway 4.5s ease-in-out 1.5s infinite;
+    }
+    .scroll-cue[hidden] {
+        display: flex;
+        opacity: 0;
+        pointer-events: none;
+    }
+    @media (hover: hover) {
+        .scroll-cue:hover {
+            color: var(--text);
+        }
+        .scroll-cue.on-invert:hover {
+            color: var(--btn-fg);
+        }
+        .scroll-cue:hover svg {
+            animation-play-state: paused;
+        }
+    }
+
     @media (max-width: 900px) {
         .cards {
             gap: 12px;
@@ -1021,21 +1820,6 @@ const compareRows = computed(() =>
             border-top: 1px solid var(--line);
         }
     }
-    @media (max-width: 860px) {
-        .contribute-grid {
-            grid-template-columns: 1fr;
-            gap: 24px;
-        }
-        .contribute-title,
-        .contribute-copy,
-        .contribute .verse {
-            grid-column: auto;
-            grid-row: auto;
-        }
-        .contribute .verse blockquote {
-            max-width: none;
-        }
-    }
     @media (max-width: 820px) {
         .build-opts {
             grid-template-columns: 1fr;
@@ -1045,27 +1829,44 @@ const compareRows = computed(() =>
             border-top: 1px solid var(--card-line);
         }
     }
+    @media (max-width: 760px) {
+        .lr-head {
+            display: none;
+        }
+        .lr li {
+            grid-template-columns: minmax(0, 1fr) auto;
+        }
+        .lr-n {
+            grid-column: 2;
+        }
+        .lr-marks {
+            grid-column: 1 / -1;
+            grid-row: 3;
+            grid-template-columns: repeat(5, 1fr);
+            margin-top: 14px;
+        }
+        .lr-m {
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+        .lr-v {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: -0.005em;
+            color: var(--text-2);
+        }
+    }
     @media (max-width: 720px) {
-        .matrix tbody th {
-            white-space: normal;
-            max-width: 126px;
-            padding: 11px 12px;
-            font-size: 13px;
-        }
-        .matrix thead th:first-child {
-            padding-left: 12px;
-            font-size: 10px;
-        }
-        .matrix tbody td {
-            padding: 11px 6px;
+        .beat {
+            min-height: auto;
+            padding: clamp(88px, 22vw, 120px) 0;
         }
     }
     @media (max-width: 620px) {
         .shell {
             padding: 0 16px;
-        }
-        .demo .verse blockquote {
-            max-width: 20ch;
         }
         .cards {
             grid-template-columns: 1fr;
@@ -1103,40 +1904,79 @@ const compareRows = computed(() =>
         .head h2 {
             font-size: 29px;
         }
-        .head p {
+        .head p,
+        .m-p {
             font-size: 16.5px;
         }
-        .matrix-foot {
-            gap: 12px;
+        .lr-name {
+            font-size: 16px;
         }
-        .legend-note {
-            flex-basis: 100%;
+        .lr-why {
+            font-size: 14px;
         }
-        .matrix {
-            min-width: 0;
+        .relay-line i {
+            width: 3px;
+            height: 3px;
         }
-        .matrix tbody th {
-            max-width: 76px;
-            padding: 10px 6px;
-            font-size: 12px;
-        }
-        .matrix thead th {
-            padding: 10px 2px;
-            font-size: 9px;
-            letter-spacing: 0.04em;
-        }
-        .matrix thead th:first-child {
-            padding-left: 8px;
-        }
-        .matrix tbody td {
-            padding: 10px 2px;
+        .relay-line i.you {
+            width: 11px;
+            height: 11px;
         }
     }
     @media (prefers-reduced-motion: reduce) {
         * {
             transition: none !important;
         }
+        .relay .relay-line i {
+            opacity: 0.8;
+            animation: none !important;
+        }
+        .struck.armed strong::after {
+            transform: none;
+        }
+        .scroll-cue svg {
+            animation: none;
+        }
     }
+}
+
+@keyframes fuba-relay-on {
+    to {
+        opacity: 0.8;
+    }
+}
+@keyframes fuba-relay-you {
+    0% {
+        transform: scale(0.4);
+    }
+    60% {
+        transform: scale(1.25);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+@keyframes fuba-cue-sway {
+    0%,
+    72%,
+    100% {
+        transform: rotate(0);
+    }
+    78% {
+        transform: rotate(-16deg);
+    }
+    86% {
+        transform: rotate(12deg);
+    }
+    93% {
+        transform: rotate(-5deg);
+    }
+}
+
+// The scroll cue takes the corner the back-to-top button would use.
+html:has(.fuba-home) .vp-back-to-top-button {
+    display: none;
 }
 
 [data-theme='dark'] .fuba-home {

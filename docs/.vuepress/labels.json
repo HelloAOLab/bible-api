@@ -13,6 +13,9 @@
     "home": {
         "tagline": "An easy-to-use and fully featured JSON API for Scripture.",
         "quickStart": "Quick Start",
+        "compareApis": "Compare APIs",
+        "more": "Together we can build an open ecosystem for global Christianity.",
+        "learnMore": "Learn more",
         "donate": "Donate",
         "openVerse": "Open {{ reference }} in Seed Bible",
         "translationCount": "{{ count }} translations",
@@ -21,32 +24,176 @@
         "noApiKeyDetail": "Nothing to sign up for",
         "noUsageLimits": "No usage limits",
         "noUsageLimitsDetail": "Free forever",
-        "welcome": "Welcome to freedom.",
-        "welcomeDetail": "Get started today with **no limits** and **no red tape**.",
-        "compareLink": "Compare us to other Bible APIs",
+        "causeTitle": "Supported by partners who believe Scripture should be truly free.",
+        "wallYear": "Annual support for {{ year }}",
+        "wallGoal": "**{{ amount }}** annual goal",
+        "wallStoryOne": "1 partner shared how they use the API. Hover or tap the folded corner to read it.",
+        "wallStoryMany": "{{ count }} partners shared how they use the API. Hover or tap a folded corner to read one.",
+        "wallReadStories": "Read all stories",
+        "wallHideStories": "Hide stories",
+        "wallReceived": "Received",
+        "wallStory": "Testimony or note included",
+        "wallClaimed": "Claimed, filling as gifts arrive",
+        "wallOpen": "Open",
+        "wallSquare": "Each square is **{{ monthly }} a month**, or **{{ yearly }} a year**.",
+        "wallLabel": "{{ year }} support wall: {{ squares }} squares at {{ monthly }} a month. {{ received }} received, {{ claimed }} claimed.",
+        "wallAnonymous": "Anonymous",
+        "wallAnonymousPartner": "Anonymous partner",
+        "wallHasStory": "has a story",
+        "wallSquaresOne": "1 square",
+        "wallSquaresMany": "{{ count }} squares",
+        "wallMonthly": "{{ amount }} a month",
+        "wallYearly": "{{ amount }} for the year",
+        "wallOneTime": "{{ amount }} one-time",
+        "wallPercentReceived": "{{ percent }}% received",
+        "fundTitle": "Free Use Fund",
+        "fundBody": "Resources beyond our annual needs will fuel a bigger, better open ecosystem.",
+        "fundFull": "{{ year }} is fully claimed. The {{ amount }} claimed beyond it will fuel a bigger, better open ecosystem.",
+        "fundLink": "How the fund works",
+        "welcome": "Welcome to the frontier.",
+        "welcomeDetail": "Get started immediately with **no red tape**.",
         "translationsTitle": "Bible Translations",
-        "translationsBody": "{{ count }} translations as static JSON, with headings, poetry, line breaks and footnotes kept intact.",
+        "translationsBody": "Static JSON with headings, poetry, line breaks and footnotes kept intact.",
         "translationsLink": "API reference",
         "audioTitle": "Bible Audio",
-        "audioBody": "Scripture plainly read aloud and dramatized, for easy listening and accessibility.",
+        "audioBody": "Plain readings and dramatized Scripture audio for listening and accessibility.",
         "audioLink": "Audio endpoints",
         "datasetsTitle": "Bible Data Sets",
-        "datasetsBody": "Cross references and other Bible data sets, in formats you can build with rather than parse around.",
+        "datasetsBody": "Cross-references and other Bible data in formats ready to build with.",
         "datasetsLink": "Browse datasets",
-        "seedBibleTitle": "Seed Bible Developer Docs",
-        "seedBibleBody": "Utilize and extend our open platform instead of starting from scratch.",
-        "seedBibleComing": "Coming December",
-        "compareTitle": "A Few Bible APIs Compared",
-        "compareCaption": "What the Free Use Bible API and three widely used Bible APIs let you do",
-        "compareCorner": "What you may do",
-        "compareColumns": {
+        "seedBibleTitle": "Seed Bible",
+        "seedBibleBody": "Build on our open Bible platform, or extend it.",
+        "seedBibleComing": "Developer docs coming December",
+        "freelyTitle": "We built this because Jesus said:",
+        "chargeTitle": "Likewise, Paul charged the churches to pass his letters on.",
+        "sinceTitle": "We have Scripture because many generations obeyed these commands.",
+        "sinceBody": "No original manuscripts survive. Scripture reached us through **copying**, **translating**, **revising**, **adapting**, and **distributing**.",
+        "relayLabel": "An unbroken line of generations, from Paul’s letters to you",
+        "relayFrom": "Paul’s letters",
+        "relayTo": "You",
+        "forbidTitle": "God’s word is absolute.",
+        "forbidLead": "Yet copyright terms forbid:",
+        "forbid": {
+            "copy": {
+                "name": "Copying",
+                "example": "A whole Bible to distribute to those in need."
+            },
+            "translate": {
+                "name": "Translating",
+                "example": "Scripture into another language and sharing it."
+            },
+            "revise": {
+                "name": "Revising",
+                "example": "A translation and publishing the revision."
+            },
+            "adapt": {
+                "name": "Adapting",
+                "example": "Scripture into an easy-read edition or audio Bible."
+            },
+            "distribute": {
+                "name": "Distributing",
+                "example": "Bible files online or offline."
+            }
+        },
+        "allRightsReserved": "All rights reserved",
+        "noDerivatives": "NoDerivatives (ND)",
+        "freeUseTitle": "Obedience requires free use.",
+        "obeyTitle": "Modern Bible translations worldwide",
+        "obeyLabel": "Modern Bible translations worldwide, estimated: about {{ obey }} obey, about {{ disobey }} disobey",
+        "obey": "obey",
+        "disobey": "disobey",
+        "readCase": "Read the full case",
+        "obeyNote": "Public domain, CC0 or attribution only.",
+        "obeySource": "Whole and partial translations, estimated by AO Lab, October 2026, from the Digital Bible Library, Wycliffe Global Alliance and our licence audit of this API.",
+        "englishTitle": "Without adapting and sharing Scripture, we would have no English Bible.",
+        "englishBody": "Yet many modern translators adapt work they cannot attribute, then demand attribution and forbid adaptation.",
+        "frontierTitle": "Even in our API, few translations obey.",
+        "uses": {
+            "copy": "Copy",
+            "translate": "Translate",
+            "revise": "Revise",
+            "adapt": "Adapt",
+            "distribute": "Distribute"
+        },
+        "obeyGroup": "Obey",
+        "disobeyGroup": "Disobey",
+        "licences": {
+            "publicDomain": {
+                "name": "Public domain",
+                "why": "No conditions."
+            },
+            "attribution": {
+                "name": "CC BY 4.0 or attribution only",
+                "why": "Credit required."
+            },
+            "shareAlike": {
+                "name": "CC BY-SA 4.0 or share-alike",
+                "why": "Changes only under the same licence."
+            },
+            "noDerivatives": {
+                "name": "CC BY-ND 4.0",
+                "why": "Unchanged copies only."
+            },
+            "nonCommercial": {
+                "name": "CC BY-NC 4.0",
+                "why": "Nothing commercial, such as selling printed Bibles."
+            },
+            "nonCommercialNoDerivatives": {
+                "name": "CC BY-NC-ND 4.0",
+                "why": "Unchanged copies, and nothing commercial."
+            },
+            "custom": {
+                "name": "Custom terms",
+                "why": "Set by each publisher; each forbids at least one."
+            }
+        },
+        "allowed": "Allowed",
+        "someCases": "Only in some cases",
+        "forbidden": "Forbidden",
+        "involveTitle": "It’s high time we stop hindering the gospel.",
+        "involveTitle2": "Together we can close the gap.",
+        "involveBody": "Help keep us operational. Anything beyond our annual needs goes to the Free Use Fund, which supports an open ecosystem to change Scripture online forever.",
+        "showSupport": "Show your support",
+        "readCaseSupport": "Read the full case for support",
+        "buildTitle": "Let’s start building.",
+        "newsletterPrompt": "Want to stay in the loop?",
+        "newsletterLink": "Sign up for the newsletter",
+        "newsletterBody": "Updates from the people building it, in your inbox.",
+        "discordPrompt": "Want to build with us?",
+        "contributeDiscord": "Contribute on Discord",
+        "discordBody": "Create and review CC0 resources with us.",
+        "faqTitle": "FAQ",
+        "faq": {
+            "problem": {
+                "question": "Is this really a problem today?",
+                "answer": "Yes! It’s a massive problem, but most Christians are completely unaware of it because they have a Bible or have access to one they can read online. Because it is so easy to read a Bible online, the assumption is that the Bible must be easy to use and share, right? But anyone who has tried to get access to Scripture to *make* something (an app, a website, a new Bible translation, an audio Bible, etc.) knows that is not the case. And for a world that desperately needs the gospel, this is completely inexcusable."
+            },
+            "attribution": {
+                "question": "What’s wrong with requiring others to attribute the creator of a Bible translation?",
+                "answer": "Requesting attribution is not necessarily a problem, but *requiring it* as a condition to distribute the Bible certainly is."
+            },
+            "money": {
+                "question": "But how do Bible translators and publishers make money?"
+            },
+            "nonCommercial": {
+                "question": "What’s wrong with requiring noncommercial use?",
+                "answer": "It is wrong to put **any** restrictions on others when it comes to freely distributing or sharing Scripture, full stop. There are many ways a Bible could be distributed commercially in a pure and faithful manner (for example, printing Bibles and selling them at just the price required to make a small profit to reinvest in the operation and increase distribution). The point, dear Christian, is that it is *not your place* to tell others how they can and cannot use God’s word."
+            }
+        },
+        "scrollCue": "Scroll to the next section"
+    },
+    "compare": {
+        "title": "A Few Bible APIs Compared",
+        "caption": "What the Free Use Bible API and three widely used Bible APIs let you do",
+        "corner": "What you may do",
+        "columns": {
             "account": "No account",
             "usage": "No usage limit",
             "permission": "No questions asked",
             "storage": "Store & cache*",
             "openSource": "Open source"
         },
-        "compareRows": {
+        "rows": {
             "ours": {
                 "account": "No account, key or approval",
                 "usage": "No published usage limit",
@@ -79,17 +226,7 @@
         "markYes": "Yes",
         "markConditional": "Conditional",
         "markNotGranted": "Not granted",
-        "storageNote": "*Copy and store on your own hardware, servers, or on a device so it works offline.",
-        "contributeTitle": "Help us expand the frontier.",
-        "contributeBody": "Let’s create an open ecosystem of public domain content and open source tools.",
-        "contributeDiscord": "Contribute on Discord",
-        "buildTitle": "Let’s start building.",
-        "newsletterPrompt": "Want to stay in the loop?",
-        "newsletterLink": "Sign up for the newsletter",
-        "newsletterBody": "Updates from the people building it, in your inbox.",
-        "examplesPrompt": "Want something to copy?",
-        "examplesLink": "See examples",
-        "examplesBody": "Common requests and working patterns you can adapt."
+        "storageNote": "*Copy and store on your own hardware, servers, or on a device so it works offline."
     },
     "footer": {
         "madeWith": "Made with {{ love }} by {{ aoLab }}",

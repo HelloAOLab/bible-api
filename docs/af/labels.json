@@ -21,32 +21,30 @@
         "noApiKeyDetail": "Niks om voor aan te meld nie",
         "noUsageLimits": "Geen gebruikslimiete nie",
         "noUsageLimitsDetail": "Vry vir altyd",
-        "welcome": "Welkom by vryheid.",
-        "welcomeDetail": "Begin vandag **sonder beperkings** en **sonder burokrasie** .",
-        "compareLink": "Vergelyk ons ​​met ander Bybel-API's",
         "translationsTitle": "Bybelvertalings",
-        "translationsBody": "{{ count }} vertalings as statiese JSON, met opskrifte, poësie, reëlbreuke en voetnotas ongeskonde.",
         "translationsLink": "API-verwysing",
         "audioTitle": "Bybel-oudio",
-        "audioBody": "Skrif duidelik hardop voorgelees en gedramatiseer, vir maklike luister en toeganklikheid.",
         "audioLink": "Oudio-eindpunte",
         "datasetsTitle": "Bybeldatastelle",
-        "datasetsBody": "Kruisverwysings en ander Bybeldatastelle, in formate waarmee jy kan bou eerder as om dit te ontleed.",
         "datasetsLink": "Blaai deur datastelle",
-        "seedBibleTitle": "Seed Bible Ontwikkelaar Dokumente",
-        "seedBibleBody": "Benut en brei ons oop platform uit in plaas daarvan om van nuuts af te begin.",
-        "seedBibleComing": "Komende Desember",
-        "compareTitle": "'n Paar Bybel-API's vergelyk",
-        "compareCaption": "Wat die Free Use Bible API en drie wyd gebruikte Bybel API's jou toelaat om te doen",
-        "compareCorner": "Wat jy mag doen",
-        "compareColumns": {
+        "buildTitle": "Kom ons begin bou.",
+        "newsletterPrompt": "Wil jy op hoogte bly?",
+        "newsletterLink": "Teken in vir die nuusbrief",
+        "newsletterBody": "Opdaterings van die mense wat dit bou, in jou inboks.",
+        "contributeDiscord": "Dra by op Discord"
+    },
+    "compare": {
+        "title": "'n Paar Bybel-API's vergelyk",
+        "caption": "Wat die Free Use Bible API en drie wyd gebruikte Bybel API's jou toelaat om te doen",
+        "corner": "Wat jy mag doen",
+        "columns": {
             "account": "Geen rekening nie",
             "usage": "Geen gebruikslimiet nie",
             "permission": "Geen vrae gevra nie",
             "storage": "Stoor en kasgeheue*",
             "openSource": "Oopbron"
         },
-        "compareRows": {
+        "rows": {
             "ours": {
                 "account": "Geen rekening, sleutel of goedkeuring nie",
                 "usage": "Geen gepubliseerde gebruikslimiet nie",
@@ -79,17 +77,7 @@
         "markYes": "Ja",
         "markConditional": "Voorwaardelik",
         "markNotGranted": "Nie toegestaan ​​nie",
-        "storageNote": "*Kopieer en stoor op jou eie hardeware, bedieners of op 'n toestel sodat dit vanlyn werk.",
-        "contributeTitle": "Help ons om die grens te verbreed.",
-        "contributeBody": "Kom ons skep 'n oop ekosisteem van publieke domein inhoud en oopbron gereedskap.",
-        "contributeDiscord": "Dra by op Discord",
-        "buildTitle": "Kom ons begin bou.",
-        "newsletterPrompt": "Wil jy op hoogte bly?",
-        "newsletterLink": "Teken in vir die nuusbrief",
-        "newsletterBody": "Opdaterings van die mense wat dit bou, in jou inboks.",
-        "examplesPrompt": "Wil jy iets hê om te kopieer?",
-        "examplesLink": "Sien voorbeelde",
-        "examplesBody": "Algemene versoeke en werkpatrone wat jy kan aanpas."
+        "storageNote": "*Kopieer en stoor op jou eie hardeware, bedieners of op 'n toestel sodat dit vanlyn werk."
     },
     "footer": {
         "madeWith": "Gemaak met {{ love }} by {{ aoLab }}",

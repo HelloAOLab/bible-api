@@ -24,16 +24,19 @@ export function fillLabel(
 }
 
 /**
- * Renders a label that uses `**bold**` or whose placeholders are filled with
- * markup, for `v-html`. The label itself is escaped; `html` values are
- * inserted as they are, so they must be trusted markup.
+ * Renders a label that uses `**bold**` or `*emphasis*`, or whose
+ * placeholders are filled with markup, for `v-html`. The label itself is
+ * escaped; `html` values are inserted as they are, so they must be trusted
+ * markup.
  */
 export function labelHtml(
     label: string,
     html: Record<string, string> = {}
 ): string {
     return fillLabel(
-        escapeHtml(label).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>'),
+        escapeHtml(label)
+            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(?=\S)([^*]*?\S)\*/g, '<em>$1</em>'),
         html
     );
 }
