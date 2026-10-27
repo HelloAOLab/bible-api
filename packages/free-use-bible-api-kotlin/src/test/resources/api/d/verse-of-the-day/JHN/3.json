@@ -12,9 +12,9 @@
       "json"
     ],
     "listOfBooksApiLink": "/api/d/verse-of-the-day/books.json",
-    "numberOfBooks": 47,
-    "totalNumberOfChapters": 172,
-    "totalNumberOfVerses": 223,
+    "numberOfBooks": 59,
+    "totalNumberOfChapters": 337,
+    "totalNumberOfVerses": 594,
     "totalNumberOfReferences": 0,
     "languageName": "English",
     "languageEnglishName": "English",
@@ -26,7 +26,7 @@
     "id": "JHN",
     "datasetId": "verse-of-the-day",
     "order": 43,
-    "numberOfChapters": 10,
+    "numberOfChapters": 15,
     "firstChapterNumber": 1,
     "firstChapterApiLink": "/api/d/verse-of-the-day/JHN/1.json",
     "firstChapterReference": {
@@ -34,14 +34,14 @@
       "book": "JHN",
       "chapter": 1
     },
-    "lastChapterNumber": 16,
-    "lastChapterApiLink": "/api/d/verse-of-the-day/JHN/16.json",
+    "lastChapterNumber": 20,
+    "lastChapterApiLink": "/api/d/verse-of-the-day/JHN/20.json",
     "lastChapterReference": {
       "datasetId": "verse-of-the-day",
       "book": "JHN",
-      "chapter": 16
+      "chapter": 20
     },
-    "totalNumberOfVerses": 15,
+    "totalNumberOfVerses": 43,
     "totalNumberOfReferences": 0
   },
   "chapter": {
@@ -68,11 +68,11 @@
     "book": "JHN",
     "chapter": 3
   },
-  "nextChapterApiLink": "/api/d/verse-of-the-day/JHN/6.json",
+  "nextChapterApiLink": "/api/d/verse-of-the-day/JHN/4.json",
   "nextChapterReference": {
     "datasetId": "verse-of-the-day",
     "book": "JHN",
-    "chapter": 6
+    "chapter": 4
   },
   "previousChapterApiLink": "/api/d/verse-of-the-day/JHN/1.json",
   "previousChapterReference": {

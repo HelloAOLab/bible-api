@@ -12,9 +12,9 @@
       "json"
     ],
     "listOfBooksApiLink": "/api/d/verse-of-the-day/books.json",
-    "numberOfBooks": 47,
-    "totalNumberOfChapters": 172,
-    "totalNumberOfVerses": 223,
+    "numberOfBooks": 59,
+    "totalNumberOfChapters": 337,
+    "totalNumberOfVerses": 594,
     "totalNumberOfReferences": 0,
     "languageName": "English",
     "languageEnglishName": "English",
@@ -26,12 +26,29 @@
     {
       "book": "PRO",
       "chapter": 3,
+      "verse": 3,
+      "categories": [
+        "love"
+      ]
+    },
+    {
+      "book": "PRO",
+      "chapter": 3,
       "verse": 5,
       "endVerse": 6,
       "categories": [
         "faith",
         "guidance",
         "wisdom"
+      ]
+    },
+    {
+      "book": "PRO",
+      "chapter": 3,
+      "verse": 27,
+      "categories": [
+        "love",
+        "inspiration"
       ]
     },
     {

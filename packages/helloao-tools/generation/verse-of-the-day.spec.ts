@@ -45,6 +45,10 @@ function formatRef(v: VerseOfTheDay): string {
 }
 
 describe('VERSES_OF_THE_DAY', () => {
+    it('should have enough verses for a different verse every day of a leap year', () => {
+        expect(VERSES_OF_THE_DAY.length).toBeGreaterThanOrEqual(366);
+    });
+
     it('should only reference verses that exist in the BSB', () => {
         const books = new Map<string, Map<number, number>>();
         const missing: string[] = [];

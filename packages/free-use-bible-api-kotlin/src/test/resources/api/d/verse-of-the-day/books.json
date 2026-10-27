@@ -12,9 +12,9 @@
       "json"
     ],
     "listOfBooksApiLink": "/api/d/verse-of-the-day/books.json",
-    "numberOfBooks": 47,
-    "totalNumberOfChapters": 172,
-    "totalNumberOfVerses": 223,
+    "numberOfBooks": 59,
+    "totalNumberOfChapters": 337,
+    "totalNumberOfVerses": 594,
     "totalNumberOfReferences": 0,
     "languageName": "English",
     "languageEnglishName": "English",
@@ -27,29 +27,29 @@
       "id": "PRO",
       "datasetId": "verse-of-the-day",
       "order": 20,
-      "numberOfChapters": 9,
-      "firstChapterNumber": 3,
-      "firstChapterApiLink": "/api/d/verse-of-the-day/PRO/3.json",
+      "numberOfChapters": 23,
+      "firstChapterNumber": 2,
+      "firstChapterApiLink": "/api/d/verse-of-the-day/PRO/2.json",
       "firstChapterReference": {
         "datasetId": "verse-of-the-day",
         "book": "PRO",
-        "chapter": 3
+        "chapter": 2
       },
-      "lastChapterNumber": 27,
-      "lastChapterApiLink": "/api/d/verse-of-the-day/PRO/27.json",
+      "lastChapterNumber": 31,
+      "lastChapterApiLink": "/api/d/verse-of-the-day/PRO/31.json",
       "lastChapterReference": {
         "datasetId": "verse-of-the-day",
         "book": "PRO",
-        "chapter": 27
+        "chapter": 31
       },
-      "totalNumberOfVerses": 10,
+      "totalNumberOfVerses": 36,
       "totalNumberOfReferences": 0
     },
     {
       "id": "JHN",
       "datasetId": "verse-of-the-day",
       "order": 43,
-      "numberOfChapters": 10,
+      "numberOfChapters": 15,
       "firstChapterNumber": 1,
       "firstChapterApiLink": "/api/d/verse-of-the-day/JHN/1.json",
       "firstChapterReference": {
@@ -57,14 +57,14 @@
         "book": "JHN",
         "chapter": 1
       },
-      "lastChapterNumber": 16,
-      "lastChapterApiLink": "/api/d/verse-of-the-day/JHN/16.json",
+      "lastChapterNumber": 20,
+      "lastChapterApiLink": "/api/d/verse-of-the-day/JHN/20.json",
       "lastChapterReference": {
         "datasetId": "verse-of-the-day",
         "book": "JHN",
-        "chapter": 16
+        "chapter": 20
       },
-      "totalNumberOfVerses": 15,
+      "totalNumberOfVerses": 43,
       "totalNumberOfReferences": 0
     }
   ]

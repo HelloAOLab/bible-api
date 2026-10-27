@@ -12,9 +12,9 @@
       "json"
     ],
     "listOfBooksApiLink": "/api/d/verse-of-the-day/books.json",
-    "numberOfBooks": 47,
-    "totalNumberOfChapters": 172,
-    "totalNumberOfVerses": 223,
+    "numberOfBooks": 59,
+    "totalNumberOfChapters": 337,
+    "totalNumberOfVerses": 594,
     "totalNumberOfReferences": 0,
     "languageName": "English",
     "languageEnglishName": "English",
@@ -27,14 +27,14 @@
       "id": "hope",
       "name": "Hope",
       "description": "Confidence in the future that God has promised.",
-      "numberOfVerses": 30,
+      "numberOfVerses": 70,
       "apiLink": "/api/d/verse-of-the-day/categories/hope.json"
     },
     {
       "id": "love",
       "name": "Love",
       "description": "God's love for us and our love for God and others.",
-      "numberOfVerses": 40,
+      "numberOfVerses": 103,
       "apiLink": "/api/d/verse-of-the-day/categories/love.json"
     }
   ]

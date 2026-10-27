@@ -12,9 +12,9 @@
       "json"
     ],
     "listOfBooksApiLink": "/api/d/verse-of-the-day/books.json",
-    "numberOfBooks": 47,
-    "totalNumberOfChapters": 172,
-    "totalNumberOfVerses": 223,
+    "numberOfBooks": 59,
+    "totalNumberOfChapters": 337,
+    "totalNumberOfVerses": 594,
     "totalNumberOfReferences": 0,
     "languageName": "English",
     "languageEnglishName": "English",
@@ -26,27 +26,33 @@
     "id": "PRO",
     "datasetId": "verse-of-the-day",
     "order": 20,
-    "numberOfChapters": 9,
-    "firstChapterNumber": 3,
-    "firstChapterApiLink": "/api/d/verse-of-the-day/PRO/3.json",
+    "numberOfChapters": 23,
+    "firstChapterNumber": 2,
+    "firstChapterApiLink": "/api/d/verse-of-the-day/PRO/2.json",
     "firstChapterReference": {
       "datasetId": "verse-of-the-day",
       "book": "PRO",
-      "chapter": 3
+      "chapter": 2
     },
-    "lastChapterNumber": 27,
-    "lastChapterApiLink": "/api/d/verse-of-the-day/PRO/27.json",
+    "lastChapterNumber": 31,
+    "lastChapterApiLink": "/api/d/verse-of-the-day/PRO/31.json",
     "lastChapterReference": {
       "datasetId": "verse-of-the-day",
       "book": "PRO",
-      "chapter": 27
+      "chapter": 31
     },
-    "totalNumberOfVerses": 10,
+    "totalNumberOfVerses": 36,
     "totalNumberOfReferences": 0
   },
   "chapter": {
     "number": 3,
     "content": [
+      {
+        "verse": 3,
+        "categories": [
+          "love"
+        ]
+      },
       {
         "verse": 5,
         "endVerse": 6,
@@ -54,6 +60,13 @@
           "faith",
           "guidance",
           "wisdom"
+        ]
+      },
+      {
+        "verse": 27,
+        "categories": [
+          "love",
+          "inspiration"
         ]
       }
     ]
@@ -70,12 +83,12 @@
     "book": "PRO",
     "chapter": 4
   },
-  "previousChapterApiLink": "/api/d/verse-of-the-day/PSA/150.json",
+  "previousChapterApiLink": "/api/d/verse-of-the-day/PRO/2.json",
   "previousChapterReference": {
     "datasetId": "verse-of-the-day",
-    "book": "PSA",
-    "chapter": 150
+    "book": "PRO",
+    "chapter": 2
   },
-  "numberOfVerses": 1,
+  "numberOfVerses": 3,
   "numberOfReferences": 0
 }
