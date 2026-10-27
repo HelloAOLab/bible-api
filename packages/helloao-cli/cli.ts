@@ -404,13 +404,13 @@ async function start() {
         });
 
     program
-        .command('import-translations <dir>')
+        .command('import-translations <dirs...>')
         .description(
-            'Imports all translations from the given directory into the database.'
+            'Imports all translations from the given directories into the database.'
         )
         .option('--overwrite', 'Whether to overwrite existing files.')
-        .action(async (dir: string, options: any) => {
-            await importTranslations(dir, {
+        .action(async (dirs: string[], options: any) => {
+            await importTranslations(dirs, {
                 ...program.opts(),
                 ...options,
             });
@@ -1018,6 +1018,10 @@ async function start() {
         )
         .option('--no-database', 'Disable database tracking for downloads')
         .option(
+            '--fetch-bible-dir <dir>',
+            'Put the translations from fetch.bible in this directory instead of <dir>. <dir> then only holds the translations from eBible.'
+        )
+        .option(
             '--manifest-url <url>',
             'The URL of the fetch.bible manifest',
             FETCH_BIBLE_MANIFEST_URL
@@ -1039,6 +1043,7 @@ async function start() {
                 bibleMultiConverterPath: options.bibleMultiConverterPath,
                 useDatabase: options.database !== false,
                 overwrite: options.overwrite,
+                fetchBibleDir: options.fetchBibleDir,
                 manifestUrl: options.manifestUrl,
                 repo: options.collectionRepo,
                 ref: options.collectionRef,

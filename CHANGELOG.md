@@ -28,6 +28,8 @@ This is the log of changes for the Free Use Bible API.
     -   The translation lists are reconciled so that each translation comes from one source. Translations that eBible has are downloaded from eBible. Translations that only fetch.bible has, or that eBible lists without a USFM download, are downloaded from the [fetch.bible collection](https://github.com/gracious-tech/fetch_collection) in USX or USFM.
     -   Only new and changed translations are downloaded. fetch.bible downloads are tracked in a new `FetchBibleSource` database table, which records the collection commit and the git tree SHA of each translation's directory. A translation is re-downloaded when its tree SHA changes, and its files are downloaded from that exact commit.
     -   USFM files are converted to USX3, and each translation gets a `metadata.json` with its license and attribution.
+    -   fetch.bible translations can be kept in their own directory with `--fetch-bible-dir`. A translation that later becomes available from eBible is removed from the fetch.bible directory, so that it isn't imported twice.
+-   `import-translations` now accepts more than one directory (e.g. `import-translations ./sources/ebible ./sources/fetch-bible`).
 -   Added the `source-fetch-bible-translations <dir>` and `list-fetch-bible-translations` CLI commands for downloading and listing fetch.bible translations on their own. Translations that were already downloaded from eBible are skipped.
 
 ### :bug: Bug Fixes

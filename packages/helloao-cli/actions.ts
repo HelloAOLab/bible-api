@@ -59,7 +59,7 @@ import { EBibleSource } from './prisma-gen/client.js';
 import { DateTime } from 'luxon';
 import { BlobReader, ZipReader } from '@zip.js/zip.js';
 import { tmpdir } from 'node:os';
-import { existsSync } from 'fs';
+import { existsSync, rmSync } from 'fs';
 import {
     findBibleMultiConverterJar,
     promptForBibleMultiConverter,
@@ -77,6 +77,7 @@ import {
     hasFetchBibleSourceChanged,
     isCoveredByEBible,
     isFetchBibleSourceIgnored,
+    isFetchBibleTranslationDir,
     loadDownloadedEBibleCoverage,
     mapConcurrent,
     matchesFetchBibleTranslation,
@@ -176,6 +177,11 @@ export interface SourceTranslationsOptions {
      * The eBible sources to use. If omitted, then they will be downloaded from ebible.org.
      */
     sources?: EBibleSource[];
+
+    /**
+     * The IDs of translations that should not be downloaded, in addition to the ones in the output directory's ignorelist.txt.
+     */
+    ignorelist?: string[];
 }
 
 export interface SourceFetchBibleTranslationsOptions
@@ -185,6 +191,8 @@ export interface SourceFetchBibleTranslationsOptions
     /**
      * The directory that eBible translations were sourced into (e.g. the output directory of source-translations).
      * Translations in this directory that came from eBible won't be downloaded from fetch.bible.
+     * If it is different from the output directory, then translations that were downloaded from fetch.bible
+     * but have since been downloaded from eBible are removed from the output directory, so that they aren't imported twice.
      */
     ebibleDir?: string;
 
@@ -208,7 +216,13 @@ export interface SourceFetchBibleTranslationsOptions
 export interface SourceAllTranslationsOptions extends Omit<
     SourceFetchBibleTranslationsOptions,
     'ebibleDir' | 'includeEBible' | 'ebibleCoverage' | 'catalog'
-> {}
+> {
+    /**
+     * The directory that translations from fetch.bible should be downloaded to.
+     * Defaults to the same directory as the eBible translations.
+     */
+    fetchBibleDir?: string;
+}
 
 /**
  * The result of sourcing translations.
@@ -573,11 +587,11 @@ export async function importTranslation(
 
 /**
  * Imports all the translations from the given directory into the database in the current working directory.
- * @param dir The directory that the translations are located in.
+ * @param dir The directory that the translations are located in. Can also be a list of directories.
  * @param options The options.
  */
 export async function importTranslations(
-    dir: string,
+    dir: string | string[],
     options: ImportTranslationOptions
 ): Promise<void> {
     const logger = log.getLogger();
@@ -588,8 +602,12 @@ export async function importTranslations(
 
     const db = await database.getDb(options.db);
     try {
-        const files = await readdir(dir);
-        const translationDirs = files.map((f) => path.resolve(dir, f));
+        const dirs = Array.isArray(dir) ? dir : [dir];
+        const translationDirs: string[] = [];
+        for (const d of dirs) {
+            const files = await readdir(d);
+            translationDirs.push(...files.map((f) => path.resolve(d, f)));
+        }
         logger.log(`Importing ${translationDirs.length} translations`);
         await database.importTranslations(
             db,
@@ -1248,11 +1266,14 @@ export async function sourceTranslations(
     let sourceExists: any = null;
     let sourceUpsert: any = null;
 
-    const ignorelist = await readIgnorelist(outputDir);
+    const ignorelist = [
+        ...new Set([
+            ...(await readIgnorelist(outputDir)),
+            ...(options.ignorelist ?? []),
+        ]),
+    ];
     if (ignorelist.length > 0) {
-        logger.log(
-            `Applying ignorelist from ${outputDir}: ${ignorelist.length} entries`
-        );
+        logger.log(`Applying ignorelist: ${ignorelist.length} entries`);
         filteredSources = filteredSources.filter(
             (source) => !isEBibleSourceIgnored(source, ignorelist)
         );
@@ -1738,11 +1759,14 @@ export async function sourceFetchBibleTranslations(
         }
     }
 
-    const ignorelist = await readIgnorelist(outputDir);
+    const ignorelist = [
+        ...new Set([
+            ...(await readIgnorelist(outputDir)),
+            ...(options.ignorelist ?? []),
+        ]),
+    ];
     if (ignorelist.length > 0) {
-        logger.log(
-            `Applying ignorelist from ${outputDir}: ${ignorelist.length} entries`
-        );
+        logger.log(`Applying ignorelist: ${ignorelist.length} entries`);
         selected = selected.filter(
             (entry) => !isFetchBibleSourceIgnored(entry.source, ignorelist)
         );
@@ -1778,10 +1802,44 @@ export async function sourceFetchBibleTranslations(
                 }
             }
 
+            // When eBible translations are kept in a separate directory, a translation that was downloaded
+            // from fetch.bible and later downloaded from eBible would otherwise be in both directories.
+            const separateEBibleDir =
+                !!options.ebibleDir &&
+                path.resolve(options.ebibleDir) !== path.resolve(outputDir);
+            const clearDownload = db?.prepare(
+                'UPDATE FetchBibleSource SET downloadDate = NULL, downloadPath = NULL WHERE id = @id;'
+            );
+            let removed = 0;
+
             let providedByEBible = 0;
             selected = selected.filter((entry) => {
                 if (isCoveredByEBible(entry.source, coverage)) {
                     providedByEBible++;
+                    const fetchBiblePath = path.resolve(
+                        outputDir,
+                        entry.source.translationId
+                    );
+                    const ebiblePath = path.resolve(
+                        options.ebibleDir ?? outputDir,
+                        entry.source.translationId
+                    );
+                    if (
+                        separateEBibleDir &&
+                        isFetchBibleTranslationDir(fetchBiblePath) &&
+                        existsSync(ebiblePath) &&
+                        !isFetchBibleTranslationDir(ebiblePath)
+                    ) {
+                        logger.log(
+                            `Removing ${fetchBiblePath} because ${entry.source.translationId} is now provided by eBible (${ebiblePath}).`
+                        );
+                        rmSync(fetchBiblePath, {
+                            recursive: true,
+                            force: true,
+                        });
+                        clearDownload?.run({ id: entry.source.id });
+                        removed++;
+                    }
                     if (hasTranslations) {
                         logger.log(
                             `Skipping ${entry.source.id} because ${entry.source.translationId} is provided by eBible. Use --include-ebible to download it anyway.`
@@ -1794,6 +1852,11 @@ export async function sourceFetchBibleTranslations(
             logger.log(
                 `eBible reconciliation: Skipped ${providedByEBible} translations that are provided by eBible.`
             );
+            if (removed > 0) {
+                logger.log(
+                    `eBible reconciliation: Removed ${removed} fetch.bible translations that are now provided by eBible.`
+                );
+            }
         }
 
         let sourceUpsert: Sql.Statement | null = null;
@@ -2014,7 +2077,8 @@ export async function sourceFetchBibleTranslations(
 }
 
 /**
- * Downloads translations from both eBible and fetch.bible into a single directory, ready to be imported with import-translations.
+ * Downloads translations from both eBible and fetch.bible, ready to be imported with import-translations.
+ * By default, translations from both sources are put in the same directory, but fetch.bible translations can be put in a separate directory with the fetchBibleDir option.
  *
  * The translation lists from both sources are reconciled so that each translation is downloaded from only one source:
  * - Translations that are available from eBible are downloaded from eBible.
@@ -2022,7 +2086,7 @@ export async function sourceFetchBibleTranslations(
  *
  * Only new and changed translations are downloaded (when database tracking is enabled),
  * USFM files are converted to USX3 (unless disabled), and a metadata.json is created for each translation.
- * @param outputDir The directory that the translations should be downloaded to.
+ * @param outputDir The directory that the translations should be downloaded to (or just the eBible translations, if fetchBibleDir is set).
  * @param translations The translations that should be downloaded. If omitted, then all translations are downloaded.
  * @param options The options.
  */
@@ -2032,7 +2096,12 @@ export async function sourceAllTranslations(
     options: SourceAllTranslationsOptions = {}
 ): Promise<SourceTranslationsResult> {
     const logger = log.getLogger();
-    const { convertToUsx3 = true } = options;
+    const {
+        convertToUsx3 = true,
+        fetchBibleDir: _,
+        ...sourceOptions
+    } = options;
+    const fetchBibleDir = options.fetchBibleDir ?? outputDir;
     const result: SourceTranslationsResult = {
         downloaded: [],
         failed: [],
@@ -2060,8 +2129,16 @@ export async function sourceAllTranslations(
         fetchFetchBibleCatalog(options),
     ]);
 
+    // The ignorelists of both directories apply to both sources
+    const ignorelist = [
+        ...(await readIgnorelist(outputDir)),
+        ...(path.resolve(fetchBibleDir) !== path.resolve(outputDir)
+            ? await readIgnorelist(fetchBibleDir)
+            : []),
+        ...(options.ignorelist ?? []),
+    ];
+
     // eBible sources that source-translations is able to download
-    const ignorelist = await readIgnorelist(outputDir);
     const ebibleAvailable = ebibleSources.filter(
         (source) =>
             !!source.FCBHID && !isEBibleSourceIgnored(source, ignorelist)
@@ -2084,10 +2161,11 @@ export async function sourceAllTranslations(
 
     logger.log('=== Sourcing translations from eBible ===');
     const ebibleResult = await sourceTranslations(outputDir, translations, {
-        ...options,
+        ...sourceOptions,
         convertToUsx3,
         bibleMultiConverterPath,
         sources: ebibleSources,
+        ignorelist,
     });
 
     // Translations that eBible lists but doesn't provide files for can be sourced from fetch.bible instead.
@@ -2109,15 +2187,16 @@ export async function sourceAllTranslations(
     logger.log('');
     logger.log('=== Sourcing translations from fetch.bible ===');
     const fetchBibleResult = await sourceFetchBibleTranslations(
-        outputDir,
+        fetchBibleDir,
         translations,
         {
-            ...options,
+            ...sourceOptions,
             convertToUsx3,
             bibleMultiConverterPath,
             catalog,
             ebibleCoverage,
             ebibleDir: outputDir,
+            ignorelist,
         }
     );
 
@@ -2143,8 +2222,12 @@ export async function sourceAllTranslations(
     logger.log(`   Errored: ${result.failed.length}`);
     if (result.downloaded.length > 0) {
         logger.log('');
+        const dirs =
+            path.resolve(fetchBibleDir) !== path.resolve(outputDir)
+                ? `${outputDir} ${fetchBibleDir}`
+                : outputDir;
         logger.log(
-            `Import the translations with: helloao import-translations ${outputDir}`
+            `Import the translations with: helloao import-translations ${dirs}`
         );
     }
 
