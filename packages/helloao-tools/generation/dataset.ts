@@ -315,6 +315,10 @@ export function generateDataset(
             chapters: [],
         };
 
+        if (parsed.shortName) {
+            book.shortName = parsed.shortName;
+        }
+
         if (isApocryphal) {
             book.isApocryphal = true;
         }

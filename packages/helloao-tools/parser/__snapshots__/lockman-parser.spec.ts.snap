@@ -64,6 +64,7 @@ exports[`LockmanParser should parse Genesis 1 and 2 from NASB 1`] = `
             "type": "verse",
           },
           {
+            "paragraph": "p",
             "type": "line_break",
           },
           {
@@ -108,6 +109,7 @@ exports[`LockmanParser should parse Genesis 1 and 2 from NASB 1`] = `
             "type": "verse",
           },
           {
+            "paragraph": "p",
             "type": "line_break",
           },
           {
@@ -187,6 +189,7 @@ exports[`LockmanParser should parse Genesis 1 and 2 from NASB 1`] = `
             "type": "verse",
           },
           {
+            "paragraph": "p",
             "type": "line_break",
           },
           {
@@ -281,6 +284,7 @@ exports[`LockmanParser should parse Genesis 1 and 2 from NASB 1`] = `
             "type": "verse",
           },
           {
+            "paragraph": "p",
             "type": "line_break",
           },
           {
@@ -324,6 +328,7 @@ exports[`LockmanParser should parse Genesis 1 and 2 from NASB 1`] = `
             "type": "verse",
           },
           {
+            "paragraph": "p",
             "type": "line_break",
           },
           {
@@ -357,6 +362,7 @@ exports[`LockmanParser should parse Genesis 1 and 2 from NASB 1`] = `
             "type": "verse",
           },
           {
+            "paragraph": "p",
             "type": "line_break",
           },
           {
@@ -874,6 +880,7 @@ exports[`LockmanParser should parse Genesis 1 and 2 from NASB 1`] = `
             "type": "verse",
           },
           {
+            "paragraph": "p",
             "type": "line_break",
           },
           {
@@ -938,6 +945,7 @@ exports[`LockmanParser should parse Genesis 1 and 2 from NASB 1`] = `
             "type": "verse",
           },
           {
+            "paragraph": "p",
             "type": "line_break",
           },
           {
@@ -1004,6 +1012,7 @@ exports[`LockmanParser should parse Genesis 1 and 2 from NASB 1`] = `
             "type": "verse",
           },
           {
+            "paragraph": "p",
             "type": "line_break",
           },
           {
@@ -1032,6 +1041,7 @@ exports[`LockmanParser should parse Genesis 1 and 2 from NASB 1`] = `
             "type": "verse",
           },
           {
+            "paragraph": "p",
             "type": "line_break",
           },
           {
@@ -1636,6 +1646,7 @@ exports[`LockmanParser should parse red lettering as wordsOfJesus 1`] = `
             "type": "verse",
           },
           {
+            "paragraph": "p",
             "type": "line_break",
           },
           {

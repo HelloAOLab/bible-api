@@ -1,0 +1,20 @@
+{
+    "db": "./free-use-bible-api.db",
+    "exclude": [],
+    "sources": [
+        { "type": "translations", "path": "./sources/ebible" },
+        { "type": "translations", "path": "./sources/fetch-bible" },
+        { "type": "commentaries", "path": "./sources/comment" },
+        { "type": "theographic", "path": "./sources/metadata" },
+        { "type": "interlinear", "path": "./sources/interlinear" }
+    ],
+    "destinations": [
+        {
+            "url": "s3://ao-bible-api",
+            "profile": "aolabs"
+        },
+        {
+            "url": "./free-use-bible-api.zip"
+        }
+    ]
+}

@@ -46,6 +46,38 @@ describe('simplifyVerse()', () => {
         expect(simplifyVerse(verse).text).toBe('Line 1\nLine 2');
     });
 
+    it('records the offset and style of an inline paragraph', () => {
+        const verse: ChapterVerse = {
+            type: 'verse',
+            number: 1,
+            content: [
+                'Au commencement',
+                { lineBreak: true, paragraph: 'p' },
+                'Dieu créa',
+            ],
+        };
+        expect(simplifyVerse(verse)).toMatchObject({
+            text: 'Au commencement\nDieu créa',
+            paragraphs: [{ offset: 16, style: 'p' }],
+        });
+    });
+
+    it('adjusts paragraph offsets when verse text is trimmed', () => {
+        const verse: ChapterVerse = {
+            type: 'verse',
+            number: 1,
+            content: [
+                '  First ',
+                { lineBreak: true, paragraph: 'p' },
+                'Second  ',
+            ],
+        };
+        expect(simplifyVerse(verse)).toMatchObject({
+            text: 'First\nSecond',
+            paragraphs: [{ offset: 6, style: 'p' }],
+        });
+    });
+
     it('should not add a line break when the text already ends with one', () => {
         const verse: ChapterVerse = {
             type: 'verse',
@@ -204,9 +236,7 @@ describe('simplifyChapter()', () => {
                     type: 'heading',
                     content: ['The', 'Creation'],
                 },
-                {
-                    type: 'line_break',
-                },
+                { type: 'line_break', paragraph: 'p' },
                 {
                     type: 'verse',
                     number: 1,
@@ -225,9 +255,7 @@ describe('simplifyChapter()', () => {
                     type: 'heading',
                     text: 'The Creation',
                 },
-                {
-                    type: 'line_break',
-                },
+                { type: 'line_break', paragraph: 'p' },
                 {
                     type: 'verse',
                     number: 1,

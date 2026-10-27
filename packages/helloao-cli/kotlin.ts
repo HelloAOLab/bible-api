@@ -234,6 +234,26 @@ class KotlinModelGenerator {
             }
         }
 
+        const discriminatedUnions = [...this._declarations.values()].filter(
+            (d): d is UnionDeclaration =>
+                d.kind === 'union' && !!d.discriminator
+        );
+        if (discriminatedUnions.length > 0) {
+            blocks.push(
+                [
+                    '/**',
+                    ' * Decodes unrecognized members of discriminated unions as their Unknown variants.',
+                    ' */',
+                    'internal val UnknownContentSerializersModule = SerializersModule {',
+                    ...discriminatedUnions.map(
+                        (d) =>
+                            `    polymorphic(${d.name}::class) { defaultDeserializer { Unknown${d.name}.serializer() } }`
+                    ),
+                    '}',
+                ].join('\n')
+            );
+        }
+
         const header = [
             `// This file was generated from the Free Use Bible API OpenAPI document. Do not edit it by hand.`,
             this._options.generatedBy
@@ -249,7 +269,6 @@ class KotlinModelGenerator {
             'import kotlinx.serialization.KSerializer',
             'import kotlinx.serialization.SerialName',
             'import kotlinx.serialization.Serializable',
-            'import kotlinx.serialization.SerializationException',
             'import kotlinx.serialization.descriptors.PrimitiveKind',
             'import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor',
             'import kotlinx.serialization.descriptors.SerialDescriptor',
@@ -260,6 +279,8 @@ class KotlinModelGenerator {
             'import kotlinx.serialization.json.JsonElement',
             'import kotlinx.serialization.json.JsonObject',
             'import kotlinx.serialization.json.JsonPrimitive',
+            'import kotlinx.serialization.modules.SerializersModule',
+            'import kotlinx.serialization.modules.polymorphic',
         ].filter((line) => line !== null);
 
         return header.join('\n') + '\n\n' + blocks.join('\n\n') + '\n';
@@ -575,8 +596,9 @@ class KotlinModelGenerator {
         const parents = [...(this._parents.get(name) ?? [])];
         const supertypes = parents.length > 0 ? ` : ${parents.join(', ')}` : '';
 
+        const unknown = this._renderUnknownVariant(name);
         if (declaration.discriminator) {
-            return `${prefix}@Serializable\n@JsonClassDiscriminator(${JSON.stringify(declaration.discriminator)})\npublic sealed interface ${name}${supertypes}`;
+            return `${prefix}@Serializable\n@JsonClassDiscriminator(${JSON.stringify(declaration.discriminator)})\npublic sealed interface ${name}${supertypes}\n\n${unknown}`;
         }
 
         const serializerName = `${name}Serializer`;
@@ -598,19 +620,49 @@ class KotlinModelGenerator {
                 `        element is JsonObject && ${JSON.stringify(key)} in element -> ${variant}.serializer()`
             );
         }
-        cases.push(
-            `        else -> throw SerializationException("Unable to determine the type of ${name} from: $element")`
-        );
+        cases.push(`        else -> Unknown${name}.serializer()`);
 
+        return (
+            [
+                `${prefix}@Serializable(with = ${serializerName}::class)`,
+                `public sealed interface ${name}${supertypes}`,
+                '',
+                `internal object ${serializerName} : JsonContentPolymorphicSerializer<${name}>(${name}::class) {`,
+                `    override fun selectDeserializer(element: JsonElement): DeserializationStrategy<${name}> = when {`,
+                ...cases,
+                '    }',
+                '}',
+            ].join('\n') +
+            '\n\n' +
+            unknown
+        );
+    }
+
+    /**
+     * Renders the fallback variant that keeps the raw JSON of union members
+     * this version of the SDK does not know about.
+     */
+    private _renderUnknownVariant(name: string): string {
         return [
-            `${prefix}@Serializable(with = ${serializerName}::class)`,
-            `public sealed interface ${name}${supertypes}`,
+            `/**`,
+            ` * A ${name} that this version of the SDK does not recognize.`,
+            ` * The original JSON is kept in [raw].`,
+            ` */`,
+            `@Serializable(with = Unknown${name}Serializer::class)`,
+            `public data class Unknown${name}(public val raw: JsonElement) : ${name}`,
             '',
-            `internal object ${serializerName} : JsonContentPolymorphicSerializer<${name}>(${name}::class) {`,
-            `    override fun selectDeserializer(element: JsonElement): DeserializationStrategy<${name}> = when {`,
-            ...cases,
-            '    }',
-            '}',
+            `/**`,
+            ` * Reads and writes [Unknown${name}] as its raw JSON.`,
+            ` */`,
+            `internal object Unknown${name}Serializer : KSerializer<Unknown${name}> {`,
+            `    override val descriptor: SerialDescriptor = JsonElement.serializer().descriptor`,
+            `    override fun deserialize(decoder: Decoder): Unknown${name} {`,
+            `        return Unknown${name}(decoder.decodeSerializableValue(JsonElement.serializer()))`,
+            `    }`,
+            `    override fun serialize(encoder: Encoder, value: Unknown${name}) {`,
+            `        encoder.encodeSerializableValue(JsonElement.serializer(), value.raw)`,
+            `    }`,
+            `}`,
         ].join('\n');
     }
 

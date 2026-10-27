@@ -1,6 +1,7 @@
 import * as esbuild from 'esbuild';
 import type { BuildOptions } from 'esbuild';
 import { readFileSync } from 'fs';
+import { createHash } from 'crypto';
 import path from 'path';
 import fg from 'fast-glob';
 
@@ -73,11 +74,58 @@ async function entryPoints(
     ]);
 }
 
+/**
+ * Calculates the hash of the code that the given entry points run.
+ * The code is bundled and minified first so that changes to comments, formatting, and types don't change the hash.
+ * Third-party packages are left out. Their versions are pinned by the lockfile.
+ * @param entries The entry points, relative to the tools package.
+ */
+async function hashCode(entries: string[]): Promise<string> {
+    const result = await esbuild.build({
+        stdin: {
+            contents: entries
+                .map((e) => `export * from ${JSON.stringify(`./${e}`)};`)
+                .join('\n'),
+            resolveDir: tools,
+            loader: 'ts',
+        },
+        bundle: true,
+        write: false,
+        minify: true,
+        legalComments: 'none',
+        platform: 'node',
+        format: 'esm',
+        packages: 'external',
+    });
+
+    const hash = createHash('sha256');
+    for (let file of result.outputFiles) {
+        hash.update(file.contents);
+    }
+    return hash.digest('hex');
+}
+
+/**
+ * Calculates the hashes of the code that processes sources and generates the API.
+ * They are used by the sync command to determine when sources need to be reprocessed (see packages/helloao-cli/processor.ts).
+ */
+async function getCodeHashes() {
+    return {
+        dataset: await hashCode(['generation/dataset.ts']),
+        theographic: await hashCode(['generation/theographic.ts']),
+        interlinear: await hashCode(['generation/interlinear.ts']),
+        api: await hashCode(['generation/api.ts']),
+    };
+}
+
 async function buildCli() {
     const external = [...getExternals(cliPackageJson), '@helloao/cli'];
     const options: BuildOptions = {
         entryPoints: [cliIndex, cliEntry],
         external,
+        define: {
+            __HELLOAO_CODE_HASHES__: JSON.stringify(await getCodeHashes()),
+        },
     };
 
     await Promise.all([
@@ -88,6 +136,8 @@ async function buildCli() {
             bundle: true,
             format: 'esm',
             platform: 'node',
+            // __dirname doesn't exist in ES modules.
+            define: { __dirname: 'import.meta.dirname' },
             // sourcemap: true,
             // platform: 'node',
             // format: 'esm',

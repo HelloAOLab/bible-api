@@ -1,0 +1,1167 @@
+import path from 'node:path';
+import { createHash } from 'node:crypto';
+import { createReadStream } from 'node:fs';
+import { readdir, readFile, stat } from 'node:fs/promises';
+import { Database } from 'better-sqlite3';
+import { DOMParser, Element, Node } from 'linkedom';
+import { z } from 'zod';
+import { log } from '@helloao/tools';
+import {
+    DatasetOutput,
+    generateDataset,
+} from '@helloao/tools/generation/dataset.js';
+import { InputFile } from '@helloao/tools/generation/common-types.js';
+import * as database from './db.js';
+import {
+    loadCommentaryFiles,
+    loadCommentaryMetadata,
+    loadTranslationFiles,
+    loadTranslationMetadata,
+} from './files.js';
+import { loadInterlinearDatasets, loadTheographicDataset } from './actions.js';
+import {
+    CodeHashes,
+    getCodeHashes,
+    getProcessorVersion,
+    SyncSourceType,
+} from './processor.js';
+import {
+    DestinationSyncResult,
+    SyncDestinationConfig,
+    syncDestination,
+} from './sync-upload.js';
+
+/**
+ * The kinds of items that sources produce.
+ */
+export type SyncItemKind = 'translation' | 'commentary' | 'dataset';
+
+/**
+ * An item (translation, commentary, or dataset) that was imported from a source.
+ */
+export interface SyncItem {
+    kind: SyncItemKind;
+    id: string;
+}
+
+/**
+ * The configuration for a source in the sync config.
+ */
+export interface SyncSourceConfig {
+    /**
+     * The type of the source.
+     * - "translation" and "commentary" are a single directory that contains a translation or commentary.
+     * - "translations" and "commentaries" are a directory where every subdirectory contains a translation or commentary.
+     * - "theographic" is a directory that contains the files downloaded by the fetch-bible-metadata command.
+     * - "interlinear" is a directory that contains the files downloaded by the fetch-interlinear command.
+     */
+    type:
+        | 'translation'
+        | 'translations'
+        | 'commentary'
+        | 'commentaries'
+        | 'theographic'
+        | 'interlinear';
+
+    /**
+     * The path to the source directory, relative to the config file.
+     */
+    path: string;
+
+    /**
+     * The IDs that should be imported from this source. Supports * and ? wildcards and is case-insensitive.
+     * Patterns are matched against the ID of each translation, commentary, or dataset, and the name of its directory.
+     * If omitted, everything is included.
+     */
+    include?: string[];
+
+    /**
+     * The IDs that should not be imported from this source. Supports * and ? wildcards and is case-insensitive.
+     * Takes precedence over include.
+     */
+    exclude?: string[];
+}
+
+/**
+ * The configuration for the sync command.
+ */
+export interface SyncConfig {
+    /**
+     * The path to the database, relative to the config file.
+     */
+    db?: string;
+
+    /**
+     * The IDs that should be imported from every source.
+     * Applied in addition to the include list of each source.
+     */
+    include?: string[];
+
+    /**
+     * The IDs that should not be imported from any source.
+     * Applied in addition to the exclude list of each source.
+     */
+    exclude?: string[];
+
+    /**
+     * The sources that should be imported into the database.
+     * Only the items from these sources are kept in the database by the sync and uploaded.
+     */
+    sources: SyncSourceConfig[];
+
+    /**
+     * The destinations that the API files should be uploaded to.
+     */
+    destinations?: SyncDestinationConfig[];
+}
+
+/**
+ * A sync config whose paths can be resolved.
+ */
+export interface LoadedSyncConfig extends SyncConfig {
+    /**
+     * The directory that the paths in the config are relative to.
+     */
+    baseDir: string;
+}
+
+const patternsSchema = z.array(z.string()).optional();
+
+const syncConfigSchema = z.object({
+    db: z.string().optional(),
+    include: patternsSchema,
+    exclude: patternsSchema,
+    sources: z.array(
+        z.object({
+            type: z.enum([
+                'translation',
+                'translations',
+                'commentary',
+                'commentaries',
+                'theographic',
+                'interlinear',
+            ]),
+            path: z.string(),
+            include: patternsSchema,
+            exclude: patternsSchema,
+        })
+    ),
+    destinations: z
+        .array(
+            z.object({
+                url: z.string(),
+                profile: z.string().optional(),
+                s3Region: z.string().optional(),
+                pretty: z.boolean().optional(),
+                useCommonName: z.boolean().optional(),
+                generateAudioFiles: z.boolean().optional(),
+                generateCompleteTranslationFiles: z.boolean().optional(),
+                generateSimpleChapterFiles: z.boolean().optional(),
+                generateOpenApiDocument: z.boolean().optional(),
+            })
+        )
+        .optional(),
+});
+
+/**
+ * Loads and validates the sync config from the given JSON file.
+ * @param configPath The path to the config file.
+ */
+export async function loadSyncConfig(
+    configPath: string
+): Promise<LoadedSyncConfig> {
+    const fullPath = path.resolve(configPath);
+    const json = JSON.parse(await readFile(fullPath, 'utf-8'));
+    const result = syncConfigSchema.safeParse(json);
+    if (!result.success) {
+        throw new Error(
+            `Invalid sync config ${fullPath}:\n${z.prettifyError(result.error)}`
+        );
+    }
+
+    return {
+        ...result.data,
+        baseDir: path.dirname(fullPath),
+    };
+}
+
+/**
+ * The options for a sync.
+ */
+export interface SyncOptions {
+    /**
+     * The path to the database. Overrides the db from the config.
+     */
+    db?: string | null;
+
+    /**
+     * Whether to only report what would change, without changing the database or any destination.
+     */
+    dryRun?: boolean;
+
+    /**
+     * Whether to skip importing the sources into the database.
+     */
+    skipImport?: boolean;
+
+    /**
+     * Whether to skip uploading to the destinations.
+     */
+    skipUpload?: boolean;
+
+    /**
+     * The URLs of the destinations that should be uploaded to. Defaults to every destination in the config.
+     */
+    destinations?: string[];
+
+    /**
+     * Whether to re-import every source, even ones that haven't changed.
+     */
+    reprocessAll?: boolean;
+
+    /**
+     * Whether to re-upload every item, even ones that haven't changed.
+     */
+    reuploadAll?: boolean;
+
+    /**
+     * Whether to ignore changes to the processor.
+     * Use this when you know that a processor change doesn't affect the output of the existing sources.
+     * The affected sources keep their old processor version, so they will be reprocessed by a later sync without this option.
+     */
+    ignoreProcessorChanges?: boolean;
+
+    /**
+     * The number of items that should be loaded from the database and uploaded at a time.
+     */
+    batchSize?: number;
+
+    /**
+     * Whether to log details about every source and item.
+     */
+    verbose?: boolean;
+
+    /**
+     * The code hashes that identify the processor and API generator.
+     * Defaults to the ones that were injected by the build.
+     */
+    codeHashes?: CodeHashes | null;
+}
+
+/**
+ * The result of a sync.
+ */
+export interface SyncResult {
+    import: ImportSyncResult | null;
+    uploads: DestinationSyncResult[];
+
+    /**
+     * The errors that occurred. A sync with errors still applies all the changes that it could.
+     */
+    errors: string[];
+}
+
+/**
+ * Runs the sync that is described by the config at the given path.
+ * @param configPath The path to the sync config file.
+ * @param options The options for the sync.
+ */
+export async function sync(
+    configPath: string,
+    options: SyncOptions = {}
+): Promise<SyncResult> {
+    const config = await loadSyncConfig(configPath);
+    return await syncWithConfig(config, options);
+}
+
+/**
+ * Imports the new, changed, and deleted sources from the given config into the database,
+ * and then uploads the changed items to the destinations in the config.
+ * @param config The sync config.
+ * @param options The options for the sync.
+ */
+export async function syncWithConfig(
+    config: LoadedSyncConfig,
+    options: SyncOptions = {}
+): Promise<SyncResult> {
+    const logger = log.getLogger();
+    const dbPath =
+        options.db ??
+        (config.db ? path.resolve(config.baseDir, config.db) : null);
+    const result: SyncResult = {
+        import: null,
+        uploads: [],
+        errors: [],
+    };
+
+    const db = await database.getDb(dbPath);
+    try {
+        if (!options.skipImport) {
+            result.import = await syncImport(db, config, options);
+            result.errors.push(...result.import.errors);
+        }
+
+        if (!options.skipUpload) {
+            let destinations = config.destinations ?? [];
+            if (options.destinations && options.destinations.length > 0) {
+                for (let url of options.destinations) {
+                    if (!destinations.some((d) => d.url === url)) {
+                        throw new Error(
+                            `The destination ${url} is not in the sync config.`
+                        );
+                    }
+                }
+                destinations = destinations.filter((d) =>
+                    options.destinations!.includes(d.url)
+                );
+            }
+
+            if (destinations.length > 0) {
+                // Items that the config now excludes are never uploaded, even when the import
+                // (which removes them from the database) was skipped.
+                const filter = createIdFilter([], config.exclude);
+                const items = getSyncedItems(db).filter((item) =>
+                    filter(item.id)
+                );
+
+                const prisma = await database.getPrismaDb(dbPath);
+                try {
+                    for (let destination of destinations) {
+                        const upload = await syncDestination(
+                            db,
+                            prisma,
+                            destination,
+                            items,
+                            config.baseDir,
+                            options
+                        );
+                        result.uploads.push(upload);
+                        result.errors.push(...upload.errors);
+                    }
+                } finally {
+                    await prisma.$disconnect();
+                }
+            } else {
+                logger.log('No destinations to upload to.');
+            }
+        }
+    } finally {
+        db.close();
+    }
+
+    if (result.errors.length > 0) {
+        logger.error(`Sync finished with ${result.errors.length} errors:`);
+        for (let error of result.errors) {
+            logger.error(`  ${error}`);
+        }
+    } else {
+        logger.log('Sync finished.');
+    }
+
+    return result;
+}
+
+/**
+ * A source that was found from the sync config.
+ */
+export interface DiscoveredSource {
+    /**
+     * The unique key of the source. Formatted as "{type}:{path}".
+     */
+    key: string;
+
+    type: SyncSourceType;
+
+    /**
+     * The path to the source directory, relative to the base directory of the config.
+     * Absolute if the source is outside of the base directory.
+     */
+    path: string;
+
+    /**
+     * The absolute path to the source directory.
+     */
+    fullPath: string;
+
+    /**
+     * Determines whether the item with the given ID may be imported from the source.
+     */
+    filter: (id: string) => boolean;
+
+    /**
+     * The settings that affect what is imported from the source, besides its files.
+     * Included in the source's hashes so that the source is reimported when they change.
+     */
+    settings: string;
+}
+
+/**
+ * A source that is stored in the database from a previous sync.
+ */
+export interface StoredSource {
+    key: string;
+    type: SyncSourceType;
+    path: string;
+    statHash: string;
+    sha256: string;
+    processorVersion: string;
+    items: SyncItem[];
+}
+
+/**
+ * The reason that a source needs to be imported.
+ * - "new" means that the source hasn't been imported before.
+ * - "changed" means that the files in the source have changed.
+ * - "processor" means that the processor has changed since the source was imported.
+ * - "forced" means that the import was requested by the reprocessAll option.
+ */
+export type ImportReason = 'new' | 'changed' | 'processor' | 'forced';
+
+/**
+ * A source that needs to be imported.
+ */
+export interface PlannedImport extends DiscoveredSource {
+    reason: ImportReason;
+    statHash: string;
+    sha256: string;
+    processorVersion: string;
+    stored: StoredSource | null;
+}
+
+/**
+ * The changes that need to be made to bring the database up to date with the sources.
+ */
+export interface ImportPlan {
+    /**
+     * The sources that need to be imported.
+     */
+    imports: PlannedImport[];
+
+    /**
+     * The sources that were deleted or are no longer included by the config.
+     * Their items need to be deleted from the database.
+     */
+    removals: StoredSource[];
+
+    /**
+     * The sources whose files were touched without changing their contents.
+     * Only their stat hashes need to be updated.
+     */
+    touched: (DiscoveredSource & { statHash: string })[];
+
+    /**
+     * The number of sources that haven't changed.
+     */
+    unchanged: number;
+
+    /**
+     * The types of sources whose processor has changed since they were imported.
+     */
+    processorChanged: SyncSourceType[];
+}
+
+/**
+ * The result of importing the sources into the database.
+ */
+export interface ImportSyncResult {
+    plan: ImportPlan;
+
+    /**
+     * The keys of the sources that were imported.
+     */
+    imported: string[];
+
+    /**
+     * The keys of the sources that were removed.
+     */
+    removed: string[];
+
+    errors: string[];
+}
+
+/**
+ * Imports the new and changed sources from the given config into the database, and removes the items of deleted sources.
+ * @param db The database.
+ * @param config The sync config.
+ * @param options The options for the sync.
+ */
+export async function syncImport(
+    db: Database,
+    config: LoadedSyncConfig,
+    options: SyncOptions = {}
+): Promise<ImportSyncResult> {
+    const logger = log.getLogger();
+    const plan = await planImport(db, config, options);
+    logImportPlan(plan, options);
+
+    const result: ImportSyncResult = {
+        plan,
+        imported: [],
+        removed: [],
+        errors: [],
+    };
+
+    if (options.dryRun) {
+        return result;
+    }
+
+    for (let source of plan.removals) {
+        logger.log(`Removing ${source.key}`);
+        const removeSource = db.transaction(() => {
+            deleteItems(db, source.items);
+            db.prepare('DELETE FROM SyncSource WHERE key = ?;').run(source.key);
+        });
+        removeSource();
+        result.removed.push(source.key);
+    }
+
+    const updateStatHash = db.prepare(
+        'UPDATE SyncSource SET statHash = @statHash WHERE key = @key;'
+    );
+    for (let source of plan.touched) {
+        updateStatHash.run({ key: source.key, statHash: source.statHash });
+    }
+
+    // Tracks which source owns each item, so that two sources can't overwrite each other's items.
+    const owners = new Map<string, string>();
+    for (let source of getStoredSources(db)) {
+        for (let item of source.items) {
+            owners.set(itemKey(item), source.key);
+        }
+    }
+
+    setupDomGlobals();
+    const parser = new DOMParser();
+
+    for (let i = 0; i < plan.imports.length; i++) {
+        const source = plan.imports[i];
+        logger.log(
+            `Importing ${source.key} (${source.reason}) [${i + 1}/${plan.imports.length}]`
+        );
+
+        try {
+            const { output, files } = await processSource(source, parser);
+            if (getOutputItems(output).length <= 0) {
+                throw new Error('The source did not produce any items.');
+            }
+
+            // If every item is excluded, the source is still recorded (with no items),
+            // so that it isn't reprocessed until it or the filters change.
+            filterOutput(output, source.filter);
+            const items = getOutputItems(output);
+
+            for (let item of items) {
+                const owner = owners.get(itemKey(item));
+                if (owner && owner !== source.key) {
+                    throw new Error(
+                        `The ${item.kind} ${item.id} is already imported from ${owner}.`
+                    );
+                }
+            }
+
+            importSourceOutput(db, source, output, files, items);
+
+            for (let item of source.stored?.items ?? []) {
+                owners.delete(itemKey(item));
+            }
+            for (let item of items) {
+                owners.set(itemKey(item), source.key);
+            }
+            result.imported.push(source.key);
+        } catch (err) {
+            const message = `Failed to import ${source.key}: ${(err as Error)?.message ?? err}`;
+            logger.error(message);
+            result.errors.push(message);
+        }
+    }
+
+    return result;
+}
+
+/**
+ * Determines which sources from the given config are new, have changed, or have been deleted since the last sync.
+ * @param db The database.
+ * @param config The sync config.
+ * @param options The options for the sync.
+ */
+export async function planImport(
+    db: Database,
+    config: LoadedSyncConfig,
+    options: SyncOptions = {}
+): Promise<ImportPlan> {
+    const codeHashes =
+        options.codeHashes === undefined ? getCodeHashes() : options.codeHashes;
+    const stored = new Map(getStoredSources(db).map((s) => [s.key, s]));
+    const discovered = await discoverSources(config);
+
+    const plan: ImportPlan = {
+        imports: [],
+        removals: [],
+        touched: [],
+        unchanged: 0,
+        processorChanged: [],
+    };
+
+    const processorChanged = new Set<SyncSourceType>();
+    for (let source of discovered) {
+        const storedSource = stored.get(source.key) ?? null;
+        const processorVersion = getProcessorVersion(source.type, codeHashes);
+        const files = await listSourceFiles(source.fullPath);
+        const statHash = hashFileStats(files, source.settings);
+
+        let reason: ImportReason | null = null;
+        let sha256: string | null = null;
+        let touched = false;
+        if (!storedSource) {
+            reason = 'new';
+        } else if (options.reprocessAll) {
+            reason = 'forced';
+        } else {
+            const isProcessorChanged =
+                storedSource.processorVersion !== processorVersion;
+            if (isProcessorChanged) {
+                processorChanged.add(source.type);
+            }
+
+            if (isProcessorChanged && !options.ignoreProcessorChanges) {
+                reason = 'processor';
+            } else if (storedSource.statHash !== statHash) {
+                sha256 = await hashFileContents(files, source.settings);
+                if (sha256 !== storedSource.sha256) {
+                    reason = 'changed';
+                } else {
+                    touched = true;
+                }
+            }
+        }
+
+        if (reason) {
+            plan.imports.push({
+                ...source,
+                reason,
+                statHash,
+                sha256:
+                    sha256 ?? (await hashFileContents(files, source.settings)),
+                processorVersion,
+                stored: storedSource,
+            });
+        } else if (touched) {
+            plan.touched.push({ ...source, statHash });
+        } else {
+            plan.unchanged++;
+        }
+    }
+
+    const discoveredKeys = new Set(discovered.map((s) => s.key));
+    for (let source of stored.values()) {
+        if (!discoveredKeys.has(source.key)) {
+            plan.removals.push(source);
+        }
+    }
+
+    plan.processorChanged = [...processorChanged];
+    return plan;
+}
+
+/**
+ * Finds the sources that are included by the given config.
+ * Throws if a configured source directory doesn't exist, so that a missing directory (e.g. an unmounted drive)
+ * isn't treated as every source in it being deleted.
+ * @param config The sync config.
+ */
+export async function discoverSources(
+    config: LoadedSyncConfig
+): Promise<DiscoveredSource[]> {
+    const sources: DiscoveredSource[] = [];
+    const keys = new Set<string>();
+
+    for (let sourceConfig of config.sources) {
+        const fullPath = path.resolve(config.baseDir, sourceConfig.path);
+        if (!(await isDirectory(fullPath))) {
+            throw new Error(
+                `The ${sourceConfig.type} source ${fullPath} does not exist or is not a directory.`
+            );
+        }
+
+        let dirs: { type: SyncSourceType; fullPath: string }[];
+        if (
+            sourceConfig.type === 'translations' ||
+            sourceConfig.type === 'commentaries'
+        ) {
+            const type =
+                sourceConfig.type === 'translations'
+                    ? 'translation'
+                    : 'commentary';
+            const entries = await readdir(fullPath, { withFileTypes: true });
+            dirs = entries
+                .filter((e) => e.isDirectory() && !e.name.startsWith('.'))
+                .map((e) => e.name)
+                .sort()
+                .map((name) => ({
+                    type,
+                    fullPath: path.resolve(fullPath, name),
+                }));
+        } else {
+            dirs = [{ type: sourceConfig.type, fullPath }];
+        }
+
+        const include = [
+            ...(config.include ?? []),
+            ...(sourceConfig.include ?? []),
+        ];
+        const exclude = [
+            ...(config.exclude ?? []),
+            ...(sourceConfig.exclude ?? []),
+        ];
+        const filter = createIdFilter(include, exclude);
+
+        for (let dir of dirs) {
+            let sourceFilter = (id: string) => filter(id);
+            // Datasets can only be filtered after they are generated,
+            // so they need to be reprocessed when the filters change.
+            let settings = JSON.stringify({ include, exclude });
+
+            if (dir.type === 'translation' || dir.type === 'commentary') {
+                // Translations and commentaries can also be matched by the name of their directory.
+                const dirName = path.basename(dir.fullPath);
+                sourceFilter = (id: string) => filter(id, dirName);
+                // They are filtered before they are processed, so changes to the filters
+                // don't need to cause them to be reprocessed.
+                settings = '';
+
+                // Check the ID before the source is processed so that excluded sources are never read.
+                const id = await getSourceId(dir.type, dir.fullPath);
+                if (!sourceFilter(id ?? dirName)) {
+                    continue;
+                }
+            }
+
+            // Sources outside of the config directory are identified by their absolute path.
+            const relative = path.relative(config.baseDir, dir.fullPath);
+            const relativePath = toPosixPath(
+                relative.startsWith('..') || path.isAbsolute(relative)
+                    ? dir.fullPath
+                    : relative
+            );
+            const key = `${dir.type}:${relativePath}`;
+            if (keys.has(key)) {
+                continue;
+            }
+            keys.add(key);
+
+            sources.push({
+                key,
+                type: dir.type,
+                path: relativePath,
+                fullPath: dir.fullPath,
+                filter: sourceFilter,
+                settings,
+            });
+        }
+    }
+
+    return sources;
+}
+
+/**
+ * Gets the items that have been imported by the sync.
+ * @param db The database.
+ */
+export function getSyncedItems(db: Database): SyncItem[] {
+    const items = new Map<string, SyncItem>();
+    for (let source of getStoredSources(db)) {
+        for (let item of source.items) {
+            items.set(itemKey(item), item);
+        }
+    }
+    return [...items.values()];
+}
+
+/**
+ * Gets the sources that are stored in the database from previous syncs.
+ * @param db The database.
+ */
+export function getStoredSources(db: Database): StoredSource[] {
+    const rows = db
+        .prepare('SELECT * FROM SyncSource ORDER BY key ASC;')
+        .all() as (Omit<StoredSource, 'items'> & { itemsJson: string })[];
+
+    return rows.map(({ itemsJson, ...row }) => ({
+        ...row,
+        items: JSON.parse(itemsJson),
+    }));
+}
+
+/**
+ * Creates a function that determines whether an item is allowed by the given include and exclude patterns.
+ * The function accepts every name of the item (e.g. its ID and the name of its directory).
+ * The item is included if any of its names match an include pattern, and excluded if any of its names match an exclude pattern.
+ * Patterns support * and ? wildcards and are case-insensitive.
+ * @param include The patterns that IDs must match. If empty, every ID is included.
+ * @param exclude The patterns that IDs must not match.
+ */
+export function createIdFilter(
+    include: string[] = [],
+    exclude: string[] = []
+): (...names: string[]) => boolean {
+    const includes = include.map(globToRegExp);
+    const excludes = exclude.map(globToRegExp);
+    const matches = (patterns: RegExp[], names: string[]) =>
+        patterns.some((r) => names.some((name) => r.test(name)));
+
+    return (...names: string[]) =>
+        (includes.length <= 0 || matches(includes, names)) &&
+        !matches(excludes, names);
+}
+
+function globToRegExp(pattern: string): RegExp {
+    const regex = pattern
+        .split('')
+        .map((c) =>
+            c === '*'
+                ? '.*'
+                : c === '?'
+                  ? '.'
+                  : c.replace(/[.+^${}()|[\]\\]/g, '\\$&')
+        )
+        .join('');
+    return new RegExp(`^${regex}$`, 'i');
+}
+
+function logImportPlan(plan: ImportPlan, options: SyncOptions) {
+    const logger = log.getLogger();
+
+    if (plan.processorChanged.length > 0) {
+        if (options.ignoreProcessorChanges) {
+            logger.warn(
+                `The processor has changed for ${plan.processorChanged.join(', ')} sources, but processor changes are being ignored.`
+            );
+        } else {
+            logger.log(
+                `The processor has changed for ${plan.processorChanged.join(', ')} sources. They will be reprocessed.`
+            );
+        }
+    }
+
+    const count = (reason: ImportReason) =>
+        plan.imports.filter((s) => s.reason === reason).length;
+    logger.log(
+        `Sources: ${count('new')} new, ${count('changed')} changed, ${count('processor')} with processor changes, ` +
+            `${count('forced')} forced, ${plan.removals.length} removed, ${plan.touched.length + plan.unchanged} unchanged.`
+    );
+
+    if (options.verbose || options.dryRun) {
+        for (let source of plan.imports) {
+            logger.log(`  import ${source.key} (${source.reason})`);
+        }
+        for (let source of plan.removals) {
+            logger.log(
+                `  remove ${source.key} (${source.items.map((i) => `${i.kind} ${i.id}`).join(', ')})`
+            );
+        }
+    }
+}
+
+/**
+ * Loads and processes the files in the given source.
+ * @param source The source.
+ * @param parser The DOM parser that should be used for USX files.
+ */
+async function processSource(
+    source: DiscoveredSource,
+    parser: DOMParser
+): Promise<{ output: DatasetOutput; files: InputFile[] }> {
+    if (source.type === 'translation' || source.type === 'commentary') {
+        const files =
+            source.type === 'translation'
+                ? await loadTranslationFiles(source.fullPath)
+                : await loadCommentaryFiles(source.fullPath);
+
+        if (!files) {
+            throw new Error(`Could not load the metadata for the source.`);
+        }
+        if (files.length <= 0) {
+            throw new Error(`Could not find any files in the source.`);
+        }
+
+        const output = generateDataset(
+            files,
+            parser as unknown as globalThis.DOMParser
+        );
+        return { output, files };
+    } else if (source.type === 'theographic') {
+        const dataset = await loadTheographicDataset(source.fullPath);
+        return {
+            output: { translations: [], commentaries: [], datasets: [dataset] },
+            files: [],
+        };
+    } else {
+        const datasets = await loadInterlinearDatasets(source.fullPath);
+        return {
+            output: { translations: [], commentaries: [], datasets },
+            files: [],
+        };
+    }
+}
+
+/**
+ * Removes the items that aren't allowed by the given filter from the output.
+ */
+function filterOutput(output: DatasetOutput, filter: (id: string) => boolean) {
+    const logger = log.getLogger();
+    const keep = <T extends { id: string }>(kind: string, list: T[]) =>
+        list.filter((item) => {
+            if (filter(item.id)) {
+                return true;
+            }
+            logger.log(`Skipping ${kind} ${item.id} because it is excluded.`);
+            return false;
+        });
+
+    output.translations = keep('translation', output.translations);
+    output.commentaries = keep('commentary', output.commentaries);
+    if (output.datasets) {
+        output.datasets = keep('dataset', output.datasets);
+    }
+}
+
+/**
+ * Replaces the items of the given source in the database with the given output and records the source as imported.
+ * Happens in a single transaction, so an interrupted sync never leaves a source half-imported.
+ */
+function importSourceOutput(
+    db: Database,
+    source: PlannedImport,
+    output: DatasetOutput,
+    files: InputFile[],
+    items: SyncItem[]
+) {
+    const translationIds = output.translations.map((t) => t.id);
+    const getTimings = db.prepare(
+        'SELECT * FROM ChapterAudioTiming WHERE translationId = ?;'
+    );
+    const restoreTiming = db.prepare(`INSERT OR IGNORE INTO ChapterAudioTiming(
+        translationId,
+        bookId,
+        number,
+        reader,
+        timingsJson
+    ) SELECT @translationId, @bookId, @number, @reader, @timingsJson
+    WHERE EXISTS (
+        SELECT 1 FROM Chapter WHERE translationId = @translationId AND bookId = @bookId AND number = @number
+    );`);
+    const upsertSource = db.prepare(`INSERT INTO SyncSource(
+        key,
+        type,
+        path,
+        statHash,
+        sha256,
+        processorVersion,
+        itemsJson,
+        importedAt
+    ) VALUES (
+        @key,
+        @type,
+        @path,
+        @statHash,
+        @sha256,
+        @processorVersion,
+        @itemsJson,
+        @importedAt
+    ) ON CONFLICT(key) DO
+        UPDATE SET
+            type=excluded.type,
+            path=excluded.path,
+            statHash=excluded.statHash,
+            sha256=excluded.sha256,
+            processorVersion=excluded.processorVersion,
+            itemsJson=excluded.itemsJson,
+            importedAt=excluded.importedAt;`);
+
+    const importAll = db.transaction(() => {
+        // Audio timings can be imported separately (with the import-audio-timings command),
+        // so keep the ones that the source doesn't provide.
+        const timings = translationIds.flatMap((id) => getTimings.all(id));
+
+        deleteItems(db, [...(source.stored?.items ?? []), ...items]);
+
+        database.insertTranslations(db, output.translations);
+        for (let timing of timings) {
+            restoreTiming.run(timing);
+        }
+        database.updateTranslationHashes(db, translationIds);
+        database.insertCommentaries(db, output.commentaries);
+        database.updateCommentaryHashes(
+            db,
+            output.commentaries.map((c) => c.id)
+        );
+        database.insertDatasets(db, output.datasets ?? []);
+        database.updateDatasetHashes(
+            db,
+            (output.datasets ?? []).map((d) => d.id)
+        );
+        database.insertWarningMetadata(db, output.parseMessages);
+        database.insertFileMetadata(
+            db,
+            files.filter((f) => items.some((i) => i.id === f.metadata.id))
+        );
+
+        upsertSource.run({
+            key: source.key,
+            type: source.type,
+            path: source.path,
+            statHash: source.statHash,
+            sha256: source.sha256,
+            processorVersion: source.processorVersion,
+            itemsJson: JSON.stringify(items),
+            importedAt: new Date().toISOString(),
+        });
+    });
+
+    importAll();
+}
+
+/**
+ * Deletes the given items from the database.
+ */
+function deleteItems(db: Database, items: SyncItem[]) {
+    const ids = (kind: SyncItemKind) => [
+        ...new Set(items.filter((i) => i.kind === kind).map((i) => i.id)),
+    ];
+    database.deleteTranslations(db, ids('translation'));
+    database.deleteCommentaries(db, ids('commentary'));
+    database.deleteDatasets(db, ids('dataset'));
+}
+
+function getOutputItems(output: DatasetOutput): SyncItem[] {
+    return [
+        ...output.translations.map((t) => ({
+            kind: 'translation' as const,
+            id: t.id,
+        })),
+        ...output.commentaries.map((c) => ({
+            kind: 'commentary' as const,
+            id: c.id,
+        })),
+        ...(output.datasets ?? []).map((d) => ({
+            kind: 'dataset' as const,
+            id: d.id,
+        })),
+    ];
+}
+
+export function itemKey(item: SyncItem): string {
+    return `${item.kind}:${item.id}`;
+}
+
+async function getSourceId(
+    type: 'translation' | 'commentary',
+    dir: string
+): Promise<string | null> {
+    try {
+        const metadata =
+            type === 'translation'
+                ? await loadTranslationMetadata(dir)
+                : await loadCommentaryMetadata(dir);
+        return metadata?.id ?? null;
+    } catch {
+        return null;
+    }
+}
+
+interface SourceFile {
+    relativePath: string;
+    fullPath: string;
+    size: number;
+    mtimeMs: number;
+}
+
+/**
+ * Lists the files in the given source directory and its subdirectories. Hidden files are skipped.
+ * @param dir The source directory.
+ */
+async function listSourceFiles(dir: string): Promise<SourceFile[]> {
+    const files: SourceFile[] = [];
+
+    async function walk(current: string) {
+        const entries = await readdir(current, { withFileTypes: true });
+        for (let entry of entries) {
+            if (entry.name.startsWith('.')) {
+                continue;
+            }
+            const fullPath = path.resolve(current, entry.name);
+            if (entry.isDirectory()) {
+                await walk(fullPath);
+            } else if (entry.isFile()) {
+                const stats = await stat(fullPath);
+                files.push({
+                    relativePath: toPosixPath(path.relative(dir, fullPath)),
+                    fullPath,
+                    size: stats.size,
+                    mtimeMs: stats.mtimeMs,
+                });
+            }
+        }
+    }
+
+    await walk(dir);
+    files.sort((a, b) =>
+        a.relativePath < b.relativePath
+            ? -1
+            : a.relativePath > b.relativePath
+              ? 1
+              : 0
+    );
+    return files;
+}
+
+/**
+ * Hashes the names, sizes, and modification times of the given files, and the given settings.
+ * Cheap to calculate, so it is used to skip sources that haven't been touched without reading their files.
+ */
+function hashFileStats(files: SourceFile[], settings: string): string {
+    return createHash('sha256')
+        .update(
+            JSON.stringify([
+                settings,
+                files.map((f) => [f.relativePath, f.size, f.mtimeMs]),
+            ])
+        )
+        .digest('hex');
+}
+
+/**
+ * Hashes the names and contents of the given files, and the given settings.
+ */
+async function hashFileContents(
+    files: SourceFile[],
+    settings: string
+): Promise<string> {
+    const hash = createHash('sha256');
+    hash.update(JSON.stringify(settings));
+    for (let file of files) {
+        hash.update(JSON.stringify([file.relativePath, file.size]));
+        for await (let chunk of createReadStream(file.fullPath)) {
+            hash.update(chunk);
+        }
+    }
+    return hash.digest('hex');
+}
+
+async function isDirectory(p: string): Promise<boolean> {
+    try {
+        return (await stat(p)).isDirectory();
+    } catch {
+        return false;
+    }
+}
+
+function toPosixPath(p: string): string {
+    return p.split(path.sep).join('/');
+}
+
+function setupDomGlobals() {
+    globalThis.DOMParser = DOMParser as any;
+    globalThis.Element = Element as any;
+    globalThis.Node = Node as any;
+}

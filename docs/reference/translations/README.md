@@ -319,6 +319,12 @@ interface TranslationBook {
     commonName: string;
 
     /**
+     * The short name (abbreviation) that the translation provided for the book.
+     * If not available, then one was not provided by the translation.
+     */
+    shortName?: string;
+
+    /**
      * The title of the book.
      * This is usually a more descriptive version of the book name.
      * If not available, then one was not provided by the translation.
@@ -397,6 +403,7 @@ interface TranslationBook {
             "translationId": "BSB",
             "name": "Genesis",
             "commonName": "Genesis",
+            "shortName": "Gen",
             "title": "Genesis",
             "order": 1,
             "numberOfChapters": 50,
