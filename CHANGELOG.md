@@ -43,6 +43,7 @@ This is the log of changes for the Free Use Bible API.
     -   Only new and changed translations are downloaded. fetch.bible downloads are tracked in a new `FetchBibleSource` database table, which records the collection commit and the git tree SHA of each translation's directory. A translation is re-downloaded when its tree SHA changes, and its files are downloaded from that exact commit.
     -   USFM files are converted to USX3, and each translation gets a `metadata.json` with its license and attribution.
     -   fetch.bible translations can be kept in their own directory with `--fetch-bible-dir`. A translation that later becomes available from eBible is removed from the fetch.bible directory, so that it isn't imported twice.
+    -   The pinned OSIS translations (such as `jpn_kou`) are also fetched, like `fetch-osis-translations`. They can be kept in their own directory with `--osis-dir`, or skipped with `--no-osis`. They are only re-downloaded when their pinned source or metadata changes, and are never downloaded from eBible or fetch.bible. `pnpm fetch:translations` puts them in `./sources/osis`, and `pnpm import:bible:translations` imports them.
 -   `import-translations` now accepts more than one directory (e.g. `import-translations ./sources/ebible ./sources/fetch-bible`).
 -   Added the `source-fetch-bible-translations <dir>` and `list-fetch-bible-translations` CLI commands for downloading and listing fetch.bible translations on their own. Translations that were already downloaded from eBible are skipped.
 

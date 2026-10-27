@@ -86,6 +86,11 @@ import {
 import { detectEBibleLicense, ebibleIdFromUrl } from './ebible-license.js';
 import { importDatasetOutput } from './db.js';
 import { groupBy } from 'es-toolkit/compat';
+import {
+    fetchOsisTranslations,
+    OSIS_TRANSLATIONS,
+    OsisTranslationSource,
+} from './osis.js';
 
 export { convertOsisToUsfmFiles, fetchOsisTranslations } from './osis.js';
 
@@ -225,6 +230,24 @@ export interface SourceAllTranslationsOptions extends Omit<
      * Defaults to the same directory as the eBible translations.
      */
     fetchBibleDir?: string;
+
+    /**
+     * The directory that the pinned OSIS translations should be downloaded to.
+     * Defaults to the same directory as the eBible translations.
+     */
+    osisDir?: string;
+
+    /**
+     * Whether the pinned OSIS translations should be downloaded.
+     * Defaults to true.
+     */
+    includeOsis?: boolean;
+
+    /**
+     * The OSIS translations that should be downloaded.
+     * Defaults to the pinned OSIS translations.
+     */
+    osisSources?: OsisTranslationSource[];
 }
 
 /**
@@ -2232,6 +2255,8 @@ export async function sourceFetchBibleTranslations(
  * The translation lists from both sources are reconciled so that each translation is downloaded from only one source:
  * - Translations that are available from eBible are downloaded from eBible.
  * - Translations that are only available from fetch.bible (or that eBible doesn't provide files for) are downloaded from fetch.bible.
+ * - The pinned OSIS translations (see fetch-osis-translations) are downloaded from their pinned URLs and converted to USFM.
+ *   Their IDs are never downloaded from eBible or fetch.bible.
  *
  * Only new and changed translations are downloaded (when database tracking is enabled),
  * USFM files are converted to USX3 (unless disabled), and a metadata.json is created for each translation.
@@ -2248,9 +2273,23 @@ export async function sourceAllTranslations(
     const {
         convertToUsx3 = true,
         fetchBibleDir: _,
+        osisDir: __,
+        includeOsis = true,
+        osisSources = OSIS_TRANSLATIONS,
         ...sourceOptions
     } = options;
     const fetchBibleDir = options.fetchBibleDir ?? outputDir;
+    const osisDir = options.osisDir ?? outputDir;
+    // The directories that translations are sourced into, without duplicates
+    const sourceDirs = [
+        outputDir,
+        fetchBibleDir,
+        ...(includeOsis ? [osisDir] : []),
+    ].filter(
+        (dir, index, all) =>
+            all.findIndex((d) => path.resolve(d) === path.resolve(dir)) ===
+            index
+    );
     const result: SourceTranslationsResult = {
         downloaded: [],
         failed: [],
@@ -2278,19 +2317,33 @@ export async function sourceAllTranslations(
         fetchFetchBibleCatalog(options),
     ]);
 
-    // The ignorelists of both directories apply to both sources
-    const ignorelist = [
-        ...(await readIgnorelist(outputDir)),
-        ...(path.resolve(fetchBibleDir) !== path.resolve(outputDir)
-            ? await readIgnorelist(fetchBibleDir)
-            : []),
-        ...(options.ignorelist ?? []),
-    ];
+    // The ignorelists of every directory apply to every source
+    const ignorelist: string[] = [...(options.ignorelist ?? [])];
+    for (const dir of sourceDirs) {
+        ignorelist.push(...(await readIgnorelist(dir)));
+    }
+
+    const requested = new Set(
+        (translations ?? []).map((id) => id.toLowerCase())
+    );
+    const osisSelected = includeOsis
+        ? osisSources.filter(
+              (source) =>
+                  !ignorelist.includes(source.metadata.id) &&
+                  (requested.size === 0 ||
+                      requested.has(source.metadata.id.toLowerCase()))
+          )
+        : [];
+    // The pinned OSIS translations are never sourced from eBible or fetch.bible, so that they aren't imported twice.
+    const otherSourcesIgnorelist = includeOsis
+        ? [...ignorelist, ...osisSources.map((source) => source.metadata.id)]
+        : ignorelist;
 
     // eBible sources that source-translations is able to download
     const ebibleAvailable = ebibleSources.filter(
         (source) =>
-            !!source.FCBHID && !isEBibleSourceIgnored(source, ignorelist)
+            !!source.FCBHID &&
+            !isEBibleSourceIgnored(source, otherSourcesIgnorelist)
     );
     const ebibleCatalogCoverage = createEBibleCoverage(ebibleAvailable);
     const fetchBibleOnly = catalog.filter(
@@ -2306,6 +2359,9 @@ export async function sourceAllTranslations(
     logger.log(
         `   Translations that will be sourced from fetch.bible: ${fetchBibleOnly.length}`
     );
+    if (includeOsis) {
+        logger.log(`   Pinned OSIS: ${osisSources.length} translations`);
+    }
     logger.log('');
 
     logger.log('=== Sourcing translations from eBible ===');
@@ -2314,7 +2370,7 @@ export async function sourceAllTranslations(
         convertToUsx3,
         bibleMultiConverterPath,
         sources: ebibleSources,
-        ignorelist,
+        ignorelist: otherSourcesIgnorelist,
     });
 
     // Translations that eBible lists but doesn't provide files for can be sourced from fetch.bible instead.
@@ -2345,16 +2401,43 @@ export async function sourceAllTranslations(
             catalog,
             ebibleCoverage,
             ebibleDir: outputDir,
-            ignorelist,
+            ignorelist: otherSourcesIgnorelist,
         }
     );
+
+    const osisResult: SourceTranslationsResult = {
+        downloaded: [],
+        failed: [],
+        unavailable: [],
+    };
+    if (includeOsis) {
+        logger.log('');
+        logger.log('=== Sourcing pinned OSIS translations ===');
+        for (const source of osisSelected) {
+            try {
+                osisResult.downloaded.push(
+                    ...(await fetchOsisTranslations(osisDir, [source], {
+                        skipUnchanged: !options.overwrite,
+                    }))
+                );
+            } catch (err) {
+                logger.error(`Error processing ${source.metadata.id}:`, err);
+                osisResult.failed.push(source.metadata.id);
+            }
+        }
+    }
 
     const fetchBibleDownloaded = new Set(fetchBibleResult.downloaded);
     result.downloaded = [
         ...ebibleResult.downloaded,
         ...fetchBibleResult.downloaded,
+        ...osisResult.downloaded,
     ];
-    result.failed = [...ebibleResult.failed, ...fetchBibleResult.failed];
+    result.failed = [
+        ...ebibleResult.failed,
+        ...fetchBibleResult.failed,
+        ...osisResult.failed,
+    ];
     result.unavailable = [
         ...ebibleResult.unavailable.filter(
             (id) => !fetchBibleDownloaded.has(id)
@@ -2368,15 +2451,16 @@ export async function sourceAllTranslations(
     logger.log(
         `   Downloaded from fetch.bible: ${fetchBibleResult.downloaded.length}`
     );
+    if (includeOsis) {
+        logger.log(
+            `   Downloaded from pinned OSIS sources: ${osisResult.downloaded.length}`
+        );
+    }
     logger.log(`   Errored: ${result.failed.length}`);
     if (result.downloaded.length > 0) {
         logger.log('');
-        const dirs =
-            path.resolve(fetchBibleDir) !== path.resolve(outputDir)
-                ? `${outputDir} ${fetchBibleDir}`
-                : outputDir;
         logger.log(
-            `Import the translations with: helloao import-translations ${dirs}`
+            `Import the translations with: helloao import-translations ${sourceDirs.join(' ')}`
         );
     }
 
