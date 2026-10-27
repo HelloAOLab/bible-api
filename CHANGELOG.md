@@ -16,6 +16,11 @@ This is the log of changes for the Free Use Bible API.
 -   Entries in `/api/available_datasets.json` can now include `totalNumberOfWords`, `listOfLexiconApiLink`, and `totalNumberOfLexicon`.
 -   Added the `fetch-interlinear <dir>` and `import-interlinear <dir>` CLI commands (and the `fetch:bible:interlinear` and `import:bible:interlinear` scripts) for downloading and importing the interlinear sources.
 -   The `@helloao/free-use-bible-api` client has new `getDatasetLexicon()` and `getDatasetLexiconEntry()` methods.
+-   Added the [History Globe](https://historyglobe.app) places dataset (`history-globe`), which contains more than 1,200 places named in the Bible, with their coordinates, feature types, and the verses that name them. It is licensed under CC BY 4.0 and builds on the OpenBible.info Bible Geocoding Data (CC BY 4.0).
+    -   `GET /api/d/history-globe/places.json`
+    -   `GET /api/d/history-globe/places/{id}.json` (e.g. `/api/d/history-globe/places/a15257a.json`)
+    -   `GET /api/d/history-globe/{book}/{chapter}.json` (e.g. `/api/d/history-globe/ACT/27.json`) returns the places that appear in the chapter, with the verse numbers where each one is named.
+-   Added the `fetch-history-globe <dir>` and `import-history-globe <dir>` CLI commands (and the `fetch:bible:history-globe` and `import:bible:history-globe` scripts) for downloading and importing the History Globe data.
 -   Every `free-use-bible-api` client request method now takes an optional last argument, `{ signal }`, for cancelling the request with an `AbortSignal`. Because callers asking for the same URL share one download, aborting stops only that call from waiting; the download is cancelled once every caller waiting on it has aborted.
 -   Added the `free-use-bible-api-react` package, which brings Seed Bible's Bible reader to any React app.
     -   `BibleReader` shows a chapter with its headings, poetry, footnotes, and words of Jesus in red, plus previous/next chapter buttons and loading, error, and "book not found" states.
@@ -23,18 +28,35 @@ This is the log of changes for the Free Use Bible API.
     -   `createBibleDataManager()` (or the `useBibleDataManager()` hook) loads and caches translations, book lists, and chapters, from the public API or a self-hosted endpoint.
     -   `BibleReader` and `ChapterContent` draw verse highlights as rounded ribbons behind the text, like Seed Bible. Neighbouring verses with the same color share one ribbon, and the ribbons follow ragged line ends, poetry indentation, and right-to-left text. There are 12 preset colors with light and dark mode values, and custom colors are supported.
     -   The reader follows the device's light or dark mode, or can be forced to one with the `theme` prop (`'system'`, `'light'`, or `'dark'`). Colors and fonts are CSS variables that can be overridden on the reader or any element around it.
+-   Added the `sync` CLI command (and the `sync` script), which keeps a database and API up to date from a JSON config that lists the sources and destinations. It imports only the new and changed sources, removes deleted or excluded ones from the database and every destination, reprocesses sources when the code that processes them changes, and uploads only the items whose content changed. Only the items from the configured sources are uploaded, so private translations can be kept out of a public API. See the [CLI README](./packages/helloao-cli/README.md#keeping-an-api-up-to-date-with-sync).
 -   Added a Kotlin SDK (`packages/free-use-bible-api-kotlin`) for the JVM and Android. It has the same methods as the JavaScript/TypeScript client, as `suspend` functions, and its kotlinx.serialization models are generated from the OpenAPI document with the new `generate-kotlin-models` CLI command (`pnpm generate:kotlin`).
     -   Every sealed interface has an `Unknown*` variant (for example `UnknownChapterContent`) that keeps the raw JSON of content types the SDK doesn't know yet, so new item types don't break decoding. Exhaustive `when` expressions need a branch for it.
 -   Line breaks that start a source paragraph now carry the paragraph marker: `{ "type": "line_break", "paragraph": "p" }` in chapter content and `{ "lineBreak": true, "paragraph": "p" }` inside a verse. Clients that only understand line breaks can ignore `paragraph`.
     -   The USX parser now turns paragraph styles (`p`, `m`, `pi1`, `mi`, …) into line breaks. Before, many eBible translations (such as `fra_lsg`) had no paragraph breaks at all. The USFM parser now handles every paragraph marker, not just `\p`, and Lockman `<PM>` markers produce `paragraph: "p"`.
     -   A blank line directly followed by a paragraph (`\b` + `\m`) becomes a single line break, while `\b\b` stays two. `\nb` produces no line break.
     -   Simplified verses (`.simple.json`) list paragraphs that start in the middle of the verse in `paragraphs: [{ offset, style }]`.
+-   Added the `source-all-translations <dir>` CLI command (and the `fetch:translations` and `import:bible:translations` scripts), which downloads translations from both eBible and [fetch.bible](https://fetch.bible) into one directory, ready for `import-translations`.
+    -   The translation lists are reconciled so that each translation comes from one source. Translations that eBible has are downloaded from eBible. Translations that only fetch.bible has, or that eBible lists without a USFM download, are downloaded from the [fetch.bible collection](https://github.com/gracious-tech/fetch_collection) in USX or USFM.
+    -   Only new and changed translations are downloaded. fetch.bible downloads are tracked in a new `FetchBibleSource` database table, which records the collection commit and the git tree SHA of each translation's directory. A translation is re-downloaded when its tree SHA changes, and its files are downloaded from that exact commit.
+    -   USFM files are converted to USX3, and each translation gets a `metadata.json` with its license and attribution.
+    -   fetch.bible translations can be kept in their own directory with `--fetch-bible-dir`. A translation that later becomes available from eBible is removed from the fetch.bible directory, so that it isn't imported twice.
+-   `import-translations` now accepts more than one directory (e.g. `import-translations ./sources/ebible ./sources/fetch-bible`).
+-   Added the `source-fetch-bible-translations <dir>` and `list-fetch-bible-translations` CLI commands for downloading and listing fetch.bible translations on their own. Translations that were already downloaded from eBible are skipped.
+
+### :bug: Bug Fixes
+
+-   `source-translations` now replaces a translation's existing directory when it is re-downloaded, instead of leaving the old files next to the new ones.
+-   `source-translations` no longer records an eBible translation as downloaded when its USFM download fails (without `--convert-to-usx3`).
+-   `source-translations` re-downloads translations that are tracked in the database but missing from the output directory.
+-   `ignorelist.txt` entries can now also be translation IDs (e.g. `abt_map`), not just eBible IDs.
 
 ### :warning: Changes
 
 -   The content of a verse in a dataset chapter (`DatasetChapterVerseContent`) is now either `{ verse, references }` (cross reference datasets) or `{ verse, words }` (interlinear datasets). JSON responses for the existing `open-cross-ref` and `theographic` datasets are unchanged. TypeScript clients that read `verse.references` need to narrow the type first (e.g. `'references' in verse`).
 -   `DatasetEntityType` now includes `lexicon`.
 -   Translations are re-parsed with the new paragraph handling. Verses that contain a paragraph marker are split at it, and prose after a paragraph marker is no longer marked as `poem`. Verse text is otherwise unchanged.
+-   The `sha256` hashes that are stored for translations, commentaries, and datasets now cover everything that the API is generated from, including license fields, apocryphal flags, audio links and timings, chapter words, and commentary profiles. Numbers were previously left out of the hashes. `import-audio-timings` now updates the hashes of the translations that it changes.
+-   The CLI's `Uploader` interface has a new optional `delete()` method, which `S3Uploader` and `FilesUploader` implement.
 
 ## V1.15.0
 
