@@ -84,20 +84,57 @@ export async function convertOsisToUsfmFiles(
 }
 
 /**
+ * The name of the file that is written into each translation directory that was fetched from an OSIS source.
+ * It records the URL and SHA-256 hash of the source so that unchanged translations can be skipped.
+ */
+export const OSIS_MARKER_FILE = 'osis.txt';
+
+/**
+ * The options for fetching OSIS translations.
+ */
+export interface FetchOsisTranslationsOptions {
+    /**
+     * Whether translations that were already fetched from the same source (with the same metadata) should be skipped.
+     * Defaults to false.
+     */
+    skipUnchanged?: boolean;
+}
+
+/**
  * Downloads the given OSIS translations, checks their hashes, and converts them into USFM.
  * Each translation is written to `<dir>/<id>/` as one USFM file per book plus a `metadata.json`,
  * so the directory can be imported with the import-translations command.
  * A translation's directory is only replaced once its download and conversion have succeeded.
  * @param dir The directory that the translations should be written to.
  * @param sources The translations to fetch.
+ * @param options The options.
+ * @returns The IDs of the translations that were downloaded.
  */
 export async function fetchOsisTranslations(
     dir: string,
-    sources: OsisTranslationSource[] = OSIS_TRANSLATIONS
-): Promise<void> {
+    sources: OsisTranslationSource[] = OSIS_TRANSLATIONS,
+    options: FetchOsisTranslationsOptions = {}
+): Promise<string[]> {
     const logger = log.getLogger();
+    const downloaded: string[] = [];
 
     for (const source of sources) {
+        const translationDir = path.resolve(dir, source.metadata.id);
+        const marker = createOsisMarker(source);
+        const metadata = JSON.stringify(source.metadata, null, 4) + '\n';
+        if (
+            options.skipUnchanged &&
+            (await readFileIfExists(
+                path.join(translationDir, OSIS_MARKER_FILE)
+            )) === marker &&
+            (await readFileIfExists(
+                path.join(translationDir, 'metadata.json')
+            )) === metadata
+        ) {
+            logger.log(`${source.metadata.id} is up to date. Skipping.`);
+            continue;
+        }
+
         logger.log('Downloading', source.url);
         const response = await fetch(source.url);
         if (!response.ok) {
@@ -119,14 +156,18 @@ export async function fetchOsisTranslations(
             new DOMParser() as any
         );
 
-        const translationDir = path.resolve(dir, source.metadata.id);
         const partDir = `${translationDir}.part`;
         await rm(partDir, { recursive: true, force: true });
         try {
             await writeUsfmBooks(books, partDir, false);
             await writeFile(
                 path.join(partDir, 'metadata.json'),
-                JSON.stringify(source.metadata, null, 4) + '\n',
+                metadata,
+                'utf-8'
+            );
+            await writeFile(
+                path.join(partDir, OSIS_MARKER_FILE),
+                marker,
                 'utf-8'
             );
             await rm(translationDir, { recursive: true, force: true });
@@ -139,7 +180,21 @@ export async function fetchOsisTranslations(
         logger.log(
             `Saved ${source.metadata.id} (${books.length} books) to ${translationDir}`
         );
+        downloaded.push(source.metadata.id);
     }
+
+    return downloaded;
+}
+
+/**
+ * Creates the contents of the marker file for the given OSIS translation.
+ */
+function createOsisMarker(source: OsisTranslationSource): string {
+    return `Source: ${source.url}\nSHA-256: ${source.sha256}\n`;
+}
+
+async function readFileIfExists(file: string): Promise<string | null> {
+    return (await exists(file)) ? await readFile(file, 'utf-8') : null;
 }
 
 /**

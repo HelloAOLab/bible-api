@@ -125,6 +125,7 @@ describe('fetchOsisTranslations', () => {
             'exo.usfm',
             'gen.usfm',
             'metadata.json',
+            'osis.txt',
         ]);
         expect(
             JSON.parse(
@@ -144,6 +145,48 @@ describe('fetchOsisTranslations', () => {
         expect(await readdir(path.join(dir, 'test_osis'))).not.toContain(
             'old.usfm'
         );
+    });
+
+    it('should return the IDs of the downloaded translations', async () => {
+        mockDownload(content);
+        expect(await fetchOsisTranslations(dir, [source])).toEqual([
+            'test_osis',
+        ]);
+    });
+
+    it('should skip unchanged translations when skipUnchanged is set', async () => {
+        mockDownload(content);
+        await fetchOsisTranslations(dir, [source]);
+        await writeFile(path.join(dir, 'test_osis', 'gen.usfm'), 'existing');
+
+        expect(
+            await fetchOsisTranslations(dir, [source], { skipUnchanged: true })
+        ).toEqual([]);
+        expect(global.fetch).toHaveBeenCalledTimes(1);
+        expect(
+            await readFile(path.join(dir, 'test_osis', 'gen.usfm'), 'utf-8')
+        ).toBe('existing');
+    });
+
+    it('should re-fetch a translation when its source or metadata changes', async () => {
+        mockDownload(content);
+        await fetchOsisTranslations(dir, [source]);
+
+        const renamed = {
+            ...source,
+            metadata: { ...source.metadata, name: '新しい' },
+        };
+        expect(
+            await fetchOsisTranslations(dir, [renamed], {
+                skipUnchanged: true,
+            })
+        ).toEqual(['test_osis']);
+
+        const moved = { ...renamed, url: 'https://example.com/moved.xml' };
+        expect(
+            await fetchOsisTranslations(dir, [moved], { skipUnchanged: true })
+        ).toEqual(['test_osis']);
+        expect(global.fetch).toHaveBeenCalledTimes(3);
     });
 
     it('should fail and write nothing when the hash does not match', async () => {

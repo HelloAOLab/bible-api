@@ -1084,7 +1084,7 @@ async function start() {
     program
         .command('source-all-translations <dir> [translations...]')
         .description(
-            'Finds translation sources from eBible and fetch.bible, and downloads them into the given directory so that they can be imported with import-translations.\nTranslations available from eBible are downloaded from eBible, and the rest are downloaded from fetch.bible. Only new and changed translations are downloaded.'
+            'Finds translation sources from eBible and fetch.bible, and downloads them (along with the pinned OSIS translations) into the given directory so that they can be imported with import-translations.\nTranslations available from eBible are downloaded from eBible, and the rest are downloaded from fetch.bible. Only new and changed translations are downloaded.'
         )
         .option(
             '--no-convert-to-usx3',
@@ -1103,6 +1103,11 @@ async function start() {
             '--fetch-bible-dir <dir>',
             'Put the translations from fetch.bible in this directory instead of <dir>. <dir> then only holds the translations from eBible.'
         )
+        .option(
+            '--osis-dir <dir>',
+            'Put the pinned OSIS translations (see fetch-osis-translations) in this directory instead of <dir>.'
+        )
+        .option('--no-osis', 'Skip the pinned OSIS translations')
         .option(
             '--manifest-url <url>',
             'The URL of the fetch.bible manifest',
@@ -1126,6 +1131,8 @@ async function start() {
                 useDatabase: options.database !== false,
                 overwrite: options.overwrite,
                 fetchBibleDir: options.fetchBibleDir,
+                osisDir: options.osisDir,
+                includeOsis: options.osis !== false,
                 manifestUrl: options.manifestUrl,
                 repo: options.collectionRepo,
                 ref: options.collectionRef,
@@ -1220,14 +1227,14 @@ async function start() {
         });
 
     program
-       .command('fetch-osis-translations <dir>')
+        .command('fetch-osis-translations <dir>')
         .description(
             'Fetches the pinned OSIS translations (such as the Japanese Kougo-yaku), checks their SHA-256 hashes, converts them to USFM and places them in the given directory.'
         )
         .action(async (dir: string) => {
             await fetchOsisTranslations(dir);
         });
-  
+
     program
         .command('fetch-history-globe <dir>')
         .description(
