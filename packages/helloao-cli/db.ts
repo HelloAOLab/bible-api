@@ -46,19 +46,13 @@ import { ParseMessage } from '@helloao/tools/parser/types.js';
 import { BookId } from '@helloao/tools/utils.js';
 import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 
-let dirname = __dirname;
-if (!dirname) {
-    // @ts-ignore
-    dirname = import.meta.dirname;
-}
-
 export async function getMigrationsPath() {
     // The migrations are two directories up from the built files (dist/esm),
     // and next to the source files when they are run directly (e.g. in tests).
     const migrationsPaths = ['../../migrations', './migrations'];
 
     for (let migrationsPath of migrationsPaths) {
-        const fullPath = path.resolve(dirname, migrationsPath);
+        const fullPath = path.resolve(__dirname, migrationsPath);
         if (await exists(fullPath)) {
             return fullPath;
         }

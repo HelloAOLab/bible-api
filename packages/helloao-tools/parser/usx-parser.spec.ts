@@ -18,6 +18,102 @@ describe('USXParser', () => {
     });
 
     describe('parse()', () => {
+        it('hoists all trailing inline paragraphs and breaks in order', () => {
+            const tree = parser.parse(
+                '<usx version="3.0"><book code="GEN"/><chapter number="1"/><para style="p"><verse number="1"/>First.</para><para style="b"/><para style="b"/><para style="m"><verse number="2"/>Second.</para></usx>'
+            );
+            const chapter = tree.content.find((c) => c.type === 'chapter')!;
+            expect(chapter.content).toEqual([
+                { type: 'line_break', paragraph: 'p' },
+                { type: 'verse', number: 1, content: ['First.'] },
+                { type: 'line_break' },
+                { type: 'line_break', paragraph: 'm' },
+                { type: 'verse', number: 2, content: ['Second.'] },
+            ]);
+        });
+        it('emits paragraph markers before paragraphs', () => {
+            const tree = parser.parse(
+                `<usx version="3.0"><book code="GEN"/><chapter number="1"/><para style="ms1">Ancient times</para><para style="mr">Genesis 1</para><para style="s1">Creation</para><para style="r">Genesis 1</para><para style="p"><verse number="1"/>In the beginning<note style="x" caller="+"><char style="xt">John 1:1</char></note><char style="w"> God</char><verse eid="GEN 1:1"/></para><para style="pi1"><verse number="2"/>Next.<verse eid="GEN 1:2"/></para><para style="p"/></usx>`
+            );
+            const chapter = tree.content.find((c) => c.type === 'chapter')!;
+            expect(
+                chapter.content.map((c) => (c.type === 'verse' ? c.number : c))
+            ).toEqual([
+                { type: 'heading', content: ['Creation'] },
+                { type: 'line_break', paragraph: 'p' },
+                1,
+                { type: 'line_break', paragraph: 'pi1' },
+                2,
+            ]);
+        });
+        it('records a paragraph that starts inside a verse and ignores nb', () => {
+            const tree = parser.parse(
+                `<usx version="3.0"><book code="GEN"/><chapter number="1"/><para style="p"><verse number="1"/>Au commencement</para><para style="m">Suite<verse eid="GEN 1:1"/></para><para style="nb"><verse number="2"/>Continue<verse eid="GEN 1:2"/></para><para style="b"/></usx>`
+            );
+            const chapter = tree.content.find((c) => c.type === 'chapter')!;
+            const verses = chapter.content.filter((c) => c.type === 'verse');
+            expect(verses[0].content).toContainEqual({
+                lineBreak: true,
+                paragraph: 'm',
+            });
+            expect(
+                chapter.content.filter(
+                    (c) => c.type === 'line_break' && c.paragraph
+                )
+            ).toEqual([{ type: 'line_break', paragraph: 'p' }]);
+            expect(chapter.content.at(-1)).toEqual({ type: 'line_break' });
+        });
+        it('ignores whitespace-only paragraphs inside an open verse before nb continuation', () => {
+            const tree = parser.parse(
+                `<usx version="3.0"><book code="GEN"/><chapter number="1"/><para style="p"><verse number="1"/>First.</para><para style="m"> </para><para style="nb">More.<verse eid="GEN 1:1"/></para></usx>`
+            );
+            const chapter = tree.content.find((c) => c.type === 'chapter')!;
+            const verse = chapter.content.find((c) => c.type === 'verse')!;
+            expect(verse.content).not.toContainEqual({
+                lineBreak: true,
+                paragraph: 'm',
+            });
+            expect(verse.content.join('')).toBe('First. More.');
+        });
+        it.each([
+            [
+                'USX 2 adjacent paragraphs',
+                '<para style="p"><verse number="1"/>First.</para><para style="m"><verse number="2"/>Second.</para>',
+            ],
+            [
+                'USX 2 spaced paragraphs',
+                '<para style="p"><verse number="1"/>First.</para>\n<para style="m"><verse number="2"/>Second.</para>',
+            ],
+            [
+                'USX 3 adjacent eids',
+                '<para style="p"><verse number="1"/>First.<verse eid="GEN 1:1"/></para><para style="m"><verse number="2"/>Second.<verse eid="GEN 1:2"/></para>',
+            ],
+            [
+                'USX 3 spaced eids',
+                '<para style="p"><verse number="1"/>First.<verse eid="GEN 1:1"/></para>\n<para style="m"><verse number="2"/>Second.<verse eid="GEN 1:2"/></para>',
+            ],
+        ])(
+            'keeps a paragraph after the previous verse ends (%s)',
+            (_name, paragraphs) => {
+                const tree = parser.parse(
+                    `<usx version="3.0"><book code="GEN"/><chapter number="1"/>${paragraphs}</usx>`
+                );
+                const chapter = tree.content.find((c) => c.type === 'chapter')!;
+                expect(
+                    chapter.content.map((item) =>
+                        item.type === 'verse'
+                            ? [item.number, item.content.join('')]
+                            : item
+                    )
+                ).toEqual([
+                    { type: 'line_break', paragraph: 'p' },
+                    [1, 'First.'],
+                    { type: 'line_break', paragraph: 'm' },
+                    [2, 'Second.'],
+                ]);
+            }
+        );
+
         it('should parse the toc3 paragraph as the short name', () => {
             const usx = `
                 <usx version="3.0">
@@ -81,6 +177,7 @@ describe('USXParser', () => {
                                 type: 'heading',
                                 content: ['The Creation'],
                             },
+                            { type: 'line_break', paragraph: 'm' },
                             {
                                 type: 'verse',
                                 number: 1,
@@ -171,6 +268,7 @@ describe('USXParser', () => {
                                 type: 'heading',
                                 content: ['The Creation'],
                             },
+                            { type: 'line_break', paragraph: 'm' },
                             {
                                 type: 'verse',
                                 number: 1,
@@ -180,6 +278,7 @@ describe('USXParser', () => {
                             },
                             {
                                 type: 'line_break',
+                                paragraph: 'm',
                             },
                             {
                                 type: 'verse',
@@ -239,6 +338,7 @@ describe('USXParser', () => {
                                 type: 'heading',
                                 content: ['The Creation'],
                             },
+                            { type: 'line_break', paragraph: 'm' },
                             {
                                 type: 'verse',
                                 number: 1,
@@ -297,6 +397,7 @@ describe('USXParser', () => {
                                 type: 'heading',
                                 content: ['The Creation'],
                             },
+                            { type: 'line_break', paragraph: 'm' },
                             {
                                 type: 'verse',
                                 number: 1,
@@ -355,6 +456,7 @@ describe('USXParser', () => {
                                 type: 'heading',
                                 content: ['The Creation'],
                             },
+                            { type: 'line_break', paragraph: 'm' },
                             {
                                 type: 'verse',
                                 number: 1,
@@ -437,6 +539,7 @@ describe('USXParser', () => {
                                 type: 'heading',
                                 content: ['The Creation'],
                             },
+                            { type: 'line_break', paragraph: 'm' },
                             {
                                 type: 'verse',
                                 number: 1,
@@ -459,6 +562,7 @@ describe('USXParser', () => {
                                 type: 'heading',
                                 content: ['The Seventh Day'],
                             },
+                            { type: 'line_break', paragraph: 'm' },
                             {
                                 type: 'verse',
                                 number: 1,
@@ -549,6 +653,7 @@ describe('USXParser', () => {
                                 type: 'heading',
                                 content: ['The Seventh Day'],
                             },
+                            { type: 'line_break', paragraph: 'm' },
                             {
                                 type: 'verse',
                                 number: 1,
@@ -726,6 +831,7 @@ describe('USXParser', () => {
                                 type: 'heading',
                                 content: ['The Seventh Day'],
                             },
+                            { type: 'line_break', paragraph: 'm' },
                             {
                                 type: 'verse',
                                 number: 1,
@@ -891,6 +997,7 @@ describe('USXParser', () => {
                                     },
                                     {
                                         lineBreak: true,
+                                        paragraph: 'm',
                                     },
                                     'Thus declares the LORD, who stretches out the heavens and lays the foundation of the earth, who forms the spirit of man within him:',
                                 ],
@@ -985,6 +1092,7 @@ describe('USXParser', () => {
                         type: 'chapter',
                         number: 1,
                         content: [
+                            { type: 'line_break', paragraph: 'p' },
                             {
                                 type: 'verse',
                                 number: 1,
@@ -1375,6 +1483,7 @@ describe('USXParser', () => {
                         type: 'chapter',
                         number: 26,
                         content: [
+                            { type: 'line_break', paragraph: 'm' },
                             {
                                 type: 'verse',
                                 number: 8,
@@ -1389,6 +1498,7 @@ describe('USXParser', () => {
                                     'Abimelech sent for Isaac and said, “So she is really your wife! How could you say, ‘She is my sister’?”',
                                     {
                                         lineBreak: true,
+                                        paragraph: 'm',
                                     },
                                     'Isaac replied, “Because I thought I might die on account of her.”',
                                 ],
@@ -1420,11 +1530,14 @@ describe('USXParser', () => {
                         type: 'chapter',
                         number: 17,
                         content: [
+                            { type: 'line_break', paragraph: 'p' },
                             {
                                 type: 'verse',
                                 number: 26,
                                 content: [
-                                    'Peter said to him, “From strangers.” Jesus said to him,',
+                                    'Peter said to him, “From strangers.”',
+                                    { lineBreak: true, paragraph: 'p' },
+                                    'Jesus said to him,',
                                     {
                                         wordsOfJesus: true,
                                         text: '“Therefore the children are exempt.',
@@ -1489,6 +1602,7 @@ describe('USXParser', () => {
                         content: [
                             {
                                 type: 'line_break',
+                                paragraph: 'm',
                             },
                             {
                                 type: 'verse',
@@ -1511,6 +1625,7 @@ describe('USXParser', () => {
                             },
                             {
                                 type: 'line_break',
+                                paragraph: 'm',
                             },
                             {
                                 type: 'verse',
@@ -1709,14 +1824,15 @@ describe('USXParser', () => {
                                 type: 'heading',
                                 content: ['The Creation'],
                             },
+                            { type: 'line_break', paragraph: 'm' },
                             {
                                 type: 'verse',
                                 number: 1,
                                 content: [
                                     'In the beginning God created the heavens and the earth.',
-                                    { lineBreak: true },
                                 ],
                             },
+                            { type: 'line_break', paragraph: 'm' },
                             {
                                 type: 'verse',
                                 number: 2,
@@ -1807,6 +1923,7 @@ describe('USXParser', () => {
                                 type: 'heading',
                                 content: ['The Creation'],
                             },
+                            { type: 'line_break', paragraph: 'm' },
                             {
                                 type: 'verse',
                                 number: 1,
@@ -1816,6 +1933,7 @@ describe('USXParser', () => {
                             },
                             {
                                 type: 'line_break',
+                                paragraph: 'm',
                             },
                             {
                                 type: 'verse',

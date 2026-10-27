@@ -1745,6 +1745,14 @@ export const ChapterHeadingSchema = z
 export type ChapterHeading = z.infer<typeof ChapterHeadingSchema>;
 
 /**
+ * A Zod schema for the source paragraph marker of a line break that starts a paragraph.
+ */
+const ParagraphMarkerSchema = z.string().optional().meta({
+    description:
+        'The source paragraph marker (without its backslash) when the line break starts a new paragraph, for example `p`, `m`, `pi1` or `mi`. Omitted for plain line breaks.',
+});
+
+/**
  * A Zod schema for a line break in a chapter.
  */
 export const ChapterLineBreakSchema = z
@@ -1753,6 +1761,11 @@ export const ChapterLineBreakSchema = z
          * Indicates that the content represents a line break.
          */
         type: z.literal('line_break'),
+
+        /**
+         * The source paragraph marker when the line break starts a new paragraph.
+         */
+        paragraph: ParagraphMarkerSchema,
     })
     .meta({
         id: 'ChapterLineBreak',
@@ -1934,7 +1947,15 @@ export type InlineHeading = z.infer<typeof InlineHeadingSchema>;
  */
 export const InlineLineBreakSchema = z
     .object({
+        /**
+         * Indicates that the content represents a line break.
+         */
         lineBreak: z.literal(true),
+
+        /**
+         * The source paragraph marker when the line break starts a new paragraph.
+         */
+        paragraph: ParagraphMarkerSchema,
     })
     .meta({
         id: 'InlineLineBreak',
@@ -2151,6 +2172,24 @@ export const SimpleInlineHeadingSchema = z
 
 export type SimpleInlineHeading = z.infer<typeof SimpleInlineHeadingSchema>;
 
+/** A paragraph start in the text of a simplified verse. */
+export const SimpleVerseParagraphSchema = z
+    .object({
+        offset: z.number().meta({
+            description:
+                'The index in the verse text, measured in UTF-16 code units.',
+        }),
+        style: z.string().meta({
+            description: 'The source paragraph marker without its backslash.',
+        }),
+    })
+    .meta({
+        id: 'SimpleVerseParagraph',
+        description: 'A paragraph start in the text of a simplified verse.',
+    });
+
+export type SimpleVerseParagraph = z.infer<typeof SimpleVerseParagraphSchema>;
+
 /**
  * A Zod schema for a verse in a simplified chapter.
  */
@@ -2189,6 +2228,11 @@ export const SimpleChapterVerseSchema = z
         headings: z.array(SimpleInlineHeadingSchema).optional().meta({
             description:
                 'The headings that occur in the middle of the verse. Omitted if the verse contains no inline headings.',
+        }),
+
+        paragraphs: z.array(SimpleVerseParagraphSchema).optional().meta({
+            description:
+                'The positions and source styles of paragraphs that start inside the verse.',
         }),
 
         /**

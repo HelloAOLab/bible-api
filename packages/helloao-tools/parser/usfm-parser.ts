@@ -7,8 +7,16 @@ import {
     FootnoteReference,
     Footnote,
     Text,
+    InlineLineBreak,
 } from './types.js';
 import { getLogger } from '../log.js';
+import {
+    paragraphStyle,
+    paragraphBreak,
+    inlineBreak,
+    hoistTrailingBreaks,
+    mergeTreeParagraphBreaks,
+} from './paragraphs.js';
 
 /**
  * Defines a class that can tokenize a stream of characters into tokens.
@@ -238,7 +246,12 @@ export class UsfmParser {
         let verse: Verse | null = null;
         let subtitle: HebrewSubtitle | null = null;
         let words: string[] = [];
-        let verseContent: (Text | FootnoteReference | string)[] = [];
+        let verseContent: (
+            | Text
+            | FootnoteReference
+            | InlineLineBreak
+            | string
+        )[] = [];
         let sectionContent: string = '';
         let currentFootnoteId = 0;
         let footnote: Footnote | null = null;
@@ -287,25 +300,23 @@ export class UsfmParser {
                 return;
             }
             let chapterContent: Chapter['content'] = [];
-            for (let i = verse.content.length - 1; i >= 0; i--) {
-                let content = verse.content[i];
+            while (verse.content.length > 0) {
+                const content = verse.content.at(-1);
                 if (typeof content === 'object' && 'heading' in content) {
                     // move headings that occur at the end of a verse to the chapter
                     chapterContent.unshift({
                         type: 'heading',
                         content: [content.heading],
                     });
-                    verse.content.splice(i, 1);
+                    verse.content.pop();
                 } else if (
                     typeof content === 'object' &&
-                    'lineBreak' in content &&
-                    content.lineBreak
+                    'lineBreak' in content
                 ) {
-                    // move line breaks that occur at the end of a verse to the chapter
-                    chapterContent.unshift({
-                        type: 'line_break',
-                    });
-                    verse.content.splice(i, 1);
+                    // Move trailing line breaks and paragraphs to chapter level.
+                    chapterContent.unshift(
+                        ...hoistTrailingBreaks(verse.content)
+                    );
                 } else {
                     break;
                 }
@@ -363,8 +374,29 @@ export class UsfmParser {
             }
         };
 
+        // Adds a line break, or a paragraph break when a style is given, inside the
+        // current verse or at chapter level between verses.
+        const pushBreak = (token: Token, style?: string) => {
+            if (!chapter) {
+                this._throwError(
+                    input,
+                    token,
+                    'Cannot parse a line break without chapter information!'
+                );
+            } else if (verse) {
+                addWordsToVerseOrSubtitle();
+                verse.content.push(inlineBreak(style));
+            } else {
+                completeVerseOrSubtitle(token);
+                chapter.content.push(paragraphBreak(style));
+            }
+        };
+
         for (let token of tokens) {
             if (token.kind === 'marker') {
+                const style = paragraphStyle(
+                    token.command.slice(1) + (token.number ?? '')
+                );
                 if (token.command === '\\c') {
                     addWordsToVerseOrSubtitle();
                     cleanupVerse();
@@ -416,31 +448,14 @@ export class UsfmParser {
 
                         chapter.content.push(subtitle);
                     }
-                } else if (token.command === '\\b' || token.command === '\\p') {
-                    if (!chapter) {
-                        this._throwError(
-                            input,
-                            token,
-                            'Cannot parse a line break without chapter information!'
-                        );
-                    } else {
-                        if (verse) {
-                            addWordsToVerseOrSubtitle();
-                            verse.content.push({
-                                lineBreak: true,
-                            });
-                        } else {
-                            completeVerseOrSubtitle(token);
-                            chapter.content.push({
-                                type: 'line_break',
-                            });
-                        }
-                    }
+                } else if (token.command === '\\b') {
+                    pushBreak(token);
                 } else if (token.command === '\\q') {
                     addWordsToVerseOrSubtitle();
                     this._poem = token.number;
-                } else if (token.command === '\\p') {
-                    addWordsToVerseOrSubtitle();
+                } else if (style) {
+                    completeSection();
+                    pushBreak(token, style);
                     this._poem = null;
                 } else if (token.command === '\\id') {
                     expectingId = 1;
@@ -728,6 +743,7 @@ export class UsfmParser {
         }
 
         completeVerseOrSubtitle(null);
+        mergeTreeParagraphBreaks(root);
 
         return root;
     }

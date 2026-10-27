@@ -223,6 +223,11 @@ export interface InlineHeading {
  */
 export interface InlineLineBreak {
     lineBreak: true;
+
+    /**
+     * The source paragraph marker (without its backslash) when the line break starts a paragraph.
+     */
+    paragraph?: string;
 }
 
 export interface FootnoteReference {
@@ -269,6 +274,11 @@ export interface Footnote {
 
 export interface LineBreak {
     type: 'line_break';
+
+    /**
+     * The source paragraph marker (without its backslash) when the line break starts a paragraph.
+     */
+    paragraph?: string;
 }
 
 /**
