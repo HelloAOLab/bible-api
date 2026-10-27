@@ -14,11 +14,13 @@ import {
     askForMetadata,
     copyOpenBibleAudio,
     fetchAudio,
+    fetchHistoryGlobe,
     fetchInterlinear,
     generateTranslationFiles,
     generateTranslationsFiles,
     importApi,
     importBibleMetadata,
+    importHistoryGlobe,
     importInterlinear,
     importAudioTimings,
     importCommentaries,
@@ -473,6 +475,18 @@ async function start() {
         )
         .action(async (dir: string, options: any) => {
             await importInterlinear(dir, {
+                ...program.opts(),
+                ...options,
+            });
+        });
+
+    program
+        .command('import-history-globe <dir>')
+        .description(
+            'Imports the History Globe places from the given directory into the database.\nThe directory should contain the files downloaded by the fetch-history-globe command.'
+        )
+        .action(async (dir: string, options: any) => {
+            await importHistoryGlobe(dir, {
                 ...program.opts(),
                 ...options,
             });
@@ -1193,6 +1207,15 @@ async function start() {
         )
         .action(async (dir: string) => {
             await fetchInterlinear(dir);
+        });
+
+    program
+        .command('fetch-history-globe <dir>')
+        .description(
+            'Fetches the History Globe places and their verse references and places them in the given directory.'
+        )
+        .action(async (dir: string) => {
+            await fetchHistoryGlobe(dir);
         });
 
     program

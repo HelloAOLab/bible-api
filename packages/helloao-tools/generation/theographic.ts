@@ -152,11 +152,58 @@ export function stripMarkdownLinks(text: string): string {
     return text.replace(/\[([^\]]*)\]\([^)]*\)/g, '$1');
 }
 
-interface ResolvedVerse {
+/**
+ * A single Bible verse, with the order of its book for sorting.
+ */
+export interface ResolvedVerse {
     book: BookId;
     order: number;
     chapter: number;
     verse: number;
+}
+
+/**
+ * Sorts and deduplicates the given verses and collapses consecutive verses
+ * in the same chapter into a single reference using endVerse.
+ * @param verses The verses to collapse.
+ */
+export function collapseVerseRefs(verses: ResolvedVerse[]): VerseRef[] {
+    const resolved: ResolvedVerse[] = [];
+    const seen = new Set<string>();
+    for (let verse of verses) {
+        const key = `${verse.book}.${verse.chapter}.${verse.verse}`;
+        if (seen.has(key)) {
+            continue;
+        }
+        seen.add(key);
+        resolved.push(verse);
+    }
+
+    resolved.sort(
+        (a, b) =>
+            a.order - b.order || a.chapter - b.chapter || a.verse - b.verse
+    );
+
+    const references: VerseRef[] = [];
+    for (let verse of resolved) {
+        const last = references[references.length - 1];
+        if (
+            last &&
+            last.book === verse.book &&
+            last.chapter === verse.chapter &&
+            (last.endVerse ?? last.verse) === verse.verse - 1
+        ) {
+            last.endVerse = verse.verse;
+        } else {
+            references.push({
+                book: verse.book,
+                chapter: verse.chapter,
+                verse: verse.verse,
+            });
+        }
+    }
+
+    return references;
 }
 
 /**
@@ -296,46 +343,15 @@ export function generateDatasetFromTheographic(
             return [];
         }
         const resolved: ResolvedVerse[] = [];
-        const seen = new Set<string>();
         for (let id of verseIds) {
             const verse = verseMap.get(id);
             if (!verse) {
                 logger.warn('[theographic] Unknown verse record ID!', id);
                 continue;
             }
-            const key = `${verse.book}.${verse.chapter}.${verse.verse}`;
-            if (seen.has(key)) {
-                continue;
-            }
-            seen.add(key);
             resolved.push(verse);
         }
-
-        resolved.sort(
-            (a, b) =>
-                a.order - b.order || a.chapter - b.chapter || a.verse - b.verse
-        );
-
-        const references: VerseRef[] = [];
-        for (let verse of resolved) {
-            const last = references[references.length - 1];
-            if (
-                last &&
-                last.book === verse.book &&
-                last.chapter === verse.chapter &&
-                (last.endVerse ?? last.verse) === verse.verse - 1
-            ) {
-                last.endVerse = verse.verse;
-            } else {
-                references.push({
-                    book: verse.book,
-                    chapter: verse.chapter,
-                    verse: verse.verse,
-                });
-            }
-        }
-
-        return references;
+        return collapseVerseRefs(resolved);
     }
 
     /**
@@ -552,7 +568,7 @@ export function generateDatasetFromTheographic(
  * This keeps the generated JSON files free of explicit "undefined"/null noise
  * and makes the output deterministic.
  */
-function omitUndefined<T extends object>(obj: T): T {
+export function omitUndefined<T extends object>(obj: T): T {
     const result: any = {};
     for (let key of Object.keys(obj)) {
         const value = (obj as any)[key];
