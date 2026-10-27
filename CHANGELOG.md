@@ -6,6 +6,8 @@ This is the log of changes for the Free Use Bible API.
 
 ### :rocket: Features
 
+-   Added a curated "verse of the day" dataset to `@helloao/tools` (`generation/verse-of-the-day.ts`, also exported as `verseOfTheDay`). It lists more than 200 well-known verses and short passages (at most three verses), each tagged with one to three categories from a fixed set: `comfort`, `courage`, `faith`, `forgiveness`, `gratitude`, `guidance`, `hope`, `inspiration`, `joy`, `love`, `peace`, `praise`, `prayer`, `provision`, `salvation`, `strength`, and `wisdom`.
+    -   `getVerseOfTheDay(date?, category?)` picks a verse deterministically from the UTC date, so every caller gets the same verse on the same day, optionally limited to one category.
 -   Added the Berean interlinear dataset (`bsb-interlinear`), which lists the original-language (Hebrew, Aramaic, and Greek) words of every verse in original-text order, with their transliteration, parsing, Strong's number, and the Berean Standard Bible's English phrase. It is based on the public domain [Berean Standard Bible interlinear tables](https://bereanbible.com/).
     -   `GET /api/d/bsb-interlinear/books.json`
     -   `GET /api/d/bsb-interlinear/{book}/{chapter}.json` (e.g. `/api/d/bsb-interlinear/GEN/1.json`) returns `{ verse, words }` for every verse in the chapter.
