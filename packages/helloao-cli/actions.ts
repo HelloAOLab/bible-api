@@ -86,6 +86,12 @@ import {
 } from './fetch-bible.js';
 import { detectEBibleLicense, ebibleIdFromUrl } from './ebible-license.js';
 import { importDatasetOutput } from './db.js';
+import {
+    createReviewRows,
+    formatReviewRows,
+    getVerseTexts,
+    VerseOfTheDayReviewFormat,
+} from './verse-of-the-day-review.js';
 import { groupBy } from 'es-toolkit/compat';
 
 export { convertOsisToUsfmFiles, fetchOsisTranslations } from './osis.js';
@@ -1038,6 +1044,94 @@ export async function importVerseOfTheDay(options: ImportTranslationOptions) {
         });
     } finally {
         db.close();
+    }
+}
+
+/**
+ * The options for reviewing the verse of the day dataset.
+ */
+export interface ReviewVerseOfTheDayOptions {
+    /**
+     * Only include the verses in this category.
+     */
+    category?: string;
+
+    /**
+     * The format to print the verses in. Defaults to "table".
+     */
+    format?: VerseOfTheDayReviewFormat;
+
+    /**
+     * The maximum width of a line in the table format.
+     * Defaults to the width of the terminal (or 120 when it isn't a terminal).
+     */
+    width?: number;
+}
+
+/**
+ * Prints the verses of the verse of the day dataset, with their categories and their text in the translation
+ * that is stored in the given directory, so that the list can be reviewed.
+ * @param dir The directory that contains the USFM (or USX) files of the translation. e.g. "./bible/bsb"
+ * @param options The options.
+ */
+export async function reviewVerseOfTheDay(
+    dir: string,
+    options: ReviewVerseOfTheDayOptions = {}
+) {
+    const format = options.format ?? 'table';
+    if (!['table', 'markdown', 'csv'].includes(format)) {
+        throw new Error(
+            `Unknown format "${format}". Use "table", "markdown", or "csv".`
+        );
+    }
+
+    let verses = verseOfTheDay.VERSES_OF_THE_DAY;
+    if (options.category) {
+        const category =
+            options.category as verseOfTheDay.VerseOfTheDayCategory;
+        if (!verseOfTheDay.VERSE_OF_THE_DAY_CATEGORIES.includes(category)) {
+            throw new Error(
+                `Unknown category "${options.category}". Use one of: ${verseOfTheDay.VERSE_OF_THE_DAY_CATEGORIES.join(', ')}.`
+            );
+        }
+        verses = verses.filter((v) => v.categories.includes(category));
+    }
+
+    const parser = new DOMParser();
+    globalThis.DOMParser = DOMParser as any;
+    globalThis.Element = Element as any;
+    globalThis.Node = Node as any;
+
+    // Only the verse text is needed, so the translation's own metadata isn't loaded.
+    const files = await loadTranslationFiles(path.resolve(dir), {
+        id: 'review',
+        name: 'review',
+        englishName: 'review',
+        shortName: 'review',
+        language: 'eng',
+        direction: 'ltr',
+        licenseUrl: '',
+        website: '',
+    });
+    if (!files || files.length <= 0) {
+        throw new Error(`Could not find any translation files in ${dir}.`);
+    }
+
+    const texts = getVerseTexts(generateDataset(files, parser as any));
+    const rows = createReviewRows(verses, texts);
+    const width = options.width ?? process.stdout.columns ?? 120;
+
+    process.stdout.write(formatReviewRows(rows, format, width) + '\n');
+
+    // The summary goes to stderr so that the output can be piped to a file.
+    const missing = rows.filter((r) => r.text === null);
+    process.stderr.write(
+        `${rows.length} verses${options.category ? ` in the ${options.category} category` : ''}.\n`
+    );
+    if (missing.length > 0) {
+        process.stderr.write(
+            `${missing.length} verses were not found in the translation: ${missing.map((r) => r.reference).join(', ')}\n`
+        );
     }
 }
 
