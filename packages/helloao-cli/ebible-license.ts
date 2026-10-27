@@ -79,8 +79,15 @@ export function ccLicenseFromUrl(url: string): License | null {
         return null;
     }
 
-    const code = match[1].toLowerCase();
-    const terms = CC_LICENSE_TERMS[code];
+    return ccLicenseFromCode(match[1]);
+}
+
+/**
+ * Gets the license terms implied by the given Creative Commons license code (e.g. `by-sa`, `by-nc-nd`, `zero`).
+ * Returns null if the code isn't recognized.
+ */
+export function ccLicenseFromCode(code: string): License | null {
+    const terms = CC_LICENSE_TERMS[code.toLowerCase()];
     return terms ? { ...terms } : null;
 }
 
