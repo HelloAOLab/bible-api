@@ -3618,6 +3618,7 @@ export function generateApiForDataset(
                 id: book.id,
                 name: book.name,
                 commonName: book.commonName,
+                shortName: book.shortName,
                 title: book.title,
                 order: book.order,
                 numberOfChapters: book.numberOfChapters,

@@ -467,6 +467,7 @@ export function insertTranslationBooks(
         title,
         name,
         commonName,
+        shortName,
         numberOfChapters,
         \`order\`,
         isApocryphal
@@ -476,6 +477,7 @@ export function insertTranslationBooks(
         @title,
         @name,
         @commonName,
+        @shortName,
         @numberOfChapters,
         @bookOrder,
         @isApocryphal
@@ -484,6 +486,7 @@ export function insertTranslationBooks(
             title=excluded.title,
             name=excluded.name,
             commonName=excluded.commonName,
+            shortName=excluded.shortName,
             numberOfChapters=excluded.numberOfChapters,
             isApocryphal=excluded.isApocryphal;`);
 
@@ -498,6 +501,7 @@ export function insertTranslationBooks(
                 title: book.title,
                 name: book.name,
                 commonName: book.commonName,
+                shortName: book.shortName ?? null,
                 numberOfChapters: book.chapters.length,
                 bookOrder: book.order ?? 9999,
                 isApocryphal: Number(book.isApocryphal ?? false),
@@ -896,6 +900,7 @@ export function updateTranslationHashes(
             translationId: string;
             name: string;
             commonName: string;
+            shortName: string | null;
             numberOfChapters: number;
             isApocryphal: number | null;
         }[];
@@ -957,6 +962,7 @@ export function updateTranslationHashes(
                 book.order,
                 book.name,
                 book.commonName,
+                book.shortName,
                 book.title,
                 book.numberOfChapters,
                 !!book.isApocryphal,
@@ -2144,8 +2150,12 @@ export async function* loadTranslationDatasets(
                     ...book,
                     id: book.id as BookId,
                     chapters: bookChapters,
+                    shortName: book.shortName ?? undefined,
                     isApocryphal: book.isApocryphal ?? false,
                 };
+                if (!datasetBook.shortName) {
+                    delete datasetBook.shortName;
+                }
                 if (!datasetBook.isApocryphal) {
                     delete datasetBook.isApocryphal;
                 }

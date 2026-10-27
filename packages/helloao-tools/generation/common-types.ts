@@ -410,6 +410,15 @@ export const TranslationBookSchema = z
         }),
 
         /**
+         * The short name (abbreviation) that the translation provided for the book.
+         * If not available, then one was not provided by the translation.
+         */
+        shortName: z.string().optional().meta({
+            description:
+                'The short name (abbreviation) that the translation provided for the book. If not available, then one was not provided by the translation.',
+        }),
+
+        /**
          * The title of the book.
          * This is usually a more descriptive version of the book name.
          * If not available, then one was not provided by the translation.
