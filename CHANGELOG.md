@@ -44,6 +44,7 @@ This is the log of changes for the Free Use Bible API.
     -   USFM files are converted to USX3, and each translation gets a `metadata.json` with its license and attribution.
     -   fetch.bible translations can be kept in their own directory with `--fetch-bible-dir`. A translation that later becomes available from eBible is removed from the fetch.bible directory, so that it isn't imported twice.
     -   The pinned OSIS translations (such as `jpn_kou`) are also fetched, like `fetch-osis-translations`. They can be kept in their own directory with `--osis-dir`, or skipped with `--no-osis`. They are only re-downloaded when their pinned source or metadata changes, and are never downloaded from eBible or fetch.bible. `pnpm fetch:translations` puts them in `./sources/osis`, and `pnpm import:bible:translations` imports them.
+    -   Up to 10 USFM-to-USX3 conversions run at once. Use `--conversion-concurrency <n>` (also on `source-translations` and `source-fetch-bible-translations`) to run fewer and reduce memory usage. eBible conversions now start as soon as a slot is free instead of waiting for the whole batch of 10 to finish.
 -   `import-translations` now accepts more than one directory (e.g. `import-translations ./sources/ebible ./sources/fetch-bible`).
 -   Added the `source-fetch-bible-translations <dir>` and `list-fetch-bible-translations` CLI commands for downloading and listing fetch.bible translations on their own. Translations that were already downloaded from eBible are skipped.
 
