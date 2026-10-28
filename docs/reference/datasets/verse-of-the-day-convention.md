@@ -314,7 +314,7 @@ The dataset never changes the verses of a year that has started, so these 2026 v
 | Date       | Holiday                | Verse of the day |
 | ---------- | ---------------------- | ---------------- |
 | 2026-01-01 |                        | PSA 32:1         |
-| 2026-04-03 | Good Friday            | JHN 19:30        |
+| 2026-04-03 | Good Friday            | LUK 23:33        |
 | 2026-04-05 | Resurrection Sunday    | 1CO 15:20        |
 | 2026-06-15 |                        | EST 4:14         |
 | 2026-10-28 |                        | PSA 136:1        |

@@ -90,7 +90,7 @@ describe('VERSES_OF_THE_DAY', () => {
     // These fingerprints make sure that the schedules of years that people have already seen don't change.
     // Add new verses with `addedIn` (and remove verses with `removedIn`) set to a year that hasn't started yet.
     // When a year starts, add its fingerprint here.
-    it.each([[2026, 2436637312]])(
+    it.each([[2026, 3806787062]])(
         'should not change the verse of the day schedule of %d',
         (year, fingerprint) => {
             const picks: string[] = [];
