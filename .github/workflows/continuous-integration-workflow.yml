@@ -31,6 +31,9 @@ jobs:
         name: Swift SDK (Linux)
         runs-on: ubuntu-latest
         container: swift:6.1
+        defaults:
+            run:
+                working-directory: packages/free-use-bible-api-swift
         steps:
             - uses: actions/checkout@v4
             - name: Build
@@ -41,6 +44,9 @@ jobs:
     swift-macos:
         name: Swift SDK (macOS)
         runs-on: macOS-latest
+        defaults:
+            run:
+                working-directory: packages/free-use-bible-api-swift
         steps:
             - uses: actions/checkout@v4
             - name: Build

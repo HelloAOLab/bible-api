@@ -4,7 +4,7 @@ description: 'Swift client for the Free Use Bible API. Add the FreeUseBibleAPI p
 
 # Swift
 
-The Swift SDK is available with Swift Package Manager as the `FreeUseBibleAPI` product of the [`bible-api`](https://github.com/HelloAOLab/bible-api) repository.
+The Swift SDK is available with Swift Package Manager as the `FreeUseBibleAPI` product of the [`bible-api-swift`](https://github.com/HelloAOLab/bible-api-swift) repository.
 
 <!-- Only the `docs` region, so the package README's own `# FreeUseBibleAPI for Swift`
      heading does not become a second H1 on this page. -->

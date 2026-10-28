@@ -1,7 +1,9 @@
 // swift-tools-version:5.9
 
-// The Swift SDK for the Free Use Bible API. The sources live in packages/free-use-bible-api-swift,
-// but the manifest has to be at the root of the repository for Swift Package Manager to find it.
+// The Swift SDK for the Free Use Bible API.
+//
+// This package is developed in packages/free-use-bible-api-swift of https://github.com/HelloAOLab/bible-api
+// and is published to https://github.com/HelloAOLab/bible-api-swift, which is what Swift Package Manager users add.
 
 import PackageDescription
 
@@ -18,14 +20,10 @@ let package = Package(
         .library(name: "FreeUseBibleAPI", targets: ["FreeUseBibleAPI"]),
     ],
     targets: [
-        .target(
-            name: "FreeUseBibleAPI",
-            path: "packages/free-use-bible-api-swift/Sources/FreeUseBibleAPI"
-        ),
+        .target(name: "FreeUseBibleAPI"),
         .testTarget(
             name: "FreeUseBibleAPITests",
             dependencies: ["FreeUseBibleAPI"],
-            path: "packages/free-use-bible-api-swift/Tests/FreeUseBibleAPITests",
             resources: [.copy("Fixtures")]
         ),
     ]

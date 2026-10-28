@@ -14,19 +14,21 @@ Add the package to your `Package.swift`:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/HelloAOLab/bible-api.git", branch: "main"),
+    .package(url: "https://github.com/HelloAOLab/bible-api-swift.git", branch: "main"),
 ],
 targets: [
     .target(
         name: "MyApp",
         dependencies: [
-            .product(name: "FreeUseBibleAPI", package: "bible-api"),
+            .product(name: "FreeUseBibleAPI", package: "bible-api-swift"),
         ]
     ),
 ]
 ```
 
-Or in Xcode, choose **File > Add Package Dependencies…** and enter `https://github.com/HelloAOLab/bible-api.git`.
+Or in Xcode, choose **File > Add Package Dependencies…** and enter `https://github.com/HelloAOLab/bible-api-swift.git`.
+
+Once a version has been released, you can depend on it with `from:` instead of `branch: "main"`. The versions match the [releases of the Free Use Bible API](https://github.com/HelloAOLab/bible-api/releases).
 
 ## Quick Start
 
@@ -221,9 +223,9 @@ Errors from the transport (such as `URLError` for network failures) are thrown a
 
 ## Development
 
-The Swift package manifest is `Package.swift` at the root of the repository, and the sources are in this directory.
+This package is developed in [`packages/free-use-bible-api-swift`](https://github.com/HelloAOLab/bible-api/tree/main/packages/free-use-bible-api-swift) of the [`bible-api`](https://github.com/HelloAOLab/bible-api) repository, which is also where issues and pull requests go. Changes there are copied to [`bible-api-swift`](https://github.com/HelloAOLab/bible-api-swift) automatically, and each release of the API is tagged there.
 
-`Sources/FreeUseBibleAPI/Types.gen.swift` and `Sources/FreeUseBibleAPI/Operations.gen.swift` are generated from the OpenAPI document by `packages/helloao-cli/swift.ts`. Don't edit them by hand. To regenerate them after changing the API schemas, run this from the root of the repository:
+`Sources/FreeUseBibleAPI/Types.gen.swift` and `Sources/FreeUseBibleAPI/Operations.gen.swift` are generated from the OpenAPI document by `packages/helloao-cli/swift.ts`. Don't edit them by hand. To regenerate them after changing the API schemas, run this from the root of the `bible-api` repository:
 
 ```bash
 npm run generate:swift
@@ -231,7 +233,7 @@ npm run generate:swift
 
 A test in `packages/helloao-cli/swift.spec.ts` fails if the generated files are out of date.
 
-To build and test the package:
+To build and test the package, run this from `packages/free-use-bible-api-swift`:
 
 ```bash
 swift build
