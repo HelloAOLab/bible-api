@@ -258,13 +258,13 @@ export function createBibleMcpServer(options: BibleMcpOptions = {}): McpServer {
                     .string()
                     .optional()
                     .describe(
-                        'Filter by language: an ISO 639-3 code (e.g. "spa") or part of the language name in English or the language itself (e.g. "Spanish", "Español").'
+                        'Filter by language: an ISO 639-3 code (e.g. "spa") or the language name in English or the language itself (e.g. "Spanish", "Español"). If any translation matches exactly, only exact matches are returned; otherwise partial matches are returned (e.g. "Span").'
                     ),
                 name: z
                     .string()
                     .optional()
                     .describe(
-                        'Filter by part of the translation id, name, English name, or short name (e.g. "BSB", "Reina", "King James").'
+                        'Filter by the translation id, name, English name, or short name (e.g. "BSB", "Reina", "King James"). If any translation matches exactly, only exact matches are returned; otherwise partial matches are returned.'
                     ),
                 limit: z
                     .number()

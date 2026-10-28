@@ -115,41 +115,57 @@ function includesIgnoreCase(
     return values.some((v) => !!v && v.toLowerCase().includes(s));
 }
 
+function equalsIgnoreCase(
+    values: (string | undefined)[],
+    search: string
+): boolean {
+    const s = search.toLowerCase();
+    return values.some((v) => !!v && v.toLowerCase() === s);
+}
+
+/**
+ * Filters translations to those with a field that exactly matches the search
+ * (ignoring case). If none match exactly, falls back to partial matches.
+ */
+function filterPreferringExact(
+    translations: TranslationSummary[],
+    search: string | undefined,
+    fields: (t: TranslationSummary) => (string | undefined)[]
+): TranslationSummary[] {
+    if (!search) return translations;
+    const exact = translations.filter((t) =>
+        equalsIgnoreCase(fields(t), search)
+    );
+    if (exact.length > 0) return exact;
+    return translations.filter((t) => includesIgnoreCase(fields(t), search));
+}
+
 /**
  * Filters translations by language and/or name.
  *
- * - `language` matches the ISO 639 language code exactly, or any part of the
- *   language's native or English name (e.g. "spa", "Spanish", "Español").
- * - `name` matches any part of the translation's id, name, English name, or short name.
+ * - `language` matches the ISO 639 language code or the language's native or
+ *   English name (e.g. "spa", "Spanish", "Español").
+ * - `name` matches the translation's id, name, English name, or short name.
+ *
+ * For each filter, if any translation matches exactly (ignoring case), only
+ * exact matches are returned. Otherwise, partial matches are returned
+ * (e.g. "Span" matches "Spanish").
  */
 export function filterTranslations(
     translations: TranslationSummary[],
     filter: { language?: string; name?: string }
 ): TranslationSummary[] {
-    const language = filter.language?.trim();
-    const name = filter.name?.trim();
-    return translations.filter((t) => {
-        if (
-            language &&
-            t.language?.toLowerCase() !== language.toLowerCase() &&
-            !includesIgnoreCase(
-                [t.languageName, t.languageEnglishName],
-                language
-            )
-        ) {
-            return false;
-        }
-        if (
-            name &&
-            !includesIgnoreCase(
-                [t.id, t.name, t.englishName, t.shortName],
-                name
-            )
-        ) {
-            return false;
-        }
-        return true;
-    });
+    const byLanguage = filterPreferringExact(
+        translations,
+        filter.language?.trim(),
+        (t) => [t.language, t.languageName, t.languageEnglishName]
+    );
+    return filterPreferringExact(byLanguage, filter.name?.trim(), (t) => [
+        t.id,
+        t.name,
+        t.englishName,
+        t.shortName,
+    ]);
 }
 
 function chooseTranslation(query: string): string {
