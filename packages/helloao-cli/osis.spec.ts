@@ -189,6 +189,60 @@ describe('fetchOsisTranslations', () => {
         expect(global.fetch).toHaveBeenCalledTimes(3);
     });
 
+    it('should apply the fixes after checking the hash', async () => {
+        mockDownload(content);
+        await fetchOsisTranslations(dir, [
+            {
+                ...source,
+                fixes: [
+                    {
+                        find: 'osisID="Exod.1.1">本文',
+                        replace: 'osisID="Exod.1.1">修正',
+                    },
+                ],
+            },
+        ]);
+        expect(
+            await readFile(path.join(dir, 'test_osis', 'exo.usfm'), 'utf-8')
+        ).toBe('\\id EXO\n\\c 1\n\\v 1 修正\n');
+        expect(
+            await readFile(path.join(dir, 'test_osis', 'gen.usfm'), 'utf-8')
+        ).toBe('\\id GEN\n\\c 1\n\\v 1 本文\n');
+    });
+
+    it('should re-fetch a translation when its fixes change', async () => {
+        mockDownload(content);
+        await fetchOsisTranslations(dir, [source]);
+        const fixed = {
+            ...source,
+            fixes: [
+                {
+                    find: '本文</verse></chapter></div><div',
+                    replace: '修正</verse></chapter></div><div',
+                },
+            ],
+        };
+        expect(
+            await fetchOsisTranslations(dir, [fixed], { skipUnchanged: true })
+        ).toEqual(['test_osis']);
+        expect(
+            await fetchOsisTranslations(dir, [fixed], { skipUnchanged: true })
+        ).toEqual([]);
+    });
+
+    it.each(['見つからない', '本文'])(
+        'should fail and write nothing when a fix does not match exactly once: %s',
+        async (find) => {
+            mockDownload(content);
+            await expect(
+                fetchOsisTranslations(dir, [
+                    { ...source, fixes: [{ find, replace: '' }] },
+                ])
+            ).rejects.toThrow(/OSIS fix expected to find .* once/);
+            expect(await readdir(dir)).toEqual([]);
+        }
+    );
+
     it('should fail and write nothing when the hash does not match', async () => {
         mockDownload(content + ' ');
         await expect(fetchOsisTranslations(dir, [source])).rejects.toThrow(

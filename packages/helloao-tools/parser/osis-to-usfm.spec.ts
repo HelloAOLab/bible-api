@@ -192,6 +192,19 @@ describe('convertOsisToUsfm', () => {
         }
     });
 
+    it('should accept book groups and ignore their headings', () => {
+        const result = convertOsisToUsfm(
+            wrap(
+                `<div type="bookgroup"><head>旧約聖書</head>${book('<chapter osisID="Gen.1"><verse osisID="Gen.1.1">本文</verse></chapter>')}</div><div type="bookgroup"><head>新約聖書</head>${book('<chapter osisID="Matt.1"><verse osisID="Matt.1.1">本文</verse></chapter>', 'Matt')}</div>`
+            ),
+            parser()
+        );
+        expect(result).toEqual([
+            { bookId: 'GEN', usfm: '\\id GEN\n\\c 1\n\\v 1 本文\n' },
+            { bookId: 'MAT', usfm: '\\id MAT\n\\c 1\n\\v 1 本文\n' },
+        ]);
+    });
+
     it('should reject an unknown OSIS book with its element and verse location', () => {
         expect(() =>
             convert(

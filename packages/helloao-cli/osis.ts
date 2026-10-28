@@ -27,10 +27,33 @@ export interface OsisTranslationSource {
      * The metadata that is written alongside the converted USFM files.
      */
     metadata: InputTranslationMetadata;
+
+    /**
+     * Corrections for errors in the source, applied to the downloaded XML after its hash is checked.
+     * Each `find` string must occur exactly once.
+     */
+    fixes?: OsisFix[];
+}
+
+/**
+ * A correction to the text of an OSIS file.
+ */
+export interface OsisFix {
+    /**
+     * The text to replace. It must occur exactly once in the file.
+     */
+    find: string;
+
+    /**
+     * The replacement text.
+     */
+    replace: string;
 }
 
 const KOUGO_URL =
     'https://raw.githubusercontent.com/seven1m/open-bibles/3ca49fb73163f42297a32b7b1b1c40cf3dafd84b/jpn-kougo.osis.xml';
+const BUNGO_URL =
+    'https://raw.githubusercontent.com/KallynGowdy/open-bibles/b8bd6285c0a7e18acfe6abda56597135cb83338c/jpn-bungo.osis.xml';
 
 /**
  * The OSIS translations that the fetch-osis-translations command downloads.
@@ -62,6 +85,45 @@ export const OSIS_TRANSLATIONS: OsisTranslationSource[] = [
                 copyleft: false,
             },
         },
+    },
+    {
+        // The 文語訳: the Meiji 元訳 Old Testament (1887) and the Taisho 改訳 New Testament (1917).
+        // Both were published as works credited to an organization, so their copyright terms have long expired.
+        url: BUNGO_URL,
+        sha256: '8fba325a2a04f03a85c06a6a4695684ae9bf55f1c69fecc4838d8b6384cdd2e8',
+        metadata: {
+            id: 'jpn_bun',
+            name: '文語訳',
+            englishName: 'Japanese Bungo-yaku (1887/1917)',
+            shortName: '文語訳',
+            language: 'jpn',
+            direction: 'ltr',
+            website:
+                'https://github.com/KallynGowdy/open-bibles/blob/b8bd6285c0a7e18acfe6abda56597135cb83338c/jpn-bungo.osis.xml',
+            licenseUrl:
+                'https://github.com/KallynGowdy/open-bibles/blob/b8bd6285c0a7e18acfe6abda56597135cb83338c/jpn-bungo.osis.xml',
+            licenseNotice:
+                'The public domain 文語訳, with the Meiji Old Testament (1887) and the Taisho New Testament (1917), is taken from open-bibles commit b8bd6285c0a7e18acfe6abda56597135cb83338c with furigana removed.',
+            license: {
+                publicDomain: true,
+                attribution: 'not-required',
+                commercialUse: 'allowed',
+                derivatives: 'allowed',
+                copyleft: false,
+            },
+        },
+        fixes: [
+            // The source numbers 2 Samuel 19:25 and 2 Chronicles 2:13 as the verses before them.
+            {
+                find: '<verse osisID="2Sam.19.26"><w gloss="かれ">彼</w>エルサレム',
+                replace:
+                    '<verse osisID="2Sam.19.25"><w gloss="かれ">彼</w>エルサレム',
+            },
+            {
+                find: '<verse osisID="2Chr.2.12"><w gloss="いま">今</w>',
+                replace: '<verse osisID="2Chr.2.13"><w gloss="いま">今</w>',
+            },
+        ],
     },
 ];
 
@@ -152,7 +214,7 @@ export async function fetchOsisTranslations(
         }
 
         const books = convertOsisToUsfm(
-            content.toString('utf-8'),
+            applyOsisFixes(content.toString('utf-8'), source.fixes ?? []),
             new DOMParser() as any
         );
 
@@ -187,10 +249,35 @@ export async function fetchOsisTranslations(
 }
 
 /**
+ * Applies the given fixes to an OSIS file.
+ * @param xml The OSIS XML.
+ * @param fixes The fixes to apply.
+ */
+export function applyOsisFixes(xml: string, fixes: OsisFix[]): string {
+    for (const fix of fixes) {
+        const count = xml.split(fix.find).length - 1;
+        if (count !== 1) {
+            throw new Error(
+                `OSIS fix expected to find ${JSON.stringify(fix.find)} once, but found it ${count} times.`
+            );
+        }
+        xml = xml.replace(fix.find, () => fix.replace);
+    }
+    return xml;
+}
+
+/**
  * Creates the contents of the marker file for the given OSIS translation.
  */
 function createOsisMarker(source: OsisTranslationSource): string {
-    return `Source: ${source.url}\nSHA-256: ${source.sha256}\n`;
+    let marker = `Source: ${source.url}\nSHA-256: ${source.sha256}\n`;
+    if (source.fixes?.length) {
+        const fixes = createHash('sha256')
+            .update(JSON.stringify(source.fixes))
+            .digest('hex');
+        marker += `Fixes: ${fixes}\n`;
+    }
+    return marker;
 }
 
 async function readFileIfExists(file: string): Promise<string | null> {

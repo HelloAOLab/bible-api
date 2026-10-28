@@ -17,6 +17,13 @@ The CLI SHALL provide a `convert-osis-to-usfm <file> <dir>` command that reads o
 - **WHEN** the OSIS file contains a book whose OSIS ID has no USFM code
 - **THEN** the command fails with an error naming that OSIS ID and writes no files
 
+### Requirement: Testament groupings
+The converter SHALL accept books nested in `<div type="x-testament">` or `<div type="bookgroup">`, and SHALL NOT write the `<head>` of such a grouping (e.g. `旧約聖書`) into any book.
+
+#### Scenario: Book groups with headings
+- **WHEN** the books are wrapped in `<div type="bookgroup"><head>旧約聖書</head>…</div>` and `<div type="bookgroup"><head>新約聖書</head>…</div>`
+- **THEN** each book is converted as usual, and neither heading appears in the output
+
 ### Requirement: Book titles
 The converter SHALL write a book's `<title type="main">` text as that book's `\h`, `\toc1`, `\toc2` and `\mt1` lines.
 
@@ -79,6 +86,10 @@ The CLI SHALL provide a `fetch-osis-translations <dir>` command that, for each c
 - **WHEN** `fetch-osis-translations ./sources/osis` runs
 - **THEN** `./sources/osis/jpn_kou/` contains 66 USFM files and a `metadata.json` with id `jpn_kou`, and `import-translations ./sources/osis` imports the translation
 
+#### Scenario: Fetch the Bungo-yaku
+- **WHEN** `fetch-osis-translations ./sources/osis` runs
+- **THEN** `./sources/osis/jpn_bun/` contains 66 USFM files and a `metadata.json` with id `jpn_bun`
+
 #### Scenario: Hash mismatch
 - **WHEN** the downloaded file's SHA-256 differs from the pinned hash
 - **THEN** the command fails with an error showing both hashes and writes no files
@@ -86,3 +97,14 @@ The CLI SHALL provide a `fetch-osis-translations <dir>` command that, for each c
 #### Scenario: Failed download keeps the previous fetch
 - **WHEN** the download responds with a non-success HTTP status and `<dir>/jpn_kou/` already exists
 - **THEN** the command fails with an error naming the URL and status, and leaves the existing directory unchanged
+
+### Requirement: Source corrections
+An OSIS translation MAY list fixes, each a `find` string and its `replace` text. The fixes SHALL be applied to the downloaded XML after its hash is checked and before it is converted. A fix whose `find` string does not occur exactly once SHALL fail the fetch without writing any files. Changing a translation's fixes SHALL cause it to be re-fetched even when unchanged translations are skipped.
+
+#### Scenario: Mislabelled verse
+- **WHEN** a fix replaces the second `<verse osisID="2Sam.19.26">` with `<verse osisID="2Sam.19.25">`
+- **THEN** the USFM for 2 Samuel 19 contains verses 24, 25, 26 and 27 once each
+
+#### Scenario: Fix no longer matches
+- **WHEN** a fix's `find` string does not occur in the downloaded file
+- **THEN** the command fails with an error quoting the string and writes no files
