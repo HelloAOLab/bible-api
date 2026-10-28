@@ -22,6 +22,11 @@ export interface ParseTree {
     title?: string;
 
     /**
+     * The short name (abbreviation) that was associated with the tree.
+     */
+    shortName?: string;
+
+    /**
      * The list of chapters for the tree.
      */
     content: (Heading | Chapter)[];
@@ -218,6 +223,11 @@ export interface InlineHeading {
  */
 export interface InlineLineBreak {
     lineBreak: true;
+
+    /**
+     * The source paragraph marker (without its backslash) when the line break starts a paragraph.
+     */
+    paragraph?: string;
 }
 
 export interface FootnoteReference {
@@ -264,6 +274,11 @@ export interface Footnote {
 
 export interface LineBreak {
     type: 'line_break';
+
+    /**
+     * The source paragraph marker (without its backslash) when the line break starts a paragraph.
+     */
+    paragraph?: string;
 }
 
 /**

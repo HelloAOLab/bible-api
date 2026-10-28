@@ -1,0 +1,92 @@
+{
+  "dataset": {
+    "id": "theographic",
+    "name": "Theographic Bible Metadata",
+    "englishName": "Theographic Bible Metadata",
+    "website": "https://github.com/robertrouse/theographic-bible-metadata",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "licenseNotes": "Changes were made to the data to fit the Free Use Bible API format.",
+    "language": "eng",
+    "textDirection": "ltr",
+    "availableFormats": [
+      "json"
+    ],
+    "listOfBooksApiLink": "/api/d/theographic/books.json",
+    "numberOfBooks": 2,
+    "totalNumberOfChapters": 3,
+    "totalNumberOfVerses": 4,
+    "totalNumberOfReferences": 10,
+    "listOfPeopleApiLink": "/api/d/theographic/people.json",
+    "totalNumberOfPeople": 2,
+    "listOfPlacesApiLink": "/api/d/theographic/places.json",
+    "totalNumberOfPlaces": 1,
+    "listOfEventsApiLink": "/api/d/theographic/events.json",
+    "totalNumberOfEvents": 2,
+    "listOfPeopleGroupsApiLink": "/api/d/theographic/groups.json",
+    "totalNumberOfPeopleGroups": 1
+  },
+  "book": {
+    "id": "ACT",
+    "order": 44,
+    "firstChapterNumber": 9,
+    "firstChapterApiLink": "/api/d/theographic/ACT/9.json",
+    "firstChapterReference": {
+      "datasetId": "theographic",
+      "book": "ACT",
+      "chapter": 9
+    },
+    "lastChapterNumber": 9,
+    "lastChapterApiLink": "/api/d/theographic/ACT/9.json",
+    "lastChapterReference": {
+      "datasetId": "theographic",
+      "book": "ACT",
+      "chapter": 9
+    },
+    "numberOfChapters": 1,
+    "totalNumberOfVerses": 2,
+    "totalNumberOfReferences": 3
+  },
+  "chapter": {
+    "number": 9,
+    "people": [],
+    "places": [],
+    "events": [
+      {
+        "id": "the-fall_2",
+        "name": "The Fall",
+        "startDate": "-4003",
+        "apiLink": "/api/d/theographic/events/the-fall_2.json",
+        "verses": [
+          1,
+          2
+        ]
+      },
+      {
+        "id": "creation-of-adam-and-eve_1",
+        "name": "Creation of Adam and Eve",
+        "startDate": "-4003",
+        "apiLink": "/api/d/theographic/events/creation-of-adam-and-eve_1.json",
+        "verses": [
+          2
+        ]
+      }
+    ]
+  },
+  "thisChapterLink": "/api/d/theographic/ACT/9.json",
+  "thisChapterReference": {
+    "datasetId": "theographic",
+    "book": "ACT",
+    "chapter": 9
+  },
+  "nextChapterApiLink": null,
+  "nextChapterReference": null,
+  "previousChapterApiLink": "/api/d/theographic/GEN/2.json",
+  "previousChapterReference": {
+    "datasetId": "theographic",
+    "book": "GEN",
+    "chapter": 2
+  },
+  "numberOfPeople": 0,
+  "numberOfPlaces": 0,
+  "numberOfEvents": 2
+}

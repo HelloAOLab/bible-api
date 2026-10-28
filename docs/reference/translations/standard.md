@@ -41,6 +41,10 @@ curl https://bible.helloao.org/api/BSB/GEN/1.json
 
 ### Structure
 
+A `line_break` that starts a new source paragraph has a `paragraph` property with the source marker without its backslash (for example `{ "type": "line_break", "paragraph": "p" }`; other markers include `m`, `pi1`, `mi`, and `pc`). Blank-line markers (`\b`) produce `line_break` items without a `paragraph`. When a blank line is directly followed by a paragraph (`\b` then `\m`), they are merged into a single `{ "type": "line_break", "paragraph": "m" }`, while two blank lines produce two line breaks. `\nb` continues the current paragraph and produces no line break. A paragraph that begins inside a verse is represented in verse content as `{ "lineBreak": true, "paragraph": "p" }`.
+
+Renderers that only understand line breaks can ignore `paragraph`.
+
 ```typescript:no-line-numbers title="chapter.ts"
 export interface TranslationBookChapter {
     /**
@@ -194,6 +198,11 @@ interface ChapterLineBreak {
      * Indicates that the content represents a line break.
      */
     type: 'line_break';
+
+    /**
+     * The source paragraph marker (without its backslash) when the line break starts a new paragraph, for example `p`, `m`, `pi1` or `mi`. Omitted for plain line breaks.
+     */
+    paragraph?: string;
 }
 
 /**
@@ -273,6 +282,11 @@ interface InlineHeading {
  */
 interface InlineLineBreak {
     lineBreak: true;
+
+    /**
+     * The source paragraph marker (without its backslash) when the line break starts a new paragraph, for example `p`, `m`, `pi1` or `mi`. Omitted for plain line breaks.
+     */
+    paragraph?: string;
 }
 
 
@@ -377,6 +391,7 @@ interface TranslationBookChapterAudioTimingsLinks {
         "translationId": "BSB",
         "name": "Genesis",
         "commonName": "Genesis",
+        "shortName": "Gen",
         "title": "Genesis",
         "order": 1,
         "numberOfChapters": 50,
@@ -998,6 +1013,12 @@ export interface TranslationCompleteBook {
     commonName: string;
 
     /**
+     * The short name (abbreviation) that the translation provided for the book.
+     * If not available, then one was not provided by the translation.
+     */
+    shortName?: string;
+
+    /**
      * The title of the book.
      */
     title: string | null;
@@ -1105,6 +1126,7 @@ interface TranslationBookChapterAudioTimingsMap {
       "id": "GEN",
       "name": "Genesis",
       "commonName": "Genesis",
+      "shortName": "Gen",
       "title": "Genesis",
       "order": 1,
       "numberOfChapters": 50,

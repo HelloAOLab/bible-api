@@ -11,6 +11,7 @@ let folders = [
     `${__dirname}/packages/helloao-tools`,
     `${__dirname}/packages/helloao-cli`,
     `${__dirname}/packages/free-use-bible-api`,
+    `${__dirname}/packages/free-use-bible-api-react`,
 ];
 
 let patterns = [

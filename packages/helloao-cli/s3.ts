@@ -2,6 +2,7 @@ import {
     S3Client,
     PutObjectCommand,
     HeadObjectCommand,
+    DeleteObjectsCommand,
     NotFound,
 } from '@aws-sdk/client-s3';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers'; // ES6 import
@@ -78,15 +79,42 @@ export class S3Uploader implements Uploader {
         throw lastErr;
     }
 
+    async delete(paths: string[]): Promise<void> {
+        // DeleteObjects accepts at most 1000 keys per request.
+        for (let i = 0; i < paths.length; i += 1000) {
+            const keys = paths.slice(i, i + 1000).map((p) => this._getKey(p));
+            const result = await this._client.send(
+                new DeleteObjectsCommand({
+                    Bucket: this._bucketName,
+                    Delete: {
+                        Objects: keys.map((Key) => ({ Key })),
+                        Quiet: true,
+                    },
+                })
+            );
+
+            if (result.Errors && result.Errors.length > 0) {
+                const first = result.Errors[0];
+                throw new Error(
+                    `[s3] Failed to delete ${result.Errors.length} objects. First error: ${first.Key}: ${first.Code} ${first.Message}`
+                );
+            }
+        }
+    }
+
+    private _getKey(filePath: string): string {
+        const path = filePath.startsWith('/')
+            ? filePath.substring(1)
+            : filePath;
+        return this._keyPrefix ? `${this._keyPrefix}/${path}` : path;
+    }
+
     private async _upload(
         file: SerializedFile,
         overwrite: boolean
     ): Promise<boolean> {
         const logger = log.getLogger();
-        const path = file.path.startsWith('/')
-            ? file.path.substring(1)
-            : file.path;
-        const key = this._keyPrefix ? `${this._keyPrefix}/${path}` : path;
+        const key = this._getKey(file.path);
 
         const hash = file.sha256?.();
         const head = new HeadObjectCommand({

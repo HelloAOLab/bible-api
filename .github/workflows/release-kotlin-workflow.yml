@@ -1,0 +1,98 @@
+name: Release Kotlin SDK
+
+# Builds, tests, and publishes the Kotlin SDK (packages/free-use-bible-api-kotlin)
+# to Maven Central as org.helloao:free-use-bible-api.
+#
+# To release, bump the "version" in packages/free-use-bible-api-kotlin/gradle.properties,
+# merge it, and then publish a GitHub release (or run this workflow manually).
+# If that version is already on Maven Central, publishing is skipped.
+#
+# Runs in the "maven-central" environment, which needs these secrets:
+#   - MAVEN_CENTRAL_USERNAME: The username of a Central Portal user token (https://central.sonatype.com/account)
+#                             for an account that can publish to the org.helloao namespace.
+#   - MAVEN_CENTRAL_PASSWORD: The password of that user token.
+#   - SIGNING_KEY:            An ASCII-armored GPG private key (gpg --armor --export-secret-keys <key-id>)
+#                             whose public key has been uploaded to a public key server (e.g. keys.openpgp.org).
+#   - SIGNING_KEY_PASSWORD:   The passphrase of the GPG key.
+
+on:
+    release:
+        types: [published]
+    workflow_dispatch:
+        inputs:
+            dry-run:
+                description: 'Build, test, and sign without publishing to Maven Central'
+                type: boolean
+                default: true
+
+concurrency:
+    group: release-kotlin
+    cancel-in-progress: false
+
+jobs:
+    release:
+        name: Build, Test, and Publish
+        runs-on: ubuntu-latest
+        environment: maven-central
+        permissions:
+            contents: read
+        defaults:
+            run:
+                working-directory: packages/free-use-bible-api-kotlin
+        env:
+            CI: true
+            ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+            ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+            ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_KEY }}
+            ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_KEY_PASSWORD }}
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Use Java 17
+              uses: actions/setup-java@v4
+              with:
+                  distribution: temurin
+                  java-version: 17
+
+            - name: Set up Gradle
+              uses: gradle/actions/setup-gradle@v4
+
+            - name: Build and test
+              run: ./gradlew build
+
+            - name: Check if the version is already published
+              id: version
+              run: |
+                  version=$(sed -n 's/^version=//p' gradle.properties)
+                  echo "version=$version" >> "$GITHUB_OUTPUT"
+                  status=$(curl -s -o /dev/null -w '%{http_code}' \
+                      "https://repo1.maven.org/maven2/org/helloao/free-use-bible-api/$version/free-use-bible-api-$version.pom")
+                  if [ "$status" = "200" ]; then
+                      echo "published=true" >> "$GITHUB_OUTPUT"
+                      echo "org.helloao:free-use-bible-api:$version is already on Maven Central."
+                  else
+                      echo "published=false" >> "$GITHUB_OUTPUT"
+                  fi
+
+            # Signs the artifacts and installs them into the local Maven repository,
+            # which checks the signing key without uploading anything.
+            - name: Publish to Maven Local (dry run)
+              if: github.event_name == 'workflow_dispatch' && inputs.dry-run
+              run: ./gradlew publishToMavenLocal
+
+            - name: Publish to Maven Central
+              if: (github.event_name == 'release' || !inputs.dry-run) && steps.version.outputs.published == 'false'
+              run: ./gradlew publishAndReleaseToMavenCentral
+
+            - name: Publish summary
+              if: github.event_name == 'release' || !inputs.dry-run
+              run: |
+                  {
+                      echo '## Published packages'
+                      echo
+                      if [ "${{ steps.version.outputs.published }}" = "true" ]; then
+                          echo "No new package versions to publish."
+                      else
+                          echo "- \`org.helloao:free-use-bible-api:${{ steps.version.outputs.version }}\`"
+                      fi
+                  } >> "$GITHUB_STEP_SUMMARY"

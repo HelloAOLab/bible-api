@@ -1,4 +1,9 @@
 import {
+    inlineBreak,
+    paragraphBreak,
+    mergeTreeParagraphBreaks,
+} from './paragraphs.js';
+import {
     ParseTree,
     Chapter,
     Verse,
@@ -10,7 +15,7 @@ import {
 } from './types.js';
 import { bookOrderMap } from '../generation/book-order.js';
 
-export const LOCKMAN_PARSER_VERSION = 3;
+export const LOCKMAN_PARSER_VERSION = 4;
 
 const bookNumberIdMap = new Map<number, string>();
 for (const [id, order] of bookOrderMap) {
@@ -162,7 +167,7 @@ export class LockmanParser {
                 if (currentChapter) {
                     // Check for Paragraph Marker
                     if (tagContent.startsWith('<PM>')) {
-                        currentChapter.content.push({ type: 'line_break' });
+                        currentChapter.content.push(paragraphBreak('p'));
                     }
 
                     // Update global isPoem flag
@@ -191,6 +196,7 @@ export class LockmanParser {
             }
         }
 
+        roots.forEach(mergeTreeParagraphBreaks);
         return roots;
     }
 
@@ -252,7 +258,7 @@ export class LockmanParser {
                 // Cross Ref -> Ignore
             } else if (m[3]) {
                 if (m[3] === '<PO>') {
-                    verse.content.push({ lineBreak: true });
+                    verse.content.push(inlineBreak());
                     lastIdx = segmentRegex.lastIndex;
                     continue;
                 }

@@ -269,6 +269,10 @@ export type ApiTranslationBook = {
      */
     commonName: string;
     /**
+     * The short name (abbreviation) that the translation provided for the book. If not available, then one was not provided by the translation.
+     */
+    shortName?: string;
+    /**
      * The title of the book. This is usually a more descriptive version of the book name. If not available, then one was not provided by the translation.
      */
     title: string | null;
@@ -462,6 +466,10 @@ export type ChapterHeading = {
  */
 export type ChapterLineBreak = {
     type: 'line_break';
+    /**
+     * The source paragraph marker (without its backslash) when the line break starts a new paragraph, for example `p`, `m`, `pi1` or `mi`. Omitted for plain line breaks.
+     */
+    paragraph?: string;
 };
 
 /**
@@ -518,6 +526,10 @@ export type InlineHeading = {
  */
 export type InlineLineBreak = {
     lineBreak: true;
+    /**
+     * The source paragraph marker (without its backslash) when the line break starts a new paragraph, for example `p`, `m`, `pi1` or `mi`. Omitted for plain line breaks.
+     */
+    paragraph?: string;
 };
 
 /**
@@ -734,6 +746,10 @@ export type SimpleChapterVerse = {
      */
     headings?: Array<SimpleInlineHeading>;
     /**
+     * The positions and source styles of paragraphs that start inside the verse.
+     */
+    paragraphs?: Array<SimpleVerseParagraph>;
+    /**
      * The ranges of the verse text that represent the Words of Jesus. Omitted if the verse contains none.
      */
     wordsOfJesus?: Array<SimpleTextRange>;
@@ -777,6 +793,20 @@ export type SimpleInlineHeading = {
      * The text of the heading.
      */
     text: string;
+};
+
+/**
+ * A paragraph start in the text of a simplified verse.
+ */
+export type SimpleVerseParagraph = {
+    /**
+     * The index in the verse text, measured in UTF-16 code units.
+     */
+    offset: number;
+    /**
+     * The source paragraph marker without its backslash.
+     */
+    style: string;
 };
 
 /**
@@ -827,6 +857,10 @@ export type SimpleChapterHebrewSubtitle = {
      * The headings that occur in the middle of the verse. Omitted if the verse contains no inline headings.
      */
     headings?: Array<SimpleInlineHeading>;
+    /**
+     * The positions and source styles of paragraphs that start inside the verse.
+     */
+    paragraphs?: Array<SimpleVerseParagraph>;
     /**
      * The ranges of the verse text that represent the Words of Jesus. Omitted if the verse contains none.
      */
@@ -1096,6 +1130,10 @@ export type ApiTranslationCompleteBook = {
      */
     commonName: string;
     /**
+     * The short name (abbreviation) that the translation provided for the book. If not available, then one was not provided by the translation.
+     */
+    shortName?: string;
+    /**
      * The title of the book. This is usually a more descriptive version of the book name. If not available, then one was not provided by the translation.
      */
     title: string | null;
@@ -1194,6 +1232,10 @@ export type ApiSimpleTranslationCompleteBook = {
      * The common name for the book.
      */
     commonName: string;
+    /**
+     * The short name (abbreviation) that the translation provided for the book. If not available, then one was not provided by the translation.
+     */
+    shortName?: string;
     /**
      * The title of the book. This is usually a more descriptive version of the book name. If not available, then one was not provided by the translation.
      */

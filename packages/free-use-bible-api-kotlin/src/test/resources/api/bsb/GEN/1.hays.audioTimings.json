@@ -1,0 +1,14 @@
+{
+  "translationId": "bsb",
+  "bookId": "GEN",
+  "chapterNumber": 1,
+  "reader": "hays",
+  "audioLink": "https://openbible.com/audio/hays/BSB_01_Gen_001_H.mp3",
+  "thisChapterLink": "/api/bsb/GEN/1.json",
+  "nextChapterLink": "/api/bsb/GEN/2.json",
+  "previousChapterLink": null,
+  "thisChapterAudioTimingsLink": "/api/bsb/GEN/1.hays.audioTimings.json",
+  "nextChapterAudioTimingsLink": null,
+  "previousChapterAudioTimingsLink": null,
+  "verses": [0, 5.24, 12.5]
+}

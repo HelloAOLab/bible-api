@@ -1,0 +1,72 @@
+{
+  "dataset": {
+    "id": "theographic",
+    "name": "Theographic Bible Metadata",
+    "englishName": "Theographic Bible Metadata",
+    "website": "https://github.com/robertrouse/theographic-bible-metadata",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "licenseNotes": "Changes were made to the data to fit the Free Use Bible API format.",
+    "language": "eng",
+    "textDirection": "ltr",
+    "availableFormats": [
+      "json"
+    ],
+    "listOfBooksApiLink": "/api/d/theographic/books.json",
+    "numberOfBooks": 2,
+    "totalNumberOfChapters": 3,
+    "totalNumberOfVerses": 4,
+    "totalNumberOfReferences": 10,
+    "listOfPeopleApiLink": "/api/d/theographic/people.json",
+    "totalNumberOfPeople": 2,
+    "listOfPlacesApiLink": "/api/d/theographic/places.json",
+    "totalNumberOfPlaces": 1,
+    "listOfEventsApiLink": "/api/d/theographic/events.json",
+    "totalNumberOfEvents": 2,
+    "listOfPeopleGroupsApiLink": "/api/d/theographic/groups.json",
+    "totalNumberOfPeopleGroups": 1
+  },
+  "books": [
+    {
+      "id": "GEN",
+      "order": 1,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/theographic/GEN/1.json",
+      "firstChapterReference": {
+        "datasetId": "theographic",
+        "book": "GEN",
+        "chapter": 1
+      },
+      "lastChapterNumber": 2,
+      "lastChapterApiLink": "/api/d/theographic/GEN/2.json",
+      "lastChapterReference": {
+        "datasetId": "theographic",
+        "book": "GEN",
+        "chapter": 2
+      },
+      "numberOfChapters": 2,
+      "totalNumberOfVerses": 2,
+      "totalNumberOfReferences": 7
+    },
+    {
+      "id": "ACT",
+      "order": 44,
+      "firstChapterNumber": 9,
+      "firstChapterApiLink": "/api/d/theographic/ACT/9.json",
+      "firstChapterReference": {
+        "datasetId": "theographic",
+        "book": "ACT",
+        "chapter": 9
+      },
+      "lastChapterNumber": 9,
+      "lastChapterApiLink": "/api/d/theographic/ACT/9.json",
+      "lastChapterReference": {
+        "datasetId": "theographic",
+        "book": "ACT",
+        "chapter": 9
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 2,
+      "totalNumberOfReferences": 3
+    }
+  ]
+}

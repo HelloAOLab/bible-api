@@ -269,6 +269,22 @@ curl https://bible.helloao.org/api/available_commentaries.json
 curl https://bible.helloao.org/api/available_datasets.json
 ```
 
+## Cancelling Requests
+
+Every request method takes an optional last argument with an `AbortSignal`. When the signal aborts, the returned promise rejects with an error named `AbortError`:
+
+```ts
+const controller = new AbortController();
+
+const chapter = api.getTranslationBookChapter('BSB', 'GEN', 1, undefined, {
+    signal: controller.signal,
+});
+
+controller.abort();
+```
+
+The client shares one download between callers who ask for the same URL at the same time, and caches it afterwards. Aborting only stops _your_ call from waiting. The download itself is cancelled once every caller waiting on it has aborted, so cancelling one call never breaks another. A call made without a signal can't be cancelled, so a download it is waiting on always finishes.
+
 ## Error Handling
 
 Methods throw on non-2xx responses.

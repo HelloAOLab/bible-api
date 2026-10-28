@@ -257,6 +257,30 @@ export async function uploadFiles(
     serializedFiles: AsyncIterable<SerializedFile[]>
 ): Promise<void> {
     const logger = log.getLogger();
+    const uploader = createUploader(dest, options);
+
+    try {
+        await uploadFilesUsingUploader(uploader, options, serializedFiles);
+    } catch (err) {
+        logger.error('Error uploading files:', err);
+        throw err;
+    } finally {
+        if (uploader && uploader.dispose) {
+            await uploader.dispose();
+        }
+    }
+}
+
+/**
+ * Creates the uploader for the given destination.
+ * @param dest The destination to upload the API files to. Supported destinations are S3, zip files, local directories, and console://.
+ * @param options The options to use for the upload.
+ */
+export function createUploader(
+    dest: string,
+    options: UploadApiOptions
+): Uploader {
+    const logger = log.getLogger();
     let uploader: Uploader;
     if (dest.startsWith('s3://')) {
         logger.log('Uploading to S3');
@@ -303,16 +327,7 @@ export async function uploadFiles(
         process.exit(1);
     }
 
-    try {
-        await uploadFilesUsingUploader(uploader, options, serializedFiles);
-    } catch (err) {
-        logger.error('Error uploading files:', err);
-        throw err;
-    } finally {
-        if (uploader && uploader.dispose) {
-            await uploader.dispose();
-        }
-    }
+    return uploader;
 }
 
 /**

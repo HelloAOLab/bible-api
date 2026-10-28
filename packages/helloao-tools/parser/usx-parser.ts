@@ -31,6 +31,13 @@ import {
     trimWordRange,
 } from './words.js';
 import { KNOWN_SKIPPED_VERSES } from '../utils.js';
+import {
+    paragraphStyle,
+    paragraphBreak,
+    inlineBreak,
+    hoistTrailingBreaks,
+    mergeTreeParagraphBreaks,
+} from './paragraphs.js';
 
 enum NodeType {
     Text = 3,
@@ -40,7 +47,7 @@ enum NodeType {
  * The version of the parser.
  * Used to determine whether input files need to be re-parsed.
  */
-export const PARSER_VERSION = 4;
+export const PARSER_VERSION = 5;
 
 /**
  * Defines a class that is able to parse USX content.
@@ -99,6 +106,12 @@ export class USXParser {
             root.header = header.textContent || '';
         }
 
+        const shortName = usxElement.querySelector('para[style="toc3"]');
+        const shortNameText = shortName?.textContent?.trim();
+        if (shortNameText) {
+            root.shortName = shortNameText;
+        }
+
         const titles = usxElement.querySelectorAll(
             'para[style="mt1"], para[style="mt2"], para[style="mt3"]'
         );
@@ -115,6 +128,7 @@ export class USXParser {
         for (let content of this.iterateRootContent(usxElement)) {
             root.content.push(content);
         }
+        mergeTreeParagraphBreaks(root);
 
         if (this._messages.length > 0) {
             root.parseMessages = this._messages.slice();
@@ -193,6 +207,7 @@ export class USXParser {
                 break;
             } else if (element.nodeName === 'para') {
                 const style = element.getAttribute('style');
+                const paragraph = paragraphStyle(style);
                 if (
                     style === 's1' ||
                     style === 's2' ||
@@ -211,15 +226,28 @@ export class USXParser {
                     };
                 } else if (style === 'd') {
                     yield* this.parseHebrewSubtitle(element, chapter, nodes);
+                } else if (paragraph) {
+                    if (element.querySelector('verse[number]')) {
+                        yield paragraphBreak(paragraph);
+                    }
                 }
             } else if (element.nodeName === 'verse') {
                 if (element.hasAttribute('eid')) {
                     continue;
                 }
 
-                yield this.parseVerse(element, chapter, nodes);
+                const verse = this.parseVerse(element, chapter, nodes);
+                const trailing = hoistTrailingBreaks(verse.content);
+                yield verse;
+                yield* trailing;
             }
         }
+    }
+
+    private paraStartsVerse(para: Element, verseNumber: number): boolean {
+        return [...para.querySelectorAll('verse[number]')].some(
+            (start) => verseNumberOf(start) === verseNumber
+        );
     }
 
     *iterateVerseContent(
@@ -235,6 +263,26 @@ export class USXParser {
         | AnnotatedContent<string | Text>
     > {
         let lastParent: Element | null = null;
+        let lastParagraph: Element | null = null;
+
+        // Returns the break for the paragraph that the given para starts,
+        // unless it was already emitted or the para starts the current verse.
+        const paragraphBreakFor = (
+            parent: Element | null
+        ): InlineLineBreak | null => {
+            const style =
+                parent?.nodeName === 'para'
+                    ? paragraphStyle(parent.getAttribute('style'))
+                    : null;
+            if (!parent || !style || parent === lastParagraph) {
+                return null;
+            }
+            lastParagraph = parent;
+            return this.paraStartsVerse(parent, verse.number)
+                ? null
+                : inlineBreak(style);
+        };
+
         while (true) {
             const { done, value: node } = nodes.next();
             if (done) {
@@ -242,6 +290,10 @@ export class USXParser {
             }
 
             if (node.nodeName === 'verse') {
+                const lineBreak = paragraphBreakFor(node.parentElement);
+                if (lineBreak) {
+                    yield lineBreak;
+                }
                 if (!(node instanceof Element) || !node.hasAttribute('eid')) {
                     nodes.rewind(1);
                 }
@@ -254,6 +306,12 @@ export class USXParser {
 
             if (parent.nodeName === 'para') {
                 const style = parent.getAttribute('style');
+                const lineBreak = parent.textContent?.trim()
+                    ? paragraphBreakFor(parent)
+                    : null;
+                if (lineBreak) {
+                    yield lineBreak;
+                }
                 if (
                     style === 'q1' ||
                     style === 'q2' ||
@@ -283,10 +341,7 @@ export class USXParser {
                             const startsWithVerse =
                                 firstChild?.nodeName === 'verse' &&
                                 !firstChild.hasAttribute('eid') &&
-                                parseInt(
-                                    firstChild.getAttribute('number') || '0',
-                                    10
-                                ) === verse.number;
+                                verseNumberOf(firstChild) === verse.number;
 
                             if (
                                 startsWithVerse &&
@@ -385,7 +440,7 @@ export class USXParser {
     ): Verse {
         const verse: Verse = {
             type: 'verse',
-            number: parseInt(element.getAttribute('number') || '0', 10),
+            number: verseNumberOf(element),
             content: [],
         };
 
@@ -877,6 +932,11 @@ function addOrJoin(
 
 function isVerseText(value: unknown): value is Text {
     return typeof value === 'object' && value !== null && 'text' in value;
+}
+
+/** Gets the number of the given verse element, or 0 if it has none. */
+function verseNumberOf(element: Element): number {
+    return parseInt(element.getAttribute('number') || '0', 10);
 }
 
 function hasSameFormatting(a: Text, b: Text): boolean {

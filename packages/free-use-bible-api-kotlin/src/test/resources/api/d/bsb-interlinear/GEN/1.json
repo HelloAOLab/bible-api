@@ -1,0 +1,112 @@
+{
+  "dataset": {
+    "id": "bsb-interlinear",
+    "name": "Berean Standard Bible Interlinear",
+    "englishName": "Berean Standard Bible Interlinear",
+    "website": "https://bereanbible.com/",
+    "licenseUrl": "https://berean.bible/terms.htm",
+    "licenseNotes": "The Berean Standard Bible and its interlinear tables are in the public domain. Changes were made to the data to fit the Free Use Bible API format.",
+    "language": "eng",
+    "textDirection": "ltr",
+    "availableFormats": [
+      "json"
+    ],
+    "listOfBooksApiLink": "/api/d/bsb-interlinear/books.json",
+    "numberOfBooks": 66,
+    "totalNumberOfChapters": 67,
+    "totalNumberOfVerses": 67,
+    "totalNumberOfReferences": 0,
+    "totalNumberOfWords": 70
+  },
+  "book": {
+    "id": "GEN",
+    "order": 1,
+    "firstChapterNumber": 1,
+    "firstChapterApiLink": "/api/d/bsb-interlinear/GEN/1.json",
+    "firstChapterReference": {
+      "datasetId": "bsb-interlinear",
+      "book": "GEN",
+      "chapter": 1
+    },
+    "lastChapterNumber": 2,
+    "lastChapterApiLink": "/api/d/bsb-interlinear/GEN/2.json",
+    "lastChapterReference": {
+      "datasetId": "bsb-interlinear",
+      "book": "GEN",
+      "chapter": 2
+    },
+    "numberOfChapters": 2,
+    "totalNumberOfVerses": 2,
+    "totalNumberOfReferences": 0
+  },
+  "chapter": {
+    "number": 1,
+    "content": [
+      {
+        "verse": 1,
+        "words": [
+          {
+            "pos": 1,
+            "bsbPos": 1,
+            "language": "hebrew",
+            "text": "בְּרֵאשִׁ֖ית",
+            "transliteration": "bə·rê·šîṯ",
+            "parsing": "Prep-b | N-fs",
+            "parsingFull": null,
+            "strongs": "H7225",
+            "gloss": "In the beginning"
+          },
+          {
+            "pos": 2,
+            "bsbPos": 4,
+            "language": "hebrew",
+            "text": "בָּרָ֣א",
+            "transliteration": "bā·rā",
+            "parsing": "V-Qal-Perf-3ms",
+            "parsingFull": null,
+            "strongs": "H1254",
+            "gloss": "created"
+          },
+          {
+            "pos": 3,
+            "bsbPos": 2,
+            "language": "hebrew",
+            "text": "אֱלֹהִ֑ים",
+            "transliteration": "’ĕ·lō·hîm",
+            "parsing": "N-mp",
+            "parsingFull": null,
+            "strongs": "H0430",
+            "gloss": "God"
+          },
+          {
+            "pos": 4,
+            "bsbPos": 3,
+            "language": "hebrew",
+            "text": "אֵ֥ת",
+            "transliteration": "’êṯ",
+            "parsing": "DirObjM",
+            "parsingFull": "Direct object marker",
+            "strongs": "H0853",
+            "gloss": null
+          }
+        ]
+      }
+    ]
+  },
+  "thisChapterLink": "/api/d/bsb-interlinear/GEN/1.json",
+  "thisChapterReference": {
+    "datasetId": "bsb-interlinear",
+    "book": "GEN",
+    "chapter": 1
+  },
+  "nextChapterApiLink": "/api/d/bsb-interlinear/GEN/2.json",
+  "nextChapterReference": {
+    "datasetId": "bsb-interlinear",
+    "book": "GEN",
+    "chapter": 2
+  },
+  "previousChapterApiLink": null,
+  "previousChapterReference": null,
+  "numberOfVerses": 1,
+  "numberOfReferences": 0
+}

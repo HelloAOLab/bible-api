@@ -570,6 +570,9 @@ public struct ApiTranslationBook: Codable, Hashable, Sendable {
     /// The common name for the book.
     public var commonName: String
 
+    /// The short name (abbreviation) that the translation provided for the book. If not available, then one was not provided by the translation.
+    public var shortName: String?
+
     /// The title of the book. This is usually a more descriptive version of the book name. If not available, then one was not provided by the translation.
     public var title: String?
 
@@ -605,6 +608,7 @@ public struct ApiTranslationBook: Codable, Hashable, Sendable {
         id: BookId,
         name: String,
         commonName: String,
+        shortName: String? = nil,
         title: String? = nil,
         order: Int,
         isApocryphal: Bool? = nil,
@@ -620,6 +624,7 @@ public struct ApiTranslationBook: Codable, Hashable, Sendable {
         self.id = id
         self.name = name
         self.commonName = commonName
+        self.shortName = shortName
         self.title = title
         self.order = order
         self.isApocryphal = isApocryphal
@@ -845,10 +850,15 @@ public struct ChapterHeading: Codable, Hashable, Sendable {
 public struct ChapterLineBreak: Codable, Hashable, Sendable {
     public var type: String
 
+    /// The source paragraph marker (without its backslash) when the line break starts a new paragraph, for example `p`, `m`, `pi1` or `mi`. Omitted for plain line breaks.
+    public var paragraph: String?
+
     public init(
-        type: String = "line_break"
+        type: String = "line_break",
+        paragraph: String? = nil
     ) {
         self.type = type
+        self.paragraph = paragraph
     }
 }
 
@@ -965,10 +975,15 @@ public struct InlineHeading: Codable, Hashable, Sendable {
 public struct InlineLineBreak: Codable, Hashable, Sendable {
     public var lineBreak: Bool
 
+    /// The source paragraph marker (without its backslash) when the line break starts a new paragraph, for example `p`, `m`, `pi1` or `mi`. Omitted for plain line breaks.
+    public var paragraph: String?
+
     public init(
-        lineBreak: Bool = true
+        lineBreak: Bool = true,
+        paragraph: String? = nil
     ) {
         self.lineBreak = lineBreak
+        self.paragraph = paragraph
     }
 }
 
@@ -1287,6 +1302,9 @@ public struct SimpleChapterVerse: Codable, Hashable, Sendable {
     /// The headings that occur in the middle of the verse. Omitted if the verse contains no inline headings.
     public var headings: [SimpleInlineHeading]?
 
+    /// The positions and source styles of paragraphs that start inside the verse.
+    public var paragraphs: [SimpleVerseParagraph]?
+
     /// The ranges of the verse text that represent the Words of Jesus. Omitted if the verse contains none.
     public var wordsOfJesus: [SimpleTextRange]?
 
@@ -1299,6 +1317,7 @@ public struct SimpleChapterVerse: Codable, Hashable, Sendable {
         text: String,
         footnotes: [SimpleVerseFootnote],
         headings: [SimpleInlineHeading]? = nil,
+        paragraphs: [SimpleVerseParagraph]? = nil,
         wordsOfJesus: [SimpleTextRange]? = nil,
         poem: [SimplePoemRange]? = nil
     ) {
@@ -1307,6 +1326,7 @@ public struct SimpleChapterVerse: Codable, Hashable, Sendable {
         self.text = text
         self.footnotes = footnotes
         self.headings = headings
+        self.paragraphs = paragraphs
         self.wordsOfJesus = wordsOfJesus
         self.poem = poem
     }
@@ -1353,6 +1373,23 @@ public struct SimpleInlineHeading: Codable, Hashable, Sendable {
     ) {
         self.offset = offset
         self.text = text
+    }
+}
+
+/// A paragraph start in the text of a simplified verse.
+public struct SimpleVerseParagraph: Codable, Hashable, Sendable {
+    /// The index in the verse text, measured in UTF-16 code units.
+    public var offset: Int
+
+    /// The source paragraph marker without its backslash.
+    public var style: String
+
+    public init(
+        offset: Int,
+        style: String
+    ) {
+        self.offset = offset
+        self.style = style
     }
 }
 
@@ -1406,6 +1443,9 @@ public struct SimpleChapterHebrewSubtitle: Codable, Hashable, Sendable {
     /// The headings that occur in the middle of the verse. Omitted if the verse contains no inline headings.
     public var headings: [SimpleInlineHeading]?
 
+    /// The positions and source styles of paragraphs that start inside the verse.
+    public var paragraphs: [SimpleVerseParagraph]?
+
     /// The ranges of the verse text that represent the Words of Jesus. Omitted if the verse contains none.
     public var wordsOfJesus: [SimpleTextRange]?
 
@@ -1418,6 +1458,7 @@ public struct SimpleChapterHebrewSubtitle: Codable, Hashable, Sendable {
         text: String,
         footnotes: [SimpleVerseFootnote],
         headings: [SimpleInlineHeading]? = nil,
+        paragraphs: [SimpleVerseParagraph]? = nil,
         wordsOfJesus: [SimpleTextRange]? = nil,
         poem: [SimplePoemRange]? = nil,
         type: String = "hebrew_subtitle"
@@ -1425,6 +1466,7 @@ public struct SimpleChapterHebrewSubtitle: Codable, Hashable, Sendable {
         self.text = text
         self.footnotes = footnotes
         self.headings = headings
+        self.paragraphs = paragraphs
         self.wordsOfJesus = wordsOfJesus
         self.poem = poem
         self.type = type
@@ -1738,6 +1780,9 @@ public struct ApiTranslationCompleteBook: Codable, Hashable, Sendable {
     /// The common name for the book.
     public var commonName: String
 
+    /// The short name (abbreviation) that the translation provided for the book. If not available, then one was not provided by the translation.
+    public var shortName: String?
+
     /// The title of the book. This is usually a more descriptive version of the book name. If not available, then one was not provided by the translation.
     public var title: String?
 
@@ -1760,6 +1805,7 @@ public struct ApiTranslationCompleteBook: Codable, Hashable, Sendable {
         id: BookId,
         name: String,
         commonName: String,
+        shortName: String? = nil,
         title: String? = nil,
         order: Int,
         isApocryphal: Bool? = nil,
@@ -1770,6 +1816,7 @@ public struct ApiTranslationCompleteBook: Codable, Hashable, Sendable {
         self.id = id
         self.name = name
         self.commonName = commonName
+        self.shortName = shortName
         self.title = title
         self.order = order
         self.isApocryphal = isApocryphal
@@ -1843,6 +1890,9 @@ public struct ApiSimpleTranslationCompleteBook: Codable, Hashable, Sendable {
     /// The common name for the book.
     public var commonName: String
 
+    /// The short name (abbreviation) that the translation provided for the book. If not available, then one was not provided by the translation.
+    public var shortName: String?
+
     /// The title of the book. This is usually a more descriptive version of the book name. If not available, then one was not provided by the translation.
     public var title: String?
 
@@ -1865,6 +1915,7 @@ public struct ApiSimpleTranslationCompleteBook: Codable, Hashable, Sendable {
         id: BookId,
         name: String,
         commonName: String,
+        shortName: String? = nil,
         title: String? = nil,
         order: Int,
         isApocryphal: Bool? = nil,
@@ -1875,6 +1926,7 @@ public struct ApiSimpleTranslationCompleteBook: Codable, Hashable, Sendable {
         self.id = id
         self.name = name
         self.commonName = commonName
+        self.shortName = shortName
         self.title = title
         self.order = order
         self.isApocryphal = isApocryphal

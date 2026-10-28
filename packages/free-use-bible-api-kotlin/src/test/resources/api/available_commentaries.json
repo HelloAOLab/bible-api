@@ -1,0 +1,22 @@
+{
+  "commentaries": [
+    {
+      "id": "comment",
+      "name": "Commentary",
+      "englishName": "Commentary",
+      "language": "eng",
+      "licenseUrl": "https://example.com/terms.htm",
+      "website": "https://example.com",
+      "textDirection": "ltr",
+      "availableFormats": [
+        "json"
+      ],
+      "listOfBooksApiLink": "/api/c/comment/books.json",
+      "listOfProfilesApiLink": "/api/c/comment/profiles.json",
+      "numberOfBooks": 1,
+      "totalNumberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfProfiles": 0
+    }
+  ]
+}

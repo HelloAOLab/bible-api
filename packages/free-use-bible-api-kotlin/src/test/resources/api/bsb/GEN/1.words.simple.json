@@ -1,0 +1,66 @@
+{
+  "translationId": "bsb",
+  "bookId": "GEN",
+  "chapterNumber": 1,
+  "thisChapterLink": "/api/bsb/GEN/1.simple.json",
+  "nextChapterLink": "/api/bsb/GEN/2.simple.json",
+  "previousChapterLink": null,
+  "thisChapterWordsLink": "/api/bsb/GEN/1.words.simple.json",
+  "nextChapterWordsLink": null,
+  "previousChapterWordsLink": null,
+  "verses": {
+    "1": [
+      {
+        "start": 0,
+        "end": 2,
+        "strongs": [
+          "H8064"
+        ]
+      },
+      {
+        "start": 3,
+        "end": 6,
+        "strongs": [
+          "H1254"
+        ]
+      },
+      {
+        "start": 7,
+        "end": 16,
+        "strongs": [
+          "H7225"
+        ]
+      }
+    ],
+    "2": [
+      {
+        "start": 0,
+        "end": 3,
+        "strongs": [
+          "H8064"
+        ]
+      },
+      {
+        "start": 4,
+        "end": 11,
+        "strongs": [
+          "H1254"
+        ]
+      },
+      {
+        "start": 12,
+        "end": 15,
+        "strongs": [
+          "H8064"
+        ]
+      },
+      {
+        "start": 16,
+        "end": 21,
+        "strongs": [
+          "H8064"
+        ]
+      }
+    ]
+  }
+}

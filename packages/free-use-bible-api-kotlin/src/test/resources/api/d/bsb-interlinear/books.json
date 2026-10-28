@@ -1,0 +1,1409 @@
+{
+  "dataset": {
+    "id": "bsb-interlinear",
+    "name": "Berean Standard Bible Interlinear",
+    "englishName": "Berean Standard Bible Interlinear",
+    "website": "https://bereanbible.com/",
+    "licenseUrl": "https://berean.bible/terms.htm",
+    "licenseNotes": "The Berean Standard Bible and its interlinear tables are in the public domain. Changes were made to the data to fit the Free Use Bible API format.",
+    "language": "eng",
+    "textDirection": "ltr",
+    "availableFormats": [
+      "json"
+    ],
+    "listOfBooksApiLink": "/api/d/bsb-interlinear/books.json",
+    "numberOfBooks": 66,
+    "totalNumberOfChapters": 67,
+    "totalNumberOfVerses": 67,
+    "totalNumberOfReferences": 0,
+    "totalNumberOfWords": 70
+  },
+  "books": [
+    {
+      "id": "GEN",
+      "order": 1,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/GEN/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "GEN",
+        "chapter": 1
+      },
+      "lastChapterNumber": 2,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/GEN/2.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "GEN",
+        "chapter": 2
+      },
+      "numberOfChapters": 2,
+      "totalNumberOfVerses": 2,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "EXO",
+      "order": 2,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/EXO/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "EXO",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/EXO/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "EXO",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "LEV",
+      "order": 3,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/LEV/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "LEV",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/LEV/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "LEV",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "NUM",
+      "order": 4,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/NUM/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "NUM",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/NUM/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "NUM",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "DEU",
+      "order": 5,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/DEU/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "DEU",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/DEU/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "DEU",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "JOS",
+      "order": 6,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/JOS/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "JOS",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/JOS/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "JOS",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "JDG",
+      "order": 7,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/JDG/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "JDG",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/JDG/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "JDG",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "RUT",
+      "order": 8,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/RUT/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "RUT",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/RUT/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "RUT",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "1SA",
+      "order": 9,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/1SA/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "1SA",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/1SA/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "1SA",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "2SA",
+      "order": 10,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/2SA/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "2SA",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/2SA/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "2SA",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "1KI",
+      "order": 11,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/1KI/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "1KI",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/1KI/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "1KI",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "2KI",
+      "order": 12,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/2KI/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "2KI",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/2KI/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "2KI",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "1CH",
+      "order": 13,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/1CH/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "1CH",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/1CH/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "1CH",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "2CH",
+      "order": 14,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/2CH/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "2CH",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/2CH/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "2CH",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "EZR",
+      "order": 15,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/EZR/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "EZR",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/EZR/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "EZR",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "NEH",
+      "order": 16,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/NEH/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "NEH",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/NEH/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "NEH",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "EST",
+      "order": 17,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/EST/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "EST",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/EST/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "EST",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "JOB",
+      "order": 18,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/JOB/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "JOB",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/JOB/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "JOB",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "PSA",
+      "order": 19,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/PSA/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "PSA",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/PSA/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "PSA",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "PRO",
+      "order": 20,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/PRO/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "PRO",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/PRO/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "PRO",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "ECC",
+      "order": 21,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/ECC/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "ECC",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/ECC/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "ECC",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "SNG",
+      "order": 22,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/SNG/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "SNG",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/SNG/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "SNG",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "ISA",
+      "order": 23,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/ISA/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "ISA",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/ISA/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "ISA",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "JER",
+      "order": 24,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/JER/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "JER",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/JER/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "JER",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "LAM",
+      "order": 25,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/LAM/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "LAM",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/LAM/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "LAM",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "EZK",
+      "order": 26,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/EZK/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "EZK",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/EZK/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "EZK",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "DAN",
+      "order": 27,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/DAN/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "DAN",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/DAN/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "DAN",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "HOS",
+      "order": 28,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/HOS/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "HOS",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/HOS/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "HOS",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "JOL",
+      "order": 29,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/JOL/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "JOL",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/JOL/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "JOL",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "AMO",
+      "order": 30,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/AMO/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "AMO",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/AMO/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "AMO",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "OBA",
+      "order": 31,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/OBA/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "OBA",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/OBA/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "OBA",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "JON",
+      "order": 32,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/JON/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "JON",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/JON/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "JON",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "MIC",
+      "order": 33,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/MIC/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "MIC",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/MIC/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "MIC",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "NAM",
+      "order": 34,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/NAM/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "NAM",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/NAM/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "NAM",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "HAB",
+      "order": 35,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/HAB/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "HAB",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/HAB/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "HAB",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "ZEP",
+      "order": 36,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/ZEP/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "ZEP",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/ZEP/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "ZEP",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "HAG",
+      "order": 37,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/HAG/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "HAG",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/HAG/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "HAG",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "ZEC",
+      "order": 38,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/ZEC/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "ZEC",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/ZEC/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "ZEC",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "MAL",
+      "order": 39,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/MAL/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "MAL",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/MAL/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "MAL",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "MAT",
+      "order": 40,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/MAT/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "MAT",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/MAT/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "MAT",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "MRK",
+      "order": 41,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/MRK/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "MRK",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/MRK/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "MRK",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "LUK",
+      "order": 42,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/LUK/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "LUK",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/LUK/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "LUK",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "JHN",
+      "order": 43,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/JHN/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "JHN",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/JHN/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "JHN",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "ACT",
+      "order": 44,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/ACT/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "ACT",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/ACT/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "ACT",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "ROM",
+      "order": 45,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/ROM/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "ROM",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/ROM/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "ROM",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "1CO",
+      "order": 46,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/1CO/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "1CO",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/1CO/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "1CO",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "2CO",
+      "order": 47,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/2CO/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "2CO",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/2CO/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "2CO",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "GAL",
+      "order": 48,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/GAL/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "GAL",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/GAL/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "GAL",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "EPH",
+      "order": 49,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/EPH/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "EPH",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/EPH/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "EPH",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "PHP",
+      "order": 50,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/PHP/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "PHP",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/PHP/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "PHP",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "COL",
+      "order": 51,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/COL/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "COL",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/COL/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "COL",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "1TH",
+      "order": 52,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/1TH/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "1TH",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/1TH/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "1TH",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "2TH",
+      "order": 53,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/2TH/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "2TH",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/2TH/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "2TH",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "1TI",
+      "order": 54,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/1TI/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "1TI",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/1TI/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "1TI",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "2TI",
+      "order": 55,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/2TI/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "2TI",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/2TI/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "2TI",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "TIT",
+      "order": 56,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/TIT/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "TIT",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/TIT/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "TIT",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "PHM",
+      "order": 57,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/PHM/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "PHM",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/PHM/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "PHM",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "HEB",
+      "order": 58,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/HEB/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "HEB",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/HEB/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "HEB",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "JAS",
+      "order": 59,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/JAS/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "JAS",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/JAS/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "JAS",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "1PE",
+      "order": 60,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/1PE/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "1PE",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/1PE/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "1PE",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "2PE",
+      "order": 61,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/2PE/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "2PE",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/2PE/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "2PE",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "1JN",
+      "order": 62,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/1JN/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "1JN",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/1JN/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "1JN",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "2JN",
+      "order": 63,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/2JN/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "2JN",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/2JN/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "2JN",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "3JN",
+      "order": 64,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/3JN/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "3JN",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/3JN/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "3JN",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "JUD",
+      "order": 65,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/JUD/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "JUD",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/JUD/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "JUD",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    },
+    {
+      "id": "REV",
+      "order": 66,
+      "firstChapterNumber": 1,
+      "firstChapterApiLink": "/api/d/bsb-interlinear/REV/1.json",
+      "firstChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "REV",
+        "chapter": 1
+      },
+      "lastChapterNumber": 1,
+      "lastChapterApiLink": "/api/d/bsb-interlinear/REV/1.json",
+      "lastChapterReference": {
+        "datasetId": "bsb-interlinear",
+        "book": "REV",
+        "chapter": 1
+      },
+      "numberOfChapters": 1,
+      "totalNumberOfVerses": 1,
+      "totalNumberOfReferences": 0
+    }
+  ]
+}

@@ -11,14 +11,18 @@ import {
     uploadOpenApiDocument,
 } from './uploads.js';
 import {
+    convertOsisToUsfmFiles,
     askForMetadata,
     copyOpenBibleAudio,
     fetchAudio,
+    fetchHistoryGlobe,
     fetchInterlinear,
+    fetchOsisTranslations,
     generateTranslationFiles,
     generateTranslationsFiles,
     importApi,
     importBibleMetadata,
+    importHistoryGlobe,
     importInterlinear,
     importAudioTimings,
     importCommentaries,
@@ -27,7 +31,10 @@ import {
     importTranslations,
     initDb,
     listEBibleTranslations,
+    listFetchBibleTranslations,
     refreshEBibleLicenses,
+    sourceAllTranslations,
+    sourceFetchBibleTranslations,
     sourceTranslations,
     searchTypesenseVerses,
     uploadTestTranslation,
@@ -35,10 +42,21 @@ import {
     uploadTypesenseVerses,
 } from './actions.js';
 import { getPrismaDb } from './db.js';
+import { sync } from './sync.js';
+import {
+    FETCH_BIBLE_COLLECTION_REF,
+    FETCH_BIBLE_COLLECTION_REPO,
+    FETCH_BIBLE_MANIFEST_URL,
+} from './fetch-bible.js';
 import { confirm, input } from '@inquirer/prompts';
 import { log } from '@helloao/tools';
 import { createFreeUseBibleApiOpenApiDocument } from './openapi.js';
 import { createClient } from '@hey-api/openapi-ts';
+import {
+    FREE_USE_BIBLE_API_KOTLIN_MODEL_OPTIONS,
+    generateKotlinModels,
+    KOTLIN_MODELS_PATH,
+} from './kotlin.js';
 import { generateSwiftClient } from './swift.js';
 
 const OPENAPI_CLIENT_LANGUAGES = [
@@ -392,6 +410,36 @@ async function start() {
         });
 
     program
+        .command('generate-kotlin-models')
+        .description(
+            'Generates the models for the Kotlin SDK (packages/free-use-bible-api-kotlin) from the OpenAPI document.'
+        )
+        .action(async () => {
+            const logger = log.getLogger();
+            const projectRoot = await findProjectRoot(process.cwd());
+            const outputPath = path.resolve(projectRoot, KOTLIN_MODELS_PATH);
+
+            const document = createFreeUseBibleApiOpenApiDocument();
+            const source = generateKotlinModels(
+                document as any,
+                FREE_USE_BIBLE_API_KOTLIN_MODEL_OPTIONS
+            );
+
+            await mkdir(path.dirname(outputPath), { recursive: true });
+            await writeFile(outputPath, source, { encoding: 'utf-8' });
+
+            logger.log('Kotlin models written to:', outputPath);
+        });
+
+    program
+        .command('convert-osis-to-usfm <file> <dir>')
+        .description('Converts an OSIS XML file into per-book USFM files.')
+        .option('--overwrite', 'Whether to overwrite existing files.')
+        .action(async (file: string, dir: string, options: any) => {
+            await convertOsisToUsfmFiles(file, dir, options);
+        });
+
+    program
         .command('import-translation <dir> [dirs...]')
         .description(
             'Imports a translation from the given directory into the database.'
@@ -405,13 +453,13 @@ async function start() {
         });
 
     program
-        .command('import-translations <dir>')
+        .command('import-translations <dirs...>')
         .description(
-            'Imports all translations from the given directory into the database.'
+            'Imports all translations from the given directories into the database.'
         )
         .option('--overwrite', 'Whether to overwrite existing files.')
-        .action(async (dir: string, options: any) => {
-            await importTranslations(dir, {
+        .action(async (dirs: string[], options: any) => {
+            await importTranslations(dirs, {
                 ...program.opts(),
                 ...options,
             });
@@ -473,6 +521,18 @@ async function start() {
         )
         .action(async (dir: string, options: any) => {
             await importInterlinear(dir, {
+                ...program.opts(),
+                ...options,
+            });
+        });
+
+    program
+        .command('import-history-globe <dir>')
+        .description(
+            'Imports the History Globe places from the given directory into the database.\nThe directory should contain the files downloaded by the fetch-history-globe command.'
+        )
+        .action(async (dir: string, options: any) => {
+            await importHistoryGlobe(dir, {
                 ...program.opts(),
                 ...options,
             });
@@ -871,6 +931,63 @@ async function start() {
             }
         });
     program
+        .command('sync [config]')
+        .description(
+            'Imports the new, changed, and deleted sources from the given sync config into the database, and uploads the changed translations, commentaries, and datasets to the destinations in the config.\n' +
+                'Only the sources in the config are kept in the database and uploaded. Sources are reprocessed when they change or when the code that processes them changes.\n' +
+                'The config defaults to ./sync.config.json. See the README for its format.'
+        )
+        .option(
+            '--dry-run',
+            'Only report what would change, without changing the database or any destination.'
+        )
+        .option(
+            '--skip-import',
+            'Skip importing the sources into the database.'
+        )
+        .option('--skip-upload', 'Skip uploading to the destinations.')
+        .option(
+            '--destination <urls...>',
+            'Only upload to the given destinations from the config.'
+        )
+        .option(
+            '--reprocess-all',
+            'Re-import every source, even ones that have not changed.'
+        )
+        .option(
+            '--reupload-all',
+            'Re-upload every item, even ones that have not changed.'
+        )
+        .option(
+            '--ignore-processor-changes',
+            'Do not reprocess sources just because the processor changed. Use when you know a processor change does not affect the existing sources.'
+        )
+        .option(
+            '--batch-size <size>',
+            'The number of items to load from the database and upload at a time.',
+            '10'
+        )
+        .option('--verbose', 'Log details about every source and item.')
+        .action(async (config: string | undefined, options: any) => {
+            const result = await sync(config ?? './sync.config.json', {
+                db: program.opts().db,
+                dryRun: options.dryRun,
+                skipImport: options.skipImport,
+                skipUpload: options.skipUpload,
+                destinations: options.destination,
+                reprocessAll: options.reprocessAll,
+                reuploadAll: options.reuploadAll,
+                ignoreProcessorChanges: options.ignoreProcessorChanges,
+                batchSize: parseInt(options.batchSize),
+                verbose: options.verbose,
+            });
+
+            if (result.errors.length > 0) {
+                process.exitCode = 1;
+            }
+        });
+
+    program
         .command('upload-open-api-document')
         .argument(
             '<dest>',
@@ -942,6 +1059,129 @@ async function start() {
                 ...program.opts(),
                 ...sourceOptions,
             });
+        });
+
+    program
+        .command('source-fetch-bible-translations <dir> [translations...]')
+        .description(
+            'Finds translation sources from fetch.bible and downloads them.\nTranslations that are already provided by eBible are skipped.'
+        )
+        .option(
+            '--convert-to-usx3',
+            'Convert USFM files to USX3 format after download'
+        )
+        .option(
+            '--bible-multi-converter-path <path>',
+            'Path to BibleMultiConverter.jar file'
+        )
+        .option(
+            '--overwrite',
+            'Overwrite existing translations in the output directory (when database tracking is disabled)'
+        )
+        .option('--no-database', 'Disable database tracking for downloads')
+        .option(
+            '--ebible-dir <dir>',
+            'The directory that eBible translations were sourced into. Translations in it are not downloaded from fetch.bible.'
+        )
+        .option(
+            '--include-ebible',
+            'Also download translations that are already provided by eBible'
+        )
+        .option(
+            '--manifest-url <url>',
+            'The URL of the fetch.bible manifest',
+            FETCH_BIBLE_MANIFEST_URL
+        )
+        .option(
+            '--collection-repo <repo>',
+            'The GitHub repository (owner/name) of the fetch.bible collection',
+            FETCH_BIBLE_COLLECTION_REPO
+        )
+        .option(
+            '--collection-ref <ref>',
+            'The branch (or other git ref) of the fetch.bible collection to download from',
+            FETCH_BIBLE_COLLECTION_REF
+        )
+        .action(async (dir, translations, options) => {
+            await sourceFetchBibleTranslations(dir, translations, {
+                ...program.opts(),
+                convertToUsx3: options.convertToUsx3,
+                bibleMultiConverterPath: options.bibleMultiConverterPath,
+                useDatabase: options.database !== false,
+                overwrite: options.overwrite,
+                ebibleDir: options.ebibleDir,
+                includeEBible: options.includeEbible,
+                manifestUrl: options.manifestUrl,
+                repo: options.collectionRepo,
+                ref: options.collectionRef,
+            });
+        });
+
+    program
+        .command('source-all-translations <dir> [translations...]')
+        .description(
+            'Finds translation sources from eBible and fetch.bible, and downloads them (along with the pinned OSIS translations) into the given directory so that they can be imported with import-translations.\nTranslations available from eBible are downloaded from eBible, and the rest are downloaded from fetch.bible. Only new and changed translations are downloaded.'
+        )
+        .option(
+            '--no-convert-to-usx3',
+            'Keep USFM files instead of converting them to USX3'
+        )
+        .option(
+            '--bible-multi-converter-path <path>',
+            'Path to BibleMultiConverter.jar file'
+        )
+        .option(
+            '--overwrite',
+            'Overwrite existing translations in the output directory (when database tracking is disabled)'
+        )
+        .option('--no-database', 'Disable database tracking for downloads')
+        .option(
+            '--fetch-bible-dir <dir>',
+            'Put the translations from fetch.bible in this directory instead of <dir>. <dir> then only holds the translations from eBible.'
+        )
+        .option(
+            '--osis-dir <dir>',
+            'Put the pinned OSIS translations (see fetch-osis-translations) in this directory instead of <dir>.'
+        )
+        .option('--no-osis', 'Skip the pinned OSIS translations')
+        .option(
+            '--manifest-url <url>',
+            'The URL of the fetch.bible manifest',
+            FETCH_BIBLE_MANIFEST_URL
+        )
+        .option(
+            '--collection-repo <repo>',
+            'The GitHub repository (owner/name) of the fetch.bible collection',
+            FETCH_BIBLE_COLLECTION_REPO
+        )
+        .option(
+            '--collection-ref <ref>',
+            'The branch (or other git ref) of the fetch.bible collection to download from',
+            FETCH_BIBLE_COLLECTION_REF
+        )
+        .action(async (dir, translations, options) => {
+            await sourceAllTranslations(dir, translations, {
+                ...program.opts(),
+                convertToUsx3: options.convertToUsx3,
+                bibleMultiConverterPath: options.bibleMultiConverterPath,
+                useDatabase: options.database !== false,
+                overwrite: options.overwrite,
+                fetchBibleDir: options.fetchBibleDir,
+                osisDir: options.osisDir,
+                includeOsis: options.osis !== false,
+                manifestUrl: options.manifestUrl,
+                repo: options.collectionRepo,
+                ref: options.collectionRef,
+            });
+        });
+
+    program
+        .command('list-fetch-bible-translations [search]')
+        .description(
+            'List available fetch.bible translations. Optionally filter by search term.'
+        )
+        .action(async (search?: string) => {
+            await listFetchBibleTranslations(search);
         });
 
     program
@@ -1020,6 +1260,24 @@ async function start() {
         )
         .action(async (dir: string) => {
             await fetchInterlinear(dir);
+        });
+
+    program
+        .command('fetch-osis-translations <dir>')
+        .description(
+            'Fetches the pinned OSIS translations (such as the Japanese Kougo-yaku), checks their SHA-256 hashes, converts them to USFM and places them in the given directory.'
+        )
+        .action(async (dir: string) => {
+            await fetchOsisTranslations(dir);
+        });
+
+    program
+        .command('fetch-history-globe <dir>')
+        .description(
+            'Fetches the History Globe places and their verse references and places them in the given directory.'
+        )
+        .action(async (dir: string) => {
+            await fetchHistoryGlobe(dir);
         });
 
     program

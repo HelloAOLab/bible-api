@@ -1,0 +1,15 @@
+{
+    "db": "./free-use-bible-api.db",
+    "exclude": [],
+    "sources": [
+        { "type": "translations", "path": "../sources/ebible" },
+        { "type": "translations", "path": "../sources/fetch-bible" },
+        { "type": "translations", "path": "../sources/osis" }
+    ],
+    "destinations": [
+        {
+            "url": "s3://ao-bible-api",
+            "s3Region": "us-east-1"
+        }
+    ]
+}
