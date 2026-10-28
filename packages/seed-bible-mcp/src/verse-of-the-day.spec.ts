@@ -59,6 +59,26 @@ describe('pickVerseOfTheDay()', () => {
     });
 });
 
+describe('pickVerseOfTheDay() with added and removed verses', () => {
+    it('should pick the same verses as the free-use-bible-api client', () => {
+        const changed = VERSES_OF_THE_DAY.map((v, i) =>
+            i % 7 === 0
+                ? { ...v, addedIn: 2927 }
+                : i % 11 === 0
+                  ? { ...v, removedIn: 2927 }
+                  : v
+        );
+        for (let i = 0; i < 100; i++) {
+            const date = new Date(Date.UTC(2926, 0, 1 + i * 7))
+                .toISOString()
+                .slice(0, 10);
+            expect(pickVerseOfTheDay(changed, date)).toBe(
+                clientPickVerseOfTheDay(changed, date)
+            );
+        }
+    });
+});
+
 describe('getVerseOfTheDay()', () => {
     const verses = [
         { book: 'PRO', chapter: 17, verse: 22, categories: ['joy'] },

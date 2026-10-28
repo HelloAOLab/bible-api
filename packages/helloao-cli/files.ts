@@ -874,6 +874,12 @@ export async function loadDatasetsFromDirectory(
                                                 ? { endVerse: c.endVerse }
                                                 : {}),
                                             categories: c.categories,
+                                            ...(c.addedIn != null
+                                                ? { addedIn: c.addedIn }
+                                                : {}),
+                                            ...(c.removedIn != null
+                                                ? { removedIn: c.removedIn }
+                                                : {}),
                                         }
                                       : {
                                             verse: c.verse,

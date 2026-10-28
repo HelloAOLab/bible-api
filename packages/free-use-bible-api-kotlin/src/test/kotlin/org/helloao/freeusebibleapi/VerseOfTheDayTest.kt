@@ -55,6 +55,38 @@ class VerseOfTheDayTest {
     }
 
     @Test
+    fun `picks the same verses as the JavaScript client when verses are added and removed`() = runTest {
+        // Computed with the JavaScript client's pickVerseOfTheDay() for the verses in the verses.json fixture,
+        // with JHN 3:16 added in 2927 and PRO 3:3 removed in 2927.
+        val changed = api.getDatasetVerses("verse-of-the-day").verses.map {
+            when ("${it.book} ${it.chapter}:${it.verse}") {
+                "JHN 3:16" -> it.copy(addedIn = 2927)
+                "PRO 3:3" -> it.copy(removedIn = 2927)
+                else -> it
+            }
+        }
+        val expected = mapOf(
+            "2926-01-01" to "PRO 3:5",
+            "2926-01-02" to "PRO 3:3",
+            "2926-01-03" to "PRO 3:27",
+            "2926-01-04" to "JHN 3:17",
+            "2927-01-01" to "JHN 3:17",
+            "2927-01-02" to "PRO 3:27",
+            "2927-01-03" to "PRO 3:5",
+            "2927-01-04" to "JHN 3:16",
+        )
+        for ((date, ref) in expected) {
+            assertEquals(ref, pickVerseOfTheDay(changed, date).ref(), date)
+        }
+    }
+
+    @Test
+    fun `only picks verses that are in use in the year`() {
+        val verse = ApiDatasetCategorizedVerse(book = "JHN", chapter = 3, verse = 16, categories = emptyList(), addedIn = 2027, removedIn = 2030)
+        assertEquals(listOf(false, true, true, true, false), (2026L..2030L).map { isVerseOfTheDayInUse(verse, it) })
+    }
+
+    @Test
     fun `does not repeat a verse within a calendar year`() {
         for (seed in listOf("", "my-app")) {
             for (year in listOf(2924, 2925, 2100, 2400)) {

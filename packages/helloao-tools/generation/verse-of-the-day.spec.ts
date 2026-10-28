@@ -3,6 +3,7 @@ import path from 'path';
 import {
     generateVerseOfTheDayDataset,
     getDayNumber,
+    isVerseOfTheDayInUse,
     getVerseOfTheDay,
     hashVerseOfTheDayKey,
     VERSES_OF_THE_DAY,
@@ -48,9 +49,52 @@ function formatRef(v: VerseOfTheDay): string {
 }
 
 describe('VERSES_OF_THE_DAY', () => {
-    it('should have enough verses for a different verse every day of a leap year', () => {
-        expect(VERSES_OF_THE_DAY.length).toBeGreaterThanOrEqual(366);
+    it('should only use whole years for addedIn and removedIn', () => {
+        for (let v of VERSES_OF_THE_DAY) {
+            for (let year of [v.addedIn, v.removedIn]) {
+                if (year !== undefined) {
+                    expect(Number.isInteger(year)).toBe(true);
+                }
+            }
+            if (v.addedIn !== undefined && v.removedIn !== undefined) {
+                expect(v.addedIn).toBeLessThan(v.removedIn);
+            }
+        }
     });
+
+    it('should have enough verses in use for a different verse every day of every year', () => {
+        // The verses in use only change in the years that verses are added or removed in.
+        const years = new Set([2026]);
+        for (let v of VERSES_OF_THE_DAY) {
+            if (v.addedIn !== undefined) years.add(v.addedIn);
+            if (v.removedIn !== undefined) years.add(v.removedIn);
+        }
+        for (let year of years) {
+            const inUse = VERSES_OF_THE_DAY.filter((v) =>
+                isVerseOfTheDayInUse(v, year)
+            ).length;
+            expect([year, inUse >= 366]).toEqual([year, true]);
+        }
+    });
+
+    // Changing which verses are in use in a year changes that whole year's schedule.
+    // These fingerprints make sure that the schedules of years that people have already seen don't change.
+    // Add new verses with `addedIn` (and remove verses with `removedIn`) set to a year that hasn't started yet.
+    // When a year starts, add its fingerprint here.
+    it.each([[2026, 2426813568]])(
+        'should not change the verse of the day schedule of %d',
+        (year, fingerprint) => {
+            const picks: string[] = [];
+            for (let i = 0; i < 365; i++) {
+                const date = new Date(Date.UTC(year, 0, 1 + i))
+                    .toISOString()
+                    .slice(0, 10);
+                const v = getVerseOfTheDay(date)!;
+                picks.push(`${v.book} ${v.chapter}:${v.verse}`);
+            }
+            expect(hashVerseOfTheDayKey(picks.join(','))).toBe(fingerprint);
+        }
+    );
 
     it('should only reference verses that exist in the BSB', () => {
         const books = new Map<string, Map<number, number>>();
@@ -219,6 +263,76 @@ describe('getVerseOfTheDay()', () => {
         expect(getVerseOfTheDay('2026-12-31')).toBe(sorted[364]);
     });
 
+    it('should not change earlier years when a verse is added', () => {
+        const added: VerseOfTheDay = {
+            book: 'NUM',
+            chapter: 6,
+            verse: 27,
+            categories: ['hope'],
+            addedIn: 2028,
+        };
+        const verses = [...VERSES_OF_THE_DAY, added];
+        for (let i = 0; i < 365 * 2; i++) {
+            const date = addDays('2026-01-01', i);
+            expect(getVerseOfTheDay(date, { verses })).toBe(
+                getVerseOfTheDay(date)
+            );
+        }
+        // A year uses 365 or 366 of the verses, so the new verse doesn't appear in every year.
+        const firstYearPicked = [2028, 2029, 2030, 2031, 2032].find((year) =>
+            Array.from({ length: 365 }, (_, i) =>
+                getVerseOfTheDay(addDays(`${year}-01-01`, i), { verses })
+            ).includes(added)
+        );
+        expect(firstYearPicked).toBeDefined();
+    });
+
+    it('should not change earlier years when a verse is removed', () => {
+        const removed = VERSES_OF_THE_DAY[10];
+        const verses = VERSES_OF_THE_DAY.map((v) =>
+            v === removed ? { ...v, removedIn: 2028 } : v
+        );
+        for (let i = 0; i < 365 * 2; i++) {
+            const date = addDays('2026-01-01', i);
+            expect(ref(getVerseOfTheDay(date, { verses }))).toBe(
+                ref(getVerseOfTheDay(date))
+            );
+        }
+        for (let i = 0; i < 366; i++) {
+            expect(
+                ref(getVerseOfTheDay(addDays('2028-01-01', i), { verses }))
+            ).not.toBe(ref(removed));
+        }
+    });
+
+    it('should only pick verses that are in use in the year', () => {
+        const verses: VerseOfTheDay[] = [
+            {
+                book: 'JHN',
+                chapter: 3,
+                verse: 16,
+                categories: ['love'],
+                addedIn: 2027,
+            },
+            {
+                book: 'ROM',
+                chapter: 8,
+                verse: 28,
+                categories: ['hope'],
+                removedIn: 2027,
+            },
+        ];
+        expect(ref(getVerseOfTheDay('2026-06-01', { verses }))).toBe(
+            'ROM 8:28'
+        );
+        expect(ref(getVerseOfTheDay('2027-06-01', { verses }))).toBe(
+            'JHN 3:16'
+        );
+        expect(
+            getVerseOfTheDay('2027-06-01', { verses, category: 'hope' })
+        ).toBeNull();
+    });
+
     it('should not depend on the order of the list', () => {
         const reversed = [...VERSES_OF_THE_DAY].reverse();
         for (let i = 0; i < 30; i++) {
@@ -230,6 +344,19 @@ describe('getVerseOfTheDay()', () => {
     });
 
     it('should pick the same verses as the free-use-bible-api client', () => {
+        const changed = VERSES_OF_THE_DAY.map((v, i) =>
+            i % 7 === 0
+                ? { ...v, addedIn: 2027 }
+                : i % 11 === 0
+                  ? { ...v, removedIn: 2027 }
+                  : v
+        );
+        for (let i = 0; i < 100; i++) {
+            const date = addDays('2026-01-01', i * 7);
+            expect(pickVerseOfTheDay(changed, date)).toBe(
+                getVerseOfTheDay(date, { verses: changed })
+            );
+        }
         for (let i = 0; i < 100; i++) {
             const date = addDays('2026-01-01', i * 7);
             expect(pickVerseOfTheDay(VERSES_OF_THE_DAY, date)).toBe(
@@ -333,6 +460,53 @@ describe('generateVerseOfTheDayDataset()', () => {
         expect(dataset.books[1].chapters[0].chapter.content).toEqual([
             { verse: 16, categories: ['love', 'salvation'] },
             { verse: 17, categories: ['salvation'] },
+        ]);
+    });
+
+    it('should include the years that verses were added and removed in', () => {
+        const dataset = generateVerseOfTheDayDataset([
+            {
+                book: 'JHN',
+                chapter: 3,
+                verse: 16,
+                categories: ['love'],
+                addedIn: 2027,
+                removedIn: 2030,
+            },
+        ]);
+
+        expect(dataset.books[0].chapters[0].chapter.content).toEqual([
+            {
+                verse: 16,
+                categories: ['love'],
+                addedIn: 2027,
+                removedIn: 2030,
+            },
+        ]);
+        expect(dataset.categories![0].verses).toEqual([
+            {
+                book: 'JHN',
+                chapter: 3,
+                verse: 16,
+                addedIn: 2027,
+                removedIn: 2030,
+            },
+        ]);
+
+        const api = generateApiForDataset({
+            translations: [],
+            commentaries: [],
+            datasets: [dataset],
+        });
+        expect(api.datasetVerses![0].verses).toEqual([
+            {
+                book: 'JHN',
+                chapter: 3,
+                verse: 16,
+                categories: ['love'],
+                addedIn: 2027,
+                removedIn: 2030,
+            },
         ]);
     });
 

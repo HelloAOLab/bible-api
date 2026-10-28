@@ -22,6 +22,10 @@ export interface VerseOfTheDayEntry {
     verse: number;
     endVerse?: number;
     categories: string[];
+    /** The first year that the verse can be the verse of the day. */
+    addedIn?: number;
+    /** The first year that the verse can no longer be the verse of the day. */
+    removedIn?: number;
 }
 
 /**
@@ -32,11 +36,13 @@ export const VERSE_OF_THE_DAY_DATASET = 'verse-of-the-day';
 /**
  * Picks the verse of the day for the given date from the given list of verses.
  *
- * 1. Each verse gets a sort key: the 32-bit FNV-1a hash of the UTF-8 bytes of `"{seed}|{year}|{book} {chapter}:{verse}"`
+ * 1. Only the verses that are in use in the year of the date are picked from: those whose `addedIn` year is
+ *    unset or at most the year, and whose `removedIn` year is unset or after the year.
+ * 2. Each verse gets a sort key: the 32-bit FNV-1a hash of the UTF-8 bytes of `"{seed}|{year}|{book} {chapter}:{verse}"`
  *    (e.g. `"|2026|JHN 3:16"`), passed through the MurmurHash3 `fmix32` finalizer.
- * 2. The verses are sorted by their key (as an unsigned number), then by the key's string if two keys are equal.
- * 3. The verse at position `day mod n` is picked, where `day` is the day of the year of the date (0 for January 1st)
- *    and `n` is the number of verses.
+ * 3. The verses are sorted by their key (as an unsigned number), then by the key's string if two keys are equal.
+ * 4. The verse at position `day mod n` is picked, where `day` is the day of the year of the date (0 for January 1st)
+ *    and `n` is the number of verses in use.
  *
  * @param verses The verses to pick from.
  * @param date The date, as a `YYYY-MM-DD` string.
@@ -49,14 +55,16 @@ export function pickVerseOfTheDay<T extends VerseOfTheDayEntry>(
     seed: string = '',
     category?: string
 ): T | null {
-    const candidates = category
-        ? verses.filter((v) => v.categories.includes(category))
-        : verses;
+    const { year, dayOfYear } = getYearAndDayOfYear(date);
+    const candidates = verses.filter(
+        (v) =>
+            isVerseOfTheDayInUse(v, year) &&
+            (!category || v.categories.includes(category))
+    );
     if (candidates.length <= 0) {
         return null;
     }
 
-    const { year, dayOfYear } = getYearAndDayOfYear(date);
     const sorted = candidates
         .map((verse) => {
             const key = `${seed}|${year}|${verse.book} ${verse.chapter}:${verse.verse}`;
@@ -74,6 +82,20 @@ export function pickVerseOfTheDay<T extends VerseOfTheDayEntry>(
 
     const index = dayOfYear % sorted.length;
     return sorted[index].verse;
+}
+
+/**
+ * Determines whether the given verse can be the verse of the day in the given year:
+ * its `addedIn` year is unset or at most the year, and its `removedIn` year is unset or after the year.
+ */
+export function isVerseOfTheDayInUse(
+    verse: { addedIn?: number | null; removedIn?: number | null },
+    year: number
+): boolean {
+    return (
+        (verse.addedIn == null || verse.addedIn <= year) &&
+        (verse.removedIn == null || year < verse.removedIn)
+    );
 }
 
 /**

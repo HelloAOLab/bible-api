@@ -143,6 +143,46 @@ describe('pickVerseOfTheDay()', () => {
         }
     });
 
+    it('should only pick verses that are in use in the year', () => {
+        const yearVerses: VerseOfTheDayCandidate[] = [
+            { book: 'JHN', chapter: 3, verse: 16, addedIn: 2927 },
+            { book: 'ROM', chapter: 8, verse: 28, removedIn: 2927 },
+            {
+                book: 'PSA',
+                chapter: 23,
+                verse: 1,
+                addedIn: null,
+                removedIn: null,
+            },
+        ];
+        const picks = (year: number) =>
+            new Set(
+                Array.from({ length: 30 }, (_, i) =>
+                    ref(
+                        pickVerseOfTheDay(
+                            yearVerses,
+                            addDays(`${year}-01-01`, i)
+                        )
+                    )
+                )
+            );
+        expect(picks(2926)).toEqual(new Set(['ROM 8:28', 'PSA 23:1']));
+        expect(picks(2927)).toEqual(new Set(['JHN 3:16', 'PSA 23:1']));
+    });
+
+    it('should not change earlier years when verses are added or removed', () => {
+        const changed = [
+            ...verses.map((v, i) => (i === 3 ? { ...v, removedIn: 2927 } : v)),
+            { book: 'JHN', chapter: 3, verse: 16, addedIn: 2927 },
+        ];
+        for (let i = 0; i < 365; i++) {
+            const date = addDays('2926-01-01', i);
+            expect(ref(pickVerseOfTheDay(changed, date))).toBe(
+                ref(pickVerseOfTheDay(verses, date))
+            );
+        }
+    });
+
     it('should only pick verses from the given category', () => {
         for (let i = 0; i < 30; i++) {
             const verse = pickVerseOfTheDay(verses, addDays('2926-01-01', i), {

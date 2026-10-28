@@ -1807,6 +1807,24 @@ export const ApiDatasetCategorizedVerseSchema = z
             description:
                 'The IDs of the categories that the verse belongs to, most relevant first. Each ID matches a category in the `categories` collection of the dataset (`/api/d/{dataset}/categories/{id}.json`).',
         }),
+
+        /**
+         * The first year that the verse can be the verse of the day.
+         * Omitted if the verse has always been in the list.
+         */
+        addedIn: z.number().optional().meta({
+            description:
+                'The first year that the verse can be the verse of the day. Omitted if the verse has always been in the list.',
+        }),
+
+        /**
+         * The first year that the verse can no longer be the verse of the day.
+         * Omitted if the verse hasn't been removed from the list.
+         */
+        removedIn: z.number().optional().meta({
+            description:
+                "The first year that the verse can no longer be the verse of the day. Removed verses stay in the dataset so that the verses of earlier years can still be picked. Omitted if the verse hasn't been removed from the list.",
+        }),
     })
     .meta({
         id: 'ApiDatasetCategorizedVerse',

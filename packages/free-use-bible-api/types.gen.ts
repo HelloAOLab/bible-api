@@ -1971,6 +1971,14 @@ export type DatasetChapterVerseCategories = {
      * The IDs of the categories that the verse belongs to, most relevant first. Each ID matches a category in the `categories` collection of the dataset (`/api/d/{dataset}/categories/{id}.json`).
      */
     categories: Array<string>;
+    /**
+     * The first year that the verse can be the verse of the day. Omitted if the verse has always been in the list.
+     */
+    addedIn?: number;
+    /**
+     * The first year that the verse can no longer be the verse of the day. Removed verses stay in the dataset so that the verses of earlier years can still be picked. Omitted if the verse hasn't been removed from the list.
+     */
+    removedIn?: number;
 };
 
 /**
@@ -2836,6 +2844,14 @@ export type ApiDatasetCategorizedVerse = {
      * The IDs of the categories that the verse belongs to, most relevant first. Each ID matches a category in the `categories` collection of the dataset (`/api/d/{dataset}/categories/{id}.json`).
      */
     categories: Array<string>;
+    /**
+     * The first year that the verse can be the verse of the day. Omitted if the verse has always been in the list.
+     */
+    addedIn?: number;
+    /**
+     * The first year that the verse can no longer be the verse of the day. Removed verses stay in the dataset so that the verses of earlier years can still be picked. Omitted if the verse hasn't been removed from the list.
+     */
+    removedIn?: number;
 };
 
 /**
@@ -2897,6 +2913,41 @@ export type ApiDatasetCategory = {
 };
 
 /**
+ * Defines the schema for a verse (or short passage) in a category of a dataset.
+ */
+export type DatasetCategoryVerse = {
+    book: BookId;
+    /**
+     * The chapter number that the reference starts at.
+     */
+    chapter: number;
+    /**
+     * The verse number that the reference starts at.
+     */
+    verse: number;
+    /**
+     * The rest of the content of the verse reference. This is the part of the string that comes after the verse reference. For example, in "GEN 1:1 In the beginning, God created the Heavens and the Earth.", the content would be "In the beginning, God created the Heavens and the Earth."
+     */
+    content?: string;
+    /**
+     * The chapter that the verse reference ends at. This is used for references that span multiple chapters, such as "GEN 1:1-2:3". In this case, the endChapter would be 2.
+     */
+    endChapter?: number;
+    /**
+     * The verse that the verse reference ends at. This is used for references that span multiple verses, such as "GEN 1:1-1:3". In this case, the endVerse would be 3.
+     */
+    endVerse?: number;
+    /**
+     * The first year that the verse can be the verse of the day. Omitted if the verse has always been in the list.
+     */
+    addedIn?: number;
+    /**
+     * The first year that the verse can no longer be the verse of the day. Removed verses stay in the dataset so that the verses of earlier years can still be picked. Omitted if the verse hasn't been removed from the list.
+     */
+    removedIn?: number;
+};
+
+/**
  * Defines the schema for a category of verses in a dataset.
  */
 export type DatasetCategory = {
@@ -2913,9 +2964,9 @@ export type DatasetCategory = {
      */
     description: string;
     /**
-     * The verses (or short passages) that belong to the category, in canonical order.
+     * The verses (or short passages) that belong to the category, in canonical order. Includes verses that have been removed from the list (see `removedIn`).
      */
-    verses: Array<VerseRef>;
+    verses: Array<DatasetCategoryVerse>;
 };
 
 export type GetAvailableTranslationsData = {

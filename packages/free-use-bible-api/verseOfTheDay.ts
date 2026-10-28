@@ -21,6 +21,16 @@ export interface VerseOfTheDayCandidate {
      * The categories that the verse belongs to.
      */
     categories?: string[];
+
+    /**
+     * The first year that the verse can be the verse of the day. Unset if the verse has always been in the list.
+     */
+    addedIn?: number | null;
+
+    /**
+     * The first year that the verse can no longer be the verse of the day. Unset if the verse hasn't been removed.
+     */
+    removedIn?: number | null;
 }
 
 /**
@@ -46,11 +56,13 @@ export interface PickVerseOfTheDayOptions {
  *
  * The pick follows a fixed convention, so every implementation picks the same verse on the same day:
  *
- * 1. Each verse gets a sort key: the 32-bit FNV-1a hash of the UTF-8 bytes of `"{seed}|{year}|{book} {chapter}:{verse}"`
+ * 1. Only the verses that are in use in the year of the date are picked from: those whose `addedIn` year is
+ *    unset or at most the year, and whose `removedIn` year is unset or after the year.
+ * 2. Each verse gets a sort key: the 32-bit FNV-1a hash of the UTF-8 bytes of `"{seed}|{year}|{book} {chapter}:{verse}"`
  *    (e.g. `"|2026|JHN 3:16"`), passed through the MurmurHash3 `fmix32` finalizer.
- * 2. The verses are sorted by their key (as an unsigned number), then by the key's string if two keys are equal.
- * 3. The verse at position `day mod n` is picked, where `day` is the day of the year of the date (0 for January 1st)
- *    and `n` is the number of verses.
+ * 3. The verses are sorted by their key (as an unsigned number), then by the key's string if two keys are equal.
+ * 4. The verse at position `day mod n` is picked, where `day` is the day of the year of the date (0 for January 1st)
+ *    and `n` is the number of verses in use.
  *
  * Each year has its own order, so with 366 or more verses a verse never repeats within a calendar year
  * (but can appear on December 31st and again on January 1st), and the order isn't repeated from one year to the next.
@@ -67,14 +79,16 @@ export function pickVerseOfTheDay<T extends VerseOfTheDayCandidate>(
     options: PickVerseOfTheDayOptions = {}
 ): T | null {
     const seed = options.seed ?? '';
-    const candidates = options.category
-        ? verses.filter((v) => v.categories?.includes(options.category!))
-        : verses;
+    const { year, dayOfYear } = getYearAndDayOfYear(date);
+    const candidates = verses.filter(
+        (v) =>
+            isVerseOfTheDayInUse(v, year) &&
+            (!options.category || !!v.categories?.includes(options.category))
+    );
     if (candidates.length <= 0) {
         return null;
     }
 
-    const { year, dayOfYear } = getYearAndDayOfYear(date);
     const sorted = candidates
         .map((verse) => {
             const key = `${seed}|${year}|${verse.book} ${verse.chapter}:${verse.verse}`;
@@ -92,6 +106,20 @@ export function pickVerseOfTheDay<T extends VerseOfTheDayCandidate>(
 
     const index = dayOfYear % sorted.length;
     return sorted[index].verse;
+}
+
+/**
+ * Determines whether the given verse can be the verse of the day in the given year:
+ * its `addedIn` year is unset or at most the year, and its `removedIn` year is unset or after the year.
+ */
+export function isVerseOfTheDayInUse(
+    verse: { addedIn?: number | null; removedIn?: number | null },
+    year: number
+): boolean {
+    return (
+        (verse.addedIn == null || verse.addedIn <= year) &&
+        (verse.removedIn == null || year < verse.removedIn)
+    );
 }
 
 /**

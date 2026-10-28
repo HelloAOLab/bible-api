@@ -86,11 +86,22 @@ export function createReviewRows(
         }
         return {
             number: i + 1,
-            reference: `${name} ${v.chapter}:${v.verse}${v.endVerse ? `-${v.endVerse}` : ''}`,
+            reference: `${name} ${v.chapter}:${v.verse}${v.endVerse ? `-${v.endVerse}` : ''}${formatYears(v)}`,
             categories: v.categories,
             text: missing ? null : parts.join(' '),
         };
     });
+}
+
+/**
+ * Formats the years that the verse is in use, e.g. " (added in 2027)", or "" if it has always been in use.
+ */
+function formatYears(verse: VerseOfTheDay): string {
+    const years = [
+        verse.addedIn !== undefined ? `added in ${verse.addedIn}` : null,
+        verse.removedIn !== undefined ? `removed in ${verse.removedIn}` : null,
+    ].filter((y) => y !== null);
+    return years.length > 0 ? ` (${years.join(', ')})` : '';
 }
 
 /**

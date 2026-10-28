@@ -8,11 +8,13 @@ import java.util.Calendar
  * The pick follows a fixed convention, so every implementation (including the JavaScript/TypeScript client's
  * `pickVerseOfTheDay()`) picks the same verse on the same day:
  *
- * 1. Each verse gets a sort key: the 32-bit FNV-1a hash of the UTF-8 bytes of `"{seed}|{year}|{book} {chapter}:{verse}"`
+ * 1. Only the verses that are in use in the year of the date are picked from: those whose `addedIn` year is
+ *    unset or at most the year, and whose `removedIn` year is unset or after the year.
+ * 2. Each verse gets a sort key: the 32-bit FNV-1a hash of the UTF-8 bytes of `"{seed}|{year}|{book} {chapter}:{verse}"`
  *    (e.g. `"|2026|JHN 3:16"`), passed through the MurmurHash3 `fmix32` finalizer.
- * 2. The verses are sorted by their key (as an unsigned number), then by the key's string if two keys are equal.
- * 3. The verse at position `day mod n` is picked, where `day` is the day of the year of the date (0 for January 1st)
- *    and `n` is the number of verses.
+ * 3. The verses are sorted by their key (as an unsigned number), then by the key's string if two keys are equal.
+ * 4. The verse at position `day mod n` is picked, where `day` is the day of the year of the date (0 for January 1st)
+ *    and `n` is the number of verses in use.
  *
  * Each year has its own order, so with 366 or more verses a verse never repeats within a calendar year
  * (but can appear on December 31st and again on January 1st), and the order isn't repeated from one year to the next.
@@ -29,11 +31,13 @@ public fun pickVerseOfTheDay(
     seed: String = "",
     category: String? = null,
 ): ApiDatasetCategorizedVerse? {
-    val candidates = if (category != null) verses.filter { category in it.categories } else verses
+    val (year, dayOfYear) = getYearAndDayOfYear(date)
+    val candidates = verses.filter {
+        isVerseOfTheDayInUse(it, year) && (category == null || category in it.categories)
+    }
     if (candidates.isEmpty()) {
         return null
     }
-    val (year, dayOfYear) = getYearAndDayOfYear(date)
     val sorted = candidates
         .map { verse ->
             val key = "$seed|$year|${verse.book} ${verse.chapter}:${verse.verse}"
@@ -42,6 +46,13 @@ public fun pickVerseOfTheDay(
         .sortedWith(compareBy<Triple<ApiDatasetCategorizedVerse, String, Long>> { it.third }.thenBy { it.second })
     return sorted[dayOfYear % sorted.size].first
 }
+
+/**
+ * Determines whether the given verse can be the verse of the day in the given year:
+ * its `addedIn` year is unset or at most the year, and its `removedIn` year is unset or after the year.
+ */
+public fun isVerseOfTheDayInUse(verse: ApiDatasetCategorizedVerse, year: Long): Boolean =
+    (verse.addedIn == null || verse.addedIn <= year) && (verse.removedIn == null || year < verse.removedIn)
 
 /**
  * Gets the number of days from 1970-01-01 to the given date.

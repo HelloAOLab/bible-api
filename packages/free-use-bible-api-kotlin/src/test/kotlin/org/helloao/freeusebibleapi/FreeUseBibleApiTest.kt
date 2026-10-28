@@ -257,7 +257,7 @@ class FreeUseBibleApiTest {
 
         val hope = api.getDatasetCategory("verse-of-the-day", "hope").category
         assertEquals("Hope", hope.name)
-        assertEquals(VerseRef(book = "GEN", chapter = 50, verse = 20), hope.verses.first())
+        assertEquals(DatasetCategoryVerse(book = "GEN", chapter = 50, verse = 20), hope.verses.first())
         assertEquals(19, hope.verses.last().endVerse)
     }
 

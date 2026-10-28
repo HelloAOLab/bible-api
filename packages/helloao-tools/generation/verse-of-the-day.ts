@@ -131,6 +131,18 @@ export interface VerseOfTheDay {
      * The categories that the verse belongs to, most relevant first.
      */
     categories: VerseOfTheDayCategory[];
+
+    /**
+     * The first year that the verse can be the verse of the day.
+     * Omitted if the verse has always been in the list.
+     */
+    addedIn?: number;
+
+    /**
+     * The first year that the verse can no longer be the verse of the day.
+     * Omitted if the verse hasn't been removed from the list.
+     */
+    removedIn?: number;
 }
 
 /**
@@ -139,6 +151,13 @@ export interface VerseOfTheDay {
  * Candidates are short (at most three verses), make sense when read on their own,
  * and use the standard English verse numbering (the same numbering as the BSB).
  * The list is sorted in canonical order.
+ *
+ * Every year's verse of the day schedule is derived from the verses that are in use that year, so changing
+ * which verses are in use in a year changes the whole schedule for that year. To keep the schedules that
+ * people have already seen:
+ * - Add a new verse with `addedIn` set to a year that hasn't started yet (usually next year).
+ * - Remove a verse by setting `removedIn` to a year that hasn't started yet, instead of deleting it.
+ * - Don't change the reference of a verse that is in use. Remove it and add the new reference instead.
  */
 export const VERSES_OF_THE_DAY: VerseOfTheDay[] = [
     // Old Testament
@@ -1542,11 +1561,13 @@ export interface VerseOfTheDayOptions {
  * The pick follows a fixed convention, so every implementation picks the same verse on the same day
  * (the free-use-bible-api client's `pickVerseOfTheDay()` and the Kotlin SDK use the same one):
  *
- * 1. Each verse gets a sort key: the 32-bit FNV-1a hash of the UTF-8 bytes of `"{seed}|{year}|{book} {chapter}:{verse}"`
+ * 1. Only the verses that are in use in the year of the date are picked from: those whose `addedIn` year is
+ *    unset or at most the year, and whose `removedIn` year is unset or after the year.
+ * 2. Each verse gets a sort key: the 32-bit FNV-1a hash of the UTF-8 bytes of `"{seed}|{year}|{book} {chapter}:{verse}"`
  *    (e.g. `"|2026|JHN 3:16"`), passed through the MurmurHash3 `fmix32` finalizer.
- * 2. The verses are sorted by their key (as an unsigned number), then by the key's string if two keys are equal.
- * 3. The verse at position `day mod n` is picked, where `day` is the day of the year of the date (0 for January 1st)
- *    and `n` is the number of verses.
+ * 3. The verses are sorted by their key (as an unsigned number), then by the key's string if two keys are equal.
+ * 4. The verse at position `day mod n` is picked, where `day` is the day of the year of the date (0 for January 1st)
+ *    and `n` is the number of verses in use.
  *
  * Each year has its own order, so with 366 or more verses a verse never repeats within a calendar year
  * (but can appear on December 31st and again on January 1st), and the order isn't repeated from one year to the next.
@@ -1561,14 +1582,16 @@ export function getVerseOfTheDay(
 ): VerseOfTheDay | null {
     const seed = options.seed ?? '';
     const verses = options.verses ?? VERSES_OF_THE_DAY;
-    const candidates = options.category
-        ? verses.filter((v) => v.categories.includes(options.category!))
-        : verses;
+    const { year, dayOfYear } = getYearAndDayOfYear(date);
+    const candidates = verses.filter(
+        (v) =>
+            isVerseOfTheDayInUse(v, year) &&
+            (!options.category || v.categories.includes(options.category))
+    );
     if (candidates.length <= 0) {
         return null;
     }
 
-    const { year, dayOfYear } = getYearAndDayOfYear(date);
     const sorted = candidates
         .map((verse) => {
             const key = `${seed}|${year}|${verse.book} ${verse.chapter}:${verse.verse}`;
@@ -1586,6 +1609,20 @@ export function getVerseOfTheDay(
 
     const index = dayOfYear % sorted.length;
     return sorted[index].verse;
+}
+
+/**
+ * Determines whether the given verse can be the verse of the day in the given year:
+ * its `addedIn` year is unset or at most the year, and its `removedIn` year is unset or after the year.
+ */
+export function isVerseOfTheDayInUse(
+    verse: { addedIn?: number | null; removedIn?: number | null },
+    year: number
+): boolean {
+    return (
+        (verse.addedIn == null || verse.addedIn <= year) &&
+        (verse.removedIn == null || year < verse.removedIn)
+    );
 }
 
 /**
@@ -1709,6 +1746,8 @@ export function generateVerseOfTheDayDataset(
             verse: v.verse,
             ...(v.endVerse !== undefined ? { endVerse: v.endVerse } : {}),
             categories: [...v.categories],
+            ...(v.addedIn !== undefined ? { addedIn: v.addedIn } : {}),
+            ...(v.removedIn !== undefined ? { removedIn: v.removedIn } : {}),
         });
     }
 
@@ -1725,6 +1764,10 @@ export function generateVerseOfTheDayDataset(
                     verse: v.verse,
                     ...(v.endVerse !== undefined
                         ? { endVerse: v.endVerse }
+                        : {}),
+                    ...(v.addedIn !== undefined ? { addedIn: v.addedIn } : {}),
+                    ...(v.removedIn !== undefined
+                        ? { removedIn: v.removedIn }
                         : {}),
                 })),
         })

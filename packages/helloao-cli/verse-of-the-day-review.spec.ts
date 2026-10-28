@@ -85,6 +85,34 @@ describe('createReviewRows()', () => {
         ]);
     });
 
+    it('should show the years that a verse was added and removed in', () => {
+        const rows = createReviewRows(
+            [
+                {
+                    book: 'JHN',
+                    chapter: 3,
+                    verse: 16,
+                    categories: ['love'],
+                    addedIn: 2027,
+                },
+                {
+                    book: 'JHN',
+                    chapter: 3,
+                    verse: 16,
+                    categories: ['love'],
+                    addedIn: 2027,
+                    removedIn: 2030,
+                },
+            ],
+            texts
+        );
+
+        expect(rows.map((r) => r.reference)).toEqual([
+            'John 3:16 (added in 2027)',
+            'John 3:16 (added in 2027, removed in 2030)',
+        ]);
+    });
+
     it('should not have text for verses that are missing from the translation', () => {
         const rows = createReviewRows(
             [

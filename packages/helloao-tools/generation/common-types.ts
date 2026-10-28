@@ -763,6 +763,24 @@ export const DatasetChapterVerseCategoriesSchema = z
             description:
                 'The IDs of the categories that the verse belongs to, most relevant first. Each ID matches a category in the `categories` collection of the dataset (`/api/d/{dataset}/categories/{id}.json`).',
         }),
+
+        /**
+         * The first year that the verse can be the verse of the day.
+         * Omitted if the verse has always been in the list.
+         */
+        addedIn: z.number().optional().meta({
+            description:
+                'The first year that the verse can be the verse of the day. Omitted if the verse has always been in the list.',
+        }),
+
+        /**
+         * The first year that the verse can no longer be the verse of the day.
+         * Omitted if the verse hasn't been removed from the list.
+         */
+        removedIn: z.number().optional().meta({
+            description:
+                "The first year that the verse can no longer be the verse of the day. Removed verses stay in the dataset so that the verses of earlier years can still be picked. Omitted if the verse hasn't been removed from the list.",
+        }),
     })
     .meta({
         id: 'DatasetChapterVerseCategories',
@@ -1461,6 +1479,35 @@ export const DatasetLexiconEntrySchema = z
 export type DatasetLexiconEntry = z.infer<typeof DatasetLexiconEntrySchema>;
 
 /**
+ * Defines a Zod schema for a verse in a category of a dataset.
+ */
+export const DatasetCategoryVerseSchema = VerseRefSchema.extend({
+    /**
+     * The first year that the verse can be the verse of the day.
+     * Omitted if the verse has always been in the list.
+     */
+    addedIn: z.number().optional().meta({
+        description:
+            'The first year that the verse can be the verse of the day. Omitted if the verse has always been in the list.',
+    }),
+
+    /**
+     * The first year that the verse can no longer be the verse of the day.
+     * Omitted if the verse hasn't been removed from the list.
+     */
+    removedIn: z.number().optional().meta({
+        description:
+            "The first year that the verse can no longer be the verse of the day. Removed verses stay in the dataset so that the verses of earlier years can still be picked. Omitted if the verse hasn't been removed from the list.",
+    }),
+}).meta({
+    id: 'DatasetCategoryVerse',
+    description:
+        'Defines the schema for a verse (or short passage) in a category of a dataset.',
+});
+
+export type DatasetCategoryVerse = z.infer<typeof DatasetCategoryVerseSchema>;
+
+/**
  * Defines a Zod schema for a category of verses in a dataset.
  */
 export const DatasetCategorySchema = z
@@ -1490,9 +1537,9 @@ export const DatasetCategorySchema = z
         /**
          * The verses that belong to the category, in canonical order.
          */
-        verses: z.array(VerseRefSchema).meta({
+        verses: z.array(DatasetCategoryVerseSchema).meta({
             description:
-                'The verses (or short passages) that belong to the category, in canonical order.',
+                'The verses (or short passages) that belong to the category, in canonical order. Includes verses that have been removed from the list (see `removedIn`).',
         }),
     })
     .meta({

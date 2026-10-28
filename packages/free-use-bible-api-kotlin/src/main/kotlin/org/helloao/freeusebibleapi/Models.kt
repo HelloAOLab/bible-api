@@ -2298,6 +2298,16 @@ public data class DatasetChapterVerseCategories(
      * The IDs of the categories that the verse belongs to, most relevant first. Each ID matches a category in the `categories` collection of the dataset (`/api/d/{dataset}/categories/{id}.json`).
      */
     public val categories: List<String>,
+
+    /**
+     * The first year that the verse can be the verse of the day. Omitted if the verse has always been in the list.
+     */
+    public val addedIn: Int? = null,
+
+    /**
+     * The first year that the verse can no longer be the verse of the day. Removed verses stay in the dataset so that the verses of earlier years can still be picked. Omitted if the verse hasn't been removed from the list.
+     */
+    public val removedIn: Int? = null,
 ) : DatasetChapterVerseContent
 
 /**
@@ -3333,6 +3343,16 @@ public data class ApiDatasetCategorizedVerse(
      * The IDs of the categories that the verse belongs to, most relevant first. Each ID matches a category in the `categories` collection of the dataset (`/api/d/{dataset}/categories/{id}.json`).
      */
     public val categories: List<String>,
+
+    /**
+     * The first year that the verse can be the verse of the day. Omitted if the verse has always been in the list.
+     */
+    public val addedIn: Int? = null,
+
+    /**
+     * The first year that the verse can no longer be the verse of the day. Removed verses stay in the dataset so that the verses of earlier years can still be picked. Omitted if the verse hasn't been removed from the list.
+     */
+    public val removedIn: Int? = null,
 )
 
 /**
@@ -3404,6 +3424,52 @@ public data class ApiDatasetCategory(
 )
 
 /**
+ * Defines the schema for a verse (or short passage) in a category of a dataset.
+ */
+@Serializable
+public data class DatasetCategoryVerse(
+    /**
+     * IDs for books. Follows the USFM standard (https://ubsicap.github.io/usfm/identification/books.html)
+     */
+    public val book: BookId,
+
+    /**
+     * The chapter number that the reference starts at.
+     */
+    public val chapter: Int,
+
+    /**
+     * The verse number that the reference starts at.
+     */
+    public val verse: Int,
+
+    /**
+     * The rest of the content of the verse reference. This is the part of the string that comes after the verse reference. For example, in "GEN 1:1 In the beginning, God created the Heavens and the Earth.", the content would be "In the beginning, God created the Heavens and the Earth."
+     */
+    public val content: String? = null,
+
+    /**
+     * The chapter that the verse reference ends at. This is used for references that span multiple chapters, such as "GEN 1:1-2:3". In this case, the endChapter would be 2.
+     */
+    public val endChapter: Int? = null,
+
+    /**
+     * The verse that the verse reference ends at. This is used for references that span multiple verses, such as "GEN 1:1-1:3". In this case, the endVerse would be 3.
+     */
+    public val endVerse: Int? = null,
+
+    /**
+     * The first year that the verse can be the verse of the day. Omitted if the verse has always been in the list.
+     */
+    public val addedIn: Int? = null,
+
+    /**
+     * The first year that the verse can no longer be the verse of the day. Removed verses stay in the dataset so that the verses of earlier years can still be picked. Omitted if the verse hasn't been removed from the list.
+     */
+    public val removedIn: Int? = null,
+)
+
+/**
  * Defines the schema for a category of verses in a dataset.
  */
 @Serializable
@@ -3424,9 +3490,9 @@ public data class DatasetCategory(
     public val description: String,
 
     /**
-     * The verses (or short passages) that belong to the category, in canonical order.
+     * The verses (or short passages) that belong to the category, in canonical order. Includes verses that have been removed from the list (see `removedIn`).
      */
-    public val verses: List<VerseRef>,
+    public val verses: List<DatasetCategoryVerse>,
 )
 
 /**
