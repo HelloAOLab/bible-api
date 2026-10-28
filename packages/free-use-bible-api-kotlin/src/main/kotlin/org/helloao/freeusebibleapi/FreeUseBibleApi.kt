@@ -313,7 +313,9 @@ public class FreeUseBibleApi(
         dataset: String = "verse-of-the-day",
         endpoint: String? = null,
     ): ApiDatasetCategorizedVerse? =
-        pickVerseOfTheDay(getDatasetVerses(dataset, endpoint).verses, date, seed, category)
+        getDatasetVerses(dataset, endpoint).let {
+            pickVerseOfTheDay(it.verses, date, seed, category, it.holidays.orEmpty())
+        }
 
     /**
      * Gets the list of verse categories for a given dataset.

@@ -1508,6 +1508,45 @@ export const DatasetCategoryVerseSchema = VerseRefSchema.extend({
 export type DatasetCategoryVerse = z.infer<typeof DatasetCategoryVerseSchema>;
 
 /**
+ * Defines a Zod schema for the dates of a holiday that a category of verses is for.
+ */
+export const DatasetCategoryHolidaySchema = z
+    .object({
+        /**
+         * The month of a holiday that falls on the same date every year (1 for January).
+         */
+        month: z.number().optional().meta({
+            description:
+                'The month of a holiday that falls on the same date every year (1 for January). Omitted for holidays whose date changes every year.',
+        }),
+
+        /**
+         * The day of the month of a holiday that falls on the same date every year.
+         */
+        day: z.number().optional().meta({
+            description:
+                'The day of the month of a holiday that falls on the same date every year. Omitted for holidays whose date changes every year.',
+        }),
+
+        /**
+         * The dates of a holiday whose date changes every year, as YYYY-MM-DD strings (Gregorian calendar).
+         */
+        dates: z.array(z.string()).optional().meta({
+            description:
+                'The dates of a holiday whose date changes every year (such as Resurrection Sunday), as `YYYY-MM-DD` strings in the Gregorian calendar, in order. They are precomputed for a range of years, so the holiday is only observed in the years that are listed. Omitted for holidays that fall on the same date every year.',
+        }),
+    })
+    .meta({
+        id: 'DatasetCategoryHoliday',
+        description:
+            'Defines the schema for the dates of a holiday that a category of verses is for. A holiday either falls on the same `month` and `day` every year, or lists its `dates`.',
+    });
+
+export type DatasetCategoryHoliday = z.infer<
+    typeof DatasetCategoryHolidaySchema
+>;
+
+/**
  * Defines a Zod schema for a category of verses in a dataset.
  */
 export const DatasetCategorySchema = z
@@ -1537,6 +1576,15 @@ export const DatasetCategorySchema = z
         /**
          * The verses that belong to the category, in canonical order.
          */
+        /**
+         * The dates of the holiday that the category is for.
+         * Omitted for categories that aren't for a holiday.
+         */
+        holiday: DatasetCategoryHolidaySchema.optional().meta({
+            description:
+                "The dates of the holiday that the category is for. On those dates, the verse of the day is one of the category's verses, and the category's verses aren't used on other days. Omitted for categories that aren't for a holiday.",
+        }),
+
         verses: z.array(DatasetCategoryVerseSchema).meta({
             description:
                 'The verses (or short passages) that belong to the category, in canonical order. Includes verses that have been removed from the list (see `removedIn`).',

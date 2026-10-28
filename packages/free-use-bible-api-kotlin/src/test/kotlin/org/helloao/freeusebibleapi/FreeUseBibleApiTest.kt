@@ -252,8 +252,9 @@ class FreeUseBibleApiTest {
     @Test
     fun `gets the verse categories`() = runTest {
         val categories = api.getDatasetCategories("verse-of-the-day")
-        assertEquals(listOf("hope", "love"), categories.categories.map { it.id })
-        assertEquals("/api/d/verse-of-the-day/categories/hope.json", categories.categories.first().apiLink)
+        assertEquals(listOf("christmas", "hope", "love"), categories.categories.map { it.id })
+        assertEquals(DatasetCategoryHoliday(month = 12, day = 25), categories.categories.first().holiday)
+        assertEquals("/api/d/verse-of-the-day/categories/hope.json", categories.categories[1].apiLink)
 
         val hope = api.getDatasetCategory("verse-of-the-day", "hope").category
         assertEquals("Hope", hope.name)
@@ -263,7 +264,10 @@ class FreeUseBibleApiTest {
 
     @Test
     fun `gets every verse in a dataset`() = runTest {
-        val verses = api.getDatasetVerses("verse-of-the-day").verses
+        val all = api.getDatasetVerses("verse-of-the-day")
+        assertTrue(all.verses.any { "christmas" in it.categories })
+        assertEquals(DatasetCategoryHoliday(month = 12, day = 25).month, all.holidays!!.first { it.id == "christmas" }.month)
+        val verses = all.verses.filter { it.chapter == 3 }
         assertEquals(
             listOf("PRO" to 3, "PRO" to 5, "PRO" to 27, "JHN" to 16, "JHN" to 17),
             verses.map { it.book to it.verse },

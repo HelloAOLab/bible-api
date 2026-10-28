@@ -2821,6 +2821,10 @@ export type ApiDatasetVerses = {
      * Every verse (or short passage) in the dataset, with its categories, in canonical order.
      */
     verses: Array<ApiDatasetCategorizedVerse>;
+    /**
+     * The holidays that have their own verses, with their dates. On a holiday, the verse of the day is one of the verses in the holiday's category, and those verses aren't used on other days. Omitted if the dataset has no holidays.
+     */
+    holidays?: Array<ApiDatasetVersesHoliday>;
 };
 
 /**
@@ -2852,6 +2856,32 @@ export type ApiDatasetCategorizedVerse = {
      * The first year that the verse can no longer be the verse of the day. Removed verses stay in the dataset so that the verses of earlier years can still be picked. Omitted if the verse hasn't been removed from the list.
      */
     removedIn?: number;
+};
+
+/**
+ * Defines a holiday that has its own verses, with its dates. It either falls on the same `month` and `day` every year, or lists its `dates`.
+ */
+export type ApiDatasetVersesHoliday = {
+    /**
+     * The month of a holiday that falls on the same date every year (1 for January). Omitted for holidays whose date changes every year.
+     */
+    month?: number;
+    /**
+     * The day of the month of a holiday that falls on the same date every year. Omitted for holidays whose date changes every year.
+     */
+    day?: number;
+    /**
+     * The dates of a holiday whose date changes every year (such as Resurrection Sunday), as `YYYY-MM-DD` strings in the Gregorian calendar, in order. They are precomputed for a range of years, so the holiday is only observed in the years that are listed. Omitted for holidays that fall on the same date every year.
+     */
+    dates?: Array<string>;
+    /**
+     * The ID of the holiday's category, such as `christmas`.
+     */
+    id: string;
+    /**
+     * The English name of the holiday, such as `Christmas`.
+     */
+    name: string;
 };
 
 /**
@@ -2889,9 +2919,31 @@ export type ApiDatasetCategorySummary = {
      */
     numberOfVerses: number;
     /**
+     * The dates of the holiday that the category is for. Omitted for categories that aren't for a holiday.
+     */
+    holiday?: DatasetCategoryHoliday;
+    /**
      * The API link for the category. Relative to the API origin.
      */
     apiLink: string;
+};
+
+/**
+ * Defines the schema for the dates of a holiday that a category of verses is for. A holiday either falls on the same `month` and `day` every year, or lists its `dates`.
+ */
+export type DatasetCategoryHoliday = {
+    /**
+     * The month of a holiday that falls on the same date every year (1 for January). Omitted for holidays whose date changes every year.
+     */
+    month?: number;
+    /**
+     * The day of the month of a holiday that falls on the same date every year. Omitted for holidays whose date changes every year.
+     */
+    day?: number;
+    /**
+     * The dates of a holiday whose date changes every year (such as Resurrection Sunday), as `YYYY-MM-DD` strings in the Gregorian calendar, in order. They are precomputed for a range of years, so the holiday is only observed in the years that are listed. Omitted for holidays that fall on the same date every year.
+     */
+    dates?: Array<string>;
 };
 
 /**
@@ -2963,6 +3015,10 @@ export type DatasetCategory = {
      * The description of what the verses in the category are about.
      */
     description: string;
+    /**
+     * The dates of the holiday that the category is for. On those dates, the verse of the day is one of the category's verses, and the category's verses aren't used on other days. Omitted for categories that aren't for a holiday.
+     */
+    holiday?: DatasetCategoryHoliday;
     /**
      * The verses (or short passages) that belong to the category, in canonical order. Includes verses that have been removed from the list (see `removedIn`).
      */

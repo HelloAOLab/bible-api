@@ -23,6 +23,7 @@ import {
     DatasetPeopleGroupSchema,
     DatasetLexiconEntrySchema,
     DatasetCategorySchema,
+    DatasetCategoryHolidaySchema,
     OriginalLanguageSchema,
     DatasetPerson,
     DatasetPersonSchema,
@@ -1680,6 +1681,15 @@ export const ApiDatasetCategorySummarySchema = z
         }),
 
         /**
+         * The dates of the holiday that the category is for.
+         * Omitted for categories that aren't for a holiday.
+         */
+        holiday: DatasetCategoryHolidaySchema.optional().meta({
+            description:
+                "The dates of the holiday that the category is for. Omitted for categories that aren't for a holiday.",
+        }),
+
+        /**
          * The API link for the category.
          */
         apiLink: z.string().meta({
@@ -1837,6 +1847,33 @@ export type ApiDatasetCategorizedVerse = z.infer<
 >;
 
 /**
+ * Defines a Zod schema for a holiday in the list of every verse in a dataset.
+ */
+export const ApiDatasetVersesHolidaySchema = DatasetCategoryHolidaySchema.extend({
+    /**
+     * The ID of the holiday's category.
+     */
+    id: z.string().meta({
+        description: "The ID of the holiday's category, such as `christmas`.",
+    }),
+
+    /**
+     * The English name of the holiday.
+     */
+    name: z.string().meta({
+        description: 'The English name of the holiday, such as `Christmas`.',
+    }),
+}).meta({
+    id: 'ApiDatasetVersesHoliday',
+    description:
+        'Defines a holiday that has its own verses, with its dates. It either falls on the same `month` and `day` every year, or lists its `dates`.',
+});
+
+export type ApiDatasetVersesHoliday = z.infer<
+    typeof ApiDatasetVersesHolidaySchema
+>;
+
+/**
  * Defines a Zod schema for the list of every verse in a dataset.
  * Maps to the /api/d/:datasetId/verses.json endpoint.
  */
@@ -1857,6 +1894,14 @@ export const ApiDatasetVersesSchema = z
         verses: z.array(ApiDatasetCategorizedVerseSchema).meta({
             description:
                 'Every verse (or short passage) in the dataset, with its categories, in canonical order.',
+        }),
+
+        /**
+         * The holidays that have their own verses, with their dates.
+         */
+        holidays: z.array(ApiDatasetVersesHolidaySchema).optional().meta({
+            description:
+                "The holidays that have their own verses, with their dates. On a holiday, the verse of the day is one of the verses in the holiday's category, and those verses aren't used on other days. Omitted if the dataset has no holidays.",
         }),
     })
     .meta({
@@ -4337,9 +4382,13 @@ export function generateApiForDataset(
             if (!api.datasetVerses) {
                 api.datasetVerses = [];
             }
+            const holidays = (categories ?? [])
+                .filter((c) => c.holiday)
+                .map((c) => ({ id: c.id, name: c.name, ...c.holiday }));
             api.datasetVerses.push({
                 dataset: apiDataset,
                 verses: categorizedVerses,
+                ...(holidays.length > 0 ? { holidays } : {}),
             });
         }
 
@@ -4701,6 +4750,7 @@ export function generateApiForDataset(
                     name: category.name,
                     description: category.description,
                     numberOfVerses: category.verses.length,
+                    ...(category.holiday ? { holiday: category.holiday } : {}),
                     apiLink: thisCategoryApiLink,
                 });
 

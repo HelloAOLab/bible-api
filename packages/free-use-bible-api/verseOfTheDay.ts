@@ -34,6 +34,32 @@ export interface VerseOfTheDayCandidate {
 }
 
 /**
+ * A holiday that has its own verses of the day (from the `holidays` of `/api/d/verse-of-the-day/verses.json`).
+ * It either falls on the same `month` and `day` every year, or lists its `dates`.
+ */
+export interface VerseOfTheDayHoliday {
+    /**
+     * The ID of the holiday's category. e.g. "christmas"
+     */
+    id: string;
+
+    /**
+     * The month of a holiday that falls on the same date every year (1 for January).
+     */
+    month?: number | null;
+
+    /**
+     * The day of the month of a holiday that falls on the same date every year.
+     */
+    day?: number | null;
+
+    /**
+     * The dates (YYYY-MM-DD) of a holiday whose date changes every year.
+     */
+    dates?: readonly string[] | null;
+}
+
+/**
  * The options for picking the verse of the day.
  */
 export interface PickVerseOfTheDayOptions {
@@ -45,10 +71,16 @@ export interface PickVerseOfTheDayOptions {
     seed?: string;
 
     /**
-     * Only pick from the verses in this category.
+     * Only pick from the verses in this category (including a holiday's category), on any day.
      * The category has fewer verses than there are days in a year, so its verses repeat sooner.
      */
     category?: string;
+
+    /**
+     * The holidays that have their own verses: the `holidays` from `/api/d/verse-of-the-day/verses.json`.
+     * Without them, holiday verses are picked like any other verse.
+     */
+    holidays?: readonly VerseOfTheDayHoliday[] | null;
 }
 
 /**
@@ -58,11 +90,18 @@ export interface PickVerseOfTheDayOptions {
  *
  * 1. Only the verses that are in use in the year of the date are picked from: those whose `addedIn` year is
  *    unset or at most the year, and whose `removedIn` year is unset or after the year.
- * 2. Each verse gets a sort key: the 32-bit FNV-1a hash of the UTF-8 bytes of `"{seed}|{year}|{book} {chapter}:{verse}"`
- *    (e.g. `"|2026|JHN 3:16"`), passed through the MurmurHash3 `fmix32` finalizer.
- * 3. The verses are sorted by their key (as an unsigned number), then by the key's string if two keys are equal.
- * 4. The verse at position `day mod n` is picked, where `day` is the day of the year of the date (0 for January 1st)
- *    and `n` is the number of verses in use.
+ * 2. If a category is given, the verses in that category are picked from by the day of the year (as in 4).
+ * 3. Otherwise, if the date is a holiday (a holiday with the date's month and day, or with the date in its `dates`),
+ *    the holiday's verses are picked from: sorted as in 4, but with the holiday's ID in place of the year
+ *    (`"{seed}|{holiday}|{book} {chapter}:{verse}"`), at position `year mod n`. A holiday goes through its verses
+ *    one year at a time.
+ * 4. Otherwise, the verses that aren't for a holiday are picked from. Each one gets a sort key: the 32-bit FNV-1a hash
+ *    of the UTF-8 bytes of `"{seed}|{year}|{book} {chapter}:{verse}"` (e.g. `"|2026|JHN 3:16"`), passed through
+ *    the MurmurHash3 `fmix32` finalizer. They are sorted by their key (as an unsigned number), then by the key's
+ *    string if two keys are equal, and the verse at position `day mod n` is picked, where `day` is the day of the
+ *    year of the date (0 for January 1st) and `n` is the number of verses.
+ *
+ * See https://bible.helloao.org/docs/reference/datasets/verse-of-the-day-convention.html for the full convention.
  *
  * Each year has its own order, so with 366 or more verses a verse never repeats within a calendar year
  * (but can appear on December 31st and again on January 1st), and the order isn't repeated from one year to the next.
@@ -79,33 +118,40 @@ export function pickVerseOfTheDay<T extends VerseOfTheDayCandidate>(
     options: PickVerseOfTheDayOptions = {}
 ): T | null {
     const seed = options.seed ?? '';
-    const { year, dayOfYear } = getYearAndDayOfYear(date);
-    const candidates = verses.filter(
-        (v) =>
-            isVerseOfTheDayInUse(v, year) &&
-            (!options.category || !!v.categories?.includes(options.category))
-    );
+    const holidays = options.holidays ?? [];
+    const { year, month, day, dayOfYear } = getDateParts(date);
+    const inUse = verses.filter((v) => isVerseOfTheDayInUse(v, year));
+
+    let candidates: T[];
+    if (options.category) {
+        candidates = inUse.filter(
+            (v) => !!v.categories?.includes(options.category!)
+        );
+    } else {
+        const holiday = findHoliday(holidays, year, month, day);
+        if (holiday) {
+            const holidayVerses = inUse.filter(
+                (v) => !!v.categories?.includes(holiday.id)
+            );
+            if (holidayVerses.length > 0) {
+                const sorted = sortByKey(
+                    holidayVerses,
+                    `${seed}|${holiday.id}`
+                );
+                return sorted[mod(year, sorted.length)];
+            }
+        }
+        const holidayIds = new Set(holidays.map((h) => h.id));
+        candidates = inUse.filter(
+            (v) => !v.categories?.some((c) => holidayIds.has(c))
+        );
+    }
     if (candidates.length <= 0) {
         return null;
     }
 
-    const sorted = candidates
-        .map((verse) => {
-            const key = `${seed}|${year}|${verse.book} ${verse.chapter}:${verse.verse}`;
-            return { verse, key, hash: hashVerseOfTheDayKey(key) };
-        })
-        .sort((a, b) =>
-            a.hash !== b.hash
-                ? a.hash - b.hash
-                : a.key < b.key
-                  ? -1
-                  : a.key > b.key
-                    ? 1
-                    : 0
-        );
-
-    const index = dayOfYear % sorted.length;
-    return sorted[index].verse;
+    const sorted = sortByKey(candidates, `${seed}|${year}`);
+    return sorted[dayOfYear % sorted.length];
 }
 
 /**
@@ -142,6 +188,68 @@ export function getYearAndDayOfYear(date: Date | string): {
     const { year, month, day } = parseDate(date);
     return {
         year,
+        dayOfYear:
+            daysSinceEpoch(year, month, day) - daysSinceEpoch(year, 1, 1),
+    };
+}
+
+/**
+ * Finds the first holiday that falls on the given date.
+ */
+function findHoliday<H extends VerseOfTheDayHoliday>(
+    holidays: readonly H[],
+    year: number,
+    month: number,
+    day: number
+): H | undefined {
+    const date = `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    return holidays.find(
+        (h) => (h.month === month && h.day === day) || !!h.dates?.includes(date)
+    );
+}
+
+/**
+ * Sorts the given verses by the hashes of their keys, `"{prefix}|{book} {chapter}:{verse}"`.
+ */
+function sortByKey<T extends { book: string; chapter: number; verse: number }>(
+    verses: readonly T[],
+    prefix: string
+): T[] {
+    return verses
+        .map((verse) => {
+            const key = `${prefix}|${verse.book} ${verse.chapter}:${verse.verse}`;
+            return { verse, key, hash: hashVerseOfTheDayKey(key) };
+        })
+        .sort((a, b) =>
+            a.hash !== b.hash
+                ? a.hash - b.hash
+                : a.key < b.key
+                  ? -1
+                  : a.key > b.key
+                    ? 1
+                    : 0
+        )
+        .map((x) => x.verse);
+}
+
+function mod(value: number, n: number): number {
+    return ((value % n) + n) % n;
+}
+
+/**
+ * Gets the year, month, day, and day of the year (0 for January 1st) of the given date.
+ */
+function getDateParts(date: Date | string): {
+    year: number;
+    month: number;
+    day: number;
+    dayOfYear: number;
+} {
+    const { year, month, day } = parseDate(date);
+    return {
+        year,
+        month,
+        day,
         dayOfYear:
             daysSinceEpoch(year, month, day) - daysSinceEpoch(year, 1, 1),
     };

@@ -13,14 +13,14 @@
     ],
     "listOfBooksApiLink": "/api/d/verse-of-the-day/books.json",
     "numberOfBooks": 65,
-    "totalNumberOfChapters": 360,
-    "totalNumberOfVerses": 651,
+    "totalNumberOfChapters": 380,
+    "totalNumberOfVerses": 736,
     "totalNumberOfReferences": 0,
     "languageName": "English",
     "languageEnglishName": "English",
     "listOfVersesApiLink": "/api/d/verse-of-the-day/verses.json",
     "listOfCategoriesApiLink": "/api/d/verse-of-the-day/categories.json",
-    "totalNumberOfCategories": 17
+    "totalNumberOfCategories": 30
   },
   "books": [
     {
@@ -49,7 +49,7 @@
       "id": "JHN",
       "datasetId": "verse-of-the-day",
       "order": 43,
-      "numberOfChapters": 15,
+      "numberOfChapters": 16,
       "firstChapterNumber": 1,
       "firstChapterApiLink": "/api/d/verse-of-the-day/JHN/1.json",
       "firstChapterReference": {
@@ -64,7 +64,7 @@
         "book": "JHN",
         "chapter": 20
       },
-      "totalNumberOfVerses": 45,
+      "totalNumberOfVerses": 53,
       "totalNumberOfReferences": 0
     }
   ]

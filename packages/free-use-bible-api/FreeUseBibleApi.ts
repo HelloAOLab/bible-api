@@ -564,7 +564,7 @@ export class FreeUseBibleApi {
      * The same date always gives the same verse, a verse doesn't repeat within a calendar year, and each year has a different order.
      * See {@link pickVerseOfTheDay} for how the verse is picked.
      * @param date The date to get the verse for: a `YYYY-MM-DD` string (e.g. "2026-01-01"), or a `Date` (its local calendar date is used). Defaults to today.
-     * @param options The options for picking the verse. Pass a `seed` to use a different (but equally valid) order, or a `category` to only pick from one category. `dataset` defaults to "verse-of-the-day".
+     * @param options The options for picking the verse. Pass a `seed` to use a different (but equally valid) order, or a `category` to only pick from one category. `dataset` defaults to "verse-of-the-day". The dataset's holidays are used unless other `holidays` are given.
      * @param endpoint The endpoint to use for the request. If not provided, then the default endpoint will be used.
      * @param requestOptions Options for the request, such as an `AbortSignal` that cancels it.
      * @returns The verse (its reference and categories), or null if the dataset has no verses to pick from.
@@ -581,7 +581,10 @@ export class FreeUseBibleApi {
             endpoint,
             requestOptions
         );
-        return pickVerseOfTheDay(verses.verses, date, pickOptions);
+        return pickVerseOfTheDay(verses.verses, date, {
+            holidays: verses.holidays,
+            ...pickOptions,
+        });
     }
 
     /**

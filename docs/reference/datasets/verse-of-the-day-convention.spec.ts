@@ -6,7 +6,11 @@ import {
     pickVerseOfTheDay,
     VerseOfTheDayCandidate,
 } from '../../../packages/free-use-bible-api/verseOfTheDay.js';
-import { getVerseOfTheDay } from '../../../packages/helloao-tools/generation/verse-of-the-day.js';
+import {
+    getVerseOfTheDay,
+    VERSE_OF_THE_DAY_HOLIDAY_IDS,
+    VERSE_OF_THE_DAY_HOLIDAYS,
+} from '../../../packages/helloao-tools/generation/verse-of-the-day.js';
 import { pickVerseOfTheDay as mcpPickVerseOfTheDay } from '../../../packages/seed-bible-mcp/src/verse-of-the-day.js';
 
 // Checks the test values on the Verse of the Day Convention page against the implementations,
@@ -66,49 +70,74 @@ describe('Verse of the Day Convention page', () => {
         }
     );
 
-    const smallList = JSON.parse(
-        /### Picks From a Small List[\s\S]*?```json\n([\s\S]*?)\n```/.exec(
-            page
-        )![1]
-    );
+    const [smallList, smallHolidays] = [
+        ...page
+            .slice(page.indexOf('### Picks From a Small List'))
+            .matchAll(/```json\n([\s\S]*?)\n```/g),
+    ]
+        .slice(0, 2)
+        .map((m) => JSON.parse(m[1]));
+    const holidayIds = smallHolidays.map((h: any) => h.id);
+
+    const sortedKeys = (verses: any[], prefix: string) =>
+        verses
+            .map((v) => `${prefix}|${v.book} ${v.chapter}:${v.verse}`)
+            .sort((a, b) => hashVerseOfTheDayKey(a) - hashVerseOfTheDayKey(b));
+    const keyRows = (keys: string[]) =>
+        keys.map((key, i) => [
+            String(i),
+            key,
+            String(hashVerseOfTheDayKey(key)),
+        ]);
+    const inUse = (year: number) =>
+        smallList.filter(
+            (v: any) => !(v.addedIn > year) && !(v.removedIn <= year)
+        );
 
     it('should list the sorted keys of the worked example', () => {
         const rows = tableAfter('Sorted by their sort keys');
-        const sorted = smallList
-            .filter((v: any) => !(v.addedIn > 2026) && !(v.removedIn <= 2026))
-            .map((v: any) => `|2026|${v.book} ${v.chapter}:${v.verse}`)
-            .sort(
-                (a: string, b: string) =>
-                    hashVerseOfTheDayKey(a) - hashVerseOfTheDayKey(b)
-            );
+        const ordinary = inUse(2026).filter(
+            (v: any) =>
+                !v.categories.some((c: string) => holidayIds.includes(c))
+        );
         expect(
             rows.map(([position, key, hash]) => [position, code(key), hash])
-        ).toEqual(
-            sorted.map((key: string, i: number) => [
-                String(i),
-                key,
-                String(hashVerseOfTheDayKey(key)),
-            ])
-        );
+        ).toEqual(keyRows(sortedKeys(ordinary, '|2026')));
     });
 
-    it.each(tableAfter('March 15th is day 73'))(
+    it('should list the sorted keys of the holiday example', () => {
+        const rows = tableAfter('In 2027 there are three');
+        const christmas = inUse(2027).filter((v: any) =>
+            v.categories.includes('christmas')
+        );
+        expect(
+            rows.map(([position, key, hash]) => [position, code(key), hash])
+        ).toEqual(keyRows(sortedKeys(christmas, '|christmas')));
+    });
+
+    it.each(tableAfter('2027 mod 3 = 2'))(
         'should list the verse of the day for %s (seed %s, category %s)',
         (date, seed, category, expected) => {
             const options = {
                 seed: code(seed),
                 category: code(category) || undefined,
             };
-            expect(ref(pickVerseOfTheDay(smallList, date, options))).toBe(
-                expected
-            );
+            expect(
+                ref(
+                    pickVerseOfTheDay(smallList, date, {
+                        ...options,
+                        holidays: smallHolidays,
+                    })
+                )
+            ).toBe(expected);
             expect(
                 ref(
                     mcpPickVerseOfTheDay(
                         smallList,
                         date,
                         options.seed,
-                        options.category
+                        options.category,
+                        smallHolidays
                     )
                 )
             ).toBe(expected);
@@ -117,6 +146,7 @@ describe('Verse of the Day Convention page', () => {
                     getVerseOfTheDay(date, {
                         ...options,
                         verses: smallList,
+                        holidays: smallHolidays,
                     } as any)
                 )
             ).toBe(expected);
@@ -125,8 +155,13 @@ describe('Verse of the Day Convention page', () => {
 
     it.each(tableAfter('### Picks From the Dataset'))(
         'should list the verse of the day from the dataset for %s',
-        (date, expected) => {
-            expect(ref(getVerseOfTheDay(date))).toBe(expected);
+        (date, holiday, expected) => {
+            const verse = getVerseOfTheDay(date)!;
+            expect(ref(verse)).toBe(expected);
+            const holidayName = VERSE_OF_THE_DAY_HOLIDAY_IDS.filter((id) =>
+                (verse.categories as string[]).includes(id)
+            ).map((id) => VERSE_OF_THE_DAY_HOLIDAYS[id].name);
+            expect(holidayName).toEqual(holiday ? [holiday] : []);
         }
     );
 });

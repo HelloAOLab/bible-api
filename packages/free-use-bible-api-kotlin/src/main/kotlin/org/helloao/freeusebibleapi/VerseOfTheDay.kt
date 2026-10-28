@@ -10,11 +10,18 @@ import java.util.Calendar
  *
  * 1. Only the verses that are in use in the year of the date are picked from: those whose `addedIn` year is
  *    unset or at most the year, and whose `removedIn` year is unset or after the year.
- * 2. Each verse gets a sort key: the 32-bit FNV-1a hash of the UTF-8 bytes of `"{seed}|{year}|{book} {chapter}:{verse}"`
- *    (e.g. `"|2026|JHN 3:16"`), passed through the MurmurHash3 `fmix32` finalizer.
- * 3. The verses are sorted by their key (as an unsigned number), then by the key's string if two keys are equal.
- * 4. The verse at position `day mod n` is picked, where `day` is the day of the year of the date (0 for January 1st)
- *    and `n` is the number of verses in use.
+ * 2. If a category is given, the verses in that category are picked from by the day of the year (as in 4).
+ * 3. Otherwise, if the date is a holiday (a holiday with the date's month and day, or with the date in its `dates`),
+ *    the holiday's verses are picked from: sorted as in 4, but with the holiday's ID in place of the year
+ *    (`"{seed}|{holiday}|{book} {chapter}:{verse}"`), at position `year mod n`. A holiday goes through its verses
+ *    one year at a time.
+ * 4. Otherwise, the verses that aren't for a holiday are picked from. Each one gets a sort key: the 32-bit FNV-1a hash
+ *    of the UTF-8 bytes of `"{seed}|{year}|{book} {chapter}:{verse}"` (e.g. `"|2026|JHN 3:16"`), passed through
+ *    the MurmurHash3 `fmix32` finalizer. They are sorted by their key (as an unsigned number), then by the key's
+ *    string if two keys are equal, and the verse at position `day mod n` is picked, where `day` is the day of the
+ *    year of the date (0 for January 1st) and `n` is the number of verses.
+ *
+ * See https://bible.helloao.org/docs/reference/datasets/verse-of-the-day-convention.html for the full convention.
  *
  * Each year has its own order, so with 366 or more verses a verse never repeats within a calendar year
  * (but can appear on December 31st and again on January 1st), and the order isn't repeated from one year to the next.
@@ -22,7 +29,8 @@ import java.util.Calendar
  * @param verses The verses to pick from. For example, the `verses` from `/api/d/verse-of-the-day/verses.json`.
  * @param date The date to pick the verse for, as a `YYYY-MM-DD` string. Defaults to today (in the default time zone).
  * @param seed The seed that the order of the verses is derived from. Different seeds give different (but equally valid) orders.
- * @param category Only pick from the verses in this category. Categories have fewer verses than there are days in a year, so their verses repeat sooner.
+ * @param category Only pick from the verses in this category (including a holiday's category), on any day. Categories have fewer verses than there are days in a year, so their verses repeat sooner.
+ * @param holidays The holidays that have their own verses: the `holidays` from `/api/d/verse-of-the-day/verses.json`. Without them, holiday verses are picked like any other verse.
  * @return The verse of the day, or null if there are no verses to pick from.
  */
 public fun pickVerseOfTheDay(
@@ -30,22 +38,53 @@ public fun pickVerseOfTheDay(
     date: String = todayIsoDate(),
     seed: String = "",
     category: String? = null,
+    holidays: List<ApiDatasetVersesHoliday> = emptyList(),
 ): ApiDatasetCategorizedVerse? {
-    val (year, dayOfYear) = getYearAndDayOfYear(date)
-    val candidates = verses.filter {
-        isVerseOfTheDayInUse(it, year) && (category == null || category in it.categories)
+    val (year, month, day) = parseDate(date)
+    val (_, dayOfYear) = getYearAndDayOfYear(date)
+    val inUse = verses.filter { isVerseOfTheDayInUse(it, year) }
+
+    val candidates = if (category != null) {
+        inUse.filter { category in it.categories }
+    } else {
+        val holiday = findHoliday(holidays, year, month, day)
+        if (holiday != null) {
+            val holidayVerses = inUse.filter { holiday.id in it.categories }
+            if (holidayVerses.isNotEmpty()) {
+                val sorted = sortByKey(holidayVerses, "$seed|${holiday.id}")
+                return sorted[Math.floorMod(year, sorted.size.toLong()).toInt()]
+            }
+        }
+        val holidayIds = holidays.map { it.id }.toSet()
+        inUse.filter { verse -> verse.categories.none { it in holidayIds } }
     }
     if (candidates.isEmpty()) {
         return null
     }
-    val sorted = candidates
+    val sorted = sortByKey(candidates, "$seed|$year")
+    return sorted[dayOfYear % sorted.size]
+}
+
+/**
+ * Finds the first holiday that falls on the given date.
+ */
+private fun findHoliday(holidays: List<ApiDatasetVersesHoliday>, year: Long, month: Int, day: Int): ApiDatasetVersesHoliday? {
+    val date = String.format("%04d-%02d-%02d", year, month, day)
+    return holidays.firstOrNull { (it.month == month && it.day == day) || it.dates?.contains(date) == true }
+}
+
+/**
+ * Sorts the given verses by the hashes of their keys, `"{prefix}|{book} {chapter}:{verse}"`.
+ */
+private fun sortByKey(verses: List<ApiDatasetCategorizedVerse>, prefix: String): List<ApiDatasetCategorizedVerse> =
+    verses
         .map { verse ->
-            val key = "$seed|$year|${verse.book} ${verse.chapter}:${verse.verse}"
+            val key = "$prefix|${verse.book} ${verse.chapter}:${verse.verse}"
             Triple(verse, key, hashVerseOfTheDayKey(key))
         }
         .sortedWith(compareBy<Triple<ApiDatasetCategorizedVerse, String, Long>> { it.third }.thenBy { it.second })
-    return sorted[dayOfYear % sorted.size].first
-}
+        .map { it.first }
+
 
 /**
  * Determines whether the given verse can be the verse of the day in the given year:

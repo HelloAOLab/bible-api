@@ -183,6 +183,76 @@ describe('pickVerseOfTheDay()', () => {
         }
     });
 
+    describe('holidays', () => {
+        const withHolidays: VerseOfTheDayCandidate[] = [
+            ...verses,
+            { book: 'LUK', chapter: 2, verse: 7, categories: ['christmas'] },
+            { book: 'LUK', chapter: 2, verse: 12, categories: ['christmas'] },
+            { book: 'LUK', chapter: 2, verse: 20, categories: ['christmas'] },
+            {
+                book: 'MAT',
+                chapter: 28,
+                verse: 6,
+                categories: ['resurrection-sunday'],
+            },
+        ];
+        const holidays = [
+            { id: 'christmas', month: 12, day: 25 },
+            { id: 'resurrection-sunday', dates: ['2926-04-08'] },
+        ];
+        const pick = (date: string, options = {}) =>
+            ref(
+                pickVerseOfTheDay(withHolidays, date, { holidays, ...options })
+            );
+
+        it('should pick a holiday verse on the holiday', () => {
+            expect(['LUK 2:7', 'LUK 2:12', 'LUK 2:20']).toContain(
+                pick('2926-12-25')
+            );
+            expect(pick('2926-04-08')).toBe('MAT 28:6');
+        });
+
+        it("should go through the holiday's verses one year at a time", () => {
+            const picks = [2926, 2927, 2928, 2929, 2930, 2931].map((year) =>
+                pick(`${year}-12-25`)
+            );
+            expect(new Set(picks.slice(0, 3)).size).toBe(3);
+            expect(picks.slice(3)).toEqual(picks.slice(0, 3));
+        });
+
+        it('should not pick holiday verses on other days', () => {
+            for (let i = 0; i < 365; i++) {
+                const date = addDays('2926-01-01', i);
+                if (date === '2926-12-25' || date === '2926-04-08') continue;
+                expect(['LUK', 'MAT']).not.toContain(pick(date)!.split(' ')[0]);
+            }
+        });
+
+        it('should only observe a holiday that moves on its listed dates', () => {
+            expect(pick('2927-04-08')).not.toBe('MAT 28:6');
+        });
+
+        it('should pick holiday verses like any other verse without the holidays', () => {
+            const picks = new Set(
+                Array.from({ length: 365 }, (_, i) =>
+                    ref(
+                        pickVerseOfTheDay(
+                            withHolidays,
+                            addDays('2926-01-01', i)
+                        )
+                    )
+                )
+            );
+            expect([...picks].some((p) => p!.startsWith('LUK'))).toBe(true);
+        });
+
+        it('should use the category instead of the holiday when one is given', () => {
+            expect(pick('2926-12-25', { category: 'hope' })).not.toMatch(
+                /^LUK/
+            );
+        });
+    });
+
     it('should only pick verses from the given category', () => {
         for (let i = 0; i < 30; i++) {
             const verse = pickVerseOfTheDay(verses, addDays('2926-01-01', i), {

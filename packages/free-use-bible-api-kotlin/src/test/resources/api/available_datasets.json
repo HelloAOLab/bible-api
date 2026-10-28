@@ -79,14 +79,14 @@
       ],
       "listOfBooksApiLink": "/api/d/verse-of-the-day/books.json",
       "numberOfBooks": 65,
-      "totalNumberOfChapters": 360,
-      "totalNumberOfVerses": 651,
+      "totalNumberOfChapters": 380,
+      "totalNumberOfVerses": 736,
       "totalNumberOfReferences": 0,
       "languageName": "English",
       "languageEnglishName": "English",
       "listOfVersesApiLink": "/api/d/verse-of-the-day/verses.json",
       "listOfCategoriesApiLink": "/api/d/verse-of-the-day/categories.json",
-      "totalNumberOfCategories": 17
+      "totalNumberOfCategories": 30
     },
     {
       "id": "default",

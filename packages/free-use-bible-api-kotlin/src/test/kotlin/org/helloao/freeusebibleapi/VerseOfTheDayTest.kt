@@ -58,7 +58,8 @@ class VerseOfTheDayTest {
     fun `picks the same verses as the JavaScript client when verses are added and removed`() = runTest {
         // Computed with the JavaScript client's pickVerseOfTheDay() for the verses in the verses.json fixture,
         // with JHN 3:16 added in 2927 and PRO 3:3 removed in 2927.
-        val changed = api.getDatasetVerses("verse-of-the-day").verses.map {
+        // Only the verses of the chapter 3 fixtures (not the Christmas verses).
+        val changed = api.getDatasetVerses("verse-of-the-day").verses.filter { it.chapter == 3 }.map {
             when ("${it.book} ${it.chapter}:${it.verse}") {
                 "JHN 3:16" -> it.copy(addedIn = 2927)
                 "PRO 3:3" -> it.copy(removedIn = 2927)
@@ -110,6 +111,15 @@ class VerseOfTheDayTest {
             v("ROM", 8, 28, "hope", removedIn = 2027),
             v("PHP", 4, 13, "strength"),
             v("1JN", 4, 19, "love", addedIn = 2027),
+            v("LUK", 2, 7, "christmas"),
+            v("LUK", 2, 10, "christmas", endVerse = 11),
+            v("MAT", 1, 23, "christmas", addedIn = 2027),
+            v("MAT", 28, 6, "resurrection-sunday"),
+        )
+        val holidays = listOf(
+            ApiDatasetVersesHoliday(id = "christmas-eve", name = "Christmas Eve", month = 12, day = 24),
+            ApiDatasetVersesHoliday(id = "christmas", name = "Christmas", month = 12, day = 25),
+            ApiDatasetVersesHoliday(id = "resurrection-sunday", name = "Resurrection Sunday", dates = listOf("2026-04-05", "2027-03-28")),
         )
         val expected = listOf(
             Triple("2026-01-01", "", null) to "PSA 23:1",
@@ -127,11 +137,33 @@ class VerseOfTheDayTest {
             Triple("2026-01-01", "", "hope") to "ROM 8:28",
             Triple("2027-01-01", "", "hope") to "ISA 40:31",
             Triple("2027-01-01", "", "joy") to null,
+            Triple("2026-12-25", "", null) to "LUK 2:10",
+            Triple("2027-12-25", "", null) to "LUK 2:7",
+            Triple("2028-12-25", "", null) to "LUK 2:10",
+            Triple("2029-12-25", "", null) to "MAT 1:23",
+            Triple("2026-12-25", "my-app", null) to "LUK 2:10",
+            Triple("2026-04-05", "", null) to "MAT 28:6",
+            Triple("2027-03-28", "", null) to "MAT 28:6",
+            Triple("2028-04-16", "", null) to "PSA 23:1",
+            Triple("2026-12-24", "", null) to "PSA 23:1",
+            Triple("2026-07-01", "", "christmas") to "LUK 2:7",
         )
         for ((input, ref) in expected) {
             val (date, seed, category) = input
-            assertEquals(ref, pickVerseOfTheDay(list, date, seed, category).ref(), input.toString())
+            assertEquals(ref, pickVerseOfTheDay(list, date, seed, category, holidays).ref(), input.toString())
         }
+    }
+
+    @Test
+    fun `picks holiday verses on holidays like the JavaScript client`() = runTest {
+        // Computed with the JavaScript client's pickVerseOfTheDay() for the verses and holidays in the verses.json fixture,
+        // which has the Christmas verses but no verses for Christmas Eve or Resurrection Sunday.
+        assertEquals("ISA 9:6", api.getVerseOfTheDay("2026-12-25").ref())
+        assertEquals("LUK 2:20", api.getVerseOfTheDay("2027-12-25").ref())
+        assertEquals("LUK 2:10", api.getVerseOfTheDay("2028-12-25").ref())
+        assertEquals("PRO 3:3", api.getVerseOfTheDay("2026-12-24").ref())
+        assertEquals("JHN 3:17", api.getVerseOfTheDay("2026-04-05").ref())
+        assertEquals("PRO 3:3", api.getVerseOfTheDay("2026-12-25", category = "love").ref())
     }
 
     @Test

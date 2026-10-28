@@ -1087,14 +1087,19 @@ export async function reviewVerseOfTheDay(
 
     let verses = verseOfTheDay.VERSES_OF_THE_DAY;
     if (options.category) {
-        const category =
-            options.category as verseOfTheDay.VerseOfTheDayCategory;
-        if (!verseOfTheDay.VERSE_OF_THE_DAY_CATEGORIES.includes(category)) {
+        const categories: string[] = [
+            ...verseOfTheDay.VERSE_OF_THE_DAY_CATEGORIES,
+            ...verseOfTheDay.VERSE_OF_THE_DAY_HOLIDAY_IDS,
+        ];
+        const category = options.category;
+        if (!categories.includes(category)) {
             throw new Error(
-                `Unknown category "${options.category}". Use one of: ${verseOfTheDay.VERSE_OF_THE_DAY_CATEGORIES.join(', ')}.`
+                `Unknown category "${options.category}". Use one of: ${categories.join(', ')}.`
             );
         }
-        verses = verses.filter((v) => v.categories.includes(category));
+        verses = verses.filter((v) =>
+            (v.categories as string[]).includes(category)
+        );
     }
 
     const parser = new DOMParser();

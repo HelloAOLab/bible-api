@@ -315,14 +315,14 @@ export interface Dataset {
             ],
             "listOfBooksApiLink": "/api/d/verse-of-the-day/books.json",
             "numberOfBooks": 65,
-            "totalNumberOfChapters": 360,
-            "totalNumberOfVerses": 651,
+            "totalNumberOfChapters": 380,
+            "totalNumberOfVerses": 736,
             "totalNumberOfReferences": 0,
             "languageName": "English",
             "languageEnglishName": "English",
             "listOfVersesApiLink": "/api/d/verse-of-the-day/verses.json",
             "listOfCategoriesApiLink": "/api/d/verse-of-the-day/categories.json",
-            "totalNumberOfCategories": 17
+            "totalNumberOfCategories": 30
         }
     ]
 }
@@ -2337,7 +2337,9 @@ export interface DatasetLexiconSense {
 
 ## Verse of the Day
 
-The verse of the day dataset (`verse-of-the-day`) is a curated list of more than 650 well-known verses and short passages (at most three verses) that make good candidates for a "verse of the day". That is enough for a different verse every day of the year. Each one makes sense on its own and has one to three categories, most relevant first, from this fixed set:
+The verse of the day dataset (`verse-of-the-day`) is a curated list of well-known verses and short passages (at most three verses) that make good candidates for a "verse of the day": more than 640 for every day of the year, and more than 80 for Christian holidays. Each one makes sense on its own.
+
+Every verse for every day has one to three categories, most relevant first, from this fixed set:
 
 | ID            | Description                                                 |
 | ------------- | ----------------------------------------------------------- |
@@ -2359,9 +2361,27 @@ The verse of the day dataset (`verse-of-the-day`) is a curated list of more than
 | `strength`    | God giving strength and endurance.                          |
 | `wisdom`      | Godly wisdom and practical instruction for life.            |
 
+Holidays have categories of their own. On a holiday, the verse of the day is one of the holiday's verses, and those verses aren't used on other days. Each holiday category has a `holiday` with its dates: holidays on the same date every year have a `month` and `day`, and holidays whose date changes every year (because they depend on Resurrection Sunday or Advent) list their `dates` in the Gregorian calendar, precomputed for 2026 to 2125.
+
+| ID                    | Holiday                | Date                                          |
+| --------------------- | ---------------------- | --------------------------------------------- |
+| `epiphany`            | Epiphany               | January 6th                                   |
+| `ash-wednesday`       | Ash Wednesday          | 46 days before Resurrection Sunday            |
+| `palm-sunday`         | Palm Sunday            | The Sunday before Resurrection Sunday         |
+| `maundy-thursday`     | Maundy Thursday        | The Thursday before Resurrection Sunday       |
+| `good-friday`         | Good Friday            | The Friday before Resurrection Sunday         |
+| `resurrection-sunday` | Resurrection Sunday    | Easter Sunday                                 |
+| `ascension-day`       | Ascension Day          | 39 days after Resurrection Sunday             |
+| `pentecost`           | Pentecost              | 49 days after Resurrection Sunday             |
+| `all-hallows-eve`     | All Hallows' Eve       | October 31st                                  |
+| `all-saints-day`      | All Saints' Day        | November 1st                                  |
+| `advent-sunday`       | First Sunday of Advent | The fourth Sunday before Christmas            |
+| `christmas-eve`       | Christmas Eve          | December 24th                                 |
+| `christmas`           | Christmas              | December 25th                                 |
+
 The dataset only contains references, not verse text, so it works with every translation. Verse numbers use the standard English numbering (the same as the BSB). The data can be read three ways:
 
--   [`/api/d/verse-of-the-day/verses.json`](#list-verses-in-a-dataset) lists every verse in the dataset with its categories, in one file.
+-   [`/api/d/verse-of-the-day/verses.json`](#list-verses-in-a-dataset) lists every verse in the dataset with its categories, and the holidays with their dates, in one file.
 -   [`/api/d/verse-of-the-day/categories/{category}.json`](#get-a-category-from-a-dataset) lists every verse in a category. This is the easiest way to pick a verse of the day from one category.
 -   [`/api/d/verse-of-the-day/{book}/{chapter}.json`](#get-a-chapter-from-a-dataset) lists the candidates in a chapter, with their categories. Only chapters that contain a candidate are available; use the book's chapter links or `/api/d/verse-of-the-day/books.json` to find them.
 
@@ -2371,7 +2391,7 @@ Datasets that contain verse categories include `listOfVersesApiLink`, `listOfCat
 
 The API is made of static files, so it doesn't pick a verse for you. Instead, there is a convention for picking one, so that every app that follows it shows the same verse on the same day. Apps are free to pick differently; the convention just gives them a shared default.
 
-The convention picks from the verses in `/api/d/verse-of-the-day/verses.json`. Every year gets its own shuffle of the verses that are in use that year (ordered by a hash of each verse's reference, the year, and an optional seed), and the verse of the day is the one at the date's day of the year in that shuffle. The dataset has more than 366 verses in use every year, so a verse never repeats within a calendar year, the order changes every year, and the same date always gives the same verse. New verses are added (with `addedIn`) and old ones removed (with `removedIn`) only from a year that hasn't started yet, so the verse of the day for a past date never changes.
+The convention picks from the verses and holidays in `/api/d/verse-of-the-day/verses.json`. On a holiday, it picks one of the holiday's verses, going through them one year at a time, so a holiday has a different verse every year until all of its verses have been used. On other days, every year gets its own shuffle of the verses that are in use that year (ordered by a hash of each verse's reference, the year, and an optional seed), and the verse of the day is the one at the date's day of the year in that shuffle. The dataset has more than 366 verses for every day in use every year, so a verse never repeats within a calendar year, the order changes every year, and the same date always gives the same verse. New verses are added (with `addedIn`) and old ones removed (with `removedIn`) only from a year that hasn't started yet, so the verse of the day for a past date never changes.
 
 The [Verse of the Day Convention](./verse-of-the-day-convention.md) page specifies the algorithm step by step, with pseudocode and test values, so that you can implement it in any language.
 
@@ -2451,6 +2471,41 @@ export interface DatasetVerses {
      * Every verse (or short passage) in the dataset, with its categories, in canonical order.
      */
     verses: DatasetCategorizedVerse[];
+
+    /**
+     * The holidays that have their own verses, with their dates.
+     * Omitted if the dataset has no holidays.
+     */
+    holidays?: DatasetVersesHoliday[];
+}
+
+export interface DatasetVersesHoliday extends DatasetCategoryHoliday {
+    /**
+     * The ID of the holiday's category. e.g. "christmas".
+     */
+    id: string;
+
+    /**
+     * The English name of the holiday. e.g. "Christmas".
+     */
+    name: string;
+}
+
+export interface DatasetCategoryHoliday {
+    /**
+     * The month (1 for January) and day of a holiday that falls on the same date every year.
+     * Omitted for holidays whose date changes every year.
+     */
+    month?: number;
+    day?: number;
+
+    /**
+     * The dates (YYYY-MM-DD, Gregorian calendar) of a holiday whose date changes every year, in order.
+     * They are precomputed for a range of years (currently 2026 to 2125), and the holiday
+     * is only observed on the dates that are listed.
+     * Omitted for holidays that fall on the same date every year.
+     */
+    dates?: string[];
 }
 
 export interface DatasetCategorizedVerse {
@@ -2526,6 +2581,27 @@ export interface DatasetCategorizedVerse {
             "verse": 5,
             "endVerse": 6,
             "categories": ["faith", "guidance", "wisdom"]
+        },
+        // ...
+        {
+            "book": "LUK",
+            "chapter": 2,
+            "verse": 7,
+            "categories": ["christmas"]
+        }
+        // ...
+    ],
+    "holidays": [
+        {
+            "id": "christmas",
+            "name": "Christmas",
+            "month": 12,
+            "day": 25
+        },
+        {
+            "id": "good-friday",
+            "name": "Good Friday",
+            "dates": ["2026-04-03", "2027-03-26", "2028-04-14" /* ... */]
         }
         // ...
     ]
@@ -2600,6 +2676,12 @@ export interface DatasetCategorySummary {
     numberOfVerses: number;
 
     /**
+     * The dates of the holiday that the category is for (see DatasetCategoryHoliday above).
+     * Omitted for categories that aren't for a holiday.
+     */
+    holiday?: DatasetCategoryHoliday;
+
+    /**
      * The API link for the category.
      */
     apiLink: string;
@@ -2613,7 +2695,7 @@ export interface DatasetCategorySummary {
     "dataset": {
         "id": "verse-of-the-day",
         "name": "Verse of the Day",
-        "totalNumberOfCategories": 17
+        "totalNumberOfCategories": 30
         // ...
     },
     "categories": [
@@ -2705,6 +2787,13 @@ export interface DatasetCategory {
     description: string;
 
     /**
+     * The dates of the holiday that the category is for (see DatasetCategoryHoliday in "List Verses in a Dataset").
+     * On those dates, the verse of the day is one of the category's verses, and they aren't used on other days.
+     * Omitted for categories that aren't for a holiday.
+     */
+    holiday?: DatasetCategoryHoliday;
+
+    /**
      * The verses (or short passages) that belong to the category, in canonical order.
      * Includes verses that have been removed from the list (see `removedIn`).
      */
@@ -2756,7 +2845,7 @@ export interface DatasetCategoryVerse {
     "dataset": {
         "id": "verse-of-the-day",
         "name": "Verse of the Day",
-        "totalNumberOfCategories": 17
+        "totalNumberOfCategories": 30
         // ...
     },
     "category": {

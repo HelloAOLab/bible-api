@@ -3,6 +3,11 @@ import path from 'path';
 import {
     generateVerseOfTheDayDataset,
     getDayNumber,
+    getResurrectionSunday,
+    getVerseOfTheDayHolidayDates,
+    VERSE_OF_THE_DAY_HOLIDAY_IDS,
+    VERSE_OF_THE_DAY_HOLIDAY_YEARS,
+    VERSE_OF_THE_DAY_HOLIDAYS,
     isVerseOfTheDayInUse,
     getVerseOfTheDay,
     hashVerseOfTheDayKey,
@@ -15,6 +20,10 @@ import { bookOrderMap } from './book-order.js';
 import { generateApiForDataset, generateFilesForApi } from './api.js';
 import { DatasetOutput } from './dataset.js';
 import { pickVerseOfTheDay } from '../../free-use-bible-api/verseOfTheDay.js';
+
+const HOLIDAY_IDS: readonly string[] = VERSE_OF_THE_DAY_HOLIDAY_IDS;
+const isHolidayVerse = (v: VerseOfTheDay) =>
+    v.categories.some((c) => HOLIDAY_IDS.includes(c));
 
 const BSB_DIR = path.resolve(__dirname, '../../../bible/bsb');
 
@@ -70,8 +79,8 @@ describe('VERSES_OF_THE_DAY', () => {
             if (v.removedIn !== undefined) years.add(v.removedIn);
         }
         for (let year of years) {
-            const inUse = VERSES_OF_THE_DAY.filter((v) =>
-                isVerseOfTheDayInUse(v, year)
+            const inUse = VERSES_OF_THE_DAY.filter(
+                (v) => isVerseOfTheDayInUse(v, year) && !isHolidayVerse(v)
             ).length;
             expect([year, inUse >= 366]).toEqual([year, true]);
         }
@@ -81,7 +90,7 @@ describe('VERSES_OF_THE_DAY', () => {
     // These fingerprints make sure that the schedules of years that people have already seen don't change.
     // Add new verses with `addedIn` (and remove verses with `removedIn`) set to a year that hasn't started yet.
     // When a year starts, add its fingerprint here.
-    it.each([[2026, 969680267]])(
+    it.each([[2026, 2436637312]])(
         'should not change the verse of the day schedule of %d',
         (year, fingerprint) => {
             const picks: string[] = [];
@@ -135,8 +144,31 @@ describe('VERSES_OF_THE_DAY', () => {
             expect(v.categories.length).toBeLessThanOrEqual(3);
             expect(new Set(v.categories).size).toBe(v.categories.length);
             for (let c of v.categories) {
-                expect(VERSE_OF_THE_DAY_CATEGORIES).toContain(c);
+                expect([
+                    ...VERSE_OF_THE_DAY_CATEGORIES,
+                    ...VERSE_OF_THE_DAY_HOLIDAY_IDS,
+                ]).toContain(c);
             }
+        }
+    });
+
+    it('should only give holiday verses holiday categories', () => {
+        for (let v of VERSES_OF_THE_DAY.filter(isHolidayVerse)) {
+            for (let c of v.categories) {
+                expect([formatRef(v), HOLIDAY_IDS.includes(c)]).toEqual([
+                    formatRef(v),
+                    true,
+                ]);
+            }
+        }
+    });
+
+    it('should have at least 5 verses for every holiday', () => {
+        for (let id of VERSE_OF_THE_DAY_HOLIDAY_IDS) {
+            const count = VERSES_OF_THE_DAY.filter((v) =>
+                (v.categories as string[]).includes(id)
+            ).length;
+            expect([id, count >= 5]).toEqual([id, true]);
         }
     });
 
@@ -201,7 +233,7 @@ describe('getVerseOfTheDay()', () => {
         expect(ref(getVerseOfTheDay('2926-01-01', { seed: 'my-app' }))).toBe(
             'PRO 4:23'
         );
-        expect(ref(getVerseOfTheDay('2026-12-31'))).toBe('PSA 90:2');
+        expect(ref(getVerseOfTheDay('2026-12-31'))).toBe('EZK 36:26');
         expect(ref(getVerseOfTheDay('2027-01-01'))).toBe('JAS 2:17');
     });
 
@@ -253,7 +285,7 @@ describe('getVerseOfTheDay()', () => {
     });
 
     it('should pick by the day of the year', () => {
-        const sorted = [...VERSES_OF_THE_DAY].sort(
+        const sorted = VERSES_OF_THE_DAY.filter((v) => !isHolidayVerse(v)).sort(
             (a, b) =>
                 hashVerseOfTheDayKey(`|2026|${ref(a)}`) -
                 hashVerseOfTheDayKey(`|2026|${ref(b)}`)
@@ -351,19 +383,24 @@ describe('getVerseOfTheDay()', () => {
                   ? { ...v, removedIn: 2027 }
                   : v
         );
+        const holidays = getVerseOfTheDayHolidayDates();
         for (let i = 0; i < 100; i++) {
             const date = addDays('2026-01-01', i * 7);
-            expect(pickVerseOfTheDay(changed, date)).toBe(
+            expect(pickVerseOfTheDay(changed, date, { holidays })).toBe(
                 getVerseOfTheDay(date, { verses: changed })
             );
         }
-        for (let i = 0; i < 100; i++) {
-            const date = addDays('2026-01-01', i * 7);
-            expect(pickVerseOfTheDay(VERSES_OF_THE_DAY, date)).toBe(
-                getVerseOfTheDay(date)
-            );
+        // Every day of a year, including the holidays.
+        for (let i = 0; i < 365; i++) {
+            const date = addDays('2026-01-01', i);
             expect(
-                pickVerseOfTheDay(VERSES_OF_THE_DAY, date, { seed: 'x' })
+                pickVerseOfTheDay(VERSES_OF_THE_DAY, date, { holidays })
+            ).toBe(getVerseOfTheDay(date));
+            expect(
+                pickVerseOfTheDay(VERSES_OF_THE_DAY, date, {
+                    seed: 'x',
+                    holidays,
+                })
             ).toBe(getVerseOfTheDay(date, { seed: 'x' }));
         }
     });
@@ -389,6 +426,178 @@ describe('getVerseOfTheDay()', () => {
 
     it('should return null when there are no verses', () => {
         expect(getVerseOfTheDay(new Date(), { verses: [] })).toBeNull();
+    });
+});
+
+describe('holidays', () => {
+    const ref = (v: VerseOfTheDay | null) =>
+        v ? `${v.book} ${v.chapter}:${v.verse}` : null;
+    const versesFor = (id: string) =>
+        VERSES_OF_THE_DAY.filter((v) =>
+            (v.categories as string[]).includes(id)
+        );
+
+    it('should compute Resurrection Sunday in the Gregorian calendar', () => {
+        const known: [number, string][] = [
+            [1818, '03-22'],
+            [2000, '04-23'],
+            [2008, '03-23'],
+            [2011, '04-24'],
+            [2024, '03-31'],
+            [2025, '04-20'],
+            [2026, '04-05'],
+            [2027, '03-28'],
+            [2035, '03-25'],
+            [2038, '04-25'],
+            [2285, '03-22'],
+        ];
+        for (let [year, date] of known) {
+            const { month, day } = getResurrectionSunday(year);
+            expect([
+                year,
+                `${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+            ]).toEqual([year, date]);
+        }
+    });
+
+    it('should precompute the dates of the holidays that move', () => {
+        const dates = new Map(
+            getVerseOfTheDayHolidayDates().map((h) => [h.id, h])
+        );
+        expect(dates.get('christmas')).toEqual({
+            id: 'christmas',
+            month: 12,
+            day: 25,
+        });
+        const year2026 = (id: string) => dates.get(id)!.dates![0];
+        expect(year2026('ash-wednesday')).toBe('2026-02-18');
+        expect(year2026('palm-sunday')).toBe('2026-03-29');
+        expect(year2026('maundy-thursday')).toBe('2026-04-02');
+        expect(year2026('good-friday')).toBe('2026-04-03');
+        expect(year2026('resurrection-sunday')).toBe('2026-04-05');
+        expect(year2026('ascension-day')).toBe('2026-05-14');
+        expect(year2026('pentecost')).toBe('2026-05-24');
+        expect(year2026('advent-sunday')).toBe('2026-11-29');
+        expect(dates.get('advent-sunday')!.dates![2]).toBe('2028-12-03');
+        for (let h of dates.values()) {
+            if (h.dates) {
+                expect(h.dates).toHaveLength(
+                    VERSE_OF_THE_DAY_HOLIDAY_YEARS.last -
+                        VERSE_OF_THE_DAY_HOLIDAY_YEARS.first +
+                        1
+                );
+                expect(h.dates.at(-1)!.startsWith('2125-')).toBe(true);
+            }
+        }
+    });
+
+    it('should never have two holidays on the same date', () => {
+        const seen = new Map<string, string>();
+        for (let year = 2026; year <= 2125; year++) {
+            for (let h of getVerseOfTheDayHolidayDates()) {
+                const dates = h.month
+                    ? [
+                          `${year}-${String(h.month).padStart(2, '0')}-${String(h.day).padStart(2, '0')}`,
+                      ]
+                    : h.dates!.filter((d) => d.startsWith(`${year}-`));
+                for (let date of dates) {
+                    expect([date, seen.get(date)]).toEqual([date, undefined]);
+                    seen.set(date, h.id);
+                }
+            }
+        }
+    });
+
+    it('should pick a verse for the holiday on the holiday', () => {
+        expect(versesFor('christmas')).toContain(
+            getVerseOfTheDay('2026-12-25')
+        );
+        expect(versesFor('christmas-eve')).toContain(
+            getVerseOfTheDay('2026-12-24')
+        );
+        expect(versesFor('good-friday')).toContain(
+            getVerseOfTheDay('2026-04-03')
+        );
+        expect(versesFor('resurrection-sunday')).toContain(
+            getVerseOfTheDay('2026-04-05')
+        );
+        expect(versesFor('resurrection-sunday')).toContain(
+            getVerseOfTheDay('2027-03-28')
+        );
+        expect(versesFor('all-hallows-eve')).toContain(
+            getVerseOfTheDay('2026-10-31')
+        );
+        expect(versesFor('advent-sunday')).toContain(
+            getVerseOfTheDay('2026-11-29')
+        );
+    });
+
+    it("should go through all of a holiday's verses before repeating one", () => {
+        const n = versesFor('christmas').length;
+        const picks = Array.from({ length: n * 2 }, (_, i) =>
+            ref(getVerseOfTheDay(`${2026 + i}-12-25`))
+        );
+        expect(new Set(picks.slice(0, n)).size).toBe(n);
+        expect(picks.slice(n)).toEqual(picks.slice(0, n));
+    });
+
+    it('should not pick holiday verses on other days', () => {
+        const holidayVerses = new Set(
+            VERSES_OF_THE_DAY.filter((v) =>
+                v.categories.some((c) =>
+                    (
+                        VERSE_OF_THE_DAY_HOLIDAY_IDS as readonly string[]
+                    ).includes(c)
+                )
+            )
+        );
+        const holidayDates = new Set(
+            getVerseOfTheDayHolidayDates().flatMap((h) =>
+                h.month
+                    ? [
+                          `2026-${String(h.month).padStart(2, '0')}-${String(h.day).padStart(2, '0')}`,
+                      ]
+                    : [...h.dates!]
+            )
+        );
+        for (let i = 0; i < 365; i++) {
+            const date = new Date(Date.UTC(2026, 0, 1 + i))
+                .toISOString()
+                .slice(0, 10);
+            const verse = getVerseOfTheDay(date)!;
+            expect([date, holidayVerses.has(verse)]).toEqual([
+                date,
+                holidayDates.has(date),
+            ]);
+        }
+    });
+
+    it('should not observe holidays that move outside of the precomputed years', () => {
+        const { month, day } = getResurrectionSunday(2200);
+        const date = `2200-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        expect(versesFor('resurrection-sunday')).not.toContain(
+            getVerseOfTheDay(date)
+        );
+        // Holidays on the same date every year are always observed.
+        expect(versesFor('christmas')).toContain(
+            getVerseOfTheDay('2200-12-25')
+        );
+    });
+
+    it('should pick from a category instead of the holiday when a category is given', () => {
+        expect(
+            getVerseOfTheDay('2026-12-25', { category: 'hope' })!.categories
+        ).toContain('hope');
+        expect(versesFor('christmas')).toContain(
+            getVerseOfTheDay('2026-07-01', { category: 'christmas' })
+        );
+    });
+
+    it('should describe every holiday', () => {
+        for (let id of VERSE_OF_THE_DAY_HOLIDAY_IDS) {
+            expect(VERSE_OF_THE_DAY_HOLIDAYS[id].name).toBeTruthy();
+            expect(VERSE_OF_THE_DAY_HOLIDAYS[id].description).toBeTruthy();
+        }
     });
 });
 
@@ -543,7 +752,46 @@ describe('generateVerseOfTheDayDataset()', () => {
         expect(count).toBe(VERSES_OF_THE_DAY.length);
         expect(dataset.categories!.map((c) => c.id)).toEqual([
             ...VERSE_OF_THE_DAY_CATEGORIES,
+            ...VERSE_OF_THE_DAY_HOLIDAY_IDS,
         ]);
+        const christmas = dataset.categories!.find(
+            (c) => c.id === 'christmas'
+        )!;
+        expect(christmas.name).toBe('Christmas');
+        expect(christmas.holiday).toEqual({ month: 12, day: 25 });
+        const goodFriday = dataset.categories!.find(
+            (c) => c.id === 'good-friday'
+        )!;
+        expect(goodFriday.holiday!.dates).toHaveLength(100);
+        expect(goodFriday.holiday!.dates![0]).toBe('2026-04-03');
+    });
+
+    it('should list the holidays and their dates in verses.json', () => {
+        const api = generateApiForDataset({
+            translations: [],
+            commentaries: [],
+            datasets: [generateVerseOfTheDayDataset()],
+        });
+        const holidays = api.datasetVerses![0].holidays!;
+        expect(holidays.map((h) => h.id)).toEqual([
+            ...VERSE_OF_THE_DAY_HOLIDAY_IDS,
+        ]);
+        expect(holidays.find((h) => h.id === 'christmas')).toEqual({
+            id: 'christmas',
+            name: 'Christmas',
+            month: 12,
+            day: 25,
+        });
+        expect(
+            holidays
+                .find((h) => h.id === 'resurrection-sunday')!
+                .dates!.slice(0, 3)
+        ).toEqual(['2026-04-05', '2027-03-28', '2028-04-16']);
+        expect(
+            api.datasetCategories![0].categories.find(
+                (c) => c.id === 'christmas'
+            )?.holiday
+        ).toEqual({ month: 12, day: 25 });
     });
 
     describe('generateApiForDataset()', () => {

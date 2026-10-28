@@ -6,7 +6,10 @@ import {
     pickVerseOfTheDay,
 } from './verse-of-the-day.js';
 import { pickVerseOfTheDay as clientPickVerseOfTheDay } from '../../free-use-bible-api/verseOfTheDay.js';
-import { VERSES_OF_THE_DAY } from '../../helloao-tools/generation/verse-of-the-day.js';
+import {
+    getVerseOfTheDayHolidayDates,
+    VERSES_OF_THE_DAY,
+} from '../../helloao-tools/generation/verse-of-the-day.js';
 
 describe('hashVerseOfTheDayKey()', () => {
     // The same values are checked by the free-use-bible-api client, @helloao/tools, and the Kotlin SDK.
@@ -74,6 +77,28 @@ describe('pickVerseOfTheDay() with added and removed verses', () => {
                 .slice(0, 10);
             expect(pickVerseOfTheDay(changed, date)).toBe(
                 clientPickVerseOfTheDay(changed, date)
+            );
+        }
+    });
+});
+
+describe('pickVerseOfTheDay() with holidays', () => {
+    it('should pick the same verses as the free-use-bible-api client', () => {
+        const holidays = getVerseOfTheDayHolidayDates();
+        for (let i = 0; i < 365; i++) {
+            const date = new Date(Date.UTC(2026, 0, 1 + i))
+                .toISOString()
+                .slice(0, 10);
+            expect(
+                pickVerseOfTheDay(
+                    VERSES_OF_THE_DAY,
+                    date,
+                    '',
+                    undefined,
+                    holidays
+                )
+            ).toBe(
+                clientPickVerseOfTheDay(VERSES_OF_THE_DAY, date, { holidays })
             );
         }
     });
@@ -177,6 +202,59 @@ describe('getVerseOfTheDay()', () => {
         });
     });
 
+    it('should name the holiday on a holiday', async () => {
+        fetchMock.mockImplementation(async (url: string) => {
+            if (url.endsWith('/verses.json')) {
+                return new Response(
+                    JSON.stringify({
+                        verses: [
+                            ...verses,
+                            {
+                                book: 'PRO',
+                                chapter: 17,
+                                verse: 17,
+                                categories: ['christmas'],
+                            },
+                        ],
+                        holidays: [
+                            {
+                                id: 'christmas',
+                                name: 'Christmas',
+                                month: 12,
+                                day: 25,
+                            },
+                        ],
+                    })
+                );
+            }
+            return new Response(
+                JSON.stringify({
+                    chapter: {
+                        content: [
+                            {
+                                type: 'verse',
+                                number: 17,
+                                text: 'A friend loves at all times,',
+                            },
+                        ],
+                    },
+                })
+            );
+        });
+
+        const christmas = await getVerseOfTheDay(apiBase, {
+            date: '2926-12-25',
+        });
+        expect(christmas.title).toBe('PRO 17:17 (BSB)');
+        expect(christmas.holiday).toBe('Christmas');
+
+        const otherDay = await getVerseOfTheDay(apiBase, {
+            date: '2926-12-26',
+        });
+        expect(otherDay.holiday).toBeUndefined();
+        expect(otherDay.title).not.toBe('PRO 17:17 (BSB)');
+    });
+
     it('should number the verses of a passage', async () => {
         const result = await getVerseOfTheDay(apiBase, {
             date: dateFor(verses[1]),
@@ -240,6 +318,9 @@ describe('getVerseOfTheDay()', () => {
         await expect(fetchVerseOfTheDayList(apiBase)).rejects.toThrow(
             'The verse of the day list is not available'
         );
-        await expect(fetchVerseOfTheDayList(apiBase)).resolves.toEqual(verses);
+        await expect(fetchVerseOfTheDayList(apiBase)).resolves.toEqual({
+            verses,
+            holidays: [],
+        });
     });
 });

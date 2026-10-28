@@ -29,6 +29,32 @@ export interface VerseOfTheDayEntry {
 }
 
 /**
+ * A holiday that has its own verses of the day (from the `holidays` of `/api/d/verse-of-the-day/verses.json`).
+ * It either falls on the same `month` and `day` every year, or lists its `dates`.
+ */
+export interface VerseOfTheDayHoliday {
+    /**
+     * The ID of the holiday's category. e.g. "christmas"
+     */
+    id: string;
+
+    /**
+     * The month of a holiday that falls on the same date every year (1 for January).
+     */
+    month?: number | null;
+
+    /**
+     * The day of the month of a holiday that falls on the same date every year.
+     */
+    day?: number | null;
+
+    /**
+     * The dates (YYYY-MM-DD) of a holiday whose date changes every year.
+     */
+    dates?: readonly string[] | null;
+}
+
+/**
  * The ID of the dataset that the verse of the day is picked from.
  */
 export const VERSE_OF_THE_DAY_DATASET = 'verse-of-the-day';
@@ -38,11 +64,18 @@ export const VERSE_OF_THE_DAY_DATASET = 'verse-of-the-day';
  *
  * 1. Only the verses that are in use in the year of the date are picked from: those whose `addedIn` year is
  *    unset or at most the year, and whose `removedIn` year is unset or after the year.
- * 2. Each verse gets a sort key: the 32-bit FNV-1a hash of the UTF-8 bytes of `"{seed}|{year}|{book} {chapter}:{verse}"`
- *    (e.g. `"|2026|JHN 3:16"`), passed through the MurmurHash3 `fmix32` finalizer.
- * 3. The verses are sorted by their key (as an unsigned number), then by the key's string if two keys are equal.
- * 4. The verse at position `day mod n` is picked, where `day` is the day of the year of the date (0 for January 1st)
- *    and `n` is the number of verses in use.
+ * 2. If a category is given, the verses in that category are picked from by the day of the year (as in 4).
+ * 3. Otherwise, if the date is a holiday (a holiday with the date's month and day, or with the date in its `dates`),
+ *    the holiday's verses are picked from: sorted as in 4, but with the holiday's ID in place of the year
+ *    (`"{seed}|{holiday}|{book} {chapter}:{verse}"`), at position `year mod n`. A holiday goes through its verses
+ *    one year at a time.
+ * 4. Otherwise, the verses that aren't for a holiday are picked from. Each one gets a sort key: the 32-bit FNV-1a hash
+ *    of the UTF-8 bytes of `"{seed}|{year}|{book} {chapter}:{verse}"` (e.g. `"|2026|JHN 3:16"`), passed through
+ *    the MurmurHash3 `fmix32` finalizer. They are sorted by their key (as an unsigned number), then by the key's
+ *    string if two keys are equal, and the verse at position `day mod n` is picked, where `day` is the day of the
+ *    year of the date (0 for January 1st) and `n` is the number of verses.
+ *
+ * See https://bible.helloao.org/docs/reference/datasets/verse-of-the-day-convention.html for the full convention.
  *
  * @param verses The verses to pick from.
  * @param date The date, as a `YYYY-MM-DD` string.
@@ -53,35 +86,40 @@ export function pickVerseOfTheDay<T extends VerseOfTheDayEntry>(
     verses: readonly T[],
     date: string,
     seed: string = '',
-    category?: string
+    category?: string,
+    holidays: readonly VerseOfTheDayHoliday[] = []
 ): T | null {
-    const { year, dayOfYear } = getYearAndDayOfYear(date);
-    const candidates = verses.filter(
-        (v) =>
-            isVerseOfTheDayInUse(v, year) &&
-            (!category || v.categories.includes(category))
-    );
+    const { year, month, day, dayOfYear } = getDateParts(date);
+    const inUse = verses.filter((v) => isVerseOfTheDayInUse(v, year));
+
+    let candidates: T[];
+    if (category) {
+        candidates = inUse.filter((v) => !!v.categories?.includes(category!));
+    } else {
+        const holiday = findHoliday(holidays, year, month, day);
+        if (holiday) {
+            const holidayVerses = inUse.filter(
+                (v) => !!v.categories?.includes(holiday.id)
+            );
+            if (holidayVerses.length > 0) {
+                const sorted = sortByKey(
+                    holidayVerses,
+                    `${seed}|${holiday.id}`
+                );
+                return sorted[mod(year, sorted.length)];
+            }
+        }
+        const holidayIds = new Set(holidays.map((h) => h.id));
+        candidates = inUse.filter(
+            (v) => !v.categories?.some((c) => holidayIds.has(c))
+        );
+    }
     if (candidates.length <= 0) {
         return null;
     }
 
-    const sorted = candidates
-        .map((verse) => {
-            const key = `${seed}|${year}|${verse.book} ${verse.chapter}:${verse.verse}`;
-            return { verse, key, hash: hashVerseOfTheDayKey(key) };
-        })
-        .sort((a, b) =>
-            a.hash !== b.hash
-                ? a.hash - b.hash
-                : a.key < b.key
-                  ? -1
-                  : a.key > b.key
-                    ? 1
-                    : 0
-        );
-
-    const index = dayOfYear % sorted.length;
-    return sorted[index].verse;
+    const sorted = sortByKey(candidates, `${seed}|${year}`);
+    return sorted[dayOfYear % sorted.length];
 }
 
 /**
@@ -118,6 +156,68 @@ export function getYearAndDayOfYear(date: string): {
     const { year, month, day } = parseDate(date);
     return {
         year,
+        dayOfYear:
+            daysSinceEpoch(year, month, day) - daysSinceEpoch(year, 1, 1),
+    };
+}
+
+/**
+ * Finds the first holiday that falls on the given date.
+ */
+function findHoliday<H extends VerseOfTheDayHoliday>(
+    holidays: readonly H[],
+    year: number,
+    month: number,
+    day: number
+): H | undefined {
+    const date = `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    return holidays.find(
+        (h) => (h.month === month && h.day === day) || !!h.dates?.includes(date)
+    );
+}
+
+/**
+ * Sorts the given verses by the hashes of their keys, `"{prefix}|{book} {chapter}:{verse}"`.
+ */
+function sortByKey<T extends { book: string; chapter: number; verse: number }>(
+    verses: readonly T[],
+    prefix: string
+): T[] {
+    return verses
+        .map((verse) => {
+            const key = `${prefix}|${verse.book} ${verse.chapter}:${verse.verse}`;
+            return { verse, key, hash: hashVerseOfTheDayKey(key) };
+        })
+        .sort((a, b) =>
+            a.hash !== b.hash
+                ? a.hash - b.hash
+                : a.key < b.key
+                  ? -1
+                  : a.key > b.key
+                    ? 1
+                    : 0
+        )
+        .map((x) => x.verse);
+}
+
+function mod(value: number, n: number): number {
+    return ((value % n) + n) % n;
+}
+
+/**
+ * Gets the year, month, day, and day of the year (0 for January 1st) of the given date.
+ */
+function getDateParts(date: string): {
+    year: number;
+    month: number;
+    day: number;
+    dayOfYear: number;
+} {
+    const { year, month, day } = parseDate(date);
+    return {
+        year,
+        month,
+        day,
         dayOfYear:
             daysSinceEpoch(year, month, day) - daysSinceEpoch(year, 1, 1),
     };
@@ -179,14 +279,22 @@ export function todayUtc(): string {
 }
 
 // Module-level cache. On Workers this lives for the lifetime of the isolate.
-const versesCache = new Map<string, Promise<VerseOfTheDayEntry[]>>();
+/**
+ * The verses and holidays of the verse-of-the-day dataset.
+ */
+export interface VerseOfTheDayList {
+    verses: VerseOfTheDayEntry[];
+    holidays: (VerseOfTheDayHoliday & { name?: string })[];
+}
+
+const versesCache = new Map<string, Promise<VerseOfTheDayList>>();
 
 /**
- * Fetches the verses of the verse-of-the-day dataset.
+ * Fetches the verses and holidays of the verse-of-the-day dataset.
  */
 export function fetchVerseOfTheDayList(
     apiBase: string
-): Promise<VerseOfTheDayEntry[]> {
+): Promise<VerseOfTheDayList> {
     let cached = versesCache.get(apiBase);
     if (!cached) {
         cached = (async () => {
@@ -199,7 +307,7 @@ export function fetchVerseOfTheDayList(
                 );
             }
             const data: any = await res.json();
-            return data.verses ?? [];
+            return { verses: data.verses ?? [], holidays: data.holidays ?? [] };
         })();
         // Don't keep failed requests, so a later call can try again.
         cached.catch(() => versesCache.delete(apiBase));
@@ -234,12 +342,13 @@ export async function getVerseOfTheDay(
     const translation = options.translation ?? 'BSB';
     getDayNumber(date); // Validates the date before anything is downloaded.
 
-    const verses = await fetchVerseOfTheDayList(apiBase);
+    const { verses, holidays } = await fetchVerseOfTheDayList(apiBase);
     const entry = pickVerseOfTheDay(
         verses,
         date,
         options.seed ?? '',
-        options.category
+        options.category,
+        holidays
     );
     if (!entry) {
         const categories = [
@@ -250,6 +359,8 @@ export async function getVerseOfTheDay(
         );
     }
 
+    // Holiday verses are only picked on their holiday (or when their category is asked for).
+    const holiday = holidays.find((h) => entry.categories.includes(h.id));
     const { book, chapter, verse, endVerse } = entry;
     const verseRange = endVerse ? `${verse}-${endVerse}` : `${verse}`;
     const chapterJson = await fetchSimpleChapterJson(
@@ -299,6 +410,7 @@ export async function getVerseOfTheDay(
               }
             : {}),
         categories: entry.categories,
+        ...(holiday ? { holiday: holiday.name ?? holiday.id } : {}),
         url: chapterUrl(apiBase, translation, book, chapter),
         seedBibleUrl: seedBibleUrl(translation, book, chapter),
         metadata: {
