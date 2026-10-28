@@ -31,6 +31,8 @@ export interface OsisTranslationSource {
 
 const KOUGO_URL =
     'https://raw.githubusercontent.com/seven1m/open-bibles/3ca49fb73163f42297a32b7b1b1c40cf3dafd84b/jpn-kougo.osis.xml';
+const BUNGO_URL =
+    'https://raw.githubusercontent.com/KallynGowdy/open-bibles/5a86195a040b18bb8ec6348984429b726af98774/jpn-bungo.osis.xml';
 
 /**
  * The OSIS translations that the fetch-osis-translations command downloads.
@@ -54,6 +56,33 @@ export const OSIS_TRANSLATIONS: OsisTranslationSource[] = [
                 'https://github.com/seven1m/open-bibles/blob/3ca49fb73163f42297a32b7b1b1c40cf3dafd84b/jpn-kougo.osis.xml',
             licenseNotice:
                 'The public domain Japan Bible Society 口語訳 edition, published in 1954 (New Testament) and 1955 (Old Testament), is taken from open-bibles commit 3ca49fb73163f42297a32b7b1b1c40cf3dafd84b with furigana removed.',
+            license: {
+                publicDomain: true,
+                attribution: 'not-required',
+                commercialUse: 'allowed',
+                derivatives: 'allowed',
+                copyleft: false,
+            },
+        },
+    },
+    {
+        // The 文語訳: the Meiji 元訳 Old Testament (1887) and the Taisho 改訳 New Testament (1917).
+        // Both were published as works credited to an organization, so their copyright terms have long expired.
+        url: BUNGO_URL,
+        sha256: '57708580daee3a0a52e4d4c4de34b09816378bbefb10349791090f25ed689568',
+        metadata: {
+            id: 'jpn_bun',
+            name: '文語訳',
+            englishName: 'Japanese Bungo-yaku (1887/1917)',
+            shortName: '文語訳',
+            language: 'jpn',
+            direction: 'ltr',
+            website:
+                'https://github.com/KallynGowdy/open-bibles/blob/5a86195a040b18bb8ec6348984429b726af98774/jpn-bungo.osis.xml',
+            licenseUrl:
+                'https://github.com/KallynGowdy/open-bibles/blob/5a86195a040b18bb8ec6348984429b726af98774/jpn-bungo.osis.xml',
+            licenseNotice:
+                'The public domain 文語訳, with the Meiji Old Testament (1887) and the Taisho New Testament (1917), is taken from open-bibles commit 5a86195a040b18bb8ec6348984429b726af98774 with furigana removed.',
             license: {
                 publicDomain: true,
                 attribution: 'not-required',

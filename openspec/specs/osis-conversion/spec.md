@@ -17,6 +17,13 @@ The CLI SHALL provide a `convert-osis-to-usfm <file> <dir>` command that reads o
 - **WHEN** the OSIS file contains a book whose OSIS ID has no USFM code
 - **THEN** the command fails with an error naming that OSIS ID and writes no files
 
+### Requirement: Testament groupings
+The converter SHALL accept books nested in `<div type="x-testament">` or `<div type="bookgroup">`, and SHALL NOT write the `<head>` of such a grouping (e.g. `旧約聖書`) into any book.
+
+#### Scenario: Book groups with headings
+- **WHEN** the books are wrapped in `<div type="bookgroup"><head>旧約聖書</head>…</div>` and `<div type="bookgroup"><head>新約聖書</head>…</div>`
+- **THEN** each book is converted as usual, and neither heading appears in the output
+
 ### Requirement: Book titles
 The converter SHALL write a book's `<title type="main">` text as that book's `\h`, `\toc1`, `\toc2` and `\mt1` lines.
 
@@ -78,6 +85,10 @@ The CLI SHALL provide a `fetch-osis-translations <dir>` command that, for each c
 #### Scenario: Fetch the Kougo-yaku
 - **WHEN** `fetch-osis-translations ./sources/osis` runs
 - **THEN** `./sources/osis/jpn_kou/` contains 66 USFM files and a `metadata.json` with id `jpn_kou`, and `import-translations ./sources/osis` imports the translation
+
+#### Scenario: Fetch the Bungo-yaku
+- **WHEN** `fetch-osis-translations ./sources/osis` runs
+- **THEN** `./sources/osis/jpn_bun/` contains 66 USFM files and a `metadata.json` with id `jpn_bun`
 
 #### Scenario: Hash mismatch
 - **WHEN** the downloaded file's SHA-256 differs from the pinned hash

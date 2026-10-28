@@ -1256,7 +1256,7 @@ async function start() {
     program
         .command('fetch-osis-translations <dir>')
         .description(
-            'Fetches the pinned OSIS translations (such as the Japanese Kougo-yaku), checks their SHA-256 hashes, converts them to USFM and places them in the given directory.'
+            'Fetches the pinned OSIS translations (the Japanese Kougo-yaku and Bungo-yaku), checks their SHA-256 hashes, converts them to USFM and places them in the given directory.'
         )
         .action(async (dir: string) => {
             await fetchOsisTranslations(dir);
