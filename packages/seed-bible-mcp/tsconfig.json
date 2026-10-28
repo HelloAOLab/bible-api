@@ -11,5 +11,7 @@
         "types": ["node"],
         "noEmit": true
     },
-    "include": ["src/**/*.ts"]
+    "include": ["src/**/*.ts"],
+    // The tests run with the repository's Jest setup, which isn't installed when this package is built on its own.
+    "exclude": ["src/**/*.spec.ts"]
 }

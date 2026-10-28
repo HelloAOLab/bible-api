@@ -16,6 +16,7 @@ import {
     passageTitle,
     seedBibleUrl,
 } from './bible.js';
+import { getVerseOfTheDay } from './verse-of-the-day.js';
 
 export interface BibleMcpOptions {
     /** Base URL of the Free Use Bible API. Defaults to https://bible.helloao.org/api */
@@ -71,6 +72,7 @@ export function createBibleMcpServer(options: BibleMcpOptions = {}): McpServer {
                 'Then use fetchChapter() to retrieve the full passage text. ' +
                 'To get the text of a verse or verse range directly, use fetchVerse(). ' +
                 'To link a reader to a chapter on Seed Bible (seedbible.org), use getSeedBibleLink(). ' +
+                'For the verse of the day (or the verse for a given date), use getVerseOfTheDay(). ' +
                 'Use listTranslations() to find available translations by language or name, then pass a translation id as the translation parameter. ' +
                 'References can name BSB, WEB (ENGWEBP), Hebrew WLC (heb_wlc), or SBL Greek NT (grc_sbl) directly; other translations need the translation parameter.',
             // The default Ajv validator compiles schemas with `new Function`,
@@ -245,6 +247,56 @@ export function createBibleMcpServer(options: BibleMcpOptions = {}): McpServer {
                 url: seedBibleUrl(translation, book, chapter),
                 metadata: { translation, book, chapter, verses },
             });
+        }
+    );
+
+    server.registerTool(
+        'getVerseOfTheDay',
+        {
+            description:
+                'Get the verse of the day for a date, with its text. The verse is picked from a curated list of well-known verses by a fixed convention, so every app that follows it shows the same verse on the same day, and a verse does not repeat within a year.',
+            inputSchema: {
+                date: z
+                    .string()
+                    .regex(/^\d{4}-\d{2}-\d{2}$/)
+                    .optional()
+                    .describe(
+                        'The date as YYYY-MM-DD, e.g. "2026-01-01". Defaults to today in UTC; pass the user\'s local date when you know it.'
+                    ),
+                translation: translationParam,
+                category: z
+                    .string()
+                    .optional()
+                    .describe(
+                        'Only pick from the verses in this category: comfort, courage, faith, forgiveness, gratitude, guidance, hope, inspiration, joy, love, peace, praise, prayer, provision, salvation, strength, or wisdom. Verses in a category repeat sooner than a year.'
+                    ),
+                seed: z
+                    .string()
+                    .optional()
+                    .describe(
+                        'A seed for a different (but equally valid) order of verses. Leave it out to get the standard verse of the day.'
+                    ),
+            },
+        },
+        async ({ date, translation: requestedTranslation, category, seed }) => {
+            const translationId = requestedTranslation
+                ? await resolveTranslationId(apiBase, requestedTranslation)
+                : undefined;
+            if (translationId === null) {
+                return unknownTranslation(requestedTranslation!);
+            }
+            try {
+                return json(
+                    await getVerseOfTheDay(apiBase, {
+                        date,
+                        translation: translationId,
+                        category,
+                        seed,
+                    })
+                );
+            } catch (err) {
+                return error(err instanceof Error ? err.message : String(err));
+            }
         }
     );
 

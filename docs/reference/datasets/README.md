@@ -2391,6 +2391,7 @@ console.log(ref, verses);
 
 -   `getVerseOfTheDay(date?, { seed?, category?, dataset? }?)` downloads the verse list and picks from it. `pickVerseOfTheDay(verses, date?, { seed?, category? }?)` picks from a list you already have.
 -   The Kotlin SDK has `getVerseOfTheDay(date?, seed?, category?)` and `pickVerseOfTheDay(verses, date?, seed?, category?)`, which take the date as a `YYYY-MM-DD` string.
+-   The [MCP server](https://github.com/HelloAOLab/bible-api/tree/main/packages/seed-bible-mcp) has a `getVerseOfTheDay` tool that returns the verse of the day with its text.
 -   The `@helloao/tools` package has the same list and a `getVerseOfTheDay(date?, { seed?, category? }?)` function in `@helloao/tools/generation/verse-of-the-day.js`.
 
 ### License
