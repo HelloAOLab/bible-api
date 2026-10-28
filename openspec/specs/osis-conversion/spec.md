@@ -97,14 +97,3 @@ The CLI SHALL provide a `fetch-osis-translations <dir>` command that, for each c
 #### Scenario: Failed download keeps the previous fetch
 - **WHEN** the download responds with a non-success HTTP status and `<dir>/jpn_kou/` already exists
 - **THEN** the command fails with an error naming the URL and status, and leaves the existing directory unchanged
-
-### Requirement: Source corrections
-An OSIS translation MAY list fixes, each a `find` string and its `replace` text. The fixes SHALL be applied to the downloaded XML after its hash is checked and before it is converted. A fix whose `find` string does not occur exactly once SHALL fail the fetch without writing any files. Changing a translation's fixes SHALL cause it to be re-fetched even when unchanged translations are skipped.
-
-#### Scenario: Mislabelled verse
-- **WHEN** a fix replaces the second `<verse osisID="2Sam.19.26">` with `<verse osisID="2Sam.19.25">`
-- **THEN** the USFM for 2 Samuel 19 contains verses 24, 25, 26 and 27 once each
-
-#### Scenario: Fix no longer matches
-- **WHEN** a fix's `find` string does not occur in the downloaded file
-- **THEN** the command fails with an error quoting the string and writes no files
