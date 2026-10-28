@@ -254,7 +254,7 @@ export function createBibleMcpServer(options: BibleMcpOptions = {}): McpServer {
         'getVerseOfTheDay',
         {
             description:
-                'Get the verse of the day for a date, with its text. The verse is picked from a curated list of well-known verses by a fixed convention, so every app that follows it shows the same verse on the same day, and a verse does not repeat within a year.',
+                'Get the verse of the day for a date, with its text. The verse is picked from a curated list of well-known verses by a fixed convention, so every app that follows it shows the same verse on the same day, and a verse does not repeat within a calendar year.',
             inputSchema: {
                 date: z
                     .string()

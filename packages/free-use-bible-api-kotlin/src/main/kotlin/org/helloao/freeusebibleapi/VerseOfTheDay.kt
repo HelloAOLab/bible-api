@@ -8,13 +8,14 @@ import java.util.Calendar
  * The pick follows a fixed convention, so every implementation (including the JavaScript/TypeScript client's
  * `pickVerseOfTheDay()`) picks the same verse on the same day:
  *
- * 1. Each verse gets a sort key: the 32-bit FNV-1a hash of the UTF-8 bytes of `"{seed}|{book} {chapter}:{verse}"`
- *    (e.g. `"|JHN 3:16"`), passed through the MurmurHash3 `fmix32` finalizer.
+ * 1. Each verse gets a sort key: the 32-bit FNV-1a hash of the UTF-8 bytes of `"{seed}|{year}|{book} {chapter}:{verse}"`
+ *    (e.g. `"|2026|JHN 3:16"`), passed through the MurmurHash3 `fmix32` finalizer.
  * 2. The verses are sorted by their key (as an unsigned number), then by the key's string if two keys are equal.
- * 3. The verse at position `day mod n` is picked, where `day` is the number of days from 1970-01-01 to the date
+ * 3. The verse at position `day mod n` is picked, where `day` is the day of the year of the date (0 for January 1st)
  *    and `n` is the number of verses.
  *
- * Every verse appears once in every `n` consecutive days, so with 366 or more verses a verse never repeats within a year.
+ * Each year has its own order, so with 366 or more verses a verse never repeats within a calendar year
+ * (but can appear on December 31st and again on January 1st), and the order isn't repeated from one year to the next.
  *
  * @param verses The verses to pick from. For example, the `verses` from `/api/d/verse-of-the-day/verses.json`.
  * @param date The date to pick the verse for, as a `YYYY-MM-DD` string. Defaults to today (in the default time zone).
@@ -32,14 +33,14 @@ public fun pickVerseOfTheDay(
     if (candidates.isEmpty()) {
         return null
     }
+    val (year, dayOfYear) = getYearAndDayOfYear(date)
     val sorted = candidates
         .map { verse ->
-            val key = "$seed|${verse.book} ${verse.chapter}:${verse.verse}"
+            val key = "$seed|$year|${verse.book} ${verse.chapter}:${verse.verse}"
             Triple(verse, key, hashVerseOfTheDayKey(key))
         }
         .sortedWith(compareBy<Triple<ApiDatasetCategorizedVerse, String, Long>> { it.third }.thenBy { it.second })
-    val index = Math.floorMod(getDayNumber(date), sorted.size.toLong())
-    return sorted[index.toInt()].first
+    return sorted[dayOfYear % sorted.size].first
 }
 
 /**
@@ -47,14 +48,31 @@ public fun pickVerseOfTheDay(
  * @param date The date, as a `YYYY-MM-DD` string.
  */
 public fun getDayNumber(date: String): Long {
+    val (year, month, day) = parseDate(date)
+    return daysSinceEpoch(year, month, day)
+}
+
+/**
+ * Gets the year of the given date and its day of the year (0 for January 1st).
+ * @param date The date, as a `YYYY-MM-DD` string.
+ */
+public fun getYearAndDayOfYear(date: String): Pair<Long, Int> {
+    val (year, month, day) = parseDate(date)
+    return year to (daysSinceEpoch(year, month, day) - daysSinceEpoch(year, 1, 1)).toInt()
+}
+
+private fun parseDate(date: String): Triple<Long, Int, Int> {
     val match = Regex("^(-?\\d{4,})-(\\d{2})-(\\d{2})$").matchEntire(date)
         ?: throw IllegalArgumentException("Invalid date \"$date\". Use the YYYY-MM-DD format.")
     val year = match.groupValues[1].toLong()
     val month = match.groupValues[2].toInt()
     val day = match.groupValues[3].toInt()
     require(month in 1..12 && day in 1..daysInMonth(year, month)) { "Invalid date \"$date\"." }
+    return Triple(year, month, day)
+}
 
-    // Days from civil (proleptic Gregorian calendar), from https://howardhinnant.github.io/date_algorithms.html
+// Days from civil (proleptic Gregorian calendar), from https://howardhinnant.github.io/date_algorithms.html
+private fun daysSinceEpoch(year: Long, month: Int, day: Int): Long {
     val y = if (month <= 2) year - 1 else year
     val era = Math.floorDiv(y, 400L)
     val yearOfEra = y - era * 400

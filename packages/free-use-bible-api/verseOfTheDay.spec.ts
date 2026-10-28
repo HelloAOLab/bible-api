@@ -71,37 +71,56 @@ describe('pickVerseOfTheDay()', () => {
         );
     });
 
-    it('should pick the verse at the position of the day in the order of the hashes', () => {
-        const sorted = [...verses].sort(
-            (a, b) =>
-                hashVerseOfTheDayKey(`|${ref(a)}`) -
-                hashVerseOfTheDayKey(`|${ref(b)}`)
-        );
-        expect(pickVerseOfTheDay(verses, '1970-01-01')).toBe(sorted[0]);
-        expect(pickVerseOfTheDay(verses, '1970-01-02')).toBe(sorted[1]);
-        expect(pickVerseOfTheDay(verses, '1969-12-31')).toBe(sorted[399]);
-        // 349172 % 400 = 372
-        expect(pickVerseOfTheDay(verses, '2926-01-01')).toBe(sorted[372]);
+    it('should pick the verse at the day of the year in the order of the hashes for that year', () => {
+        const order = (year: number) =>
+            [...verses].sort(
+                (a, b) =>
+                    hashVerseOfTheDayKey(`|${year}|${ref(a)}`) -
+                    hashVerseOfTheDayKey(`|${year}|${ref(b)}`)
+            );
+        expect(pickVerseOfTheDay(verses, '2926-01-01')).toBe(order(2926)[0]);
+        expect(pickVerseOfTheDay(verses, '2926-01-02')).toBe(order(2926)[1]);
+        expect(pickVerseOfTheDay(verses, '2926-12-31')).toBe(order(2926)[364]);
+        expect(pickVerseOfTheDay(verses, '2924-12-31')).toBe(order(2924)[365]);
+        expect(pickVerseOfTheDay(verses, '1969-12-31')).toBe(order(1969)[364]);
     });
 
     it.each(['', 'my-app'])(
-        'should not repeat a verse within 366 days (seed %j)',
+        'should not repeat a verse within a calendar year (seed %j)',
         (seed) => {
-            const picks: (string | null)[] = [];
-            for (let i = 0; i < 366 * 3; i++) {
-                picks.push(
-                    ref(
-                        pickVerseOfTheDay(verses, addDays('2924-01-01', i), {
-                            seed,
-                        })
-                    )
-                );
-            }
-            for (let i = 0; i + 366 <= picks.length; i++) {
-                expect(new Set(picks.slice(i, i + 366)).size).toBe(366);
+            for (let year of [2924, 2925, 2100, 2400]) {
+                const isLeap =
+                    year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+                const days = isLeap ? 366 : 365;
+                const picks = new Set<string | null>();
+                for (let i = 0; i < days; i++) {
+                    picks.add(
+                        ref(
+                            pickVerseOfTheDay(
+                                verses,
+                                addDays(`${year}-01-01`, i),
+                                { seed }
+                            )
+                        )
+                    );
+                }
+                expect([year, picks.size]).toEqual([year, days]);
             }
         }
     );
+
+    it('should use a different order every year', () => {
+        const days = Array.from({ length: 365 }, (_, i) => i);
+        const first = days.map((i) =>
+            pickVerseOfTheDay(verses, addDays('2925-01-01', i))
+        );
+        const second = days.map((i) =>
+            pickVerseOfTheDay(verses, addDays('2926-01-01', i))
+        );
+        expect(days.filter((i) => first[i] === second[i]).length).toBeLessThan(
+            10
+        );
+    });
 
     it('should use a different order for a different seed', () => {
         const days = Array.from({ length: 30 }, (_, i) =>

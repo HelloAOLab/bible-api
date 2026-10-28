@@ -561,7 +561,7 @@ export class FreeUseBibleApi {
 
     /**
      * Gets the verse of the day for the given date from the verse-of-the-day dataset.
-     * The same date always gives the same verse, and a verse doesn't repeat within a year.
+     * The same date always gives the same verse, a verse doesn't repeat within a calendar year, and each year has a different order.
      * See {@link pickVerseOfTheDay} for how the verse is picked.
      * @param date The date to get the verse for: a `YYYY-MM-DD` string (e.g. "2026-01-01"), or a `Date` (its local calendar date is used). Defaults to today.
      * @param options The options for picking the verse. Pass a `seed` to use a different (but equally valid) order, or a `category` to only pick from one category. `dataset` defaults to "verse-of-the-day".

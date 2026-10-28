@@ -152,11 +152,13 @@ describe('getVerseOfTheDay()', () => {
 
     // These pin the convention. If the list of verses changes, the verse for a day changes too.
     it('should pick the conventional verse for a date', () => {
-        expect(ref(getVerseOfTheDay('2926-01-01'))).toBe('PRO 17:22');
-        expect(ref(getVerseOfTheDay('2926-01-02'))).toBe('ROM 8:6');
+        expect(ref(getVerseOfTheDay('2926-01-01'))).toBe('PSA 33:22');
+        expect(ref(getVerseOfTheDay('2926-01-02'))).toBe('1JN 4:16');
         expect(ref(getVerseOfTheDay('2926-01-01', { seed: 'my-app' }))).toBe(
-            'LUK 9:23'
+            'PRO 4:23'
         );
+        expect(ref(getVerseOfTheDay('2026-12-31'))).toBe('ISA 25:8');
+        expect(ref(getVerseOfTheDay('2027-01-01'))).toBe('JAS 2:17');
     });
 
     it('should pick the same verse for the same day', () => {
@@ -193,16 +195,28 @@ describe('getVerseOfTheDay()', () => {
         }
     );
 
-    it('should only repeat a verse after every other verse has been picked', () => {
-        const lastSeen = new Map<string | null, number>();
-        for (let i = 0; i < VERSES_OF_THE_DAY.length * 2; i++) {
-            const pick = ref(getVerseOfTheDay(addDays('2026-01-01', i)));
-            if (lastSeen.has(pick)) {
-                expect(i - lastSeen.get(pick)!).toBe(VERSES_OF_THE_DAY.length);
-            }
-            lastSeen.set(pick, i);
-        }
-        expect(lastSeen.size).toBe(VERSES_OF_THE_DAY.length);
+    it('should use a different order every year', () => {
+        const days = Array.from({ length: 365 }, (_, i) => i);
+        const year2026 = days.map((i) =>
+            getVerseOfTheDay(addDays('2026-01-01', i))
+        );
+        const year2027 = days.map((i) =>
+            getVerseOfTheDay(addDays('2027-01-01', i))
+        );
+        const sameDay = days.filter((i) => year2026[i] === year2027[i]);
+        // A verse can land on the same day by chance, but the orders shouldn't line up.
+        expect(sameDay.length).toBeLessThan(10);
+    });
+
+    it('should pick by the day of the year', () => {
+        const sorted = [...VERSES_OF_THE_DAY].sort(
+            (a, b) =>
+                hashVerseOfTheDayKey(`|2026|${ref(a)}`) -
+                hashVerseOfTheDayKey(`|2026|${ref(b)}`)
+        );
+        expect(getVerseOfTheDay('2026-01-01')).toBe(sorted[0]);
+        expect(getVerseOfTheDay('2026-01-02')).toBe(sorted[1]);
+        expect(getVerseOfTheDay('2026-12-31')).toBe(sorted[364]);
     });
 
     it('should not depend on the order of the list', () => {

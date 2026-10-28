@@ -47,22 +47,40 @@ class VerseOfTheDayTest {
     @Test
     fun `picks the same verses as the JavaScript client`() = runTest {
         // Computed with the JavaScript client's pickVerseOfTheDay() for the verses in the verses.json fixture.
-        assertEquals("PRO 3:27", api.getVerseOfTheDay("2926-01-01").ref())
-        assertEquals("PRO 3:3", api.getVerseOfTheDay("2926-01-02").ref())
-        assertEquals("JHN 3:16", api.getVerseOfTheDay("1969-12-31").ref())
-        assertEquals("PRO 3:3", api.getVerseOfTheDay("2026-10-27").ref())
-        assertEquals("JHN 3:16", api.getVerseOfTheDay("2926-01-01", seed = "my-app").ref())
+        assertEquals("JHN 3:16", api.getVerseOfTheDay("2926-01-01").ref())
+        assertEquals("PRO 3:5", api.getVerseOfTheDay("2926-01-02").ref())
+        assertEquals("PRO 3:3", api.getVerseOfTheDay("1969-12-31").ref())
+        assertEquals("JHN 3:17", api.getVerseOfTheDay("2026-10-27").ref())
+        assertEquals("PRO 3:3", api.getVerseOfTheDay("2926-01-01", seed = "my-app").ref())
     }
 
     @Test
-    fun `does not repeat a verse within 366 days`() {
+    fun `does not repeat a verse within a calendar year`() {
         for (seed in listOf("", "my-app")) {
-            val start = getDayNumber("2924-01-01")
-            val picks = (0 until 366 * 3).map { i -> pickVerseOfTheDay(verses, isoDate(start + i), seed).ref() }
-            for (i in 0..picks.size - 366) {
-                assertEquals(366, picks.subList(i, i + 366).toSet().size)
+            for (year in listOf(2924, 2925, 2100, 2400)) {
+                val start = getDayNumber("$year-01-01")
+                val days = (getDayNumber("${year + 1}-01-01") - start).toInt()
+                val picks = (0 until days).map { i -> pickVerseOfTheDay(verses, isoDate(start + i), seed).ref() }
+                assertEquals(days, picks.toSet().size, "$year")
             }
         }
+    }
+
+    @Test
+    fun `uses a different order every year`() {
+        val first = getDayNumber("2925-01-01")
+        val second = getDayNumber("2926-01-01")
+        val sameDay = (0 until 365).count { i ->
+            pickVerseOfTheDay(verses, isoDate(first + i)) == pickVerseOfTheDay(verses, isoDate(second + i))
+        }
+        assertTrue(sameDay < 10)
+    }
+
+    @Test
+    fun `gets the year and day of the year`() {
+        assertEquals(2926L to 0, getYearAndDayOfYear("2926-01-01"))
+        assertEquals(2028L to 365, getYearAndDayOfYear("2028-12-31"))
+        assertEquals(1969L to 364, getYearAndDayOfYear("1969-12-31"))
     }
 
     @Test

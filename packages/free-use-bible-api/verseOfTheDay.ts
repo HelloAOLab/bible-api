@@ -46,13 +46,14 @@ export interface PickVerseOfTheDayOptions {
  *
  * The pick follows a fixed convention, so every implementation picks the same verse on the same day:
  *
- * 1. Each verse gets a sort key: the 32-bit FNV-1a hash of the UTF-8 bytes of `"{seed}|{book} {chapter}:{verse}"`
- *    (e.g. `"|JHN 3:16"`), passed through the MurmurHash3 `fmix32` finalizer.
+ * 1. Each verse gets a sort key: the 32-bit FNV-1a hash of the UTF-8 bytes of `"{seed}|{year}|{book} {chapter}:{verse}"`
+ *    (e.g. `"|2026|JHN 3:16"`), passed through the MurmurHash3 `fmix32` finalizer.
  * 2. The verses are sorted by their key (as an unsigned number), then by the key's string if two keys are equal.
- * 3. The verse at position `day mod n` is picked, where `day` is the number of days from 1970-01-01 to the date
+ * 3. The verse at position `day mod n` is picked, where `day` is the day of the year of the date (0 for January 1st)
  *    and `n` is the number of verses.
  *
- * Every verse appears once in every `n` consecutive days, so with 366 or more verses a verse never repeats within a year.
+ * Each year has its own order, so with 366 or more verses a verse never repeats within a calendar year
+ * (but can appear on December 31st and again on January 1st), and the order isn't repeated from one year to the next.
  * The order only depends on each verse's own reference, so it doesn't depend on the order of the list.
  *
  * @param verses The verses to pick from. For example, the `verses` from `/api/d/verse-of-the-day/verses.json`.
@@ -73,9 +74,10 @@ export function pickVerseOfTheDay<T extends VerseOfTheDayCandidate>(
         return null;
     }
 
+    const { year, dayOfYear } = getYearAndDayOfYear(date);
     const sorted = candidates
         .map((verse) => {
-            const key = `${seed}|${verse.book} ${verse.chapter}:${verse.verse}`;
+            const key = `${seed}|${year}|${verse.book} ${verse.chapter}:${verse.verse}`;
             return { verse, key, hash: hashVerseOfTheDayKey(key) };
         })
         .sort((a, b) =>
@@ -88,8 +90,7 @@ export function pickVerseOfTheDay<T extends VerseOfTheDayCandidate>(
                     : 0
         );
 
-    const day = getDayNumber(date);
-    const index = ((day % sorted.length) + sorted.length) % sorted.length;
+    const index = dayOfYear % sorted.length;
     return sorted[index].verse;
 }
 
@@ -98,22 +99,45 @@ export function pickVerseOfTheDay<T extends VerseOfTheDayCandidate>(
  * @param date A `YYYY-MM-DD` string, or a `Date` (its local calendar date is used).
  */
 export function getDayNumber(date: Date | string): number {
-    let year: number, month: number, day: number;
-    if (typeof date === 'string') {
-        const match = /^(-?\d{4,})-(\d{2})-(\d{2})$/.exec(date);
-        if (!match) {
-            throw new Error(
-                `Invalid date "${date}". Use the YYYY-MM-DD format.`
-            );
-        }
-        year = parseInt(match[1], 10);
-        month = parseInt(match[2], 10);
-        day = parseInt(match[3], 10);
-    } else {
-        year = date.getFullYear();
-        month = date.getMonth() + 1;
-        day = date.getDate();
+    const { year, month, day } = parseDate(date);
+    return daysSinceEpoch(year, month, day);
+}
+
+/**
+ * Gets the year of the given date and its day of the year (0 for January 1st).
+ * @param date A `YYYY-MM-DD` string, or a `Date` (its local calendar date is used).
+ */
+export function getYearAndDayOfYear(date: Date | string): {
+    year: number;
+    dayOfYear: number;
+} {
+    const { year, month, day } = parseDate(date);
+    return {
+        year,
+        dayOfYear:
+            daysSinceEpoch(year, month, day) - daysSinceEpoch(year, 1, 1),
+    };
+}
+
+function parseDate(date: Date | string): {
+    year: number;
+    month: number;
+    day: number;
+} {
+    if (typeof date !== 'string') {
+        return {
+            year: date.getFullYear(),
+            month: date.getMonth() + 1,
+            day: date.getDate(),
+        };
     }
+    const match = /^(-?\d{4,})-(\d{2})-(\d{2})$/.exec(date);
+    if (!match) {
+        throw new Error(`Invalid date "${date}". Use the YYYY-MM-DD format.`);
+    }
+    const year = parseInt(match[1], 10);
+    const month = parseInt(match[2], 10);
+    const day = parseInt(match[3], 10);
     const utc = new Date(0);
     utc.setUTCFullYear(year, month - 1, day);
     if (
@@ -123,6 +147,12 @@ export function getDayNumber(date: Date | string): number {
     ) {
         throw new Error(`Invalid date "${date}".`);
     }
+    return { year, month, day };
+}
+
+function daysSinceEpoch(year: number, month: number, day: number): number {
+    const utc = new Date(0);
+    utc.setUTCFullYear(year, month - 1, day);
     return Math.round(utc.getTime() / 86_400_000);
 }
 

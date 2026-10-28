@@ -32,10 +32,10 @@ export const VERSE_OF_THE_DAY_DATASET = 'verse-of-the-day';
 /**
  * Picks the verse of the day for the given date from the given list of verses.
  *
- * 1. Each verse gets a sort key: the 32-bit FNV-1a hash of the UTF-8 bytes of `"{seed}|{book} {chapter}:{verse}"`
- *    (e.g. `"|JHN 3:16"`), passed through the MurmurHash3 `fmix32` finalizer.
+ * 1. Each verse gets a sort key: the 32-bit FNV-1a hash of the UTF-8 bytes of `"{seed}|{year}|{book} {chapter}:{verse}"`
+ *    (e.g. `"|2026|JHN 3:16"`), passed through the MurmurHash3 `fmix32` finalizer.
  * 2. The verses are sorted by their key (as an unsigned number), then by the key's string if two keys are equal.
- * 3. The verse at position `day mod n` is picked, where `day` is the number of days from 1970-01-01 to the date
+ * 3. The verse at position `day mod n` is picked, where `day` is the day of the year of the date (0 for January 1st)
  *    and `n` is the number of verses.
  *
  * @param verses The verses to pick from.
@@ -56,9 +56,10 @@ export function pickVerseOfTheDay<T extends VerseOfTheDayEntry>(
         return null;
     }
 
+    const { year, dayOfYear } = getYearAndDayOfYear(date);
     const sorted = candidates
         .map((verse) => {
-            const key = `${seed}|${verse.book} ${verse.chapter}:${verse.verse}`;
+            const key = `${seed}|${year}|${verse.book} ${verse.chapter}:${verse.verse}`;
             return { verse, key, hash: hashVerseOfTheDayKey(key) };
         })
         .sort((a, b) =>
@@ -71,15 +72,40 @@ export function pickVerseOfTheDay<T extends VerseOfTheDayEntry>(
                     : 0
         );
 
-    const day = getDayNumber(date);
-    const index = ((day % sorted.length) + sorted.length) % sorted.length;
+    const index = dayOfYear % sorted.length;
     return sorted[index].verse;
 }
 
 /**
- * Gets the number of days from 1970-01-01 to the given `YYYY-MM-DD` date.
+ * Gets the number of days from 1970-01-01 to the given date.
+ * @param date A `YYYY-MM-DD` string.
  */
 export function getDayNumber(date: string): number {
+    const { year, month, day } = parseDate(date);
+    return daysSinceEpoch(year, month, day);
+}
+
+/**
+ * Gets the year of the given date and its day of the year (0 for January 1st).
+ * @param date A `YYYY-MM-DD` string.
+ */
+export function getYearAndDayOfYear(date: string): {
+    year: number;
+    dayOfYear: number;
+} {
+    const { year, month, day } = parseDate(date);
+    return {
+        year,
+        dayOfYear:
+            daysSinceEpoch(year, month, day) - daysSinceEpoch(year, 1, 1),
+    };
+}
+
+function parseDate(date: string): {
+    year: number;
+    month: number;
+    day: number;
+} {
     const match = /^(-?\d{4,})-(\d{2})-(\d{2})$/.exec(date);
     if (!match) {
         throw new Error(`Invalid date "${date}". Use the YYYY-MM-DD format.`);
@@ -96,6 +122,12 @@ export function getDayNumber(date: string): number {
     ) {
         throw new Error(`Invalid date "${date}".`);
     }
+    return { year, month, day };
+}
+
+function daysSinceEpoch(year: number, month: number, day: number): number {
+    const utc = new Date(0);
+    utc.setUTCFullYear(year, month - 1, day);
     return Math.round(utc.getTime() / 86_400_000);
 }
 
