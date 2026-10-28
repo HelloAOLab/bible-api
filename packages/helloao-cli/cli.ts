@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { Command } from 'commander';
+import { Command, InvalidArgumentError } from 'commander';
 import path, { extname } from 'path';
 import { mkdir, stat, writeFile } from 'fs/promises';
 import { exec } from 'child_process';
@@ -14,6 +14,7 @@ import {
     convertOsisToUsfmFiles,
     askForMetadata,
     copyOpenBibleAudio,
+    DEFAULT_CONVERSION_CONCURRENCY,
     fetchAudio,
     fetchHistoryGlobe,
     fetchInterlinear,
@@ -59,6 +60,7 @@ import {
     generateKotlinModels,
     KOTLIN_MODELS_PATH,
 } from './kotlin.js';
+import { generateSwiftClient } from './swift.js';
 
 const OPENAPI_CLIENT_LANGUAGES = [
     // ['csharp', 'csharp'],
@@ -69,6 +71,14 @@ const OPENAPI_CLIENT_LANGUAGES = [
     // ['swift', 'swift6'],
     ['typescript', '@hey-api/openapi-ts'],
 ] as const;
+
+function parsePositiveInteger(value: string): number {
+    const parsed = Number(value);
+    if (!Number.isInteger(parsed) || parsed < 1) {
+        throw new InvalidArgumentError('Must be a positive integer.');
+    }
+    return parsed;
+}
 
 async function findProjectRoot(startDir: string): Promise<string> {
     let currentDir = path.resolve(startDir);
@@ -373,6 +383,41 @@ async function start() {
             }
 
             logger.log('OpenAPI client generation complete.');
+        });
+
+    program
+        .command('generate-swift-client [dir]')
+        .description(
+            'Generates the types and endpoint methods for the Swift SDK from the OpenAPI document. Writes to packages/free-use-bible-api-swift/Sources/FreeUseBibleAPI by default.'
+        )
+        .action(async (dir: string | undefined) => {
+            const logger = log.getLogger();
+            const outputDir = dir
+                ? path.resolve(dir)
+                : path.resolve(
+                      await findProjectRoot(process.cwd()),
+                      'packages',
+                      'free-use-bible-api-swift',
+                      'Sources',
+                      'FreeUseBibleAPI'
+                  );
+
+            const document = createFreeUseBibleApiOpenApiDocument();
+            const generated = generateSwiftClient(document);
+
+            await mkdir(outputDir, { recursive: true });
+            await writeFile(
+                path.resolve(outputDir, 'Types.gen.swift'),
+                generated.types,
+                'utf-8'
+            );
+            await writeFile(
+                path.resolve(outputDir, 'Operations.gen.swift'),
+                generated.operations,
+                'utf-8'
+            );
+
+            logger.log('Swift client written to:', outputDir);
         });
 
     program
@@ -1043,12 +1088,18 @@ async function start() {
             '--bible-multi-converter-path <path>',
             'Path to BibleMultiConverter.jar file'
         )
+        .option(
+            '--conversion-concurrency <n>',
+            `The maximum number of BibleMultiConverter processes to run at once. Lower it to reduce memory usage. (default: ${DEFAULT_CONVERSION_CONCURRENCY})`,
+            parsePositiveInteger
+        )
         .option('--overwrite', 'Overwrite existing files in output directory')
         .option('--no-database', 'Disable database tracking for downloads')
         .action(async (dir, translations, options) => {
             const sourceOptions = {
                 convertToUsx3: options.convertToUsx3,
                 bibleMultiConverterPath: options.bibleMultiConverterPath,
+                conversionConcurrency: options.conversionConcurrency,
                 useDatabase: options.database !== false,
                 overwrite: options.overwrite,
                 conversionOptions: {
@@ -1074,6 +1125,11 @@ async function start() {
         .option(
             '--bible-multi-converter-path <path>',
             'Path to BibleMultiConverter.jar file'
+        )
+        .option(
+            '--conversion-concurrency <n>',
+            `The maximum number of BibleMultiConverter processes to run at once. Lower it to reduce memory usage. (default: ${DEFAULT_CONVERSION_CONCURRENCY})`,
+            parsePositiveInteger
         )
         .option(
             '--overwrite',
@@ -1108,6 +1164,7 @@ async function start() {
                 ...program.opts(),
                 convertToUsx3: options.convertToUsx3,
                 bibleMultiConverterPath: options.bibleMultiConverterPath,
+                conversionConcurrency: options.conversionConcurrency,
                 useDatabase: options.database !== false,
                 overwrite: options.overwrite,
                 ebibleDir: options.ebibleDir,
@@ -1121,7 +1178,7 @@ async function start() {
     program
         .command('source-all-translations <dir> [translations...]')
         .description(
-            'Finds translation sources from eBible and fetch.bible, and downloads them into the given directory so that they can be imported with import-translations.\nTranslations available from eBible are downloaded from eBible, and the rest are downloaded from fetch.bible. Only new and changed translations are downloaded.'
+            'Finds translation sources from eBible and fetch.bible, and downloads them (along with the pinned OSIS translations) into the given directory so that they can be imported with import-translations.\nTranslations available from eBible are downloaded from eBible, and the rest are downloaded from fetch.bible. Only new and changed translations are downloaded.'
         )
         .option(
             '--no-convert-to-usx3',
@@ -1132,6 +1189,11 @@ async function start() {
             'Path to BibleMultiConverter.jar file'
         )
         .option(
+            '--conversion-concurrency <n>',
+            `The maximum number of BibleMultiConverter processes to run at once. Lower it to reduce memory usage. (default: ${DEFAULT_CONVERSION_CONCURRENCY})`,
+            parsePositiveInteger
+        )
+        .option(
             '--overwrite',
             'Overwrite existing translations in the output directory (when database tracking is disabled)'
         )
@@ -1140,6 +1202,11 @@ async function start() {
             '--fetch-bible-dir <dir>',
             'Put the translations from fetch.bible in this directory instead of <dir>. <dir> then only holds the translations from eBible.'
         )
+        .option(
+            '--osis-dir <dir>',
+            'Put the pinned OSIS translations (see fetch-osis-translations) in this directory instead of <dir>.'
+        )
+        .option('--no-osis', 'Skip the pinned OSIS translations')
         .option(
             '--manifest-url <url>',
             'The URL of the fetch.bible manifest',
@@ -1160,9 +1227,12 @@ async function start() {
                 ...program.opts(),
                 convertToUsx3: options.convertToUsx3,
                 bibleMultiConverterPath: options.bibleMultiConverterPath,
+                conversionConcurrency: options.conversionConcurrency,
                 useDatabase: options.database !== false,
                 overwrite: options.overwrite,
                 fetchBibleDir: options.fetchBibleDir,
+                osisDir: options.osisDir,
+                includeOsis: options.osis !== false,
                 manifestUrl: options.manifestUrl,
                 repo: options.collectionRepo,
                 ref: options.collectionRef,
@@ -1259,7 +1329,7 @@ async function start() {
     program
         .command('fetch-osis-translations <dir>')
         .description(
-            'Fetches the pinned OSIS translations (such as the Japanese Kougo-yaku), checks their SHA-256 hashes, converts them to USFM and places them in the given directory.'
+            'Fetches the pinned OSIS translations (the Japanese Kougo-yaku and Bungo-yaku), checks their SHA-256 hashes, converts them to USFM and places them in the given directory.'
         )
         .action(async (dir: string) => {
             await fetchOsisTranslations(dir);

@@ -259,13 +259,19 @@ export function convertOsisToUsfm(
     };
     const walkDocument = (element: Element): void => {
         if (element.nodeName === 'header') return;
+        // Testament headings (e.g. 旧約聖書) aren't part of any book.
+        if (
+            element.nodeName === 'head' &&
+            element.parentElement?.nodeName === 'div'
+        )
+            return;
         if (element.nodeName === 'div') {
             const type = element.getAttribute('type');
             if (type === 'book') {
                 convertBook(element);
                 return;
             }
-            if (type !== 'x-testament') fail(element);
+            if (type !== 'x-testament' && type !== 'bookgroup') fail(element);
         } else if (!['osis', 'osisText'].includes(element.nodeName))
             fail(element);
         for (const child of Array.from(element.children)) walkDocument(child);

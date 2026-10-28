@@ -27,6 +27,33 @@ jobs:
               env:
                   CI: true
 
+    swift-linux:
+        name: Swift SDK (Linux)
+        runs-on: ubuntu-latest
+        container: swift:6.1
+        defaults:
+            run:
+                working-directory: packages/free-use-bible-api-swift
+        steps:
+            - uses: actions/checkout@v4
+            - name: Build
+              run: swift build
+            - name: Test
+              run: swift test
+
+    swift-macos:
+        name: Swift SDK (macOS)
+        runs-on: macOS-latest
+        defaults:
+            run:
+                working-directory: packages/free-use-bible-api-swift
+        steps:
+            - uses: actions/checkout@v4
+            - name: Build
+              run: swift build
+            - name: Test
+              run: swift test
+
     kotlin-sdk:
         name: Kotlin SDK
         runs-on: ubuntu-latest

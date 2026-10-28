@@ -31,6 +31,8 @@ export interface OsisTranslationSource {
 
 const KOUGO_URL =
     'https://raw.githubusercontent.com/seven1m/open-bibles/3ca49fb73163f42297a32b7b1b1c40cf3dafd84b/jpn-kougo.osis.xml';
+const BUNGO_URL =
+    'https://raw.githubusercontent.com/KallynGowdy/open-bibles/5a86195a040b18bb8ec6348984429b726af98774/jpn-bungo.osis.xml';
 
 /**
  * The OSIS translations that the fetch-osis-translations command downloads.
@@ -63,6 +65,33 @@ export const OSIS_TRANSLATIONS: OsisTranslationSource[] = [
             },
         },
     },
+    {
+        // The 文語訳: the Meiji 元訳 Old Testament (1887) and the Taisho 改訳 New Testament (1917).
+        // Both were published as works credited to an organization, so their copyright terms have long expired.
+        url: BUNGO_URL,
+        sha256: '57708580daee3a0a52e4d4c4de34b09816378bbefb10349791090f25ed689568',
+        metadata: {
+            id: 'jpn_bun',
+            name: '文語訳',
+            englishName: 'Japanese Bungo-yaku (1887/1917)',
+            shortName: '文語訳',
+            language: 'jpn',
+            direction: 'ltr',
+            website:
+                'https://github.com/KallynGowdy/open-bibles/blob/5a86195a040b18bb8ec6348984429b726af98774/jpn-bungo.osis.xml',
+            licenseUrl:
+                'https://github.com/KallynGowdy/open-bibles/blob/5a86195a040b18bb8ec6348984429b726af98774/jpn-bungo.osis.xml',
+            licenseNotice:
+                'The public domain 文語訳, with the Meiji Old Testament (1887) and the Taisho New Testament (1917), is taken from open-bibles commit 5a86195a040b18bb8ec6348984429b726af98774 with furigana removed.',
+            license: {
+                publicDomain: true,
+                attribution: 'not-required',
+                commercialUse: 'allowed',
+                derivatives: 'allowed',
+                copyleft: false,
+            },
+        },
+    },
 ];
 
 /**
@@ -84,20 +113,57 @@ export async function convertOsisToUsfmFiles(
 }
 
 /**
+ * The name of the file that is written into each translation directory that was fetched from an OSIS source.
+ * It records the URL and SHA-256 hash of the source so that unchanged translations can be skipped.
+ */
+export const OSIS_MARKER_FILE = 'osis.txt';
+
+/**
+ * The options for fetching OSIS translations.
+ */
+export interface FetchOsisTranslationsOptions {
+    /**
+     * Whether translations that were already fetched from the same source (with the same metadata) should be skipped.
+     * Defaults to false.
+     */
+    skipUnchanged?: boolean;
+}
+
+/**
  * Downloads the given OSIS translations, checks their hashes, and converts them into USFM.
  * Each translation is written to `<dir>/<id>/` as one USFM file per book plus a `metadata.json`,
  * so the directory can be imported with the import-translations command.
  * A translation's directory is only replaced once its download and conversion have succeeded.
  * @param dir The directory that the translations should be written to.
  * @param sources The translations to fetch.
+ * @param options The options.
+ * @returns The IDs of the translations that were downloaded.
  */
 export async function fetchOsisTranslations(
     dir: string,
-    sources: OsisTranslationSource[] = OSIS_TRANSLATIONS
-): Promise<void> {
+    sources: OsisTranslationSource[] = OSIS_TRANSLATIONS,
+    options: FetchOsisTranslationsOptions = {}
+): Promise<string[]> {
     const logger = log.getLogger();
+    const downloaded: string[] = [];
 
     for (const source of sources) {
+        const translationDir = path.resolve(dir, source.metadata.id);
+        const marker = createOsisMarker(source);
+        const metadata = JSON.stringify(source.metadata, null, 4) + '\n';
+        if (
+            options.skipUnchanged &&
+            (await readFileIfExists(
+                path.join(translationDir, OSIS_MARKER_FILE)
+            )) === marker &&
+            (await readFileIfExists(
+                path.join(translationDir, 'metadata.json')
+            )) === metadata
+        ) {
+            logger.log(`${source.metadata.id} is up to date. Skipping.`);
+            continue;
+        }
+
         logger.log('Downloading', source.url);
         const response = await fetch(source.url);
         if (!response.ok) {
@@ -119,14 +185,18 @@ export async function fetchOsisTranslations(
             new DOMParser() as any
         );
 
-        const translationDir = path.resolve(dir, source.metadata.id);
         const partDir = `${translationDir}.part`;
         await rm(partDir, { recursive: true, force: true });
         try {
             await writeUsfmBooks(books, partDir, false);
             await writeFile(
                 path.join(partDir, 'metadata.json'),
-                JSON.stringify(source.metadata, null, 4) + '\n',
+                metadata,
+                'utf-8'
+            );
+            await writeFile(
+                path.join(partDir, OSIS_MARKER_FILE),
+                marker,
                 'utf-8'
             );
             await rm(translationDir, { recursive: true, force: true });
@@ -139,7 +209,21 @@ export async function fetchOsisTranslations(
         logger.log(
             `Saved ${source.metadata.id} (${books.length} books) to ${translationDir}`
         );
+        downloaded.push(source.metadata.id);
     }
+
+    return downloaded;
+}
+
+/**
+ * Creates the contents of the marker file for the given OSIS translation.
+ */
+function createOsisMarker(source: OsisTranslationSource): string {
+    return `Source: ${source.url}\nSHA-256: ${source.sha256}\n`;
+}
+
+async function readFileIfExists(file: string): Promise<string | null> {
+    return (await exists(file)) ? await readFile(file, 'utf-8') : null;
 }
 
 /**

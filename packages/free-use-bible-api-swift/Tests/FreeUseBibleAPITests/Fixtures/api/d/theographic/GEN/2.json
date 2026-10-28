@@ -1,0 +1,179 @@
+{
+  "dataset": {
+    "id": "theographic",
+    "name": "Theographic Bible Metadata",
+    "website": "https://github.com/robertrouse/theographic-bible-metadata",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "licenseNotes": "Changes were made to the data to fit the Free Use Bible API format.",
+    "englishName": "Theographic Bible Metadata",
+    "language": "eng",
+    "textDirection": "ltr",
+    "availableFormats": [
+      "json"
+    ],
+    "listOfBooksApiLink": "/api/d/theographic/books.json",
+    "numberOfBooks": 66,
+    "totalNumberOfChapters": 1182,
+    "totalNumberOfVerses": 24547,
+    "totalNumberOfReferences": 53120,
+    "languageName": "English",
+    "languageEnglishName": "English",
+    "listOfPeopleApiLink": "/api/d/theographic/people.json",
+    "totalNumberOfPeople": 3067,
+    "listOfPlacesApiLink": "/api/d/theographic/places.json",
+    "totalNumberOfPlaces": 1274,
+    "listOfEventsApiLink": "/api/d/theographic/events.json",
+    "totalNumberOfEvents": 450,
+    "listOfPeopleGroupsApiLink": "/api/d/theographic/groups.json",
+    "totalNumberOfPeopleGroups": 23
+  },
+  "book": {
+    "id": "GEN",
+    "order": 1,
+    "firstChapterNumber": 1,
+    "firstChapterApiLink": "/api/d/theographic/GEN/1.json",
+    "lastChapterNumber": 50,
+    "lastChapterApiLink": "/api/d/theographic/GEN/50.json",
+    "numberOfChapters": 50,
+    "totalNumberOfVerses": 1343,
+    "totalNumberOfReferences": 3346,
+    "firstChapterReference": {
+      "datasetId": "theographic",
+      "book": "GEN",
+      "chapter": 1
+    },
+    "lastChapterReference": {
+      "datasetId": "theographic",
+      "book": "GEN",
+      "chapter": 50
+    }
+  },
+  "chapter": {
+    "number": 2,
+    "people": [
+      {
+        "id": "god_1324",
+        "name": "God",
+        "isProperName": true,
+        "gender": "Male",
+        "apiLink": "/api/d/theographic/people/god_1324.json",
+        "verses": [
+          2,
+          3,
+          4,
+          5,
+          7,
+          8,
+          9,
+          15,
+          16,
+          18,
+          19,
+          21,
+          22
+        ]
+      },
+      {
+        "id": "adam_78",
+        "name": "Adam",
+        "isProperName": true,
+        "gender": "Male",
+        "birthYear": -4004,
+        "deathYear": -3074,
+        "apiLink": "/api/d/theographic/people/adam_78.json",
+        "verses": [
+          19,
+          20,
+          21,
+          23
+        ]
+      }
+    ],
+    "places": [
+      {
+        "id": "eden_354",
+        "name": "Eden",
+        "featureType": "Region",
+        "apiLink": "/api/d/theographic/places/eden_354.json",
+        "verses": [
+          8,
+          10,
+          15
+        ]
+      },
+      {
+        "id": "havilah_533",
+        "name": "Havilah (of Eden)",
+        "featureType": "Region",
+        "apiLink": "/api/d/theographic/places/havilah_533.json",
+        "verses": [
+          11
+        ]
+      }
+    ],
+    "events": [
+      {
+        "id": "creation-of-all-things_1",
+        "name": "Creation of all things",
+        "startDate": "-4003",
+        "apiLink": "/api/d/theographic/events/creation-of-all-things_1.json",
+        "verses": [
+          1,
+          2,
+          3
+        ]
+      },
+      {
+        "id": "creation-of-adam-and-eve_2",
+        "name": "Creation of Adam and Eve",
+        "startDate": "-4003",
+        "apiLink": "/api/d/theographic/events/creation-of-adam-and-eve_2.json",
+        "verses": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25
+        ]
+      }
+    ]
+  },
+  "thisChapterLink": "/api/d/theographic/GEN/2.json",
+  "previousChapterApiLink": "/api/d/theographic/GEN/1.json",
+  "nextChapterApiLink": "/api/d/theographic/GEN/3.json",
+  "numberOfPeople": 2,
+  "numberOfPlaces": 8,
+  "numberOfEvents": 2,
+  "thisChapterReference": {
+    "datasetId": "theographic",
+    "book": "GEN",
+    "chapter": 2
+  },
+  "nextChapterReference": {
+    "datasetId": "theographic",
+    "book": "GEN",
+    "chapter": 3
+  },
+  "previousChapterReference": {
+    "datasetId": "theographic",
+    "book": "GEN",
+    "chapter": 1
+  }
+}
