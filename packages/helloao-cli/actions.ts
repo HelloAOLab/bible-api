@@ -148,6 +148,11 @@ export interface ConvertToUsx3Options {
     overwrite?: boolean;
 }
 
+/**
+ * The default maximum number of BibleMultiConverter processes that can run at once.
+ */
+export const DEFAULT_CONVERSION_CONCURRENCY = 10;
+
 export interface SourceTranslationsOptions {
     /**
      * Whether to convert USFM files to USX3 format after download.
@@ -168,6 +173,12 @@ export interface SourceTranslationsOptions {
      * Path to BibleMultiConverter.jar file. If not provided, will search common locations.
      */
     bibleMultiConverterPath?: string;
+
+    /**
+     * The maximum number of BibleMultiConverter processes that can run at once.
+     * Lower it to reduce memory usage. Defaults to 10.
+     */
+    conversionConcurrency?: number;
 
     /**
      * Whether to overwrite existing files in output directory.
@@ -1388,6 +1399,7 @@ export async function sourceTranslations(
         useDatabase = true, // Default to true
         bibleMultiConverterPath,
         overwrite = false,
+        conversionConcurrency = DEFAULT_CONVERSION_CONCURRENCY,
     } = options;
 
     const result: SourceTranslationsResult = {
@@ -1612,7 +1624,6 @@ export async function sourceTranslations(
     try {
         const downloadBatches: EBibleSource[][] = [];
         const downloadBatchSize = 50;
-        const conversionBatchSize = 10;
 
         while (selectedSources.length > 0) {
             downloadBatches.push(selectedSources.splice(0, downloadBatchSize));
@@ -1810,48 +1821,37 @@ export async function sourceTranslations(
 
             logger.log(`Starting automatic conversion using: ${jarPath}`);
 
-            const conversionBatches = [];
-            while (conversionsNeeded.length > 0) {
-                conversionBatches.push(
-                    conversionsNeeded.splice(0, conversionBatchSize)
-                );
-            }
-
             logger.log(
-                `Processing ${conversionBatches.length} conversion batches of ${conversionBatchSize} each.`
+                `Running up to ${conversionConcurrency} conversions at once.`
             );
 
-            for (let i = 0; i < conversionBatches.length; i++) {
-                logger.log(
-                    `Processing conversion batch ${i + 1} of ${conversionBatches.length}`
-                );
-                const sources = conversionBatches[i];
-                await Promise.all(
-                    sources.map(async ({ tempPath, outputPath, source }) => {
-                        logger.log(`Converting ${source.translationId}...`);
+            await mapConcurrent(
+                conversionsNeeded,
+                conversionConcurrency,
+                async ({ tempPath, outputPath, source }) => {
+                    logger.log(`Converting ${source.translationId}...`);
 
-                        const success = await convertUsfmToUsx3(
-                            tempPath,
-                            outputPath,
-                            jarPath!
-                        );
+                    const success = await convertUsfmToUsx3(
+                        tempPath,
+                        outputPath,
+                        jarPath!
+                    );
 
-                        if (success) {
-                            if (sourceUpsert) {
-                                source.usfmDownloadDate =
-                                    DateTime.utc().toISO() as any;
-                                source.usfmDownloadPath = outputPath;
-                                sourceUpsert.run(source);
-                            }
-                            numConverted++;
-                            result.downloaded.push(source.translationId);
-                        } else {
-                            numErrored++;
-                            result.failed.push(source.translationId);
+                    if (success) {
+                        if (sourceUpsert) {
+                            source.usfmDownloadDate =
+                                DateTime.utc().toISO() as any;
+                            source.usfmDownloadPath = outputPath;
+                            sourceUpsert.run(source);
                         }
-                    })
-                );
-            }
+                        numConverted++;
+                        result.downloaded.push(source.translationId);
+                    } else {
+                        numErrored++;
+                        result.failed.push(source.translationId);
+                    }
+                }
+            );
 
             // Clean up temp directory
             if (tempDir && existsSync(tempDir)) {
@@ -1897,6 +1897,7 @@ export async function sourceFetchBibleTranslations(
         bibleMultiConverterPath,
         overwrite = false,
         includeEBible = false,
+        conversionConcurrency = DEFAULT_CONVERSION_CONCURRENCY,
     } = options;
     const hasTranslations = !!translations && translations.length > 0;
 
@@ -2210,9 +2211,12 @@ export async function sourceFetchBibleTranslations(
             logger.log(`Starting automatic conversion using: ${jarPath}`);
 
             let numConverted = 0;
+            logger.log(
+                `Running up to ${conversionConcurrency} conversions at once.`
+            );
             await mapConcurrent(
                 conversionsNeeded,
-                10,
+                conversionConcurrency,
                 async ({ tempPath, outputPath, entry }) => {
                     logger.log(`Converting ${entry.source.translationId}...`);
                     const success = await convertUsfmToUsx3(

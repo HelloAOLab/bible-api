@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { Command } from 'commander';
+import { Command, InvalidArgumentError } from 'commander';
 import path, { extname } from 'path';
 import { mkdir, stat, writeFile } from 'fs/promises';
 import { exec } from 'child_process';
@@ -14,6 +14,7 @@ import {
     convertOsisToUsfmFiles,
     askForMetadata,
     copyOpenBibleAudio,
+    DEFAULT_CONVERSION_CONCURRENCY,
     fetchAudio,
     fetchHistoryGlobe,
     fetchInterlinear,
@@ -67,6 +68,14 @@ const OPENAPI_CLIENT_LANGUAGES = [
     // ['swift', 'swift6'],
     ['typescript', '@hey-api/openapi-ts'],
 ] as const;
+
+function parsePositiveInteger(value: string): number {
+    const parsed = Number(value);
+    if (!Number.isInteger(parsed) || parsed < 1) {
+        throw new InvalidArgumentError('Must be a positive integer.');
+    }
+    return parsed;
+}
 
 async function findProjectRoot(startDir: string): Promise<string> {
     let currentDir = path.resolve(startDir);
@@ -1006,12 +1015,18 @@ async function start() {
             '--bible-multi-converter-path <path>',
             'Path to BibleMultiConverter.jar file'
         )
+        .option(
+            '--conversion-concurrency <n>',
+            `The maximum number of BibleMultiConverter processes to run at once. Lower it to reduce memory usage. (default: ${DEFAULT_CONVERSION_CONCURRENCY})`,
+            parsePositiveInteger
+        )
         .option('--overwrite', 'Overwrite existing files in output directory')
         .option('--no-database', 'Disable database tracking for downloads')
         .action(async (dir, translations, options) => {
             const sourceOptions = {
                 convertToUsx3: options.convertToUsx3,
                 bibleMultiConverterPath: options.bibleMultiConverterPath,
+                conversionConcurrency: options.conversionConcurrency,
                 useDatabase: options.database !== false,
                 overwrite: options.overwrite,
                 conversionOptions: {
@@ -1037,6 +1052,11 @@ async function start() {
         .option(
             '--bible-multi-converter-path <path>',
             'Path to BibleMultiConverter.jar file'
+        )
+        .option(
+            '--conversion-concurrency <n>',
+            `The maximum number of BibleMultiConverter processes to run at once. Lower it to reduce memory usage. (default: ${DEFAULT_CONVERSION_CONCURRENCY})`,
+            parsePositiveInteger
         )
         .option(
             '--overwrite',
@@ -1071,6 +1091,7 @@ async function start() {
                 ...program.opts(),
                 convertToUsx3: options.convertToUsx3,
                 bibleMultiConverterPath: options.bibleMultiConverterPath,
+                conversionConcurrency: options.conversionConcurrency,
                 useDatabase: options.database !== false,
                 overwrite: options.overwrite,
                 ebibleDir: options.ebibleDir,
@@ -1093,6 +1114,11 @@ async function start() {
         .option(
             '--bible-multi-converter-path <path>',
             'Path to BibleMultiConverter.jar file'
+        )
+        .option(
+            '--conversion-concurrency <n>',
+            `The maximum number of BibleMultiConverter processes to run at once. Lower it to reduce memory usage. (default: ${DEFAULT_CONVERSION_CONCURRENCY})`,
+            parsePositiveInteger
         )
         .option(
             '--overwrite',
@@ -1128,6 +1154,7 @@ async function start() {
                 ...program.opts(),
                 convertToUsx3: options.convertToUsx3,
                 bibleMultiConverterPath: options.bibleMultiConverterPath,
+                conversionConcurrency: options.conversionConcurrency,
                 useDatabase: options.database !== false,
                 overwrite: options.overwrite,
                 fetchBibleDir: options.fetchBibleDir,
