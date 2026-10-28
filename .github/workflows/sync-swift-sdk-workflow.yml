@@ -1,0 +1,108 @@
+name: Sync Swift SDK
+
+# Copies the Swift SDK (packages/free-use-bible-api-swift) to https://github.com/HelloAOLab/bible-api-swift,
+# which is the repository that Swift Package Manager users add as a dependency.
+#
+# - Pushes to main that change the SDK are copied to the main branch of bible-api-swift.
+# - Publishing a GitHub release tags the SDK in bible-api-swift with the release's version
+#   (for example, the v1.16.0 release is tagged 1.16.0), so that users can depend on it with `from: "1.16.0"`.
+# - Running the workflow manually copies main, and also tags it if a version is given.
+#
+# Needs a SWIFT_SDK_DEPLOY_KEY secret: the private key of an SSH deploy key with write access to bible-api-swift.
+#   1. ssh-keygen -t ed25519 -C "bible-api swift sync" -f swift-sdk-deploy-key -N ""
+#   2. Add swift-sdk-deploy-key.pub to bible-api-swift (Settings > Deploy keys) with "Allow write access".
+#   3. Add the contents of swift-sdk-deploy-key to bible-api (Settings > Secrets and variables > Actions)
+#      as SWIFT_SDK_DEPLOY_KEY, then delete both files.
+
+on:
+    push:
+        branches: [main]
+        paths:
+            - 'packages/free-use-bible-api-swift/**'
+            - '.github/workflows/sync-swift-sdk-workflow.yml'
+    release:
+        types: [published]
+    workflow_dispatch:
+        inputs:
+            version:
+                description: 'The version to tag in bible-api-swift (for example, 1.16.0). Leave empty to only copy main.'
+                type: string
+                default: ''
+
+concurrency:
+    group: sync-swift-sdk
+    cancel-in-progress: false
+
+jobs:
+    sync:
+        name: Sync to bible-api-swift
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+        steps:
+            - name: Check out bible-api
+              uses: actions/checkout@v4
+              with:
+                  path: bible-api
+
+            - name: Check out bible-api-swift
+              uses: actions/checkout@v4
+              with:
+                  repository: HelloAOLab/bible-api-swift
+                  ssh-key: ${{ secrets.SWIFT_SDK_DEPLOY_KEY }}
+                  ref: main
+                  path: bible-api-swift
+                  fetch-depth: 0
+
+            - name: Copy the SDK
+              working-directory: bible-api-swift
+              run: |
+                  # Replace everything except the git directory, so that deleted files are deleted in the mirror too.
+                  find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+                  cp -R ../bible-api/packages/free-use-bible-api-swift/. .
+                  git add -A
+                  git status --short
+
+            - name: Push
+              working-directory: bible-api-swift
+              env:
+                  VERSION: ${{ github.event_name == 'release' && github.event.release.tag_name || inputs.version }}
+                  SOURCE: HelloAOLab/bible-api@${{ github.sha }}
+              run: |
+                  git config user.name "github-actions[bot]"
+                  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+                  if [ -z "$VERSION" ]; then
+                      if git diff --cached --quiet; then
+                          echo "bible-api-swift is already up to date."
+                          exit 0
+                      fi
+                      git commit -m "Sync from $SOURCE"
+                      git push origin HEAD:main
+                      exit 0
+                  fi
+
+                  # Swift Package Manager versions are plain semantic versions, so drop the "v" from release tags.
+                  version="${VERSION#v}"
+                  if ! [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+                      echo "::error::\"$VERSION\" is not a semantic version, so it can't be tagged in bible-api-swift."
+                      exit 1
+                  fi
+                  if git rev-parse -q --verify "refs/tags/$version" > /dev/null; then
+                      echo "::notice::$version is already tagged in bible-api-swift."
+                      exit 0
+                  fi
+
+                  # The tag points at a copy of the SDK from the release, even if main has moved on since,
+                  # so the commit is only pushed with the tag.
+                  if ! git diff --cached --quiet; then
+                      git commit -m "Release $version from $SOURCE"
+                  fi
+                  git tag -a "$version" -m "Release $version from $SOURCE"
+                  git push origin "refs/tags/$version"
+
+                  # A manual run copies the current main, so main can be updated too. A release might be
+                  # older than main, so main is left to the push trigger.
+                  if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+                      git push origin HEAD:main
+                  fi

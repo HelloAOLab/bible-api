@@ -1,0 +1,49 @@
+{
+  "dataset": {
+    "id": "stepbible-lexicon",
+    "name": "STEPBible Brief Lexicons",
+    "website": "https://github.com/STEPBible/STEPBible-Data",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+    "licenseNotes": "The Translators Brief lexicons of Extended Strongs (TBESH and TBESG) are by STEPBible.org / Tyndale House, Cambridge, and are licensed under CC BY 4.0. Changes were made to the data to fit the Free Use Bible API format.",
+    "englishName": "STEPBible Brief Lexicons",
+    "language": "eng",
+    "textDirection": "ltr",
+    "availableFormats": [
+      "json"
+    ],
+    "listOfBooksApiLink": "/api/d/stepbible-lexicon/books.json",
+    "numberOfBooks": 0,
+    "totalNumberOfChapters": 0,
+    "totalNumberOfVerses": 0,
+    "totalNumberOfReferences": 0,
+    "languageName": "English",
+    "languageEnglishName": "English",
+    "listOfLexiconApiLink": "/api/d/stepbible-lexicon/lexicon.json",
+    "totalNumberOfLexicon": 18085
+  },
+  "entry": {
+    "id": "H1254",
+    "language": "hebrew",
+    "senses": [
+      {
+        "id": "H1254A",
+        "language": "hebrew",
+        "lemma": "בָּרָא",
+        "transliteration": "ba.ra",
+        "partOfSpeech": "V",
+        "gloss": "to create",
+        "definition": "1) to create, shape, form\n\n1a) (Qal) to shape, fashion, create (always with God as subject)\n\n1b) (Niphal) to be created"
+      },
+      {
+        "id": "H1254B",
+        "language": "hebrew",
+        "lemma": "בָּרָא",
+        "transliteration": "ba.ra",
+        "partOfSpeech": "V",
+        "gloss": "to fatten",
+        "definition": "1) to be fat\n\n1a) (Hiphil) to make yourselves fat"
+      }
+    ]
+  },
+  "thisLexiconEntryApiLink": "/api/d/stepbible-lexicon/lexicon/H1254.json"
+}

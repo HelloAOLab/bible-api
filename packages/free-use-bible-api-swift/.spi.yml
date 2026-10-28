@@ -1,0 +1,7 @@
+# Configuration for the Swift Package Index (https://swiftpackageindex.com).
+# Builds and hosts the documentation for the FreeUseBibleAPI library from its doc comments.
+# See https://swiftpackageindex.com/SwiftPackageIndex/SPIManifest/documentation/spimanifest/commonusecases
+version: 1
+builder:
+    configs:
+        - documentation_targets: [FreeUseBibleAPI]

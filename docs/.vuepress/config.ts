@@ -207,7 +207,7 @@ const sidebar = (prefix: string, labels: Labels): SidebarOptions => ({
             // Translated docs only list the SDK pages that have been translated so far.
             children: [
                 '',
-                ...['javascript', 'kotlin'].filter((page) =>
+                ...['javascript', 'kotlin', 'swift'].filter((page) =>
                     existsSync(path.join(docsDir, prefix, 'sdks', `${page}.md`))
                 ),
             ],
