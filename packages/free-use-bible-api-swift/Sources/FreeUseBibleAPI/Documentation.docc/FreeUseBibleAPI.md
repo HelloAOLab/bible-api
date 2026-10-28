@@ -194,6 +194,26 @@ New kinds of content and new values don't make responses fail to decode. Enums l
 - ``DatasetLexiconEntry``
 - ``DatasetLexiconSense``
 
+### Verse of the Day
+
+- ``pickVerseOfTheDay(_:date:seed:category:holidays:)-(_,String,_,_,_)``
+- ``pickVerseOfTheDay(_:date:seed:category:holidays:)-(_,Date,_,_,_)``
+- ``isVerseOfTheDayInUse(_:year:)``
+- ``hashVerseOfTheDayKey(_:)``
+- ``getDayNumber(_:)``
+- ``getYearAndDayOfYear(_:)``
+- ``InvalidDateError``
+- ``ApiDatasetVerses``
+- ``ApiDatasetCategorizedVerse``
+- ``ApiDatasetVersesHoliday``
+- ``ApiDatasetCategories``
+- ``ApiDatasetCategorySummary``
+- ``ApiDatasetCategory``
+- ``DatasetCategory``
+- ``DatasetCategoryVerse``
+- ``DatasetCategoryHoliday``
+- ``DatasetChapterVerseCategories``
+
 ### Raw JSON
 
 - ``JSONValue``

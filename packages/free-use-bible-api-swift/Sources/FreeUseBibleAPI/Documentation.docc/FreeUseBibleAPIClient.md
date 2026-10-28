@@ -58,6 +58,11 @@
 - ``getDatasetCategories(dataset:endpoint:)``
 - ``getDatasetCategory(dataset:category:endpoint:)``
 
+### Verse of the Day
+
+- ``getVerseOfTheDay(date:seed:category:dataset:endpoint:)-(String,_,_,_,_)``
+- ``getVerseOfTheDay(date:seed:category:dataset:endpoint:)-(Date,_,_,_,_)``
+
 ### Navigating Between Chapters
 
 - ``getNextChapter(_:endpoint:)``
