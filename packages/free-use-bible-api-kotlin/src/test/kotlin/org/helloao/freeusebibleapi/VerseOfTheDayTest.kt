@@ -86,6 +86,54 @@ class VerseOfTheDayTest {
         assertEquals(listOf(false, true, true, true, false), (2026L..2030L).map { isVerseOfTheDayInUse(verse, it) })
     }
 
+    // The test values from the Verse of the Day Convention page (docs/reference/datasets/verse-of-the-day-convention.md).
+    @Test
+    fun `matches the test values on the convention page`() {
+        assertEquals(1930190452L, hashVerseOfTheDayKey("|2026|JHN 3:16"))
+        assertEquals(2020168843L, hashVerseOfTheDayKey("my-app|2026|PSA 23:1"))
+        assertEquals(3677064616L, hashVerseOfTheDayKey("é|1|GEN 1:1"))
+
+        assertEquals(2026L to 0, getYearAndDayOfYear("2026-01-01"))
+        assertEquals(2028L to 59, getYearAndDayOfYear("2028-02-29"))
+        assertEquals(2000L to 365, getYearAndDayOfYear("2000-12-31"))
+        assertEquals(1900L to 364, getYearAndDayOfYear("1900-12-31"))
+        assertEquals(1L to 59, getYearAndDayOfYear("0001-03-01"))
+
+        fun v(book: String, chapter: Int, verse: Int, vararg categories: String, endVerse: Int? = null, addedIn: Int? = null, removedIn: Int? = null) =
+            ApiDatasetCategorizedVerse(book, chapter, verse, endVerse, categories.toList(), addedIn, removedIn)
+        val list = listOf(
+            v("GEN", 1, 1, "praise"),
+            v("PSA", 23, 1, "comfort", "provision"),
+            v("PRO", 3, 5, "faith", "guidance", endVerse = 6),
+            v("ISA", 40, 31, "strength", "hope"),
+            v("JHN", 3, 16, "love", "salvation"),
+            v("ROM", 8, 28, "hope", removedIn = 2027),
+            v("PHP", 4, 13, "strength"),
+            v("1JN", 4, 19, "love", addedIn = 2027),
+        )
+        val expected = listOf(
+            Triple("2026-01-01", "", null) to "PSA 23:1",
+            Triple("2026-01-02", "", null) to "ROM 8:28",
+            Triple("2026-03-15", "", null) to "JHN 3:16",
+            Triple("2026-12-31", "", null) to "PSA 23:1",
+            Triple("2027-01-01", "", null) to "JHN 3:16",
+            Triple("2027-06-30", "", null) to "PRO 3:5",
+            Triple("2028-02-29", "", null) to "PRO 3:5",
+            Triple("2028-12-31", "", null) to "PSA 23:1",
+            Triple("1969-12-31", "", null) to "PRO 3:5",
+            Triple("0001-01-01", "", null) to "ISA 40:31",
+            Triple("2026-01-01", "my-app", null) to "ISA 40:31",
+            Triple("2027-01-01", "my-app", null) to "PHP 4:13",
+            Triple("2026-01-01", "", "hope") to "ROM 8:28",
+            Triple("2027-01-01", "", "hope") to "ISA 40:31",
+            Triple("2027-01-01", "", "joy") to null,
+        )
+        for ((input, ref) in expected) {
+            val (date, seed, category) = input
+            assertEquals(ref, pickVerseOfTheDay(list, date, seed, category).ref(), input.toString())
+        }
+    }
+
     @Test
     fun `does not repeat a verse within a calendar year`() {
         for (seed in listOf("", "my-app")) {

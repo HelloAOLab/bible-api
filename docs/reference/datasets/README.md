@@ -2371,16 +2371,9 @@ Datasets that contain verse categories include `listOfVersesApiLink`, `listOfCat
 
 The API is made of static files, so it doesn't pick a verse for you. Instead, there is a convention for picking one, so that every app that follows it shows the same verse on the same day. Apps are free to pick differently; the convention just gives them a shared default.
 
-The convention picks from the verses in `/api/d/verse-of-the-day/verses.json`:
+The convention picks from the verses in `/api/d/verse-of-the-day/verses.json`. Every year gets its own shuffle of the verses that are in use that year (ordered by a hash of each verse's reference, the year, and an optional seed), and the verse of the day is the one at the date's day of the year in that shuffle. The dataset has more than 366 verses in use every year, so a verse never repeats within a calendar year, the order changes every year, and the same date always gives the same verse. New verses are added (with `addedIn`) and old ones removed (with `removedIn`) only from a year that hasn't started yet, so the verse of the day for a past date never changes.
 
-1. Only the verses that are in use in the year of the date are picked from: those whose `addedIn` year is unset or at most the year, and whose `removedIn` year is unset or after the year.
-2. Each verse gets a sort key for the year of the date: the 32-bit [FNV-1a](https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function) hash of the UTF-8 bytes of `"{seed}|{year}|{book} {chapter}:{verse}"`, passed through the [MurmurHash3](https://en.wikipedia.org/wiki/MurmurHash#Algorithm) `fmix32` finalizer. The seed is an empty string by default and the year is written in decimal without leading zeros, so the key for John 3:16 in 2026 is `"|2026|JHN 3:16"`. Passages use their first verse.
-3. The verses are sorted by their key, as an unsigned number. If two keys are equal, they are sorted by the key's string.
-4. The verse at position `day mod n` (counting from 0) is the verse of the day, where `day` is the day of the year of the date (0 for January 1st, 365 for December 31st in a leap year) and `n` is the number of verses in use.
-
-This gives every year its own shuffled order. The dataset has more than 366 verses, so a verse never repeats within a calendar year, though the same verse can occasionally appear on December 31st and again on January 1st. The order isn't repeated from one year to the next, and the same date always gives the same verse. Because the order comes from each verse's own reference, it doesn't depend on the order of the list.
-
-Each year's schedule depends on which verses are in use that year, so the list only changes in ways that leave the years people have already seen alone. New verses are added with an `addedIn` year that hasn't started yet, and verses are removed by setting a `removedIn` year that hasn't started yet, so they stay in the dataset. The schedules of earlier years stay exactly the same, and the change takes effect from that year on. Every year has at least 366 verses in use.
+The [Verse of the Day Convention](./verse-of-the-day-convention.md) page specifies the algorithm step by step, with pseudocode and test values, so that you can implement it in any language.
 
 To use your own order, pick a seed of your own (for example, the name of your app): it gives a different shuffle with the same guarantees. You can also pick from a single category's verses, but every category has fewer verses than there are days in a year, so its verses repeat sooner.
 

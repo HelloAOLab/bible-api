@@ -195,6 +195,19 @@ const sidebar = (prefix: string, labels: Labels): SidebarOptions => ({
                 {
                     text: labels.nav.datasets,
                     link: 'datasets/',
+                    collapsible: true,
+                    // Translated docs only list the pages that have been translated so far.
+                    children: ['datasets/verse-of-the-day-convention'].filter(
+                        (page) =>
+                            existsSync(
+                                path.join(
+                                    docsDir,
+                                    prefix,
+                                    'reference',
+                                    `${page}.md`
+                                )
+                            )
+                    ),
                 },
                 'openapi',
             ],
