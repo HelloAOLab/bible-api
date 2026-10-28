@@ -12,9 +12,9 @@
       "json"
     ],
     "listOfBooksApiLink": "/api/d/verse-of-the-day/books.json",
-    "numberOfBooks": 59,
-    "totalNumberOfChapters": 337,
-    "totalNumberOfVerses": 594,
+    "numberOfBooks": 65,
+    "totalNumberOfChapters": 360,
+    "totalNumberOfVerses": 651,
     "totalNumberOfReferences": 0,
     "languageName": "English",
     "languageEnglishName": "English",
@@ -41,7 +41,7 @@
       "book": "JHN",
       "chapter": 20
     },
-    "totalNumberOfVerses": 43,
+    "totalNumberOfVerses": 45,
     "totalNumberOfReferences": 0
   },
   "chapter": {

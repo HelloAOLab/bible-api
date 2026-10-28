@@ -126,10 +126,7 @@ describe('Verse of the Day Convention page', () => {
     it.each(tableAfter('### Picks From the Dataset'))(
         'should list the verse of the day from the dataset for %s',
         (date, expected) => {
-            const verse = getVerseOfTheDay(date)!;
-            expect(`${verse.book} ${verse.chapter}:${verse.verse}`).toBe(
-                expected
-            );
+            expect(ref(getVerseOfTheDay(date))).toBe(expected);
         }
     );
 });

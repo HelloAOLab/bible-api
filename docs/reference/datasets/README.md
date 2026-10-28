@@ -314,9 +314,9 @@ export interface Dataset {
                 "json"
             ],
             "listOfBooksApiLink": "/api/d/verse-of-the-day/books.json",
-            "numberOfBooks": 59,
-            "totalNumberOfChapters": 337,
-            "totalNumberOfVerses": 594,
+            "numberOfBooks": 65,
+            "totalNumberOfChapters": 360,
+            "totalNumberOfVerses": 651,
             "totalNumberOfReferences": 0,
             "languageName": "English",
             "languageEnglishName": "English",
@@ -2337,7 +2337,7 @@ export interface DatasetLexiconSense {
 
 ## Verse of the Day
 
-The verse of the day dataset (`verse-of-the-day`) is a curated list of nearly 600 well-known verses and short passages (at most three verses) that make good candidates for a "verse of the day". That is enough for a different verse every day of the year. Each one makes sense on its own and has one to three categories, most relevant first, from this fixed set:
+The verse of the day dataset (`verse-of-the-day`) is a curated list of more than 650 well-known verses and short passages (at most three verses) that make good candidates for a "verse of the day". That is enough for a different verse every day of the year. Each one makes sense on its own and has one to three categories, most relevant first, from this fixed set:
 
 | ID            | Description                                                 |
 | ------------- | ----------------------------------------------------------- |
@@ -2621,14 +2621,14 @@ export interface DatasetCategorySummary {
             "id": "comfort",
             "name": "Comfort",
             "description": "God's nearness and care in grief, trouble, and loneliness.",
-            "numberOfVerses": 61,
+            "numberOfVerses": 65,
             "apiLink": "/api/d/verse-of-the-day/categories/comfort.json"
         },
         {
             "id": "courage",
             "name": "Courage",
             "description": "Standing firm and not being afraid.",
-            "numberOfVerses": 40,
+            "numberOfVerses": 49,
             "apiLink": "/api/d/verse-of-the-day/categories/courage.json"
         }
         // ...

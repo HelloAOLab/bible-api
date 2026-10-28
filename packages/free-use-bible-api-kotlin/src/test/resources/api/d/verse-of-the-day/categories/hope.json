@@ -12,9 +12,9 @@
       "json"
     ],
     "listOfBooksApiLink": "/api/d/verse-of-the-day/books.json",
-    "numberOfBooks": 59,
-    "totalNumberOfChapters": 337,
-    "totalNumberOfVerses": 594,
+    "numberOfBooks": 65,
+    "totalNumberOfChapters": 360,
+    "totalNumberOfVerses": 651,
     "totalNumberOfReferences": 0,
     "languageName": "English",
     "languageEnglishName": "English",
@@ -38,9 +38,9 @@
         "verse": 25
       },
       {
-        "book": "PSA",
-        "chapter": 18,
-        "verse": 28
+        "book": "JOB",
+        "chapter": 23,
+        "verse": 10
       },
       {
         "book": "ISA",

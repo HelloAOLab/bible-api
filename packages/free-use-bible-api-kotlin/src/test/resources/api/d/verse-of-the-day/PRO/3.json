@@ -12,9 +12,9 @@
       "json"
     ],
     "listOfBooksApiLink": "/api/d/verse-of-the-day/books.json",
-    "numberOfBooks": 59,
-    "totalNumberOfChapters": 337,
-    "totalNumberOfVerses": 594,
+    "numberOfBooks": 65,
+    "totalNumberOfChapters": 360,
+    "totalNumberOfVerses": 651,
     "totalNumberOfReferences": 0,
     "languageName": "English",
     "languageEnglishName": "English",
@@ -26,7 +26,7 @@
     "id": "PRO",
     "datasetId": "verse-of-the-day",
     "order": 20,
-    "numberOfChapters": 23,
+    "numberOfChapters": 24,
     "firstChapterNumber": 2,
     "firstChapterApiLink": "/api/d/verse-of-the-day/PRO/2.json",
     "firstChapterReference": {
@@ -41,7 +41,7 @@
       "book": "PRO",
       "chapter": 31
     },
-    "totalNumberOfVerses": 36,
+    "totalNumberOfVerses": 38,
     "totalNumberOfReferences": 0
   },
   "chapter": {

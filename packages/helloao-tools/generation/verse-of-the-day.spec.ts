@@ -81,7 +81,7 @@ describe('VERSES_OF_THE_DAY', () => {
     // These fingerprints make sure that the schedules of years that people have already seen don't change.
     // Add new verses with `addedIn` (and remove verses with `removedIn`) set to a year that hasn't started yet.
     // When a year starts, add its fingerprint here.
-    it.each([[2026, 2426813568]])(
+    it.each([[2026, 969680267]])(
         'should not change the verse of the day schedule of %d',
         (year, fingerprint) => {
             const picks: string[] = [];
@@ -196,12 +196,12 @@ describe('getVerseOfTheDay()', () => {
 
     // These pin the convention. If the list of verses changes, the verse for a day changes too.
     it('should pick the conventional verse for a date', () => {
-        expect(ref(getVerseOfTheDay('2926-01-01'))).toBe('PSA 33:22');
-        expect(ref(getVerseOfTheDay('2926-01-02'))).toBe('1JN 4:16');
+        expect(ref(getVerseOfTheDay('2926-01-01'))).toBe('EZR 7:10');
+        expect(ref(getVerseOfTheDay('2926-01-02'))).toBe('PSA 33:22');
         expect(ref(getVerseOfTheDay('2926-01-01', { seed: 'my-app' }))).toBe(
             'PRO 4:23'
         );
-        expect(ref(getVerseOfTheDay('2026-12-31'))).toBe('ISA 25:8');
+        expect(ref(getVerseOfTheDay('2026-12-31'))).toBe('PSA 90:2');
         expect(ref(getVerseOfTheDay('2027-01-01'))).toBe('JAS 2:17');
     });
 

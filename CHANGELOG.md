@@ -6,7 +6,7 @@ This is the log of changes for the Free Use Bible API.
 
 ### :rocket: Features
 
--   Added the verse of the day dataset (`verse-of-the-day`), a curated list of nearly 600 well-known verses and short passages (at most three verses) that make good "verse of the day" candidates, enough for a different verse every day of the year. Each one has one to three categories from a fixed set: `comfort`, `courage`, `faith`, `forgiveness`, `gratitude`, `guidance`, `hope`, `inspiration`, `joy`, `love`, `peace`, `praise`, `prayer`, `provision`, `salvation`, `strength`, and `wisdom`.
+-   Added the verse of the day dataset (`verse-of-the-day`), a curated list of more than 650 well-known verses and short passages (at most three verses) that make good "verse of the day" candidates, enough for a different verse every day of the year. Each one has one to three categories from a fixed set: `comfort`, `courage`, `faith`, `forgiveness`, `gratitude`, `guidance`, `hope`, `inspiration`, `joy`, `love`, `peace`, `praise`, `prayer`, `provision`, `salvation`, `strength`, and `wisdom`.
     -   `GET /api/d/verse-of-the-day/verses.json` lists every verse in the dataset as `{ book, chapter, verse, endVerse?, categories }`, in canonical order.
     -   `GET /api/d/verse-of-the-day/categories.json` lists the categories with their descriptions and number of verses.
     -   `GET /api/d/verse-of-the-day/categories/{category}.json` (e.g. `/api/d/verse-of-the-day/categories/hope.json`) returns `{ dataset, category, thisCategoryApiLink }`, where `category.verses` lists the verses in the category in canonical order.

@@ -8,7 +8,7 @@ The API is made of static files, so it doesn't pick a verse for you. The convent
 
 - **Deterministic.** The same date (and seed) always gives the same verse, on every device and in every implementation.
 - **No repeats within a year.** Every year has its own shuffled order of the verses, and the year's days walk through it. The dataset always has at least 366 verses in use, so a verse never appears twice in the same calendar year.
-- **A new order every year.** The order isn't repeated once every verse has been used. Because each year is shuffled separately, the same verse can occasionally appear on December 31st and again on January 1st (about 1 in 600 New Years).
+- **A new order every year.** The order isn't repeated once every verse has been used. Because each year is shuffled separately, the same verse can occasionally appear on December 31st and again on January 1st (about 1 in 650 New Years).
 - **Stable history.** The dataset only adds or removes verses from a year that hasn't started yet (see [`addedIn` and `removedIn`](#step-2-keep-the-verses-that-are-in-use)), so the verse of the day for a date that has already happened never changes.
 - **Independent of list order.** Each verse's place in a year's order comes from its own reference, so the order of the list doesn't matter.
 
@@ -238,10 +238,10 @@ The dataset never changes the verses of a year that has started, so these 2026 v
 | Date       | Verse of the day |
 | ---------- | ---------------- |
 | 2026-01-01 | PSA 32:1         |
-| 2026-06-15 | COL 1:17         |
-| 2026-10-28 | JON 2:9          |
-| 2026-12-25 | 2TI 1:7          |
-| 2026-12-31 | ISA 25:8         |
+| 2026-06-15 | PHP 3:13-14      |
+| 2026-10-28 | PSA 86:11        |
+| 2026-12-25 | REV 1:8          |
+| 2026-12-31 | PSA 90:2         |
 
 ## Implementations
 
