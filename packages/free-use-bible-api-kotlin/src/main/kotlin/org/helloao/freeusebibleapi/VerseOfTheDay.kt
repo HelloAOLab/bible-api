@@ -13,8 +13,9 @@ import java.util.Calendar
  * 2. If a category is given, the verses in that category are picked from by the day of the year (as in 4).
  * 3. Otherwise, if the date is a holiday (a holiday with the date's month and day, or with the date in its `dates`),
  *    the holiday's verses are picked from: sorted as in 4, but with the holiday's ID in place of the year
- *    (`"{seed}|{holiday}|{book} {chapter}:{verse}"`), at position `year mod n`. A holiday goes through its verses
- *    one year at a time.
+ *    (`"{seed}|{holiday}|{book} {chapter}:{verse}"`), at position `(year * k + i) mod n`, where `k` is the number
+ *    of days the holiday is observed in the year and `i` is the number of those days before the date. A holiday
+ *    goes through its verses one year (and day) at a time.
  * 4. Otherwise, the verses that aren't for a holiday are picked from. Each one gets a sort key: the 32-bit FNV-1a hash
  *    of the UTF-8 bytes of `"{seed}|{year}|{book} {chapter}:{verse}"` (e.g. `"|2026|JHN 3:16"`), passed through
  *    the MurmurHash3 `fmix32` finalizer. They are sorted by their key (as an unsigned number), then by the key's
@@ -52,7 +53,8 @@ public fun pickVerseOfTheDay(
             val holidayVerses = inUse.filter { holiday.id in it.categories }
             if (holidayVerses.isNotEmpty()) {
                 val sorted = sortByKey(holidayVerses, "$seed|${holiday.id}")
-                return sorted[Math.floorMod(year, sorted.size.toLong()).toInt()]
+                val position = getHolidayPosition(holiday, year, month, day)
+                return sorted[Math.floorMod(position, sorted.size.toLong()).toInt()]
             }
         }
         val holidayIds = holidays.map { it.id }.toSet()
@@ -66,10 +68,24 @@ public fun pickVerseOfTheDay(
 }
 
 /**
+ * Gets the position of the given date in the holiday's verses: `year * k + i`, where `k` is the number of days
+ * that the holiday is observed in the year and `i` is the number of those days that come before the date.
+ * For a holiday that is observed on one day a year, this is just the year.
+ */
+private fun getHolidayPosition(holiday: ApiDatasetVersesHoliday, year: Long, month: Int, day: Int): Long {
+    val dates = holiday.dates ?: return year
+    val date = formatDate(year, month, day)
+    val datesInYear = dates.filter { it.startsWith(date.dropLast(5)) }
+    return year * datesInYear.size + datesInYear.count { it < date }
+}
+
+private fun formatDate(year: Long, month: Int, day: Int): String = String.format("%04d-%02d-%02d", year, month, day)
+
+/**
  * Finds the first holiday that falls on the given date.
  */
 private fun findHoliday(holidays: List<ApiDatasetVersesHoliday>, year: Long, month: Int, day: Int): ApiDatasetVersesHoliday? {
-    val date = String.format("%04d-%02d-%02d", year, month, day)
+    val date = formatDate(year, month, day)
     return holidays.firstOrNull { (it.month == month && it.day == day) || it.dates?.contains(date) == true }
 }
 

@@ -316,13 +316,13 @@ export interface Dataset {
             "listOfBooksApiLink": "/api/d/verse-of-the-day/books.json",
             "numberOfBooks": 65,
             "totalNumberOfChapters": 381,
-            "totalNumberOfVerses": 739,
+            "totalNumberOfVerses": 750,
             "totalNumberOfReferences": 0,
             "languageName": "English",
             "languageEnglishName": "English",
             "listOfVersesApiLink": "/api/d/verse-of-the-day/verses.json",
             "listOfCategoriesApiLink": "/api/d/verse-of-the-day/categories.json",
-            "totalNumberOfCategories": 30
+            "totalNumberOfCategories": 31
         }
     ]
 }
@@ -2337,7 +2337,7 @@ export interface DatasetLexiconSense {
 
 ## Verse of the Day
 
-The verse of the day dataset (`verse-of-the-day`) is a curated list of well-known verses and short passages (at most three verses) that make good candidates for a "verse of the day": more than 640 for every day of the year, and more than 80 for Christian holidays. Each one makes sense on its own.
+The verse of the day dataset (`verse-of-the-day`) is a curated list of well-known verses and short passages (at most three verses) that make good candidates for a "verse of the day": more than 640 for every day of the year, and more than 100 for Christian holidays. Each one makes sense on its own.
 
 Every verse for every day has one to three categories, most relevant first, from this fixed set:
 
@@ -2361,23 +2361,24 @@ Every verse for every day has one to three categories, most relevant first, from
 | `strength`    | God giving strength and endurance.                          |
 | `wisdom`      | Godly wisdom and practical instruction for life.            |
 
-Holidays have categories of their own. On a holiday, the verse of the day is one of the holiday's verses, and those verses aren't used on other days. Each holiday category has a `holiday` with its dates: holidays on the same date every year have a `month` and `day`, and holidays whose date changes every year (because they depend on Resurrection Sunday or Advent) list their `dates` in the Gregorian calendar, precomputed for 2026 to 2125.
+Holidays have categories of their own. On a holiday, the verse of the day is one of the holiday's verses, and those verses aren't used on other days. A holiday usually lasts one day; After Resurrection Sunday lasts the three days after Resurrection Sunday, so it lists all three dates. Each holiday category has a `holiday` with its dates: holidays on the same date every year have a `month` and `day`, and holidays whose date changes every year (because they depend on Resurrection Sunday or Advent) list their `dates` in the Gregorian calendar, precomputed for 2026 to 2125.
 
-| ID                    | Holiday                | Date                                          |
-| --------------------- | ---------------------- | --------------------------------------------- |
-| `epiphany`            | Epiphany               | January 6th                                   |
-| `ash-wednesday`       | Ash Wednesday          | 46 days before Resurrection Sunday            |
-| `palm-sunday`         | Palm Sunday            | The Sunday before Resurrection Sunday         |
-| `maundy-thursday`     | Maundy Thursday        | The Thursday before Resurrection Sunday       |
-| `good-friday`         | Good Friday            | The Friday before Resurrection Sunday         |
-| `resurrection-sunday` | Resurrection Sunday    | Easter Sunday                                 |
-| `ascension-day`       | Ascension Day          | 39 days after Resurrection Sunday             |
-| `pentecost`           | Pentecost              | 49 days after Resurrection Sunday             |
-| `all-hallows-eve`     | All Hallows' Eve       | October 31st                                  |
-| `all-saints-day`      | All Saints' Day        | November 1st                                  |
-| `advent-sunday`       | First Sunday of Advent | The fourth Sunday before Christmas            |
-| `christmas-eve`       | Christmas Eve          | December 24th                                 |
-| `christmas`           | Christmas              | December 25th                                 |
+| ID                         | Holiday                   | Date                                     |
+| -------------------------- | ------------------------- | ---------------------------------------- |
+| `epiphany`                 | Epiphany                  | January 6th                              |
+| `ash-wednesday`            | Ash Wednesday             | 46 days before Resurrection Sunday       |
+| `palm-sunday`              | Palm Sunday               | The Sunday before Resurrection Sunday    |
+| `maundy-thursday`          | Maundy Thursday           | The Thursday before Resurrection Sunday  |
+| `good-friday`              | Good Friday               | The Friday before Resurrection Sunday    |
+| `resurrection-sunday`      | Resurrection Sunday       | Easter Sunday                            |
+| `post-resurrection-sunday` | After Resurrection Sunday | The three days after Resurrection Sunday |
+| `ascension-day`            | Ascension Day             | 39 days after Resurrection Sunday        |
+| `pentecost`                | Pentecost                 | 49 days after Resurrection Sunday        |
+| `all-hallows-eve`          | All Hallows' Eve          | October 31st                             |
+| `all-saints-day`           | All Saints' Day           | November 1st                             |
+| `advent-sunday`            | First Sunday of Advent    | The fourth Sunday before Christmas       |
+| `christmas-eve`            | Christmas Eve             | December 24th                            |
+| `christmas`                | Christmas                 | December 25th                            |
 
 The dataset only contains references, not verse text, so it works with every translation. Verse numbers use the standard English numbering (the same as the BSB). The data can be read three ways:
 
@@ -2695,7 +2696,7 @@ export interface DatasetCategorySummary {
     "dataset": {
         "id": "verse-of-the-day",
         "name": "Verse of the Day",
-        "totalNumberOfCategories": 30
+        "totalNumberOfCategories": 31
         // ...
     },
     "categories": [
@@ -2845,7 +2846,7 @@ export interface DatasetCategoryVerse {
     "dataset": {
         "id": "verse-of-the-day",
         "name": "Verse of the Day",
-        "totalNumberOfCategories": 30
+        "totalNumberOfCategories": 31
         // ...
     },
     "category": {

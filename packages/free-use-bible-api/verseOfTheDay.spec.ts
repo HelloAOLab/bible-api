@@ -228,6 +228,43 @@ describe('pickVerseOfTheDay()', () => {
             }
         });
 
+        it('should pick a different verse on each day of a holiday that lasts several days', () => {
+            const easterWeek: VerseOfTheDayCandidate[] = [
+                ...verses,
+                { book: 'ACT', chapter: 2, verse: 24, categories: ['post'] },
+                { book: 'ROM', chapter: 6, verse: 9, categories: ['post'] },
+                { book: '1CO', chapter: 15, verse: 20, categories: ['post'] },
+                { book: '1TH', chapter: 4, verse: 14, categories: ['post'] },
+            ];
+            const post = [
+                {
+                    id: 'post',
+                    dates: [
+                        '2926-04-09',
+                        '2926-04-10',
+                        '2926-04-11',
+                        '2927-04-01',
+                        '2927-04-02',
+                        '2927-04-03',
+                    ],
+                },
+            ];
+            const picks = [
+                '2926-04-09',
+                '2926-04-10',
+                '2926-04-11',
+                '2927-04-01',
+                '2927-04-02',
+                '2927-04-03',
+            ].map((date) =>
+                ref(pickVerseOfTheDay(easterWeek, date, { holidays: post }))
+            );
+            expect(new Set(picks.slice(0, 3)).size).toBe(3);
+            expect(new Set(picks.slice(3)).size).toBe(3);
+            // The positions are year * 3 + i, so 2927 continues where 2926 left off.
+            expect(new Set(picks.slice(0, 4)).size).toBe(4);
+        });
+
         it('should only observe a holiday that moves on its listed dates', () => {
             expect(pick('2927-04-08')).not.toBe('MAT 28:6');
         });

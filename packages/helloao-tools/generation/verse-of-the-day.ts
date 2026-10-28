@@ -113,6 +113,7 @@ export const VERSE_OF_THE_DAY_HOLIDAY_IDS = [
     'maundy-thursday',
     'good-friday',
     'resurrection-sunday',
+    'post-resurrection-sunday',
     'ascension-day',
     'pentecost',
     'all-hallows-eve',
@@ -129,12 +130,12 @@ export type VerseOfTheDayHolidayId =
     (typeof VERSE_OF_THE_DAY_HOLIDAY_IDS)[number];
 
 /**
- * Defines when a holiday is observed: on the same date every year, a number of days after Resurrection Sunday,
- * or on the first Sunday of Advent.
+ * Defines when a holiday is observed: on the same date every year, a number of days after Resurrection Sunday
+ * (for `numberOfDays` days in a row, 1 by default), or on the first Sunday of Advent.
  */
 export type VerseOfTheDayHolidayRule =
     | { month: number; day: number }
-    | { daysAfterResurrectionSunday: number }
+    | { daysAfterResurrectionSunday: number; numberOfDays?: number }
     | { firstSundayOfAdvent: true };
 
 /**
@@ -196,8 +197,15 @@ export const VERSE_OF_THE_DAY_HOLIDAYS: Record<
     },
     'resurrection-sunday': {
         name: 'Resurrection Sunday',
-        description: 'Easter Sunday. The resurrection of Jesus.',
+        description:
+            'Easter Sunday. The Gospel accounts of the resurrection of Jesus.',
         rule: { daysAfterResurrectionSunday: 0 },
+    },
+    'post-resurrection-sunday': {
+        name: 'After Resurrection Sunday',
+        description:
+            'The three days after Resurrection Sunday. The risen Jesus appearing to His disciples, and teaching about the resurrection.',
+        rule: { daysAfterResurrectionSunday: 1, numberOfDays: 3 },
     },
     'ascension-day': {
         name: 'Ascension Day',
@@ -320,17 +328,20 @@ export function getVerseOfTheDayHolidayDates(
         for (let year = years.first; year <= years.last; year++) {
             if ('daysAfterResurrectionSunday' in rule) {
                 const sunday = getResurrectionSunday(year);
-                dates.push(
-                    format(
-                        new Date(
-                            Date.UTC(
-                                year,
-                                sunday.month - 1,
-                                sunday.day + rule.daysAfterResurrectionSunday
+                for (let i = 0; i < (rule.numberOfDays ?? 1); i++) {
+                    const offset = rule.daysAfterResurrectionSunday + i;
+                    dates.push(
+                        format(
+                            new Date(
+                                Date.UTC(
+                                    year,
+                                    sunday.month - 1,
+                                    sunday.day + offset
+                                )
                             )
                         )
-                    )
-                );
+                    );
+                }
             } else {
                 // The first Sunday of Advent is the Sunday from November 27th to December 3rd.
                 const date = new Date(Date.UTC(year, 10, 27));
@@ -1218,6 +1229,7 @@ export const VERSES_OF_THE_DAY: VerseOfTheDay[] = [
         categories: ['good-friday'],
     },
     { book: 'MAT', chapter: 28, verse: 6, categories: ['resurrection-sunday'] },
+    { book: 'MAT', chapter: 28, verse: 9, categories: ['resurrection-sunday'] },
     { book: 'MAT', chapter: 28, verse: 19, categories: ['inspiration'] },
     { book: 'MAT', chapter: 28, verse: 20, categories: ['comfort'] },
     { book: 'MRK', chapter: 1, verse: 35, categories: ['prayer'] },
@@ -1235,6 +1247,7 @@ export const VERSES_OF_THE_DAY: VerseOfTheDay[] = [
     },
     { book: 'MRK', chapter: 14, verse: 38, categories: ['maundy-thursday'] },
     { book: 'MRK', chapter: 15, verse: 39, categories: ['good-friday'] },
+    { book: 'MRK', chapter: 16, verse: 6, categories: ['resurrection-sunday'] },
     { book: 'MRK', chapter: 16, verse: 15, categories: ['inspiration'] },
     { book: 'MRK', chapter: 16, verse: 19, categories: ['ascension-day'] },
     {
@@ -1284,6 +1297,33 @@ export const VERSES_OF_THE_DAY: VerseOfTheDay[] = [
     { book: 'LUK', chapter: 23, verse: 34, categories: ['forgiveness'] },
     { book: 'LUK', chapter: 23, verse: 43, categories: ['good-friday'] },
     { book: 'LUK', chapter: 23, verse: 46, categories: ['good-friday'] },
+    {
+        book: 'LUK',
+        chapter: 24,
+        verse: 5,
+        endVerse: 7,
+        categories: ['resurrection-sunday'],
+    },
+    {
+        book: 'LUK',
+        chapter: 24,
+        verse: 31,
+        endVerse: 32,
+        categories: ['post-resurrection-sunday'],
+    },
+    {
+        book: 'LUK',
+        chapter: 24,
+        verse: 34,
+        categories: ['resurrection-sunday'],
+    },
+    {
+        book: 'LUK',
+        chapter: 24,
+        verse: 38,
+        endVerse: 39,
+        categories: ['post-resurrection-sunday'],
+    },
     {
         book: 'LUK',
         chapter: 24,
@@ -1415,14 +1455,34 @@ export const VERSES_OF_THE_DAY: VerseOfTheDay[] = [
         endVerse: 42,
         categories: ['good-friday'],
     },
+    { book: 'JHN', chapter: 20, verse: 1, categories: ['resurrection-sunday'] },
+    {
+        book: 'JHN',
+        chapter: 20,
+        verse: 16,
+        categories: ['resurrection-sunday'],
+    },
     {
         book: 'JHN',
         chapter: 20,
         verse: 20,
         categories: ['resurrection-sunday'],
     },
+    {
+        book: 'JHN',
+        chapter: 20,
+        verse: 27,
+        endVerse: 28,
+        categories: ['post-resurrection-sunday'],
+    },
     { book: 'JHN', chapter: 20, verse: 29, categories: ['faith'] },
     { book: 'JHN', chapter: 20, verse: 31, categories: ['faith', 'salvation'] },
+    {
+        book: 'ACT',
+        chapter: 1,
+        verse: 3,
+        categories: ['post-resurrection-sunday'],
+    },
     {
         book: 'ACT',
         chapter: 1,
@@ -1433,7 +1493,12 @@ export const VERSES_OF_THE_DAY: VerseOfTheDay[] = [
     { book: 'ACT', chapter: 1, verse: 11, categories: ['ascension-day'] },
     { book: 'ACT', chapter: 2, verse: 4, categories: ['pentecost'] },
     { book: 'ACT', chapter: 2, verse: 17, categories: ['pentecost'] },
-    { book: 'ACT', chapter: 2, verse: 24, categories: ['resurrection-sunday'] },
+    {
+        book: 'ACT',
+        chapter: 2,
+        verse: 24,
+        categories: ['post-resurrection-sunday'],
+    },
     {
         book: 'ACT',
         chapter: 2,
@@ -1491,7 +1556,12 @@ export const VERSES_OF_THE_DAY: VerseOfTheDay[] = [
     { book: 'ROM', chapter: 5, verse: 5, categories: ['hope', 'love'] },
     { book: 'ROM', chapter: 5, verse: 8, categories: ['love', 'salvation'] },
     { book: 'ROM', chapter: 6, verse: 4, categories: ['salvation', 'hope'] },
-    { book: 'ROM', chapter: 6, verse: 9, categories: ['resurrection-sunday'] },
+    {
+        book: 'ROM',
+        chapter: 6,
+        verse: 9,
+        categories: ['post-resurrection-sunday'],
+    },
     { book: 'ROM', chapter: 6, verse: 23, categories: ['salvation'] },
     {
         book: 'ROM',
@@ -1582,7 +1652,7 @@ export const VERSES_OF_THE_DAY: VerseOfTheDay[] = [
         chapter: 15,
         verse: 3,
         endVerse: 4,
-        categories: ['resurrection-sunday'],
+        categories: ['post-resurrection-sunday'],
     },
     {
         book: '1CO',
@@ -1594,7 +1664,7 @@ export const VERSES_OF_THE_DAY: VerseOfTheDay[] = [
         book: '1CO',
         chapter: 15,
         verse: 20,
-        categories: ['resurrection-sunday'],
+        categories: ['post-resurrection-sunday'],
     },
     { book: '1CO', chapter: 15, verse: 55, categories: ['hope'] },
     {
@@ -1782,7 +1852,12 @@ export const VERSES_OF_THE_DAY: VerseOfTheDay[] = [
         verse: 14,
         categories: ['inspiration', 'gratitude'],
     },
-    { book: 'PHP', chapter: 3, verse: 10, categories: ['resurrection-sunday'] },
+    {
+        book: 'PHP',
+        chapter: 3,
+        verse: 10,
+        categories: ['post-resurrection-sunday'],
+    },
     {
         book: 'PHP',
         chapter: 3,
@@ -1858,6 +1933,12 @@ export const VERSES_OF_THE_DAY: VerseOfTheDay[] = [
     { book: 'COL', chapter: 4, verse: 6, categories: ['wisdom'] },
     { book: '1TH', chapter: 3, verse: 12, categories: ['love', 'prayer'] },
     { book: '1TH', chapter: 4, verse: 13, categories: ['hope', 'comfort'] },
+    {
+        book: '1TH',
+        chapter: 4,
+        verse: 14,
+        categories: ['post-resurrection-sunday'],
+    },
     { book: '1TH', chapter: 5, verse: 5, categories: ['all-hallows-eve'] },
     { book: '1TH', chapter: 5, verse: 11, categories: ['inspiration', 'love'] },
     {
@@ -2068,7 +2149,7 @@ export const VERSES_OF_THE_DAY: VerseOfTheDay[] = [
         chapter: 1,
         verse: 17,
         endVerse: 18,
-        categories: ['resurrection-sunday'],
+        categories: ['post-resurrection-sunday'],
     },
     { book: 'REV', chapter: 2, verse: 10, categories: ['courage', 'faith'] },
     { book: 'REV', chapter: 3, verse: 20, categories: ['salvation'] },
@@ -2121,8 +2202,9 @@ export interface VerseOfTheDayOptions {
  * 2. If a category is given, the verses in that category are picked from by the day of the year (as in 4).
  * 3. Otherwise, if the date is a holiday (a holiday with the date's month and day, or with the date in its `dates`),
  *    the holiday's verses are picked from: sorted as in 4, but with the holiday's ID in place of the year
- *    (`"{seed}|{holiday}|{book} {chapter}:{verse}"`), at position `year mod n`. A holiday goes through its verses
- *    one year at a time.
+ *    (`"{seed}|{holiday}|{book} {chapter}:{verse}"`), at position `(year * k + i) mod n`, where `k` is the number
+ *    of days the holiday is observed in the year and `i` is the number of those days before the date. A holiday
+ *    goes through its verses one year (and day) at a time.
  * 4. Otherwise, the verses that aren't for a holiday are picked from. Each one gets a sort key: the 32-bit FNV-1a hash
  *    of the UTF-8 bytes of `"{seed}|{year}|{book} {chapter}:{verse}"` (e.g. `"|2026|JHN 3:16"`), passed through
  *    the MurmurHash3 `fmix32` finalizer. They are sorted by their key (as an unsigned number), then by the key's
@@ -2164,7 +2246,8 @@ export function getVerseOfTheDay(
                     holidayVerses,
                     `${seed}|${holiday.id}`
                 );
-                return sorted[mod(year, sorted.length)];
+                const position = getHolidayPosition(holiday, year, month, day);
+                return sorted[mod(position, sorted.length)];
             }
         }
         const holidayIds = new Set(holidays.map((h) => h.id));
@@ -2186,6 +2269,33 @@ function defaultHolidays(): VerseOfTheDayHolidayDates[] {
 }
 
 /**
+ * Gets the position of the given date in the holiday's verses: `year * k + i`, where `k` is the number of days
+ * that the holiday is observed in the year and `i` is the number of those days that come before the date.
+ * For a holiday that is observed on one day a year, this is just the year.
+ */
+function getHolidayPosition(
+    holiday: VerseOfTheDayHolidayDates,
+    year: number,
+    month: number,
+    day: number
+): number {
+    if (!holiday.dates) {
+        return year;
+    }
+    const date = formatDate(year, month, day);
+    const datesInYear = holiday.dates.filter((d) =>
+        d.startsWith(date.slice(0, -5))
+    );
+    return (
+        year * datesInYear.length + datesInYear.filter((d) => d < date).length
+    );
+}
+
+function formatDate(year: number, month: number, day: number): string {
+    return `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
+
+/**
  * Finds the first holiday that falls on the given date.
  */
 function findHoliday(
@@ -2194,7 +2304,7 @@ function findHoliday(
     month: number,
     day: number
 ): VerseOfTheDayHolidayDates | undefined {
-    const date = `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const date = formatDate(year, month, day);
     return holidays.find(
         (h) => (h.month === month && h.day === day) || !!h.dates?.includes(date)
     );

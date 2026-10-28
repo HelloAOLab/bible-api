@@ -268,7 +268,7 @@ export function createBibleMcpServer(options: BibleMcpOptions = {}): McpServer {
                     .string()
                     .optional()
                     .describe(
-                        "Only pick from the verses in this category: comfort, courage, faith, forgiveness, gratitude, guidance, hope, inspiration, joy, love, peace, praise, prayer, provision, salvation, strength, or wisdom, or a holiday's verses: epiphany, ash-wednesday, palm-sunday, maundy-thursday, good-friday, resurrection-sunday, ascension-day, pentecost, all-hallows-eve, all-saints-day, advent-sunday, christmas-eve, or christmas. Verses in a category repeat sooner than a year."
+                        "Only pick from the verses in this category: comfort, courage, faith, forgiveness, gratitude, guidance, hope, inspiration, joy, love, peace, praise, prayer, provision, salvation, strength, or wisdom, or a holiday's verses: epiphany, ash-wednesday, palm-sunday, maundy-thursday, good-friday, resurrection-sunday, post-resurrection-sunday, ascension-day, pentecost, all-hallows-eve, all-saints-day, advent-sunday, christmas-eve, or christmas. Verses in a category repeat sooner than a year."
                     ),
                 seed: z
                     .string()

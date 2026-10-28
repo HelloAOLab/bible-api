@@ -93,8 +93,9 @@ export interface PickVerseOfTheDayOptions {
  * 2. If a category is given, the verses in that category are picked from by the day of the year (as in 4).
  * 3. Otherwise, if the date is a holiday (a holiday with the date's month and day, or with the date in its `dates`),
  *    the holiday's verses are picked from: sorted as in 4, but with the holiday's ID in place of the year
- *    (`"{seed}|{holiday}|{book} {chapter}:{verse}"`), at position `year mod n`. A holiday goes through its verses
- *    one year at a time.
+ *    (`"{seed}|{holiday}|{book} {chapter}:{verse}"`), at position `(year * k + i) mod n`, where `k` is the number
+ *    of days the holiday is observed in the year and `i` is the number of those days before the date. A holiday
+ *    goes through its verses one year (and day) at a time.
  * 4. Otherwise, the verses that aren't for a holiday are picked from. Each one gets a sort key: the 32-bit FNV-1a hash
  *    of the UTF-8 bytes of `"{seed}|{year}|{book} {chapter}:{verse}"` (e.g. `"|2026|JHN 3:16"`), passed through
  *    the MurmurHash3 `fmix32` finalizer. They are sorted by their key (as an unsigned number), then by the key's
@@ -138,7 +139,8 @@ export function pickVerseOfTheDay<T extends VerseOfTheDayCandidate>(
                     holidayVerses,
                     `${seed}|${holiday.id}`
                 );
-                return sorted[mod(year, sorted.length)];
+                const position = getHolidayPosition(holiday, year, month, day);
+                return sorted[mod(position, sorted.length)];
             }
         }
         const holidayIds = new Set(holidays.map((h) => h.id));
@@ -194,6 +196,33 @@ export function getYearAndDayOfYear(date: Date | string): {
 }
 
 /**
+ * Gets the position of the given date in the holiday's verses: `year * k + i`, where `k` is the number of days
+ * that the holiday is observed in the year and `i` is the number of those days that come before the date.
+ * For a holiday that is observed on one day a year, this is just the year.
+ */
+function getHolidayPosition(
+    holiday: VerseOfTheDayHoliday,
+    year: number,
+    month: number,
+    day: number
+): number {
+    if (!holiday.dates) {
+        return year;
+    }
+    const date = formatDate(year, month, day);
+    const datesInYear = holiday.dates.filter((d) =>
+        d.startsWith(date.slice(0, -5))
+    );
+    return (
+        year * datesInYear.length + datesInYear.filter((d) => d < date).length
+    );
+}
+
+function formatDate(year: number, month: number, day: number): string {
+    return `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
+
+/**
  * Finds the first holiday that falls on the given date.
  */
 function findHoliday<H extends VerseOfTheDayHoliday>(
@@ -202,7 +231,7 @@ function findHoliday<H extends VerseOfTheDayHoliday>(
     month: number,
     day: number
 ): H | undefined {
-    const date = `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const date = formatDate(year, month, day);
     return holidays.find(
         (h) => (h.month === month && h.day === day) || !!h.dates?.includes(date)
     );

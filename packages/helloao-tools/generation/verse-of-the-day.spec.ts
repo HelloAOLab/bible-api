@@ -90,7 +90,7 @@ describe('VERSES_OF_THE_DAY', () => {
     // These fingerprints make sure that the schedules of years that people have already seen don't change.
     // Add new verses with `addedIn` (and remove verses with `removedIn`) set to a year that hasn't started yet.
     // When a year starts, add its fingerprint here.
-    it.each([[2026, 3806787062]])(
+    it.each([[2026, 3951923855]])(
         'should not change the verse of the day schedule of %d',
         (year, fingerprint) => {
             const picks: string[] = [];
@@ -479,14 +479,21 @@ describe('holidays', () => {
         expect(year2026('pentecost')).toBe('2026-05-24');
         expect(year2026('advent-sunday')).toBe('2026-11-29');
         expect(dates.get('advent-sunday')!.dates![2]).toBe('2028-12-03');
+        expect(
+            dates.get('post-resurrection-sunday')!.dates!.slice(0, 4)
+        ).toEqual(['2026-04-06', '2026-04-07', '2026-04-08', '2027-03-29']);
+        const years =
+            VERSE_OF_THE_DAY_HOLIDAY_YEARS.last -
+            VERSE_OF_THE_DAY_HOLIDAY_YEARS.first +
+            1;
         for (let h of dates.values()) {
             if (h.dates) {
-                expect(h.dates).toHaveLength(
-                    VERSE_OF_THE_DAY_HOLIDAY_YEARS.last -
-                        VERSE_OF_THE_DAY_HOLIDAY_YEARS.first +
-                        1
-                );
+                const rule = VERSE_OF_THE_DAY_HOLIDAYS[
+                    h.id as keyof typeof VERSE_OF_THE_DAY_HOLIDAYS
+                ].rule as { numberOfDays?: number };
+                expect(h.dates).toHaveLength(years * (rule.numberOfDays ?? 1));
                 expect(h.dates.at(-1)!.startsWith('2125-')).toBe(true);
+                expect([...h.dates].sort()).toEqual(h.dates);
             }
         }
     });
@@ -530,6 +537,37 @@ describe('holidays', () => {
         expect(versesFor('advent-sunday')).toContain(
             getVerseOfTheDay('2026-11-29')
         );
+    });
+
+    it('should pick a different verse on each of the days after Resurrection Sunday', () => {
+        const post = versesFor('post-resurrection-sunday');
+        const picks: (VerseOfTheDay | null)[] = [];
+        for (let year = 2026; year < 2026 + post.length; year++) {
+            const { month, day } = getResurrectionSunday(year);
+            const sunday = new Date(Date.UTC(year, month - 1, day));
+            const resurrection = getVerseOfTheDay(
+                sunday.toISOString().slice(0, 10)
+            );
+            expect(versesFor('resurrection-sunday')).toContain(resurrection);
+            const days = [1, 2, 3].map((i) => {
+                const date = new Date(sunday);
+                date.setUTCDate(day + i);
+                return getVerseOfTheDay(date.toISOString().slice(0, 10));
+            });
+            for (let verse of days) {
+                expect(post).toContain(verse);
+            }
+            expect(new Set(days).size).toBe(3);
+            picks.push(...days);
+            // The fourth day is an ordinary day again.
+            const after = new Date(sunday);
+            after.setUTCDate(day + 4);
+            expect(post).not.toContain(
+                getVerseOfTheDay(after.toISOString().slice(0, 10))
+            );
+        }
+        // Consecutive years continue through the verses, so every verse is used.
+        expect(new Set(picks).size).toBe(post.length);
     });
 
     it("should go through all of a holiday's verses before repeating one", () => {

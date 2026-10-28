@@ -14,13 +14,13 @@
     "listOfBooksApiLink": "/api/d/verse-of-the-day/books.json",
     "numberOfBooks": 65,
     "totalNumberOfChapters": 381,
-    "totalNumberOfVerses": 739,
+    "totalNumberOfVerses": 750,
     "totalNumberOfReferences": 0,
     "languageName": "English",
     "languageEnglishName": "English",
     "listOfVersesApiLink": "/api/d/verse-of-the-day/verses.json",
     "listOfCategoriesApiLink": "/api/d/verse-of-the-day/categories.json",
-    "totalNumberOfCategories": 30
+    "totalNumberOfCategories": 31
   },
   "books": [
     {
@@ -64,7 +64,7 @@
         "book": "JHN",
         "chapter": 20
       },
-      "totalNumberOfVerses": 56,
+      "totalNumberOfVerses": 59,
       "totalNumberOfReferences": 0
     }
   ]

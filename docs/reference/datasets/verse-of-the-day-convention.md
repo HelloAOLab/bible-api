@@ -8,20 +8,20 @@ The API is made of static files, so it doesn't pick a verse for you. The convent
 
 - **Deterministic.** The same date (and seed) always gives the same verse, on every device and in every implementation.
 - **No repeats within a year.** Every year has its own shuffled order of the verses, and the year's days walk through it. The dataset always has at least 366 verses for every day in use, so a verse never appears twice in the same calendar year.
-- **Holidays.** On a Christian holiday (such as Christmas or Resurrection Sunday), the verse of the day is one of the holiday's verses. A holiday goes through its verses one year at a time, so it has a different verse every year until all of its verses have been used. Holiday verses aren't used on other days.
+- **Holidays.** On a Christian holiday (such as Christmas or Resurrection Sunday), the verse of the day is one of the holiday's verses. A holiday goes through its verses one year at a time, so it has a different verse every year until all of its verses have been used. A holiday that lasts several days (like the three days after Resurrection Sunday) has a different verse on each day. Holiday verses aren't used on other days.
 - **A new order every year.** The order isn't repeated once every verse has been used. Because each year is shuffled separately, the same verse can occasionally appear on December 31st and again on January 1st (about 1 in 650 New Years).
 - **Stable history.** The dataset only adds or removes verses from a year that hasn't started yet (see [`addedIn` and `removedIn`](#step-2-keep-the-verses-that-are-in-use)), so the verse of the day for a date that has already happened never changes.
 - **Independent of list order.** Each verse's place in a year's order comes from its own reference, so the order of the list doesn't matter.
 
 ## Inputs
 
-| Input    | Description                                                                                                                                                                                                                                 |
-| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Verses   | The `verses` array from [`/api/d/verse-of-the-day/verses.json`](./README.md#list-verses-in-a-dataset). Each verse has a `book`, `chapter`, `verse`, and `categories`, and can have `endVerse`, `addedIn`, and `removedIn`.                  |
-| Date     | A calendar date (year, month, and day). For "today", use the user's local date, not the date in UTC.                                                                                                                                        |
-| Seed     | Optional. A string that selects a different order. Defaults to the empty string, which gives the standard verse of the day.                                                                                                                 |
-| Holidays | The `holidays` array from the same file. Each holiday has the `id` of its category, and either a `month` and `day` (a holiday on the same date every year) or a list of `dates` (`YYYY-MM-DD`) for a holiday whose date changes every year. |
-| Category | Optional. Only pick from the verses that have this category in their `categories`, on any day.                                                                                                                                              |
+| Input    | Description                                                                                                                                                                                                                                                                                                                       |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Verses   | The `verses` array from [`/api/d/verse-of-the-day/verses.json`](./README.md#list-verses-in-a-dataset). Each verse has a `book`, `chapter`, `verse`, and `categories`, and can have `endVerse`, `addedIn`, and `removedIn`.                                                                                                        |
+| Date     | A calendar date (year, month, and day). For "today", use the user's local date, not the date in UTC.                                                                                                                                                                                                                              |
+| Seed     | Optional. A string that selects a different order. Defaults to the empty string, which gives the standard verse of the day.                                                                                                                                                                                                       |
+| Holidays | The `holidays` array from the same file. Each holiday has the `id` of its category, and either a `month` and `day` (a holiday on the same date every year) or a list of `dates` (`YYYY-MM-DD`, in order) for a holiday whose date changes every year. A holiday can list several dates in the same year if it lasts several days. |
+| Category | Optional. Only pick from the verses that have this category in their `categories`, on any day.                                                                                                                                                                                                                                    |
 
 ## Algorithm
 
@@ -43,7 +43,7 @@ Keep the verses that are in use in the year:
 Choose the verses to pick from, a key prefix for step 4, and a position for step 7:
 
 1. **A category was given.** Keep the verses in use whose `categories` contain it. The prefix is `{seed}|{year}` and the position is the day of the year.
-2. **No category was given, and the date is a holiday.** The date is a holiday if a holiday in `holidays` has the date's `month` and `day`, or lists the date in its `dates` (written as `YYYY-MM-DD`, with a four-digit year). If more than one holiday matches, use the first one in the list (the dataset never has two holidays on the same date). Keep the verses in use whose `categories` contain the holiday's `id`. If there are any, the prefix is `{seed}|{id}` (for example `|christmas`) and the position is the year. If there aren't any, continue with 3.
+2. **No category was given, and the date is a holiday.** The date is a holiday if a holiday in `holidays` has the date's `month` and `day`, or lists the date in its `dates` (written as `YYYY-MM-DD`, with a four-digit year). If more than one holiday matches, use the first one in the list (the dataset never has two holidays on the same date). Keep the verses in use whose `categories` contain the holiday's `id`. If there are any, the prefix is `{seed}|{id}` (for example `|christmas`) and the position is `year × k + i`, where `k` is the number of days the holiday is observed in the year (1 for a holiday with a `month` and `day`; otherwise the number of its `dates` in the date's year) and `i` is the number of those days that come before the date. For a holiday that is observed on one day a year, the position is just the year. If there aren't any, continue with 3.
 3. **Otherwise.** Keep the verses in use whose `categories` don't contain the `id` of any holiday in `holidays`. The prefix is `{seed}|{year}` and the position is the day of the year.
 
 `seed` is the seed (the empty string by default), and `year` is the year from step 1 in decimal without leading zeros (e.g. `2026`, `1`).
@@ -94,9 +94,9 @@ If two verses have the same sort key (which is very rare), put the one whose key
 
 ### Step 7: Pick the verse
 
-The verse of the day is the verse at position `p mod n` in the sorted list (counting from 0), where `p` is the position from step 3 (the day of the year, or the year on a holiday) and `n` is the number of verses in the sorted list. The result of `mod` is never negative (for a negative year, add `n` until it isn't).
+The verse of the day is the verse at position `p mod n` in the sorted list (counting from 0), where `p` is the position from step 3 (the day of the year, or `year × k + i` on a holiday) and `n` is the number of verses in the sorted list. The result of `mod` is never negative (for a negative year, add `n` until it isn't).
 
-On ordinary days, the full dataset has at least 366 verses, so `day mod n` is just `day`. The `mod` matters when you pick from a category or a list of your own with fewer verses than there are days in the year, in which case verses repeat within the year. On a holiday, `year mod n` goes through the holiday's verses one year at a time.
+On ordinary days, the full dataset has at least 366 verses, so `day mod n` is just `day`. The `mod` matters when you pick from a category or a list of your own with fewer verses than there are days in the year, in which case verses repeat within the year. On a holiday, the position goes through the holiday's verses one year (and, for a holiday that lasts several days, one day) at a time.
 
 ## Pseudocode
 
@@ -116,7 +116,12 @@ function verseOfTheDay(verses, holidays, date, seed = "", category = null):
     if holiday != null:
         holidayVerses = [v for v in inUse if holiday.id in v.categories]
         if holidayVerses is not empty:
-            return pick(holidayVerses, seed + "|" + holiday.id, year)
+            if holiday.dates == null:
+                position = year
+            else:
+                datesInYear = [d for d in holiday.dates if d starts with year + "-"]
+                position = year * length(datesInYear) + count of d in datesInYear where d < date
+            return pick(holidayVerses, seed + "|" + holiday.id, position)
 
     holidayIds = [h.id for h in holidays]
     return pick([v for v in inUse if no category of v is in holidayIds], seed + "|" + year, day)
@@ -174,7 +179,7 @@ Use these values to check an implementation.
 
 ### Picks From a Small List
 
-These use this list of twelve verses, four of which are for holidays:
+These use this list of sixteen verses, eight of which are for holidays:
 
 ```json
 [
@@ -239,6 +244,30 @@ These use this list of twelve verses, four of which are for holidays:
         "chapter": 28,
         "verse": 6,
         "categories": ["resurrection-sunday"]
+    },
+    {
+        "book": "ACT",
+        "chapter": 2,
+        "verse": 24,
+        "categories": ["post-resurrection-sunday"]
+    },
+    {
+        "book": "ROM",
+        "chapter": 6,
+        "verse": 9,
+        "categories": ["post-resurrection-sunday"]
+    },
+    {
+        "book": "1CO",
+        "chapter": 15,
+        "verse": 20,
+        "categories": ["post-resurrection-sunday"]
+    },
+    {
+        "book": "1TH",
+        "chapter": 4,
+        "verse": 14,
+        "categories": ["post-resurrection-sunday"]
     }
 ]
 ```
@@ -249,7 +278,18 @@ And these holidays (Christmas Eve has no verses, so it is an ordinary day):
 [
     { "id": "christmas-eve", "month": 12, "day": 24 },
     { "id": "christmas", "month": 12, "day": 25 },
-    { "id": "resurrection-sunday", "dates": ["2026-04-05", "2027-03-28"] }
+    { "id": "resurrection-sunday", "dates": ["2026-04-05", "2027-03-28"] },
+    {
+        "id": "post-resurrection-sunday",
+        "dates": [
+            "2026-04-06",
+            "2026-04-07",
+            "2026-04-08",
+            "2027-03-29",
+            "2027-03-30",
+            "2027-03-31"
+        ]
+    }
 ]
 ```
 
@@ -276,6 +316,17 @@ On Christmas, only the Christmas verses that are in use are left. In 2027 there 
 | 2        | `\|christmas\|LUK 2:7`  | 3160581874 |
 
 2027 mod 3 = 2, so the verse of the day on Christmas 2027 is Luke 2:7. In 2026, Matthew 1:23 isn't in use yet, so there are only two, and 2026 mod 2 = 0 gives Luke 2:10-11.
+
+The holiday after Resurrection Sunday lasts three days. Its four verses, sorted by their sort keys, are:
+
+| Position | Key                                     | Sort key   |
+| -------- | --------------------------------------- | ---------- |
+| 0        | `\|post-resurrection-sunday\|1TH 4:14`  | 80824114   |
+| 1        | `\|post-resurrection-sunday\|ROM 6:9`   | 665551464  |
+| 2        | `\|post-resurrection-sunday\|1CO 15:20` | 820536316  |
+| 3        | `\|post-resurrection-sunday\|ACT 2:24`  | 3132510482 |
+
+In 2026 it is observed on three days, so `k` = 3, and the positions of April 6th, 7th, and 8th are 2026 × 3 + 0 = 6078, 6079, and 6080. 6078 mod 4 = 2, 6079 mod 4 = 3, and 6080 mod 4 = 0 give 1 Corinthians 15:20, Acts 2:24, and 1 Thessalonians 4:14. In 2027 the positions continue from 6081, so the next verse is Romans 6:9.
 
 | Date       | Seed     | Category    | Verse of the day    |
 | ---------- | -------- | ----------- | ------------------- |
@@ -304,6 +355,13 @@ On Christmas, only the Christmas verses that are in use are left. In 2027 there 
 | 2028-04-16 |          |             | PSA 23:1            |
 | 2026-12-24 |          |             | PSA 23:1            |
 | 2026-07-01 |          | `christmas` | LUK 2:7             |
+| 2026-04-06 |          |             | 1CO 15:20           |
+| 2026-04-07 |          |             | ACT 2:24            |
+| 2026-04-08 |          |             | 1TH 4:14            |
+| 2026-04-09 |          |             | PSA 23:1            |
+| 2027-03-29 |          |             | ROM 6:9             |
+| 2027-03-30 |          |             | 1CO 15:20           |
+| 2027-03-31 |          |             | ACT 2:24            |
 
 2028-04-16 is Resurrection Sunday, but it isn't in this list's `dates`, so it is an ordinary day.
 
@@ -311,18 +369,19 @@ On Christmas, only the Christmas verses that are in use are left. In 2027 there 
 
 The dataset never changes the verses of a year that has started, so these 2026 verses of the day stay the same:
 
-| Date       | Holiday                | Verse of the day |
-| ---------- | ---------------------- | ---------------- |
-| 2026-01-01 |                        | PSA 32:1         |
-| 2026-04-03 | Good Friday            | LUK 23:33        |
-| 2026-04-05 | Resurrection Sunday    | 1CO 15:20        |
-| 2026-06-15 |                        | EST 4:14         |
-| 2026-10-28 |                        | PSA 136:1        |
-| 2026-10-31 | All Hallows' Eve       | EPH 5:8          |
-| 2026-11-29 | First Sunday of Advent | MAL 3:1          |
-| 2026-12-24 | Christmas Eve          | MAT 1:21         |
-| 2026-12-25 | Christmas              | ISA 9:6          |
-| 2026-12-31 |                        | EZK 36:26        |
+| Date       | Holiday                   | Verse of the day |
+| ---------- | ------------------------- | ---------------- |
+| 2026-01-01 |                           | PSA 32:1         |
+| 2026-04-03 | Good Friday               | LUK 23:33        |
+| 2026-04-05 | Resurrection Sunday       | MAT 28:9         |
+| 2026-04-06 | After Resurrection Sunday | REV 1:17-18      |
+| 2026-06-15 |                           | EST 4:14         |
+| 2026-10-28 |                           | PSA 136:1        |
+| 2026-10-31 | All Hallows' Eve          | EPH 5:8          |
+| 2026-11-29 | First Sunday of Advent    | MAL 3:1          |
+| 2026-12-24 | Christmas Eve             | MAT 1:21         |
+| 2026-12-25 | Christmas                 | ISA 9:6          |
+| 2026-12-31 |                           | EZK 36:26        |
 
 ## Implementations
 

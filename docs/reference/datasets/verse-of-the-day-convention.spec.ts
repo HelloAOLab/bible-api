@@ -115,7 +115,17 @@ describe('Verse of the Day Convention page', () => {
         ).toEqual(keyRows(sortedKeys(christmas, '|christmas')));
     });
 
-    it.each(tableAfter('2027 mod 3 = 2'))(
+    it('should list the sorted keys of the holiday that lasts several days', () => {
+        const rows = tableAfter('Its four verses, sorted');
+        const post = inUse(2026).filter((v: any) =>
+            v.categories.includes('post-resurrection-sunday')
+        );
+        expect(
+            rows.map(([position, key, hash]) => [position, code(key), hash])
+        ).toEqual(keyRows(sortedKeys(post, '|post-resurrection-sunday')));
+    });
+
+    it.each(tableAfter('the next verse is Romans 6:9'))(
         'should list the verse of the day for %s (seed %s, category %s)',
         (date, seed, category, expected) => {
             const options = {

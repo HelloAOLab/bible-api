@@ -115,11 +115,20 @@ class VerseOfTheDayTest {
             v("LUK", 2, 10, "christmas", endVerse = 11),
             v("MAT", 1, 23, "christmas", addedIn = 2027),
             v("MAT", 28, 6, "resurrection-sunday"),
+            v("ACT", 2, 24, "post-resurrection-sunday"),
+            v("ROM", 6, 9, "post-resurrection-sunday"),
+            v("1CO", 15, 20, "post-resurrection-sunday"),
+            v("1TH", 4, 14, "post-resurrection-sunday"),
         )
         val holidays = listOf(
             ApiDatasetVersesHoliday(id = "christmas-eve", name = "Christmas Eve", month = 12, day = 24),
             ApiDatasetVersesHoliday(id = "christmas", name = "Christmas", month = 12, day = 25),
             ApiDatasetVersesHoliday(id = "resurrection-sunday", name = "Resurrection Sunday", dates = listOf("2026-04-05", "2027-03-28")),
+            ApiDatasetVersesHoliday(
+                id = "post-resurrection-sunday",
+                name = "After Resurrection Sunday",
+                dates = listOf("2026-04-06", "2026-04-07", "2026-04-08", "2027-03-29", "2027-03-30", "2027-03-31"),
+            ),
         )
         val expected = listOf(
             Triple("2026-01-01", "", null) to "PSA 23:1",
@@ -147,6 +156,13 @@ class VerseOfTheDayTest {
             Triple("2028-04-16", "", null) to "PSA 23:1",
             Triple("2026-12-24", "", null) to "PSA 23:1",
             Triple("2026-07-01", "", "christmas") to "LUK 2:7",
+            Triple("2026-04-06", "", null) to "1CO 15:20",
+            Triple("2026-04-07", "", null) to "ACT 2:24",
+            Triple("2026-04-08", "", null) to "1TH 4:14",
+            Triple("2026-04-09", "", null) to "PSA 23:1",
+            Triple("2027-03-29", "", null) to "ROM 6:9",
+            Triple("2027-03-30", "", null) to "1CO 15:20",
+            Triple("2027-03-31", "", null) to "ACT 2:24",
         )
         for ((input, ref) in expected) {
             val (date, seed, category) = input
