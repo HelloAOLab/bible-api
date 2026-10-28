@@ -21,32 +21,30 @@
         "noApiKeyDetail": "Hakuna cha kujisajili",
         "noUsageLimits": "Hakuna mipaka ya matumizi",
         "noUsageLimitsDetail": "Bure milele",
-        "welcome": "Karibu kwenye uhuru.",
-        "welcomeDetail": "Anza leo bila **vikwazo** na **bila vikwazo** .",
-        "compareLink": "Linganisha sisi na API zingine za Biblia",
         "translationsTitle": "Tafsiri za Biblia",
-        "translationsBody": "Tafsiri {{ count }} kama JSON tuli, huku vichwa vya habari, ushairi, mgawanyiko wa mistari na tanbihi zikiwa zimehifadhiwa bila kubadilika.",
         "translationsLink": "Marejeleo ya API",
         "audioTitle": "Sauti ya Biblia",
-        "audioBody": "Maandiko yanasomwa kwa sauti na kuigizwa kwa urahisi, kwa ajili ya kusikilizwa na kupatikana kwa urahisi.",
         "audioLink": "Sehemu za mwisho za sauti",
         "datasetsTitle": "Seti za Data za Biblia",
-        "datasetsBody": "Marejeleo mtambuka na seti zingine za data za Biblia, katika miundo unayoweza kujenga nayo badala ya kuchanganua.",
         "datasetsLink": "Vinjari seti za data",
-        "seedBibleTitle": "Hati za Msanidi Programu wa Biblia ya Mbegu",
-        "seedBibleBody": "Tumia na upanue jukwaa letu lililo wazi badala ya kuanza kutoka mwanzo.",
-        "seedBibleComing": "Desemba ijayo",
-        "compareTitle": "API Chache za Biblia Zikilinganishwa",
-        "compareCaption": "Kile ambacho API ya Biblia ya Matumizi ya Bure na API tatu za Biblia zinazotumiwa sana hukuruhusu kufanya",
-        "compareCorner": "Unachoweza kufanya",
-        "compareColumns": {
+        "buildTitle": "Tuanze kujenga.",
+        "newsletterPrompt": "Unataka kubaki kwenye mzunguko?",
+        "newsletterLink": "Jisajili kwa jarida",
+        "newsletterBody": "Masasisho kutoka kwa watu wanaoijenga, kwenye kikasha chako.",
+        "contributeDiscord": "Changia kwenye Discord"
+    },
+    "compare": {
+        "title": "API Chache za Biblia Zikilinganishwa",
+        "caption": "Kile ambacho API ya Biblia ya Matumizi ya Bure na API tatu za Biblia zinazotumiwa sana hukuruhusu kufanya",
+        "corner": "Unachoweza kufanya",
+        "columns": {
             "account": "Hakuna akaunti",
             "usage": "Hakuna kikomo cha matumizi",
             "permission": "Bila maswali",
             "storage": "Hifadhi na hifadhi ya akiba*",
             "openSource": "Chanzo huria"
         },
-        "compareRows": {
+        "rows": {
             "ours": {
                 "account": "Hakuna akaunti, ufunguo au idhini",
                 "usage": "Hakuna kikomo cha matumizi kilichochapishwa",
@@ -79,17 +77,7 @@
         "markYes": "Ndiyo",
         "markConditional": "Masharti",
         "markNotGranted": "Haijatolewa",
-        "storageNote": "*Nakili na uhifadhi kwenye vifaa vyako mwenyewe, seva, au kwenye kifaa ili kifanye kazi nje ya mtandao.",
-        "contributeTitle": "Tusaidie kupanua mpaka.",
-        "contributeBody": "Tuunde mfumo ikolojia wazi wa maudhui ya kikoa cha umma na zana za chanzo huria.",
-        "contributeDiscord": "Changia kwenye Discord",
-        "buildTitle": "Tuanze kujenga.",
-        "newsletterPrompt": "Unataka kubaki kwenye mzunguko?",
-        "newsletterLink": "Jisajili kwa jarida",
-        "newsletterBody": "Masasisho kutoka kwa watu wanaoijenga, kwenye kikasha chako.",
-        "examplesPrompt": "Unataka kitu cha kunakili?",
-        "examplesLink": "Tazama mifano",
-        "examplesBody": "Maombi ya kawaida na mifumo ya kufanya kazi unayoweza kurekebisha."
+        "storageNote": "*Nakili na uhifadhi kwenye vifaa vyako mwenyewe, seva, au kwenye kifaa ili kifanye kazi nje ya mtandao."
     },
     "footer": {
         "madeWith": "Imetengenezwa kwa {{ love }} kwa {{ aoLab }}",

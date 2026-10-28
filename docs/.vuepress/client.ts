@@ -4,6 +4,7 @@ import {
     resolvers,
     useSiteLocaleData,
 } from 'vuepress/client';
+import CompareMatrix from './components/CompareMatrix.vue';
 import HomeLayout from './layouts/HomeLayout.vue';
 import NotFound from './layouts/NotFound.vue';
 
@@ -34,6 +35,11 @@ function textDirection(lang: string): 'ltr' | 'rtl' {
 }
 
 export default defineClientConfig({
+    enhance({ app }) {
+        // Used by compare.md.
+        app.component('CompareMatrix', CompareMatrix);
+    },
+
     layouts: {
         HomeLayout,
         NotFound,

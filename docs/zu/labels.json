@@ -21,32 +21,30 @@
         "noApiKeyDetail": "Akukho okufanele ubhalisele kukho",
         "noUsageLimits": "Akukho mingcele yokusetshenziswa",
         "noUsageLimitsDetail": "Mahhala kuze kube phakade",
-        "welcome": "Siyakwamukela enkululekweni.",
-        "welcomeDetail": "Qala namuhla **ngaphandle kwemingcele** futhi **ngaphandle kwemingcele** .",
-        "compareLink": "Qhathanisa nathi namanye ama-API eBhayibheli",
         "translationsTitle": "Izinguqulo ZeBhayibheli",
-        "translationsBody": "{{ count }} izinguqulo njenge-JSON engaguquki, enezihloko, izinkondlo, ukuhlukana kwemigqa kanye nemibhalo yaphansi egcinwe ingashintshi.",
         "translationsLink": "Ireferensi ye-API",
         "audioTitle": "Umsindo weBhayibheli",
-        "audioBody": "ImiBhalo ifundwa ngokuzwakalayo nangokuzwakalayo, ukuze kube lula ukuyilalela nokuyifinyelela.",
         "audioLink": "Ama-endpoint omsindo",
         "datasetsTitle": "Amasethi Edatha EBhayibheli",
-        "datasetsBody": "Izinkomba ezihambisanayo kanye namanye amasethi edatha eBhayibheli, ngamafomethi ongawakha ngawo kunokuba uwahlaziye.",
         "datasetsLink": "Dlulisa amehlo kumasethi edatha",
-        "seedBibleTitle": "Amadokhumenti Onjiniyela BeBhayibheli Lembewu",
-        "seedBibleBody": "Sebenzisa futhi wandise ipulatifomu yethu evulekile esikhundleni sokuqala phansi.",
-        "seedBibleComing": "Kuza uDisemba",
-        "compareTitle": "Ama-API ambalwa eBhayibheli aqhathaniswa",
-        "compareCaption": "Lokho i-Free Use Bible API kanye nama-Bible API amathathu asetshenziswa kabanzi akuvumela ukuthi ukwenze",
-        "compareCorner": "Lokho ongakwenza",
-        "compareColumns": {
+        "buildTitle": "Ake siqale ukwakha.",
+        "newsletterPrompt": "Ufuna ukuhlala unolwazi?",
+        "newsletterLink": "Bhalisela iphephandaba",
+        "newsletterBody": "Izibuyekezo ezivela kubantu abayakhayo, ebhokisini lakho lokungenayo.",
+        "contributeDiscord": "Nikela ku-Discord"
+    },
+    "compare": {
+        "title": "Ama-API ambalwa eBhayibheli aqhathaniswa",
+        "caption": "Lokho i-Free Use Bible API kanye nama-Bible API amathathu asetshenziswa kabanzi akuvumela ukuthi ukwenze",
+        "corner": "Lokho ongakwenza",
+        "columns": {
             "account": "Ayikho i-akhawunti",
             "usage": "Akukho mkhawulo wokusetshenziswa",
             "permission": "Akukho mibuzo ebuzwayo",
             "storage": "Isitolo kanye nenqolobane*",
             "openSource": "Umthombo ovulekile"
         },
-        "compareRows": {
+        "rows": {
             "ours": {
                 "account": "Akukho akhawunti, ukhiye noma imvume",
                 "usage": "Akukho mkhawulo wokusetshenziswa okushicilelwe",
@@ -79,17 +77,7 @@
         "markYes": "Yebo",
         "markConditional": "Okunemibandela",
         "markNotGranted": "Akuvunyelwe",
-        "storageNote": "*Kopisha bese ugcina kuhadiwe yakho, amaseva, noma kudivayisi ukuze isebenze ungaxhunyiwe ku-inthanethi.",
-        "contributeTitle": "Sisize sandise umngcele.",
-        "contributeBody": "Ake sakhe uhlelo oluvulekile lokuqukethwe kwesizinda somphakathi kanye namathuluzi omthombo ovulekile.",
-        "contributeDiscord": "Nikela ku-Discord",
-        "buildTitle": "Ake siqale ukwakha.",
-        "newsletterPrompt": "Ufuna ukuhlala unolwazi?",
-        "newsletterLink": "Bhalisela iphephandaba",
-        "newsletterBody": "Izibuyekezo ezivela kubantu abayakhayo, ebhokisini lakho lokungenayo.",
-        "examplesPrompt": "Ufuna okuthile ongakukopisha?",
-        "examplesLink": "Bona izibonelo",
-        "examplesBody": "Izicelo ezivamile kanye namaphethini okusebenza ongawalungisa."
+        "storageNote": "*Kopisha bese ugcina kuhadiwe yakho, amaseva, noma kudivayisi ukuze isebenze ungaxhunyiwe ku-inthanethi."
     },
     "footer": {
         "madeWith": "Kwenziwe ngo {{ love }} ngo {{ aoLab }}",

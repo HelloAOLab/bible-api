@@ -21,32 +21,30 @@
         "noApiKeyDetail": "ለመመዝገብ ምንም ነገር የለም",
         "noUsageLimits": "የአጠቃቀም ገደቦች የሉም",
         "noUsageLimitsDetail": "ለዘላለም ነፃ",
-        "welcome": "እንኳን ወደ ነፃነት በደህና መጡ።",
-        "welcomeDetail": "ዛሬውኑ **ያለምንም ገደብ** እና **ያለ ምንም የውሳኔ ገደብ** ይጀምሩ።",
-        "compareLink": "ከሌሎች የመጽሐፍ ቅዱስ ኤፒአይዎች ጋር ያወዳድሩ",
         "translationsTitle": "የመጽሐፍ ቅዱስ ትርጉሞች",
-        "translationsBody": "{{ count }} ትርጉሞች እንደ የማይንቀሳቀስ JSON፣ ርዕሶች፣ ግጥሞች፣ የመስመር ክፍተቶች እና የግርጌ ማስታወሻዎች ሳይበላሹ ተጠብቀዋል።",
         "translationsLink": "የኤፒአይ ማጣቀሻ",
         "audioTitle": "የመጽሐፍ ቅዱስ ኦዲዮ",
-        "audioBody": "ቅዱሳት መጻሕፍት በግልጽ ጮክ ብለው እና በድራማ መልክ ተነበቡ፣ ይህም በቀላሉ ለማዳመጥ እና ተደራሽ ለማድረግ ነው።",
         "audioLink": "የድምጽ መጨረሻ ነጥቦች",
         "datasetsTitle": "የመጽሐፍ ቅዱስ የውሂብ ስብስቦች",
-        "datasetsBody": "ማጣቀሻዎችና ሌሎች የመጽሐፍ ቅዱስ የውሂብ ስብስቦች፣ ዙሪያውን ከመተንተን ይልቅ መገንባት በሚችሉ ቅርጸቶች።",
         "datasetsLink": "የውሂብ ስብስቦችን ያስሱ",
-        "seedBibleTitle": "የዘር የመጽሐፍ ቅዱስ ገንቢ ሰነዶች",
-        "seedBibleBody": "ከባዶ ከመጀመር ይልቅ ክፍት የሆነውን መድረካችንን ተጠቀም እና አስፋ።",
-        "seedBibleComing": "የሚመጣው ታህሳስ",
-        "compareTitle": "ጥቂት የመጽሐፍ ቅዱስ ኤፒአይዎች ሲነጻጸሩ",
-        "compareCaption": "ነፃ አጠቃቀም የመጽሐፍ ቅዱስ ኤፒአይ እና በስፋት ጥቅም ላይ የዋሉ ሦስት የመጽሐፍ ቅዱስ ኤፒአይዎች ምን እንዲያደርጉ ያስችሉዎታል",
-        "compareCorner": "ምን ማድረግ ይችላሉ",
-        "compareColumns": {
+        "buildTitle": "መገንባት እንጀምር።",
+        "newsletterPrompt": "በዝግታ ውስጥ መቆየት ይፈልጋሉ?",
+        "newsletterLink": "ለጋዜጣው ይመዝገቡ",
+        "newsletterBody": "በገቢ መልዕክት ሳጥንዎ ውስጥ ከሚገነቡት ሰዎች የተገኙ ዝማኔዎች።",
+        "contributeDiscord": "በዲስኮርድ ላይ አስተዋጽኦ ያድርጉ"
+    },
+    "compare": {
+        "title": "ጥቂት የመጽሐፍ ቅዱስ ኤፒአይዎች ሲነጻጸሩ",
+        "caption": "ነፃ አጠቃቀም የመጽሐፍ ቅዱስ ኤፒአይ እና በስፋት ጥቅም ላይ የዋሉ ሦስት የመጽሐፍ ቅዱስ ኤፒአይዎች ምን እንዲያደርጉ ያስችሉዎታል",
+        "corner": "ምን ማድረግ ይችላሉ",
+        "columns": {
             "account": "መለያ የለም",
             "usage": "የአጠቃቀም ገደብ የለም",
             "permission": "ምንም ጥያቄ አይጠየቅም",
             "storage": "ማከማቻ እና መሸጎጫ*",
             "openSource": "ክፍት ምንጭ"
         },
-        "compareRows": {
+        "rows": {
             "ours": {
                 "account": "መለያ፣ ቁልፍ ወይም ማጽደቂያ የለም",
                 "usage": "የታተመ የአጠቃቀም ገደብ የለም",
@@ -79,17 +77,7 @@
         "markYes": "አዎ",
         "markConditional": "ሁኔታዊ",
         "markNotGranted": "አልተሰጠም",
-        "storageNote": "*ከመስመር ውጭ እንዲሰራ በራስዎ ሃርድዌር፣ ሰርቨሮች ወይም መሳሪያ ላይ ይቅዱ እና ያስቀምጡ።",
-        "contributeTitle": "ድንበሩን ለማስፋት ያግዙን።",
-        "contributeBody": "የህዝብ ጎራ ይዘት እና ክፍት ምንጭ መሳሪያዎችን ክፍት የሆነ ሥነ-ምህዳር እንፍጠር።",
-        "contributeDiscord": "በዲስኮርድ ላይ አስተዋጽኦ ያድርጉ",
-        "buildTitle": "መገንባት እንጀምር።",
-        "newsletterPrompt": "በዝግታ ውስጥ መቆየት ይፈልጋሉ?",
-        "newsletterLink": "ለጋዜጣው ይመዝገቡ",
-        "newsletterBody": "በገቢ መልዕክት ሳጥንዎ ውስጥ ከሚገነቡት ሰዎች የተገኙ ዝማኔዎች።",
-        "examplesPrompt": "የሆነ ነገር ለመቅዳት ይፈልጋሉ?",
-        "examplesLink": "ምሳሌዎችን ይመልከቱ",
-        "examplesBody": "የተለመዱ ጥያቄዎችን እና የስራ ቅጦችን ማስተካከል ይችላሉ።"
+        "storageNote": "*ከመስመር ውጭ እንዲሰራ በራስዎ ሃርድዌር፣ ሰርቨሮች ወይም መሳሪያ ላይ ይቅዱ እና ያስቀምጡ።"
     },
     "footer": {
         "madeWith": "በ {{ love }} በ {{ aoLab }} የተሰራ",

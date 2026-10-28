@@ -21,32 +21,30 @@
         "noApiKeyDetail": "无需注册",
         "noUsageLimits": "无使用限制",
         "noUsageLimitsDetail": "永久免费",
-        "welcome": "欢迎来到自由的世界。",
-        "welcomeDetail": "立即开始，**没有任何限制**，也**没有任何繁琐的手续**。",
-        "compareLink": "将我们与其他圣经API进行比较",
         "translationsTitle": "圣经译本",
-        "translationsBody": "{{ count }}翻译以静态 JSON 格式保存，标题、诗歌、换行符和脚注均保持不变。",
         "translationsLink": "API 参考",
         "audioTitle": "圣经音频",
-        "audioBody": "圣经经文以浅显易懂的方式朗读和戏剧化演绎，方便聆听和理解。",
         "audioLink": "音频端点",
         "datasetsTitle": "圣经数据集",
-        "datasetsBody": "交叉引用和其他圣经数据集，采用您可以直接构建的格式，而不是需要解析的格式。",
         "datasetsLink": "浏览数据集",
-        "seedBibleTitle": "种子圣经开发者文档",
-        "seedBibleBody": "利用并扩展我们的开放平台，而不是从零开始。",
-        "seedBibleComing": "12月即将到来",
-        "compareTitle": "几个圣经API的比较",
-        "compareCaption": "免费圣经API和三个广泛使用的圣经API能让你做什么",
-        "compareCorner": "你可以做什么",
-        "compareColumns": {
+        "buildTitle": "让我们开始建造吧。",
+        "newsletterPrompt": "想随时了解最新动态吗？",
+        "newsletterLink": "订阅新闻简报",
+        "newsletterBody": "来自项目开发团队的最新消息，直接发送到您的邮箱。",
+        "contributeDiscord": "在 Discord 上做出贡献"
+    },
+    "compare": {
+        "title": "几个圣经API的比较",
+        "caption": "免费圣经API和三个广泛使用的圣经API能让你做什么",
+        "corner": "你可以做什么",
+        "columns": {
             "account": "没有账户",
             "usage": "无使用限制",
             "permission": "不问缘由",
             "storage": "存储和缓存*",
             "openSource": "开源"
         },
-        "compareRows": {
+        "rows": {
             "ours": {
                 "account": "无需账户、密钥或批准",
                 "usage": "未公布使用限制",
@@ -79,17 +77,7 @@
         "markYes": "是的",
         "markConditional": "条件",
         "markNotGranted": "未授予",
-        "storageNote": "*复制并存储在您自己的硬件、服务器或设备上，以便离线使用。",
-        "contributeTitle": "帮助我们拓展疆界。",
-        "contributeBody": "让我们创建一个开放的公共领域内容和开源工具生态系统。",
-        "contributeDiscord": "在 Discord 上做出贡献",
-        "buildTitle": "让我们开始建造吧。",
-        "newsletterPrompt": "想随时了解最新动态吗？",
-        "newsletterLink": "订阅新闻简报",
-        "newsletterBody": "来自项目开发团队的最新消息，直接发送到您的邮箱。",
-        "examplesPrompt": "想复制一些东西吗？",
-        "examplesLink": "请参阅示例",
-        "examplesBody": "您可以借鉴的常见请求和工作模式。"
+        "storageNote": "*复制并存储在您自己的硬件、服务器或设备上，以便离线使用。"
     },
     "footer": {
         "madeWith": "由{{ love }}乘{{ aoLab }}制成",

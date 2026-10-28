@@ -21,32 +21,30 @@
         "noApiKeyDetail": "登録は不要です",
         "noUsageLimits": "使用制限なし",
         "noUsageLimitsDetail": "永久無料",
-        "welcome": "自由へようこそ。",
-        "welcomeDetail": "今日から**制限なし**、**面倒な手続きなし**で始めましょう。",
-        "compareLink": "他の聖書APIと比較してみてください",
         "translationsTitle": "聖書翻訳",
-        "translationsBody": "{{ count }}の翻訳を静的JSON形式で保存。見出し、詩、改行、脚注はそのまま保持されます。",
         "translationsLink": "APIリファレンス",
         "audioTitle": "聖書音声",
-        "audioBody": "聖書を分かりやすく朗読し、劇化することで、聞き取りやすく親しみやすいものにしています。",
         "audioLink": "オーディオエンドポイント",
         "datasetsTitle": "聖書データセット",
-        "datasetsBody": "相互参照やその他の聖書データセットを、解析するのではなく、構築に活用できる形式で提供します。",
         "datasetsLink": "データセットを閲覧する",
-        "seedBibleTitle": "シードバイブル開発者向けドキュメント",
-        "seedBibleBody": "ゼロから開発するのではなく、当社のオープンプラットフォームを活用して拡張してください。",
-        "seedBibleComing": "12月発売予定",
-        "compareTitle": "いくつかの聖書関連APIを比較する",
-        "compareCaption": "無料利用可能な聖書APIと、広く利用されている3つの聖書APIでできること",
-        "compareCorner": "あなたができること",
-        "compareColumns": {
+        "buildTitle": "さあ、建設を始めましょう。",
+        "newsletterPrompt": "最新情報を入手したいですか？",
+        "newsletterLink": "ニュースレターに登録する",
+        "newsletterBody": "開発者からの最新情報が、あなたの受信トレイに届きます。",
+        "contributeDiscord": "Discordで貢献する"
+    },
+    "compare": {
+        "title": "いくつかの聖書関連APIを比較する",
+        "caption": "無料利用可能な聖書APIと、広く利用されている3つの聖書APIでできること",
+        "corner": "あなたができること",
+        "columns": {
             "account": "アカウントなし",
             "usage": "使用制限なし",
             "permission": "一切問われません",
             "storage": "保存とキャッシュ*",
             "openSource": "オープンソース"
         },
-        "compareRows": {
+        "rows": {
             "ours": {
                 "account": "アカウント、キー、承認なし",
                 "usage": "使用制限は公表されていません",
@@ -79,17 +77,7 @@
         "markYes": "はい",
         "markConditional": "条件付き",
         "markNotGranted": "許可されません",
-        "storageNote": "*オフラインで動作するように、ご自身のハードウェア、サーバー、またはデバイスにコピーして保存してください。",
-        "contributeTitle": "我々の活動範囲拡大にご協力ください。",
-        "contributeBody": "パブリックドメインのコンテンツとオープンソースツールのオープンなエコシステムを構築しましょう。",
-        "contributeDiscord": "Discordで貢献する",
-        "buildTitle": "さあ、建設を始めましょう。",
-        "newsletterPrompt": "最新情報を入手したいですか？",
-        "newsletterLink": "ニュースレターに登録する",
-        "newsletterBody": "開発者からの最新情報が、あなたの受信トレイに届きます。",
-        "examplesPrompt": "何か真似したいものが欲しいですか？",
-        "examplesLink": "例をご覧ください",
-        "examplesBody": "よくある要望や、状況に応じて調整できる作業パターン。"
+        "storageNote": "*オフラインで動作するように、ご自身のハードウェア、サーバー、またはデバイスにコピーして保存してください。"
     },
     "footer": {
         "madeWith": "{{ love }} × {{ aoLab }}で作成",

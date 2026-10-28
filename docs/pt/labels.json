@@ -21,32 +21,30 @@
         "noApiKeyDetail": "Não é necessário se inscrever.",
         "noUsageLimits": "Sem limites de uso",
         "noUsageLimitsDetail": "Livre para sempre",
-        "welcome": "Bem-vindo à liberdade.",
-        "welcomeDetail": "Comece hoje mesmo, sem **limites** e **sem burocracia** .",
-        "compareLink": "Compare-nos com outras APIs bíblicas.",
         "translationsTitle": "Traduções da Bíblia",
-        "translationsBody": "{{ count }} traduções em JSON estático, com títulos, poesia, quebras de linha e notas de rodapé mantidos intactos.",
         "translationsLink": "Referência da API",
         "audioTitle": "Áudio da Bíblia",
-        "audioBody": "As Escrituras são lidas em voz alta de forma clara e dramatizadas, para facilitar a compreensão e o acesso.",
         "audioLink": "Terminais de áudio",
         "datasetsTitle": "Conjuntos de dados bíblicos",
-        "datasetsBody": "Referências cruzadas e outros conjuntos de dados bíblicos, em formatos que você pode usar em vez de analisar manualmente.",
         "datasetsLink": "Navegue pelos conjuntos de dados",
-        "seedBibleTitle": "Documentação do desenvolvedor da Bíblia Seed",
-        "seedBibleBody": "Utilize e expanda nossa plataforma aberta em vez de começar do zero.",
-        "seedBibleComing": "Chegando em dezembro",
-        "compareTitle": "Comparação de algumas APIs bíblicas",
-        "compareCaption": "O que a API Bíblica de Uso Gratuito e três APIs Bíblicas amplamente utilizadas permitem que você faça",
-        "compareCorner": "O que você pode fazer",
-        "compareColumns": {
+        "buildTitle": "Vamos começar a construir.",
+        "newsletterPrompt": "Quer ficar por dentro de tudo?",
+        "newsletterLink": "Inscreva-se na newsletter",
+        "newsletterBody": "Receba atualizações das pessoas que estão desenvolvendo o projeto diretamente na sua caixa de entrada.",
+        "contributeDiscord": "Contribua no Discord"
+    },
+    "compare": {
+        "title": "Comparação de algumas APIs bíblicas",
+        "caption": "O que a API Bíblica de Uso Gratuito e três APIs Bíblicas amplamente utilizadas permitem que você faça",
+        "corner": "O que você pode fazer",
+        "columns": {
             "account": "Sem conta",
             "usage": "Sem limite de uso",
             "permission": "Sem perguntas",
             "storage": "Armazene e guarde em cache*",
             "openSource": "Código aberto"
         },
-        "compareRows": {
+        "rows": {
             "ours": {
                 "account": "Sem conta, chave ou aprovação.",
                 "usage": "Não há limite de uso publicado",
@@ -79,17 +77,7 @@
         "markYes": "Sim",
         "markConditional": "Condicional",
         "markNotGranted": "Não concedido",
-        "storageNote": "*Copie e armazene em seu próprio hardware, servidores ou em um dispositivo para que funcione offline.",
-        "contributeTitle": "Ajude-nos a expandir as fronteiras.",
-        "contributeBody": "Vamos criar um ecossistema aberto de conteúdo de domínio público e ferramentas de código aberto.",
-        "contributeDiscord": "Contribua no Discord",
-        "buildTitle": "Vamos começar a construir.",
-        "newsletterPrompt": "Quer ficar por dentro de tudo?",
-        "newsletterLink": "Inscreva-se na newsletter",
-        "newsletterBody": "Receba atualizações das pessoas que estão desenvolvendo o projeto diretamente na sua caixa de entrada.",
-        "examplesPrompt": "Quer algo para copiar?",
-        "examplesLink": "Veja os exemplos",
-        "examplesBody": "Solicitações comuns e padrões de trabalho que você pode adaptar."
+        "storageNote": "*Copie e armazene em seu próprio hardware, servidores ou em um dispositivo para que funcione offline."
     },
     "footer": {
         "madeWith": "Feito com {{ love }} por {{ aoLab }}",
