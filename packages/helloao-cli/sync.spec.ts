@@ -571,6 +571,180 @@ describe('sync', () => {
         const third = await runSync();
         expect(third.uploads[0].uploaded).toHaveLength(2);
     });
+
+    describe('api sources', () => {
+        let apiConfig: LoadedSyncConfig;
+
+        // Generates API files from the translation sources into api-out, so they can be used as an api source.
+        async function generateApiFiles() {
+            const result = await runSync();
+            expect(result.errors).toEqual([]);
+        }
+
+        async function runApiSync(options: SyncOptions = {}) {
+            return await syncWithConfig(apiConfig, {
+                codeHashes,
+                ...options,
+            });
+        }
+
+        function readApiOut2(p: string) {
+            return JSON.parse(
+                readFileSync(path.resolve(dir, 'api-out-2', p), 'utf-8')
+            );
+        }
+
+        beforeEach(() => {
+            config.sources.push({ type: 'verse-of-the-day' });
+            apiConfig = {
+                baseDir: dir,
+                db: 'api.db',
+                sources: [{ type: 'api', path: 'api-out' }],
+                destinations: [
+                    {
+                        url: 'api-out-2',
+                        generateOpenApiDocument: false,
+                        generateCompleteTranslationFiles: false,
+                        generateSimpleChapterFiles: false,
+                    },
+                ],
+            };
+        });
+
+        it('should import and upload every item in the API files', async () => {
+            await generateApiFiles();
+            const result = await runApiSync();
+
+            expect(result.errors).toEqual([]);
+            expect(result.import!.imported).toEqual(['api:api-out']);
+            expect(result.uploads[0].uploaded).toEqual(
+                expect.arrayContaining([
+                    { kind: 'translation', id: 'AAA' },
+                    { kind: 'translation', id: 'BBB' },
+                    { kind: 'dataset', id: 'verse-of-the-day' },
+                ])
+            );
+
+            expect(
+                readApiOut2('api/available_translations.json').translations.map(
+                    (t: any) => t.id
+                )
+            ).toEqual(['AAA', 'BBB']);
+            expect(readApiOut2('api/AAA/GEN/1.json')).toEqual(
+                readApiFile('api/AAA/GEN/1.json')
+            );
+            expect(readApiOut2('api/d/verse-of-the-day/verses.json')).toEqual(
+                readApiFile('api/d/verse-of-the-day/verses.json')
+            );
+
+            const second = await runApiSync();
+            expect(second.import!.plan.imports).toEqual([]);
+            expect(second.uploads[0].uploaded).toEqual([]);
+        });
+
+        it('should reimport the API files when they change', async () => {
+            await generateApiFiles();
+            await runApiSync();
+
+            writeTranslation('bbb', 'BBB', {
+                'GEN.usfm': usfm('GEN', [['Changed.']]),
+            });
+            await generateApiFiles();
+            const result = await runApiSync();
+
+            expect(result.errors).toEqual([]);
+            expect(result.import!.plan.imports.map((s) => s.reason)).toEqual([
+                'changed',
+            ]);
+            expect(result.uploads[0].uploaded).toEqual([
+                { kind: 'translation', id: 'BBB' },
+            ]);
+            expect(
+                readApiOut2('api/BBB/GEN/1.json').chapter.content.filter(
+                    (c: any) => c.type === 'verse'
+                )[0].content
+            ).toEqual(['Changed.']);
+        });
+
+        it('should remove items that are removed from the API files', async () => {
+            await generateApiFiles();
+            await runApiSync();
+
+            rmSync(path.resolve(dir, 'sources', 'bbb'), { recursive: true });
+            await generateApiFiles();
+            const result = await runApiSync();
+
+            expect(result.errors).toEqual([]);
+            const db = await getDb(path.resolve(dir, 'api.db'));
+            try {
+                expect(
+                    db.prepare('SELECT id FROM Translation ORDER BY id;').all()
+                ).toEqual([{ id: 'AAA' }]);
+            } finally {
+                db.close();
+            }
+            expect(result.uploads[0].removed).toEqual([
+                { kind: 'translation', id: 'BBB' },
+            ]);
+            expect(existsSync(path.resolve(dir, 'api-out-2', 'api/BBB'))).toBe(
+                false
+            );
+        });
+
+        it('should apply the include and exclude filters to the items in the API files', async () => {
+            await generateApiFiles();
+            apiConfig.sources[0].exclude = ['BBB', 'verse-of-the-day'];
+            const result = await runApiSync();
+
+            expect(result.errors).toEqual([]);
+            expect(
+                readApiOut2('api/available_translations.json').translations.map(
+                    (t: any) => t.id
+                )
+            ).toEqual(['AAA']);
+            expect(existsSync(path.resolve(dir, 'api-out-2', 'api/d'))).toBe(
+                false
+            );
+
+            // Changing the filters reprocesses the source.
+            apiConfig.sources[0].exclude = [];
+            const second = await runApiSync();
+            expect(second.import!.plan.imports.map((s) => s.reason)).toEqual([
+                'changed',
+            ]);
+            expect(
+                readApiOut2('api/available_translations.json').translations.map(
+                    (t: any) => t.id
+                )
+            ).toEqual(['AAA', 'BBB']);
+        });
+
+        it('should not import API files whose items another source already provides', async () => {
+            await generateApiFiles();
+            apiConfig.sources.unshift({
+                type: 'translations',
+                path: 'sources',
+            });
+            const result = await runApiSync({ skipUpload: true });
+
+            expect(result.import!.imported).toEqual([
+                'translation:sources/aaa',
+                'translation:sources/bbb',
+            ]);
+            expect(result.errors).toEqual([
+                expect.stringContaining('api:api-out'),
+            ]);
+        });
+
+        it('should fail to import a directory without an api folder', async () => {
+            apiConfig.sources = [{ type: 'api', path: 'sources' }];
+            const result = await runApiSync({ skipUpload: true });
+
+            expect(result.errors).toEqual([
+                expect.stringContaining('Could not find the api directory'),
+            ]);
+        });
+    });
 });
 
 describe('createIdFilter()', () => {

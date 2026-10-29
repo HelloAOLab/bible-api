@@ -56,6 +56,14 @@ export const IMPORT_VERSION = 1;
 export const UPLOAD_VERSION = 1;
 
 /**
+ * The version of the code in this package that loads API files (see the load*FromDirectory functions in files.ts).
+ * That code isn't part of @helloao/tools, so the build doesn't hash it.
+ * Increment this when a change causes different items to be loaded from the same API files,
+ * so that every "api" source gets re-imported on the next sync.
+ */
+export const API_LOADER_VERSION = 1;
+
+/**
  * The types of sources that can be synced.
  */
 export type SyncSourceType =
@@ -63,7 +71,8 @@ export type SyncSourceType =
     | 'commentary'
     | 'theographic'
     | 'interlinear'
-    | 'verse-of-the-day';
+    | 'verse-of-the-day'
+    | 'api';
 
 /**
  * Gets the code hashes that were injected by the build.
@@ -106,6 +115,11 @@ export function getProcessorVersion(
         versions = {
             import: IMPORT_VERSION,
             code: codeHashes?.verseOfTheDay ?? null,
+        };
+    } else if (type === 'api') {
+        versions = {
+            import: IMPORT_VERSION,
+            apiLoader: API_LOADER_VERSION,
         };
     } else {
         versions = {
