@@ -13,6 +13,7 @@
             "type": "api",
             "path": "../sources/fubapi"
         },
+        { "type": "commentaries", "path": "../sources/comment" },
         { "type": "theographic", "path": "../sources/metadata" },
         { "type": "interlinear", "path": "../sources/interlinear" },
         { "type": "history-globe", "path": "../sources/history-globe" },
