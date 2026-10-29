@@ -9,6 +9,10 @@
             "type": "translations",
             "path": "../bible-translations/translations"
         },
+        {
+            "type": "api",
+            "path": "../sources/fubapi"
+        },
         { "type": "verse-of-the-day" }
     ],
     "destinations": [
