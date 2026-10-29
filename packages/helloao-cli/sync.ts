@@ -22,7 +22,11 @@ import {
     loadTranslationsFromDirectory,
 } from './files.js';
 import { generateVerseOfTheDayDataset } from '@helloao/tools/generation/verse-of-the-day.js';
-import { loadInterlinearDatasets, loadTheographicDataset } from './actions.js';
+import {
+    loadHistoryGlobeDataset,
+    loadInterlinearDatasets,
+    loadTheographicDataset,
+} from './actions.js';
 import {
     CodeHashes,
     getCodeHashes,
@@ -58,6 +62,7 @@ export interface SyncSourceConfig {
      * - "translations" and "commentaries" are a directory where every subdirectory contains a translation or commentary.
      * - "theographic" is a directory that contains the files downloaded by the fetch-bible-metadata command.
      * - "interlinear" is a directory that contains the files downloaded by the fetch-interlinear command.
+     * - "history-globe" is a directory that contains the files downloaded by the fetch-history-globe command.
      * - "verse-of-the-day" is the verse of the day dataset, which is built into @helloao/tools, so it has no path.
      *   It is reimported whenever the list of verses changes.
      * - "api" is a directory that contains API files (an "api" folder with available_translations.json and so on),
@@ -72,6 +77,7 @@ export interface SyncSourceConfig {
         | 'commentaries'
         | 'theographic'
         | 'interlinear'
+        | 'history-globe'
         | 'verse-of-the-day'
         | 'api';
 
@@ -154,6 +160,7 @@ const syncConfigSchema = z.object({
                     'commentaries',
                     'theographic',
                     'interlinear',
+                    'history-globe',
                     'verse-of-the-day',
                     'api',
                 ]),
@@ -281,6 +288,12 @@ export interface SyncResult {
     uploads: DestinationSyncResult[];
 
     /**
+     * The items in the database that no source in the config provides (e.g. because they were imported by another command).
+     * They are never uploaded, so the destinations don't list them.
+     */
+    unmanaged: SyncItem[];
+
+    /**
      * The errors that occurred. A sync with errors still applies all the changes that it could.
      */
     errors: string[];
@@ -316,6 +329,7 @@ export async function syncWithConfig(
     const result: SyncResult = {
         import: null,
         uploads: [],
+        unmanaged: [],
         errors: [],
     };
 
@@ -342,6 +356,14 @@ export async function syncWithConfig(
             }
 
             if (destinations.length > 0) {
+                result.unmanaged = getUnmanagedItems(db);
+                if (result.unmanaged.length > 0) {
+                    logger.warn(
+                        `The database contains ${result.unmanaged.length} items that no source in the sync config provides, so they won't be uploaded or listed in available_translations.json, available_commentaries.json, or available_datasets.json. ` +
+                            `Add their sources to the config to publish them: ${result.unmanaged.map((i) => `${i.kind} ${i.id}`).join(', ')}`
+                    );
+                }
+
                 // Items that the config now excludes are never uploaded, even when the import
                 // (which removes them from the database) was skipped.
                 const filter = createIdFilter([], config.exclude);
@@ -961,6 +983,32 @@ export function getSyncedItems(db: Database): SyncItem[] {
 }
 
 /**
+ * Gets the translations, commentaries, and datasets in the database that weren't imported by the sync.
+ * @param db The database.
+ */
+export function getUnmanagedItems(db: Database): SyncItem[] {
+    const synced = new Set(getSyncedItems(db).map(itemKey));
+    const tables = [
+        ['translation', 'Translation'],
+        ['commentary', 'Commentary'],
+        ['dataset', 'Dataset'],
+    ] as const;
+
+    const items: SyncItem[] = [];
+    for (let [kind, table] of tables) {
+        const rows = db
+            .prepare(`SELECT id FROM ${table} ORDER BY id ASC;`)
+            .all() as { id: string }[];
+        for (let { id } of rows) {
+            if (!synced.has(itemKey({ kind, id }))) {
+                items.push({ kind, id });
+            }
+        }
+    }
+    return items;
+}
+
+/**
  * Gets the sources that are stored in the database from previous syncs.
  * @param db The database.
  */
@@ -1074,6 +1122,12 @@ async function processSource(
         return { output, files };
     } else if (source.type === 'theographic') {
         const dataset = await loadTheographicDataset(source.fullPath);
+        return {
+            output: { translations: [], commentaries: [], datasets: [dataset] },
+            files: [],
+        };
+    } else if (source.type === 'history-globe') {
+        const dataset = await loadHistoryGlobeDataset(source.fullPath);
         return {
             output: { translations: [], commentaries: [], datasets: [dataset] },
             files: [],

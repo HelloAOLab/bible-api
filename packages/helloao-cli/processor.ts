@@ -31,6 +31,11 @@ export interface CodeHashes {
     interlinear: string;
 
     /**
+     * The hash of the code that generates the History Globe dataset.
+     */
+    historyGlobe: string;
+
+    /**
      * The hash of the code that generates the verse of the day dataset (including the list of verses).
      */
     verseOfTheDay: string;
@@ -71,6 +76,7 @@ export type SyncSourceType =
     | 'commentary'
     | 'theographic'
     | 'interlinear'
+    | 'history-globe'
     | 'verse-of-the-day'
     | 'api';
 
@@ -115,6 +121,11 @@ export function getProcessorVersion(
         versions = {
             import: IMPORT_VERSION,
             code: codeHashes?.verseOfTheDay ?? null,
+        };
+    } else if (type === 'history-globe') {
+        versions = {
+            import: IMPORT_VERSION,
+            code: codeHashes?.historyGlobe ?? null,
         };
     } else if (type === 'api') {
         versions = {
