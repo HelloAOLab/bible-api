@@ -20,6 +20,7 @@ import {
     syncWithConfig,
 } from './sync';
 import { CodeHashes } from './processor';
+import { importVerseOfTheDay } from './actions';
 
 const silentLogger = {
     log: () => {},
@@ -31,6 +32,7 @@ const codeHashes: CodeHashes = {
     dataset: 'dataset-1',
     theographic: 'theographic-1',
     interlinear: 'interlinear-1',
+    historyGlobe: 'history-globe-1',
     verseOfTheDay: 'verse-of-the-day-1',
     api: 'api-1',
 };
@@ -571,6 +573,78 @@ describe('sync', () => {
         });
         const third = await runSync();
         expect(third.uploads[0].uploaded).toHaveLength(2);
+    });
+
+    it('should import and upload the History Globe dataset', async () => {
+        const historyGlobeDir = path.resolve(dir, 'history-globe');
+        mkdirSync(path.resolve(historyGlobeDir, 'verses'), {
+            recursive: true,
+        });
+        writeFileSync(
+            path.resolve(historyGlobeDir, 'index.json'),
+            JSON.stringify({ books: ['Gen'] })
+        );
+        writeFileSync(
+            path.resolve(historyGlobeDir, 'places.json'),
+            JSON.stringify([
+                {
+                    id: 'a15257a',
+                    name: 'Jerusalem',
+                    kind: 'settlement',
+                    lon: 35.2304,
+                    lat: 31.77655,
+                },
+            ])
+        );
+        writeFileSync(
+            path.resolve(historyGlobeDir, 'verses', 'Gen.json'),
+            JSON.stringify({ 'Gen.14.18': ['a15257a'] })
+        );
+        config.sources.push(
+            { type: 'history-globe', path: 'history-globe' },
+            { type: 'verse-of-the-day' }
+        );
+
+        const result = await runSync();
+
+        expect(result.errors).toEqual([]);
+        expect(result.import!.imported).toContain(
+            'history-globe:history-globe'
+        );
+        expect(
+            readApiFile('api/available_datasets.json').datasets.map(
+                (d: any) => d.id
+            )
+        ).toEqual(['history-globe', 'verse-of-the-day']);
+
+        const second = await runSync();
+        expect(second.import!.plan.imports).toEqual([]);
+    });
+
+    it('should report the items in the database that no source provides', async () => {
+        await importVerseOfTheDay({ db: dbPath });
+
+        const result = await runSync();
+
+        expect(result.errors).toEqual([]);
+        expect(result.unmanaged).toEqual([
+            { kind: 'dataset', id: 'verse-of-the-day' },
+        ]);
+        expect(
+            existsSync(path.resolve(apiDir, 'api/available_datasets.json'))
+        ).toBe(false);
+
+        // Adding the source to the config publishes the item.
+        config.sources.push({ type: 'verse-of-the-day' });
+        const second = await runSync();
+
+        expect(second.errors).toEqual([]);
+        expect(second.unmanaged).toEqual([]);
+        expect(
+            readApiFile('api/available_datasets.json').datasets.map(
+                (d: any) => d.id
+            )
+        ).toEqual(['verse-of-the-day']);
     });
 
     describe('api sources', () => {

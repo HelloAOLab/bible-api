@@ -114,6 +114,7 @@ async function getCodeHashes() {
         dataset: await hashCode(['generation/dataset.ts']),
         theographic: await hashCode(['generation/theographic.ts']),
         interlinear: await hashCode(['generation/interlinear.ts']),
+        historyGlobe: await hashCode(['generation/history-globe.ts']),
         verseOfTheDay: await hashCode(['generation/verse-of-the-day.ts']),
         api: await hashCode(['generation/api.ts']),
     };

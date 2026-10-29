@@ -1007,6 +1007,27 @@ export async function importHistoryGlobe(
     dir: string,
     options: ImportTranslationOptions
 ) {
+    const historyGlobeDataset = await loadHistoryGlobeDataset(dir);
+
+    const db = await database.getDb(options.db);
+    try {
+        importDatasetOutput(db, {
+            translations: [],
+            commentaries: [],
+            datasets: [historyGlobeDataset],
+        });
+    } finally {
+        db.close();
+    }
+}
+
+/**
+ * Loads the History Globe files from the given directory and generates the History Globe places dataset for them.
+ * @param dir The directory that the History Globe files are located in.
+ */
+export async function loadHistoryGlobeDataset(
+    dir: string
+): Promise<DatasetDataset> {
     const logger = log.getLogger();
 
     async function readJsonFile(name: string): Promise<any> {
@@ -1041,17 +1062,7 @@ export async function importHistoryGlobe(
         historyGlobe.generateDatasetFromHistoryGlobe(files);
 
     logger.log(`Generated ${historyGlobeDataset.places?.length ?? 0} places.`);
-
-    const db = await database.getDb(options.db);
-    try {
-        importDatasetOutput(db, {
-            translations: [],
-            commentaries: [],
-            datasets: [historyGlobeDataset],
-        });
-    } finally {
-        db.close();
-    }
+    return historyGlobeDataset;
 }
 
 /**
