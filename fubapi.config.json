@@ -5,6 +5,10 @@
         { "type": "translations", "path": "../sources/ebible" },
         { "type": "translations", "path": "../sources/fetch-bible" },
         { "type": "translations", "path": "../sources/osis" },
+        {
+            "type": "translations",
+            "path": "../bible-translations/translations"
+        },
         { "type": "verse-of-the-day" }
     ],
     "destinations": [
