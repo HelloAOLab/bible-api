@@ -90,7 +90,8 @@ The `sync` command runs the whole pipeline (import into the database, generate, 
         { "type": "translation", "path": "./bible/bsb" },
         { "type": "commentaries", "path": "./sources/comment" },
         { "type": "theographic", "path": "./sources/metadata" },
-        { "type": "interlinear", "path": "./sources/interlinear" }
+        { "type": "interlinear", "path": "./sources/interlinear" },
+        { "type": "verse-of-the-day" }
     ],
     "destinations": [
         { "url": "s3://my-bucket", "profile": "my-aws-profile" },
@@ -106,7 +107,7 @@ helloao sync ./sync.config.json [--dry-run] [--skip-import] [--skip-upload] [--d
 
 Paths in the config are relative to the config file, and `--db` overrides `db`. See `sync.config.example.json` in the repository for a starting point.
 
--   **Sources.** `translations` and `commentaries` are directories where every subdirectory is a translation or commentary. `translation` and `commentary` are a single one. `theographic` and `interlinear` are the directories written by `fetch-bible-metadata` and `fetch-interlinear`. A configured directory that is missing is an error, so an unmounted drive can't be mistaken for every source being deleted.
+-   **Sources.** `translations` and `commentaries` are directories where every subdirectory is a translation or commentary. `translation` and `commentary` are a single one. `theographic` and `interlinear` are the directories written by `fetch-bible-metadata` and `fetch-interlinear`. `verse-of-the-day` is the verse of the day dataset, which is built into `@helloao/tools`, so it has no `path`; it is reimported whenever the list of verses changes. A configured directory that is missing is an error, so an unmounted drive can't be mistaken for every source being deleted.
 -   **Include and exclude.** `include` and `exclude` lists can be set for the whole config and for each source. They match translation, commentary, and dataset IDs (and the names of translation and commentary directories), case-insensitively, with `*` and `?` wildcards. Excluded sources are never parsed or imported.
 -   **Change detection.** Each source is fingerprinted by the names, sizes, and modification times of its files, so untouched sources are skipped without being read. When the fingerprint changes, the file contents are hashed, and the source is only reprocessed if they changed. This includes `metadata.json`, so metadata and license changes are picked up.
 -   **Deletions.** When a source is deleted or becomes excluded, its translations, commentaries, or datasets are removed from the database and their files are deleted from every destination. When a source changes, it is replaced as a whole, so books and chapters that were removed from it are deleted too. Audio timings that were loaded with `import-audio-timings` are kept.

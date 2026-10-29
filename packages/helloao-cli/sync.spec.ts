@@ -14,6 +14,7 @@ import { getDb, upsertChapterAudioTiming } from './db';
 import {
     createIdFilter,
     LoadedSyncConfig,
+    loadSyncConfig,
     SyncOptions,
     syncWithConfig,
 } from './sync';
@@ -29,6 +30,7 @@ const codeHashes: CodeHashes = {
     dataset: 'dataset-1',
     theographic: 'theographic-1',
     interlinear: 'interlinear-1',
+    verseOfTheDay: 'verse-of-the-day-1',
     api: 'api-1',
 };
 
@@ -424,6 +426,120 @@ describe('sync', () => {
         expect(result.errors).toEqual([
             expect.stringContaining('translation:sources/copy'),
         ]);
+    });
+
+    it('should import and upload the verse of the day dataset with the other sources', async () => {
+        config.sources.push({ type: 'verse-of-the-day' });
+        const result = await runSync();
+
+        expect(result.errors).toEqual([]);
+        expect(result.import!.imported).toEqual([
+            'translation:sources/aaa',
+            'translation:sources/bbb',
+            'verse-of-the-day:',
+        ]);
+        expect(result.uploads[0].uploaded).toContainEqual({
+            kind: 'dataset',
+            id: 'verse-of-the-day',
+        });
+
+        expect(
+            readApiFile('api/available_datasets.json').datasets.map(
+                (d: any) => d.id
+            )
+        ).toEqual(['verse-of-the-day']);
+        expect(
+            readApiFile('api/available_translations.json').translations.map(
+                (t: any) => t.id
+            )
+        ).toEqual(['AAA', 'BBB']);
+        const verses = readApiFile('api/d/verse-of-the-day/verses.json');
+        expect(verses.verses).toContainEqual(
+            expect.objectContaining({ book: 'JHN', chapter: 3, verse: 16 })
+        );
+        expect(verses.holidays.length).toBeGreaterThan(0);
+        expect(
+            existsSync(
+                path.resolve(apiDir, 'api/d/verse-of-the-day/JHN/3.json')
+            )
+        ).toBe(true);
+
+        const second = await runSync();
+        expect(second.import!.plan.imports).toEqual([]);
+        expect(second.import!.plan.unchanged).toBe(3);
+        expect(second.uploads[0].uploaded).toEqual([]);
+    });
+
+    it('should reprocess the verse of the day dataset when its code changes, without reuploading the same content', async () => {
+        config.sources.push({ type: 'verse-of-the-day' });
+        await runSync();
+
+        const result = await runSync({
+            codeHashes: { ...codeHashes, verseOfTheDay: 'verse-of-the-day-2' },
+        });
+
+        expect(result.import!.plan.processorChanged).toEqual([
+            'verse-of-the-day',
+        ]);
+        expect(
+            result.import!.plan.imports.map((s) => [s.key, s.reason])
+        ).toEqual([['verse-of-the-day:', 'processor']]);
+        expect(result.uploads[0].uploaded).toEqual([]);
+    });
+
+    it('should remove the verse of the day dataset when it is removed from the config', async () => {
+        config.sources.push({ type: 'verse-of-the-day' });
+        await runSync();
+
+        config.sources.pop();
+        const result = await runSync();
+
+        expect(result.import!.removed).toEqual(['verse-of-the-day:']);
+        expect(
+            await query("SELECT * FROM Dataset WHERE id = 'verse-of-the-day';")
+        ).toEqual([]);
+        expect(
+            existsSync(
+                path.resolve(apiDir, 'api/d/verse-of-the-day/verses.json')
+            )
+        ).toBe(false);
+        expect(readApiFile('api/available_datasets.json').datasets).toEqual([]);
+    });
+
+    it('should not import the verse of the day dataset when it is excluded', async () => {
+        config.sources.push({ type: 'verse-of-the-day' });
+        config.exclude = ['verse-of-the-day'];
+        const result = await runSync();
+
+        expect(result.errors).toEqual([]);
+        expect(
+            await query("SELECT * FROM Dataset WHERE id = 'verse-of-the-day';")
+        ).toEqual([]);
+        expect(existsSync(path.resolve(apiDir, 'api/d/verse-of-the-day'))).toBe(
+            false
+        );
+    });
+
+    it('should only allow sources without a path for the verse of the day', async () => {
+        const configPath = path.resolve(dir, 'sync.config.json');
+        writeFileSync(
+            configPath,
+            JSON.stringify({
+                sources: [
+                    { type: 'verse-of-the-day' },
+                    { type: 'translations', path: 'sources' },
+                ],
+            })
+        );
+        expect((await loadSyncConfig(configPath)).sources).toHaveLength(2);
+
+        writeFileSync(
+            configPath,
+            JSON.stringify({ sources: [{ type: 'translations' }] })
+        );
+        await expect(loadSyncConfig(configPath)).rejects.toThrow(
+            /path is required/
+        );
     });
 
     it('should fail when a configured source directory is missing', async () => {

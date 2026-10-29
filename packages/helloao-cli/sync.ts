@@ -18,6 +18,7 @@ import {
     loadTranslationFiles,
     loadTranslationMetadata,
 } from './files.js';
+import { generateVerseOfTheDayDataset } from '@helloao/tools/generation/verse-of-the-day.js';
 import { loadInterlinearDatasets, loadTheographicDataset } from './actions.js';
 import {
     CodeHashes,
@@ -54,6 +55,8 @@ export interface SyncSourceConfig {
      * - "translations" and "commentaries" are a directory where every subdirectory contains a translation or commentary.
      * - "theographic" is a directory that contains the files downloaded by the fetch-bible-metadata command.
      * - "interlinear" is a directory that contains the files downloaded by the fetch-interlinear command.
+     * - "verse-of-the-day" is the verse of the day dataset, which is built into @helloao/tools, so it has no path.
+     *   It is reimported whenever the list of verses changes.
      */
     type:
         | 'translation'
@@ -61,12 +64,14 @@ export interface SyncSourceConfig {
         | 'commentary'
         | 'commentaries'
         | 'theographic'
-        | 'interlinear';
+        | 'interlinear'
+        | 'verse-of-the-day';
 
     /**
      * The path to the source directory, relative to the config file.
+     * Required for every type except "verse-of-the-day".
      */
-    path: string;
+    path?: string;
 
     /**
      * The IDs that should be imported from this source. Supports * and ? wildcards and is case-insensitive.
@@ -132,19 +137,30 @@ const syncConfigSchema = z.object({
     include: patternsSchema,
     exclude: patternsSchema,
     sources: z.array(
-        z.object({
-            type: z.enum([
-                'translation',
-                'translations',
-                'commentary',
-                'commentaries',
-                'theographic',
-                'interlinear',
-            ]),
-            path: z.string(),
-            include: patternsSchema,
-            exclude: patternsSchema,
-        })
+        z
+            .object({
+                type: z.enum([
+                    'translation',
+                    'translations',
+                    'commentary',
+                    'commentaries',
+                    'theographic',
+                    'interlinear',
+                    'verse-of-the-day',
+                ]),
+                path: z.string().optional(),
+                include: patternsSchema,
+                exclude: patternsSchema,
+            })
+            .refine(
+                (source) =>
+                    source.type === 'verse-of-the-day' ||
+                    source.path !== undefined,
+                {
+                    message: 'The path is required for this type of source.',
+                    path: ['path'],
+                }
+            )
     ),
     destinations: z
         .array(
@@ -606,8 +622,17 @@ export async function planImport(
     for (let source of discovered) {
         const storedSource = stored.get(source.key) ?? null;
         const processorVersion = getProcessorVersion(source.type, codeHashes);
-        const files = await listSourceFiles(source.fullPath);
-        const statHash = hashFileStats(files, source.settings);
+        let statHash: string;
+        let hashContents: () => Promise<string>;
+        if (source.type === 'verse-of-the-day') {
+            // The source has no files, so it is identified by the dataset that it generates.
+            statHash = hashVerseOfTheDaySource(source.settings);
+            hashContents = async () => statHash;
+        } else {
+            const files = await listSourceFiles(source.fullPath);
+            statHash = hashFileStats(files, source.settings);
+            hashContents = () => hashFileContents(files, source.settings);
+        }
 
         let reason: ImportReason | null = null;
         let sha256: string | null = null;
@@ -626,7 +651,7 @@ export async function planImport(
             if (isProcessorChanged && !options.ignoreProcessorChanges) {
                 reason = 'processor';
             } else if (storedSource.statHash !== statHash) {
-                sha256 = await hashFileContents(files, source.settings);
+                sha256 = await hashContents();
                 if (sha256 !== storedSource.sha256) {
                     reason = 'changed';
                 } else {
@@ -640,8 +665,7 @@ export async function planImport(
                 ...source,
                 reason,
                 statHash,
-                sha256:
-                    sha256 ?? (await hashFileContents(files, source.settings)),
+                sha256: sha256 ?? (await hashContents()),
                 processorVersion,
                 stored: storedSource,
             });
@@ -676,6 +700,36 @@ export async function discoverSources(
     const keys = new Set<string>();
 
     for (let sourceConfig of config.sources) {
+        const include = [
+            ...(config.include ?? []),
+            ...(sourceConfig.include ?? []),
+        ];
+        const exclude = [
+            ...(config.exclude ?? []),
+            ...(sourceConfig.exclude ?? []),
+        ];
+        const filter = createIdFilter(include, exclude);
+
+        if (sourceConfig.type === 'verse-of-the-day') {
+            // The dataset is built into @helloao/tools, so the source has no directory.
+            const key = 'verse-of-the-day:';
+            if (!keys.has(key)) {
+                keys.add(key);
+                sources.push({
+                    key,
+                    type: 'verse-of-the-day',
+                    path: '',
+                    fullPath: '',
+                    filter: (id: string) => filter(id),
+                    settings: JSON.stringify({ include, exclude }),
+                });
+            }
+            continue;
+        }
+
+        if (sourceConfig.path === undefined) {
+            throw new Error(`The ${sourceConfig.type} source has no path.`);
+        }
         const fullPath = path.resolve(config.baseDir, sourceConfig.path);
         if (!(await isDirectory(fullPath))) {
             throw new Error(
@@ -704,16 +758,6 @@ export async function discoverSources(
         } else {
             dirs = [{ type: sourceConfig.type, fullPath }];
         }
-
-        const include = [
-            ...(config.include ?? []),
-            ...(sourceConfig.include ?? []),
-        ];
-        const exclude = [
-            ...(config.exclude ?? []),
-            ...(sourceConfig.exclude ?? []),
-        ];
-        const filter = createIdFilter(include, exclude);
 
         for (let dir of dirs) {
             let sourceFilter = (id: string) => filter(id);
@@ -893,6 +937,15 @@ async function processSource(
         const dataset = await loadTheographicDataset(source.fullPath);
         return {
             output: { translations: [], commentaries: [], datasets: [dataset] },
+            files: [],
+        };
+    } else if (source.type === 'verse-of-the-day') {
+        return {
+            output: {
+                translations: [],
+                commentaries: [],
+                datasets: [generateVerseOfTheDayDataset()],
+            },
             files: [],
         };
     } else {
@@ -1127,6 +1180,16 @@ function hashFileStats(files: SourceFile[], settings: string): string {
                 files.map((f) => [f.relativePath, f.size, f.mtimeMs]),
             ])
         )
+        .digest('hex');
+}
+
+/**
+ * Hashes the verse of the day dataset that is built into @helloao/tools, and the given settings.
+ * Generating the dataset is cheap, so this is used as both the stat hash and the content hash of the source.
+ */
+function hashVerseOfTheDaySource(settings: string): string {
+    return createHash('sha256')
+        .update(JSON.stringify([settings, generateVerseOfTheDayDataset()]))
         .digest('hex');
 }
 

@@ -574,6 +574,24 @@ async function uploadMergedFiles(
 }
 
 /**
+ * Gets a copy of the given mergable file content (like `{ translations: [...] }`) with its lists emptied.
+ */
+function emptyLists(content: any): any {
+    if (Array.isArray(content)) {
+        return [];
+    }
+    if (content && typeof content === 'object') {
+        return Object.fromEntries(
+            Object.entries(content).map(([key, value]) => [
+                key,
+                emptyLists(value),
+            ])
+        );
+    }
+    return content;
+}
+
+/**
  * Builds the mergable files (like available_translations.json) from the parts that were recorded for each item in the destination,
  * and the OpenAPI document, if enabled.
  * Items are merged in order of their kind and ID, so the files only change when the items do.
@@ -595,11 +613,17 @@ async function buildMergedFiles(
     }[];
 
     const contents = new Map<string, any[]>();
+    // The files that only removed items contributed to, with their lists emptied,
+    // so that the files stop listing the removed items instead of being left as they were.
+    const emptied = new Map<string, any>();
     for (let row of rows) {
+        const merged = JSON.parse(row.mergedJson) as Record<string, any>;
         if (!presentKeys.has(`${row.itemKind}:${row.itemId}`)) {
+            for (let [p, content] of Object.entries(merged)) {
+                emptied.set(p, emptyLists(content));
+            }
             continue;
         }
-        const merged = JSON.parse(row.mergedJson) as Record<string, any>;
         for (let [p, content] of Object.entries(merged)) {
             let list = contents.get(p);
             if (!list) {
@@ -607,6 +631,11 @@ async function buildMergedFiles(
                 contents.set(p, list);
             }
             list.push(content);
+        }
+    }
+    for (let [p, content] of emptied) {
+        if (!contents.has(p)) {
+            contents.set(p, [content]);
         }
     }
 

@@ -31,6 +31,11 @@ export interface CodeHashes {
     interlinear: string;
 
     /**
+     * The hash of the code that generates the verse of the day dataset (including the list of verses).
+     */
+    verseOfTheDay: string;
+
+    /**
      * The hash of the code that generates the API files (@helloao/tools/generation/api.ts and its imports).
      */
     api: string;
@@ -57,7 +62,8 @@ export type SyncSourceType =
     | 'translation'
     | 'commentary'
     | 'theographic'
-    | 'interlinear';
+    | 'interlinear'
+    | 'verse-of-the-day';
 
 /**
  * Gets the code hashes that were injected by the build.
@@ -95,6 +101,11 @@ export function getProcessorVersion(
         versions = {
             import: IMPORT_VERSION,
             code: codeHashes?.theographic ?? null,
+        };
+    } else if (type === 'verse-of-the-day') {
+        versions = {
+            import: IMPORT_VERSION,
+            code: codeHashes?.verseOfTheDay ?? null,
         };
     } else {
         versions = {

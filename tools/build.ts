@@ -114,6 +114,7 @@ async function getCodeHashes() {
         dataset: await hashCode(['generation/dataset.ts']),
         theographic: await hashCode(['generation/theographic.ts']),
         interlinear: await hashCode(['generation/interlinear.ts']),
+        verseOfTheDay: await hashCode(['generation/verse-of-the-day.ts']),
         api: await hashCode(['generation/api.ts']),
     };
 }
@@ -137,7 +138,7 @@ async function buildCli() {
             format: 'esm',
             platform: 'node',
             // __dirname doesn't exist in ES modules.
-            define: { __dirname: 'import.meta.dirname' },
+            define: { ...options.define, __dirname: 'import.meta.dirname' },
             // sourcemap: true,
             // platform: 'node',
             // format: 'esm',
