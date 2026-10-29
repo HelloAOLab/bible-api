@@ -1682,6 +1682,14 @@ export type ApiDataset = {
      */
     listOfLexiconApiLink?: string;
     /**
+     * The API link for the list of every verse in this dataset, with its categories. Relative to the API origin. Omitted if the verses of the dataset don't have categories.
+     */
+    listOfVersesApiLink?: string;
+    /**
+     * The API link for the list of verse categories for this dataset. Relative to the API origin. Omitted if the dataset doesn't contain verse categories.
+     */
+    listOfCategoriesApiLink?: string;
+    /**
      * The total number of people that are contained in this dataset. Omitted if the dataset doesn't contain people.
      */
     totalNumberOfPeople?: number;
@@ -1701,6 +1709,10 @@ export type ApiDataset = {
      * The total number of lexicon entries that are contained in this dataset. Omitted if the dataset doesn't contain lexicon entries.
      */
     totalNumberOfLexicon?: number;
+    /**
+     * The total number of verse categories that are contained in this dataset. Omitted if the dataset doesn't contain verse categories.
+     */
+    totalNumberOfCategories?: number;
 };
 
 /**
@@ -1835,10 +1847,12 @@ export type DatasetChapterData = {
 };
 
 /**
- * Defines the schema for information about a verse in a dataset chapter. A verse carries either `references` (cross references) or `words` (interlinear words), depending on the dataset.
+ * Defines the schema for information about a verse in a dataset chapter. A verse carries `references` (cross references), `words` (interlinear words), or `categories` (verse of the day candidates), depending on the dataset.
  */
 export type DatasetChapterVerseContent =
-    DatasetChapterVerseReferences | DatasetChapterVerseWords;
+    | DatasetChapterVerseReferences
+    | DatasetChapterVerseWords
+    | DatasetChapterVerseCategories;
 
 /**
  * Defines the schema for a verse in a dataset chapter that lists references to other verses.
@@ -1939,6 +1953,32 @@ export type DatasetInterlinearWord = {
      * The Berean Standard Bible's English phrase for the word. Null when the BSB leaves the word untranslated.
      */
     gloss: string | null;
+};
+
+/**
+ * Defines the schema for a verse (or short passage) in a dataset chapter that lists the categories it belongs to.
+ */
+export type DatasetChapterVerseCategories = {
+    /**
+     * The number of the verse. If `endVerse` is present, then this is the verse that the passage starts at.
+     */
+    verse: number;
+    /**
+     * The verse that the passage ends at. Omitted if the entry is a single verse.
+     */
+    endVerse?: number;
+    /**
+     * The IDs of the categories that the verse belongs to, most relevant first. Each ID matches a category in the `categories` collection of the dataset (`/api/d/{dataset}/categories/{id}.json`).
+     */
+    categories: Array<string>;
+    /**
+     * The first year that the verse can be the verse of the day. Omitted if the verse has always been in the list.
+     */
+    addedIn?: number;
+    /**
+     * The first year that the verse can no longer be the verse of the day. Removed verses stay in the dataset so that the verses of earlier years can still be picked. Omitted if the verse hasn't been removed from the list.
+     */
+    removedIn?: number;
 };
 
 /**
@@ -2203,7 +2243,12 @@ export type DatasetEntityRef = {
  * The type of an entity in a dataset. Matches the collection segment of the entity API paths, so the API link for an entity can be constructed as `/api/d/{dataset}/{type}/{id}.json`.
  */
 export type DatasetEntityType =
-    'people' | 'places' | 'events' | 'groups' | 'lexicon';
+    | 'people'
+    | 'places'
+    | 'events'
+    | 'groups'
+    | 'lexicon'
+    | 'categories';
 
 /**
  * Defines a schema for verse references. A verse reference is a string that contains a book ID, chapter number, and verse number, such as "GEN 1:1". It can also contain an optional content part that comes after the verse reference, such as "GEN 1:1 In the beginning, God created the Heavens and the Earth." It can also contain optional endChapter and endVerse fields for references that span multiple chapters or verses, such as "GEN 1:1-2:3".
@@ -2762,6 +2807,222 @@ export type DatasetLexiconEntry = {
      * The senses of the entry, in ID order.
      */
     senses: Array<DatasetLexiconSense>;
+};
+
+/**
+ * The list of every verse in a dataset whose verses have categories. Maps to the /api/d/:datasetId/verses.json endpoint.
+ */
+export type ApiDatasetVerses = {
+    /**
+     * The dataset information for the verses.
+     */
+    dataset: ApiDataset;
+    /**
+     * Every verse (or short passage) in the dataset, with its categories, in canonical order.
+     */
+    verses: Array<ApiDatasetCategorizedVerse>;
+    /**
+     * The holidays that have their own verses, with their dates. On a holiday, the verse of the day is one of the verses in the holiday's category, and those verses aren't used on other days. Omitted if the dataset has no holidays.
+     */
+    holidays?: Array<ApiDatasetVersesHoliday>;
+};
+
+/**
+ * Defines a verse (or short passage) in a dataset, with the categories it belongs to.
+ */
+export type ApiDatasetCategorizedVerse = {
+    book: BookId;
+    /**
+     * The chapter number.
+     */
+    chapter: number;
+    /**
+     * The verse number. If `endVerse` is present, then this is the verse that the passage starts at.
+     */
+    verse: number;
+    /**
+     * The verse that the passage ends at. Omitted if the entry is a single verse.
+     */
+    endVerse?: number;
+    /**
+     * The IDs of the categories that the verse belongs to, most relevant first. Each ID matches a category in the `categories` collection of the dataset (`/api/d/{dataset}/categories/{id}.json`).
+     */
+    categories: Array<string>;
+    /**
+     * The first year that the verse can be the verse of the day. Omitted if the verse has always been in the list.
+     */
+    addedIn?: number;
+    /**
+     * The first year that the verse can no longer be the verse of the day. Removed verses stay in the dataset so that the verses of earlier years can still be picked. Omitted if the verse hasn't been removed from the list.
+     */
+    removedIn?: number;
+};
+
+/**
+ * Defines a holiday that has its own verses, with its dates. It either falls on the same `month` and `day` every year, or lists its `dates`.
+ */
+export type ApiDatasetVersesHoliday = {
+    /**
+     * The month of a holiday that falls on the same date every year (1 for January). Omitted for holidays whose date changes every year.
+     */
+    month?: number;
+    /**
+     * The day of the month of a holiday that falls on the same date every year. Omitted for holidays whose date changes every year.
+     */
+    day?: number;
+    /**
+     * The dates of a holiday whose date changes every year (such as Resurrection Sunday), as `YYYY-MM-DD` strings in the Gregorian calendar, in order. They are precomputed for a range of years, so the holiday is only observed in the years that are listed. Omitted for holidays that fall on the same date every year.
+     */
+    dates?: Array<string>;
+    /**
+     * The ID of the holiday's category, such as `christmas`.
+     */
+    id: string;
+    /**
+     * The English name of the holiday, such as `Christmas`.
+     */
+    name: string;
+};
+
+/**
+ * The list of verse categories in a dataset. Maps to the /api/d/:datasetId/categories.json endpoint.
+ */
+export type ApiDatasetCategories = {
+    /**
+     * The dataset information for the categories.
+     */
+    dataset: ApiDataset;
+    /**
+     * The list of verse categories that are available for the dataset.
+     */
+    categories: Array<ApiDatasetCategorySummary>;
+};
+
+/**
+ * Defines a summary of a verse category in a dataset.
+ */
+export type ApiDatasetCategorySummary = {
+    /**
+     * The ID of the category, such as `hope`.
+     */
+    id: string;
+    /**
+     * The English name of the category, such as `Hope`.
+     */
+    name: string;
+    /**
+     * The description of what the verses in the category are about.
+     */
+    description: string;
+    /**
+     * The number of verses (or short passages) that belong to the category.
+     */
+    numberOfVerses: number;
+    /**
+     * The dates of the holiday that the category is for. Omitted for categories that aren't for a holiday.
+     */
+    holiday?: DatasetCategoryHoliday;
+    /**
+     * The API link for the category. Relative to the API origin.
+     */
+    apiLink: string;
+};
+
+/**
+ * Defines the schema for the dates of a holiday that a category of verses is for. A holiday either falls on the same `month` and `day` every year, or lists its `dates`.
+ */
+export type DatasetCategoryHoliday = {
+    /**
+     * The month of a holiday that falls on the same date every year (1 for January). Omitted for holidays whose date changes every year.
+     */
+    month?: number;
+    /**
+     * The day of the month of a holiday that falls on the same date every year. Omitted for holidays whose date changes every year.
+     */
+    day?: number;
+    /**
+     * The dates of a holiday whose date changes every year (such as Resurrection Sunday), as `YYYY-MM-DD` strings in the Gregorian calendar, in order. They are precomputed for a range of years, so the holiday is only observed in the years that are listed. Omitted for holidays that fall on the same date every year.
+     */
+    dates?: Array<string>;
+};
+
+/**
+ * The information about a verse category in a dataset. Maps to the /api/d/:datasetId/categories/:categoryId.json endpoint.
+ */
+export type ApiDatasetCategory = {
+    /**
+     * The dataset information for the category.
+     */
+    dataset: ApiDataset;
+    /**
+     * The category, with the verses that belong to it.
+     */
+    category: DatasetCategory;
+    /**
+     * The API link for this category. Relative to the API origin.
+     */
+    thisCategoryApiLink: string;
+};
+
+/**
+ * Defines the schema for a verse (or short passage) in a category of a dataset.
+ */
+export type DatasetCategoryVerse = {
+    book: BookId;
+    /**
+     * The chapter number that the reference starts at.
+     */
+    chapter: number;
+    /**
+     * The verse number that the reference starts at.
+     */
+    verse: number;
+    /**
+     * The rest of the content of the verse reference. This is the part of the string that comes after the verse reference. For example, in "GEN 1:1 In the beginning, God created the Heavens and the Earth.", the content would be "In the beginning, God created the Heavens and the Earth."
+     */
+    content?: string;
+    /**
+     * The chapter that the verse reference ends at. This is used for references that span multiple chapters, such as "GEN 1:1-2:3". In this case, the endChapter would be 2.
+     */
+    endChapter?: number;
+    /**
+     * The verse that the verse reference ends at. This is used for references that span multiple verses, such as "GEN 1:1-1:3". In this case, the endVerse would be 3.
+     */
+    endVerse?: number;
+    /**
+     * The first year that the verse can be the verse of the day. Omitted if the verse has always been in the list.
+     */
+    addedIn?: number;
+    /**
+     * The first year that the verse can no longer be the verse of the day. Removed verses stay in the dataset so that the verses of earlier years can still be picked. Omitted if the verse hasn't been removed from the list.
+     */
+    removedIn?: number;
+};
+
+/**
+ * Defines the schema for a category of verses in a dataset.
+ */
+export type DatasetCategory = {
+    /**
+     * The ID of the category, such as `hope`.
+     */
+    id: string;
+    /**
+     * The English name of the category, such as `Hope`.
+     */
+    name: string;
+    /**
+     * The description of what the verses in the category are about.
+     */
+    description: string;
+    /**
+     * The dates of the holiday that the category is for. On those dates, the verse of the day is one of the category's verses, and the category's verses aren't used on other days. Omitted for categories that aren't for a holiday.
+     */
+    holiday?: DatasetCategoryHoliday;
+    /**
+     * The verses (or short passages) that belong to the category, in canonical order. Includes verses that have been removed from the list (see `removedIn`).
+     */
+    verses: Array<DatasetCategoryVerse>;
 };
 
 export type GetAvailableTranslationsData = {
@@ -3569,3 +3830,94 @@ export type GetDatasetLexiconEntryResponses = {
 
 export type GetDatasetLexiconEntryResponse =
     GetDatasetLexiconEntryResponses[keyof GetDatasetLexiconEntryResponses];
+
+export type GetDatasetVersesData = {
+    body?: never;
+    path: {
+        /**
+         * The dataset ID of the dataset to get the books or chapter content for.
+         */
+        dataset: string;
+    };
+    query?: never;
+    url: '/api/d/{dataset}/verses.json';
+};
+
+export type GetDatasetVersesErrors = {
+    /**
+     * 404 Not Found - The specified dataset was not found or its verses don't have categories.
+     */
+    404: unknown;
+};
+
+export type GetDatasetVersesResponses = {
+    /**
+     * 200 OK
+     */
+    200: ApiDatasetVerses;
+};
+
+export type GetDatasetVersesResponse =
+    GetDatasetVersesResponses[keyof GetDatasetVersesResponses];
+
+export type GetDatasetCategoriesData = {
+    body?: never;
+    path: {
+        /**
+         * The dataset ID of the dataset to get the books or chapter content for.
+         */
+        dataset: string;
+    };
+    query?: never;
+    url: '/api/d/{dataset}/categories.json';
+};
+
+export type GetDatasetCategoriesErrors = {
+    /**
+     * 404 Not Found - The specified dataset was not found or doesn't contain verse categories.
+     */
+    404: unknown;
+};
+
+export type GetDatasetCategoriesResponses = {
+    /**
+     * 200 OK
+     */
+    200: ApiDatasetCategories;
+};
+
+export type GetDatasetCategoriesResponse =
+    GetDatasetCategoriesResponses[keyof GetDatasetCategoriesResponses];
+
+export type GetDatasetCategoryData = {
+    body?: never;
+    path: {
+        /**
+         * The dataset ID of the dataset to get the books or chapter content for.
+         */
+        dataset: string;
+        /**
+         * The ID of the verse category to get the information for. For example, "hope" in the verse-of-the-day dataset.
+         */
+        category: string;
+    };
+    query?: never;
+    url: '/api/d/{dataset}/categories/{category}.json';
+};
+
+export type GetDatasetCategoryErrors = {
+    /**
+     * 404 Not Found - The specified dataset or verse category was not found.
+     */
+    404: unknown;
+};
+
+export type GetDatasetCategoryResponses = {
+    /**
+     * 200 OK
+     */
+    200: ApiDatasetCategory;
+};
+
+export type GetDatasetCategoryResponse =
+    GetDatasetCategoryResponses[keyof GetDatasetCategoryResponses];

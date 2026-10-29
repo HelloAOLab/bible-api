@@ -2430,6 +2430,12 @@ public struct ApiDataset: Codable, Hashable, Sendable {
     /// The API link for the list of lexicon entries for this dataset. Relative to the API origin. Omitted if the dataset doesn't contain lexicon entries.
     public var listOfLexiconApiLink: String?
 
+    /// The API link for the list of every verse in this dataset, with its categories. Relative to the API origin. Omitted if the verses of the dataset don't have categories.
+    public var listOfVersesApiLink: String?
+
+    /// The API link for the list of verse categories for this dataset. Relative to the API origin. Omitted if the dataset doesn't contain verse categories.
+    public var listOfCategoriesApiLink: String?
+
     /// The total number of people that are contained in this dataset. Omitted if the dataset doesn't contain people.
     public var totalNumberOfPeople: Int?
 
@@ -2444,6 +2450,9 @@ public struct ApiDataset: Codable, Hashable, Sendable {
 
     /// The total number of lexicon entries that are contained in this dataset. Omitted if the dataset doesn't contain lexicon entries.
     public var totalNumberOfLexicon: Int?
+
+    /// The total number of verse categories that are contained in this dataset. Omitted if the dataset doesn't contain verse categories.
+    public var totalNumberOfCategories: Int?
 
     public init(
         id: String,
@@ -2468,11 +2477,14 @@ public struct ApiDataset: Codable, Hashable, Sendable {
         listOfEventsApiLink: String? = nil,
         listOfPeopleGroupsApiLink: String? = nil,
         listOfLexiconApiLink: String? = nil,
+        listOfVersesApiLink: String? = nil,
+        listOfCategoriesApiLink: String? = nil,
         totalNumberOfPeople: Int? = nil,
         totalNumberOfPlaces: Int? = nil,
         totalNumberOfEvents: Int? = nil,
         totalNumberOfPeopleGroups: Int? = nil,
-        totalNumberOfLexicon: Int? = nil
+        totalNumberOfLexicon: Int? = nil,
+        totalNumberOfCategories: Int? = nil
     ) {
         self.id = id
         self.name = name
@@ -2496,11 +2508,14 @@ public struct ApiDataset: Codable, Hashable, Sendable {
         self.listOfEventsApiLink = listOfEventsApiLink
         self.listOfPeopleGroupsApiLink = listOfPeopleGroupsApiLink
         self.listOfLexiconApiLink = listOfLexiconApiLink
+        self.listOfVersesApiLink = listOfVersesApiLink
+        self.listOfCategoriesApiLink = listOfCategoriesApiLink
         self.totalNumberOfPeople = totalNumberOfPeople
         self.totalNumberOfPlaces = totalNumberOfPlaces
         self.totalNumberOfEvents = totalNumberOfEvents
         self.totalNumberOfPeopleGroups = totalNumberOfPeopleGroups
         self.totalNumberOfLexicon = totalNumberOfLexicon
+        self.totalNumberOfCategories = totalNumberOfCategories
     }
 }
 
@@ -2679,10 +2694,11 @@ public struct DatasetChapterData: Codable, Hashable, Sendable {
     }
 }
 
-/// Defines the schema for information about a verse in a dataset chapter. A verse carries either `references` (cross references) or `words` (interlinear words), depending on the dataset.
+/// Defines the schema for information about a verse in a dataset chapter. A verse carries `references` (cross references), `words` (interlinear words), or `categories` (verse of the day candidates), depending on the dataset.
 public enum DatasetChapterVerseContent: Codable, Hashable, Sendable {
     case references(DatasetChapterVerseReferences)
     case words(DatasetChapterVerseWords)
+    case categories(DatasetChapterVerseCategories)
     /// A value that this version of the SDK doesn't know about.
     case unknown(JSONValue)
 
@@ -2696,6 +2712,10 @@ public enum DatasetChapterVerseContent: Codable, Hashable, Sendable {
                 self = .words(try DatasetChapterVerseWords(from: decoder))
                 return
             }
+            if container.contains(AnyCodingKey("categories")) {
+                self = .categories(try DatasetChapterVerseCategories(from: decoder))
+                return
+            }
         }
         self = .unknown(try JSONValue(from: decoder))
     }
@@ -2705,6 +2725,8 @@ public enum DatasetChapterVerseContent: Codable, Hashable, Sendable {
         case .references(let value):
             try value.encode(to: encoder)
         case .words(let value):
+            try value.encode(to: encoder)
+        case .categories(let value):
             try value.encode(to: encoder)
         case .unknown(let value):
             try value.encode(to: encoder)
@@ -2873,6 +2895,38 @@ public struct DatasetInterlinearWord: Codable, Hashable, Sendable {
         self.parsingFull = parsingFull
         self.strongs = strongs
         self.gloss = gloss
+    }
+}
+
+/// Defines the schema for a verse (or short passage) in a dataset chapter that lists the categories it belongs to.
+public struct DatasetChapterVerseCategories: Codable, Hashable, Sendable {
+    /// The number of the verse. If `endVerse` is present, then this is the verse that the passage starts at.
+    public var verse: Int
+
+    /// The verse that the passage ends at. Omitted if the entry is a single verse.
+    public var endVerse: Int?
+
+    /// The IDs of the categories that the verse belongs to, most relevant first. Each ID matches a category in the `categories` collection of the dataset (`/api/d/{dataset}/categories/{id}.json`).
+    public var categories: [String]
+
+    /// The first year that the verse can be the verse of the day. Omitted if the verse has always been in the list.
+    public var addedIn: Int?
+
+    /// The first year that the verse can no longer be the verse of the day. Removed verses stay in the dataset so that the verses of earlier years can still be picked. Omitted if the verse hasn't been removed from the list.
+    public var removedIn: Int?
+
+    public init(
+        verse: Int,
+        endVerse: Int? = nil,
+        categories: [String],
+        addedIn: Int? = nil,
+        removedIn: Int? = nil
+    ) {
+        self.verse = verse
+        self.endVerse = endVerse
+        self.categories = categories
+        self.addedIn = addedIn
+        self.removedIn = removedIn
     }
 }
 
@@ -3226,6 +3280,7 @@ public struct DatasetEntityType: RawRepresentable, Codable, Hashable, Sendable, 
     public static let events = DatasetEntityType(rawValue: "events")
     public static let groups = DatasetEntityType(rawValue: "groups")
     public static let lexicon = DatasetEntityType(rawValue: "lexicon")
+    public static let categories = DatasetEntityType(rawValue: "categories")
 
     /// All of the values that this version of the SDK knows about.
     public static let allKnownValues: [DatasetEntityType] = [
@@ -3234,6 +3289,7 @@ public struct DatasetEntityType: RawRepresentable, Codable, Hashable, Sendable, 
         .events,
         .groups,
         .lexicon,
+        .categories,
     ]
 }
 
@@ -3926,6 +3982,277 @@ public struct DatasetLexiconEntry: Codable, Hashable, Sendable {
         self.id = id
         self.language = language
         self.senses = senses
+    }
+}
+
+/// The list of every verse in a dataset whose verses have categories. Maps to the /api/d/:datasetId/verses.json endpoint.
+public struct ApiDatasetVerses: Codable, Hashable, Sendable {
+    /// The dataset information for the verses.
+    public var dataset: ApiDataset
+
+    /// Every verse (or short passage) in the dataset, with its categories, in canonical order.
+    public var verses: [ApiDatasetCategorizedVerse]
+
+    /// The holidays that have their own verses, with their dates. On a holiday, the verse of the day is one of the verses in the holiday's category, and those verses aren't used on other days. Omitted if the dataset has no holidays.
+    public var holidays: [ApiDatasetVersesHoliday]?
+
+    public init(
+        dataset: ApiDataset,
+        verses: [ApiDatasetCategorizedVerse],
+        holidays: [ApiDatasetVersesHoliday]? = nil
+    ) {
+        self.dataset = dataset
+        self.verses = verses
+        self.holidays = holidays
+    }
+}
+
+/// Defines a verse (or short passage) in a dataset, with the categories it belongs to.
+public struct ApiDatasetCategorizedVerse: Codable, Hashable, Sendable {
+    public var book: BookId
+
+    /// The chapter number.
+    public var chapter: Int
+
+    /// The verse number. If `endVerse` is present, then this is the verse that the passage starts at.
+    public var verse: Int
+
+    /// The verse that the passage ends at. Omitted if the entry is a single verse.
+    public var endVerse: Int?
+
+    /// The IDs of the categories that the verse belongs to, most relevant first. Each ID matches a category in the `categories` collection of the dataset (`/api/d/{dataset}/categories/{id}.json`).
+    public var categories: [String]
+
+    /// The first year that the verse can be the verse of the day. Omitted if the verse has always been in the list.
+    public var addedIn: Int?
+
+    /// The first year that the verse can no longer be the verse of the day. Removed verses stay in the dataset so that the verses of earlier years can still be picked. Omitted if the verse hasn't been removed from the list.
+    public var removedIn: Int?
+
+    public init(
+        book: BookId,
+        chapter: Int,
+        verse: Int,
+        endVerse: Int? = nil,
+        categories: [String],
+        addedIn: Int? = nil,
+        removedIn: Int? = nil
+    ) {
+        self.book = book
+        self.chapter = chapter
+        self.verse = verse
+        self.endVerse = endVerse
+        self.categories = categories
+        self.addedIn = addedIn
+        self.removedIn = removedIn
+    }
+}
+
+/// Defines a holiday that has its own verses, with its dates. It either falls on the same `month` and `day` every year, or lists its `dates`.
+public struct ApiDatasetVersesHoliday: Codable, Hashable, Sendable {
+    /// The month of a holiday that falls on the same date every year (1 for January). Omitted for holidays whose date changes every year.
+    public var month: Int?
+
+    /// The day of the month of a holiday that falls on the same date every year. Omitted for holidays whose date changes every year.
+    public var day: Int?
+
+    /// The dates of a holiday whose date changes every year (such as Resurrection Sunday), as `YYYY-MM-DD` strings in the Gregorian calendar, in order. They are precomputed for a range of years, so the holiday is only observed in the years that are listed. Omitted for holidays that fall on the same date every year.
+    public var dates: [String]?
+
+    /// The ID of the holiday's category, such as `christmas`.
+    public var id: String
+
+    /// The English name of the holiday, such as `Christmas`.
+    public var name: String
+
+    public init(
+        month: Int? = nil,
+        day: Int? = nil,
+        dates: [String]? = nil,
+        id: String,
+        name: String
+    ) {
+        self.month = month
+        self.day = day
+        self.dates = dates
+        self.id = id
+        self.name = name
+    }
+}
+
+/// The list of verse categories in a dataset. Maps to the /api/d/:datasetId/categories.json endpoint.
+public struct ApiDatasetCategories: Codable, Hashable, Sendable {
+    /// The dataset information for the categories.
+    public var dataset: ApiDataset
+
+    /// The list of verse categories that are available for the dataset.
+    public var categories: [ApiDatasetCategorySummary]
+
+    public init(
+        dataset: ApiDataset,
+        categories: [ApiDatasetCategorySummary]
+    ) {
+        self.dataset = dataset
+        self.categories = categories
+    }
+}
+
+/// Defines a summary of a verse category in a dataset.
+public struct ApiDatasetCategorySummary: Codable, Hashable, Sendable {
+    /// The ID of the category, such as `hope`.
+    public var id: String
+
+    /// The English name of the category, such as `Hope`.
+    public var name: String
+
+    /// The description of what the verses in the category are about.
+    public var description: String
+
+    /// The number of verses (or short passages) that belong to the category.
+    public var numberOfVerses: Int
+
+    /// The dates of the holiday that the category is for. Omitted for categories that aren't for a holiday.
+    public var holiday: DatasetCategoryHoliday?
+
+    /// The API link for the category. Relative to the API origin.
+    public var apiLink: String
+
+    public init(
+        id: String,
+        name: String,
+        description: String,
+        numberOfVerses: Int,
+        holiday: DatasetCategoryHoliday? = nil,
+        apiLink: String
+    ) {
+        self.id = id
+        self.name = name
+        self.description = description
+        self.numberOfVerses = numberOfVerses
+        self.holiday = holiday
+        self.apiLink = apiLink
+    }
+}
+
+/// Defines the schema for the dates of a holiday that a category of verses is for. A holiday either falls on the same `month` and `day` every year, or lists its `dates`.
+public struct DatasetCategoryHoliday: Codable, Hashable, Sendable {
+    /// The month of a holiday that falls on the same date every year (1 for January). Omitted for holidays whose date changes every year.
+    public var month: Int?
+
+    /// The day of the month of a holiday that falls on the same date every year. Omitted for holidays whose date changes every year.
+    public var day: Int?
+
+    /// The dates of a holiday whose date changes every year (such as Resurrection Sunday), as `YYYY-MM-DD` strings in the Gregorian calendar, in order. They are precomputed for a range of years, so the holiday is only observed in the years that are listed. Omitted for holidays that fall on the same date every year.
+    public var dates: [String]?
+
+    public init(
+        month: Int? = nil,
+        day: Int? = nil,
+        dates: [String]? = nil
+    ) {
+        self.month = month
+        self.day = day
+        self.dates = dates
+    }
+}
+
+/// The information about a verse category in a dataset. Maps to the /api/d/:datasetId/categories/:categoryId.json endpoint.
+public struct ApiDatasetCategory: Codable, Hashable, Sendable {
+    /// The dataset information for the category.
+    public var dataset: ApiDataset
+
+    /// The category, with the verses that belong to it.
+    public var category: DatasetCategory
+
+    /// The API link for this category. Relative to the API origin.
+    public var thisCategoryApiLink: String
+
+    public init(
+        dataset: ApiDataset,
+        category: DatasetCategory,
+        thisCategoryApiLink: String
+    ) {
+        self.dataset = dataset
+        self.category = category
+        self.thisCategoryApiLink = thisCategoryApiLink
+    }
+}
+
+/// Defines the schema for a verse (or short passage) in a category of a dataset.
+public struct DatasetCategoryVerse: Codable, Hashable, Sendable {
+    public var book: BookId
+
+    /// The chapter number that the reference starts at.
+    public var chapter: Int
+
+    /// The verse number that the reference starts at.
+    public var verse: Int
+
+    /// The rest of the content of the verse reference. This is the part of the string that comes after the verse reference. For example, in "GEN 1:1 In the beginning, God created the Heavens and the Earth.", the content would be "In the beginning, God created the Heavens and the Earth."
+    public var content: String?
+
+    /// The chapter that the verse reference ends at. This is used for references that span multiple chapters, such as "GEN 1:1-2:3". In this case, the endChapter would be 2.
+    public var endChapter: Int?
+
+    /// The verse that the verse reference ends at. This is used for references that span multiple verses, such as "GEN 1:1-1:3". In this case, the endVerse would be 3.
+    public var endVerse: Int?
+
+    /// The first year that the verse can be the verse of the day. Omitted if the verse has always been in the list.
+    public var addedIn: Int?
+
+    /// The first year that the verse can no longer be the verse of the day. Removed verses stay in the dataset so that the verses of earlier years can still be picked. Omitted if the verse hasn't been removed from the list.
+    public var removedIn: Int?
+
+    public init(
+        book: BookId,
+        chapter: Int,
+        verse: Int,
+        content: String? = nil,
+        endChapter: Int? = nil,
+        endVerse: Int? = nil,
+        addedIn: Int? = nil,
+        removedIn: Int? = nil
+    ) {
+        self.book = book
+        self.chapter = chapter
+        self.verse = verse
+        self.content = content
+        self.endChapter = endChapter
+        self.endVerse = endVerse
+        self.addedIn = addedIn
+        self.removedIn = removedIn
+    }
+}
+
+/// Defines the schema for a category of verses in a dataset.
+public struct DatasetCategory: Codable, Hashable, Sendable {
+    /// The ID of the category, such as `hope`.
+    public var id: String
+
+    /// The English name of the category, such as `Hope`.
+    public var name: String
+
+    /// The description of what the verses in the category are about.
+    public var description: String
+
+    /// The dates of the holiday that the category is for. On those dates, the verse of the day is one of the category's verses, and the category's verses aren't used on other days. Omitted for categories that aren't for a holiday.
+    public var holiday: DatasetCategoryHoliday?
+
+    /// The verses (or short passages) that belong to the category, in canonical order. Includes verses that have been removed from the list (see `removedIn`).
+    public var verses: [DatasetCategoryVerse]
+
+    public init(
+        id: String,
+        name: String,
+        description: String,
+        holiday: DatasetCategoryHoliday? = nil,
+        verses: [DatasetCategoryVerse]
+    ) {
+        self.id = id
+        self.name = name
+        self.description = description
+        self.holiday = holiday
+        self.verses = verses
     }
 }
 

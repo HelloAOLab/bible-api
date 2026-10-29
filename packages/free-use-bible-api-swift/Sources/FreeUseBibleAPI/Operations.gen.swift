@@ -312,4 +312,38 @@ extension FreeUseBibleAPI {
     public func getDatasetLexiconEntry(dataset: String, strongs: String, endpoint: URL? = nil) async throws -> ApiDatasetLexiconEntry {
         try await getJSON("api/d/\(encodePathComponent(dataset))/lexicon/\(encodePathComponent(strongs)).json", endpoint: endpoint)
     }
+
+    /// Get every verse in a specific dataset, with the categories that each verse belongs to, in canonical order. Only available for datasets whose verses have categories, such as the verse-of-the-day dataset.
+    ///
+    /// `GET /api/d/{dataset}/verses.json`
+    ///
+    /// - Parameters:
+    ///   - dataset: The dataset ID of the dataset to get the books or chapter content for.
+    ///   - endpoint: The API endpoint to use for the request. If not provided, the endpoint of the client is used.
+    public func getDatasetVerses(dataset: String, endpoint: URL? = nil) async throws -> ApiDatasetVerses {
+        try await getJSON("api/d/\(encodePathComponent(dataset))/verses.json", endpoint: endpoint)
+    }
+
+    /// Get the list of verse categories that are available for a specific dataset, such as the categories of the verse-of-the-day dataset.
+    ///
+    /// `GET /api/d/{dataset}/categories.json`
+    ///
+    /// - Parameters:
+    ///   - dataset: The dataset ID of the dataset to get the books or chapter content for.
+    ///   - endpoint: The API endpoint to use for the request. If not provided, the endpoint of the client is used.
+    public func getDatasetCategories(dataset: String, endpoint: URL? = nil) async throws -> ApiDatasetCategories {
+        try await getJSON("api/d/\(encodePathComponent(dataset))/categories.json", endpoint: endpoint)
+    }
+
+    /// Get the information about a specific verse category for a specific dataset, including the verses that belong to it.
+    ///
+    /// `GET /api/d/{dataset}/categories/{category}.json`
+    ///
+    /// - Parameters:
+    ///   - dataset: The dataset ID of the dataset to get the books or chapter content for.
+    ///   - category: The ID of the verse category to get the information for. For example, "hope" in the verse-of-the-day dataset.
+    ///   - endpoint: The API endpoint to use for the request. If not provided, the endpoint of the client is used.
+    public func getDatasetCategory(dataset: String, category: String, endpoint: URL? = nil) async throws -> ApiDatasetCategory {
+        try await getJSON("api/d/\(encodePathComponent(dataset))/categories/\(encodePathComponent(category)).json", endpoint: endpoint)
+    }
 }

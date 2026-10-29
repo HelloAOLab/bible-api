@@ -287,6 +287,63 @@ public class FreeUseBibleApi(
         )
 
     /**
+     * Gets every verse in a given dataset, with the categories that each verse belongs to, in canonical order.
+     * Only available for datasets whose verses have categories, such as "verse-of-the-day".
+     * @param dataset The ID of the dataset to get the verses for. For example, "verse-of-the-day".
+     * @param endpoint The API endpoint to use for the request. If not provided, the default endpoint will be used.
+     */
+    public suspend fun getDatasetVerses(dataset: String, endpoint: String? = null): ApiDatasetVerses =
+        getJson(ApiDatasetVerses.serializer(), "api/d/${encode(dataset)}/verses.json", endpoint)
+
+    /**
+     * Gets the verse of the day for the given date from the verse-of-the-day dataset.
+     * The same date always gives the same verse, a verse doesn't repeat within a calendar year, and each year has a different order.
+     * See [pickVerseOfTheDay] for how the verse is picked.
+     * @param date The date to get the verse for, as a `YYYY-MM-DD` string (e.g. "2026-01-01"). Defaults to today.
+     * @param seed The seed that the order of the verses is derived from. Different seeds give different (but equally valid) orders.
+     * @param category Only pick from the verses in this category.
+     * @param dataset The ID of the dataset to pick from.
+     * @param endpoint The API endpoint to use for the request. If not provided, the default endpoint will be used.
+     * @return The verse (its reference and categories), or null if the dataset has no verses to pick from.
+     */
+    public suspend fun getVerseOfTheDay(
+        date: String = todayIsoDate(),
+        seed: String = "",
+        category: String? = null,
+        dataset: String = "verse-of-the-day",
+        endpoint: String? = null,
+    ): ApiDatasetCategorizedVerse? =
+        getDatasetVerses(dataset, endpoint).let {
+            pickVerseOfTheDay(it.verses, date, seed, category, it.holidays.orEmpty())
+        }
+
+    /**
+     * Gets the list of verse categories for a given dataset.
+     * @param dataset The ID of the dataset to get the categories for. For example, "verse-of-the-day".
+     * @param endpoint The API endpoint to use for the request. If not provided, the default endpoint will be used.
+     */
+    public suspend fun getDatasetCategories(dataset: String, endpoint: String? = null): ApiDatasetCategories =
+        getJson(ApiDatasetCategories.serializer(), "api/d/${encode(dataset)}/categories.json", endpoint)
+
+    /**
+     * Gets the information about a specific verse category for a given dataset.
+     * Includes the verses that belong to the category.
+     * @param dataset The ID of the dataset to get the category for. For example, "verse-of-the-day".
+     * @param category The ID of the category to get. For example, "hope".
+     * @param endpoint The API endpoint to use for the request. If not provided, the default endpoint will be used.
+     */
+    public suspend fun getDatasetCategory(
+        dataset: String,
+        category: String,
+        endpoint: String? = null,
+    ): ApiDatasetCategory =
+        getJson(
+            ApiDatasetCategory.serializer(),
+            "api/d/${encode(dataset)}/categories/${encode(category)}.json",
+            endpoint,
+        )
+
+    /**
      * Gets the content of a specific chapter of a specific book for a specific Bible translation.
      * @param translation The ID of the translation to get the chapter for.
      * @param book The ID of the book to get the chapter for. (e.g. "GEN")

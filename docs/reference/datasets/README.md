@@ -1,6 +1,6 @@
 # Datasets
 
-Endpoints for browsing supplementary Bible datasets - such as cross references, biblical entities (people, places, events, and people groups), original-language interlinear words, and lexicons - and fetching their books, chapter content, entities, and lexicon entries.
+Endpoints for browsing supplementary Bible datasets - such as cross references, biblical entities (people, places, events, and people groups), original-language interlinear words, lexicons, and verse of the day candidates - and fetching their books, chapter content, entities, lexicon entries, and verse categories.
 
 ## Available Datasets
 
@@ -162,6 +162,24 @@ export interface Dataset {
      * Omitted if the dataset doesn't contain lexicon entries.
      */
     totalNumberOfLexicon?: number;
+
+    /**
+     * The API link for the list of every verse in the dataset, with its categories.
+     * Omitted if the verses of the dataset don't have categories.
+     */
+    listOfVersesApiLink?: string;
+
+    /**
+     * The API link for the list of verse categories in the dataset.
+     * Omitted if the dataset doesn't contain verse categories.
+     */
+    listOfCategoriesApiLink?: string;
+
+    /**
+     * The total number of verse categories that are contained in the dataset.
+     * Omitted if the dataset doesn't contain verse categories.
+     */
+    totalNumberOfCategories?: number;
 }
 ```
 
@@ -282,6 +300,29 @@ export interface Dataset {
             "languageEnglishName": "English",
             "listOfPlacesApiLink": "/api/d/history-globe/places.json",
             "totalNumberOfPlaces": 1231
+        },
+        {
+            "id": "verse-of-the-day",
+            "name": "Verse of the Day",
+            "website": "https://github.com/HelloAOLab/bible-api/blob/main/packages/helloao-tools/generation/verse-of-the-day.ts",
+            "licenseUrl": "https://github.com/HelloAOLab/bible-api/blob/main/LICENSE",
+            "licenseNotes": "A curated list of well-known verses by AO Lab, released under the MIT License.",
+            "englishName": "Verse of the Day",
+            "language": "eng",
+            "textDirection": "ltr",
+            "availableFormats": [
+                "json"
+            ],
+            "listOfBooksApiLink": "/api/d/verse-of-the-day/books.json",
+            "numberOfBooks": 65,
+            "totalNumberOfChapters": 381,
+            "totalNumberOfVerses": 750,
+            "totalNumberOfReferences": 0,
+            "languageName": "English",
+            "languageEnglishName": "English",
+            "listOfVersesApiLink": "/api/d/verse-of-the-day/verses.json",
+            "listOfCategoriesApiLink": "/api/d/verse-of-the-day/categories.json",
+            "totalNumberOfCategories": 31
         }
     ]
 }
@@ -445,7 +486,7 @@ interface DatasetBook {
 
 Gets the content of a single chapter for a given book and dataset.
 
-For cross reference datasets (such as `open-cross-ref`), the chapter contains the list of cross references for each verse. For interlinear datasets (such as `bsb-interlinear`), the chapter contains the original-language words of each verse - see [Interlinear Datasets](#interlinear-datasets). For entity datasets (such as `theographic`), the chapter contains the people, places, and events that appear in the chapter - see [Get the Entities in a Chapter](#get-the-entities-in-a-chapter).
+For cross reference datasets (such as `open-cross-ref`), the chapter contains the list of cross references for each verse. For interlinear datasets (such as `bsb-interlinear`), the chapter contains the original-language words of each verse - see [Interlinear Datasets](#interlinear-datasets). For entity datasets (such as `theographic`), the chapter contains the people, places, and events that appear in the chapter - see [Get the Entities in a Chapter](#get-the-entities-in-a-chapter). For the `verse-of-the-day` dataset, the chapter contains the verse of the day candidates in the chapter and their categories - see [Verse of the Day](#verse-of-the-day).
 
 -   `dataset` the ID of the dataset (e.g. `open-cross-ref`).
 -   `book` is the ID of the book (e.g. `GEN` for Genesis).
@@ -533,10 +574,14 @@ interface DatasetChapterData {
 }
 
 /**
- * A verse carries either `references` (cross reference datasets) or `words` (interlinear datasets).
- * Check which one is present with `'words' in verse`.
+ * A verse carries `references` (cross reference datasets), `words` (interlinear datasets),
+ * or `categories` (the verse-of-the-day dataset).
+ * Check which one is present with `'words' in verse` or `'categories' in verse`.
  */
-type DatasetVerse = DatasetReferencesVerse | DatasetWordsVerse;
+type DatasetVerse =
+    | DatasetReferencesVerse
+    | DatasetWordsVerse
+    | DatasetCategoriesVerse;
 
 interface DatasetReferencesVerse {
     /**
@@ -563,6 +608,39 @@ interface DatasetWordsVerse {
      * See "Interlinear Datasets" below.
      */
     words: InterlinearWord[];
+}
+
+interface DatasetCategoriesVerse {
+    /**
+     * The number of the verse.
+     * If `endVerse` is present, then this is the verse that the passage starts at.
+     */
+    verse: number;
+
+    /**
+     * The verse that the passage ends at.
+     * Omitted if the entry is a single verse.
+     */
+    endVerse?: number;
+
+    /**
+     * The IDs of the categories that the verse belongs to, most relevant first.
+     * See "Verse of the Day" below.
+     */
+    categories: string[];
+
+    /**
+     * The first year that the verse can be the verse of the day.
+     * Omitted if the verse has always been in the list.
+     */
+    addedIn?: number;
+
+    /**
+     * The first year that the verse can no longer be the verse of the day.
+     * Removed verses stay in the dataset so that the verses of earlier years can still be picked.
+     * Omitted if the verse hasn't been removed from the list.
+     */
+    removedIn?: number;
 }
 
 interface DatasetReference {
@@ -2253,5 +2331,550 @@ export interface DatasetLexiconSense {
         ]
     },
     "thisLexiconEntryApiLink": "/api/d/stepbible-lexicon/lexicon/H1254.json"
+}
+```
+
+
+## Verse of the Day
+
+The verse of the day dataset (`verse-of-the-day`) is a curated list of well-known verses and short passages (at most three verses) that make good candidates for a "verse of the day": more than 640 for every day of the year, and more than 100 for Christian holidays. Each one makes sense on its own.
+
+Every verse for every day has one to three categories, most relevant first, from this fixed set:
+
+| ID            | Description                                                 |
+| ------------- | ----------------------------------------------------------- |
+| `comfort`     | God's nearness and care in grief, trouble, and loneliness.  |
+| `courage`     | Standing firm and not being afraid.                         |
+| `faith`       | Trusting God and His promises.                              |
+| `forgiveness` | God's forgiveness of sin and forgiving others.              |
+| `gratitude`   | Giving thanks to God.                                       |
+| `guidance`    | God directing our steps, plans, and decisions.              |
+| `hope`        | Confidence in the future that God has promised.             |
+| `inspiration` | Encouragement to live out the faith and do good.            |
+| `joy`         | Rejoicing and gladness in God.                              |
+| `love`        | God's love for us and our love for God and others.          |
+| `peace`       | Rest, stillness, and freedom from anxiety.                  |
+| `praise`      | Worship and declarations of God's greatness.                |
+| `prayer`      | Calling on God and His promise to hear.                     |
+| `provision`   | God supplying what we need.                                 |
+| `salvation`   | Redemption, grace, and new life in Christ.                  |
+| `strength`    | God giving strength and endurance.                          |
+| `wisdom`      | Godly wisdom and practical instruction for life.            |
+
+Holidays have categories of their own. On a holiday, the verse of the day is one of the holiday's verses, and those verses aren't used on other days. A holiday usually lasts one day; After Resurrection Sunday lasts the three days after Resurrection Sunday, so it lists all three dates. Each holiday category has a `holiday` with its dates: holidays on the same date every year have a `month` and `day`, and holidays whose date changes every year (because they depend on Resurrection Sunday or Advent) list their `dates` in the Gregorian calendar, precomputed for 2026 to 2125.
+
+| ID                         | Holiday                   | Date                                     |
+| -------------------------- | ------------------------- | ---------------------------------------- |
+| `epiphany`                 | Epiphany                  | January 6th                              |
+| `ash-wednesday`            | Ash Wednesday             | 46 days before Resurrection Sunday       |
+| `palm-sunday`              | Palm Sunday               | The Sunday before Resurrection Sunday    |
+| `maundy-thursday`          | Maundy Thursday           | The Thursday before Resurrection Sunday  |
+| `good-friday`              | Good Friday               | The Friday before Resurrection Sunday    |
+| `resurrection-sunday`      | Resurrection Sunday       | Easter Sunday                            |
+| `post-resurrection-sunday` | After Resurrection Sunday | The three days after Resurrection Sunday |
+| `ascension-day`            | Ascension Day             | 39 days after Resurrection Sunday        |
+| `pentecost`                | Pentecost                 | 49 days after Resurrection Sunday        |
+| `all-hallows-eve`          | All Hallows' Eve          | October 31st                             |
+| `all-saints-day`           | All Saints' Day           | November 1st                             |
+| `advent-sunday`            | First Sunday of Advent    | The fourth Sunday before Christmas       |
+| `christmas-eve`            | Christmas Eve             | December 24th                            |
+| `christmas`                | Christmas                 | December 25th                            |
+
+The dataset only contains references, not verse text, so it works with every translation. Verse numbers use the standard English numbering (the same as the BSB). The data can be read three ways:
+
+-   [`/api/d/verse-of-the-day/verses.json`](#list-verses-in-a-dataset) lists every verse in the dataset with its categories, and the holidays with their dates, in one file.
+-   [`/api/d/verse-of-the-day/categories/{category}.json`](#get-a-category-from-a-dataset) lists every verse in a category. This is the easiest way to pick a verse of the day from one category.
+-   [`/api/d/verse-of-the-day/{book}/{chapter}.json`](#get-a-chapter-from-a-dataset) lists the candidates in a chapter, with their categories. Only chapters that contain a candidate are available; use the book's chapter links or `/api/d/verse-of-the-day/books.json` to find them.
+
+Datasets that contain verse categories include `listOfVersesApiLink`, `listOfCategoriesApiLink`, and `totalNumberOfCategories` in their entry in `/api/available_datasets.json`.
+
+### Picking a Verse of the Day
+
+The API is made of static files, so it doesn't pick a verse for you. Instead, there is a convention for picking one, so that every app that follows it shows the same verse on the same day. Apps are free to pick differently; the convention just gives them a shared default.
+
+The convention picks from the verses and holidays in `/api/d/verse-of-the-day/verses.json`. On a holiday, it picks one of the holiday's verses, going through them one year at a time, so a holiday has a different verse every year until all of its verses have been used. On other days, every year gets its own shuffle of the verses that are in use that year (ordered by a hash of each verse's reference, the year, and an optional seed), and the verse of the day is the one at the date's day of the year in that shuffle. The dataset has more than 366 verses for every day in use every year, so a verse never repeats within a calendar year, the order changes every year, and the same date always gives the same verse. New verses are added (with `addedIn`) and old ones removed (with `removedIn`) only from a year that hasn't started yet, so the verse of the day for a past date never changes.
+
+The [Verse of the Day Convention](./verse-of-the-day-convention.md) page specifies the algorithm step by step, with pseudocode and test values, so that you can implement it in any language.
+
+To use your own order, pick a seed of your own (for example, the name of your app): it gives a different shuffle with the same guarantees. You can also pick from a single category's verses, but every category has fewer verses than there are days in a year, so its verses repeat sooner.
+
+The SDKs follow the convention:
+
+```ts:no-line-numbers title="verse-of-the-day.js"
+import { FreeUseBibleApi } from 'free-use-bible-api';
+
+const api = new FreeUseBibleApi();
+
+// A date as YYYY-MM-DD, or a Date (its local calendar date is used). Defaults to today.
+const ref = await api.getVerseOfTheDay('2026-01-01');
+
+// Get the text of the verse from a translation.
+const chapter = await api.getTranslationBookChapter('BSB', ref.book, ref.chapter);
+const verses = chapter.chapter.content.filter(
+    (c) =>
+        c.type === 'verse' &&
+        c.number >= ref.verse &&
+        c.number <= (ref.endVerse ?? ref.verse)
+);
+console.log(ref, verses);
+```
+
+-   `getVerseOfTheDay(date?, { seed?, category?, dataset? }?)` downloads the verse list and picks from it. `pickVerseOfTheDay(verses, date?, { seed?, category? }?)` picks from a list you already have.
+-   The Kotlin SDK has `getVerseOfTheDay(date?, seed?, category?)` and `pickVerseOfTheDay(verses, date?, seed?, category?)`, which take the date as a `YYYY-MM-DD` string.
+-   The Swift SDK has `getVerseOfTheDay(date:seed:category:)` and `pickVerseOfTheDay(_:date:seed:category:holidays:)`, which take the date as a `YYYY-MM-DD` string or a `Date` (its calendar date in the current time zone is used).
+-   The [MCP server](https://github.com/HelloAOLab/bible-api/tree/main/packages/seed-bible-mcp) has a `getVerseOfTheDay` tool that returns the verse of the day with its text.
+-   The `@helloao/tools` package has the same list and a `getVerseOfTheDay(date?, { seed?, category? }?)` function in `@helloao/tools/generation/verse-of-the-day.js`.
+
+### License
+
+The list was put together by AO Lab and is released under the [MIT License](https://github.com/HelloAOLab/bible-api/blob/main/LICENSE). The verse text comes from whichever translation you fetch it from.
+
+
+## List Verses in a Dataset
+
+`GET https://bible.helloao.org/api/d/{dataset}/verses.json`
+
+Gets every verse (or short passage) in a dataset, with the categories that each one belongs to, in canonical order. Only available for datasets whose verses have categories, such as `verse-of-the-day`.
+
+-   `dataset` the ID of the dataset (e.g. `verse-of-the-day`).
+
+### Code Example
+
+::: code-tabs#lang
+
+@tab JavaScript
+
+```ts:no-line-numbers title="fetch-verses.js"
+fetch(`https://bible.helloao.org/api/d/verse-of-the-day/verses.json`)
+    .then(request => request.json())
+    .then(verses => {
+        console.log('The dataset has', verses.verses.length, 'verses');
+    });
+```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/d/verse-of-the-day/verses.json
+```
+
+:::
+
+### Structure
+
+```typescript:no-line-numbers title="dataset-verses.ts"
+export interface DatasetVerses {
+    /**
+     * The dataset information for the verses.
+     */
+    dataset: Dataset;
+
+    /**
+     * Every verse (or short passage) in the dataset, with its categories, in canonical order.
+     */
+    verses: DatasetCategorizedVerse[];
+
+    /**
+     * The holidays that have their own verses, with their dates.
+     * Omitted if the dataset has no holidays.
+     */
+    holidays?: DatasetVersesHoliday[];
+}
+
+export interface DatasetVersesHoliday extends DatasetCategoryHoliday {
+    /**
+     * The ID of the holiday's category. e.g. "christmas".
+     */
+    id: string;
+
+    /**
+     * The English name of the holiday. e.g. "Christmas".
+     */
+    name: string;
+}
+
+export interface DatasetCategoryHoliday {
+    /**
+     * The month (1 for January) and day of a holiday that falls on the same date every year.
+     * Omitted for holidays whose date changes every year.
+     */
+    month?: number;
+    day?: number;
+
+    /**
+     * The dates (YYYY-MM-DD, Gregorian calendar) of a holiday whose date changes every year, in order.
+     * They are precomputed for a range of years (currently 2026 to 2125), and the holiday
+     * is only observed on the dates that are listed.
+     * Omitted for holidays that fall on the same date every year.
+     */
+    dates?: string[];
+}
+
+export interface DatasetCategorizedVerse {
+    /**
+     * The ID of the book. e.g. "PRO".
+     */
+    book: string;
+
+    /**
+     * The chapter number.
+     */
+    chapter: number;
+
+    /**
+     * The verse number.
+     * If `endVerse` is present, then this is the verse that the passage starts at.
+     */
+    verse: number;
+
+    /**
+     * The verse that the passage ends at.
+     * Omitted if the entry is a single verse.
+     */
+    endVerse?: number;
+
+    /**
+     * The IDs of the categories that the verse belongs to, most relevant first.
+     */
+    categories: string[];
+
+    /**
+     * The first year that the verse can be the verse of the day.
+     * Omitted if the verse has always been in the list.
+     */
+    addedIn?: number;
+
+    /**
+     * The first year that the verse can no longer be the verse of the day.
+     * Removed verses stay in the dataset so that the verses of earlier years can still be picked.
+     * Omitted if the verse hasn't been removed from the list.
+     */
+    removedIn?: number;
+}
+```
+
+### Example
+
+```json:no-line-numbers title="/api/d/verse-of-the-day/verses.json"
+{
+    "dataset": {
+        "id": "verse-of-the-day",
+        "name": "Verse of the Day",
+        "listOfVersesApiLink": "/api/d/verse-of-the-day/verses.json"
+        // ...
+    },
+    "verses": [
+        {
+            "book": "GEN",
+            "chapter": 1,
+            "verse": 1,
+            "categories": ["praise"]
+        },
+        {
+            "book": "GEN",
+            "chapter": 15,
+            "verse": 6,
+            "categories": ["faith", "salvation"]
+        },
+        // ...
+        {
+            "book": "PRO",
+            "chapter": 3,
+            "verse": 5,
+            "endVerse": 6,
+            "categories": ["faith", "guidance", "wisdom"]
+        },
+        // ...
+        {
+            "book": "LUK",
+            "chapter": 2,
+            "verse": 7,
+            "categories": ["christmas"]
+        }
+        // ...
+    ],
+    "holidays": [
+        {
+            "id": "christmas",
+            "name": "Christmas",
+            "month": 12,
+            "day": 25
+        },
+        {
+            "id": "good-friday",
+            "name": "Good Friday",
+            "dates": ["2026-04-03", "2027-03-26", "2028-04-14" /* ... */]
+        }
+        // ...
+    ]
+}
+```
+
+
+## List Categories in a Dataset
+
+`GET https://bible.helloao.org/api/d/{dataset}/categories.json`
+
+Gets the list of verse categories that are available for a dataset.
+
+-   `dataset` the ID of the dataset (e.g. `verse-of-the-day`).
+
+### Code Example
+
+::: code-tabs#lang
+
+@tab JavaScript
+
+```ts:no-line-numbers title="fetch-categories.js"
+fetch(`https://bible.helloao.org/api/d/verse-of-the-day/categories.json`)
+    .then(request => request.json())
+    .then(categories => {
+        console.log('The dataset has the following categories:', categories.categories);
+    });
+```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/d/verse-of-the-day/categories.json
+```
+
+:::
+
+### Structure
+
+```typescript:no-line-numbers title="dataset-categories.ts"
+export interface DatasetCategories {
+    /**
+     * The dataset information for the categories.
+     */
+    dataset: Dataset;
+
+    /**
+     * The list of verse categories that are available for the dataset.
+     */
+    categories: DatasetCategorySummary[];
+}
+
+export interface DatasetCategorySummary {
+    /**
+     * The ID of the category. e.g. "hope".
+     */
+    id: string;
+
+    /**
+     * The English name of the category. e.g. "Hope".
+     */
+    name: string;
+
+    /**
+     * The description of what the verses in the category are about.
+     */
+    description: string;
+
+    /**
+     * The number of verses (or short passages) that belong to the category.
+     */
+    numberOfVerses: number;
+
+    /**
+     * The dates of the holiday that the category is for (see DatasetCategoryHoliday above).
+     * Omitted for categories that aren't for a holiday.
+     */
+    holiday?: DatasetCategoryHoliday;
+
+    /**
+     * The API link for the category.
+     */
+    apiLink: string;
+}
+```
+
+### Example
+
+```json:no-line-numbers title="/api/d/verse-of-the-day/categories.json"
+{
+    "dataset": {
+        "id": "verse-of-the-day",
+        "name": "Verse of the Day",
+        "totalNumberOfCategories": 31
+        // ...
+    },
+    "categories": [
+        {
+            "id": "comfort",
+            "name": "Comfort",
+            "description": "God's nearness and care in grief, trouble, and loneliness.",
+            "numberOfVerses": 65,
+            "apiLink": "/api/d/verse-of-the-day/categories/comfort.json"
+        },
+        {
+            "id": "courage",
+            "name": "Courage",
+            "description": "Standing firm and not being afraid.",
+            "numberOfVerses": 49,
+            "apiLink": "/api/d/verse-of-the-day/categories/courage.json"
+        }
+        // ...
+    ]
+}
+```
+
+
+## Get a Category from a Dataset
+
+`GET https://bible.helloao.org/api/d/{dataset}/categories/{category}.json`
+
+Gets a single verse category, with every verse that belongs to it.
+
+-   `dataset` the ID of the dataset (e.g. `verse-of-the-day`).
+-   `category` is the ID of the category (e.g. `hope`).
+
+### Code Example
+
+::: code-tabs#lang
+
+@tab JavaScript
+
+```ts:no-line-numbers title="fetch-category.js"
+fetch(`https://bible.helloao.org/api/d/verse-of-the-day/categories/hope.json`)
+    .then(request => request.json())
+    .then(category => {
+        console.log('Verses about hope:', category.category.verses);
+    });
+```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/d/verse-of-the-day/categories/hope.json
+```
+
+:::
+
+### Structure
+
+```typescript:no-line-numbers title="dataset-category.ts"
+export interface DatasetCategoryResponse {
+    /**
+     * The dataset information for the category.
+     */
+    dataset: Dataset;
+
+    /**
+     * The category, with the verses that belong to it.
+     */
+    category: DatasetCategory;
+
+    /**
+     * The API link for this category.
+     */
+    thisCategoryApiLink: string;
+}
+
+export interface DatasetCategory {
+    /**
+     * The ID of the category. e.g. "hope".
+     */
+    id: string;
+
+    /**
+     * The English name of the category. e.g. "Hope".
+     */
+    name: string;
+
+    /**
+     * The description of what the verses in the category are about.
+     */
+    description: string;
+
+    /**
+     * The dates of the holiday that the category is for (see DatasetCategoryHoliday in "List Verses in a Dataset").
+     * On those dates, the verse of the day is one of the category's verses, and they aren't used on other days.
+     * Omitted for categories that aren't for a holiday.
+     */
+    holiday?: DatasetCategoryHoliday;
+
+    /**
+     * The verses (or short passages) that belong to the category, in canonical order.
+     * Includes verses that have been removed from the list (see `removedIn`).
+     */
+    verses: DatasetCategoryVerse[];
+}
+
+export interface DatasetCategoryVerse {
+    /**
+     * The ID of the book. e.g. "JER".
+     */
+    book: string;
+
+    /**
+     * The chapter number.
+     */
+    chapter: number;
+
+    /**
+     * The verse number.
+     * If `endVerse` is present, then this is the verse that the passage starts at.
+     */
+    verse: number;
+
+    /**
+     * The verse that the passage ends at.
+     * Omitted if the reference is a single verse.
+     */
+    endVerse?: number;
+
+    /**
+     * The first year that the verse can be the verse of the day.
+     * Omitted if the verse has always been in the list.
+     */
+    addedIn?: number;
+
+    /**
+     * The first year that the verse can no longer be the verse of the day.
+     * Removed verses stay in the dataset so that the verses of earlier years can still be picked.
+     * Omitted if the verse hasn't been removed from the list.
+     */
+    removedIn?: number;
+}
+```
+
+### Example
+
+```json:no-line-numbers title="/api/d/verse-of-the-day/categories/hope.json"
+{
+    "dataset": {
+        "id": "verse-of-the-day",
+        "name": "Verse of the Day",
+        "totalNumberOfCategories": 31
+        // ...
+    },
+    "category": {
+        "id": "hope",
+        "name": "Hope",
+        "description": "Confidence in the future that God has promised.",
+        "verses": [
+            {
+                "book": "GEN",
+                "chapter": 50,
+                "verse": 20
+            },
+            // ...
+            {
+                "book": "ISA",
+                "chapter": 43,
+                "verse": 18,
+                "endVerse": 19
+            },
+            {
+                "book": "JER",
+                "chapter": 29,
+                "verse": 11
+            }
+            // ...
+        ]
+    },
+    "thisCategoryApiLink": "/api/d/verse-of-the-day/categories/hope.json"
 }
 ```

@@ -1905,6 +1905,16 @@ public data class ApiDataset(
     public val listOfLexiconApiLink: String? = null,
 
     /**
+     * The API link for the list of every verse in this dataset, with its categories. Relative to the API origin. Omitted if the verses of the dataset don't have categories.
+     */
+    public val listOfVersesApiLink: String? = null,
+
+    /**
+     * The API link for the list of verse categories for this dataset. Relative to the API origin. Omitted if the dataset doesn't contain verse categories.
+     */
+    public val listOfCategoriesApiLink: String? = null,
+
+    /**
      * The total number of people that are contained in this dataset. Omitted if the dataset doesn't contain people.
      */
     public val totalNumberOfPeople: Int? = null,
@@ -1928,6 +1938,11 @@ public data class ApiDataset(
      * The total number of lexicon entries that are contained in this dataset. Omitted if the dataset doesn't contain lexicon entries.
      */
     public val totalNumberOfLexicon: Int? = null,
+
+    /**
+     * The total number of verse categories that are contained in this dataset. Omitted if the dataset doesn't contain verse categories.
+     */
+    public val totalNumberOfCategories: Int? = null,
 )
 
 /**
@@ -2106,7 +2121,7 @@ public data class DatasetChapterData(
 )
 
 /**
- * Defines the schema for information about a verse in a dataset chapter. A verse carries either `references` (cross references) or `words` (interlinear words), depending on the dataset.
+ * Defines the schema for information about a verse in a dataset chapter. A verse carries `references` (cross references), `words` (interlinear words), or `categories` (verse of the day candidates), depending on the dataset.
  */
 @Serializable(with = DatasetChapterVerseContentSerializer::class)
 public sealed interface DatasetChapterVerseContent
@@ -2115,6 +2130,7 @@ internal object DatasetChapterVerseContentSerializer : JsonContentPolymorphicSer
     override fun selectDeserializer(element: JsonElement): DeserializationStrategy<DatasetChapterVerseContent> = when {
         element is JsonObject && "references" in element -> DatasetChapterVerseReferences.serializer()
         element is JsonObject && "words" in element -> DatasetChapterVerseWords.serializer()
+        element is JsonObject && "categories" in element -> DatasetChapterVerseCategories.serializer()
         else -> UnknownDatasetChapterVerseContent.serializer()
     }
 }
@@ -2262,6 +2278,37 @@ public data class DatasetInterlinearWord(
      */
     public val gloss: String? = null,
 )
+
+/**
+ * Defines the schema for a verse (or short passage) in a dataset chapter that lists the categories it belongs to.
+ */
+@Serializable
+public data class DatasetChapterVerseCategories(
+    /**
+     * The number of the verse. If `endVerse` is present, then this is the verse that the passage starts at.
+     */
+    public val verse: Int,
+
+    /**
+     * The verse that the passage ends at. Omitted if the entry is a single verse.
+     */
+    public val endVerse: Int? = null,
+
+    /**
+     * The IDs of the categories that the verse belongs to, most relevant first. Each ID matches a category in the `categories` collection of the dataset (`/api/d/{dataset}/categories/{id}.json`).
+     */
+    public val categories: List<String>,
+
+    /**
+     * The first year that the verse can be the verse of the day. Omitted if the verse has always been in the list.
+     */
+    public val addedIn: Int? = null,
+
+    /**
+     * The first year that the verse can no longer be the verse of the day. Removed verses stay in the dataset so that the verses of earlier years can still be picked. Omitted if the verse hasn't been removed from the list.
+     */
+    public val removedIn: Int? = null,
+) : DatasetChapterVerseContent
 
 /**
  * The entities (people, places, and events) that appear in a chapter of a book for a dataset. Maps to the /api/d/:datasetId/:bookId/:chapterNumber.json endpoint for datasets that contain entities.
@@ -3249,6 +3296,270 @@ public data class DatasetLexiconEntry(
      * The senses of the entry, in ID order.
      */
     public val senses: List<DatasetLexiconSense>,
+)
+
+/**
+ * The list of every verse in a dataset whose verses have categories. Maps to the /api/d/:datasetId/verses.json endpoint.
+ */
+@Serializable
+public data class ApiDatasetVerses(
+    /**
+     * The dataset information for the verses.
+     */
+    public val dataset: ApiDataset,
+
+    /**
+     * Every verse (or short passage) in the dataset, with its categories, in canonical order.
+     */
+    public val verses: List<ApiDatasetCategorizedVerse>,
+
+    /**
+     * The holidays that have their own verses, with their dates. On a holiday, the verse of the day is one of the verses in the holiday's category, and those verses aren't used on other days. Omitted if the dataset has no holidays.
+     */
+    public val holidays: List<ApiDatasetVersesHoliday>? = null,
+)
+
+/**
+ * Defines a verse (or short passage) in a dataset, with the categories it belongs to.
+ */
+@Serializable
+public data class ApiDatasetCategorizedVerse(
+    /**
+     * IDs for books. Follows the USFM standard (https://ubsicap.github.io/usfm/identification/books.html)
+     */
+    public val book: BookId,
+
+    /**
+     * The chapter number.
+     */
+    public val chapter: Int,
+
+    /**
+     * The verse number. If `endVerse` is present, then this is the verse that the passage starts at.
+     */
+    public val verse: Int,
+
+    /**
+     * The verse that the passage ends at. Omitted if the entry is a single verse.
+     */
+    public val endVerse: Int? = null,
+
+    /**
+     * The IDs of the categories that the verse belongs to, most relevant first. Each ID matches a category in the `categories` collection of the dataset (`/api/d/{dataset}/categories/{id}.json`).
+     */
+    public val categories: List<String>,
+
+    /**
+     * The first year that the verse can be the verse of the day. Omitted if the verse has always been in the list.
+     */
+    public val addedIn: Int? = null,
+
+    /**
+     * The first year that the verse can no longer be the verse of the day. Removed verses stay in the dataset so that the verses of earlier years can still be picked. Omitted if the verse hasn't been removed from the list.
+     */
+    public val removedIn: Int? = null,
+)
+
+/**
+ * Defines a holiday that has its own verses, with its dates. It either falls on the same `month` and `day` every year, or lists its `dates`.
+ */
+@Serializable
+public data class ApiDatasetVersesHoliday(
+    /**
+     * The month of a holiday that falls on the same date every year (1 for January). Omitted for holidays whose date changes every year.
+     */
+    public val month: Int? = null,
+
+    /**
+     * The day of the month of a holiday that falls on the same date every year. Omitted for holidays whose date changes every year.
+     */
+    public val day: Int? = null,
+
+    /**
+     * The dates of a holiday whose date changes every year (such as Resurrection Sunday), as `YYYY-MM-DD` strings in the Gregorian calendar, in order. They are precomputed for a range of years, so the holiday is only observed in the years that are listed. Omitted for holidays that fall on the same date every year.
+     */
+    public val dates: List<String>? = null,
+
+    /**
+     * The ID of the holiday's category, such as `christmas`.
+     */
+    public val id: String,
+
+    /**
+     * The English name of the holiday, such as `Christmas`.
+     */
+    public val name: String,
+)
+
+/**
+ * The list of verse categories in a dataset. Maps to the /api/d/:datasetId/categories.json endpoint.
+ */
+@Serializable
+public data class ApiDatasetCategories(
+    /**
+     * The dataset information for the categories.
+     */
+    public val dataset: ApiDataset,
+
+    /**
+     * The list of verse categories that are available for the dataset.
+     */
+    public val categories: List<ApiDatasetCategorySummary>,
+)
+
+/**
+ * Defines a summary of a verse category in a dataset.
+ */
+@Serializable
+public data class ApiDatasetCategorySummary(
+    /**
+     * The ID of the category, such as `hope`.
+     */
+    public val id: String,
+
+    /**
+     * The English name of the category, such as `Hope`.
+     */
+    public val name: String,
+
+    /**
+     * The description of what the verses in the category are about.
+     */
+    public val description: String,
+
+    /**
+     * The number of verses (or short passages) that belong to the category.
+     */
+    public val numberOfVerses: Int,
+
+    /**
+     * The dates of the holiday that the category is for. Omitted for categories that aren't for a holiday.
+     */
+    public val holiday: DatasetCategoryHoliday? = null,
+
+    /**
+     * The API link for the category. Relative to the API origin.
+     */
+    public val apiLink: String,
+)
+
+/**
+ * Defines the schema for the dates of a holiday that a category of verses is for. A holiday either falls on the same `month` and `day` every year, or lists its `dates`.
+ */
+@Serializable
+public data class DatasetCategoryHoliday(
+    /**
+     * The month of a holiday that falls on the same date every year (1 for January). Omitted for holidays whose date changes every year.
+     */
+    public val month: Int? = null,
+
+    /**
+     * The day of the month of a holiday that falls on the same date every year. Omitted for holidays whose date changes every year.
+     */
+    public val day: Int? = null,
+
+    /**
+     * The dates of a holiday whose date changes every year (such as Resurrection Sunday), as `YYYY-MM-DD` strings in the Gregorian calendar, in order. They are precomputed for a range of years, so the holiday is only observed in the years that are listed. Omitted for holidays that fall on the same date every year.
+     */
+    public val dates: List<String>? = null,
+)
+
+/**
+ * The information about a verse category in a dataset. Maps to the /api/d/:datasetId/categories/:categoryId.json endpoint.
+ */
+@Serializable
+public data class ApiDatasetCategory(
+    /**
+     * The dataset information for the category.
+     */
+    public val dataset: ApiDataset,
+
+    /**
+     * The category, with the verses that belong to it.
+     */
+    public val category: DatasetCategory,
+
+    /**
+     * The API link for this category. Relative to the API origin.
+     */
+    public val thisCategoryApiLink: String,
+)
+
+/**
+ * Defines the schema for a verse (or short passage) in a category of a dataset.
+ */
+@Serializable
+public data class DatasetCategoryVerse(
+    /**
+     * IDs for books. Follows the USFM standard (https://ubsicap.github.io/usfm/identification/books.html)
+     */
+    public val book: BookId,
+
+    /**
+     * The chapter number that the reference starts at.
+     */
+    public val chapter: Int,
+
+    /**
+     * The verse number that the reference starts at.
+     */
+    public val verse: Int,
+
+    /**
+     * The rest of the content of the verse reference. This is the part of the string that comes after the verse reference. For example, in "GEN 1:1 In the beginning, God created the Heavens and the Earth.", the content would be "In the beginning, God created the Heavens and the Earth."
+     */
+    public val content: String? = null,
+
+    /**
+     * The chapter that the verse reference ends at. This is used for references that span multiple chapters, such as "GEN 1:1-2:3". In this case, the endChapter would be 2.
+     */
+    public val endChapter: Int? = null,
+
+    /**
+     * The verse that the verse reference ends at. This is used for references that span multiple verses, such as "GEN 1:1-1:3". In this case, the endVerse would be 3.
+     */
+    public val endVerse: Int? = null,
+
+    /**
+     * The first year that the verse can be the verse of the day. Omitted if the verse has always been in the list.
+     */
+    public val addedIn: Int? = null,
+
+    /**
+     * The first year that the verse can no longer be the verse of the day. Removed verses stay in the dataset so that the verses of earlier years can still be picked. Omitted if the verse hasn't been removed from the list.
+     */
+    public val removedIn: Int? = null,
+)
+
+/**
+ * Defines the schema for a category of verses in a dataset.
+ */
+@Serializable
+public data class DatasetCategory(
+    /**
+     * The ID of the category, such as `hope`.
+     */
+    public val id: String,
+
+    /**
+     * The English name of the category, such as `Hope`.
+     */
+    public val name: String,
+
+    /**
+     * The description of what the verses in the category are about.
+     */
+    public val description: String,
+
+    /**
+     * The dates of the holiday that the category is for. On those dates, the verse of the day is one of the category's verses, and the category's verses aren't used on other days. Omitted for categories that aren't for a holiday.
+     */
+    public val holiday: DatasetCategoryHoliday? = null,
+
+    /**
+     * The verses (or short passages) that belong to the category, in canonical order. Includes verses that have been removed from the list (see `removedIn`).
+     */
+    public val verses: List<DatasetCategoryVerse>,
 )
 
 /**

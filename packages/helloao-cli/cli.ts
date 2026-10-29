@@ -24,6 +24,8 @@ import {
     importApi,
     importBibleMetadata,
     importHistoryGlobe,
+    importVerseOfTheDay,
+    reviewVerseOfTheDay,
     importInterlinear,
     importAudioTimings,
     importCommentaries,
@@ -545,6 +547,41 @@ async function start() {
                 ...program.opts(),
                 ...options,
             });
+        });
+
+    program
+        .command('import-verse-of-the-day')
+        .description(
+            'Imports the verse of the day dataset into the database.\nThe dataset is built into @helloao/tools, so it does not need to be fetched first.'
+        )
+        .action(async (options: any) => {
+            await importVerseOfTheDay({
+                ...program.opts(),
+                ...options,
+            });
+        });
+
+    program
+        .command('review-verse-of-the-day [dir]')
+        .description(
+            'Prints the verses of the verse of the day dataset with their categories and their text, so that the list can be reviewed.\nThe text comes from the USFM files in the given directory, which defaults to ./bible/bsb (the Berean Standard Bible).'
+        )
+        .option(
+            '--category <category>',
+            'Only print the verses in the given category. e.g. "hope"'
+        )
+        .option(
+            '--format <format>',
+            'The format to print the verses in: "table", "markdown", or "csv".',
+            'table'
+        )
+        .option(
+            '--width <width>',
+            'The maximum width of a line in the table format. Defaults to the width of the terminal.',
+            (value: string) => parseInt(value, 10)
+        )
+        .action(async (dir: string | undefined, options: any) => {
+            await reviewVerseOfTheDay(dir ?? './bible/bsb', options);
         });
 
     program

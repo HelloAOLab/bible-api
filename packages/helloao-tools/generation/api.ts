@@ -22,6 +22,8 @@ import {
     DatasetPeopleGroup,
     DatasetPeopleGroupSchema,
     DatasetLexiconEntrySchema,
+    DatasetCategorySchema,
+    DatasetCategoryHolidaySchema,
     OriginalLanguageSchema,
     DatasetPerson,
     DatasetPersonSchema,
@@ -248,6 +250,25 @@ export interface ApiOutput {
     datasetLexiconContents?: ApiDatasetLexiconEntry[];
 
     /**
+     * The list of verse categories for each dataset.
+     * This maps to the /api/d/:datasetId/categories.json endpoint.
+     */
+    datasetCategories?: ApiDatasetCategories[];
+
+    /**
+     * The list of individual verse categories for each dataset.
+     * This maps to the following endpoint:
+     * - /api/d/:datasetId/categories/:categoryId.json
+     */
+    datasetCategoryContents?: ApiDatasetCategory[];
+
+    /**
+     * The list of every verse in each dataset whose verses have categories.
+     * This maps to the /api/d/:datasetId/verses.json endpoint.
+     */
+    datasetVerses?: ApiDatasetVerses[];
+
+    /**
      * The complete translation data for each translation.
      * This maps to the /api/:translationId/complete.json endpoint.
      */
@@ -452,6 +473,24 @@ export const ApiDatasetSchema = DatasetSchema.extend({
     }),
 
     /**
+     * The API link for the list of every verse in this dataset, with its categories.
+     * Omitted if the verses of the dataset don't have categories.
+     */
+    listOfVersesApiLink: z.string().optional().meta({
+        description:
+            "The API link for the list of every verse in this dataset, with its categories. Relative to the API origin. Omitted if the verses of the dataset don't have categories.",
+    }),
+
+    /**
+     * The API link for the list of verse categories for this dataset.
+     * Omitted if the dataset doesn't contain verse categories.
+     */
+    listOfCategoriesApiLink: z.string().optional().meta({
+        description:
+            "The API link for the list of verse categories for this dataset. Relative to the API origin. Omitted if the dataset doesn't contain verse categories.",
+    }),
+
+    /**
      * The total number of people that are contained in this dataset.
      * Omitted if the dataset doesn't contain people.
      */
@@ -494,6 +533,15 @@ export const ApiDatasetSchema = DatasetSchema.extend({
     totalNumberOfLexicon: z.number().optional().meta({
         description:
             "The total number of lexicon entries that are contained in this dataset. Omitted if the dataset doesn't contain lexicon entries.",
+    }),
+
+    /**
+     * The total number of verse categories that are contained in this dataset.
+     * Omitted if the dataset doesn't contain verse categories.
+     */
+    totalNumberOfCategories: z.number().optional().meta({
+        description:
+            "The total number of verse categories that are contained in this dataset. Omitted if the dataset doesn't contain verse categories.",
     }),
 }).meta({
     id: 'ApiDataset',
@@ -1596,6 +1644,273 @@ export const ApiDatasetLexiconEntrySchema = z
 export type ApiDatasetLexiconEntry = z.infer<
     typeof ApiDatasetLexiconEntrySchema
 >;
+
+/**
+ * Defines a Zod schema for a summary of a verse category in a dataset.
+ */
+export const ApiDatasetCategorySummarySchema = z
+    .object({
+        /**
+         * The ID of the category.
+         */
+        id: z.string().meta({
+            description: 'The ID of the category, such as `hope`.',
+        }),
+
+        /**
+         * The English name of the category.
+         */
+        name: z.string().meta({
+            description: 'The English name of the category, such as `Hope`.',
+        }),
+
+        /**
+         * The description of what the verses in the category are about.
+         */
+        description: z.string().meta({
+            description:
+                'The description of what the verses in the category are about.',
+        }),
+
+        /**
+         * The number of verses (or short passages) that belong to the category.
+         */
+        numberOfVerses: z.number().meta({
+            description:
+                'The number of verses (or short passages) that belong to the category.',
+        }),
+
+        /**
+         * The dates of the holiday that the category is for.
+         * Omitted for categories that aren't for a holiday.
+         */
+        holiday: DatasetCategoryHolidaySchema.optional().meta({
+            description:
+                "The dates of the holiday that the category is for. Omitted for categories that aren't for a holiday.",
+        }),
+
+        /**
+         * The API link for the category.
+         */
+        apiLink: z.string().meta({
+            description:
+                'The API link for the category. Relative to the API origin.',
+        }),
+    })
+    .meta({
+        id: 'ApiDatasetCategorySummary',
+        description: 'Defines a summary of a verse category in a dataset.',
+    });
+
+export type ApiDatasetCategorySummary = z.infer<
+    typeof ApiDatasetCategorySummarySchema
+>;
+
+/**
+ * Defines a Zod schema for the list of verse categories in a dataset.
+ * Maps to the /api/d/:datasetId/categories.json endpoint.
+ */
+export const ApiDatasetCategoriesSchema = z
+    .object({
+        /**
+         * The dataset information for the categories.
+         */
+        dataset: z
+            .lazy(() => ApiDatasetSchema)
+            .meta({
+                description: 'The dataset information for the categories.',
+            }),
+
+        /**
+         * The list of categories that are available for the dataset.
+         */
+        categories: z.array(ApiDatasetCategorySummarySchema).meta({
+            description:
+                'The list of verse categories that are available for the dataset.',
+        }),
+    })
+    .meta({
+        id: 'ApiDatasetCategories',
+        description:
+            'The list of verse categories in a dataset. Maps to the /api/d/:datasetId/categories.json endpoint.',
+    });
+
+export type ApiDatasetCategories = z.infer<typeof ApiDatasetCategoriesSchema>;
+
+/**
+ * Defines a Zod schema for a verse category in a dataset.
+ * Maps to the /api/d/:datasetId/categories/:categoryId.json endpoint.
+ */
+export const ApiDatasetCategorySchema = z
+    .object({
+        /**
+         * The dataset information for the category.
+         */
+        dataset: z
+            .lazy(() => ApiDatasetSchema)
+            .meta({
+                description: 'The dataset information for the category.',
+            }),
+
+        /**
+         * The category.
+         */
+        category: DatasetCategorySchema.meta({
+            description: 'The category, with the verses that belong to it.',
+        }),
+
+        /**
+         * The API link for this category.
+         */
+        thisCategoryApiLink: z.string().meta({
+            description:
+                'The API link for this category. Relative to the API origin.',
+        }),
+    })
+    .meta({
+        id: 'ApiDatasetCategory',
+        description:
+            'The information about a verse category in a dataset. Maps to the /api/d/:datasetId/categories/:categoryId.json endpoint.',
+    });
+
+export type ApiDatasetCategory = z.infer<typeof ApiDatasetCategorySchema>;
+
+/**
+ * Defines a Zod schema for a verse (or short passage) in a dataset, with the categories it belongs to.
+ */
+export const ApiDatasetCategorizedVerseSchema = z
+    .object({
+        /**
+         * The ID of the book.
+         */
+        book: BookIdSchema,
+
+        /**
+         * The chapter number.
+         */
+        chapter: z.number().meta({
+            description: 'The chapter number.',
+        }),
+
+        /**
+         * The verse number.
+         * If `endVerse` is present, then this is the verse that the passage starts at.
+         */
+        verse: z.number().meta({
+            description:
+                'The verse number. If `endVerse` is present, then this is the verse that the passage starts at.',
+        }),
+
+        /**
+         * The verse that the passage ends at.
+         * Omitted if the entry is a single verse.
+         */
+        endVerse: z.number().optional().meta({
+            description:
+                'The verse that the passage ends at. Omitted if the entry is a single verse.',
+        }),
+
+        /**
+         * The IDs of the categories that the verse belongs to, most relevant first.
+         */
+        categories: z.array(z.string()).meta({
+            description:
+                'The IDs of the categories that the verse belongs to, most relevant first. Each ID matches a category in the `categories` collection of the dataset (`/api/d/{dataset}/categories/{id}.json`).',
+        }),
+
+        /**
+         * The first year that the verse can be the verse of the day.
+         * Omitted if the verse has always been in the list.
+         */
+        addedIn: z.number().optional().meta({
+            description:
+                'The first year that the verse can be the verse of the day. Omitted if the verse has always been in the list.',
+        }),
+
+        /**
+         * The first year that the verse can no longer be the verse of the day.
+         * Omitted if the verse hasn't been removed from the list.
+         */
+        removedIn: z.number().optional().meta({
+            description:
+                "The first year that the verse can no longer be the verse of the day. Removed verses stay in the dataset so that the verses of earlier years can still be picked. Omitted if the verse hasn't been removed from the list.",
+        }),
+    })
+    .meta({
+        id: 'ApiDatasetCategorizedVerse',
+        description:
+            'Defines a verse (or short passage) in a dataset, with the categories it belongs to.',
+    });
+
+export type ApiDatasetCategorizedVerse = z.infer<
+    typeof ApiDatasetCategorizedVerseSchema
+>;
+
+/**
+ * Defines a Zod schema for a holiday in the list of every verse in a dataset.
+ */
+export const ApiDatasetVersesHolidaySchema = DatasetCategoryHolidaySchema.extend({
+    /**
+     * The ID of the holiday's category.
+     */
+    id: z.string().meta({
+        description: "The ID of the holiday's category, such as `christmas`.",
+    }),
+
+    /**
+     * The English name of the holiday.
+     */
+    name: z.string().meta({
+        description: 'The English name of the holiday, such as `Christmas`.',
+    }),
+}).meta({
+    id: 'ApiDatasetVersesHoliday',
+    description:
+        'Defines a holiday that has its own verses, with its dates. It either falls on the same `month` and `day` every year, or lists its `dates`.',
+});
+
+export type ApiDatasetVersesHoliday = z.infer<
+    typeof ApiDatasetVersesHolidaySchema
+>;
+
+/**
+ * Defines a Zod schema for the list of every verse in a dataset.
+ * Maps to the /api/d/:datasetId/verses.json endpoint.
+ */
+export const ApiDatasetVersesSchema = z
+    .object({
+        /**
+         * The dataset information for the verses.
+         */
+        dataset: z
+            .lazy(() => ApiDatasetSchema)
+            .meta({
+                description: 'The dataset information for the verses.',
+            }),
+
+        /**
+         * Every verse in the dataset, in canonical order.
+         */
+        verses: z.array(ApiDatasetCategorizedVerseSchema).meta({
+            description:
+                'Every verse (or short passage) in the dataset, with its categories, in canonical order.',
+        }),
+
+        /**
+         * The holidays that have their own verses, with their dates.
+         */
+        holidays: z.array(ApiDatasetVersesHolidaySchema).optional().meta({
+            description:
+                "The holidays that have their own verses, with their dates. On a holiday, the verse of the day is one of the verses in the holiday's category, and those verses aren't used on other days. Omitted if the dataset has no holidays.",
+        }),
+    })
+    .meta({
+        id: 'ApiDatasetVerses',
+        description:
+            'The list of every verse in a dataset whose verses have categories. Maps to the /api/d/:datasetId/verses.json endpoint.',
+    });
+
+export type ApiDatasetVerses = z.infer<typeof ApiDatasetVersesSchema>;
 
 /**
  * Defines a Zod schema for a person that appears in a chapter of a dataset.
@@ -3930,6 +4245,7 @@ export function generateApiForDataset(
         events,
         peopleGroups,
         lexicon,
+        categories,
         ...datasetInfo
     } of dataset.datasets ?? []) {
         const apiDataset: ApiDataset = {
@@ -3957,6 +4273,7 @@ export function generateApiForDataset(
         };
 
         let datasetChapters: ApiDatasetBookChapter[] = [];
+        let categorizedVerses: ApiDatasetCategorizedVerse[] = [];
 
         for (let { chapters, ...book } of books) {
             const firstChapterNumber = chapters[0]?.chapter.number ?? null;
@@ -4025,10 +4342,16 @@ export function generateApiForDataset(
                     if ('references' in verse) {
                         apiBookChapter.numberOfReferences +=
                             verse.references.length;
-                    } else {
+                    } else if ('words' in verse) {
                         apiDataset.totalNumberOfWords =
                             (apiDataset.totalNumberOfWords ?? 0) +
                             verse.words.length;
+                    } else if ('categories' in verse) {
+                        categorizedVerses.push({
+                            book: book.id,
+                            chapter: chapter.number,
+                            ...verse,
+                        });
                     }
                 }
 
@@ -4049,6 +4372,24 @@ export function generateApiForDataset(
             apiDataset.totalNumberOfVerses += apiBook.totalNumberOfVerses;
             apiDataset.totalNumberOfReferences +=
                 apiBook.totalNumberOfReferences;
+        }
+
+        if (categorizedVerses.length > 0) {
+            apiDataset.listOfVersesApiLink = listOfDatasetVersesApiLink(
+                datasetInfo.id,
+                apiPathPrefix
+            );
+            if (!api.datasetVerses) {
+                api.datasetVerses = [];
+            }
+            const holidays = (categories ?? [])
+                .filter((c) => c.holiday)
+                .map((c) => ({ id: c.id, name: c.name, ...c.holiday }));
+            api.datasetVerses.push({
+                dataset: apiDataset,
+                verses: categorizedVerses,
+                ...(holidays.length > 0 ? { holidays } : {}),
+            });
         }
 
         for (let i = 0; i < datasetChapters.length; i++) {
@@ -4387,6 +4728,53 @@ export function generateApiForDataset(
                 api.datasetLexicon = [];
             }
             api.datasetLexicon.push(datasetLexicon);
+        }
+
+        if (categories) {
+            const datasetCategories: ApiDatasetCategories = {
+                dataset: apiDataset,
+                categories: [],
+            };
+
+            for (let category of categories) {
+                const thisCategoryApiLink = datasetEntityApiLink(
+                    datasetInfo.id,
+                    'categories',
+                    category.id,
+                    'json',
+                    apiPathPrefix
+                );
+
+                datasetCategories.categories.push({
+                    id: category.id,
+                    name: category.name,
+                    description: category.description,
+                    numberOfVerses: category.verses.length,
+                    ...(category.holiday ? { holiday: category.holiday } : {}),
+                    apiLink: thisCategoryApiLink,
+                });
+
+                if (!api.datasetCategoryContents) {
+                    api.datasetCategoryContents = [];
+                }
+                api.datasetCategoryContents.push({
+                    dataset: apiDataset,
+                    category,
+                    thisCategoryApiLink,
+                });
+            }
+
+            apiDataset.listOfCategoriesApiLink = listOfDatasetEntitiesApiLink(
+                datasetInfo.id,
+                'categories',
+                'json',
+                apiPathPrefix
+            );
+            apiDataset.totalNumberOfCategories = categories.length;
+            if (!api.datasetCategories) {
+                api.datasetCategories = [];
+            }
+            api.datasetCategories.push(datasetCategories);
         }
 
         // Generate chapter-aligned entity data for datasets that contain
@@ -4879,6 +5267,25 @@ export function generateFilesForApi(api: ApiOutput): OutputFile[] {
         files.push(jsonFile(entry.thisLexiconEntryApiLink, entry));
     }
 
+    for (let datasetCategories of api.datasetCategories ?? []) {
+        files.push(
+            jsonFile(
+                datasetCategories.dataset.listOfCategoriesApiLink!,
+                datasetCategories
+            )
+        );
+    }
+
+    for (let category of api.datasetCategoryContents ?? []) {
+        files.push(jsonFile(category.thisCategoryApiLink, category));
+    }
+
+    for (let datasetVerses of api.datasetVerses ?? []) {
+        files.push(
+            jsonFile(datasetVerses.dataset.listOfVersesApiLink!, datasetVerses)
+        );
+    }
+
     // for (let audio of api.translationBookChapterAudio) {
     //     files.push(downloadedFile(audio.link, audio.originalUrl));
     // }
@@ -4952,6 +5359,18 @@ export function listOfDatasetBooksApiLink(
     prefix: string = ''
 ): string {
     return `${prefix}/api/d/${datasetId}/books.json`;
+}
+
+/**
+ * Gets the API link for the list of every verse in a dataset.
+ * @param datasetId The ID of the dataset.
+ * @param prefix The prefix to use for the API link.
+ */
+export function listOfDatasetVersesApiLink(
+    datasetId: string,
+    prefix: string = ''
+): string {
+    return `${prefix}/api/d/${datasetId}/verses.json`;
 }
 
 /**

@@ -61,6 +61,7 @@ const UNION_NAMES: Record<string, string> = {
 const UNION_CASE_NAMES: Record<string, string> = {
     DatasetChapterVerseReferences: 'references',
     DatasetChapterVerseWords: 'words',
+    DatasetChapterVerseCategories: 'categories',
 };
 
 /**

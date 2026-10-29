@@ -1495,7 +1495,7 @@ export function insertDatasets(db: Database, datasets: DatasetDataset[]) {
 }
 
 /**
- * Inserts the entities (people, places, events, people groups, and lexicon entries) for the given dataset into the database.
+ * Inserts the entities (people, places, events, people groups, lexicon entries, and verse categories) for the given dataset into the database.
  * Any entities that are no longer present in the dataset are deleted.
  * @param db The database to insert the entities into.
  * @param dataset The dataset that the entities belong to.
@@ -1527,6 +1527,7 @@ export function insertDatasetEntities(db: Database, dataset: DatasetDataset) {
         ['event', dataset.events],
         ['peopleGroup', dataset.peopleGroups],
         ['lexicon', dataset.lexicon],
+        ['category', dataset.categories],
     ] as const;
 
     const insertAll = db.transaction(() => {
@@ -2414,6 +2415,8 @@ export async function* loadDatasetDatasets(
                     (datasetDataset.peopleGroups ??= []).push(parsed);
                 } else if (entity.type === 'lexicon') {
                     (datasetDataset.lexicon ??= []).push(parsed);
+                } else if (entity.type === 'category') {
+                    (datasetDataset.categories ??= []).push(parsed);
                 } else {
                     logger.warn(
                         '[loadDatasetDatasets] Unknown entity type!',

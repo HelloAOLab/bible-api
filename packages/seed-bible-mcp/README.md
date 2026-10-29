@@ -1,26 +1,28 @@
 # Free Use Bible MCP Server
 
-An [MCP](https://modelcontextprotocol.io) server that exposes the [Free Use Bible API](https://bible.helloao.org) (BSB, WEB, Hebrew WLC, SBL Greek NT) through five tools:
+An [MCP](https://modelcontextprotocol.io) server that exposes the [Free Use Bible API](https://bible.helloao.org) (BSB, WEB, Hebrew WLC, SBL Greek NT) through six tools:
 
 - `getBibleReference` — turns a reference such as `John 3:16` or `Gen 1:1-3 WEB` into a passage result id.
 - `fetchChapter` — returns the passage text for a result id from `getBibleReference`.
 - `fetchVerse` — returns the text of a verse or verse range within one chapter, for a reference such as `John 3:16` or `Gen 1:1-3 WEB`.
 - `getSeedBibleLink` — returns a link to the chapter on [Seed Bible](https://seedbible.org) (`https://seedbible.org/{translationId}/{bookId}/{chapter}`) for a reference such as `John 3:16` or `Ps 23 WEB`.
+- `getVerseOfTheDay` — returns the verse of the day for a date (`YYYY-MM-DD`, defaulting to today in UTC), with its text, categories, and a Seed Bible link. On Christian holidays (such as Christmas and Resurrection Sunday), the verse is one of the holiday's verses, and the result names the holiday. It follows the same [convention](https://bible.helloao.org/docs/reference/datasets/#picking-a-verse-of-the-day) as the SDKs, so it picks the same verse on the same day, and takes an optional `category` and `seed`.
 - `listTranslations` — lists the available translations, optionally filtered by language (e.g. `spa` or `Spanish`) and by name.
 
-`getBibleReference`, `fetchVerse`, and `getSeedBibleLink` take an optional `translation` parameter that accepts any translation id from `listTranslations` (e.g. `spa_rv1909`). Without it, the translation is picked from the reference (BSB, WEB, WLC, or SBL), defaulting to BSB.
+`getBibleReference`, `fetchVerse`, `getSeedBibleLink`, and `getVerseOfTheDay` take an optional `translation` parameter that accepts any translation id from `listTranslations` (e.g. `spa_rv1909`). Without it, the translation is picked from the reference (BSB, WEB, WLC, or SBL), defaulting to BSB.
 
 The server speaks the Streamable HTTP transport at `/mcp` and runs statelessly, so the same code runs on Node.js and on Cloudflare Workers.
 
 ## Layout
 
-| File             | Purpose                                                          |
-| ---------------- | ---------------------------------------------------------------- |
-| `src/bible.ts`   | Reference parsing and Bible API helpers (web-standard APIs only) |
-| `src/mcp.ts`     | `createBibleMcpServer()` — registers the MCP tools               |
-| `src/handler.ts` | `handleRequest(Request): Response` — routing, CORS, transport    |
-| `src/worker.ts`  | Cloudflare Workers entrypoint                                    |
-| `src/node.ts`    | Node.js entrypoint                                               |
+| File                      | Purpose                                                          |
+| ------------------------- | ---------------------------------------------------------------- |
+| `src/bible.ts`            | Reference parsing and Bible API helpers (web-standard APIs only) |
+| `src/mcp.ts`              | `createBibleMcpServer()` — registers the MCP tools               |
+| `src/verse-of-the-day.ts` | Picks the verse of the day from the `verse-of-the-day` dataset   |
+| `src/handler.ts`          | `handleRequest(Request): Response` — routing, CORS, transport    |
+| `src/worker.ts`           | Cloudflare Workers entrypoint                                    |
+| `src/node.ts`             | Node.js entrypoint                                               |
 
 ## Running on Node.js
 

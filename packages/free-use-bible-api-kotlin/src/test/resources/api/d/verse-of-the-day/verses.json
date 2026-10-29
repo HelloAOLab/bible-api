@@ -1,0 +1,251 @@
+{
+  "dataset": {
+    "id": "verse-of-the-day",
+    "name": "Verse of the Day",
+    "website": "https://github.com/HelloAOLab/bible-api/blob/main/packages/helloao-tools/generation/verse-of-the-day.ts",
+    "licenseUrl": "https://github.com/HelloAOLab/bible-api/blob/main/LICENSE",
+    "licenseNotes": "A curated list of well-known verses by AO Lab, released under the MIT License.",
+    "englishName": "Verse of the Day",
+    "language": "eng",
+    "textDirection": "ltr",
+    "availableFormats": [
+      "json"
+    ],
+    "listOfBooksApiLink": "/api/d/verse-of-the-day/books.json",
+    "numberOfBooks": 65,
+    "totalNumberOfChapters": 381,
+    "totalNumberOfVerses": 750,
+    "totalNumberOfReferences": 0,
+    "languageName": "English",
+    "languageEnglishName": "English",
+    "listOfVersesApiLink": "/api/d/verse-of-the-day/verses.json",
+    "listOfCategoriesApiLink": "/api/d/verse-of-the-day/categories.json",
+    "totalNumberOfCategories": 31
+  },
+  "verses": [
+    {
+      "book": "PRO",
+      "chapter": 3,
+      "verse": 3,
+      "categories": [
+        "love"
+      ]
+    },
+    {
+      "book": "PRO",
+      "chapter": 3,
+      "verse": 5,
+      "endVerse": 6,
+      "categories": [
+        "faith",
+        "guidance",
+        "wisdom"
+      ]
+    },
+    {
+      "book": "PRO",
+      "chapter": 3,
+      "verse": 27,
+      "categories": [
+        "love",
+        "inspiration"
+      ]
+    },
+    {
+      "book": "ISA",
+      "chapter": 9,
+      "verse": 6,
+      "categories": [
+        "christmas"
+      ]
+    },
+    {
+      "book": "MAT",
+      "chapter": 1,
+      "verse": 23,
+      "categories": [
+        "christmas"
+      ]
+    },
+    {
+      "book": "LUK",
+      "chapter": 2,
+      "verse": 7,
+      "categories": [
+        "christmas"
+      ]
+    },
+    {
+      "book": "LUK",
+      "chapter": 2,
+      "verse": 10,
+      "endVerse": 11,
+      "categories": [
+        "christmas"
+      ]
+    },
+    {
+      "book": "LUK",
+      "chapter": 2,
+      "verse": 12,
+      "categories": [
+        "christmas"
+      ]
+    },
+    {
+      "book": "LUK",
+      "chapter": 2,
+      "verse": 14,
+      "categories": [
+        "christmas"
+      ]
+    },
+    {
+      "book": "LUK",
+      "chapter": 2,
+      "verse": 20,
+      "categories": [
+        "christmas"
+      ]
+    },
+    {
+      "book": "JHN",
+      "chapter": 3,
+      "verse": 16,
+      "categories": [
+        "love",
+        "salvation"
+      ]
+    },
+    {
+      "book": "JHN",
+      "chapter": 3,
+      "verse": 17,
+      "categories": [
+        "salvation"
+      ]
+    },
+    {
+      "book": "PHP",
+      "chapter": 2,
+      "verse": 6,
+      "endVerse": 7,
+      "categories": [
+        "christmas"
+      ]
+    }
+  ],
+  "holidays": [
+    {
+      "id": "advent-sunday",
+      "name": "First Sunday of Advent",
+      "dates": [
+        "2026-11-29",
+        "2027-11-28",
+        "2028-12-03"
+      ]
+    },
+    {
+      "id": "all-hallows-eve",
+      "name": "All Hallows' Eve",
+      "month": 10,
+      "day": 31
+    },
+    {
+      "id": "all-saints-day",
+      "name": "All Saints' Day",
+      "month": 11,
+      "day": 1
+    },
+    {
+      "id": "ascension-day",
+      "name": "Ascension Day",
+      "dates": [
+        "2026-05-14",
+        "2027-05-06",
+        "2028-05-25"
+      ]
+    },
+    {
+      "id": "ash-wednesday",
+      "name": "Ash Wednesday",
+      "dates": [
+        "2026-02-18",
+        "2027-02-10",
+        "2028-03-01"
+      ]
+    },
+    {
+      "id": "christmas",
+      "name": "Christmas",
+      "month": 12,
+      "day": 25
+    },
+    {
+      "id": "christmas-eve",
+      "name": "Christmas Eve",
+      "month": 12,
+      "day": 24
+    },
+    {
+      "id": "epiphany",
+      "name": "Epiphany",
+      "month": 1,
+      "day": 6
+    },
+    {
+      "id": "good-friday",
+      "name": "Good Friday",
+      "dates": [
+        "2026-04-03",
+        "2027-03-26",
+        "2028-04-14"
+      ]
+    },
+    {
+      "id": "maundy-thursday",
+      "name": "Maundy Thursday",
+      "dates": [
+        "2026-04-02",
+        "2027-03-25",
+        "2028-04-13"
+      ]
+    },
+    {
+      "id": "palm-sunday",
+      "name": "Palm Sunday",
+      "dates": [
+        "2026-03-29",
+        "2027-03-21",
+        "2028-04-09"
+      ]
+    },
+    {
+      "id": "pentecost",
+      "name": "Pentecost",
+      "dates": [
+        "2026-05-24",
+        "2027-05-16",
+        "2028-06-04"
+      ]
+    },
+    {
+      "id": "post-resurrection-sunday",
+      "name": "After Resurrection Sunday",
+      "dates": [
+        "2026-04-06",
+        "2026-04-07",
+        "2026-04-08"
+      ]
+    },
+    {
+      "id": "resurrection-sunday",
+      "name": "Resurrection Sunday",
+      "dates": [
+        "2026-04-05",
+        "2027-03-28",
+        "2028-04-16"
+      ]
+    }
+  ]
+}

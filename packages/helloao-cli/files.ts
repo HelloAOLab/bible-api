@@ -783,6 +783,7 @@ export async function loadDatasetsFromDirectory(
         ['events', 'events'],
         ['groups', 'peopleGroups'],
         ['lexicon', 'lexicon'],
+        ['categories', 'categories'],
     ] as const;
     const entityListFiles = new Set([
         'people.json',
@@ -790,6 +791,7 @@ export async function loadDatasetsFromDirectory(
         'events.json',
         'groups.json',
         'lexicon.json',
+        'categories.json',
     ]);
     const entityDirs = new Set([
         'people',
@@ -797,6 +799,7 @@ export async function loadDatasetsFromDirectory(
         'events',
         'groups',
         'lexicon',
+        'categories',
     ]);
 
     for (let dataset of datasets) {
@@ -806,6 +809,7 @@ export async function loadDatasetsFromDirectory(
         for (let bookId of booksList) {
             if (
                 bookId === 'books.json' ||
+                bookId === 'verses.json' ||
                 entityListFiles.has(bookId) ||
                 entityDirs.has(bookId)
             ) {
@@ -863,18 +867,32 @@ export async function loadDatasetsFromDirectory(
                             content: chapterJson.content.map((c: any) =>
                                 'words' in c
                                     ? { verse: c.verse, words: c.words }
-                                    : {
-                                          verse: c.verse,
-                                          references: (c.references ?? []).map(
-                                              (ref: any) => ({
-                                                  book: ref.book,
-                                                  chapter: ref.chapter,
-                                                  verse: ref.verse,
-                                                  endVerse: ref.endVerse,
-                                                  score: ref.score ?? ref.votes,
-                                              })
-                                          ),
-                                      }
+                                    : 'categories' in c
+                                      ? {
+                                            verse: c.verse,
+                                            ...(c.endVerse !== undefined
+                                                ? { endVerse: c.endVerse }
+                                                : {}),
+                                            categories: c.categories,
+                                            ...(c.addedIn != null
+                                                ? { addedIn: c.addedIn }
+                                                : {}),
+                                            ...(c.removedIn != null
+                                                ? { removedIn: c.removedIn }
+                                                : {}),
+                                        }
+                                      : {
+                                            verse: c.verse,
+                                            references: (
+                                                c.references ?? []
+                                            ).map((ref: any) => ({
+                                                book: ref.book,
+                                                chapter: ref.chapter,
+                                                verse: ref.verse,
+                                                endVerse: ref.endVerse,
+                                                score: ref.score ?? ref.votes,
+                                            })),
+                                        }
                             ),
                         },
                     });
@@ -891,7 +909,7 @@ export async function loadDatasetsFromDirectory(
             }
         }
 
-        // Load the entities (people, places, events, people groups, and lexicon entries)
+        // Load the entities (people, places, events, people groups, lexicon entries, and verse categories)
         // for the dataset, if they exist.
         for (let [collection, property] of entityCollections) {
             const collectionDir = path.resolve(datasetDir, collection);
@@ -914,7 +932,8 @@ export async function loadDatasetsFromDirectory(
                     entityJson.place ??
                     entityJson.event ??
                     entityJson.group ??
-                    entityJson.entry;
+                    entityJson.entry ??
+                    entityJson.category;
 
                 if (!entity) {
                     logger.warn(`Unknown entity format: ${entityFile}`);

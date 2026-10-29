@@ -8,6 +8,9 @@ import type {
     ApiDatasetBook,
     ApiDatasetBookChapter,
     ApiDatasetBooks,
+    ApiDatasetCategorizedVerse,
+    ApiDatasetCategories,
+    ApiDatasetCategory,
     ApiDatasetEntityBookChapter,
     ApiDatasetEvent,
     ApiDatasetEvents,
@@ -19,6 +22,7 @@ import type {
     ApiDatasetPerson,
     ApiDatasetPlace,
     ApiDatasetPlaces,
+    ApiDatasetVerses,
     ApiSimpleCommentaryBookChapter,
     ApiSimpleTranslationBookChapter,
     ApiSimpleTranslationBookChapterWords,
@@ -37,6 +41,10 @@ import type {
     TranslationChapterReference,
     TranslationCompleteChapter,
 } from './types.gen.js';
+import {
+    pickVerseOfTheDay,
+    PickVerseOfTheDayOptions,
+} from './verseOfTheDay.js';
 
 /**
  * Options for the FreeUseBibleApi class.
@@ -526,6 +534,96 @@ export class FreeUseBibleApi {
         const encodedStrongs = encodeURIComponent(strongs);
         return this._getJson<ApiDatasetLexiconEntry>(
             `api/d/${encodedDataset}/lexicon/${encodedStrongs}.json`,
+            endpoint,
+            options
+        );
+    }
+
+    /**
+     * Gets every verse in a given dataset, with the categories that each verse belongs to, in canonical order.
+     * Only available for datasets whose verses have categories, such as "verse-of-the-day".
+     * @param dataset The ID of the dataset to get the verses for. For example, "verse-of-the-day".
+     * @param endpoint The endpoint to use for the request. If not provided, then the default endpoint will be used.
+     * @param options Options for the request, such as an `AbortSignal` that cancels it.
+     */
+    async getDatasetVerses(
+        dataset: string,
+        endpoint?: string,
+        options?: RequestOptions
+    ): Promise<ApiDatasetVerses> {
+        const encodedDataset = encodeURIComponent(dataset);
+        return this._getJson<ApiDatasetVerses>(
+            `api/d/${encodedDataset}/verses.json`,
+            endpoint,
+            options
+        );
+    }
+
+    /**
+     * Gets the verse of the day for the given date from the verse-of-the-day dataset.
+     * The same date always gives the same verse, a verse doesn't repeat within a calendar year, and each year has a different order.
+     * See {@link pickVerseOfTheDay} for how the verse is picked.
+     * @param date The date to get the verse for: a `YYYY-MM-DD` string (e.g. "2026-01-01"), or a `Date` (its local calendar date is used). Defaults to today.
+     * @param options The options for picking the verse. Pass a `seed` to use a different (but equally valid) order, or a `category` to only pick from one category. `dataset` defaults to "verse-of-the-day". The dataset's holidays are used unless other `holidays` are given.
+     * @param endpoint The endpoint to use for the request. If not provided, then the default endpoint will be used.
+     * @param requestOptions Options for the request, such as an `AbortSignal` that cancels it.
+     * @returns The verse (its reference and categories), or null if the dataset has no verses to pick from.
+     */
+    async getVerseOfTheDay(
+        date: Date | string = new Date(),
+        options: PickVerseOfTheDayOptions & { dataset?: string } = {},
+        endpoint?: string,
+        requestOptions?: RequestOptions
+    ): Promise<ApiDatasetCategorizedVerse | null> {
+        const { dataset = 'verse-of-the-day', ...pickOptions } = options;
+        const verses = await this.getDatasetVerses(
+            dataset,
+            endpoint,
+            requestOptions
+        );
+        return pickVerseOfTheDay(verses.verses, date, {
+            holidays: verses.holidays,
+            ...pickOptions,
+        });
+    }
+
+    /**
+     * Gets the list of verse categories for a given dataset.
+     * @param dataset The ID of the dataset to get the categories for. For example, "verse-of-the-day".
+     * @param endpoint The endpoint to use for the request. If not provided, then the default endpoint will be used.
+     * @param options Options for the request, such as an `AbortSignal` that cancels it.
+     */
+    async getDatasetCategories(
+        dataset: string,
+        endpoint?: string,
+        options?: RequestOptions
+    ): Promise<ApiDatasetCategories> {
+        const encodedDataset = encodeURIComponent(dataset);
+        return this._getJson<ApiDatasetCategories>(
+            `api/d/${encodedDataset}/categories.json`,
+            endpoint,
+            options
+        );
+    }
+
+    /**
+     * Gets the information about a specific verse category for a given dataset.
+     * Includes the verses that belong to the category.
+     * @param dataset The ID of the dataset to get the category for. For example, "verse-of-the-day".
+     * @param category The ID of the category to get. For example, "hope".
+     * @param endpoint The endpoint to use for the request. If not provided, then the default endpoint will be used.
+     * @param options Options for the request, such as an `AbortSignal` that cancels it.
+     */
+    async getDatasetCategory(
+        dataset: string,
+        category: string,
+        endpoint?: string,
+        options?: RequestOptions
+    ): Promise<ApiDatasetCategory> {
+        const encodedDataset = encodeURIComponent(dataset);
+        const encodedCategory = encodeURIComponent(category);
+        return this._getJson<ApiDatasetCategory>(
+            `api/d/${encodedDataset}/categories/${encodedCategory}.json`,
             endpoint,
             options
         );

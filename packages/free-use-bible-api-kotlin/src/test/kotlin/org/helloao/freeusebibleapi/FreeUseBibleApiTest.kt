@@ -29,7 +29,7 @@ class FreeUseBibleApiTest {
     fun `gets the available commentaries and datasets`() = runTest {
         assertEquals(listOf("comment"), api.getAvailableCommentaries().commentaries.map { it.id })
         assertEquals(
-            listOf("theographic", "bsb-interlinear", "stepbible-lexicon", "default"),
+            listOf("theographic", "bsb-interlinear", "stepbible-lexicon", "verse-of-the-day", "default"),
             api.getAvailableDatasets().datasets.map { it.id },
         )
     }
@@ -247,6 +247,44 @@ class FreeUseBibleApiTest {
 
         val entry = api.getDatasetLexiconEntry("stepbible-lexicon", "H0430").entry
         assertEquals("God", entry.senses.single().gloss)
+    }
+
+    @Test
+    fun `gets the verse categories`() = runTest {
+        val categories = api.getDatasetCategories("verse-of-the-day")
+        assertEquals(listOf("christmas", "hope", "love"), categories.categories.map { it.id })
+        assertEquals(DatasetCategoryHoliday(month = 12, day = 25), categories.categories.first().holiday)
+        assertEquals("/api/d/verse-of-the-day/categories/hope.json", categories.categories[1].apiLink)
+
+        val hope = api.getDatasetCategory("verse-of-the-day", "hope").category
+        assertEquals("Hope", hope.name)
+        assertEquals(DatasetCategoryVerse(book = "GEN", chapter = 50, verse = 20), hope.verses.first())
+        assertEquals(19, hope.verses.last().endVerse)
+    }
+
+    @Test
+    fun `gets every verse in a dataset`() = runTest {
+        val all = api.getDatasetVerses("verse-of-the-day")
+        assertTrue(all.verses.any { "christmas" in it.categories })
+        assertEquals(DatasetCategoryHoliday(month = 12, day = 25).month, all.holidays!!.first { it.id == "christmas" }.month)
+        val verses = all.verses.filter { it.chapter == 3 }
+        assertEquals(
+            listOf("PRO" to 3, "PRO" to 5, "PRO" to 27, "JHN" to 16, "JHN" to 17),
+            verses.map { it.book to it.verse },
+        )
+        assertEquals(6, verses[1].endVerse)
+        assertEquals(listOf("love", "salvation"), verses[3].categories)
+    }
+
+    @Test
+    fun `gets verse of the day chapters`() = runTest {
+        val chapter = api.getDatasetBookChapter("verse-of-the-day", "PRO", 3)
+        assertIs<ApiDatasetBookChapter>(chapter)
+        assertEquals(3, chapter.chapter.content.size)
+        val verse = assertIs<DatasetChapterVerseCategories>(chapter.chapter.content[1])
+        assertEquals(5, verse.verse)
+        assertEquals(6, verse.endVerse)
+        assertEquals(listOf("faith", "guidance", "wisdom"), verse.categories)
     }
 
     @Test

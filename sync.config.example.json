@@ -6,7 +6,8 @@
         { "type": "translations", "path": "./sources/fetch-bible" },
         { "type": "commentaries", "path": "./sources/comment" },
         { "type": "theographic", "path": "./sources/metadata" },
-        { "type": "interlinear", "path": "./sources/interlinear" }
+        { "type": "interlinear", "path": "./sources/interlinear" },
+        { "type": "verse-of-the-day" }
     ],
     "destinations": [
         {

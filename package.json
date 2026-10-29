@@ -36,6 +36,8 @@
         "import:bible:interlinear": "npm run cli import-interlinear -- --db ./free-use-bible-api.db ./sources/interlinear",
         "import:bible:osis": "npm run cli import-translations -- --db ./free-use-bible-api.db ./sources/osis",
         "import:bible:history-globe": "npm run cli import-history-globe -- --db ./free-use-bible-api.db ./sources/history-globe",
+        "import:bible:verse-of-the-day": "npm run cli import-verse-of-the-day -- --db ./free-use-bible-api.db",
+        "review:verse-of-the-day": "npm run cli review-verse-of-the-day --",
         "import:bible:commentaries": "npm run cli import-commentaries -- --db ./free-use-bible-api.db ./sources/comment",
         "zip:sync": "npm run cli upload-api-files ./free-use-bible-api.zip",
         "sync": "npm run cli -- sync",

@@ -103,6 +103,10 @@ The client provides callable methods for all 30 public API operations.
 -   `getDatasetPeopleGroup(dataset, group, endpoint?)`
 -   `getDatasetLexicon(dataset, endpoint?)`
 -   `getDatasetLexiconEntry(dataset, strongs, endpoint?)`
+-   `getDatasetVerses(dataset, endpoint?)`
+-   `getVerseOfTheDay(date?, { seed?, category?, dataset? }?, endpoint?)` - picks the verse of the day for a date (a `YYYY-MM-DD` string or a `Date`) from the `verse-of-the-day` dataset. The same date always gives the same verse, a verse doesn't repeat within a calendar year, and each year has a different order. `pickVerseOfTheDay(verses, date?, options?)` does the same with a list of verses you already have. See [Picking a Verse of the Day](https://bible.helloao.org/docs/reference/datasets/#picking-a-verse-of-the-day).
+-   `getDatasetCategories(dataset, endpoint?)`
+-   `getDatasetCategory(dataset, category, endpoint?)`
 
 ### Chapter Navigation Helpers
 

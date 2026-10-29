@@ -1,0 +1,2546 @@
+import { Dataset, DatasetCategory } from './common-types.js';
+import { DatasetDataset, DatasetDatasetBook } from './dataset.js';
+import { bookOrderMap } from './book-order.js';
+import { BookId } from '../utils.js';
+
+/**
+ * The dataset information for the verse of the day dataset.
+ */
+export const VERSE_OF_THE_DAY_DATASET: Dataset = {
+    id: 'verse-of-the-day',
+    name: 'Verse of the Day',
+    englishName: 'Verse of the Day',
+    website:
+        'https://github.com/HelloAOLab/bible-api/blob/main/packages/helloao-tools/generation/verse-of-the-day.ts',
+    licenseUrl: 'https://github.com/HelloAOLab/bible-api/blob/main/LICENSE',
+    licenseNotes:
+        'A curated list of well-known verses by AO Lab, released under the MIT License.',
+    language: 'eng',
+    textDirection: 'ltr',
+};
+
+/**
+ * The categories that verse of the day candidates can belong to.
+ * Every candidate has between one and three of these.
+ */
+export const VERSE_OF_THE_DAY_CATEGORIES = [
+    'comfort',
+    'courage',
+    'faith',
+    'forgiveness',
+    'gratitude',
+    'guidance',
+    'hope',
+    'inspiration',
+    'joy',
+    'love',
+    'peace',
+    'praise',
+    'prayer',
+    'provision',
+    'salvation',
+    'strength',
+    'wisdom',
+] as const;
+
+/**
+ * A category that a verse of the day candidate can belong to.
+ */
+export type VerseOfTheDayCategory =
+    (typeof VERSE_OF_THE_DAY_CATEGORIES)[number];
+
+/**
+ * The English name of each verse of the day category.
+ */
+export const VERSE_OF_THE_DAY_CATEGORY_NAMES: Record<
+    VerseOfTheDayCategory,
+    string
+> = {
+    comfort: 'Comfort',
+    courage: 'Courage',
+    faith: 'Faith',
+    forgiveness: 'Forgiveness',
+    gratitude: 'Gratitude',
+    guidance: 'Guidance',
+    hope: 'Hope',
+    inspiration: 'Inspiration',
+    joy: 'Joy',
+    love: 'Love',
+    peace: 'Peace',
+    praise: 'Praise',
+    prayer: 'Prayer',
+    provision: 'Provision',
+    salvation: 'Salvation',
+    strength: 'Strength',
+    wisdom: 'Wisdom',
+};
+
+/**
+ * Describes what each verse of the day category is for.
+ */
+export const VERSE_OF_THE_DAY_CATEGORY_DESCRIPTIONS: Record<
+    VerseOfTheDayCategory,
+    string
+> = {
+    comfort: "God's nearness and care in grief, trouble, and loneliness.",
+    courage: 'Standing firm and not being afraid.',
+    faith: 'Trusting God and His promises.',
+    forgiveness: "God's forgiveness of sin and forgiving others.",
+    gratitude: 'Giving thanks to God.',
+    guidance: 'God directing our steps, plans, and decisions.',
+    hope: 'Confidence in the future that God has promised.',
+    inspiration: 'Encouragement to live out the faith and do good.',
+    joy: 'Rejoicing and gladness in God.',
+    love: "God's love for us and our love for God and others.",
+    peace: 'Rest, stillness, and freedom from anxiety.',
+    praise: "Worship and declarations of God's greatness.",
+    prayer: 'Calling on God and His promise to hear.',
+    provision: 'God supplying what we need.',
+    salvation: 'Redemption, grace, and new life in Christ.',
+    strength: 'God giving strength and endurance.',
+    wisdom: 'Godly wisdom and practical instruction for life.',
+};
+
+/**
+ * The Christian holidays that have their own verses of the day, in the order that they fall in a year.
+ * On a holiday, the verse of the day is one of the holiday's verses, and those verses aren't used on other days.
+ * The IDs are also the IDs of the holidays' categories.
+ */
+export const VERSE_OF_THE_DAY_HOLIDAY_IDS = [
+    'epiphany',
+    'ash-wednesday',
+    'palm-sunday',
+    'maundy-thursday',
+    'good-friday',
+    'resurrection-sunday',
+    'post-resurrection-sunday',
+    'ascension-day',
+    'pentecost',
+    'all-hallows-eve',
+    'all-saints-day',
+    'advent-sunday',
+    'christmas-eve',
+    'christmas',
+] as const;
+
+/**
+ * A Christian holiday that has its own verses of the day.
+ */
+export type VerseOfTheDayHolidayId =
+    (typeof VERSE_OF_THE_DAY_HOLIDAY_IDS)[number];
+
+/**
+ * Defines when a holiday is observed: on the same date every year, a number of days after Resurrection Sunday
+ * (for `numberOfDays` days in a row, 1 by default), or on the first Sunday of Advent.
+ */
+export type VerseOfTheDayHolidayRule =
+    | { month: number; day: number }
+    | { daysAfterResurrectionSunday: number; numberOfDays?: number }
+    | { firstSundayOfAdvent: true };
+
+/**
+ * Defines a Christian holiday that has its own verses of the day.
+ */
+export interface VerseOfTheDayHoliday {
+    /**
+     * The English name of the holiday.
+     */
+    name: string;
+
+    /**
+     * The description of the holiday and its verses.
+     */
+    description: string;
+
+    /**
+     * When the holiday is observed.
+     */
+    rule: VerseOfTheDayHolidayRule;
+}
+
+/**
+ * The holidays that have their own verses of the day, keyed by ID.
+ */
+export const VERSE_OF_THE_DAY_HOLIDAYS: Record<
+    VerseOfTheDayHolidayId,
+    VerseOfTheDayHoliday
+> = {
+    epiphany: {
+        name: 'Epiphany',
+        description:
+            'January 6th. The visit of the Magi, and Christ revealed to the nations.',
+        rule: { month: 1, day: 6 },
+    },
+    'ash-wednesday': {
+        name: 'Ash Wednesday',
+        description:
+            'The start of Lent, 46 days before Resurrection Sunday. Repentance and returning to God.',
+        rule: { daysAfterResurrectionSunday: -46 },
+    },
+    'palm-sunday': {
+        name: 'Palm Sunday',
+        description:
+            "The Sunday before Resurrection Sunday. Jesus' entry into Jerusalem.",
+        rule: { daysAfterResurrectionSunday: -7 },
+    },
+    'maundy-thursday': {
+        name: 'Maundy Thursday',
+        description:
+            "The Thursday before Resurrection Sunday. The Last Supper, and Jesus washing His disciples' feet.",
+        rule: { daysAfterResurrectionSunday: -3 },
+    },
+    'good-friday': {
+        name: 'Good Friday',
+        description:
+            'The Friday before Resurrection Sunday. The crucifixion of Jesus.',
+        rule: { daysAfterResurrectionSunday: -2 },
+    },
+    'resurrection-sunday': {
+        name: 'Resurrection Sunday',
+        description:
+            'Easter Sunday. The Gospel accounts of the resurrection of Jesus.',
+        rule: { daysAfterResurrectionSunday: 0 },
+    },
+    'post-resurrection-sunday': {
+        name: 'After Resurrection Sunday',
+        description:
+            'The three days after Resurrection Sunday. The risen Jesus appearing to His disciples, and teaching about the resurrection.',
+        rule: { daysAfterResurrectionSunday: 1, numberOfDays: 3 },
+    },
+    'ascension-day': {
+        name: 'Ascension Day',
+        description:
+            "39 days after Resurrection Sunday. Jesus' ascension into heaven.",
+        rule: { daysAfterResurrectionSunday: 39 },
+    },
+    pentecost: {
+        name: 'Pentecost',
+        description:
+            '49 days after Resurrection Sunday. The coming of the Holy Spirit.',
+        rule: { daysAfterResurrectionSunday: 49 },
+    },
+    'all-hallows-eve': {
+        name: "All Hallows' Eve",
+        description:
+            "October 31st, the eve of All Saints' Day. The light of Christ overcoming darkness.",
+        rule: { month: 10, day: 31 },
+    },
+    'all-saints-day': {
+        name: "All Saints' Day",
+        description:
+            'November 1st. The saints who have gone before us, and the great multitude before the throne.',
+        rule: { month: 11, day: 1 },
+    },
+    'advent-sunday': {
+        name: 'First Sunday of Advent',
+        description:
+            'The fourth Sunday before Christmas. Preparing for the coming of Christ.',
+        rule: { firstSundayOfAdvent: true },
+    },
+    'christmas-eve': {
+        name: 'Christmas Eve',
+        description: "December 24th. The promises of the Savior's birth.",
+        rule: { month: 12, day: 24 },
+    },
+    christmas: {
+        name: 'Christmas',
+        description: 'December 25th. The birth of Jesus.',
+        rule: { month: 12, day: 25 },
+    },
+};
+
+/**
+ * The years that the dates of the holidays whose date changes every year are precomputed for.
+ * Those holidays are only observed in these years. Extending the range only adds holidays to later years.
+ */
+export const VERSE_OF_THE_DAY_HOLIDAY_YEARS = {
+    first: 2026,
+    last: 2125,
+} as const;
+
+/**
+ * The dates of a holiday, in the form that the verse of the day convention uses
+ * (the `holidays` of `/api/d/verse-of-the-day/verses.json`).
+ */
+export interface VerseOfTheDayHolidayDates {
+    /**
+     * The ID of the holiday's category.
+     */
+    id: string;
+
+    /**
+     * The month of a holiday that falls on the same date every year (1 for January).
+     */
+    month?: number;
+
+    /**
+     * The day of the month of a holiday that falls on the same date every year.
+     */
+    day?: number;
+
+    /**
+     * The dates (YYYY-MM-DD) of a holiday whose date changes every year.
+     */
+    dates?: readonly string[];
+}
+
+/**
+ * Gets the date of Resurrection Sunday (Easter Sunday) in the given year of the Gregorian calendar,
+ * with the anonymous Gregorian algorithm (Meeus/Jones/Butcher).
+ * This is only used to precompute the holiday dates of the dataset; the verse of the day convention doesn't calculate dates.
+ * @returns The month (1 for January) and day.
+ */
+export function getResurrectionSunday(year: number): {
+    month: number;
+    day: number;
+} {
+    const a = year % 19;
+    const b = Math.floor(year / 100);
+    const c = year % 100;
+    const d = Math.floor(b / 4);
+    const e = b % 4;
+    const f = Math.floor((b + 8) / 25);
+    const g = Math.floor((b - f + 1) / 3);
+    const h = (19 * a + b - d - g + 15) % 30;
+    const i = Math.floor(c / 4);
+    const k = c % 4;
+    const l = (32 + 2 * e + 2 * i - h - k) % 7;
+    const m = Math.floor((a + 11 * h + 22 * l) / 451);
+    const month = Math.floor((h + l - 7 * m + 114) / 31);
+    const day = ((h + l - 7 * m + 114) % 31) + 1;
+    return { month, day };
+}
+
+/**
+ * Gets the dates of the holidays, with the dates of the holidays whose date changes every year
+ * precomputed for {@link VERSE_OF_THE_DAY_HOLIDAY_YEARS}.
+ */
+export function getVerseOfTheDayHolidayDates(
+    years: { first: number; last: number } = VERSE_OF_THE_DAY_HOLIDAY_YEARS
+): VerseOfTheDayHolidayDates[] {
+    const format = (date: Date) => date.toISOString().slice(0, 10);
+    return VERSE_OF_THE_DAY_HOLIDAY_IDS.map((id) => {
+        const rule = VERSE_OF_THE_DAY_HOLIDAYS[id].rule;
+        if ('month' in rule) {
+            return { id, month: rule.month, day: rule.day };
+        }
+        const dates: string[] = [];
+        for (let year = years.first; year <= years.last; year++) {
+            if ('daysAfterResurrectionSunday' in rule) {
+                const sunday = getResurrectionSunday(year);
+                for (let i = 0; i < (rule.numberOfDays ?? 1); i++) {
+                    const offset = rule.daysAfterResurrectionSunday + i;
+                    dates.push(
+                        format(
+                            new Date(
+                                Date.UTC(
+                                    year,
+                                    sunday.month - 1,
+                                    sunday.day + offset
+                                )
+                            )
+                        )
+                    );
+                }
+            } else {
+                // The first Sunday of Advent is the Sunday from November 27th to December 3rd.
+                const date = new Date(Date.UTC(year, 10, 27));
+                date.setUTCDate(27 + ((7 - date.getUTCDay()) % 7));
+                dates.push(format(date));
+            }
+        }
+        return { id, dates };
+    });
+}
+
+/**
+ * Defines a verse (or short passage) that is a good candidate for a "verse of the day".
+ */
+export interface VerseOfTheDay {
+    /**
+     * The USFM ID of the book. e.g. "JHN"
+     */
+    book: string;
+
+    /**
+     * The chapter number.
+     */
+    chapter: number;
+
+    /**
+     * The verse number.
+     * If `endVerse` is present, then this is the verse that the passage starts at.
+     */
+    verse: number;
+
+    /**
+     * The verse that the passage ends at.
+     * Omitted if the candidate is a single verse.
+     */
+    endVerse?: number;
+
+    /**
+     * The categories that the verse belongs to, most relevant first.
+     * Verses for a holiday only have the holiday's category, and are only used on the holiday.
+     */
+    categories: (VerseOfTheDayCategory | VerseOfTheDayHolidayId)[];
+
+    /**
+     * The first year that the verse can be the verse of the day.
+     * Omitted if the verse has always been in the list.
+     */
+    addedIn?: number;
+
+    /**
+     * The first year that the verse can no longer be the verse of the day.
+     * Omitted if the verse hasn't been removed from the list.
+     */
+    removedIn?: number;
+}
+
+/**
+ * A curated list of well-known verses that are good candidates for a "verse of the day".
+ *
+ * Candidates are short (at most three verses), make sense when read on their own,
+ * and use the standard English verse numbering (the same numbering as the BSB).
+ * The list is sorted in canonical order.
+ *
+ * Every year's verse of the day schedule is derived from the verses that are in use that year, so changing
+ * which verses are in use in a year changes the whole schedule for that year. To keep the schedules that
+ * people have already seen:
+ * - Add a new verse with `addedIn` set to a year that hasn't started yet (usually next year).
+ * - Remove a verse by setting `removedIn` to a year that hasn't started yet, instead of deleting it.
+ * - Don't change the reference of a verse that is in use. Remove it and add the new reference instead.
+ */
+export const VERSES_OF_THE_DAY: VerseOfTheDay[] = [
+    // Old Testament
+    { book: 'GEN', chapter: 1, verse: 1, categories: ['praise'] },
+    { book: 'GEN', chapter: 3, verse: 19, categories: ['ash-wednesday'] },
+    { book: 'GEN', chapter: 15, verse: 6, categories: ['faith', 'salvation'] },
+    { book: 'GEN', chapter: 18, verse: 14, categories: ['faith'] },
+    { book: 'GEN', chapter: 22, verse: 14, categories: ['provision'] },
+    {
+        book: 'GEN',
+        chapter: 28,
+        verse: 15,
+        categories: ['comfort', 'guidance'],
+    },
+    { book: 'GEN', chapter: 50, verse: 20, categories: ['hope', 'faith'] },
+    { book: 'EXO', chapter: 3, verse: 14, categories: ['praise'] },
+    { book: 'EXO', chapter: 14, verse: 14, categories: ['peace', 'faith'] },
+    {
+        book: 'EXO',
+        chapter: 15,
+        verse: 2,
+        categories: ['strength', 'praise', 'salvation'],
+    },
+    { book: 'EXO', chapter: 15, verse: 11, categories: ['praise'] },
+    { book: 'EXO', chapter: 20, verse: 12, categories: ['wisdom'] },
+    { book: 'EXO', chapter: 33, verse: 14, categories: ['peace', 'comfort'] },
+    { book: 'EXO', chapter: 34, verse: 6, categories: ['love', 'forgiveness'] },
+    { book: 'LEV', chapter: 19, verse: 18, categories: ['love'] },
+    { book: 'NUM', chapter: 6, verse: 24, endVerse: 26, categories: ['peace'] },
+    { book: 'NUM', chapter: 23, verse: 19, categories: ['faith'] },
+    { book: 'DEU', chapter: 4, verse: 29, categories: ['prayer'] },
+    { book: 'DEU', chapter: 6, verse: 5, categories: ['love'] },
+    { book: 'DEU', chapter: 7, verse: 9, categories: ['love', 'faith'] },
+    { book: 'DEU', chapter: 8, verse: 3, categories: ['provision', 'wisdom'] },
+    { book: 'DEU', chapter: 20, verse: 4, categories: ['courage'] },
+    {
+        book: 'DEU',
+        chapter: 30,
+        verse: 19,
+        categories: ['wisdom', 'inspiration'],
+    },
+    { book: 'DEU', chapter: 31, verse: 6, categories: ['courage', 'strength'] },
+    { book: 'DEU', chapter: 31, verse: 8, categories: ['courage', 'comfort'] },
+    { book: 'JOS', chapter: 1, verse: 8, categories: ['wisdom', 'guidance'] },
+    { book: 'JOS', chapter: 1, verse: 9, categories: ['courage', 'strength'] },
+    { book: 'JOS', chapter: 21, verse: 45, categories: ['faith'] },
+    {
+        book: 'JOS',
+        chapter: 24,
+        verse: 15,
+        categories: ['faith', 'inspiration'],
+    },
+    { book: 'JDG', chapter: 6, verse: 12, categories: ['courage', 'strength'] },
+    { book: 'RUT', chapter: 1, verse: 16, categories: ['love'] },
+    {
+        book: 'RUT',
+        chapter: 2,
+        verse: 12,
+        categories: ['comfort', 'provision'],
+    },
+    { book: '1SA', chapter: 2, verse: 2, categories: ['praise'] },
+    {
+        book: '1SA',
+        chapter: 12,
+        verse: 24,
+        categories: ['gratitude', 'inspiration'],
+    },
+    { book: '1SA', chapter: 16, verse: 7, categories: ['wisdom'] },
+    { book: '2SA', chapter: 22, verse: 31, categories: ['faith'] },
+    { book: '2SA', chapter: 22, verse: 33, categories: ['strength'] },
+    { book: '1KI', chapter: 8, verse: 56, categories: ['faith', 'praise'] },
+    { book: '2KI', chapter: 6, verse: 16, categories: ['courage', 'faith'] },
+    { book: '1CH', chapter: 16, verse: 11, categories: ['prayer', 'strength'] },
+    {
+        book: '1CH',
+        chapter: 16,
+        verse: 34,
+        categories: ['gratitude', 'praise', 'love'],
+    },
+    {
+        book: '1CH',
+        chapter: 28,
+        verse: 20,
+        categories: ['courage', 'strength'],
+    },
+    { book: '1CH', chapter: 29, verse: 11, categories: ['praise'] },
+    {
+        book: '2CH',
+        chapter: 7,
+        verse: 14,
+        categories: ['prayer', 'forgiveness'],
+    },
+    {
+        book: '2CH',
+        chapter: 15,
+        verse: 7,
+        categories: ['courage', 'inspiration'],
+    },
+    { book: '2CH', chapter: 20, verse: 15, categories: ['courage', 'peace'] },
+    {
+        book: 'EZR',
+        chapter: 7,
+        verse: 10,
+        categories: ['inspiration', 'wisdom'],
+    },
+    { book: 'NEH', chapter: 8, verse: 10, categories: ['joy', 'strength'] },
+    {
+        book: 'EST',
+        chapter: 4,
+        verse: 14,
+        categories: ['inspiration', 'courage'],
+    },
+    { book: 'JOB', chapter: 1, verse: 21, categories: ['praise', 'faith'] },
+    { book: 'JOB', chapter: 19, verse: 25, categories: ['hope', 'salvation'] },
+    { book: 'JOB', chapter: 23, verse: 10, categories: ['hope', 'strength'] },
+    { book: 'JOB', chapter: 42, verse: 2, categories: ['faith'] },
+    { book: 'PSA', chapter: 1, verse: 1, endVerse: 2, categories: ['wisdom'] },
+    { book: 'PSA', chapter: 3, verse: 3, categories: ['comfort', 'strength'] },
+    { book: 'PSA', chapter: 3, verse: 6, categories: ['courage'] },
+    { book: 'PSA', chapter: 4, verse: 7, categories: ['joy'] },
+    { book: 'PSA', chapter: 4, verse: 8, categories: ['peace'] },
+    { book: 'PSA', chapter: 5, verse: 3, categories: ['prayer'] },
+    { book: 'PSA', chapter: 5, verse: 11, categories: ['joy', 'comfort'] },
+    { book: 'PSA', chapter: 8, verse: 1, categories: ['praise'] },
+    { book: 'PSA', chapter: 8, verse: 3, endVerse: 4, categories: ['praise'] },
+    { book: 'PSA', chapter: 9, verse: 1, categories: ['gratitude', 'praise'] },
+    { book: 'PSA', chapter: 9, verse: 9, categories: ['comfort', 'strength'] },
+    { book: 'PSA', chapter: 9, verse: 10, categories: ['faith', 'comfort'] },
+    { book: 'PSA', chapter: 16, verse: 8, categories: ['strength', 'faith'] },
+    { book: 'PSA', chapter: 16, verse: 11, categories: ['joy', 'guidance'] },
+    { book: 'PSA', chapter: 18, verse: 2, categories: ['strength', 'faith'] },
+    { book: 'PSA', chapter: 18, verse: 28, categories: ['hope'] },
+    { book: 'PSA', chapter: 19, verse: 1, categories: ['praise'] },
+    { book: 'PSA', chapter: 19, verse: 14, categories: ['prayer'] },
+    { book: 'PSA', chapter: 20, verse: 7, categories: ['faith'] },
+    {
+        book: 'PSA',
+        chapter: 23,
+        verse: 1,
+        categories: ['provision', 'comfort'],
+    },
+    { book: 'PSA', chapter: 23, verse: 3, categories: ['guidance', 'peace'] },
+    { book: 'PSA', chapter: 23, verse: 4, categories: ['comfort', 'courage'] },
+    { book: 'PSA', chapter: 23, verse: 6, categories: ['hope', 'love'] },
+    { book: 'PSA', chapter: 24, verse: 7, categories: ['palm-sunday'] },
+    {
+        book: 'PSA',
+        chapter: 25,
+        verse: 4,
+        endVerse: 5,
+        categories: ['guidance', 'prayer'],
+    },
+    { book: 'PSA', chapter: 25, verse: 9, categories: ['guidance'] },
+    { book: 'PSA', chapter: 27, verse: 1, categories: ['courage', 'faith'] },
+    { book: 'PSA', chapter: 27, verse: 4, categories: ['prayer'] },
+    { book: 'PSA', chapter: 27, verse: 14, categories: ['hope', 'courage'] },
+    {
+        book: 'PSA',
+        chapter: 28,
+        verse: 7,
+        categories: ['strength', 'faith', 'praise'],
+    },
+    { book: 'PSA', chapter: 29, verse: 11, categories: ['strength', 'peace'] },
+    {
+        book: 'PSA',
+        chapter: 30,
+        verse: 5,
+        categories: ['joy', 'hope', 'comfort'],
+    },
+    {
+        book: 'PSA',
+        chapter: 30,
+        verse: 12,
+        categories: ['gratitude', 'praise'],
+    },
+    { book: 'PSA', chapter: 31, verse: 3, categories: ['guidance', 'prayer'] },
+    {
+        book: 'PSA',
+        chapter: 31,
+        verse: 19,
+        categories: ['praise', 'gratitude'],
+    },
+    { book: 'PSA', chapter: 31, verse: 24, categories: ['courage', 'hope'] },
+    { book: 'PSA', chapter: 32, verse: 1, categories: ['forgiveness', 'joy'] },
+    {
+        book: 'PSA',
+        chapter: 32,
+        verse: 5,
+        categories: ['forgiveness', 'prayer'],
+    },
+    { book: 'PSA', chapter: 32, verse: 8, categories: ['guidance'] },
+    {
+        book: 'PSA',
+        chapter: 33,
+        verse: 22,
+        categories: ['hope', 'love', 'prayer'],
+    },
+    { book: 'PSA', chapter: 34, verse: 1, categories: ['praise', 'gratitude'] },
+    { book: 'PSA', chapter: 34, verse: 4, categories: ['courage', 'prayer'] },
+    { book: 'PSA', chapter: 34, verse: 8, categories: ['praise', 'faith'] },
+    { book: 'PSA', chapter: 34, verse: 10, categories: ['provision'] },
+    { book: 'PSA', chapter: 34, verse: 17, categories: ['prayer', 'comfort'] },
+    { book: 'PSA', chapter: 34, verse: 18, categories: ['comfort'] },
+    { book: 'PSA', chapter: 36, verse: 5, categories: ['love'] },
+    {
+        book: 'PSA',
+        chapter: 37,
+        verse: 3,
+        categories: ['faith', 'inspiration'],
+    },
+    { book: 'PSA', chapter: 37, verse: 4, categories: ['joy', 'faith'] },
+    { book: 'PSA', chapter: 37, verse: 5, categories: ['faith', 'guidance'] },
+    { book: 'PSA', chapter: 37, verse: 7, categories: ['peace'] },
+    { book: 'PSA', chapter: 37, verse: 23, categories: ['guidance'] },
+    { book: 'PSA', chapter: 37, verse: 25, categories: ['provision'] },
+    { book: 'PSA', chapter: 40, verse: 1, categories: ['prayer', 'hope'] },
+    { book: 'PSA', chapter: 42, verse: 1, categories: ['prayer'] },
+    { book: 'PSA', chapter: 42, verse: 11, categories: ['hope', 'praise'] },
+    { book: 'PSA', chapter: 46, verse: 1, categories: ['strength', 'comfort'] },
+    { book: 'PSA', chapter: 46, verse: 10, categories: ['peace', 'faith'] },
+    { book: 'PSA', chapter: 47, verse: 1, categories: ['praise', 'joy'] },
+    { book: 'PSA', chapter: 48, verse: 14, categories: ['guidance', 'faith'] },
+    { book: 'PSA', chapter: 50, verse: 15, categories: ['prayer'] },
+    {
+        book: 'PSA',
+        chapter: 51,
+        verse: 1,
+        endVerse: 2,
+        categories: ['ash-wednesday'],
+    },
+    {
+        book: 'PSA',
+        chapter: 51,
+        verse: 10,
+        categories: ['prayer', 'forgiveness'],
+    },
+    {
+        book: 'PSA',
+        chapter: 51,
+        verse: 12,
+        categories: ['joy', 'salvation', 'prayer'],
+    },
+    { book: 'PSA', chapter: 52, verse: 8, categories: ['faith', 'love'] },
+    { book: 'PSA', chapter: 55, verse: 17, categories: ['prayer'] },
+    { book: 'PSA', chapter: 55, verse: 22, categories: ['comfort', 'peace'] },
+    { book: 'PSA', chapter: 56, verse: 3, categories: ['courage', 'faith'] },
+    { book: 'PSA', chapter: 57, verse: 1, categories: ['comfort', 'prayer'] },
+    { book: 'PSA', chapter: 59, verse: 16, categories: ['praise', 'strength'] },
+    { book: 'PSA', chapter: 61, verse: 2, categories: ['prayer', 'comfort'] },
+    { book: 'PSA', chapter: 62, verse: 1, categories: ['peace', 'salvation'] },
+    { book: 'PSA', chapter: 62, verse: 8, categories: ['faith', 'prayer'] },
+    { book: 'PSA', chapter: 63, verse: 1, categories: ['prayer'] },
+    { book: 'PSA', chapter: 63, verse: 3, categories: ['love', 'praise'] },
+    {
+        book: 'PSA',
+        chapter: 65,
+        verse: 11,
+        categories: ['provision', 'gratitude'],
+    },
+    {
+        book: 'PSA',
+        chapter: 68,
+        verse: 19,
+        categories: ['provision', 'praise'],
+    },
+    {
+        book: 'PSA',
+        chapter: 69,
+        verse: 30,
+        categories: ['praise', 'gratitude'],
+    },
+    { book: 'PSA', chapter: 71, verse: 5, categories: ['hope'] },
+    { book: 'PSA', chapter: 72, verse: 11, categories: ['epiphany'] },
+    { book: 'PSA', chapter: 73, verse: 24, categories: ['guidance', 'hope'] },
+    { book: 'PSA', chapter: 73, verse: 26, categories: ['strength', 'hope'] },
+    { book: 'PSA', chapter: 73, verse: 28, categories: ['prayer', 'joy'] },
+    { book: 'PSA', chapter: 75, verse: 1, categories: ['gratitude', 'praise'] },
+    { book: 'PSA', chapter: 77, verse: 14, categories: ['praise'] },
+    { book: 'PSA', chapter: 81, verse: 10, categories: ['provision'] },
+    { book: 'PSA', chapter: 84, verse: 10, categories: ['praise', 'joy'] },
+    { book: 'PSA', chapter: 84, verse: 11, categories: ['provision'] },
+    { book: 'PSA', chapter: 85, verse: 8, categories: ['peace'] },
+    {
+        book: 'PSA',
+        chapter: 86,
+        verse: 5,
+        categories: ['forgiveness', 'love', 'prayer'],
+    },
+    { book: 'PSA', chapter: 86, verse: 11, categories: ['guidance', 'prayer'] },
+    { book: 'PSA', chapter: 89, verse: 1, categories: ['praise', 'love'] },
+    { book: 'PSA', chapter: 90, verse: 2, categories: ['praise'] },
+    { book: 'PSA', chapter: 90, verse: 12, categories: ['wisdom', 'prayer'] },
+    {
+        book: 'PSA',
+        chapter: 90,
+        verse: 17,
+        categories: ['prayer', 'inspiration'],
+    },
+    {
+        book: 'PSA',
+        chapter: 91,
+        verse: 1,
+        endVerse: 2,
+        categories: ['comfort', 'faith'],
+    },
+    { book: 'PSA', chapter: 91, verse: 4, categories: ['comfort'] },
+    { book: 'PSA', chapter: 91, verse: 5, categories: ['all-hallows-eve'] },
+    {
+        book: 'PSA',
+        chapter: 92,
+        verse: 1,
+        endVerse: 2,
+        categories: ['praise', 'gratitude'],
+    },
+    { book: 'PSA', chapter: 94, verse: 18, categories: ['comfort', 'love'] },
+    { book: 'PSA', chapter: 94, verse: 19, categories: ['comfort', 'peace'] },
+    { book: 'PSA', chapter: 95, verse: 2, categories: ['gratitude', 'praise'] },
+    { book: 'PSA', chapter: 95, verse: 6, categories: ['praise'] },
+    { book: 'PSA', chapter: 96, verse: 1, categories: ['praise'] },
+    { book: 'PSA', chapter: 98, verse: 4, categories: ['praise', 'joy'] },
+    {
+        book: 'PSA',
+        chapter: 100,
+        verse: 4,
+        categories: ['gratitude', 'praise'],
+    },
+    { book: 'PSA', chapter: 100, verse: 5, categories: ['love', 'gratitude'] },
+    {
+        book: 'PSA',
+        chapter: 103,
+        verse: 1,
+        endVerse: 2,
+        categories: ['praise', 'gratitude'],
+    },
+    {
+        book: 'PSA',
+        chapter: 103,
+        verse: 8,
+        categories: ['love', 'forgiveness'],
+    },
+    { book: 'PSA', chapter: 103, verse: 12, categories: ['forgiveness'] },
+    { book: 'PSA', chapter: 103, verse: 13, categories: ['love', 'comfort'] },
+    { book: 'PSA', chapter: 103, verse: 14, categories: ['ash-wednesday'] },
+    { book: 'PSA', chapter: 104, verse: 33, categories: ['praise'] },
+    { book: 'PSA', chapter: 107, verse: 1, categories: ['gratitude', 'love'] },
+    { book: 'PSA', chapter: 107, verse: 9, categories: ['provision'] },
+    { book: 'PSA', chapter: 111, verse: 5, categories: ['provision'] },
+    { book: 'PSA', chapter: 112, verse: 7, categories: ['courage', 'faith'] },
+    { book: 'PSA', chapter: 113, verse: 3, categories: ['praise'] },
+    { book: 'PSA', chapter: 115, verse: 1, categories: ['praise'] },
+    { book: 'PSA', chapter: 116, verse: 1, categories: ['prayer', 'love'] },
+    { book: 'PSA', chapter: 116, verse: 7, categories: ['peace'] },
+    { book: 'PSA', chapter: 116, verse: 15, categories: ['all-saints-day'] },
+    { book: 'PSA', chapter: 118, verse: 6, categories: ['courage'] },
+    { book: 'PSA', chapter: 118, verse: 24, categories: ['joy', 'gratitude'] },
+    { book: 'PSA', chapter: 118, verse: 26, categories: ['palm-sunday'] },
+    { book: 'PSA', chapter: 119, verse: 11, categories: ['wisdom'] },
+    { book: 'PSA', chapter: 119, verse: 50, categories: ['comfort', 'hope'] },
+    {
+        book: 'PSA',
+        chapter: 119,
+        verse: 76,
+        categories: ['comfort', 'love', 'prayer'],
+    },
+    { book: 'PSA', chapter: 119, verse: 89, categories: ['faith'] },
+    {
+        book: 'PSA',
+        chapter: 119,
+        verse: 105,
+        categories: ['guidance', 'wisdom'],
+    },
+    { book: 'PSA', chapter: 119, verse: 114, categories: ['hope', 'comfort'] },
+    {
+        book: 'PSA',
+        chapter: 119,
+        verse: 130,
+        categories: ['wisdom', 'guidance'],
+    },
+    { book: 'PSA', chapter: 119, verse: 165, categories: ['peace'] },
+    {
+        book: 'PSA',
+        chapter: 121,
+        verse: 1,
+        endVerse: 2,
+        categories: ['strength', 'faith'],
+    },
+    { book: 'PSA', chapter: 121, verse: 3, categories: ['comfort'] },
+    {
+        book: 'PSA',
+        chapter: 121,
+        verse: 7,
+        endVerse: 8,
+        categories: ['comfort'],
+    },
+    { book: 'PSA', chapter: 126, verse: 3, categories: ['joy', 'gratitude'] },
+    { book: 'PSA', chapter: 126, verse: 5, categories: ['joy', 'hope'] },
+    { book: 'PSA', chapter: 127, verse: 1, categories: ['wisdom', 'faith'] },
+    {
+        book: 'PSA',
+        chapter: 130,
+        verse: 3,
+        endVerse: 4,
+        categories: ['forgiveness'],
+    },
+    { book: 'PSA', chapter: 130, verse: 5, categories: ['hope'] },
+    { book: 'PSA', chapter: 133, verse: 1, categories: ['love', 'peace'] },
+    { book: 'PSA', chapter: 136, verse: 1, categories: ['gratitude', 'love'] },
+    { book: 'PSA', chapter: 138, verse: 3, categories: ['prayer', 'strength'] },
+    {
+        book: 'PSA',
+        chapter: 139,
+        verse: 14,
+        categories: ['praise', 'inspiration'],
+    },
+    {
+        book: 'PSA',
+        chapter: 139,
+        verse: 23,
+        endVerse: 24,
+        categories: ['prayer', 'guidance'],
+    },
+    { book: 'PSA', chapter: 141, verse: 3, categories: ['prayer', 'wisdom'] },
+    {
+        book: 'PSA',
+        chapter: 143,
+        verse: 8,
+        categories: ['prayer', 'guidance', 'love'],
+    },
+    {
+        book: 'PSA',
+        chapter: 143,
+        verse: 10,
+        categories: ['guidance', 'prayer'],
+    },
+    { book: 'PSA', chapter: 145, verse: 9, categories: ['love'] },
+    {
+        book: 'PSA',
+        chapter: 145,
+        verse: 14,
+        categories: ['comfort', 'strength'],
+    },
+    {
+        book: 'PSA',
+        chapter: 145,
+        verse: 15,
+        endVerse: 16,
+        categories: ['provision', 'praise'],
+    },
+    { book: 'PSA', chapter: 145, verse: 18, categories: ['prayer', 'comfort'] },
+    { book: 'PSA', chapter: 147, verse: 3, categories: ['comfort'] },
+    { book: 'PSA', chapter: 147, verse: 5, categories: ['praise'] },
+    { book: 'PSA', chapter: 149, verse: 4, categories: ['love', 'joy'] },
+    { book: 'PSA', chapter: 150, verse: 6, categories: ['praise'] },
+    { book: 'PRO', chapter: 2, verse: 6, categories: ['wisdom'] },
+    { book: 'PRO', chapter: 3, verse: 3, categories: ['love'] },
+    {
+        book: 'PRO',
+        chapter: 3,
+        verse: 5,
+        endVerse: 6,
+        categories: ['faith', 'guidance', 'wisdom'],
+    },
+    { book: 'PRO', chapter: 3, verse: 27, categories: ['love', 'inspiration'] },
+    { book: 'PRO', chapter: 4, verse: 23, categories: ['wisdom'] },
+    { book: 'PRO', chapter: 9, verse: 10, categories: ['wisdom'] },
+    { book: 'PRO', chapter: 10, verse: 9, categories: ['wisdom'] },
+    {
+        book: 'PRO',
+        chapter: 10,
+        verse: 12,
+        categories: ['love', 'forgiveness'],
+    },
+    { book: 'PRO', chapter: 11, verse: 2, categories: ['wisdom'] },
+    {
+        book: 'PRO',
+        chapter: 11,
+        verse: 25,
+        categories: ['provision', 'inspiration'],
+    },
+    {
+        book: 'PRO',
+        chapter: 12,
+        verse: 25,
+        categories: ['peace', 'inspiration'],
+    },
+    { book: 'PRO', chapter: 13, verse: 20, categories: ['wisdom'] },
+    { book: 'PRO', chapter: 14, verse: 30, categories: ['peace'] },
+    { book: 'PRO', chapter: 15, verse: 1, categories: ['wisdom'] },
+    { book: 'PRO', chapter: 15, verse: 13, categories: ['joy'] },
+    { book: 'PRO', chapter: 15, verse: 22, categories: ['wisdom', 'guidance'] },
+    { book: 'PRO', chapter: 16, verse: 3, categories: ['guidance', 'faith'] },
+    { book: 'PRO', chapter: 16, verse: 9, categories: ['guidance'] },
+    { book: 'PRO', chapter: 16, verse: 24, categories: ['wisdom'] },
+    { book: 'PRO', chapter: 17, verse: 17, categories: ['love'] },
+    { book: 'PRO', chapter: 17, verse: 22, categories: ['joy'] },
+    {
+        book: 'PRO',
+        chapter: 18,
+        verse: 10,
+        categories: ['strength', 'comfort'],
+    },
+    { book: 'PRO', chapter: 18, verse: 24, categories: ['love'] },
+    { book: 'PRO', chapter: 19, verse: 17, categories: ['love', 'provision'] },
+    { book: 'PRO', chapter: 19, verse: 21, categories: ['guidance', 'wisdom'] },
+    { book: 'PRO', chapter: 20, verse: 24, categories: ['guidance'] },
+    { book: 'PRO', chapter: 22, verse: 1, categories: ['wisdom'] },
+    { book: 'PRO', chapter: 22, verse: 6, categories: ['wisdom'] },
+    { book: 'PRO', chapter: 23, verse: 18, categories: ['hope'] },
+    { book: 'PRO', chapter: 24, verse: 16, categories: ['strength', 'hope'] },
+    { book: 'PRO', chapter: 25, verse: 11, categories: ['wisdom'] },
+    { book: 'PRO', chapter: 27, verse: 17, categories: ['wisdom'] },
+    { book: 'PRO', chapter: 28, verse: 1, categories: ['courage'] },
+    { book: 'PRO', chapter: 28, verse: 13, categories: ['forgiveness'] },
+    { book: 'PRO', chapter: 29, verse: 25, categories: ['courage', 'faith'] },
+    { book: 'PRO', chapter: 30, verse: 5, categories: ['faith'] },
+    {
+        book: 'PRO',
+        chapter: 31,
+        verse: 25,
+        categories: ['strength', 'inspiration'],
+    },
+    { book: 'PRO', chapter: 31, verse: 30, categories: ['wisdom'] },
+    { book: 'ECC', chapter: 3, verse: 1, categories: ['wisdom'] },
+    { book: 'ECC', chapter: 3, verse: 11, categories: ['hope', 'faith'] },
+    { book: 'ECC', chapter: 4, verse: 9, categories: ['wisdom', 'love'] },
+    { book: 'ECC', chapter: 12, verse: 13, categories: ['wisdom'] },
+    { book: 'SNG', chapter: 8, verse: 7, categories: ['love'] },
+    { book: 'ISA', chapter: 1, verse: 18, categories: ['forgiveness'] },
+    { book: 'ISA', chapter: 6, verse: 8, categories: ['inspiration'] },
+    { book: 'ISA', chapter: 7, verse: 14, categories: ['christmas-eve'] },
+    { book: 'ISA', chapter: 9, verse: 2, categories: ['christmas-eve'] },
+    { book: 'ISA', chapter: 9, verse: 6, categories: ['christmas'] },
+    {
+        book: 'ISA',
+        chapter: 12,
+        verse: 2,
+        categories: ['salvation', 'courage', 'faith'],
+    },
+    { book: 'ISA', chapter: 12, verse: 3, categories: ['joy', 'salvation'] },
+    { book: 'ISA', chapter: 25, verse: 8, categories: ['hope', 'comfort'] },
+    { book: 'ISA', chapter: 26, verse: 3, categories: ['peace', 'faith'] },
+    { book: 'ISA', chapter: 26, verse: 4, categories: ['faith', 'strength'] },
+    { book: 'ISA', chapter: 30, verse: 18, categories: ['love', 'hope'] },
+    { book: 'ISA', chapter: 30, verse: 21, categories: ['guidance'] },
+    { book: 'ISA', chapter: 32, verse: 17, categories: ['peace'] },
+    { book: 'ISA', chapter: 35, verse: 4, categories: ['courage'] },
+    { book: 'ISA', chapter: 40, verse: 3, categories: ['advent-sunday'] },
+    { book: 'ISA', chapter: 40, verse: 5, categories: ['advent-sunday'] },
+    { book: 'ISA', chapter: 40, verse: 8, categories: ['faith'] },
+    { book: 'ISA', chapter: 40, verse: 11, categories: ['comfort', 'love'] },
+    { book: 'ISA', chapter: 40, verse: 28, categories: ['strength', 'praise'] },
+    { book: 'ISA', chapter: 40, verse: 29, categories: ['strength'] },
+    { book: 'ISA', chapter: 40, verse: 31, categories: ['strength', 'hope'] },
+    {
+        book: 'ISA',
+        chapter: 41,
+        verse: 10,
+        categories: ['courage', 'strength', 'comfort'],
+    },
+    { book: 'ISA', chapter: 41, verse: 13, categories: ['courage', 'comfort'] },
+    { book: 'ISA', chapter: 42, verse: 16, categories: ['guidance'] },
+    {
+        book: 'ISA',
+        chapter: 43,
+        verse: 1,
+        categories: ['courage', 'salvation'],
+    },
+    { book: 'ISA', chapter: 43, verse: 2, categories: ['comfort', 'courage'] },
+    {
+        book: 'ISA',
+        chapter: 43,
+        verse: 18,
+        endVerse: 19,
+        categories: ['hope', 'inspiration'],
+    },
+    { book: 'ISA', chapter: 43, verse: 25, categories: ['forgiveness'] },
+    {
+        book: 'ISA',
+        chapter: 44,
+        verse: 22,
+        categories: ['forgiveness', 'salvation'],
+    },
+    { book: 'ISA', chapter: 46, verse: 4, categories: ['comfort', 'strength'] },
+    { book: 'ISA', chapter: 48, verse: 17, categories: ['guidance'] },
+    {
+        book: 'ISA',
+        chapter: 49,
+        verse: 15,
+        endVerse: 16,
+        categories: ['love', 'comfort'],
+    },
+    { book: 'ISA', chapter: 51, verse: 11, categories: ['joy', 'hope'] },
+    { book: 'ISA', chapter: 51, verse: 12, categories: ['courage', 'comfort'] },
+    {
+        book: 'ISA',
+        chapter: 52,
+        verse: 7,
+        categories: ['inspiration', 'salvation'],
+    },
+    {
+        book: 'ISA',
+        chapter: 53,
+        verse: 5,
+        categories: ['salvation', 'forgiveness'],
+    },
+    { book: 'ISA', chapter: 54, verse: 10, categories: ['love', 'comfort'] },
+    { book: 'ISA', chapter: 54, verse: 17, categories: ['courage'] },
+    { book: 'ISA', chapter: 55, verse: 6, categories: ['prayer', 'salvation'] },
+    {
+        book: 'ISA',
+        chapter: 55,
+        verse: 7,
+        categories: ['forgiveness', 'salvation'],
+    },
+    {
+        book: 'ISA',
+        chapter: 55,
+        verse: 8,
+        endVerse: 9,
+        categories: ['wisdom', 'faith'],
+    },
+    { book: 'ISA', chapter: 55, verse: 11, categories: ['faith'] },
+    { book: 'ISA', chapter: 55, verse: 12, categories: ['joy', 'peace'] },
+    {
+        book: 'ISA',
+        chapter: 58,
+        verse: 11,
+        categories: ['guidance', 'provision'],
+    },
+    { book: 'ISA', chapter: 60, verse: 1, categories: ['inspiration'] },
+    { book: 'ISA', chapter: 60, verse: 2, categories: ['all-hallows-eve'] },
+    { book: 'ISA', chapter: 60, verse: 3, categories: ['epiphany'] },
+    {
+        book: 'ISA',
+        chapter: 61,
+        verse: 10,
+        categories: ['joy', 'salvation', 'praise'],
+    },
+    { book: 'ISA', chapter: 64, verse: 8, categories: ['faith'] },
+    { book: 'ISA', chapter: 65, verse: 24, categories: ['prayer'] },
+    { book: 'JER', chapter: 10, verse: 23, categories: ['guidance'] },
+    { book: 'JER', chapter: 15, verse: 16, categories: ['joy', 'wisdom'] },
+    { book: 'JER', chapter: 17, verse: 7, categories: ['faith'] },
+    {
+        book: 'JER',
+        chapter: 17,
+        verse: 14,
+        categories: ['prayer', 'salvation'],
+    },
+    { book: 'JER', chapter: 29, verse: 11, categories: ['hope', 'guidance'] },
+    {
+        book: 'JER',
+        chapter: 29,
+        verse: 12,
+        endVerse: 13,
+        categories: ['prayer'],
+    },
+    { book: 'JER', chapter: 31, verse: 3, categories: ['love'] },
+    { book: 'JER', chapter: 32, verse: 17, categories: ['faith', 'praise'] },
+    { book: 'JER', chapter: 33, verse: 3, categories: ['prayer'] },
+    {
+        book: 'LAM',
+        chapter: 3,
+        verse: 22,
+        endVerse: 23,
+        categories: ['love', 'hope'],
+    },
+    { book: 'LAM', chapter: 3, verse: 24, categories: ['hope'] },
+    { book: 'LAM', chapter: 3, verse: 25, categories: ['hope'] },
+    { book: 'EZK', chapter: 34, verse: 26, categories: ['provision'] },
+    { book: 'EZK', chapter: 36, verse: 26, categories: ['salvation', 'hope'] },
+    { book: 'EZK', chapter: 36, verse: 27, categories: ['pentecost'] },
+    { book: 'DAN', chapter: 2, verse: 20, categories: ['praise', 'wisdom'] },
+    {
+        book: 'DAN',
+        chapter: 3,
+        verse: 17,
+        endVerse: 18,
+        categories: ['courage', 'faith'],
+    },
+    { book: 'DAN', chapter: 7, verse: 18, categories: ['all-saints-day'] },
+    { book: 'DAN', chapter: 9, verse: 9, categories: ['forgiveness'] },
+    {
+        book: 'DAN',
+        chapter: 12,
+        verse: 3,
+        categories: ['wisdom', 'inspiration'],
+    },
+    { book: 'HOS', chapter: 6, verse: 3, categories: ['inspiration'] },
+    { book: 'HOS', chapter: 6, verse: 6, categories: ['love', 'wisdom'] },
+    { book: 'HOS', chapter: 10, verse: 12, categories: ['inspiration'] },
+    { book: 'HOS', chapter: 14, verse: 4, categories: ['forgiveness', 'love'] },
+    { book: 'JOL', chapter: 2, verse: 12, categories: ['ash-wednesday'] },
+    { book: 'JOL', chapter: 2, verse: 13, categories: ['forgiveness', 'love'] },
+    { book: 'JOL', chapter: 2, verse: 26, categories: ['provision', 'praise'] },
+    { book: 'JOL', chapter: 2, verse: 32, categories: ['salvation', 'prayer'] },
+    { book: 'AMO', chapter: 5, verse: 24, categories: ['inspiration'] },
+    {
+        book: 'JON',
+        chapter: 2,
+        verse: 9,
+        categories: ['salvation', 'gratitude'],
+    },
+    { book: 'MIC', chapter: 5, verse: 2, categories: ['christmas-eve'] },
+    {
+        book: 'MIC',
+        chapter: 6,
+        verse: 8,
+        categories: ['wisdom', 'inspiration'],
+    },
+    { book: 'MIC', chapter: 7, verse: 7, categories: ['hope', 'prayer'] },
+    { book: 'MIC', chapter: 7, verse: 18, categories: ['forgiveness', 'love'] },
+    { book: 'MIC', chapter: 7, verse: 19, categories: ['forgiveness'] },
+    { book: 'NAM', chapter: 1, verse: 7, categories: ['comfort', 'strength'] },
+    { book: 'HAB', chapter: 2, verse: 3, categories: ['hope'] },
+    { book: 'HAB', chapter: 3, verse: 18, categories: ['joy', 'salvation'] },
+    { book: 'HAB', chapter: 3, verse: 19, categories: ['strength'] },
+    { book: 'ZEP', chapter: 3, verse: 17, categories: ['love', 'joy'] },
+    { book: 'HAG', chapter: 2, verse: 9, categories: ['peace', 'hope'] },
+    { book: 'ZEC', chapter: 2, verse: 10, categories: ['joy'] },
+    { book: 'ZEC', chapter: 4, verse: 6, categories: ['strength', 'faith'] },
+    { book: 'ZEC', chapter: 9, verse: 9, categories: ['palm-sunday'] },
+    { book: 'MAL', chapter: 3, verse: 1, categories: ['advent-sunday'] },
+    { book: 'MAL', chapter: 3, verse: 10, categories: ['provision'] },
+    { book: 'MAL', chapter: 4, verse: 2, categories: ['hope', 'joy'] },
+
+    // New Testament
+    { book: 'MAT', chapter: 1, verse: 21, categories: ['christmas-eve'] },
+    { book: 'MAT', chapter: 1, verse: 23, categories: ['christmas'] },
+    { book: 'MAT', chapter: 2, verse: 2, categories: ['epiphany'] },
+    {
+        book: 'MAT',
+        chapter: 2,
+        verse: 10,
+        endVerse: 11,
+        categories: ['epiphany'],
+    },
+    { book: 'MAT', chapter: 4, verse: 19, categories: ['inspiration'] },
+    { book: 'MAT', chapter: 5, verse: 4, categories: ['comfort'] },
+    { book: 'MAT', chapter: 5, verse: 6, categories: ['provision'] },
+    { book: 'MAT', chapter: 5, verse: 7, categories: ['forgiveness', 'love'] },
+    { book: 'MAT', chapter: 5, verse: 8, categories: ['inspiration'] },
+    { book: 'MAT', chapter: 5, verse: 9, categories: ['peace'] },
+    { book: 'MAT', chapter: 5, verse: 14, categories: ['inspiration'] },
+    { book: 'MAT', chapter: 5, verse: 16, categories: ['inspiration'] },
+    { book: 'MAT', chapter: 5, verse: 44, categories: ['love'] },
+    { book: 'MAT', chapter: 6, verse: 6, categories: ['prayer'] },
+    {
+        book: 'MAT',
+        chapter: 6,
+        verse: 9,
+        endVerse: 10,
+        categories: ['prayer', 'praise'],
+    },
+    { book: 'MAT', chapter: 6, verse: 14, categories: ['forgiveness'] },
+    {
+        book: 'MAT',
+        chapter: 6,
+        verse: 17,
+        endVerse: 18,
+        categories: ['ash-wednesday'],
+    },
+    { book: 'MAT', chapter: 6, verse: 21, categories: ['wisdom'] },
+    { book: 'MAT', chapter: 6, verse: 26, categories: ['provision', 'peace'] },
+    {
+        book: 'MAT',
+        chapter: 6,
+        verse: 33,
+        categories: ['provision', 'guidance'],
+    },
+    { book: 'MAT', chapter: 6, verse: 34, categories: ['peace'] },
+    { book: 'MAT', chapter: 7, verse: 7, categories: ['prayer'] },
+    { book: 'MAT', chapter: 7, verse: 11, categories: ['provision', 'prayer'] },
+    { book: 'MAT', chapter: 7, verse: 24, categories: ['wisdom'] },
+    { book: 'MAT', chapter: 11, verse: 28, categories: ['comfort', 'peace'] },
+    {
+        book: 'MAT',
+        chapter: 11,
+        verse: 29,
+        endVerse: 30,
+        categories: ['peace', 'comfort'],
+    },
+    { book: 'MAT', chapter: 14, verse: 27, categories: ['courage', 'comfort'] },
+    { book: 'MAT', chapter: 17, verse: 20, categories: ['faith'] },
+    { book: 'MAT', chapter: 18, verse: 20, categories: ['prayer', 'comfort'] },
+    {
+        book: 'MAT',
+        chapter: 18,
+        verse: 21,
+        endVerse: 22,
+        categories: ['forgiveness'],
+    },
+    {
+        book: 'MAT',
+        chapter: 19,
+        verse: 26,
+        categories: ['faith', 'inspiration'],
+    },
+    { book: 'MAT', chapter: 21, verse: 9, categories: ['palm-sunday'] },
+    { book: 'MAT', chapter: 22, verse: 37, endVerse: 39, categories: ['love'] },
+    { book: 'MAT', chapter: 25, verse: 40, categories: ['love'] },
+    { book: 'MAT', chapter: 27, verse: 45, categories: ['good-friday'] },
+    { book: 'MAT', chapter: 27, verse: 46, categories: ['good-friday'] },
+    {
+        book: 'MAT',
+        chapter: 27,
+        verse: 50,
+        endVerse: 51,
+        categories: ['good-friday'],
+    },
+    {
+        book: 'MAT',
+        chapter: 27,
+        verse: 59,
+        endVerse: 60,
+        categories: ['good-friday'],
+    },
+    { book: 'MAT', chapter: 28, verse: 6, categories: ['resurrection-sunday'] },
+    { book: 'MAT', chapter: 28, verse: 9, categories: ['resurrection-sunday'] },
+    { book: 'MAT', chapter: 28, verse: 19, categories: ['inspiration'] },
+    { book: 'MAT', chapter: 28, verse: 20, categories: ['comfort'] },
+    { book: 'MRK', chapter: 1, verse: 35, categories: ['prayer'] },
+    { book: 'MRK', chapter: 4, verse: 39, categories: ['peace'] },
+    { book: 'MRK', chapter: 6, verse: 31, categories: ['peace'] },
+    { book: 'MRK', chapter: 8, verse: 36, categories: ['wisdom'] },
+    { book: 'MRK', chapter: 9, verse: 23, categories: ['faith'] },
+    { book: 'MRK', chapter: 10, verse: 45, categories: ['salvation', 'love'] },
+    { book: 'MRK', chapter: 11, verse: 24, categories: ['prayer', 'faith'] },
+    {
+        book: 'MRK',
+        chapter: 11,
+        verse: 25,
+        categories: ['forgiveness', 'prayer'],
+    },
+    { book: 'MRK', chapter: 14, verse: 38, categories: ['maundy-thursday'] },
+    { book: 'MRK', chapter: 15, verse: 39, categories: ['good-friday'] },
+    { book: 'MRK', chapter: 16, verse: 6, categories: ['resurrection-sunday'] },
+    { book: 'MRK', chapter: 16, verse: 15, categories: ['inspiration'] },
+    { book: 'MRK', chapter: 16, verse: 19, categories: ['ascension-day'] },
+    {
+        book: 'LUK',
+        chapter: 1,
+        verse: 31,
+        endVerse: 33,
+        categories: ['christmas-eve'],
+    },
+    { book: 'LUK', chapter: 1, verse: 37, categories: ['faith'] },
+    { book: 'LUK', chapter: 1, verse: 45, categories: ['faith'] },
+    {
+        book: 'LUK',
+        chapter: 1,
+        verse: 46,
+        endVerse: 47,
+        categories: ['praise', 'joy'],
+    },
+    { book: 'LUK', chapter: 2, verse: 7, categories: ['christmas'] },
+    {
+        book: 'LUK',
+        chapter: 2,
+        verse: 10,
+        endVerse: 11,
+        categories: ['christmas'],
+    },
+    { book: 'LUK', chapter: 2, verse: 12, categories: ['christmas'] },
+    { book: 'LUK', chapter: 2, verse: 14, categories: ['christmas'] },
+    { book: 'LUK', chapter: 2, verse: 20, categories: ['christmas'] },
+    { book: 'LUK', chapter: 2, verse: 32, categories: ['epiphany'] },
+    { book: 'LUK', chapter: 6, verse: 31, categories: ['love', 'wisdom'] },
+    { book: 'LUK', chapter: 6, verse: 36, categories: ['love', 'forgiveness'] },
+    { book: 'LUK', chapter: 6, verse: 37, categories: ['forgiveness'] },
+    { book: 'LUK', chapter: 6, verse: 38, categories: ['provision'] },
+    { book: 'LUK', chapter: 9, verse: 23, categories: ['inspiration'] },
+    { book: 'LUK', chapter: 12, verse: 7, categories: ['comfort'] },
+    { book: 'LUK', chapter: 15, verse: 7, categories: ['joy', 'salvation'] },
+    { book: 'LUK', chapter: 17, verse: 5, categories: ['faith', 'prayer'] },
+    { book: 'LUK', chapter: 19, verse: 10, categories: ['salvation'] },
+    { book: 'LUK', chapter: 19, verse: 38, categories: ['palm-sunday'] },
+    { book: 'LUK', chapter: 19, verse: 40, categories: ['palm-sunday'] },
+    { book: 'LUK', chapter: 21, verse: 28, categories: ['advent-sunday'] },
+    { book: 'LUK', chapter: 21, verse: 33, categories: ['faith'] },
+    { book: 'LUK', chapter: 22, verse: 19, categories: ['maundy-thursday'] },
+    { book: 'LUK', chapter: 22, verse: 42, categories: ['maundy-thursday'] },
+    { book: 'LUK', chapter: 23, verse: 33, categories: ['good-friday'] },
+    { book: 'LUK', chapter: 23, verse: 34, categories: ['forgiveness'] },
+    { book: 'LUK', chapter: 23, verse: 43, categories: ['good-friday'] },
+    { book: 'LUK', chapter: 23, verse: 46, categories: ['good-friday'] },
+    {
+        book: 'LUK',
+        chapter: 24,
+        verse: 5,
+        endVerse: 7,
+        categories: ['resurrection-sunday'],
+    },
+    {
+        book: 'LUK',
+        chapter: 24,
+        verse: 31,
+        endVerse: 32,
+        categories: ['post-resurrection-sunday'],
+    },
+    {
+        book: 'LUK',
+        chapter: 24,
+        verse: 34,
+        categories: ['resurrection-sunday'],
+    },
+    {
+        book: 'LUK',
+        chapter: 24,
+        verse: 38,
+        endVerse: 39,
+        categories: ['post-resurrection-sunday'],
+    },
+    {
+        book: 'LUK',
+        chapter: 24,
+        verse: 50,
+        endVerse: 51,
+        categories: ['ascension-day'],
+    },
+    { book: 'JHN', chapter: 1, verse: 1, categories: ['praise'] },
+    { book: 'JHN', chapter: 1, verse: 5, categories: ['hope'] },
+    { book: 'JHN', chapter: 1, verse: 9, categories: ['epiphany'] },
+    { book: 'JHN', chapter: 1, verse: 12, categories: ['salvation'] },
+    { book: 'JHN', chapter: 1, verse: 14, categories: ['salvation', 'praise'] },
+    {
+        book: 'JHN',
+        chapter: 1,
+        verse: 16,
+        categories: ['salvation', 'gratitude'],
+    },
+    {
+        book: 'JHN',
+        chapter: 1,
+        verse: 29,
+        categories: ['salvation', 'forgiveness'],
+    },
+    { book: 'JHN', chapter: 3, verse: 16, categories: ['love', 'salvation'] },
+    { book: 'JHN', chapter: 3, verse: 17, categories: ['salvation'] },
+    {
+        book: 'JHN',
+        chapter: 4,
+        verse: 14,
+        categories: ['salvation', 'provision'],
+    },
+    { book: 'JHN', chapter: 4, verse: 24, categories: ['praise'] },
+    { book: 'JHN', chapter: 5, verse: 24, categories: ['salvation', 'faith'] },
+    {
+        book: 'JHN',
+        chapter: 6,
+        verse: 35,
+        categories: ['provision', 'salvation'],
+    },
+    {
+        book: 'JHN',
+        chapter: 6,
+        verse: 37,
+        categories: ['salvation', 'comfort'],
+    },
+    { book: 'JHN', chapter: 6, verse: 68, categories: ['faith'] },
+    {
+        book: 'JHN',
+        chapter: 8,
+        verse: 12,
+        categories: ['guidance', 'salvation'],
+    },
+    { book: 'JHN', chapter: 8, verse: 32, categories: ['wisdom', 'salvation'] },
+    { book: 'JHN', chapter: 8, verse: 36, categories: ['salvation'] },
+    { book: 'JHN', chapter: 10, verse: 10, categories: ['joy', 'salvation'] },
+    { book: 'JHN', chapter: 10, verse: 11, categories: ['love', 'salvation'] },
+    {
+        book: 'JHN',
+        chapter: 10,
+        verse: 27,
+        endVerse: 28,
+        categories: ['guidance', 'salvation', 'comfort'],
+    },
+    { book: 'JHN', chapter: 11, verse: 25, categories: ['hope', 'salvation'] },
+    { book: 'JHN', chapter: 11, verse: 35, categories: ['comfort'] },
+    { book: 'JHN', chapter: 12, verse: 13, categories: ['palm-sunday'] },
+    { book: 'JHN', chapter: 12, verse: 46, categories: ['hope', 'salvation'] },
+    { book: 'JHN', chapter: 13, verse: 1, categories: ['maundy-thursday'] },
+    {
+        book: 'JHN',
+        chapter: 13,
+        verse: 14,
+        endVerse: 15,
+        categories: ['maundy-thursday'],
+    },
+    { book: 'JHN', chapter: 13, verse: 34, endVerse: 35, categories: ['love'] },
+    { book: 'JHN', chapter: 14, verse: 1, categories: ['peace', 'faith'] },
+    { book: 'JHN', chapter: 14, verse: 2, categories: ['hope'] },
+    { book: 'JHN', chapter: 14, verse: 3, categories: ['ascension-day'] },
+    { book: 'JHN', chapter: 14, verse: 6, categories: ['salvation'] },
+    { book: 'JHN', chapter: 14, verse: 13, categories: ['prayer'] },
+    { book: 'JHN', chapter: 14, verse: 15, categories: ['love'] },
+    {
+        book: 'JHN',
+        chapter: 14,
+        verse: 16,
+        endVerse: 17,
+        categories: ['pentecost'],
+    },
+    { book: 'JHN', chapter: 14, verse: 18, categories: ['comfort'] },
+    {
+        book: 'JHN',
+        chapter: 14,
+        verse: 26,
+        categories: ['guidance', 'comfort'],
+    },
+    { book: 'JHN', chapter: 14, verse: 27, categories: ['peace', 'courage'] },
+    { book: 'JHN', chapter: 15, verse: 5, categories: ['faith', 'strength'] },
+    { book: 'JHN', chapter: 15, verse: 7, categories: ['prayer'] },
+    { book: 'JHN', chapter: 15, verse: 11, categories: ['joy'] },
+    { book: 'JHN', chapter: 15, verse: 12, categories: ['love'] },
+    { book: 'JHN', chapter: 15, verse: 13, categories: ['love'] },
+    { book: 'JHN', chapter: 15, verse: 16, categories: ['inspiration'] },
+    { book: 'JHN', chapter: 16, verse: 13, categories: ['guidance'] },
+    { book: 'JHN', chapter: 16, verse: 22, categories: ['joy', 'hope'] },
+    { book: 'JHN', chapter: 16, verse: 24, categories: ['prayer', 'joy'] },
+    { book: 'JHN', chapter: 16, verse: 33, categories: ['courage', 'peace'] },
+    { book: 'JHN', chapter: 17, verse: 3, categories: ['salvation'] },
+    {
+        book: 'JHN',
+        chapter: 19,
+        verse: 17,
+        endVerse: 18,
+        categories: ['good-friday'],
+    },
+    {
+        book: 'JHN',
+        chapter: 19,
+        verse: 26,
+        endVerse: 27,
+        categories: ['good-friday'],
+    },
+    { book: 'JHN', chapter: 19, verse: 30, categories: ['good-friday'] },
+    {
+        book: 'JHN',
+        chapter: 19,
+        verse: 41,
+        endVerse: 42,
+        categories: ['good-friday'],
+    },
+    { book: 'JHN', chapter: 20, verse: 1, categories: ['resurrection-sunday'] },
+    {
+        book: 'JHN',
+        chapter: 20,
+        verse: 16,
+        categories: ['resurrection-sunday'],
+    },
+    {
+        book: 'JHN',
+        chapter: 20,
+        verse: 20,
+        categories: ['resurrection-sunday'],
+    },
+    {
+        book: 'JHN',
+        chapter: 20,
+        verse: 27,
+        endVerse: 28,
+        categories: ['post-resurrection-sunday'],
+    },
+    { book: 'JHN', chapter: 20, verse: 29, categories: ['faith'] },
+    { book: 'JHN', chapter: 20, verse: 31, categories: ['faith', 'salvation'] },
+    {
+        book: 'ACT',
+        chapter: 1,
+        verse: 3,
+        categories: ['post-resurrection-sunday'],
+    },
+    {
+        book: 'ACT',
+        chapter: 1,
+        verse: 8,
+        categories: ['strength', 'inspiration'],
+    },
+    { book: 'ACT', chapter: 1, verse: 9, categories: ['ascension-day'] },
+    { book: 'ACT', chapter: 1, verse: 11, categories: ['ascension-day'] },
+    { book: 'ACT', chapter: 2, verse: 4, categories: ['pentecost'] },
+    { book: 'ACT', chapter: 2, verse: 17, categories: ['pentecost'] },
+    {
+        book: 'ACT',
+        chapter: 2,
+        verse: 24,
+        categories: ['post-resurrection-sunday'],
+    },
+    {
+        book: 'ACT',
+        chapter: 2,
+        verse: 38,
+        categories: ['forgiveness', 'salvation'],
+    },
+    {
+        book: 'ACT',
+        chapter: 3,
+        verse: 19,
+        categories: ['forgiveness', 'salvation'],
+    },
+    { book: 'ACT', chapter: 4, verse: 12, categories: ['salvation'] },
+    { book: 'ACT', chapter: 16, verse: 31, categories: ['salvation', 'faith'] },
+    { book: 'ACT', chapter: 17, verse: 28, categories: ['faith'] },
+    {
+        book: 'ACT',
+        chapter: 20,
+        verse: 24,
+        categories: ['inspiration', 'courage'],
+    },
+    {
+        book: 'ACT',
+        chapter: 20,
+        verse: 35,
+        categories: ['love', 'inspiration'],
+    },
+    {
+        book: 'ROM',
+        chapter: 1,
+        verse: 16,
+        categories: ['salvation', 'courage'],
+    },
+    {
+        book: 'ROM',
+        chapter: 3,
+        verse: 23,
+        endVerse: 24,
+        categories: ['salvation', 'forgiveness'],
+    },
+    { book: 'ROM', chapter: 4, verse: 20, endVerse: 21, categories: ['faith'] },
+    {
+        book: 'ROM',
+        chapter: 5,
+        verse: 1,
+        categories: ['peace', 'salvation', 'faith'],
+    },
+    {
+        book: 'ROM',
+        chapter: 5,
+        verse: 3,
+        endVerse: 4,
+        categories: ['hope', 'strength'],
+    },
+    { book: 'ROM', chapter: 5, verse: 5, categories: ['hope', 'love'] },
+    { book: 'ROM', chapter: 5, verse: 8, categories: ['love', 'salvation'] },
+    { book: 'ROM', chapter: 6, verse: 4, categories: ['salvation', 'hope'] },
+    {
+        book: 'ROM',
+        chapter: 6,
+        verse: 9,
+        categories: ['post-resurrection-sunday'],
+    },
+    { book: 'ROM', chapter: 6, verse: 23, categories: ['salvation'] },
+    {
+        book: 'ROM',
+        chapter: 8,
+        verse: 1,
+        categories: ['forgiveness', 'salvation'],
+    },
+    { book: 'ROM', chapter: 8, verse: 6, categories: ['peace', 'wisdom'] },
+    { book: 'ROM', chapter: 8, verse: 11, categories: ['pentecost'] },
+    {
+        book: 'ROM',
+        chapter: 8,
+        verse: 15,
+        categories: ['salvation', 'courage'],
+    },
+    { book: 'ROM', chapter: 8, verse: 18, categories: ['hope'] },
+    { book: 'ROM', chapter: 8, verse: 26, categories: ['prayer', 'comfort'] },
+    { book: 'ROM', chapter: 8, verse: 28, categories: ['hope', 'faith'] },
+    { book: 'ROM', chapter: 8, verse: 31, categories: ['courage'] },
+    { book: 'ROM', chapter: 8, verse: 37, categories: ['strength', 'love'] },
+    {
+        book: 'ROM',
+        chapter: 8,
+        verse: 38,
+        endVerse: 39,
+        categories: ['love', 'hope'],
+    },
+    { book: 'ROM', chapter: 10, verse: 9, categories: ['salvation', 'faith'] },
+    { book: 'ROM', chapter: 10, verse: 17, categories: ['faith'] },
+    { book: 'ROM', chapter: 11, verse: 33, categories: ['praise', 'wisdom'] },
+    {
+        book: 'ROM',
+        chapter: 12,
+        verse: 1,
+        categories: ['praise', 'inspiration'],
+    },
+    { book: 'ROM', chapter: 12, verse: 2, categories: ['wisdom', 'guidance'] },
+    { book: 'ROM', chapter: 12, verse: 9, categories: ['love'] },
+    { book: 'ROM', chapter: 12, verse: 10, categories: ['love'] },
+    {
+        book: 'ROM',
+        chapter: 12,
+        verse: 12,
+        categories: ['hope', 'prayer', 'joy'],
+    },
+    { book: 'ROM', chapter: 12, verse: 18, categories: ['peace'] },
+    { book: 'ROM', chapter: 12, verse: 21, categories: ['inspiration'] },
+    { book: 'ROM', chapter: 13, verse: 8, categories: ['love'] },
+    { book: 'ROM', chapter: 13, verse: 11, categories: ['advent-sunday'] },
+    { book: 'ROM', chapter: 13, verse: 12, categories: ['all-hallows-eve'] },
+    { book: 'ROM', chapter: 14, verse: 19, categories: ['peace'] },
+    { book: 'ROM', chapter: 15, verse: 4, categories: ['hope', 'wisdom'] },
+    { book: 'ROM', chapter: 15, verse: 7, categories: ['love'] },
+    {
+        book: 'ROM',
+        chapter: 15,
+        verse: 13,
+        categories: ['hope', 'joy', 'peace'],
+    },
+    { book: '1CO', chapter: 1, verse: 4, categories: ['gratitude'] },
+    { book: '1CO', chapter: 1, verse: 18, categories: ['salvation'] },
+    { book: '1CO', chapter: 2, verse: 9, categories: ['hope'] },
+    {
+        book: '1CO',
+        chapter: 6,
+        verse: 20,
+        categories: ['salvation', 'inspiration'],
+    },
+    { book: '1CO', chapter: 10, verse: 13, categories: ['strength', 'faith'] },
+    {
+        book: '1CO',
+        chapter: 10,
+        verse: 31,
+        categories: ['inspiration', 'praise'],
+    },
+    { book: '1CO', chapter: 11, verse: 26, categories: ['maundy-thursday'] },
+    { book: '1CO', chapter: 12, verse: 13, categories: ['pentecost'] },
+    { book: '1CO', chapter: 13, verse: 4, categories: ['love'] },
+    { book: '1CO', chapter: 13, verse: 7, categories: ['love', 'hope'] },
+    {
+        book: '1CO',
+        chapter: 13,
+        verse: 13,
+        categories: ['love', 'faith', 'hope'],
+    },
+    {
+        book: '1CO',
+        chapter: 15,
+        verse: 3,
+        endVerse: 4,
+        categories: ['post-resurrection-sunday'],
+    },
+    {
+        book: '1CO',
+        chapter: 15,
+        verse: 10,
+        categories: ['gratitude', 'salvation'],
+    },
+    {
+        book: '1CO',
+        chapter: 15,
+        verse: 20,
+        categories: ['post-resurrection-sunday'],
+    },
+    { book: '1CO', chapter: 15, verse: 55, categories: ['hope'] },
+    {
+        book: '1CO',
+        chapter: 15,
+        verse: 57,
+        categories: ['gratitude', 'salvation'],
+    },
+    {
+        book: '1CO',
+        chapter: 15,
+        verse: 58,
+        categories: ['inspiration', 'strength'],
+    },
+    {
+        book: '1CO',
+        chapter: 16,
+        verse: 13,
+        endVerse: 14,
+        categories: ['courage', 'strength', 'love'],
+    },
+    {
+        book: '2CO',
+        chapter: 1,
+        verse: 3,
+        endVerse: 4,
+        categories: ['comfort', 'praise'],
+    },
+    { book: '2CO', chapter: 1, verse: 20, categories: ['faith'] },
+    { book: '2CO', chapter: 3, verse: 17, categories: ['salvation'] },
+    { book: '2CO', chapter: 4, verse: 6, categories: ['all-hallows-eve'] },
+    {
+        book: '2CO',
+        chapter: 4,
+        verse: 8,
+        endVerse: 9,
+        categories: ['strength', 'hope'],
+    },
+    { book: '2CO', chapter: 4, verse: 15, categories: ['gratitude'] },
+    { book: '2CO', chapter: 4, verse: 16, categories: ['strength', 'hope'] },
+    { book: '2CO', chapter: 4, verse: 18, categories: ['hope', 'faith'] },
+    { book: '2CO', chapter: 5, verse: 7, categories: ['faith'] },
+    {
+        book: '2CO',
+        chapter: 5,
+        verse: 17,
+        categories: ['salvation', 'inspiration'],
+    },
+    { book: '2CO', chapter: 5, verse: 20, categories: ['ash-wednesday'] },
+    {
+        book: '2CO',
+        chapter: 5,
+        verse: 21,
+        categories: ['salvation', 'forgiveness'],
+    },
+    { book: '2CO', chapter: 6, verse: 2, categories: ['ash-wednesday'] },
+    { book: '2CO', chapter: 9, verse: 7, categories: ['love', 'joy'] },
+    { book: '2CO', chapter: 9, verse: 8, categories: ['provision'] },
+    { book: '2CO', chapter: 9, verse: 10, categories: ['provision'] },
+    { book: '2CO', chapter: 9, verse: 15, categories: ['gratitude'] },
+    { book: '2CO', chapter: 10, verse: 5, categories: ['wisdom'] },
+    { book: '2CO', chapter: 12, verse: 9, categories: ['strength', 'comfort'] },
+    { book: '2CO', chapter: 12, verse: 10, categories: ['strength'] },
+    {
+        book: '2CO',
+        chapter: 13,
+        verse: 11,
+        categories: ['peace', 'joy', 'love'],
+    },
+    {
+        book: 'GAL',
+        chapter: 2,
+        verse: 20,
+        categories: ['faith', 'salvation', 'love'],
+    },
+    { book: 'GAL', chapter: 3, verse: 28, categories: ['salvation'] },
+    {
+        book: 'GAL',
+        chapter: 4,
+        verse: 4,
+        endVerse: 5,
+        categories: ['christmas-eve'],
+    },
+    { book: 'GAL', chapter: 5, verse: 1, categories: ['salvation', 'courage'] },
+    { book: 'GAL', chapter: 5, verse: 13, categories: ['love'] },
+    {
+        book: 'GAL',
+        chapter: 5,
+        verse: 22,
+        endVerse: 23,
+        categories: ['love', 'joy', 'peace'],
+    },
+    { book: 'GAL', chapter: 5, verse: 25, categories: ['guidance'] },
+    { book: 'GAL', chapter: 6, verse: 2, categories: ['love', 'comfort'] },
+    {
+        book: 'GAL',
+        chapter: 6,
+        verse: 9,
+        categories: ['inspiration', 'strength'],
+    },
+    { book: 'EPH', chapter: 1, verse: 3, categories: ['praise', 'gratitude'] },
+    {
+        book: 'EPH',
+        chapter: 1,
+        verse: 7,
+        categories: ['forgiveness', 'salvation'],
+    },
+    {
+        book: 'EPH',
+        chapter: 1,
+        verse: 18,
+        categories: ['hope', 'wisdom', 'prayer'],
+    },
+    {
+        book: 'EPH',
+        chapter: 2,
+        verse: 4,
+        endVerse: 5,
+        categories: ['salvation', 'love'],
+    },
+    {
+        book: 'EPH',
+        chapter: 2,
+        verse: 8,
+        endVerse: 9,
+        categories: ['salvation', 'faith'],
+    },
+    { book: 'EPH', chapter: 2, verse: 10, categories: ['inspiration'] },
+    { book: 'EPH', chapter: 2, verse: 19, categories: ['all-saints-day'] },
+    { book: 'EPH', chapter: 3, verse: 20, categories: ['faith', 'praise'] },
+    { book: 'EPH', chapter: 4, verse: 2, categories: ['love'] },
+    { book: 'EPH', chapter: 4, verse: 3, categories: ['peace', 'love'] },
+    { book: 'EPH', chapter: 4, verse: 29, categories: ['wisdom'] },
+    { book: 'EPH', chapter: 4, verse: 32, categories: ['forgiveness', 'love'] },
+    {
+        book: 'EPH',
+        chapter: 5,
+        verse: 1,
+        endVerse: 2,
+        categories: ['love', 'inspiration'],
+    },
+    { book: 'EPH', chapter: 5, verse: 8, categories: ['all-hallows-eve'] },
+    {
+        book: 'EPH',
+        chapter: 5,
+        verse: 15,
+        endVerse: 16,
+        categories: ['wisdom'],
+    },
+    {
+        book: 'EPH',
+        chapter: 5,
+        verse: 19,
+        endVerse: 20,
+        categories: ['praise', 'gratitude'],
+    },
+    { book: 'EPH', chapter: 6, verse: 10, categories: ['strength', 'courage'] },
+    { book: 'EPH', chapter: 6, verse: 11, categories: ['strength', 'courage'] },
+    { book: 'EPH', chapter: 6, verse: 18, categories: ['prayer'] },
+    { book: 'PHP', chapter: 1, verse: 6, categories: ['hope', 'faith'] },
+    { book: 'PHP', chapter: 1, verse: 21, categories: ['hope', 'faith'] },
+    {
+        book: 'PHP',
+        chapter: 2,
+        verse: 3,
+        endVerse: 4,
+        categories: ['love', 'wisdom'],
+    },
+    {
+        book: 'PHP',
+        chapter: 2,
+        verse: 6,
+        endVerse: 7,
+        categories: ['christmas'],
+    },
+    {
+        book: 'PHP',
+        chapter: 2,
+        verse: 13,
+        categories: ['inspiration', 'faith'],
+    },
+    {
+        book: 'PHP',
+        chapter: 2,
+        verse: 14,
+        categories: ['inspiration', 'gratitude'],
+    },
+    {
+        book: 'PHP',
+        chapter: 3,
+        verse: 10,
+        categories: ['post-resurrection-sunday'],
+    },
+    {
+        book: 'PHP',
+        chapter: 3,
+        verse: 13,
+        endVerse: 14,
+        categories: ['inspiration'],
+    },
+    { book: 'PHP', chapter: 3, verse: 20, categories: ['hope', 'salvation'] },
+    { book: 'PHP', chapter: 4, verse: 4, categories: ['joy', 'praise'] },
+    {
+        book: 'PHP',
+        chapter: 4,
+        verse: 6,
+        endVerse: 7,
+        categories: ['prayer', 'peace', 'gratitude'],
+    },
+    {
+        book: 'PHP',
+        chapter: 4,
+        verse: 8,
+        categories: ['wisdom', 'inspiration'],
+    },
+    { book: 'PHP', chapter: 4, verse: 11, categories: ['peace', 'gratitude'] },
+    {
+        book: 'PHP',
+        chapter: 4,
+        verse: 13,
+        categories: ['strength', 'inspiration'],
+    },
+    { book: 'PHP', chapter: 4, verse: 19, categories: ['provision'] },
+    {
+        book: 'COL',
+        chapter: 1,
+        verse: 12,
+        categories: ['gratitude', 'salvation'],
+    },
+    {
+        book: 'COL',
+        chapter: 1,
+        verse: 13,
+        endVerse: 14,
+        categories: ['salvation', 'forgiveness'],
+    },
+    { book: 'COL', chapter: 1, verse: 17, categories: ['praise'] },
+    {
+        book: 'COL',
+        chapter: 2,
+        verse: 6,
+        endVerse: 7,
+        categories: ['faith', 'gratitude'],
+    },
+    { book: 'COL', chapter: 2, verse: 15, categories: ['all-hallows-eve'] },
+    { book: 'COL', chapter: 3, verse: 1, categories: ['ascension-day'] },
+    { book: 'COL', chapter: 3, verse: 2, categories: ['wisdom'] },
+    { book: 'COL', chapter: 3, verse: 12, categories: ['love'] },
+    { book: 'COL', chapter: 3, verse: 13, categories: ['forgiveness', 'love'] },
+    { book: 'COL', chapter: 3, verse: 14, categories: ['love'] },
+    { book: 'COL', chapter: 3, verse: 15, categories: ['peace', 'gratitude'] },
+    {
+        book: 'COL',
+        chapter: 3,
+        verse: 16,
+        categories: ['wisdom', 'praise', 'gratitude'],
+    },
+    {
+        book: 'COL',
+        chapter: 3,
+        verse: 17,
+        categories: ['gratitude', 'inspiration'],
+    },
+    { book: 'COL', chapter: 3, verse: 23, categories: ['inspiration'] },
+    { book: 'COL', chapter: 4, verse: 2, categories: ['prayer', 'gratitude'] },
+    { book: 'COL', chapter: 4, verse: 6, categories: ['wisdom'] },
+    { book: '1TH', chapter: 3, verse: 12, categories: ['love', 'prayer'] },
+    { book: '1TH', chapter: 4, verse: 13, categories: ['hope', 'comfort'] },
+    {
+        book: '1TH',
+        chapter: 4,
+        verse: 14,
+        categories: ['post-resurrection-sunday'],
+    },
+    { book: '1TH', chapter: 5, verse: 5, categories: ['all-hallows-eve'] },
+    { book: '1TH', chapter: 5, verse: 11, categories: ['inspiration', 'love'] },
+    {
+        book: '1TH',
+        chapter: 5,
+        verse: 16,
+        endVerse: 18,
+        categories: ['joy', 'prayer', 'gratitude'],
+    },
+    { book: '1TH', chapter: 5, verse: 24, categories: ['faith'] },
+    {
+        book: '2TH',
+        chapter: 2,
+        verse: 16,
+        endVerse: 17,
+        categories: ['comfort', 'hope'],
+    },
+    { book: '2TH', chapter: 3, verse: 3, categories: ['strength', 'faith'] },
+    { book: '2TH', chapter: 3, verse: 16, categories: ['peace'] },
+    { book: '1TI', chapter: 1, verse: 15, categories: ['salvation'] },
+    { book: '1TI', chapter: 4, verse: 12, categories: ['inspiration'] },
+    { book: '1TI', chapter: 6, verse: 6, categories: ['wisdom', 'peace'] },
+    {
+        book: '1TI',
+        chapter: 6,
+        verse: 12,
+        categories: ['courage', 'inspiration'],
+    },
+    {
+        book: '2TI',
+        chapter: 1,
+        verse: 7,
+        categories: ['courage', 'strength', 'love'],
+    },
+    { book: '2TI', chapter: 1, verse: 9, categories: ['salvation'] },
+    {
+        book: '2TI',
+        chapter: 2,
+        verse: 15,
+        categories: ['wisdom', 'inspiration'],
+    },
+    {
+        book: '2TI',
+        chapter: 3,
+        verse: 16,
+        endVerse: 17,
+        categories: ['wisdom', 'guidance'],
+    },
+    { book: '2TI', chapter: 4, verse: 7, categories: ['inspiration', 'faith'] },
+    { book: '2TI', chapter: 4, verse: 18, categories: ['hope', 'salvation'] },
+    { book: 'TIT', chapter: 2, verse: 11, categories: ['salvation'] },
+    { book: 'TIT', chapter: 3, verse: 5, categories: ['salvation'] },
+    { book: 'PHM', chapter: 1, verse: 7, categories: ['joy', 'love'] },
+    { book: 'HEB', chapter: 4, verse: 12, categories: ['wisdom'] },
+    { book: 'HEB', chapter: 4, verse: 14, categories: ['ascension-day'] },
+    { book: 'HEB', chapter: 4, verse: 15, categories: ['comfort'] },
+    { book: 'HEB', chapter: 4, verse: 16, categories: ['prayer'] },
+    { book: 'HEB', chapter: 6, verse: 10, categories: ['inspiration', 'hope'] },
+    { book: 'HEB', chapter: 6, verse: 19, categories: ['hope'] },
+    { book: 'HEB', chapter: 8, verse: 12, categories: ['forgiveness'] },
+    { book: 'HEB', chapter: 10, verse: 22, categories: ['prayer', 'faith'] },
+    { book: 'HEB', chapter: 10, verse: 23, categories: ['hope', 'faith'] },
+    {
+        book: 'HEB',
+        chapter: 10,
+        verse: 24,
+        categories: ['love', 'inspiration'],
+    },
+    { book: 'HEB', chapter: 10, verse: 35, categories: ['courage', 'hope'] },
+    { book: 'HEB', chapter: 11, verse: 1, categories: ['faith', 'hope'] },
+    { book: 'HEB', chapter: 11, verse: 6, categories: ['faith'] },
+    {
+        book: 'HEB',
+        chapter: 12,
+        verse: 1,
+        endVerse: 2,
+        categories: ['inspiration', 'faith', 'strength'],
+    },
+    { book: 'HEB', chapter: 12, verse: 11, categories: ['wisdom', 'peace'] },
+    {
+        book: 'HEB',
+        chapter: 12,
+        verse: 28,
+        categories: ['gratitude', 'praise'],
+    },
+    { book: 'HEB', chapter: 13, verse: 2, categories: ['love'] },
+    {
+        book: 'HEB',
+        chapter: 13,
+        verse: 5,
+        categories: ['comfort', 'provision'],
+    },
+    { book: 'HEB', chapter: 13, verse: 6, categories: ['courage', 'comfort'] },
+    { book: 'HEB', chapter: 13, verse: 7, categories: ['all-saints-day'] },
+    { book: 'HEB', chapter: 13, verse: 8, categories: ['faith'] },
+    {
+        book: 'HEB',
+        chapter: 13,
+        verse: 15,
+        categories: ['praise', 'gratitude'],
+    },
+    {
+        book: 'HEB',
+        chapter: 13,
+        verse: 16,
+        categories: ['love', 'inspiration'],
+    },
+    {
+        book: 'JAS',
+        chapter: 1,
+        verse: 2,
+        endVerse: 3,
+        categories: ['joy', 'faith'],
+    },
+    { book: 'JAS', chapter: 1, verse: 5, categories: ['wisdom', 'prayer'] },
+    { book: 'JAS', chapter: 1, verse: 12, categories: ['strength', 'hope'] },
+    {
+        book: 'JAS',
+        chapter: 1,
+        verse: 17,
+        categories: ['gratitude', 'provision'],
+    },
+    { book: 'JAS', chapter: 1, verse: 19, categories: ['wisdom'] },
+    {
+        book: 'JAS',
+        chapter: 1,
+        verse: 22,
+        categories: ['wisdom', 'inspiration'],
+    },
+    { book: 'JAS', chapter: 2, verse: 17, categories: ['faith'] },
+    { book: 'JAS', chapter: 3, verse: 17, categories: ['wisdom', 'peace'] },
+    { book: 'JAS', chapter: 4, verse: 7, categories: ['strength'] },
+    { book: 'JAS', chapter: 4, verse: 8, categories: ['prayer'] },
+    { book: 'JAS', chapter: 4, verse: 10, categories: ['wisdom'] },
+    { book: 'JAS', chapter: 5, verse: 13, categories: ['prayer', 'praise'] },
+    {
+        book: 'JAS',
+        chapter: 5,
+        verse: 16,
+        categories: ['prayer', 'forgiveness'],
+    },
+    {
+        book: '1PE',
+        chapter: 1,
+        verse: 3,
+        categories: ['hope', 'salvation', 'praise'],
+    },
+    { book: '1PE', chapter: 1, verse: 6, categories: ['joy', 'hope'] },
+    { book: '1PE', chapter: 1, verse: 8, categories: ['joy', 'love', 'faith'] },
+    {
+        book: '1PE',
+        chapter: 2,
+        verse: 9,
+        categories: ['inspiration', 'praise'],
+    },
+    {
+        book: '1PE',
+        chapter: 2,
+        verse: 24,
+        categories: ['salvation', 'forgiveness'],
+    },
+    { book: '1PE', chapter: 3, verse: 15, categories: ['hope', 'inspiration'] },
+    { book: '1PE', chapter: 4, verse: 8, categories: ['love', 'forgiveness'] },
+    { book: '1PE', chapter: 4, verse: 10, categories: ['inspiration', 'love'] },
+    { book: '1PE', chapter: 5, verse: 6, categories: ['wisdom', 'hope'] },
+    { book: '1PE', chapter: 5, verse: 7, categories: ['peace', 'comfort'] },
+    { book: '1PE', chapter: 5, verse: 10, categories: ['hope', 'strength'] },
+    { book: '2PE', chapter: 1, verse: 3, categories: ['provision'] },
+    { book: '2PE', chapter: 3, verse: 9, categories: ['salvation'] },
+    { book: '2PE', chapter: 3, verse: 18, categories: ['wisdom', 'praise'] },
+    {
+        book: '1JN',
+        chapter: 1,
+        verse: 7,
+        categories: ['forgiveness', 'salvation'],
+    },
+    { book: '1JN', chapter: 1, verse: 9, categories: ['forgiveness'] },
+    { book: '1JN', chapter: 3, verse: 1, categories: ['love'] },
+    { book: '1JN', chapter: 3, verse: 18, categories: ['love', 'inspiration'] },
+    { book: '1JN', chapter: 4, verse: 4, categories: ['courage', 'strength'] },
+    { book: '1JN', chapter: 4, verse: 7, categories: ['love'] },
+    { book: '1JN', chapter: 4, verse: 9, categories: ['love', 'salvation'] },
+    { book: '1JN', chapter: 4, verse: 16, categories: ['love'] },
+    { book: '1JN', chapter: 4, verse: 18, categories: ['love', 'courage'] },
+    { book: '1JN', chapter: 4, verse: 19, categories: ['love'] },
+    { book: '1JN', chapter: 5, verse: 4, categories: ['faith', 'courage'] },
+    { book: '1JN', chapter: 5, verse: 11, categories: ['salvation'] },
+    { book: '1JN', chapter: 5, verse: 14, categories: ['prayer'] },
+    { book: '2JN', chapter: 1, verse: 6, categories: ['love'] },
+    { book: '3JN', chapter: 1, verse: 4, categories: ['joy'] },
+    {
+        book: 'JUD',
+        chapter: 1,
+        verse: 20,
+        endVerse: 21,
+        categories: ['faith', 'prayer'],
+    },
+    {
+        book: 'JUD',
+        chapter: 1,
+        verse: 24,
+        endVerse: 25,
+        categories: ['praise'],
+    },
+    { book: 'REV', chapter: 1, verse: 8, categories: ['praise'] },
+    {
+        book: 'REV',
+        chapter: 1,
+        verse: 17,
+        endVerse: 18,
+        categories: ['post-resurrection-sunday'],
+    },
+    { book: 'REV', chapter: 2, verse: 10, categories: ['courage', 'faith'] },
+    { book: 'REV', chapter: 3, verse: 20, categories: ['salvation'] },
+    { book: 'REV', chapter: 4, verse: 11, categories: ['praise'] },
+    { book: 'REV', chapter: 5, verse: 12, categories: ['praise'] },
+    { book: 'REV', chapter: 7, verse: 9, categories: ['all-saints-day'] },
+    { book: 'REV', chapter: 14, verse: 13, categories: ['all-saints-day'] },
+    { book: 'REV', chapter: 21, verse: 3, categories: ['hope', 'comfort'] },
+    { book: 'REV', chapter: 21, verse: 4, categories: ['hope', 'comfort'] },
+    { book: 'REV', chapter: 21, verse: 5, categories: ['hope'] },
+    { book: 'REV', chapter: 22, verse: 17, categories: ['salvation'] },
+    { book: 'REV', chapter: 22, verse: 20, categories: ['advent-sunday'] },
+];
+
+/**
+ * The options for picking the verse of the day.
+ */
+export interface VerseOfTheDayOptions {
+    /**
+     * The seed that the order of the verses is derived from.
+     * Different seeds give different (but equally valid) orders. Defaults to "" (the standard order).
+     */
+    seed?: string;
+
+    /**
+     * Only pick from the verses in this category (including a holiday's category), on any day.
+     * Every category has fewer verses than there are days in a year, so its verses repeat sooner.
+     */
+    category?: VerseOfTheDayCategory | VerseOfTheDayHolidayId;
+
+    /**
+     * The holidays that have their own verses. Defaults to the holidays of the dataset ({@link getVerseOfTheDayHolidayDates}).
+     */
+    holidays?: readonly VerseOfTheDayHolidayDates[];
+
+    /**
+     * The list of verses to pick from. Defaults to {@link VERSES_OF_THE_DAY}.
+     */
+    verses?: readonly VerseOfTheDay[];
+}
+
+/**
+ * Picks the verse of the day for the given date.
+ *
+ * The pick follows a fixed convention, so every implementation picks the same verse on the same day
+ * (the free-use-bible-api client's `pickVerseOfTheDay()` and the Kotlin SDK use the same one):
+ *
+ * 1. Only the verses that are in use in the year of the date are picked from: those whose `addedIn` year is
+ *    unset or at most the year, and whose `removedIn` year is unset or after the year.
+ * 2. If a category is given, the verses in that category are picked from by the day of the year (as in 4).
+ * 3. Otherwise, if the date is a holiday (a holiday with the date's month and day, or with the date in its `dates`),
+ *    the holiday's verses are picked from: sorted as in 4, but with the holiday's ID in place of the year
+ *    (`"{seed}|{holiday}|{book} {chapter}:{verse}"`), at position `(year * k + i) mod n`, where `k` is the number
+ *    of days the holiday is observed in the year and `i` is the number of those days before the date. A holiday
+ *    goes through its verses one year (and day) at a time.
+ * 4. Otherwise, the verses that aren't for a holiday are picked from. Each one gets a sort key: the 32-bit FNV-1a hash
+ *    of the UTF-8 bytes of `"{seed}|{year}|{book} {chapter}:{verse}"` (e.g. `"|2026|JHN 3:16"`), passed through
+ *    the MurmurHash3 `fmix32` finalizer. They are sorted by their key (as an unsigned number), then by the key's
+ *    string if two keys are equal, and the verse at position `day mod n` is picked, where `day` is the day of the
+ *    year of the date (0 for January 1st) and `n` is the number of verses.
+ *
+ * See https://bible.helloao.org/docs/reference/datasets/verse-of-the-day-convention.html for the full convention.
+ *
+ * Each year has its own order, so with 366 or more verses a verse never repeats within a calendar year
+ * (but can appear on December 31st and again on January 1st), and the order isn't repeated from one year to the next.
+ *
+ * @param date The date to pick the verse for: a `YYYY-MM-DD` string, or a `Date` (its local calendar date is used). Defaults to today.
+ * @param options The options.
+ * @returns The picked verse, or null if no verses match.
+ */
+export function getVerseOfTheDay(
+    date: Date | string = new Date(),
+    options: VerseOfTheDayOptions = {}
+): VerseOfTheDay | null {
+    const seed = options.seed ?? '';
+    const verses = options.verses ?? VERSES_OF_THE_DAY;
+    const holidays = options.holidays ?? defaultHolidays();
+    const { year, month, day, dayOfYear } = getDateParts(date);
+    const inUse = verses.filter((v) => isVerseOfTheDayInUse(v, year));
+
+    let candidates: VerseOfTheDay[];
+    if (options.category) {
+        candidates = inUse.filter((v) =>
+            v.categories.includes(options.category!)
+        );
+    } else {
+        const holiday = findHoliday(holidays, year, month, day);
+        if (holiday) {
+            const holidayVerses = inUse.filter((v) =>
+                (v.categories as string[]).includes(holiday.id)
+            );
+            if (holidayVerses.length > 0) {
+                const sorted = sortByKey(
+                    holidayVerses,
+                    `${seed}|${holiday.id}`
+                );
+                const position = getHolidayPosition(holiday, year, month, day);
+                return sorted[mod(position, sorted.length)];
+            }
+        }
+        const holidayIds = new Set(holidays.map((h) => h.id));
+        candidates = inUse.filter(
+            (v) => !v.categories.some((c) => holidayIds.has(c))
+        );
+    }
+    if (candidates.length <= 0) {
+        return null;
+    }
+
+    const sorted = sortByKey(candidates, `${seed}|${year}`);
+    return sorted[dayOfYear % sorted.length];
+}
+
+let cachedHolidays: VerseOfTheDayHolidayDates[] | null = null;
+function defaultHolidays(): VerseOfTheDayHolidayDates[] {
+    return (cachedHolidays ??= getVerseOfTheDayHolidayDates());
+}
+
+/**
+ * Gets the position of the given date in the holiday's verses: `year * k + i`, where `k` is the number of days
+ * that the holiday is observed in the year and `i` is the number of those days that come before the date.
+ * For a holiday that is observed on one day a year, this is just the year.
+ */
+function getHolidayPosition(
+    holiday: VerseOfTheDayHolidayDates,
+    year: number,
+    month: number,
+    day: number
+): number {
+    if (!holiday.dates) {
+        return year;
+    }
+    const date = formatDate(year, month, day);
+    const datesInYear = holiday.dates.filter((d) =>
+        d.startsWith(date.slice(0, -5))
+    );
+    return (
+        year * datesInYear.length + datesInYear.filter((d) => d < date).length
+    );
+}
+
+function formatDate(year: number, month: number, day: number): string {
+    return `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
+
+/**
+ * Finds the first holiday that falls on the given date.
+ */
+function findHoliday(
+    holidays: readonly VerseOfTheDayHolidayDates[],
+    year: number,
+    month: number,
+    day: number
+): VerseOfTheDayHolidayDates | undefined {
+    const date = formatDate(year, month, day);
+    return holidays.find(
+        (h) => (h.month === month && h.day === day) || !!h.dates?.includes(date)
+    );
+}
+
+/**
+ * Sorts the given verses by the hashes of their keys, `"{prefix}|{book} {chapter}:{verse}"`.
+ */
+function sortByKey<T extends { book: string; chapter: number; verse: number }>(
+    verses: readonly T[],
+    prefix: string
+): T[] {
+    return verses
+        .map((verse) => {
+            const key = `${prefix}|${verse.book} ${verse.chapter}:${verse.verse}`;
+            return { verse, key, hash: hashVerseOfTheDayKey(key) };
+        })
+        .sort((a, b) =>
+            a.hash !== b.hash
+                ? a.hash - b.hash
+                : a.key < b.key
+                  ? -1
+                  : a.key > b.key
+                    ? 1
+                    : 0
+        )
+        .map((x) => x.verse);
+}
+
+function mod(value: number, n: number): number {
+    return ((value % n) + n) % n;
+}
+
+/**
+ * Determines whether the given verse can be the verse of the day in the given year:
+ * its `addedIn` year is unset or at most the year, and its `removedIn` year is unset or after the year.
+ */
+export function isVerseOfTheDayInUse(
+    verse: { addedIn?: number | null; removedIn?: number | null },
+    year: number
+): boolean {
+    return (
+        (verse.addedIn == null || verse.addedIn <= year) &&
+        (verse.removedIn == null || year < verse.removedIn)
+    );
+}
+
+/**
+ * Gets the number of days from 1970-01-01 to the given date.
+ * @param date A `YYYY-MM-DD` string, or a `Date` (its local calendar date is used).
+ */
+export function getDayNumber(date: Date | string): number {
+    const { year, month, day } = parseDate(date);
+    return daysSinceEpoch(year, month, day);
+}
+
+/**
+ * Gets the year of the given date and its day of the year (0 for January 1st).
+ * @param date A `YYYY-MM-DD` string, or a `Date` (its local calendar date is used).
+ */
+export function getYearAndDayOfYear(date: Date | string): {
+    year: number;
+    dayOfYear: number;
+} {
+    const { year, month, day } = parseDate(date);
+    return {
+        year,
+        dayOfYear:
+            daysSinceEpoch(year, month, day) - daysSinceEpoch(year, 1, 1),
+    };
+}
+
+/**
+ * Gets the year, month, day, and day of the year (0 for January 1st) of the given date.
+ */
+function getDateParts(date: Date | string): {
+    year: number;
+    month: number;
+    day: number;
+    dayOfYear: number;
+} {
+    const { year, month, day } = parseDate(date);
+    return {
+        year,
+        month,
+        day,
+        dayOfYear:
+            daysSinceEpoch(year, month, day) - daysSinceEpoch(year, 1, 1),
+    };
+}
+
+function parseDate(date: Date | string): {
+    year: number;
+    month: number;
+    day: number;
+} {
+    if (typeof date !== 'string') {
+        return {
+            year: date.getFullYear(),
+            month: date.getMonth() + 1,
+            day: date.getDate(),
+        };
+    }
+    const match = /^(-?\d{4,})-(\d{2})-(\d{2})$/.exec(date);
+    if (!match) {
+        throw new Error(`Invalid date "${date}". Use the YYYY-MM-DD format.`);
+    }
+    const year = parseInt(match[1], 10);
+    const month = parseInt(match[2], 10);
+    const day = parseInt(match[3], 10);
+    const utc = new Date(0);
+    utc.setUTCFullYear(year, month - 1, day);
+    if (
+        utc.getUTCFullYear() !== year ||
+        utc.getUTCMonth() !== month - 1 ||
+        utc.getUTCDate() !== day
+    ) {
+        throw new Error(`Invalid date "${date}".`);
+    }
+    return { year, month, day };
+}
+
+function daysSinceEpoch(year: number, month: number, day: number): number {
+    const utc = new Date(0);
+    utc.setUTCFullYear(year, month - 1, day);
+    return Math.round(utc.getTime() / 86_400_000);
+}
+
+/**
+ * Gets the sort key of the given string: its 32-bit FNV-1a hash (of the UTF-8 bytes),
+ * passed through the MurmurHash3 fmix32 finalizer. Returns an unsigned 32-bit number.
+ */
+export function hashVerseOfTheDayKey(key: string): number {
+    let hash = 0x811c9dc5;
+    for (let byte of new TextEncoder().encode(key)) {
+        hash ^= byte;
+        hash = Math.imul(hash, 0x01000193);
+    }
+    hash ^= hash >>> 16;
+    hash = Math.imul(hash, 0x85ebca6b);
+    hash ^= hash >>> 13;
+    hash = Math.imul(hash, 0xc2b2ae35);
+    hash ^= hash >>> 16;
+    return hash >>> 0;
+}
+
+/**
+ * Generates the verse of the day dataset from the given list of verses.
+ *
+ * The dataset has a chapter for every chapter that contains a candidate, listing the
+ * candidates and their categories, and a category entity for every category, listing its verses.
+ *
+ * @param verses The list of verses. Defaults to {@link VERSES_OF_THE_DAY}.
+ * @param dataset The dataset information to use. Defaults to {@link VERSE_OF_THE_DAY_DATASET}.
+ */
+export function generateVerseOfTheDayDataset(
+    verses: VerseOfTheDay[] = VERSES_OF_THE_DAY,
+    dataset: Dataset = VERSE_OF_THE_DAY_DATASET
+): DatasetDataset {
+    const sorted = [...verses].sort(
+        (a, b) =>
+            (bookOrderMap.get(a.book) ?? 9999) -
+                (bookOrderMap.get(b.book) ?? 9999) ||
+            a.chapter - b.chapter ||
+            a.verse - b.verse
+    );
+
+    const books: DatasetDatasetBook[] = [];
+    for (let v of sorted) {
+        let book = books[books.length - 1];
+        if (!book || book.id !== v.book) {
+            book = {
+                id: v.book as BookId,
+                order: bookOrderMap.get(v.book) ?? 9999,
+                chapters: [],
+            };
+            books.push(book);
+        }
+        let chapter = book.chapters[book.chapters.length - 1]?.chapter;
+        if (!chapter || chapter.number !== v.chapter) {
+            chapter = { number: v.chapter, content: [] };
+            book.chapters.push({ chapter });
+        }
+        chapter.content.push({
+            verse: v.verse,
+            ...(v.endVerse !== undefined ? { endVerse: v.endVerse } : {}),
+            categories: [...v.categories],
+            ...(v.addedIn !== undefined ? { addedIn: v.addedIn } : {}),
+            ...(v.removedIn !== undefined ? { removedIn: v.removedIn } : {}),
+        });
+    }
+
+    const holidayDates = new Map(
+        getVerseOfTheDayHolidayDates().map(({ id, ...dates }) => [id, dates])
+    );
+    const categories: DatasetCategory[] = [
+        ...VERSE_OF_THE_DAY_CATEGORIES.map((id) => ({
+            id,
+            name: VERSE_OF_THE_DAY_CATEGORY_NAMES[id],
+            description: VERSE_OF_THE_DAY_CATEGORY_DESCRIPTIONS[id],
+        })),
+        ...VERSE_OF_THE_DAY_HOLIDAY_IDS.map((id) => ({
+            id,
+            name: VERSE_OF_THE_DAY_HOLIDAYS[id].name,
+            description: VERSE_OF_THE_DAY_HOLIDAYS[id].description,
+            holiday: holidayDates.get(id) as DatasetCategory['holiday'],
+        })),
+    ]
+        .map(
+            (category): DatasetCategory => ({
+                ...category,
+                verses: sorted
+                    .filter((v) =>
+                        (v.categories as string[]).includes(category.id)
+                    )
+                    .map((v) => ({
+                        book: v.book as BookId,
+                        chapter: v.chapter,
+                        verse: v.verse,
+                        ...(v.endVerse !== undefined
+                            ? { endVerse: v.endVerse }
+                            : {}),
+                        ...(v.addedIn !== undefined
+                            ? { addedIn: v.addedIn }
+                            : {}),
+                        ...(v.removedIn !== undefined
+                            ? { removedIn: v.removedIn }
+                            : {}),
+                    })),
+            })
+        )
+        .filter((c) => c.verses.length > 0);
+
+    return {
+        ...dataset,
+        books,
+        categories,
+    };
+}

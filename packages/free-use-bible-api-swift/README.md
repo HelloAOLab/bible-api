@@ -105,6 +105,10 @@ Only some chapters have audio timings. The keys of a chapter's `thisChapterAudio
 - `getDatasetPeopleGroup(dataset:group:)`
 - `getDatasetLexicon(dataset:)`
 - `getDatasetLexiconEntry(dataset:strongs:)`
+- `getDatasetVerses(dataset:)`
+- `getVerseOfTheDay(date:seed:category:dataset:)` - see [Verse of the Day](#verse-of-the-day)
+- `getDatasetCategories(dataset:)`
+- `getDatasetCategory(dataset:category:)`
 
 ### Chapter Navigation Helpers
 
@@ -118,6 +122,13 @@ Only some chapters have audio timings. The keys of a chapter's `thisChapterAudio
 - `getChapterVerseText(_:options:)`
 - `getSimpleChapterVerseText(_:options:)`
 - `formatReference(_:_:)`
+
+### Verse of the Day
+
+- `getVerseOfTheDay(date:seed:category:dataset:)` - gets the verse of the day for a date (today by default) from the `verse-of-the-day` dataset. The date is a `YYYY-MM-DD` string or a `Date` (its calendar date in the current time zone is used).
+- `pickVerseOfTheDay(_:date:seed:category:holidays:)` - picks the verse of the day from a list of verses you already have, such as the `verses` and `holidays` from `getDatasetVerses(dataset:)`.
+
+The verse is picked by the [Verse of the Day Convention](https://bible.helloao.org/docs/reference/datasets/verse-of-the-day-convention.html), so every SDK picks the same verse on the same day. The same date always gives the same verse, a verse doesn't repeat within a calendar year, and holidays (such as Christmas and Resurrection Sunday) get verses of their own. Pass a `seed` (such as the name of your app) to get a different order with the same guarantees.
 
 ### Word Annotations
 
@@ -205,6 +216,17 @@ let chapter = try await api.getDatasetBookChapter(dataset: "open-cross-ref", boo
 if case .datasetBookChapter(let crossReferences) = chapter {
     for case .references(let verse) in crossReferences.chapter.content {
         print(verse.verse, verse.references.count)
+    }
+}
+```
+
+### Get the verse of the day
+
+```swift
+if let verse = try await api.getVerseOfTheDay(date: "2026-12-25") {
+    let chapter = try await api.getTranslationBookChapter(translation: "BSB", book: verse.book, chapter: verse.chapter)
+    for case .verse(let content) in chapter.chapter.content where (verse.verse...(verse.endVerse ?? verse.verse)).contains(content.number) {
+        print(content.number, api.getVerseText(content))
     }
 }
 ```

@@ -36,6 +36,10 @@ Commands:
                                                          The directory should contain the files downloaded by the fetch-interlinear command.
   import-history-globe <dir>                             Imports the History Globe places from the given directory into the database.
                                                          The directory should contain the files downloaded by the fetch-history-globe command.
+  import-verse-of-the-day                                Imports the verse of the day dataset into the database.
+                                                         The dataset is built into @helloao/tools, so it does not need to be fetched first.
+  review-verse-of-the-day [options] [dir]                Prints the verses of the verse of the day dataset with their categories and their text, so that the list can be reviewed.
+                                                         The text comes from the USFM files in the given directory, which defaults to ./bible/bsb (the Berean Standard Bible).
   upload-test-translation [options] <input>              Uploads a translation to the HelloAO Free Bible API test S3 bucket.
                                                          Requires access to the HelloAO Free Bible API test S3 bucket.
                                                          For inquiries, please contact hello@helloao.org.
@@ -86,7 +90,8 @@ The `sync` command runs the whole pipeline (import into the database, generate, 
         { "type": "translation", "path": "./bible/bsb" },
         { "type": "commentaries", "path": "./sources/comment" },
         { "type": "theographic", "path": "./sources/metadata" },
-        { "type": "interlinear", "path": "./sources/interlinear" }
+        { "type": "interlinear", "path": "./sources/interlinear" },
+        { "type": "verse-of-the-day" }
     ],
     "destinations": [
         { "url": "s3://my-bucket", "profile": "my-aws-profile" },
@@ -102,7 +107,7 @@ helloao sync ./sync.config.json [--dry-run] [--skip-import] [--skip-upload] [--d
 
 Paths in the config are relative to the config file, and `--db` overrides `db`. See `sync.config.example.json` in the repository for a starting point.
 
--   **Sources.** `translations` and `commentaries` are directories where every subdirectory is a translation or commentary. `translation` and `commentary` are a single one. `theographic` and `interlinear` are the directories written by `fetch-bible-metadata` and `fetch-interlinear`. A configured directory that is missing is an error, so an unmounted drive can't be mistaken for every source being deleted.
+-   **Sources.** `translations` and `commentaries` are directories where every subdirectory is a translation or commentary. `translation` and `commentary` are a single one. `theographic` and `interlinear` are the directories written by `fetch-bible-metadata` and `fetch-interlinear`. `verse-of-the-day` is the verse of the day dataset, which is built into `@helloao/tools`, so it has no `path`; it is reimported whenever the list of verses changes. A configured directory that is missing is an error, so an unmounted drive can't be mistaken for every source being deleted.
 -   **Include and exclude.** `include` and `exclude` lists can be set for the whole config and for each source. They match translation, commentary, and dataset IDs (and the names of translation and commentary directories), case-insensitively, with `*` and `?` wildcards. Excluded sources are never parsed or imported.
 -   **Change detection.** Each source is fingerprinted by the names, sizes, and modification times of its files, so untouched sources are skipped without being read. When the fingerprint changes, the file contents are hashed, and the source is only reprocessed if they changed. This includes `metadata.json`, so metadata and license changes are picked up.
 -   **Deletions.** When a source is deleted or becomes excluded, its translations, commentaries, or datasets are removed from the database and their files are deleted from every destination. When a source changes, it is replaced as a whole, so books and chapters that were removed from it are deleted too. Audio timings that were loaded with `import-audio-timings` are kept.
