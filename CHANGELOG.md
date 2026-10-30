@@ -24,6 +24,7 @@ This is the log of changes for the Free Use Bible API.
     -   `GET /api/d/history-globe/places/{id}.json`
     -   `GET /api/d/history-globe/{book}/{chapter}.json`
 -   `/api/available_datasets.json` entries have new fields for the new datasets (word, verse, category, and lexicon counts and links).
+-   Added roughly 100 translations from [fetch.bible](https://fetch.bible).
 -   Added two public domain Japanese Bibles: `jpn_kou` (口語訳, Kougo-yaku) and `jpn_bun` (文語訳, Bungo-yaku).
 -   Line breaks that start a paragraph now include the paragraph marker (e.g. `"paragraph": "p"`), and `.simple.json` verses list mid-verse paragraphs in `paragraphs`. More translations now have paragraph breaks.
 
