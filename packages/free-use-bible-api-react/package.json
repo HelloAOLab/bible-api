@@ -1,6 +1,6 @@
 {
     "name": "free-use-bible-api-react",
-    "version": "1.15.0",
+    "version": "1.16.0",
     "description": "React components and state managers for reading the Bible with the Free Use Bible API",
     "keywords": [
         "bible",

@@ -1,6 +1,6 @@
 {
     "name": "@helloao/cli",
-    "version": "1.15.0",
+    "version": "1.16.0",
     "description": "A CLI and related tools for managing HelloAO's Free Bible API",
     "keywords": [
         "bible",
