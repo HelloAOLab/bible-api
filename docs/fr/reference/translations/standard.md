@@ -41,6 +41,10 @@ curl https://bible.helloao.org/api/BSB/GEN/1.json
 
 ### Structure
 
+Un `line_break` qui introduit un nouveau paragraphe source possède une propriété `paragraph` avec le marqueur de source sans sa barre oblique inverse (par exemple `{ "type": "line_break", "paragraph": "p" }` ; d’autres marqueurs incluent `m` , `pi1` , `mi` et `pc` ). Les marqueurs de ligne vide ( `\b` ) produisent `line_break` éléments sans `paragraph` Lorsqu’une ligne vide est directement suivie d’un paragraphe ( `\b` puis `\m` ), ils sont fusionnés en un seul `{ "type": "line_break", "paragraph": "m" }` , tandis que deux lignes vides produisent deux sauts de ligne. `\nb` poursuit le paragraphe courant et ne produit aucun saut de ligne. Un paragraphe qui commence à l’intérieur d’un verset est représenté dans le contenu du verset par `{ "lineBreak": true, "paragraph": "p" }` .
+
+Les moteurs de rendu qui ne comprennent que les sauts de ligne peuvent ignorer `paragraph` .
+
 ```typescript:no-line-numbers title="chapter.ts"
 export interface TranslationBookChapter {
     /**
@@ -191,6 +195,11 @@ interface ChapterLineBreak {
      * Indique que le contenu représente un saut de ligne.
      */
     type: 'line_break';
+
+    /**
+     * Le marqueur de paragraphe source (sans sa barre oblique inverse) lorsque le saut de ligne marque le début d'un nouveau paragraphe, par exemple `p` , `m` , `pi1` ou `mi` Omis pour les sauts de ligne simples.
+     */
+    paragraph?: string;
 }
 
 /**
@@ -270,6 +279,11 @@ interface InlineHeading {
  */
 interface InlineLineBreak {
     lineBreak: true;
+
+    /**
+     * Le marqueur de paragraphe source (sans sa barre oblique inverse) lorsque le saut de ligne marque le début d'un nouveau paragraphe, par exemple `p` , `m` , `pi1` ou `mi` Omis pour les sauts de ligne simples.
+     */
+    paragraph?: string;
 }
 
 
@@ -373,6 +387,7 @@ interface TranslationBookChapterAudioTimingsLinks {
         "translationId": "BSB",
         "name": "Genesis",
         "commonName": "Genesis",
+        "shortName": "Gen",
         "title": "Genesis",
         "order": 1,
         "numberOfChapters": 50,
@@ -769,7 +784,7 @@ export interface TranslationBookChapterWords {
 
     /**
      * Le lien vers les mots du chapitre précédent.
-     * Nul s'il s'agit du premier chapitre de la traduction, ou si le chapitre précédent ne comporte aucune annotation au niveau des mots.
+     * Nul si c'est le premier chapitre de la traduction, ou si le chapitre précédent ne comporte aucune annotation au niveau des mots.
      */
     previousChapterWordsLink: string | null;
 
@@ -971,6 +986,12 @@ export interface TranslationCompleteBook {
     commonName: string;
 
     /**
+     * Le nom court (abréviation) que la traduction a donné au livre.
+     * Si elle n'est pas disponible, c'est qu'elle n'a pas été fournie par la traduction.
+     */
+    shortName?: string;
+
+    /**
      * Le titre du livre.
      */
     title: string | null;
@@ -1075,6 +1096,7 @@ interface TranslationBookChapterAudioTimingsMap {
       "id": "GEN",
       "name": "Genesis",
       "commonName": "Genesis",
+      "shortName": "Gen",
       "title": "Genesis",
       "order": 1,
       "numberOfChapters": 50,

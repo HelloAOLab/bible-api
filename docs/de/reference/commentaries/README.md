@@ -62,6 +62,12 @@ export interface Commentary {
     licenseUrl: string;
 
     /**
+     * Die API fügte Hinweise zur Lizenz hinzu.
+     * Null oder undefiniert, wenn keine Notizen vorhanden sind.
+     */
+    licenseNotes?: string | null;
+
+    /**
      * Die englische Bezeichnung für den Kommentar.
      */
     englishName: string;

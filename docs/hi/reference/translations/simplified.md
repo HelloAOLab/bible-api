@@ -53,6 +53,8 @@ curl https://bible.helloao.org/api/BSB/GEN/1.simple.json
 
 ### ऑफसेट
 
+सरलीकृत अध्याय सामग्री अध्याय-स्तर `line_break` आइटमों को, उनकी `paragraph` विशेषता सहित, बरकरार रखती है। जब कोई पैराग्राफ किसी श्लोक के भीतर शुरू होता है, तो श्लोक के पाठ में उस बिंदु पर एक नई पंक्ति होती है और श्लोक का `paragraphs` सरणी इसे `{ offset, style }` के रूप में रिकॉर्ड करता है, जहां `offset` नई पंक्ति के बाद पहले अक्षर का सूचकांक है।
+
 सरलीकृत प्रारूप में सभी ऑफ़सेट - `offset` , `start` और `end` - उस श्लोक के `text` के सूचकांक हैं जिसमें वे मौजूद हैं। इन्हें UTF-16 कोड इकाइयों में मापा जाता है, जिनका उपयोग जावास्क्रिप्ट के `String.prototype.length` और `String.prototype.slice()` भाग में किया जाता है।
 
 `start` समावेशी है और `end` अनन्य है, इसलिए `text.slice(start, end)` चिह्नित पाठ की सटीक सीमा लौटाता है। फुटनोट ऑफसेट वह स्थिति है जहां फुटनोट का कॉलर स्थित होता है, इसलिए `text.slice(0, offset)` उससे पहले आने वाला पाठ है।
@@ -185,6 +187,11 @@ interface ChapterLineBreak {
      * यह दर्शाता है कि सामग्री एक पंक्ति विराम का प्रतिनिधित्व करती है।
      */
     type: 'line_break';
+
+    /**
+     * जब पंक्ति विराम से नया पैराग्राफ शुरू होता है, तो स्रोत पैराग्राफ मार्कर (बिना बैकस्लैश के) का उपयोग किया जाता है, उदाहरण के लिए `p` , `m` , `pi1` या `mi` सामान्य पंक्ति विराम के लिए इसे छोड़ दिया जाता है।
+     */
+    paragraph?: string;
 }
 
 /**
@@ -217,6 +224,12 @@ interface SimpleChapterVerse {
      * यदि श्लोक में कोई शीर्षक नहीं है तो इसे छोड़ दिया जाएगा।
      */
     headings?: SimpleInlineHeading[];
+
+    /**
+     * वे अनुच्छेद जो श्लोक के मध्य से शुरू होते हैं।
+     * यदि श्लोक में इसका उल्लेख नहीं है तो इसे छोड़ दिया जाएगा।
+     */
+    paragraphs?: SimpleVerseParagraph[];
 
     /**
      * श्लोक के वे अंश जो यीशु के वचनों का प्रतिनिधित्व करते हैं।
@@ -287,6 +300,21 @@ interface SimpleInlineHeading {
 }
 
 /**
+ * एक ऐसा अनुच्छेद जो किसी श्लोक के मध्य से शुरू होता है।
+ */
+interface SimpleVerseParagraph {
+    /**
+     * श्लोक के पाठ में वह अनुक्रमणिका जहाँ से अनुच्छेद शुरू होता है।
+     */
+    offset: number;
+
+    /**
+     * बैकस्लैश के बिना स्रोत पैराग्राफ मार्कर, उदाहरण के लिए `p` या `m` ।
+     */
+    style: string;
+}
+
+/**
  * श्लोक के भीतर पाठ की एक श्रेणी।
  */
 interface SimpleTextRange {
@@ -339,6 +367,7 @@ interface SimplePoemRange extends SimpleTextRange {
         "id": "GEN",
         "name": "Genesis",
         "commonName": "Genesis",
+        "shortName": "Gen",
         "title": "Genesis",
         "order": 1,
         "numberOfChapters": 50,
@@ -796,6 +825,7 @@ export interface SimpleTranslationCompleteChapter {
             "id": "GEN",
             "name": "Genesis",
             "commonName": "Genesis",
+            "shortName": "Gen",
             "title": "Genesis",
             "order": 1,
             "numberOfChapters": 50,

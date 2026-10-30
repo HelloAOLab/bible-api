@@ -53,6 +53,8 @@ curl https://bible.helloao.org/api/BSB/GEN/1.simple.json
 
 ### Décalages
 
+Le contenu simplifié des chapitres conserve les éléments de niveau `line_break` du chapitre, y compris leur propriété `paragraph` Lorsqu'un paragraphe commence à l'intérieur d'un verset, le texte du verset contient un saut de ligne à cet endroit et le tableau `paragraphs` du verset l'enregistre comme `{ offset, style }` , où `offset` est l'index du premier caractère après le saut de ligne.
+
 Les décalages, sous forme simplifiée ( `offset` , `start` et `end` ), correspondent à des indices dans le verset `text` qui les contient. Ils sont exprimés en unités de code UTF-16, le même format que celui utilisé par JavaScript (codes `String.prototype.length` et `String.prototype.slice()` .
 
 `start` est inclusif et `end` est exclu ; ainsi, `text.slice(start, end)` renvoie exactement la plage de texte marquée. Les décalages des notes de bas de page correspondent à la position de l’élément qui les appelle ; `text.slice(0, offset)` représente donc le texte qui le précède.
@@ -185,6 +187,11 @@ interface ChapterLineBreak {
      * Indique que le contenu représente un saut de ligne.
      */
     type: 'line_break';
+
+    /**
+     * Le marqueur de paragraphe source (sans sa barre oblique inverse) lorsque le saut de ligne marque le début d'un nouveau paragraphe, par exemple `p` , `m` , `pi1` ou `mi` Omis pour les sauts de ligne simples.
+     */
+    paragraph?: string;
 }
 
 /**
@@ -217,6 +224,12 @@ interface SimpleChapterVerse {
      * Omis si le verset ne contient aucun titre en ligne.
      */
     headings?: SimpleInlineHeading[];
+
+    /**
+     * Les paragraphes qui commencent au milieu du verset.
+     * Omis si le verset n'en contient aucun.
+     */
+    paragraphs?: SimpleVerseParagraph[];
 
     /**
      * Les passages du texte des versets qui représentent les paroles de Jésus.
@@ -287,6 +300,21 @@ interface SimpleInlineHeading {
 }
 
 /**
+ * Un paragraphe qui commence au milieu d'un verset.
+ */
+interface SimpleVerseParagraph {
+    /**
+     * L'indice dans le texte du verset où commence le paragraphe.
+     */
+    offset: number;
+
+    /**
+     * Le marqueur de paragraphe source sans sa barre oblique inverse, par exemple `p` ou `m` .
+     */
+    style: string;
+}
+
+/**
  * Un ensemble de texte à l'intérieur d'un verset.
  */
 interface SimpleTextRange {
@@ -339,6 +367,7 @@ interface SimplePoemRange extends SimpleTextRange {
         "id": "GEN",
         "name": "Genesis",
         "commonName": "Genesis",
+        "shortName": "Gen",
         "title": "Genesis",
         "order": 1,
         "numberOfChapters": 50,
@@ -429,7 +458,7 @@ interface SimplePoemRange extends SimpleTextRange {
 }
 ```
 
-Les poèmes et les paroles de Jésus sont présentés sous forme d'intervalles au-dessus du texte des versets. Par exemple, le chiffre `Matthew 5:3` dans la traduction `engwebp` se présente ainsi :
+Les poèmes et les paroles de Jésus sont présentés sous forme d'intervalles au-dessus du texte du verset. Par exemple, le chiffre `Matthew 5:3` dans la traduction `engwebp` se présente ainsi :
 
 ```json:no-line-numbers title="/api/engwebp/MAT/5.simple.json"
 {
@@ -561,7 +590,7 @@ export interface SimpleTranslationBookChapterWords {
 
     /**
      * Le lien vers les annotations du chapitre précédent.
-     * Nul si c'est le premier chapitre de la traduction, ou si le chapitre précédent ne comporte aucune annotation au niveau des mots.
+     * Nul s'il s'agit du premier chapitre de la traduction, ou si le chapitre précédent ne comporte aucune annotation au niveau des mots.
      */
     previousChapterWordsLink: string | null;
 
@@ -796,6 +825,7 @@ export interface SimpleTranslationCompleteChapter {
             "id": "GEN",
             "name": "Genesis",
             "commonName": "Genesis",
+            "shortName": "Gen",
             "title": "Genesis",
             "order": 1,
             "numberOfChapters": 50,

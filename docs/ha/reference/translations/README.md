@@ -75,6 +75,25 @@ interface Translation {
     licenseUrl: string;
 
     /**
+     * Bayanan da aka ƙara ta API don lasisin.
+     * Ba a fayyace ko ba a fayyace ba idan babu bayanin kula.
+     */
+    licenseNotes?: string | null;
+
+    /**
+     * Sanarwar da ya kamata a nuna yayin nuna abubuwan da ke cikin fassarar.
+     * Ba a fayyace ko ba a fayyace ba idan fassarar ba ta da sanarwa.
+     */
+    licenseNotice?: string | null;
+
+    /**
+     * Sharuɗɗan lasisin da aka gano don fassarar.
+     * Ba a tantance ko ba a fayyace ba idan ba za a iya tantance sharuɗɗan ba.
+     * A wannan yanayin, duba shafin a licenseUrl don sharuɗɗan.
+     */
+    license?: License | null;
+
+    /**
      * Gajeren sunan fassarar.
      */
     shortName: string;
@@ -152,7 +171,59 @@ interface Translation {
      */
     totalNumberOfApocryphalVerses?: number;
 }
+
+/**
+ * Yana bayyana sharuɗɗan lasisin da aka tsara waɗanda aka gano don fassarar.
+ */
+interface License {
+    /**
+     * Ko ana buƙatar danganta asalin tushen yayin amfani da fassarar.
+     */
+    attribution: 'required' | 'not-required';
+
+    /**
+     * Ko an yarda a yi amfani da fassarar ta kasuwanci.
+     */
+    commercialUse: 'allowed' | 'not-allowed';
+
+    /**
+     * Ko an yarda a ƙirƙiri da kuma rarraba ayyukan fassarar da aka samo asali.
+     */
+    derivatives: 'allowed' | 'not-allowed';
+
+    /**
+     * Ko ayyukan da aka samo asali dole ne a rarraba su a ƙarƙashin lasisi ɗaya (watau buƙatar "daidai-dai-dai").
+     */
+    copyleft: boolean;
+
+    /**
+     * Ko an sadaukar da fassarar ga jama'a.
+     */
+    publicDomain: boolean;
+}
 ```
+
+### Lasisi
+
+Kowace fassara ana buga ta ne a ƙarƙashin lasisin ta, don haka duba sharuɗɗan fassarar kafin ka yi amfani da ita.
+
+-   `licenseUrl` koyaushe yana haɗi zuwa cikakkun sharuɗɗan lasisi.
+-   `licenseNotice` , idan akwai, shine sanarwar haƙƙin mallaka ko bayanin martaba da za a nuna tare da abubuwan da ke cikin fassarar.
+-   `licenseNotes` ya ƙunshi bayanan da API ya ƙara, kamar canje-canje da aka yi wa rubutun tushe.
+-   `license` , idan akwai, yana taƙaita sharuɗɗan a cikin hanyar da lambar ku za ta iya dubawa. Misali, zaku iya tace jerin zuwa fassarorin da ke ba da damar amfani da kasuwanci:
+
+```ts:no-line-numbers title="commercial-translations.js"
+fetch(`https://bible.helloao.org/api/available_translations.json`)
+    .then(request => request.json())
+    .then(({ translations }) => {
+        const commercial = translations.filter(
+            t => t.license?.commercialUse === 'allowed'
+        );
+        console.log('Translations that allow commercial use:', commercial);
+    });
+```
+
+Ana saita `license` ne kawai lokacin da za a iya gano sharuɗɗan ta atomatik. Fassarar da ba ta da ita na iya ba da damar amfani da ita, don haka karanta shafin da ke `licenseUrl` don waɗannan.
 
 ### Misali
 
@@ -247,6 +318,12 @@ interface TranslationBook {
     commonName: string;
 
     /**
+     * Gajeren suna (gajarta) da fassarar ta tanadar wa littafin.
+     * Idan babu, to fassarar ba ta bayar da ɗaya ba.
+     */
+    shortName?: string;
+
+    /**
      * Sunan littafin.
      * Wannan yawanci sigar da ta fi bayyana sunan littafin ce.
      * Idan babu, to fassarar ba ta bayar da ɗaya ba.
@@ -325,6 +402,7 @@ interface TranslationBook {
             "translationId": "BSB",
             "name": "Genesis",
             "commonName": "Genesis",
+            "shortName": "Gen",
             "title": "Genesis",
             "order": 1,
             "numberOfChapters": 50,

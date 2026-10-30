@@ -75,6 +75,25 @@ interface Translation {
     licenseUrl: string;
 
     /**
+     * API 为许可证添加了注释。
+     * 如果没有笔记，则返回 null 或 undefined。
+     */
+    licenseNotes?: string | null;
+
+    /**
+     * 显示翻译内容时应显示的通知。
+     * 如果翻译中没有提示信息，则返回 null 或 undefined。
+     */
+    licenseNotice?: string | null;
+
+    /**
+     * 检测到的用于翻译的结构化许可条款。
+     * 如果无法确定术语，则为 null 或 undefined。
+     * 在这种情况下，请查看 licenseUrl 页面上的条款。
+     */
+    license?: License | null;
+
+    /**
      * 翻译的简称。
      */
     shortName: string;
@@ -116,7 +135,7 @@ interface Translation {
     /**
      * 本译本包含的书籍数量。
      *
-     * 完整的译本应该与圣经的卷数相同（66卷）。
+     * 完整的译本应该与圣经的卷数相同（66）。
      */
     numberOfBooks: number;
 
@@ -152,7 +171,59 @@ interface Translation {
      */
     totalNumberOfApocryphalVerses?: number;
 }
+
+/**
+ * 定义为翻译检测到的结构化许可条款。
+ */
+interface License {
+    /**
+     * 使用译文时是否需要注明原文出处？
+     */
+    attribution: 'required' | 'not-required';
+
+    /**
+     * 是否允许将译文用于商业用途。
+     */
+    commercialUse: 'allowed' | 'not-allowed';
+
+    /**
+     * 是否允许创作和传播该译文的衍生作品。
+     */
+    derivatives: 'allowed' | 'not-allowed';
+
+    /**
+     * 衍生作品是否必须以相同的许可协议分发（即“相同方式共享”的要求）。
+     */
+    copyleft: boolean;
+
+    /**
+     * 该译本是否已进入公有领域。
+     */
+    publicDomain: boolean;
+}
 ```
+
+### 许可证
+
+每部译文均按其各自的许可协议发布，因此在使用前请查看译文的条款。
+
+-   `licenseUrl`始终链接到完整的许可条款。
+-   `licenseNotice` （如有）是版权或署名声明，将显示在翻译内容旁边。
+-   `licenseNotes`包含 API 添加的注释，例如对源文本所做的更改。
+-   如果存在，则`license`会以代码可检查的形式汇总术语。例如，您可以将列表筛选为允许商业用途的翻译：
+
+```ts:no-line-numbers title="commercial-translations.js"
+fetch(`https://bible.helloao.org/api/available_translations.json`)
+    .then(request => request.json())
+    .then(({ translations }) => {
+        const commercial = translations.filter(
+            t => t.license?.commercialUse === 'allowed'
+        );
+        console.log('Translations that allow commercial use:', commercial);
+    });
+```
+
+仅当术语可以自动检测到时才会设置`license`未设置 0 的翻译可能仍然允许您使用，因此请阅读第`licenseUrl`页以了解详情。
 
 ### 例子
 
@@ -247,6 +318,12 @@ interface TranslationBook {
     commonName: string;
 
     /**
+     * 译者为本书提供的简称。
+     * 如果没有，则表示翻译过程中没有提供相关信息。
+     */
+    shortName?: string;
+
+    /**
      * 书名。
      * 这通常是书名的更具描述性的版本。
      * 如果没有，则表示翻译过程中没有提供相关信息。
@@ -325,6 +402,7 @@ interface TranslationBook {
             "translationId": "BSB",
             "name": "Genesis",
             "commonName": "Genesis",
+            "shortName": "Gen",
             "title": "Genesis",
             "order": 1,
             "numberOfChapters": 50,

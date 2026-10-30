@@ -41,6 +41,10 @@ curl https://bible.helloao.org/api/BSB/GEN/1.json
 
 ### Struttura
 
+Uno `line_break` che inizia un nuovo paragrafo sorgente ha una proprietà `paragraph` con il marcatore sorgente senza la sua barra rovesciata (ad esempio `{ "type": "line_break", "paragraph": "p" }` ; altri marcatori includono `m` , `pi1` , `mi` e `pc` ). I marcatori di riga vuota ( `\b` ) producono `line_break` elementi senza un `paragraph` Quando una riga vuota è seguita direttamente da un paragrafo ( `\b` poi `\m` ), vengono uniti in un unico `{ "type": "line_break", "paragraph": "m" }` , mentre due righe vuote producono due interruzioni di riga. `\nb` continua il paragrafo corrente e non produce alcuna interruzione di riga. Un paragrafo che inizia all'interno di un verso è rappresentato nel contenuto del verso come `{ "lineBreak": true, "paragraph": "p" }` .
+
+I motori di rendering che comprendono solo le interruzioni di riga possono ignorare `paragraph` .
+
 ```typescript:no-line-numbers title="chapter.ts"
 export interface TranslationBookChapter {
     /**
@@ -191,6 +195,11 @@ interface ChapterLineBreak {
      * Indica che il contenuto rappresenta un'interruzione di riga.
      */
     type: 'line_break';
+
+    /**
+     * Il marcatore di paragrafo sorgente (senza la barra rovesciata) quando l'interruzione di riga inizia un nuovo paragrafo, ad esempio `p` , `m` , `pi1` o `mi` Omesso per le interruzioni di riga semplici.
+     */
+    paragraph?: string;
 }
 
 /**
@@ -270,6 +279,11 @@ interface InlineHeading {
  */
 interface InlineLineBreak {
     lineBreak: true;
+
+    /**
+     * Il marcatore di paragrafo sorgente (senza la barra rovesciata) quando l'interruzione di riga inizia un nuovo paragrafo, ad esempio `p` , `m` , `pi1` o `mi` Omesso per le interruzioni di riga semplici.
+     */
+    paragraph?: string;
 }
 
 
@@ -373,6 +387,7 @@ interface TranslationBookChapterAudioTimingsLinks {
         "translationId": "BSB",
         "name": "Genesis",
         "commonName": "Genesis",
+        "shortName": "Gen",
         "title": "Genesis",
         "order": 1,
         "numberOfChapters": 50,
@@ -580,7 +595,7 @@ curl https://bible.helloao.org/api/BSB/GEN/1.hays.audioTimings.json
 ```typescript:no-line-numbers title="chapter-audio-timings.ts"
 /**
  * Definisce la durata dell'audio per un capitolo del libro, per un singolo lettore.
- * Corrisponde all'endpoint /api/{translation}/{book}/{chapter}.{reader}.audioTimings.json.
+ * Mappa all'endpoint /api/{translation}/{book}/{chapter}.{reader}.audioTimings.json.
  */
 export interface TranslationBookChapterAudioTimings {
     /**
@@ -774,7 +789,7 @@ export interface TranslationBookChapterWords {
     previousChapterWordsLink: string | null;
 
     /**
-     * Il testo annotato per ogni versetto del capitolo, con indicazione del numero del versetto.
+     * Le parole annotate per ogni versetto del capitolo, ordinate per numero di versetto.
      * Ogni elenco segue l'ordine in cui le parole compaiono nel versetto.
      */
     verses: {
@@ -971,6 +986,12 @@ export interface TranslationCompleteBook {
     commonName: string;
 
     /**
+     * Il nome breve (abbreviazione) che la traduzione ha fornito per il libro.
+     * Se non disponibile, significa che la traduzione non l'ha fornita.
+     */
+    shortName?: string;
+
+    /**
      * Il titolo del libro.
      */
     title: string | null;
@@ -1075,6 +1096,7 @@ interface TranslationBookChapterAudioTimingsMap {
       "id": "GEN",
       "name": "Genesis",
       "commonName": "Genesis",
+      "shortName": "Gen",
       "title": "Genesis",
       "order": 1,
       "numberOfChapters": 50,

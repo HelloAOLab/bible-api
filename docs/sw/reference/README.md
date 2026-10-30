@@ -8,5 +8,5 @@ Nyaraka za marejeleo kwa ajili ya API ya Matumizi ya Bure ya Biblia, zilizopangw
 
 -   [**Tafsiri, Vitabu, na Sura**](./translations/README.md) - Tafsiri za Biblia, vitabu vyao, na maudhui ya sura, zinapatikana katika miundo [ya kawaida](./translations/standard.md) na [iliyorahisishwa](./translations/simplified.md) .
 -   [**Maelezo**](./commentaries/README.md) - Maelezo ya Biblia, vitabu vyao, sura, na wasifu.
--   [**Seti za data**](./datasets/README.md) - seti za data za ziada, kama vile marejeleo mtambuka na viumbe vya kibiblia (watu, mahali, matukio, na vikundi vya watu), na vitabu vyao, sura, na viumbe.
+-   [**Seti za data**](./datasets/README.md) - seti za data za ziada, kama vile marejeleo mtambuka, viumbe vya kibiblia (watu, mahali, matukio, na vikundi vya watu), maneno ya lugha asilia kati ya mstari, kamusi ya Strong, na wagombea wa mstari wa siku, na vitabu vyao, sura, viumbe, na kategoria za mistari.
 -   [**OpenAPI**](./openapi.md) - hati ya OpenAPI inayoelezea API, ambayo unaweza kutumia kutengeneza wateja kwa lugha zingine.

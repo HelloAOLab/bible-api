@@ -41,6 +41,10 @@ curl https://bible.helloao.org/api/BSB/GEN/1.json
 
 ### Muundo
 
+A `line_break` inayoanzisha aya mpya chanzo ina sifa ya `paragraph` yenye alama chanzo bila msuguano wake (kwa mfano `{ "type": "line_break", "paragraph": "p" }` ; alama zingine zinajumuisha `m` , `pi1` , `mi` , na `pc` ). Alama za mistari tupu ( `\b` ) hutoa vipengee `line_break` bila `paragraph` Wakati mstari tupu unafuatwa moja kwa moja na aya ( `\b` kisha `\m` ), huunganishwa katika `{ "type": "line_break", "paragraph": "m" }` moja, huku mistari miwili tupu ikitoa misuguano miwili ya mistari. `\nb` inaendelea na aya ya sasa na haitoi msuguano wowote wa mistari. Aya inayoanza ndani ya aya inawakilishwa katika maudhui ya aya kama `{ "lineBreak": true, "paragraph": "p" }` .
+
+Waonyeshaji wanaoelewa tu mapumziko ya mstari wanaweza kupuuza `paragraph` .
+
 ```typescript:no-line-numbers title="chapter.ts"
 export interface TranslationBookChapter {
     /**
@@ -191,6 +195,11 @@ interface ChapterLineBreak {
      * Inaonyesha kwamba maudhui yanawakilisha mgawanyiko wa mstari.
      */
     type: 'line_break';
+
+    /**
+     * Alama ya aya chanzo (bila msuguano wake wa nyuma) wakati mgawanyiko wa mstari unapoanza aya mpya, kwa mfano `p` , `m` , `pi1` au `mi` Imeachwa kwa mgawanyiko wa mistari wazi.
+     */
+    paragraph?: string;
 }
 
 /**
@@ -270,6 +279,11 @@ interface InlineHeading {
  */
 interface InlineLineBreak {
     lineBreak: true;
+
+    /**
+     * Alama ya aya chanzo (bila msuguano wake wa nyuma) wakati mgawanyiko wa mstari unapoanza aya mpya, kwa mfano `p` , `m` , `pi1` au `mi` Imeachwa kwa mgawanyiko wa mistari wazi.
+     */
+    paragraph?: string;
 }
 
 
@@ -373,6 +387,7 @@ interface TranslationBookChapterAudioTimingsLinks {
         "translationId": "BSB",
         "name": "Genesis",
         "commonName": "Genesis",
+        "shortName": "Gen",
         "title": "Genesis",
         "order": 1,
         "numberOfChapters": 50,
@@ -971,6 +986,12 @@ export interface TranslationCompleteBook {
     commonName: string;
 
     /**
+     * Jina fupi (kifupisho) ambalo tafsiri ilitoa kwa ajili ya kitabu hicho.
+     * Kama haipatikani, basi tafsiri haikutoa moja.
+     */
+    shortName?: string;
+
+    /**
      * Kichwa cha kitabu.
      */
     title: string | null;
@@ -1075,6 +1096,7 @@ interface TranslationBookChapterAudioTimingsMap {
       "id": "GEN",
       "name": "Genesis",
       "commonName": "Genesis",
+      "shortName": "Gen",
       "title": "Genesis",
       "order": 1,
       "numberOfChapters": 50,

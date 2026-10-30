@@ -41,6 +41,10 @@ curl https://bible.helloao.org/api/BSB/GEN/1.json
 
 ### Estrutura
 
+Um `line_break` que inicia um novo parágrafo de origem tem uma propriedade `paragraph` com o marcador de origem sem a barra invertida (por exemplo, `{ "type": "line_break", "paragraph": "p" }` ; outros marcadores incluem `m` , `pi1` , `mi` e `pc` ). Marcadores de linha em branco ( `\b` ) produzem `line_break` itens sem um `paragraph` Quando uma linha em branco é seguida diretamente por um parágrafo ( `\b` e depois `\m` ), eles são mesclados em um único `{ "type": "line_break", "paragraph": "m" }` , enquanto duas linhas em branco produzem duas quebras de linha. `\nb` continua o parágrafo atual e não produz quebra de linha. Um parágrafo que começa dentro de um verso é representado no conteúdo do verso como `{ "lineBreak": true, "paragraph": "p" }` .
+
+Renderizadores que só entendem quebras de linha podem ignorar `paragraph` .
+
 ```typescript:no-line-numbers title="chapter.ts"
 export interface TranslationBookChapter {
     /**
@@ -191,6 +195,11 @@ interface ChapterLineBreak {
      * Indica que o conteúdo representa uma quebra de linha.
      */
     type: 'line_break';
+
+    /**
+     * O marcador de parágrafo de origem (sem a barra invertida) quando a quebra de linha inicia um novo parágrafo, por exemplo, `p` , `m` , `pi1` ou `mi` Omitido para quebras de linha simples.
+     */
+    paragraph?: string;
 }
 
 /**
@@ -270,6 +279,11 @@ interface InlineHeading {
  */
 interface InlineLineBreak {
     lineBreak: true;
+
+    /**
+     * O marcador de parágrafo de origem (sem a barra invertida) quando a quebra de linha inicia um novo parágrafo, por exemplo, `p` , `m` , `pi1` ou `mi` Omitido para quebras de linha simples.
+     */
+    paragraph?: string;
 }
 
 
@@ -373,6 +387,7 @@ interface TranslationBookChapterAudioTimingsLinks {
         "translationId": "BSB",
         "name": "Genesis",
         "commonName": "Genesis",
+        "shortName": "Gen",
         "title": "Genesis",
         "order": 1,
         "numberOfChapters": 50,
@@ -971,6 +986,12 @@ export interface TranslationCompleteBook {
     commonName: string;
 
     /**
+     * O nome abreviado (ou sigla) que a tradução forneceu para o livro.
+     * Caso não esteja disponível, significa que a tradução não forneceu nenhuma.
+     */
+    shortName?: string;
+
+    /**
      * O título do livro.
      */
     title: string | null;
@@ -1075,6 +1096,7 @@ interface TranslationBookChapterAudioTimingsMap {
       "id": "GEN",
       "name": "Genesis",
       "commonName": "Genesis",
+      "shortName": "Gen",
       "title": "Genesis",
       "order": 1,
       "numberOfChapters": 50,

@@ -75,6 +75,25 @@ interface Translation {
     licenseUrl: string;
 
     /**
+     * Amanothi angeziwe nge-API yelayisensi.
+     * Akunamsebenzi noma akuchaziwe uma kungekho amanothi.
+     */
+    licenseNotes?: string | null;
+
+    /**
+     * Isaziso okufanele siboniswe lapho kuboniswa okuqukethwe okuvela ekuhunyushweni.
+     * Akunamsebenzi noma akuchaziwe uma ukuhumusha kungenaso isaziso.
+     */
+    licenseNotice?: string | null;
+
+    /**
+     * Imigomo yelayisensi ehlelekile etholwe ekuhunyushweni.
+     * Akunamsebenzi noma akuchaziwe uma imigomo ingatholakali.
+     * Uma kunjalo, hlola ikhasi ku-licenseUrl ukuthola imigomo.
+     */
+    license?: License | null;
+
+    /**
      * Igama elifushane lokuhumusha.
      */
     shortName: string;
@@ -152,7 +171,59 @@ interface Translation {
      */
     totalNumberOfApocryphalVerses?: number;
 }
+
+/**
+ * Ichaza imigomo yelayisensi ehleliwe etholwe ekuhumusheni.
+ */
+interface License {
+    /**
+     * Kuyadingeka yini ukuthi kunikezwe umthombo wokuqala uma kusetshenziswa ukuhumusha.
+     */
+    attribution: 'required' | 'not-required';
+
+    /**
+     * Kuvunyelwe yini ukusetshenziswa kwenguqulo kwezentengiselwano.
+     */
+    commercialUse: 'allowed' | 'not-allowed';
+
+    /**
+     * Kuvunyelwe yini ukudala nokusabalalisa imisebenzi esuselwe kokuhumusha.
+     */
+    derivatives: 'allowed' | 'not-allowed';
+
+    /**
+     * Ukuthi imisebenzi esuselwe kulokho kufanele isatshalaliswe ngaphansi kwelayisensi efanayo (okungukuthi imfuneko "yokwabelana ngokufana").
+     */
+    copyleft: boolean;
+
+    /**
+     * Ukuthi ukuhumusha kunikezelwe emphakathini yini.
+     */
+    publicDomain: boolean;
+}
 ```
+
+### Amalayisense
+
+Ukuhumusha ngakunye kushicilelwa ngaphansi kwelayisensi yakho, ngakho hlola imigomo yokuhumusha ngaphambi kokuyisebenzisa.
+
+-   `licenseUrl` ihlala ixhumanisa nemigomo yelayisensi ephelele.
+-   `licenseNotice` , uma ikhona, iyisaziso se-copyright noma sokunikeza okufanele siboniswe eceleni kokuqukethwe okuvela ekuhunyushweni.
+-   `licenseNotes` iqukethe amanothi angezwe yi-API, njengezinguquko ezenziwe kumbhalo womthombo.
+-   `license` , uma ikhona, ifingqa imigomo ngendlela ikhodi yakho engayihlola ngayo. Isibonelo, ungahlunga uhlu luye ezinguqulweni ezivumela ukusetshenziswa kwezentengiselwano:
+
+```ts:no-line-numbers title="commercial-translations.js"
+fetch(`https://bible.helloao.org/api/available_translations.json`)
+    .then(request => request.json())
+    .then(({ translations }) => {
+        const commercial = translations.filter(
+            t => t.license?.commercialUse === 'allowed'
+        );
+        console.log('Translations that allow commercial use:', commercial);
+    });
+```
+
+`license` usethwa kuphela uma imigomo ingatholakala ngokuzenzakalelayo. Ukuhumusha ngaphandle kwayo kungase kuvumele ukusetshenziswa kwakho, ngakho funda ikhasi eliku- `licenseUrl` ukuze uthole lokho.
 
 ### Isibonelo
 
@@ -247,6 +318,12 @@ interface TranslationBook {
     commonName: string;
 
     /**
+     * Igama elifushane (isifinyezo) elinikezwe yinguqulo yale ncwadi.
+     * Uma ingatholakali, khona-ke enye ayizange inikezwe yinguqulo.
+     */
+    shortName?: string;
+
+    /**
      * Isihloko sencwadi.
      * Lokhu ngokuvamile kuyinguqulo echazayo kakhulu yegama lencwadi.
      * Uma ingatholakali, khona-ke enye ayizange inikezwe yinguqulo.
@@ -325,6 +402,7 @@ interface TranslationBook {
             "translationId": "BSB",
             "name": "Genesis",
             "commonName": "Genesis",
+            "shortName": "Gen",
             "title": "Genesis",
             "order": 1,
             "numberOfChapters": 50,

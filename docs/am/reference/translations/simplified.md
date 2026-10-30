@@ -53,9 +53,11 @@ curl https://bible.helloao.org/api/BSB/GEN/1.simple.json
 
 ### ማካካሻዎች
 
+ቀለል ያለ የምዕራፍ ይዘት የምዕራፍ ደረጃ `line_break` ንጥሎችን ይይዛል፣ ይህም `paragraph` ንብረታቸውን ጨምሮ። አንድ አንቀጽ በአንድ ጥቅስ ውስጥ ሲጀምር፣ የጥቅሱ ጽሑፍ በዚያ ነጥብ ላይ አዲስ መስመር ይይዛል እና የጥቅሱ `paragraphs` ድርድር እንደ `{ offset, style }` ይመዘግበዋል፣ `offset` ደግሞ ከአዲሱ መስመር በኋላ የመጀመሪያው ቁምፊ ማውጫ ነው።
+
 በቀላል ቅርጸት - `offset` ፣ `start` እና `end` - ውስጥ ያሉት ሁሉም ማካካሻዎች በያዘው የቁጥር `text` ውስጥ ያሉ ኢንዴክሶች ናቸው። የሚለኩት በUTF-16 የኮድ አሃዶች ነው፣ ይህም የጃቫስክሪፕት `String.prototype.length` እና `String.prototype.slice()` ጥቅም ላይ የሚውለው።
 
-`start` የሚያካትት ሲሆን `end` ደግሞ ልዩ ነው፣ ስለዚህ `text.slice(start, end)` ምልክት የተደረገበትን የጽሑፍ ክልል በትክክል ይመልሳል። የግርጌ ማስታወሻ ማካካሻዎች የግርጌ ማስታወሻው ደዋዩ ያለበት ቦታ ናቸው፣ ስለዚህ `text.slice(0, offset)` ከሱ በፊት የሚመጣው ጽሑፍ ነው።
+`start` የሚያካትት ሲሆን `end` ደግሞ ልዩ ነው፣ ስለዚህ `text.slice(start, end)` በትክክል ምልክት የተደረገበትን የጽሑፍ ክልል ይመልሳል። የግርጌ ማስታወሻ ማካካሻዎች የግርጌ ማስታወሻው ደዋዩ ያለበት ቦታ ናቸው፣ ስለዚህ `text.slice(0, offset)` ከሱ በፊት የሚመጣው ጽሑፍ ነው።
 
 ### መዋቅር
 
@@ -185,6 +187,11 @@ interface ChapterLineBreak {
      * ይዘቱ የመስመር መግቻን እንደሚወክል ያመለክታል።
      */
     type: 'line_break';
+
+    /**
+     * የመስመር መግቻ አዲስ አንቀጽ ሲጀምር የምንጭ አንቀጽ ምልክት ማድረጊያ (ያለ የኋላ ሰረዝ)፣ ለምሳሌ `p` ፣ `m` ፣ `pi1` ወይም `mi` ለቀላል የመስመር መግቻዎች ተትቷል።
+     */
+    paragraph?: string;
 }
 
 /**
@@ -217,6 +224,12 @@ interface SimpleChapterVerse {
      * ጥቅሱ ምንም አይነት የውስጥ ርዕስ ከሌለው ይሰረዛል።
      */
     headings?: SimpleInlineHeading[];
+
+    /**
+     * በጥቅሱ መሃል የሚጀምሩት አንቀጾች።
+     * ጥቅሱ ምንም ነገር ከሌለው ተትቷል።
+     */
+    paragraphs?: SimpleVerseParagraph[];
 
     /**
      * የኢየሱስን ቃላት የሚወክሉ የጥቅሱ ክፍሎች።
@@ -287,6 +300,21 @@ interface SimpleInlineHeading {
 }
 
 /**
+ * በአንድ ጥቅስ መሃል የሚጀምር አንቀጽ።
+ */
+interface SimpleVerseParagraph {
+    /**
+     * አንቀጹ የሚጀምረው በጥቅሱ ጽሑፍ ውስጥ ያለው ማውጫ።
+     */
+    offset: number;
+
+    /**
+     * የምንጭ አንቀጽ ምልክት ማድረጊያው የኋላ ሰረዝ የሌለው፣ ለምሳሌ `p` ወይም `m` ።
+     */
+    style: string;
+}
+
+/**
  * በአንድ ጥቅስ ውስጥ የፅሁፍ ክልል።
  */
 interface SimpleTextRange {
@@ -339,6 +367,7 @@ interface SimplePoemRange extends SimpleTextRange {
         "id": "GEN",
         "name": "Genesis",
         "commonName": "Genesis",
+        "shortName": "Gen",
         "title": "Genesis",
         "order": 1,
         "numberOfChapters": 50,
@@ -750,7 +779,7 @@ export interface SimpleTranslationCompleteChapter {
     /**
      * የምዕራፉ የድምጽ ጊዜ (በአንድ-ቁጥር የሚጀምርበት ጊዜ፣ በሰከንዶች)።
      *
-     * ሙሉ የትርጉም ፋይሎቹ የጊዜ ሰሌዳዎቹን እራሳቸው እንደያዙ ልብ ይበሉ (በመደበኛ ቅርጸት ሰነዶች ውስጥ የTranslateBookChapterAudioTimingsMap ን ይመልከቱ)፣ ወደ እነሱ የሚወስዱ አገናኞችን የያዙ የግለሰብ ምዕራፍ የመጨረሻ ነጥቦች ሳይሆኑ።
+     * ሙሉ የትርጉም ፋይሎቹ የጊዜ ሰሌዳዎቹን እራሳቸው እንደያዙ ልብ ይበሉ (በመደበኛ ቅርጸት ሰነዶች ውስጥ የTranslateBookChapterAudioTimingsMap ን ይመልከቱ)፣ ወደ እነሱ የሚወስዱ አገናኞችን የያዙ የግለሰብ ምዕራፍ የመጨረሻ ነጥቦች በተለየ።
      */
     thisChapterAudioTimings: TranslationBookChapterAudioTimingsMap;
 
@@ -796,6 +825,7 @@ export interface SimpleTranslationCompleteChapter {
             "id": "GEN",
             "name": "Genesis",
             "commonName": "Genesis",
+            "shortName": "Gen",
             "title": "Genesis",
             "order": 1,
             "numberOfChapters": 50,

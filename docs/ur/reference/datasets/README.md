@@ -1,6 +1,6 @@
 # ڈیٹاسیٹس
 
-ضمنی بائبل ڈیٹاسیٹس کو براؤز کرنے کے لیے اختتامی نقطے - جیسے کراس حوالہ جات اور بائبلی اداروں (لوگ، مقامات، واقعات، اور لوگوں کے گروپ) - اور ان کی کتابیں، باب کے مواد اور اداروں کو بازیافت کرنا۔
+ضمنی بائبل ڈیٹاسیٹس کو براؤز کرنے کے اختتامی نکات - جیسے کراس حوالہ جات، بائبل کے اداروں (لوگ، مقامات، واقعات، اور لوگوں کے گروپ)، اصل زبان کے بین خطی الفاظ، لغت، اور دن کے امیدواروں کی آیت - اور ان کی کتابیں، باب کے مواد، اداروں، لغت کے اندراجات، اور آیات کی فہرستیں حاصل کرنا۔
 
 ## دستیاب ڈیٹاسیٹس
 
@@ -62,6 +62,12 @@ export interface Dataset {
     licenseUrl: string;
 
     /**
+     * لائسنس کے لیے API کے شامل کردہ نوٹس۔
+     * اگر کوئی نوٹ نہیں ہے تو کالعدم یا غیر متعینہ۔
+     */
+    licenseNotes?: string | null;
+
+    /**
      * ڈیٹاسیٹ کا انگریزی نام۔
      */
     englishName: string;
@@ -105,8 +111,15 @@ export interface Dataset {
 
     /**
      * کراس حوالہ جات کی کل تعداد جو اس ڈیٹاسیٹ میں موجود ہیں۔
+     * 0 ڈیٹاسیٹس کے لیے جن میں کراس حوالہ جات نہیں ہوتے ہیں۔
      */
     totalNumberOfReferences: number;
+
+    /**
+     * انٹر لائنر الفاظ کی کل تعداد جو اس ڈیٹاسیٹ میں موجود ہیں۔
+     * اگر ڈیٹاسیٹ میں انٹر لائنر الفاظ شامل نہیں ہیں تو چھوڑ دیا جائے گا۔
+     */
+    totalNumberOfWords?: number;
 
     /**
      * اس زبان کا نام حاصل کرتا ہے جس میں ڈیٹاسیٹ ہے۔
@@ -137,6 +150,36 @@ export interface Dataset {
     totalNumberOfPlaces?: number;
     totalNumberOfEvents?: number;
     totalNumberOfPeopleGroups?: number;
+
+    /**
+     * ڈیٹاسیٹ میں لغت کے اندراجات کی فہرست کے لیے API لنک۔
+     * اگر ڈیٹاسیٹ میں لغت کے اندراجات شامل نہیں ہیں تو چھوڑ دیا جائے گا۔
+     */
+    listOfLexiconApiLink?: string;
+
+    /**
+     * لغت کے اندراجات کی کل تعداد جو ڈیٹاسیٹ میں موجود ہیں۔
+     * اگر ڈیٹاسیٹ میں لغت کے اندراجات شامل نہیں ہیں تو چھوڑ دیا جائے گا۔
+     */
+    totalNumberOfLexicon?: number;
+
+    /**
+     * ڈیٹاسیٹ میں ہر آیت کی فہرست کے لیے API لنک، اس کے زمروں کے ساتھ۔
+     * اگر ڈیٹاسیٹ کی آیات میں زمرے نہیں ہیں تو حذف کر دیا جائے گا۔
+     */
+    listOfVersesApiLink?: string;
+
+    /**
+     * ڈیٹاسیٹ میں آیت کے زمروں کی فہرست کے لیے API لنک۔
+     * اگر ڈیٹاسیٹ میں آیت کے زمرے شامل نہیں ہیں تو اسے چھوڑ دیا جائے گا۔
+     */
+    listOfCategoriesApiLink?: string;
+
+    /**
+     * آیات کے زمروں کی کل تعداد جو ڈیٹاسیٹ میں موجود ہیں۔
+     * اگر ڈیٹاسیٹ میں آیت کے زمرے شامل نہیں ہیں تو اسے چھوڑ دیا جائے گا۔
+     */
+    totalNumberOfCategories?: number;
 }
 ```
 
@@ -192,6 +235,94 @@ export interface Dataset {
             "totalNumberOfEvents": 450,
             "listOfPeopleGroupsApiLink": "/api/d/theographic/groups.json",
             "totalNumberOfPeopleGroups": 23
+        },
+        {
+            "id": "bsb-interlinear",
+            "name": "Berean Standard Bible Interlinear",
+            "website": "https://bereanbible.com/",
+            "licenseUrl": "https://berean.bible/terms.htm",
+            "licenseNotes": "The Berean Standard Bible and its interlinear tables are in the public domain. Changes were made to the data to fit the Free Use Bible API format.",
+            "englishName": "Berean Standard Bible Interlinear",
+            "language": "eng",
+            "textDirection": "ltr",
+            "availableFormats": [
+                "json"
+            ],
+            "listOfBooksApiLink": "/api/d/bsb-interlinear/books.json",
+            "numberOfBooks": 66,
+            "totalNumberOfChapters": 1189,
+            "totalNumberOfVerses": 31102,
+            "totalNumberOfReferences": 0,
+            "languageName": "English",
+            "languageEnglishName": "English",
+            "totalNumberOfWords": 443625
+        },
+        {
+            "id": "stepbible-lexicon",
+            "name": "STEPBible Brief Lexicons",
+            "website": "https://github.com/STEPBible/STEPBible-Data",
+            "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+            "licenseNotes": "The Translators Brief lexicons of Extended Strongs (TBESH and TBESG) are by STEPBible.org / Tyndale House, Cambridge, and are licensed under CC BY 4.0. Changes were made to the data to fit the Free Use Bible API format.",
+            "englishName": "STEPBible Brief Lexicons",
+            "language": "eng",
+            "textDirection": "ltr",
+            "availableFormats": [
+                "json"
+            ],
+            "listOfBooksApiLink": "/api/d/stepbible-lexicon/books.json",
+            "numberOfBooks": 0,
+            "totalNumberOfChapters": 0,
+            "totalNumberOfVerses": 0,
+            "totalNumberOfReferences": 0,
+            "languageName": "English",
+            "languageEnglishName": "English",
+            "listOfLexiconApiLink": "/api/d/stepbible-lexicon/lexicon.json",
+            "totalNumberOfLexicon": 18085
+        },
+        {
+            "id": "history-globe",
+            "name": "History Globe",
+            "website": "https://historyglobe.app",
+            "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+            "licenseNotes": "History Globe by Vadym Arnaut (https://historyglobe.app) is licensed under CC BY 4.0. Its places, verse tags, and coordinates start from the OpenBible.info Bible Geocoding Data (CC BY 4.0), with corrections, and some coordinates are from Wikidata (CC0). Changes were made to the data to fit the Free Use Bible API format.",
+            "englishName": "History Globe",
+            "language": "eng",
+            "textDirection": "ltr",
+            "availableFormats": [
+                "json"
+            ],
+            "listOfBooksApiLink": "/api/d/history-globe/books.json",
+            "numberOfBooks": 61,
+            "totalNumberOfChapters": 849,
+            "totalNumberOfVerses": 5546,
+            "totalNumberOfReferences": 8617,
+            "languageName": "English",
+            "languageEnglishName": "English",
+            "listOfPlacesApiLink": "/api/d/history-globe/places.json",
+            "totalNumberOfPlaces": 1231
+        },
+        {
+            "id": "verse-of-the-day",
+            "name": "Verse of the Day",
+            "website": "https://github.com/HelloAOLab/bible-api/blob/main/packages/helloao-tools/generation/verse-of-the-day.ts",
+            "licenseUrl": "https://github.com/HelloAOLab/bible-api/blob/main/LICENSE",
+            "licenseNotes": "A curated list of well-known verses by AO Lab, released under the MIT License.",
+            "englishName": "Verse of the Day",
+            "language": "eng",
+            "textDirection": "ltr",
+            "availableFormats": [
+                "json"
+            ],
+            "listOfBooksApiLink": "/api/d/verse-of-the-day/books.json",
+            "numberOfBooks": 65,
+            "totalNumberOfChapters": 381,
+            "totalNumberOfVerses": 750,
+            "totalNumberOfReferences": 0,
+            "languageName": "English",
+            "languageEnglishName": "English",
+            "listOfVersesApiLink": "/api/d/verse-of-the-day/verses.json",
+            "listOfCategoriesApiLink": "/api/d/verse-of-the-day/categories.json",
+            "totalNumberOfCategories": 31
         }
     ]
 }
@@ -353,7 +484,7 @@ interface DatasetBook {
 
 دی گئی کتاب اور ڈیٹاسیٹ کے لیے ایک باب کا مواد حاصل کرتا ہے۔
 
-کراس ریفرینس ڈیٹاسیٹس کے لیے (جیسے `open-cross-ref` )، باب ہر آیت کے لیے کراس حوالہ جات کی فہرست پر مشتمل ہے۔ ہستی کے ڈیٹاسیٹس کے لیے (جیسے `theographic` )، باب میں وہ لوگ، مقامات اور واقعات شامل ہیں جو باب میں نظر آتے ہیں - دیکھیں [ایک باب میں ہستی حاصل کریں](#get-the-entities-in-a-chapter) ۔
+کراس ریفرینس ڈیٹاسیٹس کے لیے (جیسے `open-cross-ref` )، باب میں ہر آیت کے لیے کراس حوالہ جات کی فہرست شامل ہے۔ انٹر لائنر ڈیٹاسیٹس کے لیے (جیسے `bsb-interlinear` )، باب میں ہر آیت کے اصل زبان کے الفاظ ہیں - [انٹر لائنر ڈیٹاسیٹس](#interlinear-datasets) دیکھیں۔ ہستی ڈیٹاسیٹس کے لیے (جیسے `theographic` )، باب میں وہ لوگ، مقامات اور واقعات شامل ہیں جو باب میں نظر آتے ہیں - دیکھیں [ایک باب میں ہستی حاصل کریں](#get-the-entities-in-a-chapter) ۔ `verse-of-the-day` ڈیٹاسیٹ کے لیے، باب میں باب میں امیدواروں اور ان کے زمرے میں دن کی آیت شامل ہے - [دن کی آیت](#verse-of-the-day) دیکھیں۔
 
 -   `dataset` ڈیٹاسیٹ کی ID (مثلاً `open-cross-ref` )۔
 -   `book` کتاب کی شناخت ہے (مثال کے طور پر پیدائش کے لیے `GEN` )۔
@@ -440,7 +571,16 @@ interface DatasetChapterData {
     content: DatasetVerse[];
 }
 
-interface DatasetVerse {
+/**
+ * ایک آیت میں `references` (کراس ریفرنس ڈیٹاسیٹ)، `words` (انٹر لائنر ڈیٹاسیٹ) یا `categories` (آیت کا دن کا ڈیٹاسیٹ) ہوتا ہے۔
+ * چیک کریں کہ کون سا `'words' in verse` یا `'categories' in verse` کے ساتھ موجود ہے۔
+ */
+type DatasetVerse =
+    | DatasetReferencesVerse
+    | DatasetWordsVerse
+    | DatasetCategoriesVerse;
+
+interface DatasetReferencesVerse {
     /**
      * آیت کی تعداد۔
      */
@@ -452,6 +592,52 @@ interface DatasetVerse {
      * اسکور کے لحاظ سے ترتیب دیا گیا، نزولی۔
      */
     references: DatasetReference[];
+}
+
+interface DatasetWordsVerse {
+    /**
+     * آیت کی تعداد۔
+     */
+    verse: number;
+
+    /**
+     * آیت کے اصل زبان کے الفاظ، اصل متن کی ترتیب میں۔
+     * ذیل میں "انٹر لائنر ڈیٹاسیٹس" دیکھیں۔
+     */
+    words: InterlinearWord[];
+}
+
+interface DatasetCategoriesVerse {
+    /**
+     * آیت کی تعداد۔
+     * اگر `endVerse` موجود ہے تو یہ وہ آیت ہے جس سے عبارت شروع ہوتی ہے۔
+     */
+    verse: number;
+
+    /**
+     * وہ آیت جس پر یہ عبارت ختم ہوتی ہے۔
+     * اگر اندراج ایک آیت ہے تو چھوڑ دیا جائے گا۔
+     */
+    endVerse?: number;
+
+    /**
+     * ان زمروں کی IDs جن سے آیت کا تعلق ہے، سب سے پہلے۔
+     * ذیل میں "آیت آف دی ڈے" دیکھیں۔
+     */
+    categories: string[];
+
+    /**
+     * پہلا سال کہ آیت دن کی آیت ہو سکتی ہے۔
+     * اگر آیت ہمیشہ فہرست میں رہی ہو۔
+     */
+    addedIn?: number;
+
+    /**
+     * پہلا سال کہ آیت اب دن کی آیت نہیں رہ سکتی۔
+     * ہٹائی گئی آیات ڈیٹاسیٹ میں رہتی ہیں تاکہ پچھلے سالوں کی آیات کو اب بھی اٹھایا جا سکے۔
+     * اگر آیت کو فہرست سے نہیں ہٹایا گیا ہے تو خارج کر دیا گیا ہے۔
+     */
+    removedIn?: number;
 }
 
 interface DatasetReference {
@@ -481,6 +667,8 @@ interface DatasetReference {
      */
     score?: number;
 }
+
+// InterlinearWord کی ساخت کے لیے نیچے "Interlinear Datasets" دیکھیں۔
 ```
 
 ### مثال
@@ -574,6 +762,8 @@ interface DatasetReference {
 
 کچھ ڈیٹا سیٹس - جیسے [تھیوگرافک بائبل میٹا ڈیٹا](https://github.com/robertrouse/theographic-bible-metadata) ڈیٹاسیٹ ( `theographic` ) - ہستیوں پر مشتمل ہے: لوگ، مقامات، واقعات، اور لوگوں کے گروپ، ان کے اور بائبل کی آیات کے درمیان تعلقات کے ساتھ جو ان کا ذکر کرتی ہیں۔
 
+[ہسٹری گلوب](https://historyglobe.app) ڈیٹاسیٹ ( `history-globe` ) صرف مقامات پر مشتمل ہے: بائبل میں جن مقامات کا نام دیا گیا ہے، ان کے نقاط کے ساتھ اور آیات جو ان کے نام رکھتی ہیں۔ اس کی جگہ کی IDs (مثلاً یروشلم کے لیے `a15257a` ) ہسٹری گلوب کی مستحکم جگہ کی IDs ہیں، وہی جو اس کا اپنا [اوپن ڈیٹا API](https://historyglobe.app/docs/api.html) استعمال کرتا ہے، اس لیے جب کسی نام کو درست کیا جاتا ہے تو وہ تبدیل نہیں ہوتے ہیں۔ اس کی `featureType` اقدار ان کی پیروی کرتی ہیں جو تھیوگرافک ڈیٹاسیٹ استعمال کرتا ہے ( `City` , `Region` , `Water` , اور اسی طرح ) اور `featureSubType` زیادہ مخصوص قسم کا حامل ہوتا ہے جہاں ایک ہوتا ہے ( مثلاً `River` , `Gate` , `Spring` )۔
+
 ڈیٹا سیٹس جو ہستیوں پر مشتمل ہیں ان میں `listOfPeopleApiLink` , `listOfPlacesApiLink` , `listOfEventsApiLink` , اور `listOfPeopleGroupsApiLink` خصوصیات شامل ہیں `/api/available_datasets.json` میں ان کے اندراج میں۔
 
 ہستی کے ڈیٹاسیٹس باب سے منسلک ڈیٹا بھی فراہم کرتے ہیں: `/api/d/{dataset}/books.json` ان کتابوں کی فہرست دیتا ہے جن کے ابواب میں ہستی کا ڈیٹا ہوتا ہے، اور `/api/d/{dataset}/{book}/{chapter}.json` اس باب میں ظاہر ہونے والے لوگوں، مقامات اور واقعات کو، آیت نمبروں کے ساتھ جہاں ہر ایک کا تذکرہ ہوتا ہے۔ [ایک باب میں اداروں کو حاصل کریں](#get-the-entities-in-a-chapter) دیکھیں۔
@@ -622,23 +812,27 @@ export interface VerseRef {
 
     /**
      * وہ آیت جس پر حوالہ ختم ہوتا ہے۔
-     * ایک ہی باب میں متواتر آیات کو ایک ہی حوالہ میں سمو دیا گیا ہے۔
+     * ایک ہی باب میں متواتر آیات کو ایک ہی حوالہ میں سمٹ دیا گیا ہے۔
      */
     endVerse?: number;
 }
 ```
 
+### تاریخ گلوب انتساب
+
+ہسٹری گلوب ڈیٹا [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) کے تحت لائسنس یافتہ ہے۔ اگر آپ اسے استعمال کرتے ہیں تو، ہسٹری گلوب ( https://historyglobe.app ) اور OpenBible.info بائبل جیو کوڈنگ ڈیٹا کو کریڈٹ کریں جس پر یہ بناتا ہے، اور کسی بھی تبدیلی کو نوٹ کریں۔ ڈیٹاسیٹ کی `licenseNotes` پراپرٹی کریڈٹ رکھتی ہے۔
+
 ## ایک باب میں اداروں کو حاصل کریں۔
 
 `GET https://bible.helloao.org/api/d/{dataset}/{book}/{chapter}.json`
 
-ہستی ڈیٹاسیٹس کے لیے، وہ لوگ، مقامات اور واقعات حاصل کرتے ہیں جو ایک باب میں ظاہر ہوتے ہیں، اس باب میں آیت نمبر کے ساتھ جہاں ہر ایک کا ذکر کیا گیا ہے۔
+ہستی ڈیٹاسیٹس کے لیے، وہ لوگ، مقامات اور واقعات حاصل کرتے ہیں جو ایک باب میں ظاہر ہوتے ہیں، اس باب میں آیت نمبروں کے ساتھ جہاں ہر ایک کا ذکر کیا گیا ہے۔
 
 -   `dataset` ڈیٹاسیٹ کی ID (مثلاً `theographic` )۔
 -   `book` کتاب کی شناخت ہے (مثال کے طور پر پیدائش کے لیے `GEN` )۔
 -   `chapter` عددی باب نمبر ہے (مثلاً `1` پہلے باب کے لیے)۔
 
-کتابوں اور ابواب کی فہرست جن میں ہستی کا ڈیٹا موجود ہے `GET https://bible.helloao.org/api/d/{dataset}/books.json` سے دستیاب ہے، جو [ڈیٹاسیٹ کی کتابوں کے اختتامی نقطہ](#list-books-in-a-dataset) کی طرح کی ساخت کی پیروی کرتا ہے۔ ہستی ڈیٹاسیٹس کے لیے، `totalNumberOfVerses` آیات کی تعداد ہے جن کا ذکر کم از کم ایک ہستی کے ذریعے کیا گیا ہے اور `totalNumberOfReferences` ہستی-آیت کے تذکروں کی کل تعداد ہے۔
+ان کتابوں اور ابواب کی فہرست جن میں ہستی کا ڈیٹا موجود ہے `GET https://bible.helloao.org/api/d/{dataset}/books.json` سے دستیاب ہے، جو [ڈیٹا سیٹ کی کتابوں کے اختتامی نقطہ کی](#list-books-in-a-dataset) طرح کی ساخت کی پیروی کرتا ہے۔ ہستی ڈیٹاسیٹس کے لیے، `totalNumberOfVerses` آیات کی تعداد ہے جن کا ذکر کم از کم ایک ہستی کے ذریعے کیا گیا ہے اور `totalNumberOfReferences` ہستی-آیت کے تذکروں کی کل تعداد ہے۔
 
 ### کوڈ کی مثال
 
@@ -1099,7 +1293,7 @@ interface DatasetPerson {
     name: string;
 
     /**
-     * دوسرے نام جن سے اس شخص کو پکارا جاتا ہے۔
+     * دوسرے نام جن سے وہ شخص پکارا جاتا ہے۔
      */
     alsoCalled?: string[];
 
@@ -1207,7 +1401,7 @@ interface DatasetPerson {
 
 `GET https://bible.helloao.org/api/d/{dataset}/places.json`
 
-دیئے گئے ڈیٹاسیٹ کے لیے دستیاب جگہوں کی فہرست حاصل کرتا ہے۔
+دیے گئے ڈیٹاسیٹ کے لیے دستیاب جگہوں کی فہرست حاصل کرتا ہے۔
 
 -   `dataset` ڈیٹاسیٹ کی ID (مثلاً `theographic` )۔
 
@@ -1602,7 +1796,7 @@ interface DatasetEvent {
 
 لوگوں کے گروپوں کی فہرست حاصل کرتا ہے جو دیے گئے ڈیٹاسیٹ کے لیے دستیاب ہیں۔
 
--   `dataset` ڈیٹاسیٹ کی ID (مثلاً `theographic` )۔
+-   `dataset` ڈیٹاسیٹ کی ID (مثال کے طور پر `theographic` )۔
 
 ### ساخت
 
@@ -1729,5 +1923,942 @@ interface DatasetPeopleGroup {
         "references": []
     },
     "thisPeopleGroupApiLink": "/api/d/theographic/groups/tribe-of-benjamin.json"
+}
+```
+
+## انٹر لائنر ڈیٹاسیٹس
+
+بیرین انٹر لائنر ڈیٹاسیٹ ( `bsb-interlinear` ) بائبل کی ہر آیت کے اصل زبان (عبرانی، آرامی اور یونانی) الفاظ کی فہرست دیتا ہے، جس ترتیب سے وہ اصل متن میں ظاہر ہوتے ہیں۔ ہر لفظ کا اس کی نقل حرفی، گرائمیکل تجزیہ، [مضبوط نمبر](https://en.wikipedia.org/wiki/Strong%27s_Concordance) ، اور انگریزی جملہ ہے جو [بیرین اسٹینڈرڈ بائبل](https://berean.bible) اس کے لیے استعمال کرتی ہے۔
+
+ڈیٹاسیٹ دوسرے ڈیٹاسیٹس کی طرح ہی اینڈ پوائنٹس کا استعمال کرتا ہے:
+
+-   `GET https://bible.helloao.org/api/d/bsb-interlinear/books.json` 66 کتابوں کی فہرست دیتا ہے۔
+-   `GET https://bible.helloao.org/api/d/bsb-interlinear/{book}/{chapter}.json` (مثال کے طور پر `/api/d/bsb-interlinear/GEN/1.json` ) ہر آیت کے لیے `{ verse, words }` کے ساتھ باب لوٹاتا ہے۔ جواب ایک [ڈیٹاسیٹ باب](#get-a-chapter-from-a-dataset) ہے۔
+
+الفاظ کا ڈیٹا [بیرین اسٹینڈرڈ بائبل انٹر لائنر ٹیبلز](https://bereanbible.com/) سے آتا ہے، جو پبلک ڈومین میں ہیں۔ الفاظ کے لیے مضبوط اعداد کو [لغت](#lexicon) ( `stepbible-lexicon` ) میں دیکھا گیا ہے۔
+
+### ساخت
+
+```typescript:no-line-numbers title="interlinear-word.ts"
+interface InterlinearWord {
+    /**
+     * اصل متن کی ترتیب میں لفظ کا 1 پر مبنی درجہ۔
+     * الفاظ اس ترتیب میں درج ہیں۔
+     */
+    pos: number;
+
+    /**
+     * بیرین اسٹینڈرڈ بائبل کے انگریزی ترتیب میں لفظ کا 1 پر مبنی درجہ۔
+     */
+    bsbPos: number;
+
+    /**
+     * لفظ کی زبان۔
+     */
+    language: 'hebrew' | 'aramaic' | 'greek';
+
+    /**
+     * اصل رسم الخط میں لفظ۔ NFC- معمول کے مطابق۔
+     */
+    text: string;
+
+    /**
+     * لفظ کی نقل حرفی۔
+     */
+    transliteration: string | null;
+
+    /**
+     * لفظ کا مختصر گراماتی تجزیہ کوڈ۔ مثال کے طور پر "N-mp" یا "V-Qal-Perf-3ms"۔
+     */
+    parsing: string | null;
+
+    /**
+     * لفظ کی ہجے شدہ گرائمیکل تجزیہ۔
+     */
+    parsingFull: string | null;
+
+    /**
+     * لفظ کا صفر پیڈڈ Strong کا نمبر۔ مثال کے طور پر "H0430" یا "G3056"۔
+     * زیرو پیڈڈ، جو KJV کی `.words.json` اقدار سے میل کھاتا ہے۔
+     * دیگر تراجم کی قدروں میں شامل ہونے سے پہلے زیرو پیڈنگ اور لاحقہ اتارنے کی ضرورت ہو سکتی ہے۔
+     * null جب ماخذ لفظ کو no Strong کا نمبر دیتا ہے (یہ معاملہ کچھ الفاظ کے لیے ہے جو لاحقہ ہیں، جیسے ضمیر کے لاحقے)۔
+     */
+    strongs: string | null;
+
+    /**
+     * اس لفظ کے لیے دی بیرین اسٹینڈرڈ بائبل کا انگریزی جملہ۔
+     * کالعدم جب بی ایس بی لفظ کو بغیر ترجمہ کے چھوڑ دیتا ہے (جیسے عبرانی براہ راست آبجیکٹ مارکر)۔
+     */
+    gloss: string | null;
+}
+```
+
+### مثال
+
+```json:no-line-numbers title="/api/d/bsb-interlinear/GEN/1.json"
+{
+    "dataset": {
+        "id": "bsb-interlinear",
+        "name": "Berean Standard Bible Interlinear",
+        "totalNumberOfWords": 443625
+        // ...
+    },
+    "book": {
+        "id": "GEN",
+        "datasetId": "bsb-interlinear",
+        "order": 1,
+        "numberOfChapters": 50
+        // ...
+    },
+    "chapter": {
+        "number": 1,
+        "content": [
+            {
+                "verse": 1,
+                "words": [
+                    {
+                        "pos": 1,
+                        "bsbPos": 1,
+                        "language": "hebrew",
+                        "text": "בְּרֵאשִׁ֖ית",
+                        "transliteration": "bə·rê·šîṯ",
+                        "parsing": "Prep-b | N-fs",
+                        "parsingFull": "Preposition-b | Noun - feminine singular",
+                        "strongs": "H7225",
+                        "gloss": "In the beginning"
+                    },
+                    {
+                        "pos": 2,
+                        "bsbPos": 4,
+                        "language": "hebrew",
+                        "text": "בָּרָ֣א",
+                        "transliteration": "bā·rā",
+                        "parsing": "V-Qal-Perf-3ms",
+                        "parsingFull": "Verb - Qal - Perfect - third person masculine singular",
+                        "strongs": "H1254",
+                        "gloss": "created"
+                    }
+                    // ...
+                ]
+            }
+            // ...
+        ]
+    },
+    "thisChapterLink": "/api/d/bsb-interlinear/GEN/1.json",
+    "nextChapterApiLink": "/api/d/bsb-interlinear/GEN/2.json",
+    "previousChapterApiLink": null,
+    "numberOfVerses": 31,
+    "numberOfReferences": 0
+}
+```
+
+### الفاظ کو ترجمے سے جوڑنا
+
+انٹر لائنر `strongs` قدریں زیرو پیڈڈ ہیں (جیسے `H0430` )۔ یہ KJV کے لفظ تشریحات ( `/api/eng_kjv/{book}/{chapter}.words.json` ) میں `strongs` اقدار سے میل کھاتا ہے۔ دیگر تراجم کی اقدار کو جوڑنے سے پہلے زیرو پیڈنگ اور لاحقہ اتارنے کی ضرورت ہو سکتی ہے (مثلاً `H430` یا `H1961a` سے `H0430` اور `H1961` )۔
+
+-   **کے جے وی۔** کنگ جیمز ورژن ( `eng_kjv` اور `eng_kja` ) کے لیے، ایک باب کی `.words.json` فائل میں ایک ہی آیت کے بین لائنر الفاظ میں سے `strongs` کے ساتھ Strong کے نمبرز شامل کریں۔ مثال کے طور پر، آیت 1 ( `H7225` ، `H1254` ، `H0430` ، `H0853` ، `H8064` ، `H0776` ) کے لیے `/api/eng_kjv/GEN/1.words.json` میں بیان کردہ ہر مضبوط نمبر `/api/d/bsb-interlinear/GEN/1.json` میں آیت 1 کے الفاظ میں `strongs` کی قدر کے طور پر ظاہر ہوتا ہے۔
+-   **بیرین معیاری بائبل۔** ہر لفظ کا `gloss` اس لفظ کا BSB جملہ ہے۔ آیت کے الفاظ کو `bsbPos` ترتیب میں چلائیں اور ہر `gloss` BSB ترجمے کے آیت کے متن سے ملا کر یہ معلوم کریں کہ لفظ کا ترجمہ کہاں بیٹھا ہے۔
+
+دونوں ذرائع کی تعداد ہمیشہ متفق نہیں ہوتی ہے۔ مثال کے طور پر، KJV ٹیگز "was" بطور `G2258` جہاں بیرین ٹیبل میں `G1510` ہے۔ اس طرح کے اختلافات کی وجہ سے چند جوائن مس ہو جاتے ہیں۔
+
+### انتساب
+
+بیرین انٹر لائنر ٹیبلز پبلک ڈومین میں ہیں۔ [لغت](#lexicon) CC BY 4.0 کے تحت لائسنس یافتہ ہے اور اسے انتساب کی ضرورت ہے۔
+
+## لغت
+
+STEPBible لغت کا ڈیٹاسیٹ ( `stepbible-lexicon` ) Tyndale House، کیمبرج میں [STEPBible.org](https://www.stepbible.org/) سے عبرانی، آرامی، اور یونانی مختصر لغت (TBESH اور TBESG) پر مشتمل ہے۔ اس میں ہر بیس اسٹرانگ کے نمبر کے لیے ایک اندراج ہے، اور ہر اندراج میں لیما، نقل حرفی، تقریر کا حصہ، انگریزی چمک، اور تعریف کے ساتھ ایک یا زیادہ حواس ہوتے ہیں۔
+
+[انٹر لائنر لفظ](#interlinear-datasets) سے کوئی بھی صفر پیڈڈ `strongs` ویلیو جس میں لغت کا اندراج ہو اسے بغیر فارمیٹنگ کے `/api/d/stepbible-lexicon/lexicon/{strongs}.json` پر دیکھا جا سکتا ہے۔ KJV کی `.words.json` اقدار کے لیے بھی ایسا ہی ہے۔ دیگر تراجم کی اقدار کو پہلے زیرو پیڈنگ اور لاحقہ اتارنے کی ضرورت ہو سکتی ہے۔ یونانی اندراجات جو لغت میں بغیر کسی مضبوط نمبر کے شامل کیے جاتے ہیں شائع نہیں ہوتے ہیں۔
+
+ڈیٹاسیٹس جو لغت کے اندراجات پر مشتمل ہیں ان کے اندراج میں `/api/available_datasets.json` میں `listOfLexiconApiLink` اور `totalNumberOfLexicon` شامل ہیں۔
+
+### انتساب
+
+لغت کا ڈیٹا [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) کے تحت لائسنس یافتہ ہے۔ اگر آپ اسے استعمال کرتے ہیں تو، STEPBible.org/Tyndale House, Cambridge کو کریڈٹ کریں، اور کسی بھی تبدیلی کو نوٹ کریں۔ ڈیٹا سیٹ کی `licenseNotes` پراپرٹی کریڈٹ رکھتی ہے۔
+
+## ایک ڈیٹاسیٹ میں لغت کے اندراجات کی فہرست بنائیں
+
+`GET https://bible.helloao.org/api/d/{dataset}/lexicon.json`
+
+لغت کے اندراجات کی فہرست حاصل کرتا ہے جو ڈیٹاسیٹ کے لیے دستیاب ہیں۔
+
+-   `dataset` ڈیٹاسیٹ کی ID (مثلاً `stepbible-lexicon` )۔
+
+### کوڈ کی مثال
+
+::: code-tabs#lang
+
+@tab JavaScript
+
+```ts:no-line-numbers title="fetch-lexicon.js"
+fetch(`https://bible.helloao.org/api/d/stepbible-lexicon/lexicon.json`)
+    .then(request => request.json())
+    .then(lexicon => {
+        console.log('The lexicon has', lexicon.lexicon.length, 'entries');
+    });
+```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/d/stepbible-lexicon/lexicon.json
+```
+
+:::
+
+### ساخت
+
+```typescript:no-line-numbers title="dataset-lexicon.ts"
+export interface DatasetLexicon {
+    /**
+     * لغت کے لیے ڈیٹا سیٹ کی معلومات۔
+     */
+    dataset: Dataset;
+
+    /**
+     * لغت کے اندراجات کی فہرست جو ڈیٹاسیٹ کے لیے دستیاب ہیں۔
+     */
+    lexicon: DatasetLexiconEntrySummary[];
+}
+
+export interface DatasetLexiconEntrySummary {
+    /**
+     * لغت کے اندراج کے زیرو پیڈڈ Strong کا نمبر۔ مثال کے طور پر "H0430"۔
+     */
+    id: string;
+
+    /**
+     * لغت کے اندراج کی زبان۔
+     */
+    language: 'hebrew' | 'aramaic' | 'greek';
+
+    /**
+     * لغت کے اندراج کا نام۔
+     * یہ اندراج کے پہلے احساس کا لیما ہے۔
+     */
+    name: string;
+
+    /**
+     * لغت کے اندراج کے لیے API کا لنک۔
+     */
+    apiLink: string;
+}
+```
+
+### مثال
+
+```json:no-line-numbers title="/api/d/stepbible-lexicon/lexicon.json"
+{
+    "dataset": {
+        "id": "stepbible-lexicon",
+        "name": "STEPBible Brief Lexicons",
+        "totalNumberOfLexicon": 18085
+        // ...
+    },
+    "lexicon": [
+        {
+            "id": "G0001",
+            "language": "greek",
+            "name": "α, Ἀλφα",
+            "apiLink": "/api/d/stepbible-lexicon/lexicon/G0001.json"
+        },
+        {
+            "id": "G0002",
+            "language": "greek",
+            "name": "Ἀαρών",
+            "apiLink": "/api/d/stepbible-lexicon/lexicon/G0002.json"
+        }
+        // ...
+    ]
+}
+```
+
+## ڈیٹا سیٹ سے لیکسیکن اندراج حاصل کریں۔
+
+`GET https://bible.helloao.org/api/d/{dataset}/lexicon/{strongs}.json`
+
+اس کے تمام حواس کے ساتھ، واحد بیس Strong کے نمبر کے لیے لغت کا اندراج حاصل کرتا ہے۔
+
+-   `dataset` ڈیٹاسیٹ کی ID (مثلاً `stepbible-lexicon` )۔
+-   `strongs` صفر پیڈڈ Strong کا نمبر ہے (مثال کے طور پر عبرانی لفظ _elohim_ کے لیے `H0430` ، یا یونانی لفظ _logos_ کے لیے `G3056` )۔
+
+### کوڈ کی مثال
+
+::: code-tabs#lang
+
+@tab JavaScript
+
+```ts:no-line-numbers title="fetch-lexicon-entry.js"
+const strongs = 'H1254';
+
+fetch(`https://bible.helloao.org/api/d/stepbible-lexicon/lexicon/${strongs}.json`)
+    .then(request => request.json())
+    .then(({ entry }) => {
+        console.log('H1254:', entry.senses.map(sense => sense.gloss));
+    });
+```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/d/stepbible-lexicon/lexicon/H1254.json
+```
+
+:::
+
+### ساخت
+
+```typescript:no-line-numbers title="dataset-lexicon-entry.ts"
+export interface DatasetLexiconEntry {
+    /**
+     * لغت کے اندراج کے لیے ڈیٹا سیٹ کی معلومات۔
+     */
+    dataset: Dataset;
+
+    /**
+     * لغت کا اندراج۔
+     */
+    entry: DatasetLexiconEntryContent;
+
+    /**
+     * اس لغت کے اندراج کا API لنک۔
+     */
+    thisLexiconEntryApiLink: string;
+}
+
+export interface DatasetLexiconEntryContent {
+    /**
+     * اندراج کا زیرو پیڈڈ Strong کا نمبر۔ مثال کے طور پر "H0430"۔
+     */
+    id: string;
+
+    /**
+     * اندراج کی زبان۔
+     * یہ اندراج کے پہلے احساس کی زبان ہے۔
+     */
+    language: 'hebrew' | 'aramaic' | 'greek';
+
+    /**
+     * اندراج کے حواس، شناختی ترتیب میں۔
+     */
+    senses: DatasetLexiconSense[];
+}
+
+export interface DatasetLexiconSense {
+    /**
+     * احساس کی توسیع شدہ ID۔ مثال کے طور پر "H0001G"۔
+     * بیس Strong کے نمبر کے برابر جب نمبر کا واحد احساس ہو۔
+     */
+    id: string;
+
+    /**
+     * احساس کی زبان۔
+     */
+    language: 'hebrew' | 'aramaic' | 'greek';
+
+    /**
+     * اصل رسم الخط میں احساس کا لیما۔
+     */
+    lemma: string;
+
+    /**
+     * لیما کی نقل حرفی۔
+     */
+    transliteration: string | null;
+
+    /**
+     * تقریر کا حصہ (مورفولوجی) احساس کا ضابطہ۔
+     */
+    partOfSpeech: string | null;
+
+    /**
+     * احساس کی مختصر انگریزی چمک۔
+     */
+    gloss: string | null;
+
+    /**
+     * سادہ متن کے طور پر احساس کی تعریف۔
+     * پیراگراف کو خالی لائنوں سے الگ کیا گیا ہے۔ ماخذ میں مارک اپ ہٹا دیا گیا ہے۔
+     */
+    definition: string;
+}
+```
+
+### مثال
+
+```json:no-line-numbers title="/api/d/stepbible-lexicon/lexicon/H1254.json"
+{
+    "dataset": {
+        "id": "stepbible-lexicon",
+        "name": "STEPBible Brief Lexicons",
+        "totalNumberOfLexicon": 18085
+        // ...
+    },
+    "entry": {
+        "id": "H1254",
+        "language": "hebrew",
+        "senses": [
+            {
+                "id": "H1254A",
+                "language": "hebrew",
+                "lemma": "בָּרָא",
+                "transliteration": "ba.ra",
+                "partOfSpeech": "V",
+                "gloss": "to create",
+                "definition": "1) to create, shape, form\n\n1a) (Qal) to shape, fashion, create (always with God as subject)\n\n1b) (Niphal) to be created"
+            },
+            {
+                "id": "H1254B",
+                "language": "hebrew",
+                "lemma": "בָּרָא",
+                "transliteration": "ba.ra",
+                "partOfSpeech": "V",
+                "gloss": "to fatten",
+                "definition": "1) to be fat\n\n1a) (Hiphil) to make yourselves fat"
+            }
+        ]
+    },
+    "thisLexiconEntryApiLink": "/api/d/stepbible-lexicon/lexicon/H1254.json"
+}
+```
+
+## دن کی آیت
+
+آیت آف دی ڈے ڈیٹاسیٹ ( `verse-of-the-day` ) معروف آیات اور مختصر اقتباسات (زیادہ سے زیادہ تین آیات) کی ایک ترتیب شدہ فہرست ہے جو "دن کی آیت" کے لیے اچھے امیدوار بناتے ہیں: سال کے ہر دن کے لیے 640 سے زیادہ، اور مسیحی تعطیلات کے لیے 100 سے زیادہ۔ ہر ایک اپنے طور پر سمجھتا ہے۔
+
+ہر دن کے لیے ہر آیت میں ایک سے تین زمرے ہوتے ہیں، سب سے پہلے سب سے زیادہ متعلقہ، اس مقررہ مجموعہ سے:
+
+| ID            | تفصیل                                                       |
+| ------------- | ----------------------------------------------------------- |
+| `comfort`     | غم، مصیبت، اور تنہائی میں خدا کی قربت اور دیکھ بھال۔        |
+| `courage`     | ثابت قدم رہنا اور ڈرنا نہیں۔                                |
+| `faith`       | خدا اور اس کے وعدوں پر بھروسہ۔                              |
+| `forgiveness` | خدا کا گناہ معاف کرنا اور دوسروں کو معاف کرنا۔              |
+| `gratitude`   | خدا کا شکر ادا کرنا۔                                        |
+| `guidance`    | خدا ہمارے قدموں، منصوبوں اور فیصلوں کو ہدایت کرتا ہے۔       |
+| `hope`        | مستقبل پر اعتماد جس کا خدا نے وعدہ کیا ہے۔                  |
+| `inspiration` | ایمان کے مطابق زندگی گزارنے اور نیک کام کرنے کی ترغیب۔      |
+| `joy`         | خُدا میں خوشی اور مسرت۔                                     |
+| `love`        | ہمارے لئے خدا کی محبت اور خدا اور دوسروں کے لئے ہماری محبت۔ |
+| `peace`       | آرام، سکون اور بے چینی سے آزادی۔                            |
+| `praise`      | عبادت اور خدا کی عظمت کا اعلان۔                             |
+| `prayer`      | خدا کو پکارنا اور اس کا وعدہ سننا۔                          |
+| `provision`   | خدا فراہم کرتا ہے جس کی ہمیں ضرورت ہے۔                      |
+| `salvation`   | نجات، فضل، اور مسیح میں نئی ​​زندگی۔                        |
+| `strength`    | خدا طاقت اور استقامت دیتا ہے۔                               |
+| `wisdom`      | خدا کی حکمت اور زندگی کے لیے عملی ہدایت۔                    |
+
+تعطیلات کے اپنے زمرے ہوتے ہیں۔ چھٹی کے دن، دن کی آیت چھٹی کی آیات میں سے ایک ہے، اور وہ آیات دوسرے دنوں میں استعمال نہیں ہوتی ہیں۔ چھٹی عام طور پر ایک دن رہتی ہے۔ قیامت کے بعد اتوار قیامت کے اتوار کے بعد تین دن تک رہتا ہے، اس لیے یہ تینوں تاریخوں کو درج کرتا ہے۔ ہر چھٹی کے زمرے میں اس کی تاریخوں کے ساتھ `holiday` ہوتا ہے: ہر سال ایک ہی تاریخ پر ہونے والی تعطیلات میں `month` اور `day` ہوتا ہے، اور وہ تعطیلات جن کی تاریخ ہر سال تبدیل ہوتی ہے (کیونکہ وہ قیامت کے اتوار یا آمد پر منحصر ہوتی ہیں) ان کے `dates` گریگورین کیلنڈر میں درج کرتے ہیں، جو 2026 سے 2125 کے لیے پہلے سے مرتب کیے گئے ہیں۔
+
+| ID                         | چھٹی               | تاریخ                        |
+| -------------------------- | ------------------ | ---------------------------- |
+| `epiphany`                 | ایپی فینی          | 6 جنوری                      |
+| `ash-wednesday`            | راکھ بدھ           | اتوار کو قیامت سے 46 دن پہلے |
+| `palm-sunday`              | پام سنڈے           | قیامت سے پہلے کا اتوار       |
+| `maundy-thursday`          | منڈی جمعرات        | قیامت سے پہلے جمعرات اتوار   |
+| `good-friday`              | جمعہ مبارک         | قیامت سے پہلے جمعہ اتوار     |
+| `resurrection-sunday`      | قیامت بروز اتوار   | ایسٹر اتوار                  |
+| `post-resurrection-sunday` | قیامت کے بعد اتوار | قیامت کے تین دن بعد اتوار    |
+| `ascension-day`            | معراج کا دن        | قیامت کے 39 دن بعد اتوار     |
+| `pentecost`                | پینٹی کوسٹ         | قیامت کے 49 دن بعد اتوار     |
+| `all-hallows-eve`          | آل ہیلوز کی شام    | 31 اکتوبر                    |
+| `all-saints-day`           | تمام سنتوں کا دن   | یکم نومبر                    |
+| `advent-sunday`            | آمد کا پہلا اتوار  | کرسمس سے پہلے چوتھا اتوار    |
+| `christmas-eve`            | کرسمس کی شام       | 24 دسمبر                     |
+| `christmas`                | کرسمس              | 25 دسمبر                     |
+
+ڈیٹاسیٹ میں صرف حوالہ جات ہوتے ہیں، آیت کا متن نہیں، لہذا یہ ہر ترجمہ کے ساتھ کام کرتا ہے۔ آیات کے نمبر معیاری انگریزی نمبر استعمال کرتے ہیں (بی ایس بی کی طرح)۔ ڈیٹا کو تین طریقوں سے پڑھا جا سکتا ہے:
+
+-   [`/api/d/verse-of-the-day/verses.json`](#list-verses-in-a-dataset) ڈیٹاسیٹ میں ہر آیت کو اس کے زمروں کے ساتھ، اور چھٹیوں کو ان کی تاریخوں کے ساتھ، ایک فائل میں درج کرتا ہے۔
+-   [`/api/d/verse-of-the-day/categories/{category}.json`](#get-a-category-from-a-dataset) ہر آیت کو زمرے میں درج کرتا ہے۔ یہ ایک زمرہ سے دن کی ایک آیت منتخب کرنے کا سب سے آسان طریقہ ہے۔
+-   [`/api/d/verse-of-the-day/{book}/{chapter}.json`](#get-a-chapter-from-a-dataset) ایک باب میں امیدواروں کو ان کے زمروں کے ساتھ لسٹ کرتا ہے۔ امیدوار پر مشتمل صرف ابواب دستیاب ہیں۔ انہیں تلاش کرنے کے لیے کتاب کے باب کے لنکس یا `/api/d/verse-of-the-day/books.json` استعمال کریں۔
+
+ڈیٹاسیٹس جو آیت کے زمرے پر مشتمل ہیں ان کے اندراج میں `/api/available_datasets.json` میں `listOfVersesApiLink` ، `listOfCategoriesApiLink` اور `totalNumberOfCategories` شامل ہیں۔
+
+### دن کی ایک آیت کا انتخاب
+
+API جامد فائلوں سے بنا ہے، لہذا یہ آپ کے لیے کوئی آیت منتخب نہیں کرتا ہے۔ اس کے بجائے، ایک کو چننے کے لیے ایک کنونشن ہے، تاکہ اس کی پیروی کرنے والی ہر ایپ اسی دن ایک ہی آیت دکھائے۔ ایپس مختلف طریقے سے منتخب کرنے کے لیے آزاد ہیں۔ کنونشن انہیں صرف ایک مشترکہ ڈیفالٹ دیتا ہے۔
+
+کنونشن `/api/d/verse-of-the-day/verses.json` میں آیات اور تعطیلات سے چنتا ہے۔ چھٹی کے دن، یہ تعطیل کی آیات میں سے ایک کو چنتا ہے، ایک وقت میں ایک سال ان کے ذریعے گزرتا ہے، اس لیے چھٹی کی ہر سال ایک مختلف آیت ہوتی ہے جب تک کہ اس کی تمام آیات استعمال نہ ہو جائیں۔ دوسرے دنوں میں، ہر سال ان آیات کا اپنا شفل کرتا ہے جو اس سال استعمال میں ہیں (ہر آیت کے حوالہ کے ایک ہیش کے ذریعہ ترتیب دیا گیا ہے، سال، اور ایک اختیاری بیج) اور دن کی آیت اس شفل میں سال کی تاریخ کے دن والی ہے۔ ڈیٹا سیٹ میں ہر سال استعمال ہونے والے ہر دن کے لیے 366 ​​سے زیادہ آیات ہیں، اس لیے ایک آیت کیلنڈر سال میں کبھی نہیں دہرائی جاتی، ترتیب ہر سال بدلتی ہے، اور ایک ہی تاریخ ہمیشہ ایک ہی آیت دیتی ہے۔ نئی آیات کو شامل کیا جاتا ہے ( `addedIn` کے ساتھ) اور پرانی آیات کو ہٹا دیا جاتا ہے ( `removedIn` کے ساتھ) صرف ایک سال سے جو ابھی شروع نہیں ہوا ہے، اس لیے گزشتہ تاریخ کے لیے دن کی آیت کبھی نہیں بدلتی ہے۔
+
+[دن کے کنونشن کی آیت کا](./verse-of-the-day-convention.md) صفحہ الگورتھم کو مرحلہ وار، سیڈوکوڈ اور ٹیسٹ ویلیوز کے ساتھ بتاتا ہے، تاکہ آپ اسے کسی بھی زبان میں نافذ کر سکیں۔
+
+اپنا آرڈر استعمال کرنے کے لیے، اپنا ایک بیج چنیں (مثال کے طور پر، آپ کی ایپ کا نام): یہ ایک ہی گارنٹی کے ساتھ ایک مختلف شفل دیتا ہے۔ آپ کسی ایک زمرے کی آیات میں سے بھی چن سکتے ہیں، لیکن ہر زمرے میں سال کے دنوں سے کم آیات ہیں، اس لیے اس کی آیات جلد دہرائی جاتی ہیں۔
+
+SDKs کنونشن کی پیروی کرتے ہیں:
+
+```ts:no-line-numbers title="verse-of-the-day.js"
+import { FreeUseBibleApi } from 'free-use-bible-api';
+
+const api = new FreeUseBibleApi();
+
+// ایک تاریخ بطور YYYY-MM-DD، یا ایک تاریخ (اس کی مقامی کیلنڈر کی تاریخ استعمال کی جاتی ہے)۔ آج تک ڈیفالٹ۔
+const ref = await api.getVerseOfTheDay('2026-01-01');
+
+// ترجمہ سے آیت کا متن حاصل کریں۔
+const chapter = await api.getTranslationBookChapter('BSB', ref.book, ref.chapter);
+const verses = chapter.chapter.content.filter(
+    (c) =>
+        c.type === 'verse' &&
+        c.number >= ref.verse &&
+        c.number <= (ref.endVerse ?? ref.verse)
+);
+console.log(ref, verses);
+```
+
+-   `getVerseOfTheDay(date?, { seed?, category?, dataset? }?)` آیت کی فہرست کو ڈاؤن لوڈ کرتا ہے اور اس سے چنتا ہے۔ آپ کے پاس پہلے سے موجود فہرست میں سے `pickVerseOfTheDay(verses, date?, { seed?, category? }?)` انتخاب۔
+-   کوٹلن SDK میں `getVerseOfTheDay(date?, seed?, category?)` اور `pickVerseOfTheDay(verses, date?, seed?, category?)` ہیں، جو تاریخ کو `YYYY-MM-DD` تار کے طور پر لیتے ہیں۔
+-   Swift SDK میں `getVerseOfTheDay(date:seed:category:)` اور `pickVerseOfTheDay(_:date:seed:category:holidays:)` ہے، جو تاریخ کو `YYYY-MM-DD` سٹرنگ یا `Date` کے طور پر لیتے ہیں (موجودہ ٹائم زون میں اس کی کیلنڈر کی تاریخ استعمال کی جاتی ہے)۔
+-   [MCP سرور](https://github.com/HelloAOLab/bible-api/tree/main/packages/seed-bible-mcp) کے پاس `getVerseOfTheDay` ٹول ہے جو دن کی آیت کو اس کے متن کے ساتھ لوٹاتا ہے۔
+-   `@helloao/tools` پیکیج میں ایک ہی فہرست ہے اور `@helloao/tools/generation/verse-of-the-day.js` میں `getVerseOfTheDay(date?, { seed?, category? }?)` فنکشن ہے۔
+
+### لائسنس
+
+یہ فہرست AO Lab کے ذریعہ جمع کی گئی تھی اور [MIT لائسنس](https://github.com/HelloAOLab/bible-api/blob/main/LICENSE) کے تحت جاری کی گئی ہے۔ آیت کا متن اس ترجمہ سے آتا ہے جس سے آپ اسے لاتے ہیں۔
+
+## ڈیٹا سیٹ میں آیات کی فہرست بنائیں
+
+`GET https://bible.helloao.org/api/d/{dataset}/verses.json`
+
+ڈیٹاسیٹ میں ہر آیت (یا مختصر اقتباس) حاصل کرتا ہے، ان زمروں کے ساتھ جن سے ہر ایک کا تعلق ہے، کینونیکل ترتیب میں۔ صرف ان ڈیٹاسیٹس کے لیے دستیاب ہے جن کی آیات کے زمرے ہیں، جیسے `verse-of-the-day` ۔
+
+-   `dataset` ڈیٹاسیٹ کی ID (مثلاً `verse-of-the-day` )۔
+
+### کوڈ کی مثال
+
+::: code-tabs#lang
+
+@tab JavaScript
+
+```ts:no-line-numbers title="fetch-verses.js"
+fetch(`https://bible.helloao.org/api/d/verse-of-the-day/verses.json`)
+    .then(request => request.json())
+    .then(verses => {
+        console.log('The dataset has', verses.verses.length, 'verses');
+    });
+```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/d/verse-of-the-day/verses.json
+```
+
+:::
+
+### ساخت
+
+```typescript:no-line-numbers title="dataset-verses.ts"
+export interface DatasetVerses {
+    /**
+     * آیات کے لیے ڈیٹا سیٹ کی معلومات۔
+     */
+    dataset: Dataset;
+
+    /**
+     * ڈیٹاسیٹ میں ہر آیت (یا مختصر حوالہ)، اس کے زمروں کے ساتھ، کینونیکل ترتیب میں۔
+     */
+    verses: DatasetCategorizedVerse[];
+
+    /**
+     * وہ چھٹیاں جن کی اپنی آیات ہیں، اپنی تاریخوں کے ساتھ۔
+     * اگر ڈیٹاسیٹ میں چھٹیاں نہیں ہیں تو چھوڑ دیا جائے گا۔
+     */
+    holidays?: DatasetVersesHoliday[];
+}
+
+export interface DatasetVersesHoliday extends DatasetCategoryHoliday {
+    /**
+     * چھٹی کے زمرے کی ID۔ مثال کے طور پر "کرسمس"۔
+     */
+    id: string;
+
+    /**
+     * چھٹی کا انگریزی نام۔ مثال کے طور پر "کرسمس"۔
+     */
+    name: string;
+}
+
+export interface DatasetCategoryHoliday {
+    /**
+     * مہینہ (1 جنوری کے لیے) اور چھٹی کا دن جو ہر سال ایک ہی تاریخ کو آتا ہے۔
+     * چھٹیوں کے لیے چھوڑ دیا گیا جن کی تاریخ ہر سال بدلتی ہے۔
+     */
+    month?: number;
+    day?: number;
+
+    /**
+     * چھٹیوں کی تاریخیں (YYYY-MM-DD، گریگورین کیلنڈر) جس کی تاریخ ترتیب کے مطابق ہر سال تبدیل ہوتی ہے۔
+     * ان کی پہلے سے گنتی کئی سالوں کے لیے کی جاتی ہے (فی الحال 2026 سے 2125)، اور چھٹی صرف ان تاریخوں پر منائی جاتی ہے جو درج ہیں۔
+     * ہر سال ایک ہی تاریخ کو آنے والی تعطیلات کے لیے چھوڑ دیا جاتا ہے۔
+     */
+    dates?: string[];
+}
+
+export interface DatasetCategorizedVerse {
+    /**
+     * کتاب کی شناخت۔ مثال کے طور پر "PRO"۔
+     */
+    book: string;
+
+    /**
+     * باب نمبر۔
+     */
+    chapter: number;
+
+    /**
+     * آیت نمبر۔
+     * اگر `endVerse` موجود ہے تو یہ وہ آیت ہے جس سے عبارت شروع ہوتی ہے۔
+     */
+    verse: number;
+
+    /**
+     * وہ آیت جس پر یہ عبارت ختم ہوتی ہے۔
+     * اگر اندراج ایک آیت ہے تو چھوڑ دیا جائے گا۔
+     */
+    endVerse?: number;
+
+    /**
+     * ان زمروں کی IDs جن سے آیت کا تعلق ہے، سب سے پہلے۔
+     */
+    categories: string[];
+
+    /**
+     * پہلا سال کہ آیت دن کی آیت ہو سکتی ہے۔
+     * اگر آیت ہمیشہ فہرست میں رہی ہو۔
+     */
+    addedIn?: number;
+
+    /**
+     * پہلا سال کہ آیت اب دن کی آیت نہیں رہ سکتی۔
+     * ہٹائی گئی آیات ڈیٹاسیٹ میں رہتی ہیں تاکہ پچھلے سالوں کی آیات کو اب بھی اٹھایا جا سکے۔
+     * اگر آیت کو فہرست سے نہیں ہٹایا گیا ہے تو خارج کر دیا گیا ہے۔
+     */
+    removedIn?: number;
+}
+```
+
+### مثال
+
+```json:no-line-numbers title="/api/d/verse-of-the-day/verses.json"
+{
+    "dataset": {
+        "id": "verse-of-the-day",
+        "name": "Verse of the Day",
+        "listOfVersesApiLink": "/api/d/verse-of-the-day/verses.json"
+        // ...
+    },
+    "verses": [
+        {
+            "book": "GEN",
+            "chapter": 1,
+            "verse": 1,
+            "categories": ["praise"]
+        },
+        {
+            "book": "GEN",
+            "chapter": 15,
+            "verse": 6,
+            "categories": ["faith", "salvation"]
+        },
+        // ...
+        {
+            "book": "PRO",
+            "chapter": 3,
+            "verse": 5,
+            "endVerse": 6,
+            "categories": ["faith", "guidance", "wisdom"]
+        },
+        // ...
+        {
+            "book": "LUK",
+            "chapter": 2,
+            "verse": 7,
+            "categories": ["christmas"]
+        }
+        // ...
+    ],
+    "holidays": [
+        {
+            "id": "christmas",
+            "name": "Christmas",
+            "month": 12,
+            "day": 25
+        },
+        {
+            "id": "good-friday",
+            "name": "Good Friday",
+            "dates": ["2026-04-03", "2027-03-26", "2028-04-14" /* ... */]
+        }
+        // ...
+    ]
+}
+```
+
+## ڈیٹا سیٹ میں زمرہ جات کی فہرست بنائیں
+
+`GET https://bible.helloao.org/api/d/{dataset}/categories.json`
+
+آیات کے زمرے کی فہرست حاصل کرتا ہے جو ڈیٹاسیٹ کے لیے دستیاب ہیں۔
+
+-   `dataset` ڈیٹاسیٹ کی ID (مثال کے طور پر `verse-of-the-day` )۔
+
+### کوڈ کی مثال
+
+::: code-tabs#lang
+
+@tab JavaScript
+
+```ts:no-line-numbers title="fetch-categories.js"
+fetch(`https://bible.helloao.org/api/d/verse-of-the-day/categories.json`)
+    .then(request => request.json())
+    .then(categories => {
+        console.log('The dataset has the following categories:', categories.categories);
+    });
+```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/d/verse-of-the-day/categories.json
+```
+
+:::
+
+### ساخت
+
+```typescript:no-line-numbers title="dataset-categories.ts"
+export interface DatasetCategories {
+    /**
+     * زمرہ جات کے لیے ڈیٹا سیٹ کی معلومات۔
+     */
+    dataset: Dataset;
+
+    /**
+     * آیات کے زمروں کی فہرست جو ڈیٹاسیٹ کے لیے دستیاب ہیں۔
+     */
+    categories: DatasetCategorySummary[];
+}
+
+export interface DatasetCategorySummary {
+    /**
+     * زمرہ کی شناخت۔ مثال کے طور پر "امید"۔
+     */
+    id: string;
+
+    /**
+     * زمرے کا انگریزی نام۔ مثال کے طور پر "امید"۔
+     */
+    name: string;
+
+    /**
+     * زمرہ میں آیات کس کے بارے میں ہیں اس کی تفصیل۔
+     */
+    description: string;
+
+    /**
+     * آیات کی تعداد (یا مختصر اقتباسات) جو زمرہ سے تعلق رکھتی ہیں۔
+     */
+    numberOfVerses: number;
+
+    /**
+     * چھٹی کی وہ تاریخیں جن کے لیے زمرہ ہے (اوپر DatasetCategoryHoliday دیکھیں)۔
+     * ان زمروں کے لیے چھوڑ دیا گیا جو چھٹی کے لیے نہیں ہیں۔
+     */
+    holiday?: DatasetCategoryHoliday;
+
+    /**
+     * زمرہ کے لیے API لنک۔
+     */
+    apiLink: string;
+}
+```
+
+### مثال
+
+```json:no-line-numbers title="/api/d/verse-of-the-day/categories.json"
+{
+    "dataset": {
+        "id": "verse-of-the-day",
+        "name": "Verse of the Day",
+        "totalNumberOfCategories": 31
+        // ...
+    },
+    "categories": [
+        {
+            "id": "comfort",
+            "name": "Comfort",
+            "description": "God's nearness and care in grief, trouble, and loneliness.",
+            "numberOfVerses": 65,
+            "apiLink": "/api/d/verse-of-the-day/categories/comfort.json"
+        },
+        {
+            "id": "courage",
+            "name": "Courage",
+            "description": "Standing firm and not being afraid.",
+            "numberOfVerses": 49,
+            "apiLink": "/api/d/verse-of-the-day/categories/courage.json"
+        }
+        // ...
+    ]
+}
+```
+
+## ڈیٹا سیٹ سے ایک زمرہ حاصل کریں۔
+
+`GET https://bible.helloao.org/api/d/{dataset}/categories/{category}.json`
+
+ایک آیت کا زمرہ ملتا ہے، ہر اس آیت کے ساتھ جو اس سے تعلق رکھتی ہے۔
+
+-   `dataset` ڈیٹاسیٹ کی ID (مثلاً `verse-of-the-day` )۔
+-   `category` زمرہ کی شناخت ہے (مثلاً `hope` )۔
+
+### کوڈ کی مثال
+
+::: code-tabs#lang
+
+@tab JavaScript
+
+```ts:no-line-numbers title="fetch-category.js"
+fetch(`https://bible.helloao.org/api/d/verse-of-the-day/categories/hope.json`)
+    .then(request => request.json())
+    .then(category => {
+        console.log('Verses about hope:', category.category.verses);
+    });
+```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/d/verse-of-the-day/categories/hope.json
+```
+
+:::
+
+### ساخت
+
+```typescript:no-line-numbers title="dataset-category.ts"
+export interface DatasetCategoryResponse {
+    /**
+     * زمرہ کے لیے ڈیٹا سیٹ کی معلومات۔
+     */
+    dataset: Dataset;
+
+    /**
+     * زمرہ، ان آیات کے ساتھ جو اس سے تعلق رکھتی ہیں۔
+     */
+    category: DatasetCategory;
+
+    /**
+     * اس زمرے کے لیے API لنک۔
+     */
+    thisCategoryApiLink: string;
+}
+
+export interface DatasetCategory {
+    /**
+     * زمرہ کی شناخت۔ مثال کے طور پر "امید"۔
+     */
+    id: string;
+
+    /**
+     * زمرے کا انگریزی نام۔ مثال کے طور پر "امید"۔
+     */
+    name: string;
+
+    /**
+     * زمرہ میں آیات کس کے بارے میں ہیں اس کی تفصیل۔
+     */
+    description: string;
+
+    /**
+     * چھٹی کی وہ تاریخیں جن کے لیے زمرہ ہے ("ڈیٹا سیٹ میں آیات کی فہرست" میں DatasetCategoryHoliday دیکھیں)۔
+     * ان تاریخوں پر، دن کی آیت زمرہ کی آیات میں سے ایک ہے، اور وہ دوسرے دنوں میں استعمال نہیں ہوتی ہیں۔
+     * ان زمروں کے لیے چھوڑ دیا گیا جو چھٹی کے لیے نہیں ہیں۔
+     */
+    holiday?: DatasetCategoryHoliday;
+
+    /**
+     * وہ آیات (یا مختصر اقتباسات) جو کیننیکل ترتیب میں زمرہ سے تعلق رکھتی ہیں۔
+     * اس میں وہ آیات شامل ہیں جو فہرست سے ہٹا دی گئی ہیں ( `removedIn` دیکھیں)۔
+     */
+    verses: DatasetCategoryVerse[];
+}
+
+export interface DatasetCategoryVerse {
+    /**
+     * کتاب کی شناخت۔ مثال کے طور پر "JER"۔
+     */
+    book: string;
+
+    /**
+     * باب نمبر۔
+     */
+    chapter: number;
+
+    /**
+     * آیت نمبر۔
+     * اگر `endVerse` موجود ہے تو یہ وہ آیت ہے جس سے عبارت شروع ہوتی ہے۔
+     */
+    verse: number;
+
+    /**
+     * وہ آیت جس پر یہ عبارت ختم ہوتی ہے۔
+     * اگر حوالہ ایک آیت ہے تو چھوڑ دیا جائے گا۔
+     */
+    endVerse?: number;
+
+    /**
+     * پہلا سال کہ آیت دن کی آیت ہو سکتی ہے۔
+     * اگر آیت ہمیشہ فہرست میں رہی ہو۔
+     */
+    addedIn?: number;
+
+    /**
+     * پہلا سال کہ آیت اب دن کی آیت نہیں رہ سکتی۔
+     * ہٹائی گئی آیات ڈیٹاسیٹ میں رہتی ہیں تاکہ پچھلے سالوں کی آیات کو اب بھی اٹھایا جا سکے۔
+     * اگر آیت کو فہرست سے نہیں ہٹایا گیا ہے تو خارج کر دیا گیا ہے۔
+     */
+    removedIn?: number;
+}
+```
+
+### مثال
+
+```json:no-line-numbers title="/api/d/verse-of-the-day/categories/hope.json"
+{
+    "dataset": {
+        "id": "verse-of-the-day",
+        "name": "Verse of the Day",
+        "totalNumberOfCategories": 31
+        // ...
+    },
+    "category": {
+        "id": "hope",
+        "name": "Hope",
+        "description": "Confidence in the future that God has promised.",
+        "verses": [
+            {
+                "book": "GEN",
+                "chapter": 50,
+                "verse": 20
+            },
+            // ...
+            {
+                "book": "ISA",
+                "chapter": 43,
+                "verse": 18,
+                "endVerse": 19
+            },
+            {
+                "book": "JER",
+                "chapter": 29,
+                "verse": 11
+            }
+            // ...
+        ]
+    },
+    "thisCategoryApiLink": "/api/d/verse-of-the-day/categories/hope.json"
 }
 ```

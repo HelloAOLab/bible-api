@@ -75,6 +75,25 @@ interface Translation {
     licenseUrl: string;
 
     /**
+     * Notas adicionais da API referentes à licença.
+     * Nulo ou indefinido se não houver anotações.
+     */
+    licenseNotes?: string | null;
+
+    /**
+     * O aviso que deve ser exibido ao mostrar o conteúdo da tradução.
+     * Nulo ou indefinido se a tradução não tiver um aviso.
+     */
+    licenseNotice?: string | null;
+
+    /**
+     * Os termos de licença estruturados que foram detectados para a tradução.
+     * Nulo ou indefinido se os termos não puderam ser determinados.
+     * Nesse caso, consulte os termos na página em licenseUrl.
+     */
+    license?: License | null;
+
+    /**
      * Nome abreviado da tradução.
      */
     shortName: string;
@@ -152,7 +171,59 @@ interface Translation {
      */
     totalNumberOfApocryphalVerses?: number;
 }
+
+/**
+ * Define os termos de licença estruturados que foram detectados para uma tradução.
+ */
+interface License {
+    /**
+     * É necessário atribuir a citação à fonte original ao usar a tradução?
+     */
+    attribution: 'required' | 'not-required';
+
+    /**
+     * É permitido o uso comercial da tradução?
+     */
+    commercialUse: 'allowed' | 'not-allowed';
+
+    /**
+     * É permitido criar e distribuir obras derivadas da tradução?
+     */
+    derivatives: 'allowed' | 'not-allowed';
+
+    /**
+     * Se as obras derivadas devem ser distribuídas sob a mesma licença (ou seja, um requisito de "compartilhar pela mesma licença").
+     */
+    copyleft: boolean;
+
+    /**
+     * Se a tradução foi disponibilizada em domínio público.
+     */
+    publicDomain: boolean;
+}
 ```
+
+### Licenças
+
+Cada tradução é publicada sob sua própria licença, portanto, verifique os termos da tradução antes de usá-la.
+
+-   O link `licenseUrl` sempre direciona para os termos completos da licença.
+-   `licenseNotice` , quando presente, é o aviso de direitos autorais ou de atribuição a ser exibido junto ao conteúdo da tradução.
+-   O campo `licenseNotes` contém notas adicionadas pela API, como alterações feitas no texto original.
+-   O parâmetro `license` , quando presente, resume os termos em um formato que seu código pode verificar. Por exemplo, você pode filtrar a lista para incluir apenas traduções que permitam uso comercial:
+
+```ts:no-line-numbers title="commercial-translations.js"
+fetch(`https://bible.helloao.org/api/available_translations.json`)
+    .then(request => request.json())
+    .then(({ translations }) => {
+        const commercial = translations.filter(
+            t => t.license?.commercialUse === 'allowed'
+        );
+        console.log('Translations that allow commercial use:', commercial);
+    });
+```
+
+O `license` só é definido quando os termos puderam ser detectados automaticamente. Traduções sem esse valor ainda podem ser permitidas para uso, portanto, consulte a página `licenseUrl` para obter mais informações.
 
 ### Exemplo
 
@@ -247,6 +318,12 @@ interface TranslationBook {
     commonName: string;
 
     /**
+     * O nome abreviado (ou sigla) que a tradução forneceu para o livro.
+     * Caso não esteja disponível, significa que a tradução não forneceu nenhuma.
+     */
+    shortName?: string;
+
+    /**
      * O título do livro.
      * Essa geralmente é uma versão mais descritiva do nome do livro.
      * Caso não esteja disponível, significa que a tradução não forneceu nenhuma.
@@ -325,6 +402,7 @@ interface TranslationBook {
             "translationId": "BSB",
             "name": "Genesis",
             "commonName": "Genesis",
+            "shortName": "Gen",
             "title": "Genesis",
             "order": 1,
             "numberOfChapters": 50,

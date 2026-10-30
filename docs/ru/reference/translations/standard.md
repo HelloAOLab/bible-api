@@ -41,6 +41,10 @@ curl https://bible.helloao.org/api/BSB/GEN/1.json
 
 ### Структура
 
+`line_break` , начинающий новый абзац исходного текста, имеет свойство `paragraph` при этом маркер источника не имеет обратной косой черты (например, `{ "type": "line_break", "paragraph": "p" }` ; другие маркеры включают `m` , `pi1` , `mi` и `pc` ). Маркеры пустых строк ( `\b` ) создают `line_break` элементов без `paragraph` Когда за пустой строкой непосредственно следует абзац ( `\b` затем `\m` ), они объединяются в один `{ "type": "line_break", "paragraph": "m" }` , а две пустые строки создают два разрыва строк. `\nb` продолжает текущий абзац и не создает разрыва строки. Абзац, начинающийся внутри стиха, представляется в содержимом стиха как `{ "lineBreak": true, "paragraph": "p" }` .
+
+Программы рендеринга, которые понимают только переносы строк, могут игнорировать `paragraph` .
+
 ```typescript:no-line-numbers title="chapter.ts"
 export interface TranslationBookChapter {
     /**
@@ -191,6 +195,11 @@ interface ChapterLineBreak {
      * Указывает, что содержимое представляет собой перенос строки.
      */
     type: 'line_break';
+
+    /**
+     * Маркер исходного абзаца (без обратной косой черты), когда перенос строки начинает новый абзац, например, `p` , `m` , `pi1` или `mi` Опускается для обычных переносов строк.
+     */
+    paragraph?: string;
 }
 
 /**
@@ -270,6 +279,11 @@ interface InlineHeading {
  */
 interface InlineLineBreak {
     lineBreak: true;
+
+    /**
+     * Маркер исходного абзаца (без обратной косой черты), когда перенос строки начинает новый абзац, например, `p` , `m` , `pi1` или `mi` Опускается для обычных переносов строк.
+     */
+    paragraph?: string;
 }
 
 
@@ -373,6 +387,7 @@ interface TranslationBookChapterAudioTimingsLinks {
         "translationId": "BSB",
         "name": "Genesis",
         "commonName": "Genesis",
+        "shortName": "Gen",
         "title": "Genesis",
         "order": 1,
         "numberOfChapters": 50,
@@ -971,6 +986,12 @@ export interface TranslationCompleteBook {
     commonName: string;
 
     /**
+     * Краткое название (аббревиатура), которое было дано книге в результате перевода.
+     * Если такой возможности нет, значит, она не была предусмотрена в переводе.
+     */
+    shortName?: string;
+
+    /**
      * Название книги.
      */
     title: string | null;
@@ -1075,6 +1096,7 @@ interface TranslationBookChapterAudioTimingsMap {
       "id": "GEN",
       "name": "Genesis",
       "commonName": "Genesis",
+      "shortName": "Gen",
       "title": "Genesis",
       "order": 1,
       "numberOfChapters": 50,

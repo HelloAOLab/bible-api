@@ -75,6 +75,25 @@ interface Translation {
     licenseUrl: string;
 
     /**
+     * API に追加されたライセンスに関する注記。
+     * メモがない場合は、nullまたはundefinedになります。
+     */
+    licenseNotes?: string | null;
+
+    /**
+     * 翻訳コンテンツを表示する際に表示すべき通知。
+     * 翻訳に通知がない場合は、nullまたはundefinedになります。
+     */
+    licenseNotice?: string | null;
+
+    /**
+     * 翻訳で検出された構造化ライセンス条項。
+     * 条件が特定できなかった場合は、nullまたは未定義となります。
+     * その場合は、licenseUrl のページで利用規約を確認してください。
+     */
+    license?: License | null;
+
+    /**
      * 翻訳の略称。
      */
     shortName: string;
@@ -152,7 +171,59 @@ interface Translation {
      */
     totalNumberOfApocryphalVerses?: number;
 }
+
+/**
+ * 翻訳に対して検出された構造化ライセンス条項を定義します。
+ */
+interface License {
+    /**
+     * 翻訳を使用する際に、元の出典を明記する必要があるかどうか。
+     */
+    attribution: 'required' | 'not-required';
+
+    /**
+     * 翻訳の商用利用が許可されているかどうか。
+     */
+    commercialUse: 'allowed' | 'not-allowed';
+
+    /**
+     * 翻訳の派生作品の作成および配布が許可されているかどうか。
+     */
+    derivatives: 'allowed' | 'not-allowed';
+
+    /**
+     * 派生作品は同一のライセンスの下で配布されなければならないか（つまり、「同一条件での共有」が求められるか）。
+     */
+    copyleft: boolean;
+
+    /**
+     * その翻訳がパブリックドメインに提供されているかどうか。
+     */
+    publicDomain: boolean;
+}
 ```
+
+### ライセンス
+
+各翻訳はそれぞれ独自のライセンスに基づいて公開されているため、使用する前に翻訳の利用規約を確認してください。
+
+-   `licenseUrl`常に完全なライセンス条項へのリンクです。
+-   `licenseNotice`が存在する場合、それは翻訳コンテンツとともに表示される著作権または帰属表示です。
+-   `licenseNotes` 、ソーステキストに加えられた変更など、APIによって追加されたメモが含まれています。
+-   `license`存在する場合、コードでチェックできる形式で用語を要約します。たとえば、商用利用が許可されている翻訳のみにリストを絞り込むことができます。
+
+```ts:no-line-numbers title="commercial-translations.js"
+fetch(`https://bible.helloao.org/api/available_translations.json`)
+    .then(request => request.json())
+    .then(({ translations }) => {
+        const commercial = translations.filter(
+            t => t.license?.commercialUse === 'allowed'
+        );
+        console.log('Translations that allow commercial use:', commercial);
+    });
+```
+
+`license`は、用語が自動的に検出された場合にのみ設定されます。0が設定されていない翻訳でも使用できる場合がありますので、 `licenseUrl`のページをご覧ください。
 
 ### 例
 
@@ -247,6 +318,12 @@ interface TranslationBook {
     commonName: string;
 
     /**
+     * 翻訳者がその書籍に付けた略称（短縮形）。
+     * 利用できない場合は、翻訳時に提供されなかったことを意味します。
+     */
+    shortName?: string;
+
+    /**
      * 本のタイトル。
      * これは通常、本のタイトルをより詳しく説明したものです。
      * 利用できない場合は、翻訳時に提供されなかったことを意味します。
@@ -325,6 +402,7 @@ interface TranslationBook {
             "translationId": "BSB",
             "name": "Genesis",
             "commonName": "Genesis",
+            "shortName": "Gen",
             "title": "Genesis",
             "order": 1,
             "numberOfChapters": 50,

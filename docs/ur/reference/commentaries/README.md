@@ -62,6 +62,12 @@ export interface Commentary {
     licenseUrl: string;
 
     /**
+     * لائسنس کے لیے API کے شامل کردہ نوٹس۔
+     * اگر کوئی نوٹ نہیں ہے تو کالعدم یا غیر متعینہ۔
+     */
+    licenseNotes?: string | null;
+
+    /**
      * تفسیر کا انگریزی نام۔
      */
     englishName: string;
@@ -629,7 +635,7 @@ interface CommentaryProfile {
 
 ایک تبصرہ سے پروفائل حاصل کرتا ہے۔
 
--   `commentary` تفسیر کی شناخت (مثلاً `tyndale` )۔
+-   `commentary` تفسیر کی ID (مثلاً `tyndale` )۔
 -   `profile` پروفائل کی شناخت (مثلاً `aaron` )۔
 
 ### کوڈ کی مثال

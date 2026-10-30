@@ -8,5 +8,5 @@ Documentation de référence pour l'API Free Use Bible, organisée par catégori
 
 -   [**Traductions, livres et chapitres**](./translations/README.md) - Traductions de la Bible, leurs livres et le contenu de leurs chapitres, disponibles en formats [standard](./translations/standard.md) et [simplifié](./translations/simplified.md) .
 -   [**Commentaires**](./commentaries/README.md) – Commentaires bibliques : leurs livres, chapitres et profils.
--   [**Ensembles de données**](./datasets/README.md) - ensembles de données supplémentaires, tels que les références croisées et les entités bibliques (personnes, lieux, événements et groupes de personnes), ainsi que leurs livres, chapitres et entités.
+-   [**Ensembles de données**](./datasets/README.md) - ensembles de données supplémentaires, tels que des références croisées, des entités bibliques (personnes, lieux, événements et groupes de personnes), des mots interlinéaires de la langue originale, un lexique Strong et des candidats au verset du jour, ainsi que leurs livres, chapitres, entités et catégories de versets.
 -   [**OpenAPI**](./openapi.md) – le document OpenAPI qui décrit l’API, que vous pouvez utiliser pour générer des clients pour d’autres langages.

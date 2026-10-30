@@ -359,3 +359,60 @@ curl https://bible.helloao.org/api/d/open-cross-ref/GEN/1.json
 ```
 
 :::
+
+### Sami Kalmomin Harshe na Asali na Babi
+
+( [nassoshi](../reference/datasets/README.md#interlinear-datasets) )
+
+::: code-tabs#lang
+
+@shafin JavaScript
+
+```ts:no-line-numbers title="fetch-interlinear-chapter.js"
+const dataset = 'bsb-interlinear';
+const book = 'GEN';
+const chapter = 1;
+
+// Sami kalmomin Ibrananci na Farawa 1 daga bayanan bsb-interlinear
+fetch(`https://bible.helloao.org/api/d/${dataset}/${book}/${chapter}.json`)
+    .then(request => request.json())
+    .then(chapter => {
+        console.log('Genesis 1 (bsb-interlinear):', chapter);
+    });
+```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/d/bsb-interlinear/GEN/1.json
+```
+
+:::
+
+### Samu Shigarwar Kalmomi
+
+( [nassoshi](../reference/datasets/README.md#get-a-lexicon-entry-from-a-dataset) )
+
+::: code-tabs#lang
+
+@shafin JavaScript
+
+```ts:no-line-numbers title="fetch-lexicon-entry.js"
+const dataset = 'stepbible-lexicon';
+const strongs = 'H0430';
+
+// Sami shigarwar ƙamus na H0430 na Strong daga bayanan stepbible-lexicon
+fetch(`https://bible.helloao.org/api/d/${dataset}/lexicon/${strongs}.json`)
+    .then(request => request.json())
+    .then(lexiconEntry => {
+        console.log('H0430 (stepbible-lexicon):', lexiconEntry);
+    });
+```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/d/stepbible-lexicon/lexicon/H0430.json
+```
+
+:::

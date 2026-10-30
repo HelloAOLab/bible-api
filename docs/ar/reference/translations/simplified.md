@@ -53,6 +53,8 @@ curl https://bible.helloao.org/api/BSB/GEN/1.simple.json
 
 ### الإزاحات
 
+يحتفظ محتوى الفصل المبسط بعناصر المستوى `line_break` الخاصة بالفصل، بما في ذلك خاصيتها `paragraph` عندما تبدأ فقرة داخل آية، يحتوي نص الآية على سطر جديد عند تلك النقطة، ويسجل مصفوفة الآية `paragraphs` ذلك على أنه `{ offset, style }` ، حيث `offset` هو فهرس الحرف الأول بعد السطر الجديد.
+
 جميع الإزاحات في الصيغة المبسطة - `offset` و `start` و `end` - هي مؤشرات في `text` من الآية التي تحتوي عليها. تُقاس هذه الإزاحات بوحدات ترميز UTF-16، وهي الوحدات المستخدمة في JavaScript `String.prototype.length` `String.prototype.slice()` .
 
 يشير `start` إلى النطاق الكامل، بينما يشير `end` إلى النطاق الكامل، لذا فإن `text.slice(start, end)` يُعيد بالضبط نطاق النص الذي تم تحديده. أما إزاحات الحواشي السفلية فهي موضع النص الذي يسبق الحاشية، لذا فإن `text.slice(0, offset)` يُعيد النص الذي يسبقها.
@@ -185,6 +187,11 @@ interface ChapterLineBreak {
      * يشير إلى أن المحتوى يمثل فاصل أسطر.
      */
     type: 'line_break';
+
+    /**
+     * علامة الفقرة المصدرية (بدون الشرطة المائلة العكسية) عند بدء فقرة جديدة عند فاصل الأسطر، على سبيل المثال `p` أو `m` أو `pi1` أو `mi` يتم حذفها في حالة فواصل الأسطر العادية.
+     */
+    paragraph?: string;
 }
 
 /**
@@ -217,6 +224,12 @@ interface SimpleChapterVerse {
      * يتم حذفها إذا لم تحتوي الآية على عناوين داخلية.
      */
     headings?: SimpleInlineHeading[];
+
+    /**
+     * الفقرات التي تبدأ في منتصف الآية.
+     * يُحذف إذا لم تحتوي الآية على أي منها.
+     */
+    paragraphs?: SimpleVerseParagraph[];
 
     /**
      * نطاقات نص الآية التي تمثل كلمات يسوع.
@@ -287,6 +300,21 @@ interface SimpleInlineHeading {
 }
 
 /**
+ * فقرة تبدأ في منتصف بيت شعري.
+ */
+interface SimpleVerseParagraph {
+    /**
+     * الرقم التسلسلي في نص الآية الذي تبدأ عنده الفقرة.
+     */
+    offset: number;
+
+    /**
+     * علامة الفقرة المصدرية بدون خطها المائل العكسي، على سبيل المثال `p` أو `m` .
+     */
+    style: string;
+}
+
+/**
  * مجموعة من النصوص داخل بيت شعري.
  */
 interface SimpleTextRange {
@@ -339,6 +367,7 @@ interface SimplePoemRange extends SimpleTextRange {
         "id": "GEN",
         "name": "Genesis",
         "commonName": "Genesis",
+        "shortName": "Gen",
         "title": "Genesis",
         "order": 1,
         "numberOfChapters": 50,
@@ -796,6 +825,7 @@ export interface SimpleTranslationCompleteChapter {
             "id": "GEN",
             "name": "Genesis",
             "commonName": "Genesis",
+            "shortName": "Gen",
             "title": "Genesis",
             "order": 1,
             "numberOfChapters": 50,

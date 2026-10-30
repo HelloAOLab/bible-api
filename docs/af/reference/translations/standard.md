@@ -41,6 +41,10 @@ curl https://bible.helloao.org/api/BSB/GEN/1.json
 
 ### Struktuur
 
+'n `line_break` wat 'n nuwe bronparagraaf begin, het 'n `paragraph` eienskap met die bronmerker sonder sy agterskuinsstreep (byvoorbeeld `{ "type": "line_break", "paragraph": "p" }` ; ander merkers sluit in `m` , `pi1` , `mi` en `pc` ). Leëlynmerkers ( `\b` ) produseer `line_break` items sonder 'n `paragraph` Wanneer 'n leë lyn direk gevolg word deur 'n paragraaf ( `\b` dan `\m` ), word hulle saamgevoeg in 'n enkele `{ "type": "line_break", "paragraph": "m" }` , terwyl twee leë lyne twee reëlbreuke produseer. `\nb` sit die huidige paragraaf voort en produseer geen reëlbreuk nie. 'n Paragraaf wat binne 'n vers begin, word in versinhoud as `{ "lineBreak": true, "paragraph": "p" }` voorgestel.
+
+Renderers wat slegs lynbreuke verstaan, kan `paragraph` ignoreer.
+
 ```typescript:no-line-numbers title="chapter.ts"
 export interface TranslationBookChapter {
     /**
@@ -191,6 +195,11 @@ interface ChapterLineBreak {
      * Dui aan dat die inhoud 'n reëlbreuk verteenwoordig.
      */
     type: 'line_break';
+
+    /**
+     * Die bronparagraafmerker (sonder sy agterskuinsstreep) wanneer die reëlbreuk 'n nuwe paragraaf begin, byvoorbeeld `p` , `m` , `pi1` of `mi` Weglating vir gewone reëlbreuke.
+     */
+    paragraph?: string;
 }
 
 /**
@@ -270,6 +279,11 @@ interface InlineHeading {
  */
 interface InlineLineBreak {
     lineBreak: true;
+
+    /**
+     * Die bronparagraafmerker (sonder sy agterskuinsstreep) wanneer die reëlbreuk 'n nuwe paragraaf begin, byvoorbeeld `p` , `m` , `pi1` of `mi` Weglating vir gewone reëlbreuke.
+     */
+    paragraph?: string;
 }
 
 
@@ -373,6 +387,7 @@ interface TranslationBookChapterAudioTimingsLinks {
         "translationId": "BSB",
         "name": "Genesis",
         "commonName": "Genesis",
+        "shortName": "Gen",
         "title": "Genesis",
         "order": 1,
         "numberOfChapters": 50,
@@ -971,6 +986,12 @@ export interface TranslationCompleteBook {
     commonName: string;
 
     /**
+     * Die kort naam (afkorting) wat die vertaling vir die boek verskaf het.
+     * Indien nie beskikbaar nie, dan is een nie deur die vertaling verskaf nie.
+     */
+    shortName?: string;
+
+    /**
      * Die titel van die boek.
      */
     title: string | null;
@@ -1018,7 +1039,7 @@ export interface TranslationCompleteChapter {
     /**
      * Die oudio-tydsberekening (begintye per vers, in sekondes) vir verskillende oudioweergawes vir die hoofstuk.
      *
-     * Anders as `thisChapterAudioTimings` op die individuele hoofstuk-eindpunt (wat skakel na "Kry die klanktydsberekening vir 'n hoofstuk" hieronder), bevat hierdie een die tydsberekening self - aangesien die punt van die volledige vertaling-aflaai is om alles in een lêer te hê.
+     * Anders as `thisChapterAudioTimings` op die individuele hoofstuk-eindpunt (wat hieronder skakel na "Kry die klanktydsberekening vir 'n hoofstuk"), bevat hierdie een die tydsberekening self - aangesien die punt van die volledige vertaling-aflaai is om alles in een lêer te hê.
      */
     thisChapterAudioTimings: TranslationBookChapterAudioTimingsMap;
 
@@ -1075,6 +1096,7 @@ interface TranslationBookChapterAudioTimingsMap {
       "id": "GEN",
       "name": "Genesis",
       "commonName": "Genesis",
+      "shortName": "Gen",
       "title": "Genesis",
       "order": 1,
       "numberOfChapters": 50,

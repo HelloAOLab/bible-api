@@ -53,6 +53,8 @@ curl https://bible.helloao.org/api/BSB/GEN/1.simple.json
 
 ### Versätze
 
+Vereinfachter Kapitelinhalt behält die Elemente der Kapitelebene `line_break` , einschließlich ihrer `paragraph` Eigenschaft, bei. Beginnt ein Absatz innerhalb eines Verses, enthält der Verstext an dieser Stelle einen Zeilenumbruch, und das `paragraphs` Array des Verses speichert dies als `{ offset, style }` , wobei `offset` der Index des ersten Zeichens nach dem Zeilenumbruch ist.
+
 Alle Offsets im vereinfachten Format – `offset` , `start` und `end` – sind Indizes für die `text` des Verses, in dem sie enthalten sind. Sie werden in UTF-16-Codeeinheiten gemessen, die auch von JavaScripts `String.prototype.length` und `String.prototype.slice()` verwendet werden.
 
 `start` bedeutet inklusive, `end` exklusiv; `text.slice(start, end)` gibt also exakt den markierten Textbereich zurück. Fußnoten-Offsets geben die Position des aufrufenden Textabschnitts an; `text.slice(0, offset)` bezeichnet den vorhergehenden Text.
@@ -185,6 +187,11 @@ interface ChapterLineBreak {
      * Zeigt an, dass der Inhalt einen Zeilenumbruch darstellt.
      */
     type: 'line_break';
+
+    /**
+     * Die Quellabsatzmarkierung (ohne Backslash), wenn der Zeilenumbruch einen neuen Absatz einleitet, z. B. `p` , `m` , `pi1` oder `mi` Wird bei einfachen Zeilenumbrüchen weggelassen.
+     */
+    paragraph?: string;
 }
 
 /**
@@ -217,6 +224,12 @@ interface SimpleChapterVerse {
      * Wird weggelassen, wenn der Vers keine Zwischenüberschriften enthält.
      */
     headings?: SimpleInlineHeading[];
+
+    /**
+     * Die Absätze, die mitten im Vers beginnen.
+     * Wird weggelassen, falls der Vers keinen enthält.
+     */
+    paragraphs?: SimpleVerseParagraph[];
 
     /**
      * Die Textabschnitte des Verses, die die Worte Jesu darstellen.
@@ -253,7 +266,7 @@ interface SimpleVerseFootnote {
     noteId: number;
 
     /**
-     * Die Stelle im Verstext, an der der Fußnotenaufruf eingefügt werden soll.
+     * Die Position im Verstext, an der der Fußnotenaufruf eingefügt werden soll.
      */
     offset: number;
 
@@ -287,6 +300,21 @@ interface SimpleInlineHeading {
 }
 
 /**
+ * Ein Absatz, der mitten in einem Vers beginnt.
+ */
+interface SimpleVerseParagraph {
+    /**
+     * Der Index im Verstext, bei dem der Absatz beginnt.
+     */
+    offset: number;
+
+    /**
+     * Der Quellabsatzmarker ohne Backslash, zum Beispiel `p` oder `m` .
+     */
+    style: string;
+}
+
+/**
  * Ein Textabschnitt innerhalb eines Verses.
  */
 interface SimpleTextRange {
@@ -306,7 +334,7 @@ interface SimpleTextRange {
  */
 interface SimplePoemRange extends SimpleTextRange {
     /**
-     * Der Einrückungsgrad, mit dem die Gedichtzeile angezeigt werden soll.
+     * Der Einzugsgrad, mit dem die Gedichtzeile angezeigt werden soll.
      */
     level: number;
 }
@@ -339,6 +367,7 @@ interface SimplePoemRange extends SimpleTextRange {
         "id": "GEN",
         "name": "Genesis",
         "commonName": "Genesis",
+        "shortName": "Gen",
         "title": "Genesis",
         "order": 1,
         "numberOfChapters": 50,
@@ -796,6 +825,7 @@ export interface SimpleTranslationCompleteChapter {
             "id": "GEN",
             "name": "Genesis",
             "commonName": "Genesis",
+            "shortName": "Gen",
             "title": "Genesis",
             "order": 1,
             "numberOfChapters": 50,

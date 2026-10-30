@@ -41,6 +41,10 @@ curl https://bible.helloao.org/api/BSB/GEN/1.json
 
 ### संरचना
 
+एक `line_break` जो एक नया स्रोत पैराग्राफ शुरू करता है, उसमें बैकस्लैश के बिना स्रोत मार्कर के साथ `paragraph` गुण होता है (उदाहरण के लिए `{ "type": "line_break", "paragraph": "p" }` ; अन्य मार्करों में `m` , `pi1` , `mi` और `pc` शामिल हैं)। खाली पंक्ति मार्कर ( `\b` ) `paragraph` के बिना `line_break` आइटम उत्पन्न करते हैं। जब एक खाली पंक्ति के ठीक बाद एक पैराग्राफ आता है ( `\b` फिर `\m` ), तो वे एक ही `{ "type": "line_break", "paragraph": "m" }` में विलय हो जाते हैं, जबकि दो खाली पंक्तियाँ दो पंक्ति विराम उत्पन्न करती हैं। `\nb` वर्तमान पैराग्राफ को जारी रखता है और कोई पंक्ति विराम उत्पन्न नहीं करता है। एक पैराग्राफ जो एक श्लोक के भीतर शुरू होता है, श्लोक सामग्री में `{ "lineBreak": true, "paragraph": "p" }` के रूप में दर्शाया जाता है।
+
+वे रेंडरर जो केवल लाइन ब्रेक समझते हैं, `paragraph` अनदेखा कर सकते हैं।
+
 ```typescript:no-line-numbers title="chapter.ts"
 export interface TranslationBookChapter {
     /**
@@ -191,6 +195,11 @@ interface ChapterLineBreak {
      * यह दर्शाता है कि सामग्री एक पंक्ति विराम का प्रतिनिधित्व करती है।
      */
     type: 'line_break';
+
+    /**
+     * जब पंक्ति विराम से नया पैराग्राफ शुरू होता है, तो स्रोत पैराग्राफ मार्कर (बिना बैकस्लैश के) का उपयोग किया जाता है, उदाहरण के लिए `p` , `m` , `pi1` या `mi` सामान्य पंक्ति विराम के लिए इसे छोड़ दिया जाता है।
+     */
+    paragraph?: string;
 }
 
 /**
@@ -270,6 +279,11 @@ interface InlineHeading {
  */
 interface InlineLineBreak {
     lineBreak: true;
+
+    /**
+     * जब पंक्ति विराम से नया पैराग्राफ शुरू होता है, तो स्रोत पैराग्राफ मार्कर (बिना बैकस्लैश के) का उपयोग किया जाता है, उदाहरण के लिए `p` , `m` , `pi1` या `mi` सामान्य पंक्ति विराम के लिए इसे छोड़ दिया जाता है।
+     */
+    paragraph?: string;
 }
 
 
@@ -373,6 +387,7 @@ interface TranslationBookChapterAudioTimingsLinks {
         "translationId": "BSB",
         "name": "Genesis",
         "commonName": "Genesis",
+        "shortName": "Gen",
         "title": "Genesis",
         "order": 1,
         "numberOfChapters": 50,
@@ -579,7 +594,7 @@ curl https://bible.helloao.org/api/BSB/GEN/1.hays.audioTimings.json
 
 ```typescript:no-line-numbers title="chapter-audio-timings.ts"
 /**
- * यह किसी पुस्तक के अध्याय के लिए, एक ही पाठक द्वारा पढ़ी जाने वाली ऑडियो टाइमिंग को परिभाषित करता है।
+ * यह किसी पुस्तक के अध्याय के लिए, एक ही पाठक द्वारा पढ़ी जाने वाली ऑडियो रिकॉर्डिंग का समय निर्धारित करता है।
  * यह /api/{translation}/{book}/{chapter}.{reader}.audioTimings.json एंडपॉइंट से मैप करता है।
  */
 export interface TranslationBookChapterAudioTimings {
@@ -775,7 +790,7 @@ export interface TranslationBookChapterWords {
 
     /**
      * अध्याय के प्रत्येक श्लोक के लिए व्याख्या किए गए शब्द, श्लोक संख्या के अनुसार वर्गीकृत किए गए हैं।
-     * प्रत्येक सूची श्लोक में शब्दों के आने के क्रम में व्यवस्थित है।
+     * प्रत्येक सूची श्लोक में शब्दों के आने के क्रम में ही व्यवस्थित है।
      */
     verses: {
         [verseNumber: string]: ChapterWord[];
@@ -971,6 +986,12 @@ export interface TranslationCompleteBook {
     commonName: string;
 
     /**
+     * अनुवाद द्वारा पुस्तक को दिया गया संक्षिप्त नाम (संक्षिप्त रूप)।
+     * यदि उपलब्ध नहीं है, तो अनुवाद द्वारा इसे प्रदान नहीं किया गया है।
+     */
+    shortName?: string;
+
+    /**
      * पुस्तक का शीर्षक।
      */
     title: string | null;
@@ -1075,6 +1096,7 @@ interface TranslationBookChapterAudioTimingsMap {
       "id": "GEN",
       "name": "Genesis",
       "commonName": "Genesis",
+      "shortName": "Gen",
       "title": "Genesis",
       "order": 1,
       "numberOfChapters": 50,

@@ -359,3 +359,60 @@ curl https://bible.helloao.org/api/d/open-cross-ref/GEN/1.json
 ```
 
 :::
+
+### Kry die oorspronklike taalwoorde van 'n hoofstuk
+
+( [verwysing](../reference/datasets/README.md#interlinear-datasets) )
+
+::: code-tabs#taal
+
+@tab JavaScript
+
+```ts:no-line-numbers title="fetch-interlinear-chapter.js"
+const dataset = 'bsb-interlinear';
+const book = 'GEN';
+const chapter = 1;
+
+// Kry die Hebreeuse woorde van Genesis 1 uit die bsb-interlineêre datastel
+fetch(`https://bible.helloao.org/api/d/${dataset}/${book}/${chapter}.json`)
+    .then(request => request.json())
+    .then(chapter => {
+        console.log('Genesis 1 (bsb-interlinear):', chapter);
+    });
+```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/d/bsb-interlinear/GEN/1.json
+```
+
+:::
+
+### Kry 'n leksikoninskrywing
+
+( [verwysing](../reference/datasets/README.md#get-a-lexicon-entry-from-a-dataset) )
+
+::: code-tabs#taal
+
+@tab JavaScript
+
+```ts:no-line-numbers title="fetch-lexicon-entry.js"
+const dataset = 'stepbible-lexicon';
+const strongs = 'H0430';
+
+// Kry die leksikoninskrywing vir Strong se H0430 vanaf die stepbible-leksikon-datastel
+fetch(`https://bible.helloao.org/api/d/${dataset}/lexicon/${strongs}.json`)
+    .then(request => request.json())
+    .then(lexiconEntry => {
+        console.log('H0430 (stepbible-lexicon):', lexiconEntry);
+    });
+```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/d/stepbible-lexicon/lexicon/H0430.json
+```
+
+:::

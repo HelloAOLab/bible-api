@@ -62,6 +62,12 @@ export interface Commentary {
     licenseUrl: string;
 
     /**
+     * Примечания к лицензии, добавленные через API.
+     * Если примечания отсутствуют, значение равно null или undefined.
+     */
+    licenseNotes?: string | null;
+
+    /**
      * Английское название комментария.
      */
     englishName: string;
@@ -467,7 +473,7 @@ interface CommentaryChapterData {
 
 Профили представляют собой обзоры отдельных лиц или групп людей.
 
-В настоящее время только у `tyndale` есть профили.
+В настоящее время ни `tyndale` пользователя нет профилей.
 
 -   `commentary` идентификатор комментария (например `tyndale` ).
 
@@ -529,7 +535,7 @@ interface VerseRef {
 
     /**
      * Глава, на которой заканчивается ссылка.
-     * Если ссылка опущена, то она не охватывает несколько глав.
+     * Если ссылка отсутствует, то она не охватывает несколько глав.
      */
     endChapter?: number;
 
@@ -642,7 +648,7 @@ interface CommentaryProfile {
 const commentary = 'tyndale';
 const profile = 'aaron';
 
-// Ознакомьтесь с биографией Аарона Тиндаля в комментариях Тиндаля.
+// Ознакомьтесь с биографией Аарона Тиндала в комментариях.
 fetch(`https://bible.helloao.org/api/c/${commentary}/profiles/${profile}.json`)
     .then(request => request.json())
     .then(profile => {

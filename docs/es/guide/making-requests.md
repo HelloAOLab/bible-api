@@ -304,7 +304,7 @@ curl https://bible.helloao.org/api/available_datasets.json
 
 :::
 
-### Obtener la lista de libros en un conjunto de datos.
+### Obtener la lista de libros en un conjunto de datos
 
 ( [referencia](../reference/datasets/README.md#list-books-in-a-dataset) )
 
@@ -356,6 +356,63 @@ fetch(`https://bible.helloao.org/api/d/${dataset}/${book}/${chapter}.json`)
 
 ```bash:no-line-numbers
 curl https://bible.helloao.org/api/d/open-cross-ref/GEN/1.json
+```
+
+:::
+
+### Obtén el texto original de un capítulo.
+
+( [referencia](../reference/datasets/README.md#interlinear-datasets) )
+
+::: code-tabs#lang
+
+@tab JavaScript
+
+```ts:no-line-numbers title="fetch-interlinear-chapter.js"
+const dataset = 'bsb-interlinear';
+const book = 'GEN';
+const chapter = 1;
+
+// Obtén las palabras hebreas de Génesis 1 del conjunto de datos bsb-interlinear.
+fetch(`https://bible.helloao.org/api/d/${dataset}/${book}/${chapter}.json`)
+    .then(request => request.json())
+    .then(chapter => {
+        console.log('Genesis 1 (bsb-interlinear):', chapter);
+    });
+```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/d/bsb-interlinear/GEN/1.json
+```
+
+:::
+
+### Obtén una entrada en el léxico
+
+( [referencia](../reference/datasets/README.md#get-a-lexicon-entry-from-a-dataset) )
+
+::: code-tabs#lang
+
+@tab JavaScript
+
+```ts:no-line-numbers title="fetch-lexicon-entry.js"
+const dataset = 'stepbible-lexicon';
+const strongs = 'H0430';
+
+// Obtenga la entrada del léxico para Strong's H0430 del conjunto de datos stepbible-lexicon.
+fetch(`https://bible.helloao.org/api/d/${dataset}/lexicon/${strongs}.json`)
+    .then(request => request.json())
+    .then(lexiconEntry => {
+        console.log('H0430 (stepbible-lexicon):', lexiconEntry);
+    });
+```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/d/stepbible-lexicon/lexicon/H0430.json
 ```
 
 :::

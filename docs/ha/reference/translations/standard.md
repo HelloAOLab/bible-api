@@ -41,6 +41,10 @@ curl https://bible.helloao.org/api/BSB/GEN/1.json
 
 ### Tsarin gini
 
+A `line_break` wanda ya fara sabon sakin layi na tushe yana da siffa `paragraph` tare da alamar tushe ba tare da lanƙwasa ba (misali `{ "type": "line_break", "paragraph": "p" }` ; wasu alamomi sun haɗa da `m` , `pi1` , `mi` , da `pc` ). Alamun layin mara komai ( `\b` ) suna samar da abubuwa `line_break` ba tare da `paragraph` . Lokacin da layin mara komai ya biyo baya kai tsaye da sakin layi ( `\b` sannan `\m` ), ana haɗa su cikin `{ "type": "line_break", "paragraph": "m" }` guda ɗaya, yayin da layuka biyu marasa komai suna samar da lanƙwasa layi biyu. `\nb` yana ci gaba da sakin layi na yanzu kuma ba ya samar da lanƙwasa layi. Sakin da ya fara a cikin aya yana wakiltar a cikin abun cikin aya kamar `{ "lineBreak": true, "paragraph": "p" }` .
+
+Masu fassara waɗanda suka fahimci karyar layi kawai za su iya yin watsi da `paragraph` .
+
 ```typescript:no-line-numbers title="chapter.ts"
 export interface TranslationBookChapter {
     /**
@@ -191,6 +195,11 @@ interface ChapterLineBreak {
      * Yana nuna cewa abubuwan da ke ciki suna wakiltar karya layi.
      */
     type: 'line_break';
+
+    /**
+     * Alamar sakin layi ta tushe (ba tare da lanƙwasa ba) lokacin da layin ya fara sabon sakin layi, misali `p` , `m` , `pi1` ko `mi` An cire shi don layin da ba a saba gani ba.
+     */
+    paragraph?: string;
 }
 
 /**
@@ -270,6 +279,11 @@ interface InlineHeading {
  */
 interface InlineLineBreak {
     lineBreak: true;
+
+    /**
+     * Alamar sakin layi ta tushe (ba tare da lanƙwasa ba) lokacin da layin ya fara sabon sakin layi, misali `p` , `m` , `pi1` ko `mi` An cire shi don layin da ba a saba gani ba.
+     */
+    paragraph?: string;
 }
 
 
@@ -373,6 +387,7 @@ interface TranslationBookChapterAudioTimingsLinks {
         "translationId": "BSB",
         "name": "Genesis",
         "commonName": "Genesis",
+        "shortName": "Gen",
         "title": "Genesis",
         "order": 1,
         "numberOfChapters": 50,
@@ -971,6 +986,12 @@ export interface TranslationCompleteBook {
     commonName: string;
 
     /**
+     * Gajeren suna (gajarta) da fassarar ta tanadar wa littafin.
+     * Idan babu, to fassarar ba ta bayar da ɗaya ba.
+     */
+    shortName?: string;
+
+    /**
      * Sunan littafin.
      */
     title: string | null;
@@ -1075,6 +1096,7 @@ interface TranslationBookChapterAudioTimingsMap {
       "id": "GEN",
       "name": "Genesis",
       "commonName": "Genesis",
+      "shortName": "Gen",
       "title": "Genesis",
       "order": 1,
       "numberOfChapters": 50,

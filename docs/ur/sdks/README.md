@@ -1,6 +1,6 @@
 ---
 title: 'SDKs'
-description: 'npm پر دستیاب JavaScript اور TypeScript کلائنٹ سمیت مفت استعمال بائبل API کے لیے سرکاری SDKs۔'
+description: 'Bible API کے مفت استعمال کے لیے سرکاری SDKs، بشمول JavaScript اور TypeScript کلائنٹ جو npm پر دستیاب ہیں، JVM اور Android کے لیے Kotlin کلائنٹ، اور Swift پیکیج۔'
 ---
 
 # Bible API SDKs کا مفت استعمال کریں۔
@@ -8,3 +8,5 @@ description: 'npm پر دستیاب JavaScript اور TypeScript کلائنٹ س
 ہمارے پاس پہلے سے تیار کردہ SDKs درج ذیل زبانوں کے لیے دستیاب ہیں:
 
 -   [JavaScript/TypeScript](./javascript.md)
+-   [کوٹلن](./kotlin.md)
+-   [سوئفٹ](./swift.md)

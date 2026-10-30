@@ -75,6 +75,25 @@ interface Translation {
     licenseUrl: string;
 
     /**
+     * Catatan tambahan API untuk lisensi.
+     * Null atau undefined jika tidak ada catatan.
+     */
+    licenseNotes?: string | null;
+
+    /**
+     * Pemberitahuan yang harus ditampilkan saat menampilkan konten dari terjemahan.
+     * Null atau undefined jika terjemahan tidak memiliki pemberitahuan.
+     */
+    licenseNotice?: string | null;
+
+    /**
+     * Persyaratan lisensi terstruktur yang terdeteksi untuk penerjemahan.
+     * Nilai null atau tidak terdefinisi jika istilah-istilah tersebut tidak dapat ditentukan.
+     * Dalam hal ini, periksa halaman di licenseUrl untuk mengetahui persyaratannya.
+     */
+    license?: License | null;
+
+    /**
      * Nama singkat untuk terjemahan tersebut.
      */
     shortName: string;
@@ -152,7 +171,59 @@ interface Translation {
      */
     totalNumberOfApocryphalVerses?: number;
 }
+
+/**
+ * Menentukan ketentuan lisensi terstruktur yang terdeteksi untuk suatu terjemahan.
+ */
+interface License {
+    /**
+     * Apakah atribusi ke sumber asli diperlukan saat menggunakan terjemahan tersebut.
+     */
+    attribution: 'required' | 'not-required';
+
+    /**
+     * Apakah penggunaan terjemahan untuk tujuan komersial diperbolehkan.
+     */
+    commercialUse: 'allowed' | 'not-allowed';
+
+    /**
+     * Apakah pembuatan dan pendistribusian karya turunan dari terjemahan tersebut diperbolehkan.
+     */
+    derivatives: 'allowed' | 'not-allowed';
+
+    /**
+     * Apakah karya turunan harus didistribusikan di bawah lisensi yang sama (yaitu persyaratan "berbagi serupa").
+     */
+    copyleft: boolean;
+
+    /**
+     * Apakah terjemahan tersebut telah diserahkan ke domain publik.
+     */
+    publicDomain: boolean;
+}
 ```
+
+### Lisensi
+
+Setiap terjemahan diterbitkan di bawah lisensinya masing-masing, jadi periksa ketentuan terjemahan sebelum Anda menggunakannya.
+
+-   `licenseUrl` selalu menyertakan tautan ke ketentuan lisensi lengkap.
+-   `licenseNotice` , jika ada, adalah pemberitahuan hak cipta atau atribusi yang akan ditampilkan di samping konten terjemahan.
+-   `licenseNotes` berisi catatan yang ditambahkan oleh API, seperti perubahan yang dilakukan pada teks sumber.
+-   `license` , jika ada, akan meringkas istilah-istilah tersebut dalam bentuk yang dapat diperiksa oleh kode Anda. Misalnya, Anda dapat memfilter daftar tersebut hingga terjemahan yang mengizinkan penggunaan komersial:
+
+```ts:no-line-numbers title="commercial-translations.js"
+fetch(`https://bible.helloao.org/api/available_translations.json`)
+    .then(request => request.json())
+    .then(({ translations }) => {
+        const commercial = translations.filter(
+            t => t.license?.commercialUse === 'allowed'
+        );
+        console.log('Translations that allow commercial use:', commercial);
+    });
+```
+
+`license` hanya diatur jika istilah tersebut dapat dideteksi secara otomatis. Terjemahan tanpa angka tersebut mungkin masih memungkinkan Anda untuk menggunakannya, jadi bacalah halaman di `licenseUrl` untuk informasi lebih lanjut.
 
 ### Contoh
 
@@ -247,6 +318,12 @@ interface TranslationBook {
     commonName: string;
 
     /**
+     * Nama pendek (singkatan) yang diberikan terjemahan untuk buku tersebut.
+     * Jika tidak tersedia, berarti terjemahan tersebut tidak menyertakannya.
+     */
+    shortName?: string;
+
+    /**
      * Judul buku tersebut.
      * Ini biasanya merupakan versi judul buku yang lebih deskriptif.
      * Jika tidak tersedia, berarti terjemahan tersebut tidak menyertakannya.
@@ -325,6 +402,7 @@ interface TranslationBook {
             "translationId": "BSB",
             "name": "Genesis",
             "commonName": "Genesis",
+            "shortName": "Gen",
             "title": "Genesis",
             "order": 1,
             "numberOfChapters": 50,

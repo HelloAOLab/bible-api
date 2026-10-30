@@ -41,6 +41,10 @@ curl https://bible.helloao.org/api/BSB/GEN/1.json
 
 ### بناء
 
+يُشير الرقم `line_break` الذي يبدأ فقرة جديدة في النص إلى خاصية `paragraph` مع علامة المصدر بدون علامة الخط المائل العكسي (على سبيل المثال `{ "type": "line_break", "paragraph": "p" }` ؛ وتشمل العلامات الأخرى `m` و `pi1` و `mi` و `pc` ). تُنتج علامات الأسطر الفارغة ( `\b` ) `line_break` عناصر بدون `paragraph` عندما يتبع سطر فارغ فقرة مباشرة ( `\b` ثم `\m` )، يتم دمجهما في سطر واحد `{ "type": "line_break", "paragraph": "m" }` ، بينما يُنتج سطران فارغان فاصلين للأسطر. يُكمل `\nb` الفقرة الحالية ولا يُنتج فاصلًا للأسطر. تُمثل الفقرة التي تبدأ داخل آية في محتوى الآية بالرقم `{ "lineBreak": true, "paragraph": "p" }` .
+
+يمكن للمُعالجات التي تفهم فواصل الأسطر فقط تجاهل `paragraph` .
+
 ```typescript:no-line-numbers title="chapter.ts"
 export interface TranslationBookChapter {
     /**
@@ -191,6 +195,11 @@ interface ChapterLineBreak {
      * يشير إلى أن المحتوى يمثل فاصل أسطر.
      */
     type: 'line_break';
+
+    /**
+     * علامة الفقرة المصدرية (بدون الشرطة المائلة العكسية) عند بدء فقرة جديدة عند فاصل الأسطر، على سبيل المثال `p` أو `m` أو `pi1` أو `mi` يتم حذفها في حالة فواصل الأسطر العادية.
+     */
+    paragraph?: string;
 }
 
 /**
@@ -270,6 +279,11 @@ interface InlineHeading {
  */
 interface InlineLineBreak {
     lineBreak: true;
+
+    /**
+     * علامة الفقرة المصدرية (بدون الشرطة المائلة العكسية) عند بدء فقرة جديدة عند فاصل الأسطر، على سبيل المثال `p` أو `m` أو `pi1` أو `mi` يتم حذفها في حالة فواصل الأسطر العادية.
+     */
+    paragraph?: string;
 }
 
 
@@ -373,6 +387,7 @@ interface TranslationBookChapterAudioTimingsLinks {
         "translationId": "BSB",
         "name": "Genesis",
         "commonName": "Genesis",
+        "shortName": "Gen",
         "title": "Genesis",
         "order": 1,
         "numberOfChapters": 50,
@@ -541,7 +556,7 @@ interface TranslationBookChapterAudioTimingsLinks {
 -   `translation` هو معرف الترجمة (على سبيل المثال `BSB` ).
 -   `book` هو معرف الكتاب (على سبيل المثال `GEN` لسفر التكوين - يمكنك العثور على قائمة بمعرفات الكتب [هنا](https://ubsicap.github.io/usfm/identification/books.html) ).
 -   `chapter` هو رقم الفصل (على سبيل المثال `1` للفصل الأول).
--   `reader` هو معرف القارئ الذي تم تحديد التوقيتات لسرده (على سبيل المثال `hays` ) - القراء المتاحون لفصل ما هم مفاتيح `thisChapterAudioLinks` .
+-   `reader` هو معرف القارئ الذي تم تحديد التوقيتات لسرده (على سبيل المثال `hays` ) - القراء المتاحون لفصل ما هم مفاتيح `thisChapterAudioLinks` الخاص به.
 
 نهاية الآية هي بداية الآية التالية (أو، بالنسبة للآية الأخيرة، نهاية الملف الصوتي)، لذلك لا يحتاج العميل إلى أي شيء يتجاوز القائمة المرتبة لأوقات البدء لإنشاء نطاقات التمييز للفصل بأكمله.
 
@@ -839,7 +854,7 @@ interface ChapterWord {
 
 ### مثال
 
-بافتراض وجود فصل يحتوي أول آية فيه على عنصر محتوى واحد:
+بافتراض وجود فصل يحتوي بيته الأول على عنصر محتوى واحد:
 
 ```json:no-line-numbers title="/api/engwebp/JHN/1.json"
 {
@@ -971,6 +986,12 @@ export interface TranslationCompleteBook {
     commonName: string;
 
     /**
+     * الاسم المختصر (الاختصار) الذي قدمته الترجمة للكتاب.
+     * إذا لم يكن متوفراً، فهذا يعني أن الترجمة لم تقدمه.
+     */
+    shortName?: string;
+
+    /**
      * عنوان الكتاب.
      */
     title: string | null;
@@ -1018,7 +1039,7 @@ export interface TranslationCompleteChapter {
     /**
      * توقيتات الصوت (أوقات بدء كل مقطع، بالثواني) للإصدارات الصوتية المختلفة للفصل.
      *
-     * بخلاف `thisChapterAudioTimings` في نقطة نهاية الفصل الفردية (التي ترتبط بـ "الحصول على توقيتات الصوت للفصل" أدناه)، يحتوي هذا على التوقيتات نفسها - لأن الهدف من تنزيل الترجمة الكاملة هو الحصول على كل شيء في ملف واحد.
+     * بخلاف `thisChapterAudioTimings` في نقطة نهاية الفصل الفردية (التي ترتبط بـ "الحصول على توقيتات الصوت للفصل" أدناه)، فإن هذا يحتوي على التوقيتات نفسها - لأن الهدف من تنزيل الترجمة الكاملة هو الحصول على كل شيء في ملف واحد.
      */
     thisChapterAudioTimings: TranslationBookChapterAudioTimingsMap;
 
@@ -1075,6 +1096,7 @@ interface TranslationBookChapterAudioTimingsMap {
       "id": "GEN",
       "name": "Genesis",
       "commonName": "Genesis",
+      "shortName": "Gen",
       "title": "Genesis",
       "order": 1,
       "numberOfChapters": 50,

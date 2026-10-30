@@ -62,6 +62,12 @@ export interface Commentary {
     licenseUrl: string;
 
     /**
+     * API 为许可证添加了注释。
+     * 如果没有笔记，则返回 null 或 undefined。
+     */
+    licenseNotes?: string | null;
+
+    /**
      * 评论的英文名称。
      */
     englishName: string;

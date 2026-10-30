@@ -53,6 +53,8 @@ curl https://bible.helloao.org/api/BSB/GEN/1.simple.json
 
 ### 偏移量
 
+简化后的章节内容保留了章节级别的`line_break`项，包括它们的`paragraph`属性。当段落开始于诗节内部时，诗节文本在该位置包含一个换行符，诗节的`paragraphs`数组将其记录为`{ offset, style }` ，其中`offset`是换行符后第一个字符的索引。
+
 简化格式中的所有偏移量`offset`和`end`都是指向包含它们的诗句第`text`行的索引。它们以 UTF- `start`代码单元为单位，这也是 JavaScript `String.prototype.length`和`String.prototype.slice()`所使用的编码格式。
 
 `start`表示包含范围， `end`表示排除范围，因此`text.slice(start, end)`返回的正是标记的文本范围。脚注偏移量是指脚注调用者所在的位置，因此`text.slice(0, offset)`表示脚注之前的文本。
@@ -185,6 +187,11 @@ interface ChapterLineBreak {
      * 表示内容为换行符。
      */
     type: 'line_break';
+
+    /**
+     * 当换行符开始一个新段落时，源段落标记（不带反斜杠），例如`p`或`pi1`对于普通换行符`m` `mi`省略。
+     */
+    paragraph?: string;
 }
 
 /**
@@ -217,6 +224,12 @@ interface SimpleChapterVerse {
      * 如果诗句中没有内联标题，则省略。
      */
     headings?: SimpleInlineHeading[];
+
+    /**
+     * 从诗句中间开始的段落。
+     * 如果诗句中没有诗句，则省略。
+     */
+    paragraphs?: SimpleVerseParagraph[];
 
     /**
      * 代表耶稣话语的经文范围。
@@ -287,6 +300,21 @@ interface SimpleInlineHeading {
 }
 
 /**
+ * 从诗句中间开始的段落。
+ */
+interface SimpleVerseParagraph {
+    /**
+     * 段落在诗句文本中的起始索引。
+     */
+    offset: number;
+
+    /**
+     * 源段落标记不带反斜杠，例如`p`或`m` 。
+     */
+    style: string;
+}
+
+/**
  * 诗句中的一段文字。
  */
 interface SimpleTextRange {
@@ -339,6 +367,7 @@ interface SimplePoemRange extends SimpleTextRange {
         "id": "GEN",
         "name": "Genesis",
         "commonName": "Genesis",
+        "shortName": "Gen",
         "title": "Genesis",
         "order": 1,
         "numberOfChapters": 50,
@@ -796,6 +825,7 @@ export interface SimpleTranslationCompleteChapter {
             "id": "GEN",
             "name": "Genesis",
             "commonName": "Genesis",
+            "shortName": "Gen",
             "title": "Genesis",
             "order": 1,
             "numberOfChapters": 50,

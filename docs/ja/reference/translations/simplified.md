@@ -53,6 +53,8 @@ curl https://bible.helloao.org/api/BSB/GEN/1.simple.json
 
 ### オフセット
 
+簡略化された章の内容は、章レベルの`line_break`項目とその`paragraph`プロパティを保持します。段落が詩の中で始まる場合、詩のテキストにはその位置に改行が含まれ、詩の`paragraphs`配列にはそれが`{ offset, style }`として記録されます。ここで、 `offset`改行後の最初の文字のインデックスです。
+
 簡略化された形式のオフセット（ `offset` `end`はすべて`start`それらを含む詩の`text`の要素へのインデックスです。これらはUTF-16コード単位で測定され、これはJavaScriptの`String.prototype.length`と`String.prototype.slice()`使用されている単位です。
 
 `start`は範囲を含み、 `end`範囲を除外するため、 `text.slice(start, end)`マークされたテキストの範囲を正確に返します。脚注オフセットは、脚注の呼び出し元が属する位置を示すため、 `text.slice(0, offset)`脚注の直前のテキストになります。
@@ -185,6 +187,11 @@ interface ChapterLineBreak {
      * 内容が改行であることを示します。
      */
     type: 'line_break';
+
+    /**
+     * 改行によって新しい段落が始まる場合、元の段落マーカー（バックスラッシュなし）を指定`m` `p` `pi1` `mi`通常の改行の場合は省略します。
+     */
+    paragraph?: string;
 }
 
 /**
@@ -217,6 +224,12 @@ interface SimpleChapterVerse {
      * 詩の中にインライン見出しが含まれていない場合は省略されます。
      */
     headings?: SimpleInlineHeading[];
+
+    /**
+     * 詩の途中から始まる段落。
+     * 該当の節に該当箇所がない場合は省略する。
+     */
+    paragraphs?: SimpleVerseParagraph[];
 
     /**
      * イエスの言葉を表す聖句の範囲。
@@ -287,6 +300,21 @@ interface SimpleInlineHeading {
 }
 
 /**
+ * 詩の途中から始まる段落。
+ */
+interface SimpleVerseParagraph {
+    /**
+     * 段落が始まる詩の本文中のインデックス。
+     */
+    offset: number;
+
+    /**
+     * バックスラッシュのないソース段落マーカー、たとえば`p`または`m` 。
+     */
+    style: string;
+}
+
+/**
  * 詩句の中に含まれるテキストの範囲。
  */
 interface SimpleTextRange {
@@ -339,6 +367,7 @@ interface SimplePoemRange extends SimpleTextRange {
         "id": "GEN",
         "name": "Genesis",
         "commonName": "Genesis",
+        "shortName": "Gen",
         "title": "Genesis",
         "order": 1,
         "numberOfChapters": 50,
@@ -796,6 +825,7 @@ export interface SimpleTranslationCompleteChapter {
             "id": "GEN",
             "name": "Genesis",
             "commonName": "Genesis",
+            "shortName": "Gen",
             "title": "Genesis",
             "order": 1,
             "numberOfChapters": 50,

@@ -62,6 +62,12 @@ export interface Commentary {
     licenseUrl: string;
 
     /**
+     * Catatan tambahan API untuk lisensi.
+     * Null atau undefined jika tidak ada catatan.
+     */
+    licenseNotes?: string | null;
+
+    /**
      * Nama bahasa Inggris untuk komentar tersebut.
      */
     englishName: string;
@@ -111,7 +117,7 @@ export interface Commentary {
 
     /**
      * Mendapatkan nama bahasa yang digunakan dalam komentar tersebut.
-     * Nilai null atau tidak terdefinisi jika nama bahasanya tidak diketahui.
+     * Nilai null atau undefined jika nama bahasanya tidak diketahui.
      */
     languageName?: string;
 

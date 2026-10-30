@@ -1,6 +1,6 @@
 # Наборы данных
 
-Конечные точки для просмотра дополнительных наборов данных по Библии, таких как перекрестные ссылки и библейские сущности (люди, места, события и группы людей), а также для получения информации об их книгах, содержании глав и сущностях.
+Конечные точки для просмотра дополнительных наборов данных по Библии, таких как перекрестные ссылки, библейские сущности (люди, места, события и группы людей), межстрочные слова на языке оригинала, лексиконы и варианты стихов дня, а также для получения информации о книгах, содержании глав, сущностях, лексиконах и категориях стихов.
 
 ## Доступные наборы данных
 
@@ -62,6 +62,12 @@ export interface Dataset {
     licenseUrl: string;
 
     /**
+     * Примечания к лицензии, добавленные через API.
+     * Если примечания отсутствуют, значение равно null или undefined.
+     */
+    licenseNotes?: string | null;
+
+    /**
      * Английское название набора данных.
      */
     englishName: string;
@@ -105,8 +111,15 @@ export interface Dataset {
 
     /**
      * Общее количество перекрестных ссылок, содержащихся в этом наборе данных.
+     * 0 для наборов данных, не содержащих перекрестных ссылок.
      */
     totalNumberOfReferences: number;
+
+    /**
+     * Общее количество подстрочных слов, содержащихся в этом наборе данных.
+     * Опускается, если набор данных не содержит подстрочных слов.
+     */
+    totalNumberOfWords?: number;
 
     /**
      * Получает название языка, на котором представлен набор данных.
@@ -137,6 +150,36 @@ export interface Dataset {
     totalNumberOfPlaces?: number;
     totalNumberOfEvents?: number;
     totalNumberOfPeopleGroups?: number;
+
+    /**
+     * Ссылка на API для получения списка лексических записей в наборе данных.
+     * Опускается, если набор данных не содержит лексических записей.
+     */
+    listOfLexiconApiLink?: string;
+
+    /**
+     * Общее количество лексических записей, содержащихся в наборе данных.
+     * Опускается, если набор данных не содержит лексических записей.
+     */
+    totalNumberOfLexicon?: number;
+
+    /**
+     * Ссылка на API для получения списка всех стихов в наборе данных с указанием их категорий.
+     * Опускается, если стихи в наборе данных не имеют категорий.
+     */
+    listOfVersesApiLink?: string;
+
+    /**
+     * Ссылка на API для получения списка категорий стихов в наборе данных.
+     * Опускается, если набор данных не содержит категорий стихов.
+     */
+    listOfCategoriesApiLink?: string;
+
+    /**
+     * Общее количество категорий стихов, содержащихся в наборе данных.
+     * Опускается, если набор данных не содержит категорий стихов.
+     */
+    totalNumberOfCategories?: number;
 }
 ```
 
@@ -192,6 +235,94 @@ export interface Dataset {
             "totalNumberOfEvents": 450,
             "listOfPeopleGroupsApiLink": "/api/d/theographic/groups.json",
             "totalNumberOfPeopleGroups": 23
+        },
+        {
+            "id": "bsb-interlinear",
+            "name": "Berean Standard Bible Interlinear",
+            "website": "https://bereanbible.com/",
+            "licenseUrl": "https://berean.bible/terms.htm",
+            "licenseNotes": "The Berean Standard Bible and its interlinear tables are in the public domain. Changes were made to the data to fit the Free Use Bible API format.",
+            "englishName": "Berean Standard Bible Interlinear",
+            "language": "eng",
+            "textDirection": "ltr",
+            "availableFormats": [
+                "json"
+            ],
+            "listOfBooksApiLink": "/api/d/bsb-interlinear/books.json",
+            "numberOfBooks": 66,
+            "totalNumberOfChapters": 1189,
+            "totalNumberOfVerses": 31102,
+            "totalNumberOfReferences": 0,
+            "languageName": "English",
+            "languageEnglishName": "English",
+            "totalNumberOfWords": 443625
+        },
+        {
+            "id": "stepbible-lexicon",
+            "name": "STEPBible Brief Lexicons",
+            "website": "https://github.com/STEPBible/STEPBible-Data",
+            "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+            "licenseNotes": "The Translators Brief lexicons of Extended Strongs (TBESH and TBESG) are by STEPBible.org / Tyndale House, Cambridge, and are licensed under CC BY 4.0. Changes were made to the data to fit the Free Use Bible API format.",
+            "englishName": "STEPBible Brief Lexicons",
+            "language": "eng",
+            "textDirection": "ltr",
+            "availableFormats": [
+                "json"
+            ],
+            "listOfBooksApiLink": "/api/d/stepbible-lexicon/books.json",
+            "numberOfBooks": 0,
+            "totalNumberOfChapters": 0,
+            "totalNumberOfVerses": 0,
+            "totalNumberOfReferences": 0,
+            "languageName": "English",
+            "languageEnglishName": "English",
+            "listOfLexiconApiLink": "/api/d/stepbible-lexicon/lexicon.json",
+            "totalNumberOfLexicon": 18085
+        },
+        {
+            "id": "history-globe",
+            "name": "History Globe",
+            "website": "https://historyglobe.app",
+            "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+            "licenseNotes": "History Globe by Vadym Arnaut (https://historyglobe.app) is licensed under CC BY 4.0. Its places, verse tags, and coordinates start from the OpenBible.info Bible Geocoding Data (CC BY 4.0), with corrections, and some coordinates are from Wikidata (CC0). Changes were made to the data to fit the Free Use Bible API format.",
+            "englishName": "History Globe",
+            "language": "eng",
+            "textDirection": "ltr",
+            "availableFormats": [
+                "json"
+            ],
+            "listOfBooksApiLink": "/api/d/history-globe/books.json",
+            "numberOfBooks": 61,
+            "totalNumberOfChapters": 849,
+            "totalNumberOfVerses": 5546,
+            "totalNumberOfReferences": 8617,
+            "languageName": "English",
+            "languageEnglishName": "English",
+            "listOfPlacesApiLink": "/api/d/history-globe/places.json",
+            "totalNumberOfPlaces": 1231
+        },
+        {
+            "id": "verse-of-the-day",
+            "name": "Verse of the Day",
+            "website": "https://github.com/HelloAOLab/bible-api/blob/main/packages/helloao-tools/generation/verse-of-the-day.ts",
+            "licenseUrl": "https://github.com/HelloAOLab/bible-api/blob/main/LICENSE",
+            "licenseNotes": "A curated list of well-known verses by AO Lab, released under the MIT License.",
+            "englishName": "Verse of the Day",
+            "language": "eng",
+            "textDirection": "ltr",
+            "availableFormats": [
+                "json"
+            ],
+            "listOfBooksApiLink": "/api/d/verse-of-the-day/books.json",
+            "numberOfBooks": 65,
+            "totalNumberOfChapters": 381,
+            "totalNumberOfVerses": 750,
+            "totalNumberOfReferences": 0,
+            "languageName": "English",
+            "languageEnglishName": "English",
+            "listOfVersesApiLink": "/api/d/verse-of-the-day/verses.json",
+            "listOfCategoriesApiLink": "/api/d/verse-of-the-day/categories.json",
+            "totalNumberOfCategories": 31
         }
     ]
 }
@@ -353,7 +484,7 @@ interface DatasetBook {
 
 Получает содержимое отдельной главы для заданной книги и набора данных.
 
-Для наборов данных с перекрестными ссылками (например, `open-cross-ref` ) глава содержит список перекрестных ссылок для каждого стиха. Для наборов данных с сущностями (например, `theographic` ) глава содержит информацию о людях, местах и ​​событиях, которые упоминаются в главе — см. [Получение сущностей в главе](#get-the-entities-in-a-chapter) .
+Для наборов данных с перекрестными ссылками (например, `open-cross-ref` ) глава содержит список перекрестных ссылок для каждого стиха. Для наборов данных с межстрочными ссылками (например, `bsb-interlinear` ) глава содержит слова каждого стиха на языке оригинала — см. [Межстрочные наборы данных](#interlinear-datasets) . Для наборов данных с сущностями (например, `theographic` ) глава содержит людей, места и события, которые упоминаются в главе — см. [Получение сущностей в главе](#get-the-entities-in-a-chapter) . Для набора данных `verse-of-the-day` глава содержит варианты стиха дня в главе и их категории — см. [Стих дня](#verse-of-the-day) .
 
 -   `dataset` идентификатор набора данных (например `open-cross-ref` ).
 -   `book` — это идентификатор книги (например, `GEN` для Книги Бытия).
@@ -440,18 +571,73 @@ interface DatasetChapterData {
     content: DatasetVerse[];
 }
 
-interface DatasetVerse {
+/**
+ * Стих обозначается как `references` (в наборах данных для перекрестных ссылок), `words` (в подстрочных наборах данных) или `categories` (в наборе данных «стих дня»).
+ * Отметьте, какой из них присутствует, `'words' in verse` или `'categories' in verse` .
+ */
+type DatasetVerse =
+    | DatasetReferencesVerse
+    | DatasetWordsVerse
+    | DatasetCategoriesVerse;
+
+interface DatasetReferencesVerse {
     /**
      * Номер стиха.
      */
     verse: number;
 
     /**
-     * Перекрестные ссылки на стих.
+     * Перекрестные ссылки к этому стиху.
      *
      * Отсортировано по баллам, в порядке убывания.
      */
     references: DatasetReference[];
+}
+
+interface DatasetWordsVerse {
+    /**
+     * Номер стиха.
+     */
+    verse: number;
+
+    /**
+     * Оригинальные слова стиха в порядке следования в оригинальном тексте.
+     * См. раздел «Интерлинейные наборы данных» ниже.
+     */
+    words: InterlinearWord[];
+}
+
+interface DatasetCategoriesVerse {
+    /**
+     * Номер стиха.
+     * Если присутствует `endVerse` , то это стих, с которого начинается отрывок.
+     */
+    verse: number;
+
+    /**
+     * Стих, которым заканчивается данный отрывок.
+     * Если запись состоит из одного стиха, она опускается.
+     */
+    endVerse?: number;
+
+    /**
+     * Идентификаторы категорий, к которым относится стих, начиная с наиболее релевантных.
+     * См. «Стих дня» ниже.
+     */
+    categories: string[];
+
+    /**
+     * Первый год, когда этот стих может стать стихом дня.
+     * Опускается, если стих всегда присутствовал в списке.
+     */
+    addedIn?: number;
+
+    /**
+     * Первый год, когда этот стих уже не может быть стихом дня.
+     * Удаленные стихи остаются в наборе данных, чтобы можно было по-прежнему выбирать стихи более ранних лет.
+     * Пропускается, если стих не был удален из списка.
+     */
+    removedIn?: number;
 }
 
 interface DatasetReference {
@@ -481,6 +667,8 @@ interface DatasetReference {
      */
     score?: number;
 }
+
+// Структуру InterlinearWord см. в разделе «Межстрочные наборы данных» ниже.
 ```
 
 ### Пример
@@ -574,6 +762,8 @@ interface DatasetReference {
 
 Некоторые наборы данных, такие как набор данных [«Теографические метаданные Библии»](https://github.com/robertrouse/theographic-bible-metadata) ( `theographic` ), содержат сущности: людей, места, события и группы людей, а также связи между ними и библейскими стихами, в которых они упоминаются.
 
+Набор данных [History Globe](https://historyglobe.app) ( `history-globe` ) содержит только места: места, упомянутые в Библии, с их координатами и стихами, в которых они упоминаются. Его идентификаторы мест (например, `a15257a` для Иерусалима) — это стабильные идентификаторы мест History Globe, те же самые, которые использует его собственный [API открытых данных](https://historyglobe.app/docs/api.html) , поэтому они не меняются при исправлении названия. Его значения `featureType` соответствуют значениям, используемым в наборе данных Theographic ( `City` , `Region` , `Water` и так далее), а `featureSubType` содержит более специфический тип, если таковой имеется (например, `River` , `Gate` , `Spring` ).
+
 Наборы данных, содержащие сущности, включают `listOfPeopleApiLink` , `listOfPlacesApiLink` , `listOfEventsApiLink` и `listOfPeopleGroupsApiLink` свойства в своей записи в `/api/available_datasets.json` .
 
 Наборы данных сущностей также предоставляют данные, соответствующие главам: `/api/d/{dataset}/books.json` перечисляет книги, главы которых содержат данные сущностей, а `/api/d/{dataset}/{book}/{chapter}.json` возвращает людей, места и события, которые упоминаются в этой главе, а также номера стихов, где каждое из них упоминается. См. [Получение сущностей в главе](#get-the-entities-in-a-chapter) .
@@ -627,6 +817,10 @@ export interface VerseRef {
     endVerse?: number;
 }
 ```
+
+### Источник: History Globe
+
+Данные History Globe распространяются по лицензии [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) . При использовании укажите History Globe ( https://historyglobe.app ) и данные OpenBible.info Bible Geocoding Data, на которых они основаны, а также отметьте любые изменения. Указание авторства содержится в свойстве `licenseNotes` набора данных.
 
 ## Найдите сущности в главе
 
@@ -1656,7 +1850,7 @@ interface DatasetPeopleGroupSummary {
 ```typescript:no-line-numbers title="dataset-people-group.ts"
 export interface DatasetPeopleGroupResponse {
     /**
-     * Информация о наборе данных для данной группы людей.
+     * Информация о наборе данных для группы людей.
      */
     dataset: Dataset;
 
@@ -1729,5 +1923,942 @@ interface DatasetPeopleGroup {
         "references": []
     },
     "thisPeopleGroupApiLink": "/api/d/theographic/groups/tribe-of-benjamin.json"
+}
+```
+
+## Интерлинейные наборы данных
+
+В подстрочном наборе данных Береанской Библии ( `bsb-interlinear` ) перечислены слова каждого стиха Библии на языке оригинала (иврите, арамейском и греческом) в том порядке, в котором они появляются в оригинальном тексте. Каждое слово имеет свою транслитерацию, грамматический анализ, [номер Стронга](https://en.wikipedia.org/wiki/Strong%27s_Concordance) и английскую фразу, которую [Береанская стандартная Библия](https://berean.bible) использует для него.
+
+В этом наборе данных используются те же конечные точки, что и в других наборах данных:
+
+-   В списке `GET https://bible.helloao.org/api/d/bsb-interlinear/books.json` указаны 66 книг.
+-   `GET https://bible.helloao.org/api/d/bsb-interlinear/{book}/{chapter}.json` (например `/api/d/bsb-interlinear/GEN/1.json` ) возвращает главу, при этом `{ verse, words }` соответствует каждому стиху. Ответ представляет собой [набор данных «глава»](#get-a-chapter-from-a-dataset) .
+
+Данные о словах взяты из [подстрочных таблиц стандартной Библии Береана](https://bereanbible.com/) , которые находятся в общественном достоянии. Номера Стронга для слов найдены в [лексиконе](#lexicon) ( `stepbible-lexicon` ).
+
+### Структура
+
+```typescript:no-line-numbers title="interlinear-word.ts"
+interface InterlinearWord {
+    /**
+     * Ранг слова в порядке следования в исходном тексте, начинающийся с 1.
+     * Слова перечислены в этом порядке.
+     */
+    pos: number;
+
+    /**
+     * Ранг слова в английском алфавитном порядке, начиная с 1.
+     */
+    bsbPos: number;
+
+    /**
+     * Язык слова.
+     */
+    language: 'hebrew' | 'aramaic' | 'greek';
+
+    /**
+     * Слово из оригинального текста. Нормализовано по NFC.
+     */
+    text: string;
+
+    /**
+     * Транслитерация слова.
+     */
+    transliteration: string | null;
+
+    /**
+     * Краткий грамматический код слова. Например, "N-mp" или "V-Qal-Perf-3ms".
+     */
+    parsing: string | null;
+
+    /**
+     * Грамматический анализ слова с помощью печатных букв.
+     */
+    parsingFull: string | null;
+
+    /**
+     * Номер слова по Стронгу с добавлением нулей. Например, "H0430" или "G3056".
+     * Добавлены нули, что соответствует `.words.json` значениям в Библии короля Якова.
+     * Для других значений переводов может потребоваться добавление нулей и удаление суффиксов перед объединением.
+     * Значение null, если в источнике слово не имеет номера Стронга (это относится к некоторым словам, являющимся суффиксами, например, к суффиксам местоимений).
+     */
+    strongs: string | null;
+
+    /**
+     * В Библии Berean Standard Bible используется английская фраза, обозначающая это слово.
+     * Значение null, если BSB оставляет слово без перевода (например, маркер прямого дополнения в иврите).
+     */
+    gloss: string | null;
+}
+```
+
+### Пример
+
+```json:no-line-numbers title="/api/d/bsb-interlinear/GEN/1.json"
+{
+    "dataset": {
+        "id": "bsb-interlinear",
+        "name": "Berean Standard Bible Interlinear",
+        "totalNumberOfWords": 443625
+        // ...
+    },
+    "book": {
+        "id": "GEN",
+        "datasetId": "bsb-interlinear",
+        "order": 1,
+        "numberOfChapters": 50
+        // ...
+    },
+    "chapter": {
+        "number": 1,
+        "content": [
+            {
+                "verse": 1,
+                "words": [
+                    {
+                        "pos": 1,
+                        "bsbPos": 1,
+                        "language": "hebrew",
+                        "text": "בְּרֵאשִׁ֖ית",
+                        "transliteration": "bə·rê·šîṯ",
+                        "parsing": "Prep-b | N-fs",
+                        "parsingFull": "Preposition-b | Noun - feminine singular",
+                        "strongs": "H7225",
+                        "gloss": "In the beginning"
+                    },
+                    {
+                        "pos": 2,
+                        "bsbPos": 4,
+                        "language": "hebrew",
+                        "text": "בָּרָ֣א",
+                        "transliteration": "bā·rā",
+                        "parsing": "V-Qal-Perf-3ms",
+                        "parsingFull": "Verb - Qal - Perfect - third person masculine singular",
+                        "strongs": "H1254",
+                        "gloss": "created"
+                    }
+                    // ...
+                ]
+            }
+            // ...
+        ]
+    },
+    "thisChapterLink": "/api/d/bsb-interlinear/GEN/1.json",
+    "nextChapterApiLink": "/api/d/bsb-interlinear/GEN/2.json",
+    "previousChapterApiLink": null,
+    "numberOfVerses": 31,
+    "numberOfReferences": 0
+}
+```
+
+### Связывание слов с переводом
+
+Значения подстрочного перевода, равные `strongs` , дополняются нулями (например, `H0430` ). Это соответствует значениям `strongs` в аннотациях слов в Библии короля Якова ( `/api/eng_kjv/{book}/{chapter}.words.json` ). Значения других переводов могут потребовать дополнения нулями и удаления суффиксов (например, `H430` или `H1961a` до `H0430` и `H1961` ), прежде чем их можно будет объединить.
+
+-   **KJV.** Для версии короля Якова ( `eng_kjv` и `eng_kja` ) объедините номера Стронга во `.words.json` файле главы с `strongs` подстрочными словами того же стиха. Например, каждый номер Стронга, указанный в `/api/eng_kjv/GEN/1.words.json` для первого стиха ( `H7225` , `H1254` , `H0430` , `H0853` , `H8064` , `H0776` ), появляется как значение `strongs` среди слов первого стиха в `/api/d/bsb-interlinear/GEN/1.json` .
+-   **Библия Береанского стандарта.** Цифра `gloss` в каждом слове обозначает фразу BSB для этого слова. Пройдите по словам стиха в порядке `bsbPos` и сопоставьте каждую `gloss` с текстом стиха в переводе BSB, чтобы определить, где находится перевод слова.
+
+Нумерация в двух источниках не всегда совпадает. Например, в KJV теги "was" равны `G2258` , тогда как в таблице Береан — `G1510` Из-за подобных различий некоторые соединения оказываются некорректными.
+
+### Атрибуция
+
+Подстрочные таблицы Береана находятся в общественном достоянии. [Лексикон](#lexicon) распространяется по лицензии CC BY 4.0 и требует указания авторства.
+
+## Лексикон
+
+Набор данных лексикона STEPBible ( `stepbible-lexicon` ) содержит краткие лексиконы иврита, арамейского и греческого языков (TBESH и TBESG) с [сайта STEPBible.org](https://www.stepbible.org/) в Тиндаль-Хаусе, Кембридж. Он содержит одну запись для каждого базового числа Стронга, и каждая запись содержит одно или несколько значений с леммой, транслитерацией, частью речи, английским глоссированием и определением.
+
+Любое значение `strongs` , дополненное нулями, из [межстрочного слова](#interlinear-datasets) , имеющего лексическую запись, можно найти по значению `/api/d/stepbible-lexicon/lexicon/{strongs}.json` без переформатирования. То же самое относится к значениям `.words.json` в Библии короля Якова; значения других переводов могут потребовать предварительного дополнения нулями и удаления суффиксов. Греческие записи, добавленные лексиконом без номера Стронга, не публикуются.
+
+Наборы данных, содержащие лексические записи, включают `listOfLexiconApiLink` и `totalNumberOfLexicon` в свою запись в `/api/available_datasets.json` .
+
+### Атрибуция
+
+Данные лексикона распространяются по лицензии [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) . При использовании указывайте в качестве источника STEPBible.org / Tyndale House, Cambridge и отмечайте любые изменения. Указание авторства содержится в свойстве `licenseNotes` набора данных.
+
+## Список лексических записей в наборе данных
+
+`GET https://bible.helloao.org/api/d/{dataset}/lexicon.json`
+
+Получает список лексических записей, доступных для набора данных.
+
+-   `dataset` идентификатор набора данных (например `stepbible-lexicon` ).
+
+### Пример кода
+
+::: code-tabs#язык
+
+@tab JavaScript
+
+```ts:no-line-numbers title="fetch-lexicon.js"
+fetch(`https://bible.helloao.org/api/d/stepbible-lexicon/lexicon.json`)
+    .then(request => request.json())
+    .then(lexicon => {
+        console.log('The lexicon has', lexicon.lexicon.length, 'entries');
+    });
+```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/d/stepbible-lexicon/lexicon.json
+```
+
+:::
+
+### Структура
+
+```typescript:no-line-numbers title="dataset-lexicon.ts"
+export interface DatasetLexicon {
+    /**
+     * Информация о наборе данных для лексикона.
+     */
+    dataset: Dataset;
+
+    /**
+     * Список лексических статей, доступных для данного набора данных.
+     */
+    lexicon: DatasetLexiconEntrySummary[];
+}
+
+export interface DatasetLexiconEntrySummary {
+    /**
+     * Номер словаря Стронга с добавлением нулей. Например, "H0430".
+     */
+    id: string;
+
+    /**
+     * Язык словарной статьи.
+     */
+    language: 'hebrew' | 'aramaic' | 'greek';
+
+    /**
+     * Название словарной статьи.
+     * Это лемма первого значения данной статьи.
+     */
+    name: string;
+
+    /**
+     * Ссылка на API для словарной статьи.
+     */
+    apiLink: string;
+}
+```
+
+### Пример
+
+```json:no-line-numbers title="/api/d/stepbible-lexicon/lexicon.json"
+{
+    "dataset": {
+        "id": "stepbible-lexicon",
+        "name": "STEPBible Brief Lexicons",
+        "totalNumberOfLexicon": 18085
+        // ...
+    },
+    "lexicon": [
+        {
+            "id": "G0001",
+            "language": "greek",
+            "name": "α, Ἀλφα",
+            "apiLink": "/api/d/stepbible-lexicon/lexicon/G0001.json"
+        },
+        {
+            "id": "G0002",
+            "language": "greek",
+            "name": "Ἀαρών",
+            "apiLink": "/api/d/stepbible-lexicon/lexicon/G0002.json"
+        }
+        // ...
+    ]
+}
+```
+
+## Получение лексической записи из набора данных
+
+`GET https://bible.helloao.org/api/d/{dataset}/lexicon/{strongs}.json`
+
+Получает словарную статью для однобазового числа Стронга со всеми его значениями.
+
+-   `dataset` идентификатор набора данных (например `stepbible-lexicon` ).
+-   `strongs` — это число Стронга с добавлением нулей (например, `H0430` для еврейского слова _elohim_ или `G3056` для греческого слова _logos_).
+
+### Пример кода
+
+::: code-tabs#язык
+
+@tab JavaScript
+
+```ts:no-line-numbers title="fetch-lexicon-entry.js"
+const strongs = 'H1254';
+
+fetch(`https://bible.helloao.org/api/d/stepbible-lexicon/lexicon/${strongs}.json`)
+    .then(request => request.json())
+    .then(({ entry }) => {
+        console.log('H1254:', entry.senses.map(sense => sense.gloss));
+    });
+```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/d/stepbible-lexicon/lexicon/H1254.json
+```
+
+:::
+
+### Структура
+
+```typescript:no-line-numbers title="dataset-lexicon-entry.ts"
+export interface DatasetLexiconEntry {
+    /**
+     * Информация о наборе данных для словарной статьи.
+     */
+    dataset: Dataset;
+
+    /**
+     * Словарная статья.
+     */
+    entry: DatasetLexiconEntryContent;
+
+    /**
+     * Ссылка на API для данной лексической статьи.
+     */
+    thisLexiconEntryApiLink: string;
+}
+
+export interface DatasetLexiconEntryContent {
+    /**
+     * Номер записи в базе данных, дополненный нулями. Например, "H0430".
+     */
+    id: string;
+
+    /**
+     * Язык записи.
+     * Это язык, соответствующий первому смыслу данной словарной статьи.
+     */
+    language: 'hebrew' | 'aramaic' | 'greek';
+
+    /**
+     * Смысловые обозначения записи, в порядке идентификации.
+     */
+    senses: DatasetLexiconSense[];
+}
+
+export interface DatasetLexiconSense {
+    /**
+     * Расширенный идентификатор значения. Например, "H0001G".
+     * Равно базовому числу Стронга, когда число имеет одно значение.
+     */
+    id: string;
+
+    /**
+     * Язык чувств.
+     */
+    language: 'hebrew' | 'aramaic' | 'greek';
+
+    /**
+     * Лемма смысла в оригинальном тексте.
+     */
+    lemma: string;
+
+    /**
+     * Транслитерация леммы.
+     */
+    transliteration: string | null;
+
+    /**
+     * Морфологический код части речи, обозначающий смысл.
+     */
+    partOfSpeech: string | null;
+
+    /**
+     * Краткое английское толкование смысла.
+     */
+    gloss: string | null;
+
+    /**
+     * Определение смысла в виде простого текста.
+     * Абзацы разделены пустыми строками. Разметка в исходном коде удалена.
+     */
+    definition: string;
+}
+```
+
+### Пример
+
+```json:no-line-numbers title="/api/d/stepbible-lexicon/lexicon/H1254.json"
+{
+    "dataset": {
+        "id": "stepbible-lexicon",
+        "name": "STEPBible Brief Lexicons",
+        "totalNumberOfLexicon": 18085
+        // ...
+    },
+    "entry": {
+        "id": "H1254",
+        "language": "hebrew",
+        "senses": [
+            {
+                "id": "H1254A",
+                "language": "hebrew",
+                "lemma": "בָּרָא",
+                "transliteration": "ba.ra",
+                "partOfSpeech": "V",
+                "gloss": "to create",
+                "definition": "1) to create, shape, form\n\n1a) (Qal) to shape, fashion, create (always with God as subject)\n\n1b) (Niphal) to be created"
+            },
+            {
+                "id": "H1254B",
+                "language": "hebrew",
+                "lemma": "בָּרָא",
+                "transliteration": "ba.ra",
+                "partOfSpeech": "V",
+                "gloss": "to fatten",
+                "definition": "1) to be fat\n\n1a) (Hiphil) to make yourselves fat"
+            }
+        ]
+    },
+    "thisLexiconEntryApiLink": "/api/d/stepbible-lexicon/lexicon/H1254.json"
+}
+```
+
+## Стих дня
+
+Набор данных «стих дня» ( `verse-of-the-day` ) представляет собой тщательно подобранный список известных стихов и коротких отрывков (не более трех стихов), которые хорошо подходят для «стиха дня»: более 640 для каждого дня года и более 100 для христианских праздников. Каждый из них имеет смысл сам по себе.
+
+Каждый стих на каждый день включает от одной до трех категорий, начиная с наиболее релевантных, из этого фиксированного набора:
+
+| ИДЕНТИФИКАТОР | Описание                                                    |
+| ------------- | ----------------------------------------------------------- |
+| `comfort`     | Близость и забота Бога в скорби, беде и одиночестве.        |
+| `courage`     | Твердо стоять на своем и не бояться.                        |
+| `faith`       | Доверяйте Богу и Его обещаниям.                             |
+| `forgiveness` | Божье прощение грехов и прощение других.                    |
+| `gratitude`   | Благодарение Богу.                                          |
+| `guidance`    | Бог направляет наши шаги, планы и решения.                  |
+| `hope`        | Уверенность в будущем, обещанном Богом.                     |
+| `inspiration` | Призыв жить по вере и творить добро.                        |
+| `joy`         | Радость и ликование в Боге.                                 |
+| `love`        | Божья любовь к нам и наша любовь к Богу и ближним.          |
+| `peace`       | Отдых, спокойствие и избавление от тревоги.                 |
+| `praise`      | Поклонение и провозглашение величия Бога.                   |
+| `prayer`      | Обращаясь к Богу и Его обещанию услышать.                   |
+| `provision`   | Бог обеспечивает нас всем необходимым.                      |
+| `salvation`   | Искупление, благодать и новая жизнь во Христе.              |
+| `strength`    | Бог дарует силу и выносливость.                             |
+| `wisdom`      | Божественная мудрость и практические наставления для жизни. |
+
+Праздники имеют свои собственные категории. В день праздника стих дня — это один из стихов этого праздника, и эти стихи не используются в другие дни. Праздник обычно длится один день; праздник после Воскресения Христова длится три дня после Воскресения Христова, поэтому в нем указаны все три даты. Каждая категория праздников имеет `holiday` рядом с датами: праздники, которые отмечаются в одну и ту же дату каждый год, имеют `month` и `day` , а праздники, дата которых меняется каждый год (поскольку они зависят от Воскресения Христова или Адвента), имеют `dates` в григорианском календаре, рассчитанном на период с 2026 по 2125 год.
+
+| ИДЕНТИФИКАТОР              | Праздничный день           | Дата                                   |
+| -------------------------- | -------------------------- | -------------------------------------- |
+| `epiphany`                 | Богоявление                | 6 января                               |
+| `ash-wednesday`            | Пепельная среда            | За 46 дней до Воскресения Христова     |
+| `palm-sunday`              | Вербное воскресенье        | Воскресенье перед Воскресеньем         |
+| `maundy-thursday`          | Великий четверг            | Четверг перед Воскресением Христовым   |
+| `good-friday`              | Страстная пятница          | Пятница перед Воскресением Христовым   |
+| `resurrection-sunday`      | Воскресение Христово       | Пасхальное воскресенье                 |
+| `post-resurrection-sunday` | После Воскресения Христова | Три дня после Воскресения Христова     |
+| `ascension-day`            | День Вознесения            | 39 дней после Воскресения Христова     |
+| `pentecost`                | Пятидесятница              | 49 дней после Воскресения Христова     |
+| `all-hallows-eve`          | Канун Дня всех святых      | 31 октября                             |
+| `all-saints-day`           | День всех святых           | 1 ноября                               |
+| `advent-sunday`            | Первое воскресенье Адвента | Четвёртое воскресенье перед Рождеством |
+| `christmas-eve`            | сочельник                  | 24 декабря                             |
+| `christmas`                | Рождество                  | 25 декабря                             |
+
+Набор данных содержит только ссылки, а не текст стихов, поэтому он работает с любым переводом. Нумерация стихов использует стандартную английскую нумерацию (такую ​​же, как в системе BSB). Данные можно читать тремя способами:
+
+-   В одном файле перечислены [`/api/d/verse-of-the-day/verses.json`](#list-verses-in-a-dataset) стихи из набора данных с указанием категорий, а также праздники с их датами.
+-   В [`/api/d/verse-of-the-day/categories/{category}.json`](#get-a-category-from-a-dataset) перечислены все стихи из каждой категории. Это самый простой способ выбрать стих дня из одной категории.
+-   [`/api/d/verse-of-the-day/{book}/{chapter}.json`](#get-a-chapter-from-a-dataset) перечислены кандидаты в каждой главе с указанием их категорий. Доступны только главы, содержащие кандидата; для их поиска используйте ссылки на главы в книге или `/api/d/verse-of-the-day/books.json` .
+
+В наборы данных, содержащие категории стихов, в записи `/api/available_datasets.json` указаны значения `listOfVersesApiLink` , `listOfCategoriesApiLink` и `totalNumberOfCategories` .
+
+### Выбор стиха дня
+
+API состоит из статических файлов, поэтому он не выбирает стих за вас. Вместо этого существует соглашение о выборе стиха, так что каждое приложение, которое его использует, отображает один и тот же стих в один и тот же день. Приложения могут выбирать другие стихи; соглашение просто устанавливает для них общее значение по умолчанию.
+
+В рамках соглашения выбор осуществляется из стихов и праздников, указанных в `/api/d/verse-of-the-day/verses.json` В праздничный день выбирается один из стихов этого праздника, проходя по ним по одному году за раз, поэтому каждый год для праздника используется новый стих, пока не будут использованы все его стихи. В другие дни каждый год происходит собственное перемешивание стихов, используемых в этом году (упорядоченных по хешу ссылки на каждый стих, году и необязательному начальному значению), и стихом дня является тот, который используется в этот день года. В наборе данных содержится более 366 стихов для каждого дня, используемого каждый год, поэтому стих никогда не повторяется в течение календарного года, порядок меняется каждый год, и одна и та же дата всегда дает один и тот же стих. Новые стихи добавляются (с помощью `addedIn` ), а старые удаляются (с помощью `removedIn` ) только из года, который еще не начался, поэтому стих дня для прошедшей даты никогда не меняется.
+
+На странице [«Соглашение о стихе дня»](./verse-of-the-day-convention.md) алгоритм описывается шаг за шагом, с псевдокодом и тестовыми значениями, так что вы можете реализовать его на любом языке.
+
+Чтобы использовать свой собственный порядок, выберите собственное начальное значение (например, название вашего приложения): это даст другой порядок перемешивания с теми же гарантиями. Вы также можете выбрать стихи из одной категории, но в каждой категории стихов меньше, чем дней в году, поэтому стихи в ней повторяются чаще.
+
+SDK соответствуют следующему соглашению:
+
+```ts:no-line-numbers title="verse-of-the-day.js"
+import { FreeUseBibleApi } from 'free-use-bible-api';
+
+const api = new FreeUseBibleApi();
+
+// Дата в формате ГГГГ-ММ-ДД или дата (используется ее локальная календарная дата). По умолчанию — сегодняшняя дата.
+const ref = await api.getVerseOfTheDay('2026-01-01');
+
+// Получите текст стиха из перевода.
+const chapter = await api.getTranslationBookChapter('BSB', ref.book, ref.chapter);
+const verses = chapter.chapter.content.filter(
+    (c) =>
+        c.type === 'verse' &&
+        c.number >= ref.verse &&
+        c.number <= (ref.endVerse ?? ref.verse)
+);
+console.log(ref, verses);
+```
+
+-   `getVerseOfTheDay(date?, { seed?, category?, dataset? }?)` загружает список стихов и выбирает из него. `pickVerseOfTheDay(verses, date?, { seed?, category? }?)` выбирает из уже имеющегося у вас списка.
+-   В SDK Kotlin есть значения `getVerseOfTheDay(date?, seed?, category?)` и `pickVerseOfTheDay(verses, date?, seed?, category?)` , которые принимают дату как строку `YYYY-MM-DD` элементов.
+-   В Swift SDK есть `getVerseOfTheDay(date:seed:category:)` и `pickVerseOfTheDay(_:date:seed:category:holidays:)` , которые принимают дату либо в виде строки `YYYY-MM-DD` , либо в виде строки `Date` (используется календарная дата в текущем часовом поясе).
+-   [На сервере MCP](https://github.com/HelloAOLab/bible-api/tree/main/packages/seed-bible-mcp) есть `getVerseOfTheDay` , который возвращает стих дня вместе с его текстом.
+-   В пакете `@helloao/tools` тот же список, а в `@helloao/tools/generation/verse-of-the-day.js` есть функция `getVerseOfTheDay(date?, { seed?, category? }?)` .
+
+### Лицензия
+
+Список составлен AO Lab и распространяется под [лицензией MIT](https://github.com/HelloAOLab/bible-api/blob/main/LICENSE) . Текст стихотворения берется из того перевода, из которого вы его получаете.
+
+## Список стихов в наборе данных
+
+`GET https://bible.helloao.org/api/d/{dataset}/verses.json`
+
+Получает все стихи (или короткие отрывки) из набора данных, а также категории, к которым каждый из них относится, в каноническом порядке. Доступно только для наборов данных, стихи которых имеют категории, например, `verse-of-the-day` .
+
+-   `dataset` идентификатор набора данных (например `verse-of-the-day` ).
+
+### Пример кода
+
+::: code-tabs#язык
+
+@tab JavaScript
+
+```ts:no-line-numbers title="fetch-verses.js"
+fetch(`https://bible.helloao.org/api/d/verse-of-the-day/verses.json`)
+    .then(request => request.json())
+    .then(verses => {
+        console.log('The dataset has', verses.verses.length, 'verses');
+    });
+```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/d/verse-of-the-day/verses.json
+```
+
+:::
+
+### Структура
+
+```typescript:no-line-numbers title="dataset-verses.ts"
+export interface DatasetVerses {
+    /**
+     * Информация о наборе данных для стихов.
+     */
+    dataset: Dataset;
+
+    /**
+     * Каждый стих (или короткий отрывок) в наборе данных, с указанием его категорий, в каноническом порядке.
+     */
+    verses: DatasetCategorizedVerse[];
+
+    /**
+     * Праздники, для которых существуют свои стихи и даты.
+     * Опускается, если в наборе данных нет праздников.
+     */
+    holidays?: DatasetVersesHoliday[];
+}
+
+export interface DatasetVersesHoliday extends DatasetCategoryHoliday {
+    /**
+     * Идентификатор категории праздника, например, "Рождество".
+     */
+    id: string;
+
+    /**
+     * Английское название праздника. Например, "Christmas".
+     */
+    name: string;
+}
+
+export interface DatasetCategoryHoliday {
+    /**
+     * Месяц (1 для января) и день праздника, который выпадает на одну и ту же дату каждый год.
+     * Исключено для праздников, дата которых меняется каждый год.
+     */
+    month?: number;
+    day?: number;
+
+    /**
+     * Даты (ГГГГ-ММ-ДД, григорианский календарь) праздника, дата которого меняется каждый год, в порядке убывания.
+     * Они рассчитываются заранее для определенного диапазона лет (в настоящее время с 2026 по 2125 год), и праздник отмечается только в указанные даты.
+     * Исключено для праздников, которые выпадают на одну и ту же дату каждый год.
+     */
+    dates?: string[];
+}
+
+export interface DatasetCategorizedVerse {
+    /**
+     * Идентификатор книги, например, "PRO".
+     */
+    book: string;
+
+    /**
+     * Номер главы.
+     */
+    chapter: number;
+
+    /**
+     * Номер стиха.
+     * Если присутствует `endVerse` , то это стих, с которого начинается отрывок.
+     */
+    verse: number;
+
+    /**
+     * Стих, которым заканчивается данный отрывок.
+     * Если запись состоит из одного стиха, она опускается.
+     */
+    endVerse?: number;
+
+    /**
+     * Идентификаторы категорий, к которым относится стих, начиная с наиболее релевантных.
+     */
+    categories: string[];
+
+    /**
+     * Первый год, когда этот стих может стать стихом дня.
+     * Опускается, если стих всегда присутствовал в списке.
+     */
+    addedIn?: number;
+
+    /**
+     * Первый год, когда этот стих уже не может быть стихом дня.
+     * Удаленные стихи остаются в наборе данных, чтобы можно было по-прежнему выбирать стихи более ранних лет.
+     * Пропускается, если стих не был удален из списка.
+     */
+    removedIn?: number;
+}
+```
+
+### Пример
+
+```json:no-line-numbers title="/api/d/verse-of-the-day/verses.json"
+{
+    "dataset": {
+        "id": "verse-of-the-day",
+        "name": "Verse of the Day",
+        "listOfVersesApiLink": "/api/d/verse-of-the-day/verses.json"
+        // ...
+    },
+    "verses": [
+        {
+            "book": "GEN",
+            "chapter": 1,
+            "verse": 1,
+            "categories": ["praise"]
+        },
+        {
+            "book": "GEN",
+            "chapter": 15,
+            "verse": 6,
+            "categories": ["faith", "salvation"]
+        },
+        // ...
+        {
+            "book": "PRO",
+            "chapter": 3,
+            "verse": 5,
+            "endVerse": 6,
+            "categories": ["faith", "guidance", "wisdom"]
+        },
+        // ...
+        {
+            "book": "LUK",
+            "chapter": 2,
+            "verse": 7,
+            "categories": ["christmas"]
+        }
+        // ...
+    ],
+    "holidays": [
+        {
+            "id": "christmas",
+            "name": "Christmas",
+            "month": 12,
+            "day": 25
+        },
+        {
+            "id": "good-friday",
+            "name": "Good Friday",
+            "dates": ["2026-04-03", "2027-03-26", "2028-04-14" /* ... */]
+        }
+        // ...
+    ]
+}
+```
+
+## Список категорий в наборе данных
+
+`GET https://bible.helloao.org/api/d/{dataset}/categories.json`
+
+Получает список категорий стихов, доступных для набора данных.
+
+-   `dataset` идентификатор набора данных (например `verse-of-the-day` ).
+
+### Пример кода
+
+::: code-tabs#язык
+
+@tab JavaScript
+
+```ts:no-line-numbers title="fetch-categories.js"
+fetch(`https://bible.helloao.org/api/d/verse-of-the-day/categories.json`)
+    .then(request => request.json())
+    .then(categories => {
+        console.log('The dataset has the following categories:', categories.categories);
+    });
+```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/d/verse-of-the-day/categories.json
+```
+
+:::
+
+### Структура
+
+```typescript:no-line-numbers title="dataset-categories.ts"
+export interface DatasetCategories {
+    /**
+     * Информация о наборе данных для категорий.
+     */
+    dataset: Dataset;
+
+    /**
+     * Список категорий стихов, доступных для данного набора данных.
+     */
+    categories: DatasetCategorySummary[];
+}
+
+export interface DatasetCategorySummary {
+    /**
+     * Идентификатор категории. Например, "надежда".
+     */
+    id: string;
+
+    /**
+     * Английское название категории. Например, "Hope".
+     */
+    name: string;
+
+    /**
+     * Описание содержания стихов в данной категории.
+     */
+    description: string;
+
+    /**
+     * Количество стихов (или коротких отрывков), относящихся к данной категории.
+     */
+    numberOfVerses: number;
+
+    /**
+     * Даты праздника, к которому относится данная категория (см. DatasetCategoryHoliday выше).
+     * Исключено для категорий, не связанных с праздниками.
+     */
+    holiday?: DatasetCategoryHoliday;
+
+    /**
+     * Ссылка на API для данной категории.
+     */
+    apiLink: string;
+}
+```
+
+### Пример
+
+```json:no-line-numbers title="/api/d/verse-of-the-day/categories.json"
+{
+    "dataset": {
+        "id": "verse-of-the-day",
+        "name": "Verse of the Day",
+        "totalNumberOfCategories": 31
+        // ...
+    },
+    "categories": [
+        {
+            "id": "comfort",
+            "name": "Comfort",
+            "description": "God's nearness and care in grief, trouble, and loneliness.",
+            "numberOfVerses": 65,
+            "apiLink": "/api/d/verse-of-the-day/categories/comfort.json"
+        },
+        {
+            "id": "courage",
+            "name": "Courage",
+            "description": "Standing firm and not being afraid.",
+            "numberOfVerses": 49,
+            "apiLink": "/api/d/verse-of-the-day/categories/courage.json"
+        }
+        // ...
+    ]
+}
+```
+
+## Получение категории из набора данных
+
+`GET https://bible.helloao.org/api/d/{dataset}/categories/{category}.json`
+
+Получает отдельную категорию стихов, включающую все стихи, относящиеся к ней.
+
+-   `dataset` идентификатор набора данных (например `verse-of-the-day` ).
+-   `category` — это идентификатор категории (например `hope` ).
+
+### Пример кода
+
+::: code-tabs#язык
+
+@tab JavaScript
+
+```ts:no-line-numbers title="fetch-category.js"
+fetch(`https://bible.helloao.org/api/d/verse-of-the-day/categories/hope.json`)
+    .then(request => request.json())
+    .then(category => {
+        console.log('Verses about hope:', category.category.verses);
+    });
+```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/d/verse-of-the-day/categories/hope.json
+```
+
+:::
+
+### Структура
+
+```typescript:no-line-numbers title="dataset-category.ts"
+export interface DatasetCategoryResponse {
+    /**
+     * Информация о наборе данных для данной категории.
+     */
+    dataset: Dataset;
+
+    /**
+     * Категория, а также стихи, которые к ней относятся.
+     */
+    category: DatasetCategory;
+
+    /**
+     * Ссылка на API для этой категории.
+     */
+    thisCategoryApiLink: string;
+}
+
+export interface DatasetCategory {
+    /**
+     * Идентификатор категории. Например, "надежда".
+     */
+    id: string;
+
+    /**
+     * Английское название категории. Например, "Hope".
+     */
+    name: string;
+
+    /**
+     * Описание содержания стихов в данной категории.
+     */
+    description: string;
+
+    /**
+     * Даты праздника, к которому относится данная категория (см. DatasetCategoryHoliday в разделе "Список стихов в наборе данных").
+     * В указанные даты стихом дня является один из стихов данной категории, и в другие дни он не используется.
+     * Исключено для категорий, не связанных с праздниками.
+     */
+    holiday?: DatasetCategoryHoliday;
+
+    /**
+     * Стихи (или короткие отрывки), относящиеся к данной категории, в каноническом порядке.
+     * Включает стихи, которые были удалены из списка (см. `removedIn` ).
+     */
+    verses: DatasetCategoryVerse[];
+}
+
+export interface DatasetCategoryVerse {
+    /**
+     * Идентификатор книги, например, "JER".
+     */
+    book: string;
+
+    /**
+     * Номер главы.
+     */
+    chapter: number;
+
+    /**
+     * Номер стиха.
+     * Если присутствует `endVerse` , то это стих, с которого начинается отрывок.
+     */
+    verse: number;
+
+    /**
+     * Стих, которым заканчивается данный отрывок.
+     * Если ссылка относится к одному стиху, она опускается.
+     */
+    endVerse?: number;
+
+    /**
+     * Первый год, когда этот стих может стать стихом дня.
+     * Опускается, если стих всегда присутствовал в списке.
+     */
+    addedIn?: number;
+
+    /**
+     * Первый год, когда этот стих уже не может быть стихом дня.
+     * Удаленные стихи остаются в наборе данных, чтобы можно было по-прежнему выбирать стихи более ранних лет.
+     * Пропускается, если стих не был удален из списка.
+     */
+    removedIn?: number;
+}
+```
+
+### Пример
+
+```json:no-line-numbers title="/api/d/verse-of-the-day/categories/hope.json"
+{
+    "dataset": {
+        "id": "verse-of-the-day",
+        "name": "Verse of the Day",
+        "totalNumberOfCategories": 31
+        // ...
+    },
+    "category": {
+        "id": "hope",
+        "name": "Hope",
+        "description": "Confidence in the future that God has promised.",
+        "verses": [
+            {
+                "book": "GEN",
+                "chapter": 50,
+                "verse": 20
+            },
+            // ...
+            {
+                "book": "ISA",
+                "chapter": 43,
+                "verse": 18,
+                "endVerse": 19
+            },
+            {
+                "book": "JER",
+                "chapter": 29,
+                "verse": 11
+            }
+            // ...
+        ]
+    },
+    "thisCategoryApiLink": "/api/d/verse-of-the-day/categories/hope.json"
 }
 ```

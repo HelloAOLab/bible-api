@@ -62,6 +62,12 @@ export interface Commentary {
     licenseUrl: string;
 
     /**
+     * የፈቃዱ ኤፒአይ-የተጨመሩ ማስታወሻዎች።
+     * ምንም ማስታወሻዎች ከሌሉ ባዶ ወይም ያልተገለጸ።
+     */
+    licenseNotes?: string | null;
+
+    /**
      * ለአስተያየቱ የእንግሊዝኛ ስም።
      */
     englishName: string;
@@ -73,7 +79,7 @@ export interface Commentary {
 
     /**
      * ቋንቋው የተጻፈበት አቅጣጫ።
-     * "ltr" የሚለው ጽሑፍ የተጻፈው ከገጹ ግራ በኩል ወደ ቀኝ መሆኑን ያመለክታል።
+     * "ltr" የሚለው ጽሑፍ ከገጹ ግራ በኩል ወደ ቀኝ የተጻፈ መሆኑን ያመለክታል።
      * "rtl" የሚለው ጽሑፍ የተጻፈው ከገጹ ቀኝ በኩል ወደ ግራ መሆኑን ያመለክታል።
      */
     textDirection: 'ltr' | 'rtl';

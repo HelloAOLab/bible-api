@@ -29,5 +29,10 @@ description: '几分钟内即可开始使用免费圣经API。安装JavaScript S
 -   [`https://bible.helloao.org/api/available_datasets.json`](../reference/datasets/README.md#available-datasets)
 -   [`https://bible.helloao.org/api/d/{dataset}/books.json`](../reference/datasets/README.md#list-books-in-a-dataset)
 -   [`https://bible.helloao.org/api/d/{dataset}/{book}/{chapter}.json`](../reference/datasets/README.md#get-a-chapter-from-a-dataset)
+-   [`https://bible.helloao.org/api/d/{dataset}/lexicon.json`](../reference/datasets/README.md#list-lexicon-entries-in-a-dataset)
+-   [`https://bible.helloao.org/api/d/{dataset}/lexicon/{strongs}.json`](../reference/datasets/README.md#get-a-lexicon-entry-from-a-dataset)
+-   [`https://bible.helloao.org/api/d/{dataset}/verses.json`](../reference/datasets/README.md#list-verses-in-a-dataset)
+-   [`https://bible.helloao.org/api/d/{dataset}/categories.json`](../reference/datasets/README.md#list-categories-in-a-dataset)
+-   [`https://bible.helloao.org/api/d/{dataset}/categories/{category}.json`](../reference/datasets/README.md#get-a-category-from-a-dataset)
 
 有关每个端点的更多信息，请参见[下一页](./making-requests.md)。

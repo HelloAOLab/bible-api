@@ -359,3 +359,60 @@ curl https://bible.helloao.org/api/d/open-cross-ref/GEN/1.json
 ```
 
 :::
+
+### किसी अध्याय के मूल भाषा के शब्द प्राप्त करें
+
+( [संदर्भ](../reference/datasets/README.md#interlinear-datasets) )
+
+::: code-tabs#भाषा
+
+@tab जावास्क्रिप्ट
+
+```ts:no-line-numbers title="fetch-interlinear-chapter.js"
+const dataset = 'bsb-interlinear';
+const book = 'GEN';
+const chapter = 1;
+
+// उत्पत्ति 1 के हिब्रू शब्द bsb-interlinear डेटासेट से प्राप्त करें
+fetch(`https://bible.helloao.org/api/d/${dataset}/${book}/${chapter}.json`)
+    .then(request => request.json())
+    .then(chapter => {
+        console.log('Genesis 1 (bsb-interlinear):', chapter);
+    });
+```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/d/bsb-interlinear/GEN/1.json
+```
+
+:::
+
+### शब्दकोश में प्रविष्टि प्राप्त करें
+
+( [संदर्भ](../reference/datasets/README.md#get-a-lexicon-entry-from-a-dataset) )
+
+::: code-tabs#भाषा
+
+@tab जावास्क्रिप्ट
+
+```ts:no-line-numbers title="fetch-lexicon-entry.js"
+const dataset = 'stepbible-lexicon';
+const strongs = 'H0430';
+
+// स्टेपबाइबल-लेक्सिकॉन डेटासेट से स्ट्रॉन्ग के H0430 के लिए लेक्सिकॉन प्रविष्टि प्राप्त करें
+fetch(`https://bible.helloao.org/api/d/${dataset}/lexicon/${strongs}.json`)
+    .then(request => request.json())
+    .then(lexiconEntry => {
+        console.log('H0430 (stepbible-lexicon):', lexiconEntry);
+    });
+```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/d/stepbible-lexicon/lexicon/H0430.json
+```
+
+:::

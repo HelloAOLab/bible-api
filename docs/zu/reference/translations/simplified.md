@@ -53,9 +53,11 @@ curl https://bible.helloao.org/api/BSB/GEN/1.simple.json
 
 ### Ama-Offsets
 
+Okuqukethwe kwesahluko okulula kugcina izinto zesigaba esingu- `line_break` , kufaka phakathi impahla yazo `paragraph` . Uma isigaba siqala ngaphakathi kwevesi, umbhalo wevesi uqukethe umugqa omusha kulelo phuzu futhi uhlu lwevesi `paragraphs` luwubhala njengo- `{ offset, style }` , lapho `offset` eyinkomba yohlamvu lokuqala ngemuva komugqa omusha.
+
 Zonke iziphazamiso ezifomethiwe elula - `offset` , `start` , kanye no `end` - ziyizikhombo eziku- `text` yevesi eliqukethe zona. Zilinganiswa ngamayunithi ekhodi ye-UTF-16, okuyilokho okusetshenziswa yi-JavaScript `String.prototype.length` kanye no `String.prototype.slice()` .
 
-`start` ufaka konke kanti `end` ukhethekile, ngakho `text.slice(start, end)` ubuyisela uhla lombhalo olumakwe kahle. Ama-offset e-footnote yisikhundla lapho umshayi we-footnote ekhona, ngakho `text.slice(0, offset)` ungumbhalo oza ngaphambi kwawo.
+`start` ufaka konke kanti `end` ukhethekile, ngakho-ke `text.slice(start, end)` ubuyisela uhla lombhalo olumakwe kahle. Ama-offset e-footnote yisikhundla lapho umshayi we-footnote ekhona, ngakho `text.slice(0, offset)` ungumbhalo oza ngaphambi kwawo.
 
 ### Isakhiwo
 
@@ -185,6 +187,11 @@ interface ChapterLineBreak {
      * Kubonisa ukuthi okuqukethwe kumele ukuhlukana komugqa.
      */
     type: 'line_break';
+
+    /**
+     * Umaka wesigaba somthombo (ngaphandle kokuhlehla kwawo) lapho ukuhlukana komugqa kuqala isigaba esisha, isibonelo `p` , `m` , `pi1` noma `mi` Kushiywe ngenxa yokuhlukana komugqa ocacile.
+     */
+    paragraph?: string;
 }
 
 /**
@@ -217,6 +224,12 @@ interface SimpleChapterVerse {
      * Akuvunyelwe uma ivesi lingenazo izihloko eziqondile.
      */
     headings?: SimpleInlineHeading[];
+
+    /**
+     * Izigaba eziqala phakathi nevesi.
+     * Kushiywe uma ivesi lingenalo nhlobo.
+     */
+    paragraphs?: SimpleVerseParagraph[];
 
     /**
      * Izinga lombhalo wamavesi amelela amazwi kaJesu.
@@ -287,6 +300,21 @@ interface SimpleInlineHeading {
 }
 
 /**
+ * Isigaba esiqala phakathi nevesi.
+ */
+interface SimpleVerseParagraph {
+    /**
+     * Inkomba embhalweni wevesi isigaba esiqala kuyo.
+     */
+    offset: number;
+
+    /**
+     * Umaka wesigaba somthombo ongenawo umugqa waso ongemuva, isibonelo `p` noma `m` .
+     */
+    style: string;
+}
+
+/**
  * Uhlu lombhalo ngaphakathi kwevesi.
  */
 interface SimpleTextRange {
@@ -339,6 +367,7 @@ interface SimplePoemRange extends SimpleTextRange {
         "id": "GEN",
         "name": "Genesis",
         "commonName": "Genesis",
+        "shortName": "Gen",
         "title": "Genesis",
         "order": 1,
         "numberOfChapters": 50,
@@ -472,7 +501,7 @@ Ama-offsets kuma [-regular annotations](./standard.md#get-the-words-of-a-chapter
 
 Lokhu okufakiwe akunawo `contentIndex` . `start` no- `end` kuyi-offset ku- `text` yevesi, njengoba nje umbhalo waphansi, inkondlo, kanye ne-offset yamazwi kaJesu ezahlukweni ezilula, ngakho `text.slice(start, end)` yigama elichazwe.
 
-Njengakwezichasiselo ezivamile, ezinye izinguqulo kuphela ezinazo. Isahluko esilula esinazo sixhumanisa leli fayela no- `thisChapterWordsLink` ; uma leyo mpahla ingekho, leli fayela alikho kulesi sahluko.
+Njengakwezichasiselo ezivamile, ezinye izinguqulo kuphela ezinazo. Isahluko esilula esinazo sixhumanisa leli fayela no- `thisChapterWordsLink` ; uma leyo mpahla ingekho, leli fayela alikho esahlukweni.
 
 ### Isibonelo Sekhodi
 
@@ -796,6 +825,7 @@ export interface SimpleTranslationCompleteChapter {
             "id": "GEN",
             "name": "Genesis",
             "commonName": "Genesis",
+            "shortName": "Gen",
             "title": "Genesis",
             "order": 1,
             "numberOfChapters": 50,

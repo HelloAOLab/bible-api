@@ -359,3 +359,60 @@ curl https://bible.helloao.org/api/d/open-cross-ref/GEN/1.json
 ```
 
 :::
+
+### 获取章节原文
+
+（[参考](../reference/datasets/README.md#interlinear-datasets)）
+
+::: code-tabs#lang
+
+@tab JavaScript
+
+```ts:no-line-numbers title="fetch-interlinear-chapter.js"
+const dataset = 'bsb-interlinear';
+const book = 'GEN';
+const chapter = 1;
+
+// 从 bsb-interlinear 数据集中获取创世记 1 章的希伯来语单词。
+fetch(`https://bible.helloao.org/api/d/${dataset}/${book}/${chapter}.json`)
+    .then(request => request.json())
+    .then(chapter => {
+        console.log('Genesis 1 (bsb-interlinear):', chapter);
+    });
+```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/d/bsb-interlinear/GEN/1.json
+```
+
+:::
+
+### 获取词条
+
+（[参考](../reference/datasets/README.md#get-a-lexicon-entry-from-a-dataset)）
+
+::: code-tabs#lang
+
+@tab JavaScript
+
+```ts:no-line-numbers title="fetch-lexicon-entry.js"
+const dataset = 'stepbible-lexicon';
+const strongs = 'H0430';
+
+// 从 stepbible-lexicon 数据集中获取 Strong's H0430 的词条
+fetch(`https://bible.helloao.org/api/d/${dataset}/lexicon/${strongs}.json`)
+    .then(request => request.json())
+    .then(lexiconEntry => {
+        console.log('H0430 (stepbible-lexicon):', lexiconEntry);
+    });
+```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/d/stepbible-lexicon/lexicon/H0430.json
+```
+
+:::

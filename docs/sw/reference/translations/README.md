@@ -75,6 +75,25 @@ interface Translation {
     licenseUrl: string;
 
     /**
+     * Maelezo yaliyoongezwa na API kwa ajili ya leseni.
+     * Haijabainishwa au haijabainishwa ikiwa hakuna maelezo.
+     */
+    licenseNotes?: string | null;
+
+    /**
+     * Taarifa inayopaswa kuonyeshwa wakati wa kuonyesha maudhui kutoka kwa tafsiri.
+     * Haijafafanuliwa au haijabainishwa ikiwa tafsiri haina taarifa.
+     */
+    licenseNotice?: string | null;
+
+    /**
+     * Masharti ya leseni yaliyopangwa ambayo yaligunduliwa kwa ajili ya tafsiri.
+     * Bati au haijafafanuliwa ikiwa masharti hayakuweza kubainishwa.
+     * Katika hali hiyo, angalia ukurasa katika licenseUrl kwa masharti.
+     */
+    license?: License | null;
+
+    /**
      * Jina fupi la tafsiri.
      */
     shortName: string;
@@ -92,7 +111,7 @@ interface Translation {
 
     /**
      * Anapata jina la lugha hiyo kwa Kiingereza.
-     * Haijafafanuliwa au haijafafanuliwa ikiwa lugha haina jina la Kiingereza.
+     * Haijafafanuliwa au haijabainishwa ikiwa lugha haina jina la Kiingereza.
      */
     languageEnglishName?: string;
 
@@ -152,7 +171,59 @@ interface Translation {
      */
     totalNumberOfApocryphalVerses?: number;
 }
+
+/**
+ * Hufafanua masharti ya leseni yaliyopangwa ambayo yaligunduliwa kwa ajili ya tafsiri.
+ */
+interface License {
+    /**
+     * Ikiwa maelezo ya chanzo asili yanahitajika wakati wa kutumia tafsiri.
+     */
+    attribution: 'required' | 'not-required';
+
+    /**
+     * Ikiwa matumizi ya kibiashara ya tafsiri yanaruhusiwa.
+     */
+    commercialUse: 'allowed' | 'not-allowed';
+
+    /**
+     * Ikiwa kuunda na kusambaza kazi za tafsiri zinazotokana na tafsiri kunaruhusiwa.
+     */
+    derivatives: 'allowed' | 'not-allowed';
+
+    /**
+     * Ikiwa kazi za derivative lazima zisambazwe chini ya leseni moja (yaani sharti la "kushiriki sawa").
+     */
+    copyleft: boolean;
+
+    /**
+     * Kama tafsiri imetengwa kwa ajili ya umma.
+     */
+    publicDomain: boolean;
+}
 ```
+
+### Leseni
+
+Kila tafsiri huchapishwa chini ya leseni yake, kwa hivyo angalia masharti ya tafsiri kabla ya kuitumia.
+
+-   `licenseUrl` huunganisha kila wakati na masharti kamili ya leseni.
+-   `licenseNotice` , inapokuwepo, ni notisi ya hakimiliki au maelezo ya kuonyesha pamoja na maudhui kutoka kwa tafsiri.
+-   `licenseNotes` ina maelezo yaliyoongezwa na API, kama vile mabadiliko yaliyofanywa kwenye maandishi chanzo.
+-   `license` , inapokuwepo, inafupisha masharti katika fomu ambayo msimbo wako unaweza kuangalia. Kwa mfano, unaweza kuchuja orodha hadi tafsiri zinazoruhusu matumizi ya kibiashara:
+
+```ts:no-line-numbers title="commercial-translations.js"
+fetch(`https://bible.helloao.org/api/available_translations.json`)
+    .then(request => request.json())
+    .then(({ translations }) => {
+        const commercial = translations.filter(
+            t => t.license?.commercialUse === 'allowed'
+        );
+        console.log('Translations that allow commercial use:', commercial);
+    });
+```
+
+`license` huwekwa tu wakati masharti yanaweza kugunduliwa kiotomatiki. Tafsiri bila hiyo bado zinaweza kuruhusu matumizi yako, kwa hivyo soma ukurasa wa `licenseUrl` kwa hizo.
 
 ### Mfano
 
@@ -247,6 +318,12 @@ interface TranslationBook {
     commonName: string;
 
     /**
+     * Jina fupi (kifupisho) ambalo tafsiri ilitoa kwa ajili ya kitabu hicho.
+     * Kama haipatikani, basi tafsiri haikutoa moja.
+     */
+    shortName?: string;
+
+    /**
      * Kichwa cha kitabu.
      * Kwa kawaida hii ni toleo linaloelezea zaidi jina la kitabu.
      * Kama haipatikani, basi tafsiri haikutoa moja.
@@ -325,6 +402,7 @@ interface TranslationBook {
             "translationId": "BSB",
             "name": "Genesis",
             "commonName": "Genesis",
+            "shortName": "Gen",
             "title": "Genesis",
             "order": 1,
             "numberOfChapters": 50,

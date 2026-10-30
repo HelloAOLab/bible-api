@@ -53,9 +53,11 @@ curl https://bible.helloao.org/api/BSB/GEN/1.simple.json
 
 ### Deslocamentos
 
+O conteúdo simplificado do capítulo mantém os itens de nível `line_break` do capítulo, incluindo sua propriedade `paragraph` Quando um parágrafo começa dentro de um versículo, o texto do versículo contém uma nova linha nesse ponto e a matriz `paragraphs` do versículo a registra como `{ offset, style }` , onde `offset` é o índice do primeiro caractere após a nova linha.
+
 Todos os deslocamentos no formato simplificado - `offset` , `start` e `end` - são índices no `text` que os contém. Eles são medidos em unidades de código UTF-16, que é o que o JavaScript usa em suas versões `String.prototype.length` e `String.prototype.slice()` .
 
-`start` é inclusivo e `end` é exclusivo, portanto `text.slice(start, end)` retorna exatamente o intervalo de texto que foi marcado. Os deslocamentos das notas de rodapé são a posição a que o elemento que chama a nota de rodapé pertence, portanto `text.slice(0, offset)` é o texto que vem antes dela.
+`start` é inclusivo e `end` é exclusivo, portanto `text.slice(start, end)` retorna exatamente o intervalo de texto que foi marcado. Os deslocamentos das notas de rodapé são a posição a que o autor da nota de rodapé pertence, portanto `text.slice(0, offset)` é o texto que vem antes dela.
 
 ### Estrutura
 
@@ -185,6 +187,11 @@ interface ChapterLineBreak {
      * Indica que o conteúdo representa uma quebra de linha.
      */
     type: 'line_break';
+
+    /**
+     * O marcador de parágrafo de origem (sem a barra invertida) quando a quebra de linha inicia um novo parágrafo, por exemplo, `p` , `m` , `pi1` ou `mi` Omitido para quebras de linha simples.
+     */
+    paragraph?: string;
 }
 
 /**
@@ -217,6 +224,12 @@ interface SimpleChapterVerse {
      * Omitido se o versículo não contiver títulos embutidos.
      */
     headings?: SimpleInlineHeading[];
+
+    /**
+     * Os parágrafos que começam no meio do versículo.
+     * Omitido se o verso não o contiver.
+     */
+    paragraphs?: SimpleVerseParagraph[];
 
     /**
      * Os trechos do texto bíblico que representam as Palavras de Jesus.
@@ -287,6 +300,21 @@ interface SimpleInlineHeading {
 }
 
 /**
+ * Um parágrafo que começa no meio de um versículo.
+ */
+interface SimpleVerseParagraph {
+    /**
+     * O índice no texto do versículo em que o parágrafo começa.
+     */
+    offset: number;
+
+    /**
+     * O marcador de parágrafo de origem sem a barra invertida, por exemplo `p` ou `m` .
+     */
+    style: string;
+}
+
+/**
  * Um trecho de texto dentro de um verso.
  */
 interface SimpleTextRange {
@@ -339,6 +367,7 @@ interface SimplePoemRange extends SimpleTextRange {
         "id": "GEN",
         "name": "Genesis",
         "commonName": "Genesis",
+        "shortName": "Gen",
         "title": "Genesis",
         "order": 1,
         "numberOfChapters": 50,
@@ -796,6 +825,7 @@ export interface SimpleTranslationCompleteChapter {
             "id": "GEN",
             "name": "Genesis",
             "commonName": "Genesis",
+            "shortName": "Gen",
             "title": "Genesis",
             "order": 1,
             "numberOfChapters": 50,

@@ -1,6 +1,6 @@
 # conjuntos de datos
 
-Puntos de acceso para explorar conjuntos de datos bíblicos complementarios, como referencias cruzadas y entidades bíblicas (personas, lugares, eventos y grupos de personas), y para obtener sus libros, el contenido de sus capítulos y sus entidades.
+Puntos de acceso para explorar conjuntos de datos bíblicos complementarios, como referencias cruzadas, entidades bíblicas (personas, lugares, eventos y grupos de personas), palabras interlineales en el idioma original, léxicos y posibles versículos del día, y para obtener sus libros, contenido de capítulos, entidades, entradas de léxico y categorías de versículos.
 
 ## Conjuntos de datos disponibles
 
@@ -62,6 +62,12 @@ export interface Dataset {
     licenseUrl: string;
 
     /**
+     * Notas añadidas por la API para la licencia.
+     * Nulo o indefinido si no hay notas.
+     */
+    licenseNotes?: string | null;
+
+    /**
      * El nombre en inglés del conjunto de datos.
      */
     englishName: string;
@@ -105,8 +111,15 @@ export interface Dataset {
 
     /**
      * El número total de referencias cruzadas que contiene este conjunto de datos.
+     * 0 para conjuntos de datos que no contienen referencias cruzadas.
      */
     totalNumberOfReferences: number;
+
+    /**
+     * El número total de palabras interlineales que contiene este conjunto de datos.
+     * Se omite si el conjunto de datos no contiene palabras interlineales.
+     */
+    totalNumberOfWords?: number;
 
     /**
      * Obtiene el nombre del idioma en el que se encuentra el conjunto de datos.
@@ -137,6 +150,36 @@ export interface Dataset {
     totalNumberOfPlaces?: number;
     totalNumberOfEvents?: number;
     totalNumberOfPeopleGroups?: number;
+
+    /**
+     * Enlace a la API para la lista de entradas del léxico en el conjunto de datos.
+     * Se omite si el conjunto de datos no contiene entradas de léxico.
+     */
+    listOfLexiconApiLink?: string;
+
+    /**
+     * El número total de entradas del léxico que contiene el conjunto de datos.
+     * Se omite si el conjunto de datos no contiene entradas de léxico.
+     */
+    totalNumberOfLexicon?: number;
+
+    /**
+     * Enlace a la API para la lista de todos los versículos del conjunto de datos, con sus categorías.
+     * Se omite si los versículos del conjunto de datos no tienen categorías.
+     */
+    listOfVersesApiLink?: string;
+
+    /**
+     * Enlace a la API para la lista de categorías de versos en el conjunto de datos.
+     * Se omite si el conjunto de datos no contiene categorías de versos.
+     */
+    listOfCategoriesApiLink?: string;
+
+    /**
+     * El número total de categorías de versículos que contiene el conjunto de datos.
+     * Se omite si el conjunto de datos no contiene categorías de versos.
+     */
+    totalNumberOfCategories?: number;
 }
 ```
 
@@ -192,6 +235,94 @@ export interface Dataset {
             "totalNumberOfEvents": 450,
             "listOfPeopleGroupsApiLink": "/api/d/theographic/groups.json",
             "totalNumberOfPeopleGroups": 23
+        },
+        {
+            "id": "bsb-interlinear",
+            "name": "Berean Standard Bible Interlinear",
+            "website": "https://bereanbible.com/",
+            "licenseUrl": "https://berean.bible/terms.htm",
+            "licenseNotes": "The Berean Standard Bible and its interlinear tables are in the public domain. Changes were made to the data to fit the Free Use Bible API format.",
+            "englishName": "Berean Standard Bible Interlinear",
+            "language": "eng",
+            "textDirection": "ltr",
+            "availableFormats": [
+                "json"
+            ],
+            "listOfBooksApiLink": "/api/d/bsb-interlinear/books.json",
+            "numberOfBooks": 66,
+            "totalNumberOfChapters": 1189,
+            "totalNumberOfVerses": 31102,
+            "totalNumberOfReferences": 0,
+            "languageName": "English",
+            "languageEnglishName": "English",
+            "totalNumberOfWords": 443625
+        },
+        {
+            "id": "stepbible-lexicon",
+            "name": "STEPBible Brief Lexicons",
+            "website": "https://github.com/STEPBible/STEPBible-Data",
+            "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+            "licenseNotes": "The Translators Brief lexicons of Extended Strongs (TBESH and TBESG) are by STEPBible.org / Tyndale House, Cambridge, and are licensed under CC BY 4.0. Changes were made to the data to fit the Free Use Bible API format.",
+            "englishName": "STEPBible Brief Lexicons",
+            "language": "eng",
+            "textDirection": "ltr",
+            "availableFormats": [
+                "json"
+            ],
+            "listOfBooksApiLink": "/api/d/stepbible-lexicon/books.json",
+            "numberOfBooks": 0,
+            "totalNumberOfChapters": 0,
+            "totalNumberOfVerses": 0,
+            "totalNumberOfReferences": 0,
+            "languageName": "English",
+            "languageEnglishName": "English",
+            "listOfLexiconApiLink": "/api/d/stepbible-lexicon/lexicon.json",
+            "totalNumberOfLexicon": 18085
+        },
+        {
+            "id": "history-globe",
+            "name": "History Globe",
+            "website": "https://historyglobe.app",
+            "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+            "licenseNotes": "History Globe by Vadym Arnaut (https://historyglobe.app) is licensed under CC BY 4.0. Its places, verse tags, and coordinates start from the OpenBible.info Bible Geocoding Data (CC BY 4.0), with corrections, and some coordinates are from Wikidata (CC0). Changes were made to the data to fit the Free Use Bible API format.",
+            "englishName": "History Globe",
+            "language": "eng",
+            "textDirection": "ltr",
+            "availableFormats": [
+                "json"
+            ],
+            "listOfBooksApiLink": "/api/d/history-globe/books.json",
+            "numberOfBooks": 61,
+            "totalNumberOfChapters": 849,
+            "totalNumberOfVerses": 5546,
+            "totalNumberOfReferences": 8617,
+            "languageName": "English",
+            "languageEnglishName": "English",
+            "listOfPlacesApiLink": "/api/d/history-globe/places.json",
+            "totalNumberOfPlaces": 1231
+        },
+        {
+            "id": "verse-of-the-day",
+            "name": "Verse of the Day",
+            "website": "https://github.com/HelloAOLab/bible-api/blob/main/packages/helloao-tools/generation/verse-of-the-day.ts",
+            "licenseUrl": "https://github.com/HelloAOLab/bible-api/blob/main/LICENSE",
+            "licenseNotes": "A curated list of well-known verses by AO Lab, released under the MIT License.",
+            "englishName": "Verse of the Day",
+            "language": "eng",
+            "textDirection": "ltr",
+            "availableFormats": [
+                "json"
+            ],
+            "listOfBooksApiLink": "/api/d/verse-of-the-day/books.json",
+            "numberOfBooks": 65,
+            "totalNumberOfChapters": 381,
+            "totalNumberOfVerses": 750,
+            "totalNumberOfReferences": 0,
+            "languageName": "English",
+            "languageEnglishName": "English",
+            "listOfVersesApiLink": "/api/d/verse-of-the-day/verses.json",
+            "listOfCategoriesApiLink": "/api/d/verse-of-the-day/categories.json",
+            "totalNumberOfCategories": 31
         }
     ]
 }
@@ -353,7 +484,7 @@ interface DatasetBook {
 
 Obtiene el contenido de un solo capítulo de un libro y un conjunto de datos determinados.
 
-Para conjuntos de datos de referencias cruzadas (como `open-cross-ref` ), el capítulo contiene la lista de referencias cruzadas para cada versículo. Para conjuntos de datos de entidades (como `theographic` ), el capítulo contiene las personas, lugares y eventos que aparecen en el capítulo; consulte [Obtener las entidades en un capítulo](#get-the-entities-in-a-chapter) .
+Para conjuntos de datos de referencias cruzadas (como `open-cross-ref` ), el capítulo contiene la lista de referencias cruzadas para cada versículo. Para conjuntos de datos interlineales (como `bsb-interlinear` ), el capítulo contiene las palabras en el idioma original de cada versículo; consulte [Conjuntos de datos interlineales](#interlinear-datasets) . Para conjuntos de datos de entidades (como el `theographic` ), el capítulo contiene las personas, lugares y eventos que aparecen en el capítulo; consulte [Obtener las entidades en un capítulo](#get-the-entities-in-a-chapter) . Para el conjunto de datos `verse-of-the-day` , el capítulo contiene los candidatos a versículo del día en el capítulo y sus categorías; consulte [Versículo del día](#verse-of-the-day) .
 
 -   `dataset` el ID del conjunto de datos (por ejemplo `open-cross-ref` ).
 -   `book` es el ID del libro (por ejemplo, `GEN` para Génesis).
@@ -440,7 +571,16 @@ interface DatasetChapterData {
     content: DatasetVerse[];
 }
 
-interface DatasetVerse {
+/**
+ * Un versículo contiene `references` (conjuntos de datos de referencia cruzada), `words` (conjuntos de datos interlineales) o `categories` (el conjunto de datos del versículo del día).
+ * Comprueba cuál está presente con `'words' in verse` o `'categories' in verse` .
+ */
+type DatasetVerse =
+    | DatasetReferencesVerse
+    | DatasetWordsVerse
+    | DatasetCategoriesVerse;
+
+interface DatasetReferencesVerse {
     /**
      * El número del versículo.
      */
@@ -452,6 +592,52 @@ interface DatasetVerse {
      * Ordenado por puntuación, descendente.
      */
     references: DatasetReference[];
+}
+
+interface DatasetWordsVerse {
+    /**
+     * El número del versículo.
+     */
+    verse: number;
+
+    /**
+     * Las palabras del verso en su idioma original, en el orden del texto original.
+     * Consulte la sección "Conjuntos de datos interlineales" a continuación.
+     */
+    words: InterlinearWord[];
+}
+
+interface DatasetCategoriesVerse {
+    /**
+     * El número del versículo.
+     * Si aparece `endVerse` , entonces este es el versículo donde comienza el pasaje.
+     */
+    verse: number;
+
+    /**
+     * El versículo en el que termina el pasaje.
+     * Se omite si la entrada es un solo verso.
+     */
+    endVerse?: number;
+
+    /**
+     * Los identificadores de las categorías a las que pertenece el verso, de la más relevante a la más antigua.
+     * Vea el "Versículo del día" a continuación.
+     */
+    categories: string[];
+
+    /**
+     * El primer año en que el versículo puede ser el versículo del día.
+     * Se omite si el versículo siempre ha estado en la lista.
+     */
+    addedIn?: number;
+
+    /**
+     * El primer año en que el versículo ya no puede ser el versículo del día.
+     * Los versículos eliminados permanecen en el conjunto de datos para que aún se puedan seleccionar los versículos de años anteriores.
+     * Se omite si el versículo no ha sido eliminado de la lista.
+     */
+    removedIn?: number;
 }
 
 interface DatasetReference {
@@ -481,6 +667,8 @@ interface DatasetReference {
      */
     score?: number;
 }
+
+// Consulte la sección "Conjuntos de datos interlineales" a continuación para conocer la estructura de InterlinearWord.
 ```
 
 ### Ejemplo
@@ -574,6 +762,8 @@ interface DatasetReference {
 
 Algunos conjuntos de datos, como el conjunto de datos [de metadatos bíblicos teográficos](https://github.com/robertrouse/theographic-bible-metadata) ( `theographic` ), contienen entidades: personas, lugares, eventos y grupos de personas, junto con las relaciones entre ellos y los versículos bíblicos que los mencionan.
 
+El conjunto de datos [History Globe](https://historyglobe.app) ( `history-globe` ) contiene solo lugares: los lugares nombrados en la Biblia, con sus coordenadas y los versículos que los nombran. Sus identificadores de lugar (por ejemplo, `a15257a` para Jerusalén) son los identificadores de lugar estables de History Globe, los mismos que utiliza su propia [API de datos abiertos](https://historyglobe.app/docs/api.html) , por lo que no cambian cuando se corrige un nombre. Sus `featureType` valores siguen los que utiliza el conjunto de datos Theographic ( `City` , `Region` , `Water` , etc.), y `featureSubType` lleva el tipo más específico cuando lo hay (por ejemplo, `River` , `Gate` , `Spring` ).
+
 Los conjuntos de datos que contienen entidades incluyen las propiedades `listOfPeopleApiLink` , `listOfPlacesApiLink` , `listOfEventsApiLink` y `listOfPeopleGroupsApiLink` en su entrada en `/api/available_datasets.json` .
 
 Los conjuntos de datos de entidades también proporcionan datos alineados con los capítulos: `/api/d/{dataset}/books.json` enumera los libros cuyos capítulos contienen datos de entidades, y `/api/d/{dataset}/{book}/{chapter}.json` devuelve las personas, lugares y eventos que aparecen en ese capítulo, junto con los números de versículo donde se menciona cada uno. Consulte [Obtener las entidades en un capítulo](#get-the-entities-in-a-chapter) .
@@ -627,6 +817,10 @@ export interface VerseRef {
     endVerse?: number;
 }
 ```
+
+### Atribución de History Globe
+
+Los datos de History Globe están bajo la licencia [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) . Si los utiliza, cite a History Globe ( https://historyglobe.app ) y a los datos de geocodificación bíblica de OpenBible.info en los que se basan, e indique cualquier modificación. La propiedad `licenseNotes` del conjunto de datos contiene la atribución.
 
 ## Obtener las entidades en un capítulo
 
@@ -1347,7 +1541,7 @@ interface DatasetPlace {
     duplicateOf?: DatasetEntityRef;
 
     /**
-     * Las personas que han estado en el lugar, que nacieron en él o que murieron allí.
+     * Las personas que han estado allí, que nacieron allí o que murieron allí.
      */
     people?: DatasetEntityRef[];
     peopleBorn?: DatasetEntityRef[];
@@ -1439,7 +1633,7 @@ interface DatasetEventSummary {
 
     /**
      * La fecha en que comenzó el evento.
-     * Los números negativos representan los años antes de Cristo. Los números positivos representan los años después de Cristo.
+     * Los números negativos representan años antes de Cristo. Los números positivos representan años después de Cristo.
      * Para fechas más específicas, utilice el formato `YYYY-MM-DD` .
      */
     startDate?: string;
@@ -1646,7 +1840,7 @@ interface DatasetPeopleGroupSummary {
 
 `GET https://bible.helloao.org/api/d/{dataset}/groups/{group}.json`
 
-Obtiene información sobre un grupo de personas en particular, incluyendo a sus miembros y los eventos en los que participó el grupo.
+Obtiene información sobre un grupo étnico específico, incluyendo a sus miembros y los eventos en los que participó dicho grupo.
 
 -   `dataset` el ID del conjunto de datos (por ejemplo `theographic` ).
 -   `group` el ID del grupo de personas (por ejemplo `tribe-of-benjamin` ).
@@ -1729,5 +1923,942 @@ interface DatasetPeopleGroup {
         "references": []
     },
     "thisPeopleGroupApiLink": "/api/d/theographic/groups/tribe-of-benjamin.json"
+}
+```
+
+## Conjuntos de datos interlineales
+
+El conjunto de datos interlineales Bereanos ( `bsb-interlinear` ) enumera las palabras en los idiomas originales (hebreo, arameo y griego) de cada versículo de la Biblia, en el orden en que aparecen en el texto original. Cada palabra tiene su transliteración, análisis gramatical, [número de Strong](https://en.wikipedia.org/wiki/Strong%27s_Concordance) y la frase en inglés que la [Biblia Estándar Bereana](https://berean.bible) utiliza para ella.
+
+El conjunto de datos utiliza los mismos puntos finales que otros conjuntos de datos:
+
+-   `GET https://bible.helloao.org/api/d/bsb-interlinear/books.json` enumera los 66 libros.
+-   `GET https://bible.helloao.org/api/d/bsb-interlinear/{book}/{chapter}.json` (ej. `/api/d/bsb-interlinear/GEN/1.json` ) devuelve el capítulo, con `{ verse, words }` para cada versículo. La respuesta es un [conjunto de datos llamado capítulo](#get-a-chapter-from-a-dataset) .
+
+Los datos de las palabras provienen de las [tablas interlineales de la Biblia Estándar Bereana](https://bereanbible.com/) , que son de dominio público. Los números de Strong para las palabras se buscan en el [léxico](#lexicon) ( `stepbible-lexicon` ).
+
+### Estructura
+
+```typescript:no-line-numbers title="interlinear-word.ts"
+interface InterlinearWord {
+    /**
+     * La posición de la palabra (basada en 1) en el orden del texto original.
+     * Las palabras se enumeran en este orden.
+     */
+    pos: number;
+
+    /**
+     * El rango de la palabra, basado en 1, en el orden en inglés de la Biblia Estándar Bereana.
+     */
+    bsbPos: number;
+
+    /**
+     * El lenguaje de la palabra.
+     */
+    language: 'hebrew' | 'aramaic' | 'greek';
+
+    /**
+     * La palabra en el guion original. Normalizada mediante NFC.
+     */
+    text: string;
+
+    /**
+     * La transliteración de la palabra.
+     */
+    transliteration: string | null;
+
+    /**
+     * El código de análisis gramatical corto de la palabra. Por ejemplo, "N-mp" o "V-Qal-Perf-3ms".
+     */
+    parsing: string | null;
+
+    /**
+     * El análisis gramatical detallado de la palabra.
+     */
+    parsingFull: string | null;
+
+    /**
+     * El número de Strong de la palabra, rellenado con ceros. Por ejemplo, "H0430" o "G3056".
+     * Con relleno de ceros, lo que coincide con los valores `.words.json` de la KJV.
+     * Es posible que los valores de otras traducciones necesiten relleno con ceros y eliminación de sufijos antes de la unión.
+     * Nulo cuando la fuente no proporciona el número de Strong para la palabra (este es el caso de algunas palabras que son sufijos, como los sufijos de pronombres).
+     */
+    strongs: string | null;
+
+    /**
+     * La frase en inglés de la Biblia Estándar Bereana para la palabra.
+     * Nulo cuando el BSB deja la palabra sin traducir (como el marcador de objeto directo en hebreo).
+     */
+    gloss: string | null;
+}
+```
+
+### Ejemplo
+
+```json:no-line-numbers title="/api/d/bsb-interlinear/GEN/1.json"
+{
+    "dataset": {
+        "id": "bsb-interlinear",
+        "name": "Berean Standard Bible Interlinear",
+        "totalNumberOfWords": 443625
+        // ...
+    },
+    "book": {
+        "id": "GEN",
+        "datasetId": "bsb-interlinear",
+        "order": 1,
+        "numberOfChapters": 50
+        // ...
+    },
+    "chapter": {
+        "number": 1,
+        "content": [
+            {
+                "verse": 1,
+                "words": [
+                    {
+                        "pos": 1,
+                        "bsbPos": 1,
+                        "language": "hebrew",
+                        "text": "בְּרֵאשִׁ֖ית",
+                        "transliteration": "bə·rê·šîṯ",
+                        "parsing": "Prep-b | N-fs",
+                        "parsingFull": "Preposition-b | Noun - feminine singular",
+                        "strongs": "H7225",
+                        "gloss": "In the beginning"
+                    },
+                    {
+                        "pos": 2,
+                        "bsbPos": 4,
+                        "language": "hebrew",
+                        "text": "בָּרָ֣א",
+                        "transliteration": "bā·rā",
+                        "parsing": "V-Qal-Perf-3ms",
+                        "parsingFull": "Verb - Qal - Perfect - third person masculine singular",
+                        "strongs": "H1254",
+                        "gloss": "created"
+                    }
+                    // ...
+                ]
+            }
+            // ...
+        ]
+    },
+    "thisChapterLink": "/api/d/bsb-interlinear/GEN/1.json",
+    "nextChapterApiLink": "/api/d/bsb-interlinear/GEN/2.json",
+    "previousChapterApiLink": null,
+    "numberOfVerses": 31,
+    "numberOfReferences": 0
+}
+```
+
+### Enlace de palabras con traducciones
+
+Los valores interlineales `strongs` se rellenan con ceros (p. ej., `H0430` ). Esto coincide con los valores `strongs` en las anotaciones de palabras de la KJV ( `/api/eng_kjv/{book}/{chapter}.words.json` ). Los valores de otras traducciones pueden necesitar relleno con ceros y eliminación de sufijos (p. ej., `H430` o `H1961a` a `H0430` y `H1961` ) antes de poder unirse.
+
+-   **KJV.** Para la versión King James ( `eng_kjv` y `eng_kja` ), combine los números de Strong en el archivo `.words.json` de un capítulo con el `strongs` de las palabras interlineales del mismo versículo. Por ejemplo, cada número de Strong anotado en `/api/eng_kjv/GEN/1.words.json` para el versículo 1 ( `H7225` , `H1254` , `H0430` , `H0853` , `H8064` , `H0776` ) aparece como un valor `strongs` entre las palabras del versículo 1 en `/api/d/bsb-interlinear/GEN/1.json` .
+-   **Biblia Estándar Bereana.** El `gloss` de cada palabra es la frase de la BSB para esa palabra. Recorre las palabras del versículo en `bsbPos` y compara cada `gloss` con el texto del versículo en la traducción de la BSB para encontrar la traducción de la palabra.
+
+La numeración de ambas fuentes no siempre coincide. Por ejemplo, la versión King James etiqueta "was" como `G2258` , mientras que la tabla Bereana tiene `G1510` Algunas uniones fallan debido a diferencias como esta.
+
+### Atribución
+
+Las tablas interlineales de Berea son de dominio público. El [léxico](#lexicon) está bajo la licencia CC BY 4.0 y requiere atribución.
+
+## Léxico
+
+El conjunto de datos del léxico STEPBible ( `stepbible-lexicon` ) contiene los léxicos breves hebreo, arameo y griego (TBESH y TBESG) de [STEPBible.org](https://www.stepbible.org/) en Tyndale House, Cambridge. Tiene una entrada para cada número base de Strong, y cada entrada tiene uno o más sentidos con el lema, la transliteración, la categoría gramatical, la glosa en inglés y una definición.
+
+Cualquier valor `strongs` con ceros de relleno de una [palabra interlineal](#interlinear-datasets) que tenga una entrada en el léxico puede consultarse en `/api/d/stepbible-lexicon/lexicon/{strongs}.json` sin reformatear. Lo mismo ocurre con los valores `.words.json` de la KJV; los valores de otras traducciones pueden requerir relleno con ceros y eliminación de sufijos previamente. Las entradas griegas que el léxico añade sin un número de Strong no se publican.
+
+Los conjuntos de datos que contienen entradas de léxico incluyen `listOfLexiconApiLink` y `totalNumberOfLexicon` en su entrada en `/api/available_datasets.json` .
+
+### Atribución
+
+Los datos del léxico están bajo la licencia [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) . Si los utiliza, cite a STEPBible.org / Tyndale House, Cambridge, e indique cualquier modificación. La propiedad `licenseNotes` del conjunto de datos contiene la atribución.
+
+## Listar las entradas del léxico en un conjunto de datos
+
+`GET https://bible.helloao.org/api/d/{dataset}/lexicon.json`
+
+Obtiene la lista de entradas del léxico que están disponibles para un conjunto de datos.
+
+-   `dataset` el ID del conjunto de datos (por ejemplo `stepbible-lexicon` ).
+
+### Ejemplo de código
+
+::: code-tabs#lang
+
+@tab JavaScript
+
+```ts:no-line-numbers title="fetch-lexicon.js"
+fetch(`https://bible.helloao.org/api/d/stepbible-lexicon/lexicon.json`)
+    .then(request => request.json())
+    .then(lexicon => {
+        console.log('The lexicon has', lexicon.lexicon.length, 'entries');
+    });
+```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/d/stepbible-lexicon/lexicon.json
+```
+
+:::
+
+### Estructura
+
+```typescript:no-line-numbers title="dataset-lexicon.ts"
+export interface DatasetLexicon {
+    /**
+     * La información del conjunto de datos para el léxico.
+     */
+    dataset: Dataset;
+
+    /**
+     * La lista de entradas del léxico disponibles para el conjunto de datos.
+     */
+    lexicon: DatasetLexiconEntrySummary[];
+}
+
+export interface DatasetLexiconEntrySummary {
+    /**
+     * El número de Strong con ceros de relleno de la entrada del léxico. Por ejemplo, "H0430".
+     */
+    id: string;
+
+    /**
+     * El idioma de la entrada del léxico.
+     */
+    language: 'hebrew' | 'aramaic' | 'greek';
+
+    /**
+     * El nombre de la entrada del léxico.
+     * Este es el lema del primer sentido de la entrada.
+     */
+    name: string;
+
+    /**
+     * El enlace API para la entrada del léxico.
+     */
+    apiLink: string;
+}
+```
+
+### Ejemplo
+
+```json:no-line-numbers title="/api/d/stepbible-lexicon/lexicon.json"
+{
+    "dataset": {
+        "id": "stepbible-lexicon",
+        "name": "STEPBible Brief Lexicons",
+        "totalNumberOfLexicon": 18085
+        // ...
+    },
+    "lexicon": [
+        {
+            "id": "G0001",
+            "language": "greek",
+            "name": "α, Ἀλφα",
+            "apiLink": "/api/d/stepbible-lexicon/lexicon/G0001.json"
+        },
+        {
+            "id": "G0002",
+            "language": "greek",
+            "name": "Ἀαρών",
+            "apiLink": "/api/d/stepbible-lexicon/lexicon/G0002.json"
+        }
+        // ...
+    ]
+}
+```
+
+## Obtener una entrada de léxico de un conjunto de datos
+
+`GET https://bible.helloao.org/api/d/{dataset}/lexicon/{strongs}.json`
+
+Obtiene la entrada del léxico para un número de Strong de base única, con todos sus sentidos.
+
+-   `dataset` el ID del conjunto de datos (por ejemplo `stepbible-lexicon` ).
+-   `strongs` es el número de Strong con ceros a la izquierda (por ejemplo, `H0430` para la palabra hebrea _elohim_ o `G3056` para la palabra griega _logos_).
+
+### Ejemplo de código
+
+::: code-tabs#lang
+
+@tab JavaScript
+
+```ts:no-line-numbers title="fetch-lexicon-entry.js"
+const strongs = 'H1254';
+
+fetch(`https://bible.helloao.org/api/d/stepbible-lexicon/lexicon/${strongs}.json`)
+    .then(request => request.json())
+    .then(({ entry }) => {
+        console.log('H1254:', entry.senses.map(sense => sense.gloss));
+    });
+```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/d/stepbible-lexicon/lexicon/H1254.json
+```
+
+:::
+
+### Estructura
+
+```typescript:no-line-numbers title="dataset-lexicon-entry.ts"
+export interface DatasetLexiconEntry {
+    /**
+     * La información del conjunto de datos para la entrada del léxico.
+     */
+    dataset: Dataset;
+
+    /**
+     * La entrada del léxico.
+     */
+    entry: DatasetLexiconEntryContent;
+
+    /**
+     * Enlace API para esta entrada del léxico.
+     */
+    thisLexiconEntryApiLink: string;
+}
+
+export interface DatasetLexiconEntryContent {
+    /**
+     * El número de Strong de la entrada, rellenado con ceros. Por ejemplo: "H0430".
+     */
+    id: string;
+
+    /**
+     * El idioma de la entrada.
+     * Este es el lenguaje del primer sentido de la entrada.
+     */
+    language: 'hebrew' | 'aramaic' | 'greek';
+
+    /**
+     * Los sentidos de la entrada, en orden de identificación.
+     */
+    senses: DatasetLexiconSense[];
+}
+
+export interface DatasetLexiconSense {
+    /**
+     * El identificador extendido del sentido. Por ejemplo, "H0001G".
+     * Igual al número de Strong base cuando el número tiene un solo sentido.
+     */
+    id: string;
+
+    /**
+     * El lenguaje de los sentidos.
+     */
+    language: 'hebrew' | 'aramaic' | 'greek';
+
+    /**
+     * El lema del sentido en el guion original.
+     */
+    lemma: string;
+
+    /**
+     * La transliteración del lema.
+     */
+    transliteration: string | null;
+
+    /**
+     * La parte de la oración (morfología) del código del sentido.
+     */
+    partOfSpeech: string | null;
+
+    /**
+     * La breve explicación en inglés del significado.
+     */
+    gloss: string | null;
+
+    /**
+     * La definición del sentido como texto plano.
+     * Los párrafos están separados por líneas en blanco. Se ha eliminado el formato del código fuente.
+     */
+    definition: string;
+}
+```
+
+### Ejemplo
+
+```json:no-line-numbers title="/api/d/stepbible-lexicon/lexicon/H1254.json"
+{
+    "dataset": {
+        "id": "stepbible-lexicon",
+        "name": "STEPBible Brief Lexicons",
+        "totalNumberOfLexicon": 18085
+        // ...
+    },
+    "entry": {
+        "id": "H1254",
+        "language": "hebrew",
+        "senses": [
+            {
+                "id": "H1254A",
+                "language": "hebrew",
+                "lemma": "בָּרָא",
+                "transliteration": "ba.ra",
+                "partOfSpeech": "V",
+                "gloss": "to create",
+                "definition": "1) to create, shape, form\n\n1a) (Qal) to shape, fashion, create (always with God as subject)\n\n1b) (Niphal) to be created"
+            },
+            {
+                "id": "H1254B",
+                "language": "hebrew",
+                "lemma": "בָּרָא",
+                "transliteration": "ba.ra",
+                "partOfSpeech": "V",
+                "gloss": "to fatten",
+                "definition": "1) to be fat\n\n1a) (Hiphil) to make yourselves fat"
+            }
+        ]
+    },
+    "thisLexiconEntryApiLink": "/api/d/stepbible-lexicon/lexicon/H1254.json"
+}
+```
+
+## Versículo del día
+
+El conjunto de datos del versículo del día ( `verse-of-the-day` ) es una lista seleccionada de versículos conocidos y pasajes cortos (de un máximo de tres versículos) que son buenos candidatos para un "versículo del día": más de 640 para cada día del año y más de 100 para las festividades cristianas. Cada uno tiene sentido por sí mismo.
+
+Cada versículo para cada día tiene de una a tres categorías, de la más relevante a la más importante, de este conjunto fijo:
+
+| IDENTIFICACIÓN | Descripción                                                              |
+| -------------- | ------------------------------------------------------------------------ |
+| `comfort`      | La cercanía y el cuidado de Dios en el dolor, la aflicción y la soledad. |
+| `courage`      | Mantenerse firme y no tener miedo.                                       |
+| `faith`        | Confiar en Dios y en sus promesas.                                       |
+| `forgiveness`  | El perdón de Dios a los pecados y el perdón a los demás.                 |
+| `gratitude`    | Dando gracias a Dios.                                                    |
+| `guidance`     | Dios dirige nuestros pasos, planes y decisiones.                         |
+| `hope`         | Confianza en el futuro que Dios ha prometido.                            |
+| `inspiration`  | Animar a vivir la fe y a hacer el bien.                                  |
+| `joy`          | Gozo y alegría en Dios.                                                  |
+| `love`         | El amor de Dios por nosotros y nuestro amor por Dios y por los demás.    |
+| `peace`        | Descanso, tranquilidad y ausencia de ansiedad.                           |
+| `praise`       | Adoración y declaraciones de la grandeza de Dios.                        |
+| `prayer`       | Invocando a Dios y su promesa de escuchar.                               |
+| `provision`    | Dios provee lo que necesitamos.                                          |
+| `salvation`    | Redención, gracia y nueva vida en Cristo.                                |
+| `strength`     | Dios nos da fuerza y ​​resistencia.                                      |
+| `wisdom`       | Sabiduría divina e instrucciones prácticas para la vida.                 |
+
+Los días festivos tienen sus propias categorías. En un día festivo, el versículo del día es uno de los versículos propios de la festividad, y esos versículos no se usan en otros días. Un día festivo suele durar un día; Después del Domingo de Resurrección dura los tres días posteriores al Domingo de Resurrección, por lo que se incluyen las tres fechas. Cada categoría de día festivo tiene un `holiday` con sus fechas: los días festivos que se celebran en la misma fecha cada año tienen un `month` y `day` , y los días festivos cuya fecha cambia cada año (porque dependen del Domingo de Resurrección o del Adviento) tienen su `dates` en el calendario gregoriano, precalculado para el período 2026-2125.
+
+| IDENTIFICACIÓN             | Día festivo                         | Fecha                                                |
+| -------------------------- | ----------------------------------- | ---------------------------------------------------- |
+| `epiphany`                 | Epifanía                            | 6 de enero                                           |
+| `ash-wednesday`            | Miércoles de ceniza                 | 46 días antes del Domingo de Resurrección            |
+| `palm-sunday`              | Domingo de Ramos                    | El domingo anterior al Domingo de Resurrección       |
+| `maundy-thursday`          | Jueves Santo                        | El jueves anterior al Domingo de Resurrección        |
+| `good-friday`              | Viernes Santo                       | El viernes anterior al Domingo de Resurrección       |
+| `resurrection-sunday`      | Domingo de Resurrección             | Domingo de Resurrección                              |
+| `post-resurrection-sunday` | Después del Domingo de Resurrección | Los tres días posteriores al Domingo de Resurrección |
+| `ascension-day`            | Día de la Ascensión                 | 39 días después del Domingo de Resurrección          |
+| `pentecost`                | Pentecostés                         | 49 días después del Domingo de Resurrección          |
+| `all-hallows-eve`          | Noche de Todos los Santos           | 31 de octubre                                        |
+| `all-saints-day`           | Día de Todos los Santos             | 1 de noviembre                                       |
+| `advent-sunday`            | Primer domingo de Adviento          | El cuarto domingo antes de Navidad                   |
+| `christmas-eve`            | Nochebuena                          | 24 de diciembre                                      |
+| `christmas`                | Navidad                             | 25 de diciembre                                      |
+
+El conjunto de datos solo contiene referencias, no el texto de los versículos, por lo que funciona con cualquier traducción. Los números de los versículos utilizan la numeración estándar en inglés (la misma que la del BSB). Los datos se pueden leer de tres maneras:
+
+-   El archivo [`/api/d/verse-of-the-day/verses.json`](#list-verses-in-a-dataset) enumera todos los versículos del conjunto de datos con sus categorías y las festividades con sus fechas, en un solo archivo.
+-   [`/api/d/verse-of-the-day/categories/{category}.json`](#get-a-category-from-a-dataset) Muestra todos los versículos de una categoría. Esta es la forma más sencilla de elegir un versículo del día de una categoría.
+-   [`/api/d/verse-of-the-day/{book}/{chapter}.json`](#get-a-chapter-from-a-dataset) Muestra los candidatos de un capítulo, con sus categorías. Solo están disponibles los capítulos que contienen un candidato; para encontrarlos, utilice los enlaces de los capítulos del libro o `/api/d/verse-of-the-day/books.json` .
+
+Los conjuntos de datos que contienen categorías de versos incluyen `listOfVersesApiLink` , `listOfCategoriesApiLink` y `totalNumberOfCategories` en su entrada en `/api/available_datasets.json` .
+
+### Elegir un versículo del día
+
+La API se compone de archivos estáticos, por lo que no selecciona un versículo automáticamente. En cambio, existe una convención para elegirlo, de modo que todas las aplicaciones que la siguen muestren el mismo versículo el mismo día. Las aplicaciones pueden elegir versículos diferentes; la convención simplemente les proporciona un valor predeterminado común.
+
+La convención elige de los versículos y días festivos en `/api/d/verse-of-the-day/verses.json` En un día festivo, elige uno de los versículos del día festivo, recorriéndolos año por año, por lo que un día festivo tiene un versículo diferente cada año hasta que se hayan usado todos sus versículos. En otros días, cada año tiene su propia mezcla de los versículos que están en uso ese año (ordenados por un hash de la referencia de cada versículo, el año y una semilla opcional), y el versículo del día es el que está en el día del año de la fecha en esa mezcla. El conjunto de datos tiene más de 366 versículos para cada día en uso cada año, por lo que un versículo nunca se repite dentro de un año calendario, el orden cambia cada año y la misma fecha siempre da el mismo versículo. Se agregan nuevos versículos (con `addedIn` ) y se eliminan los antiguos (con `removedIn` ) solo de un año que aún no ha comenzado, por lo que el versículo del día para una fecha pasada nunca cambia.
+
+La página [de la Convención del Versículo del Día](./verse-of-the-day-convention.md) especifica el algoritmo paso a paso, con pseudocódigo y valores de prueba, para que puedas implementarlo en cualquier idioma.
+
+Para usar tu propio orden, elige una semilla (por ejemplo, el nombre de tu aplicación): esto genera una mezcla diferente con las mismas garantías. También puedes elegir versículos de una sola categoría, pero cada categoría tiene menos versículos que días tiene un año, por lo que sus versículos se repiten antes.
+
+Los SDK siguen la convención:
+
+```ts:no-line-numbers title="verse-of-the-day.js"
+import { FreeUseBibleApi } from 'free-use-bible-api';
+
+const api = new FreeUseBibleApi();
+
+// Una fecha en formato AAAA-MM-DD o una fecha (se utiliza la fecha del calendario local). Por defecto, se utiliza la fecha de hoy.
+const ref = await api.getVerseOfTheDay('2026-01-01');
+
+// Obtén el texto del versículo de una traducción.
+const chapter = await api.getTranslationBookChapter('BSB', ref.book, ref.chapter);
+const verses = chapter.chapter.content.filter(
+    (c) =>
+        c.type === 'verse' &&
+        c.number >= ref.verse &&
+        c.number <= (ref.endVerse ?? ref.verse)
+);
+console.log(ref, verses);
+```
+
+-   `getVerseOfTheDay(date?, { seed?, category?, dataset? }?)` descarga la lista de versículos y elige de ella. `pickVerseOfTheDay(verses, date?, { seed?, category? }?)` elige de una lista que ya tienes.
+-   El SDK de Kotlin tiene `getVerseOfTheDay(date?, seed?, category?)` y `pickVerseOfTheDay(verses, date?, seed?, category?)` , que toman la fecha como una cadena `YYYY-MM-DD` caracteres.
+-   El SDK de Swift tiene `getVerseOfTheDay(date:seed:category:)` y `pickVerseOfTheDay(_:date:seed:category:holidays:)` , que toman la fecha como una cadena `YYYY-MM-DD` o `Date` (se utiliza la fecha del calendario en la zona horaria actual).
+-   El [servidor MCP](https://github.com/HelloAOLab/bible-api/tree/main/packages/seed-bible-mcp) tiene `getVerseOfTheDay` herramienta que devuelve el versículo del día con su texto.
+-   El paquete `@helloao/tools` tiene la misma lista y una función `getVerseOfTheDay(date?, { seed?, category? }?)` en `@helloao/tools/generation/verse-of-the-day.js` .
+
+### Licencia
+
+La lista fue elaborada por AO Lab y se publica bajo la [licencia MIT](https://github.com/HelloAOLab/bible-api/blob/main/LICENSE) . El texto del versículo proviene de la traducción que se haya obtenido.
+
+## Enumerar versículos en un conjunto de datos
+
+`GET https://bible.helloao.org/api/d/{dataset}/verses.json`
+
+Obtiene cada versículo (o pasaje corto) en un conjunto de datos, con las categorías a las que pertenece cada uno, en orden canónico. Solo disponible para conjuntos de datos cuyos versículos tienen categorías, como `verse-of-the-day` .
+
+-   `dataset` el ID del conjunto de datos (por ejemplo `verse-of-the-day` ).
+
+### Ejemplo de código
+
+::: code-tabs#lang
+
+@tab JavaScript
+
+```ts:no-line-numbers title="fetch-verses.js"
+fetch(`https://bible.helloao.org/api/d/verse-of-the-day/verses.json`)
+    .then(request => request.json())
+    .then(verses => {
+        console.log('The dataset has', verses.verses.length, 'verses');
+    });
+```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/d/verse-of-the-day/verses.json
+```
+
+:::
+
+### Estructura
+
+```typescript:no-line-numbers title="dataset-verses.ts"
+export interface DatasetVerses {
+    /**
+     * La información del conjunto de datos para los versículos.
+     */
+    dataset: Dataset;
+
+    /**
+     * Cada versículo (o pasaje corto) del conjunto de datos, con sus categorías, en orden canónico.
+     */
+    verses: DatasetCategorizedVerse[];
+
+    /**
+     * Las festividades que tienen sus propios versos, con sus fechas.
+     * Se omite si el conjunto de datos no tiene días festivos.
+     */
+    holidays?: DatasetVersesHoliday[];
+}
+
+export interface DatasetVersesHoliday extends DatasetCategoryHoliday {
+    /**
+     * El identificador de la categoría de la festividad. Por ejemplo, "Navidad".
+     */
+    id: string;
+
+    /**
+     * El nombre en inglés de la festividad. Por ejemplo, "Navidad".
+     */
+    name: string;
+}
+
+export interface DatasetCategoryHoliday {
+    /**
+     * El mes (1 para enero) y el día de una festividad que cae en la misma fecha todos los años.
+     * Se omiten los días festivos cuya fecha cambia cada año.
+     */
+    month?: number;
+    day?: number;
+
+    /**
+     * Las fechas (AAAA-MM-DD, calendario gregoriano) de un día festivo cuya fecha cambia cada año, en orden.
+     * Se calculan previamente para un rango de años (actualmente de 2026 a 2125), y el día festivo solo se observa en las fechas que figuran en la lista.
+     * Se omiten los días festivos que caen en la misma fecha todos los años.
+     */
+    dates?: string[];
+}
+
+export interface DatasetCategorizedVerse {
+    /**
+     * El ID del libro. Por ejemplo, "PRO".
+     */
+    book: string;
+
+    /**
+     * El número del capítulo.
+     */
+    chapter: number;
+
+    /**
+     * El número del versículo.
+     * Si aparece `endVerse` , entonces este es el versículo donde comienza el pasaje.
+     */
+    verse: number;
+
+    /**
+     * El versículo en el que termina el pasaje.
+     * Se omite si la entrada es un solo verso.
+     */
+    endVerse?: number;
+
+    /**
+     * Los identificadores de las categorías a las que pertenece el verso, de la más relevante a la más antigua.
+     */
+    categories: string[];
+
+    /**
+     * El primer año en que el versículo puede ser el versículo del día.
+     * Se omite si el versículo siempre ha estado en la lista.
+     */
+    addedIn?: number;
+
+    /**
+     * El primer año en que el versículo ya no puede ser el versículo del día.
+     * Los versículos eliminados permanecen en el conjunto de datos para que aún se puedan seleccionar los versículos de años anteriores.
+     * Se omite si el versículo no ha sido eliminado de la lista.
+     */
+    removedIn?: number;
+}
+```
+
+### Ejemplo
+
+```json:no-line-numbers title="/api/d/verse-of-the-day/verses.json"
+{
+    "dataset": {
+        "id": "verse-of-the-day",
+        "name": "Verse of the Day",
+        "listOfVersesApiLink": "/api/d/verse-of-the-day/verses.json"
+        // ...
+    },
+    "verses": [
+        {
+            "book": "GEN",
+            "chapter": 1,
+            "verse": 1,
+            "categories": ["praise"]
+        },
+        {
+            "book": "GEN",
+            "chapter": 15,
+            "verse": 6,
+            "categories": ["faith", "salvation"]
+        },
+        // ...
+        {
+            "book": "PRO",
+            "chapter": 3,
+            "verse": 5,
+            "endVerse": 6,
+            "categories": ["faith", "guidance", "wisdom"]
+        },
+        // ...
+        {
+            "book": "LUK",
+            "chapter": 2,
+            "verse": 7,
+            "categories": ["christmas"]
+        }
+        // ...
+    ],
+    "holidays": [
+        {
+            "id": "christmas",
+            "name": "Christmas",
+            "month": 12,
+            "day": 25
+        },
+        {
+            "id": "good-friday",
+            "name": "Good Friday",
+            "dates": ["2026-04-03", "2027-03-26", "2028-04-14" /* ... */]
+        }
+        // ...
+    ]
+}
+```
+
+## Enumerar categorías en un conjunto de datos
+
+`GET https://bible.helloao.org/api/d/{dataset}/categories.json`
+
+Obtiene la lista de categorías de versículos disponibles para un conjunto de datos.
+
+-   `dataset` el ID del conjunto de datos (por ejemplo `verse-of-the-day` ).
+
+### Ejemplo de código
+
+::: code-tabs#lang
+
+@tab JavaScript
+
+```ts:no-line-numbers title="fetch-categories.js"
+fetch(`https://bible.helloao.org/api/d/verse-of-the-day/categories.json`)
+    .then(request => request.json())
+    .then(categories => {
+        console.log('The dataset has the following categories:', categories.categories);
+    });
+```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/d/verse-of-the-day/categories.json
+```
+
+:::
+
+### Estructura
+
+```typescript:no-line-numbers title="dataset-categories.ts"
+export interface DatasetCategories {
+    /**
+     * La información del conjunto de datos para las categorías.
+     */
+    dataset: Dataset;
+
+    /**
+     * La lista de categorías de versículos disponibles para el conjunto de datos.
+     */
+    categories: DatasetCategorySummary[];
+}
+
+export interface DatasetCategorySummary {
+    /**
+     * El ID de la categoría. Por ejemplo, "esperanza".
+     */
+    id: string;
+
+    /**
+     * El nombre en inglés de la categoría. Por ejemplo: "Hope".
+     */
+    name: string;
+
+    /**
+     * La descripción del contenido de los versículos de esta categoría.
+     */
+    description: string;
+
+    /**
+     * El número de versículos (o pasajes cortos) que pertenecen a la categoría.
+     */
+    numberOfVerses: number;
+
+    /**
+     * Las fechas del día festivo al que se refiere la categoría (ver DatasetCategoryHoliday más arriba).
+     * Se omiten las categorías que no corresponden a un día festivo.
+     */
+    holiday?: DatasetCategoryHoliday;
+
+    /**
+     * El enlace API para la categoría.
+     */
+    apiLink: string;
+}
+```
+
+### Ejemplo
+
+```json:no-line-numbers title="/api/d/verse-of-the-day/categories.json"
+{
+    "dataset": {
+        "id": "verse-of-the-day",
+        "name": "Verse of the Day",
+        "totalNumberOfCategories": 31
+        // ...
+    },
+    "categories": [
+        {
+            "id": "comfort",
+            "name": "Comfort",
+            "description": "God's nearness and care in grief, trouble, and loneliness.",
+            "numberOfVerses": 65,
+            "apiLink": "/api/d/verse-of-the-day/categories/comfort.json"
+        },
+        {
+            "id": "courage",
+            "name": "Courage",
+            "description": "Standing firm and not being afraid.",
+            "numberOfVerses": 49,
+            "apiLink": "/api/d/verse-of-the-day/categories/courage.json"
+        }
+        // ...
+    ]
+}
+```
+
+## Obtener una categoría de un conjunto de datos
+
+`GET https://bible.helloao.org/api/d/{dataset}/categories/{category}.json`
+
+Obtiene una única categoría de versículo, con cada versículo que pertenece a ella.
+
+-   `dataset` el ID del conjunto de datos (por ejemplo `verse-of-the-day` ).
+-   `category` es el ID de la categoría (por ejemplo `hope` ).
+
+### Ejemplo de código
+
+::: code-tabs#lang
+
+@tab JavaScript
+
+```ts:no-line-numbers title="fetch-category.js"
+fetch(`https://bible.helloao.org/api/d/verse-of-the-day/categories/hope.json`)
+    .then(request => request.json())
+    .then(category => {
+        console.log('Verses about hope:', category.category.verses);
+    });
+```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/d/verse-of-the-day/categories/hope.json
+```
+
+:::
+
+### Estructura
+
+```typescript:no-line-numbers title="dataset-category.ts"
+export interface DatasetCategoryResponse {
+    /**
+     * Información del conjunto de datos para la categoría.
+     */
+    dataset: Dataset;
+
+    /**
+     * La categoría, con los versículos que le pertenecen.
+     */
+    category: DatasetCategory;
+
+    /**
+     * El enlace de la API para esta categoría.
+     */
+    thisCategoryApiLink: string;
+}
+
+export interface DatasetCategory {
+    /**
+     * El ID de la categoría. Por ejemplo, "esperanza".
+     */
+    id: string;
+
+    /**
+     * El nombre en inglés de la categoría. Por ejemplo: "Hope".
+     */
+    name: string;
+
+    /**
+     * La descripción del contenido de los versículos de esta categoría.
+     */
+    description: string;
+
+    /**
+     * Las fechas de la festividad a la que se refiere la categoría (véase DatasetCategoryHoliday en "Listar versos en un conjunto de datos").
+     * En esas fechas, el versículo del día es uno de los versículos de la categoría, y no se utilizan en otros días.
+     * Se omiten las categorías que no corresponden a un día festivo.
+     */
+    holiday?: DatasetCategoryHoliday;
+
+    /**
+     * Los versículos (o pasajes cortos) que pertenecen a la categoría, en orden canónico.
+     * Incluye versículos que han sido eliminados de la lista (ver `removedIn` ).
+     */
+    verses: DatasetCategoryVerse[];
+}
+
+export interface DatasetCategoryVerse {
+    /**
+     * El identificador del libro. Por ejemplo, "JER".
+     */
+    book: string;
+
+    /**
+     * El número del capítulo.
+     */
+    chapter: number;
+
+    /**
+     * El número del versículo.
+     * Si aparece `endVerse` , entonces este es el versículo donde comienza el pasaje.
+     */
+    verse: number;
+
+    /**
+     * El versículo en el que termina el pasaje.
+     * Se omite si la referencia es un solo versículo.
+     */
+    endVerse?: number;
+
+    /**
+     * El primer año en que el versículo puede ser el versículo del día.
+     * Se omite si el versículo siempre ha estado en la lista.
+     */
+    addedIn?: number;
+
+    /**
+     * El primer año en que el versículo ya no puede ser el versículo del día.
+     * Los versículos eliminados permanecen en el conjunto de datos para que aún se puedan seleccionar los versículos de años anteriores.
+     * Se omite si el versículo no ha sido eliminado de la lista.
+     */
+    removedIn?: number;
+}
+```
+
+### Ejemplo
+
+```json:no-line-numbers title="/api/d/verse-of-the-day/categories/hope.json"
+{
+    "dataset": {
+        "id": "verse-of-the-day",
+        "name": "Verse of the Day",
+        "totalNumberOfCategories": 31
+        // ...
+    },
+    "category": {
+        "id": "hope",
+        "name": "Hope",
+        "description": "Confidence in the future that God has promised.",
+        "verses": [
+            {
+                "book": "GEN",
+                "chapter": 50,
+                "verse": 20
+            },
+            // ...
+            {
+                "book": "ISA",
+                "chapter": 43,
+                "verse": 18,
+                "endVerse": 19
+            },
+            {
+                "book": "JER",
+                "chapter": 29,
+                "verse": 11
+            }
+            // ...
+        ]
+    },
+    "thisCategoryApiLink": "/api/d/verse-of-the-day/categories/hope.json"
 }
 ```

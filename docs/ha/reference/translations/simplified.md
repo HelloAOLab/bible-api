@@ -53,9 +53,11 @@ curl https://bible.helloao.org/api/BSB/GEN/1.simple.json
 
 ### Ma'auni
 
+Abubuwan da aka sauƙaƙa a babi suna kiyaye abubuwa `line_break` na matakin babi, gami da mallakarsu `paragraph` Lokacin da sakin layi ya fara a cikin aya, rubutun baiti yana ɗauke da sabon layi a wannan lokacin kuma jeri na baiti `paragraphs` yana rubuta shi a matsayin `{ offset, style }` , inda `offset` shine ma'aunin harafin farko bayan sabon layi.
+
 Duk waɗannan canje-canje a cikin tsarin da aka sauƙaƙe - `offset` , `start` , da `end` - fihirisa ne a cikin `text` na ayar da ke ɗauke da su. Ana auna su a cikin raka'o'in lambar UTF-16, wanda shine abin da JavaScript ke amfani da shi `String.prototype.length` da `String.prototype.slice()` .
 
-`start` yana da alaƙa da juna kuma `end` na musamman ne, don haka `text.slice(start, end)` yana dawo da daidai kewayon rubutun da aka yi wa alama. Ma'aunin bayanan ƙasa sune matsayin da mai kiran ƙasa yake a ciki, don haka `text.slice(0, offset)` shine rubutun da ke gabansa.
+`start` ya ƙunshi kuma `end` ya keɓe, don haka `text.slice(start, end)` ya dawo daidai da kewayon rubutun da aka yi wa alama. Ma'aunin bayanan ƙasa sune matsayin da mai kiran ƙasa yake a ciki, don haka `text.slice(0, offset)` shine rubutun da ke gabansa.
 
 ### Tsarin gini
 
@@ -185,6 +187,11 @@ interface ChapterLineBreak {
      * Yana nuna cewa abubuwan da ke ciki suna wakiltar karya layi.
      */
     type: 'line_break';
+
+    /**
+     * Alamar sakin layi ta tushe (ba tare da lanƙwasa ba) lokacin da layin ya fara sabon sakin layi, misali `p` , `m` , `pi1` ko `mi` An cire shi don layin da ba a saba gani ba.
+     */
+    paragraph?: string;
 }
 
 /**
@@ -217,6 +224,12 @@ interface SimpleChapterVerse {
      * An cire shi idan bai ƙunshi kanun labarai a layi ba.
      */
     headings?: SimpleInlineHeading[];
+
+    /**
+     * Sakin layi da suka fara a tsakiyar baitin.
+     * An yi watsi da shi idan ayar ba ta ƙunshi komai ba.
+     */
+    paragraphs?: SimpleVerseParagraph[];
 
     /**
      * Jerin ayar da ke wakiltar Kalmomin Yesu.
@@ -287,6 +300,21 @@ interface SimpleInlineHeading {
 }
 
 /**
+ * Sakin layi wanda ya fara a tsakiyar baiti.
+ */
+interface SimpleVerseParagraph {
+    /**
+     * Fihirisar da ke cikin rubutun ayar da sakin layi ya fara a kai.
+     */
+    offset: number;
+
+    /**
+     * Alamar sakin layi ta asali ba tare da lashin baya ba, misali `p` ko `m` .
+     */
+    style: string;
+}
+
+/**
  * Jerin rubutu a cikin aya.
  */
 interface SimpleTextRange {
@@ -339,6 +367,7 @@ interface SimplePoemRange extends SimpleTextRange {
         "id": "GEN",
         "name": "Genesis",
         "commonName": "Genesis",
+        "shortName": "Gen",
         "title": "Genesis",
         "order": 1,
         "numberOfChapters": 50,
@@ -567,7 +596,7 @@ export interface SimpleTranslationBookChapterWords {
 
     /**
      * Kalmomin da aka rubuta a cikin kowace aya a cikin surar, waɗanda aka manne da lambar aya.
-     * Kowanne jeri yana cikin tsarin da kalmomin suka bayyana a cikin ayar.
+     * Kowanne jeri yana cikin tsari da kalmomin suka bayyana a cikin ayar.
      */
     verses: {
         [verseNumber: string]: SimpleChapterWord[];
@@ -796,6 +825,7 @@ export interface SimpleTranslationCompleteChapter {
             "id": "GEN",
             "name": "Genesis",
             "commonName": "Genesis",
+            "shortName": "Gen",
             "title": "Genesis",
             "order": 1,
             "numberOfChapters": 50,

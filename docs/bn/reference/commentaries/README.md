@@ -62,6 +62,12 @@ export interface Commentary {
     licenseUrl: string;
 
     /**
+     * লাইসেন্সের জন্য এপিআই দ্বারা যুক্ত করা নোটসমূহ।
+     * কোনো নোট না থাকলে নাল বা অনির্ধারিত।
+     */
+    licenseNotes?: string | null;
+
+    /**
      * ভাষ্যটির ইংরেজি নাম।
      */
     englishName: string;

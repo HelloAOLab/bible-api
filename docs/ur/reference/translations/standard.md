@@ -41,6 +41,10 @@ curl https://bible.helloao.org/api/BSB/GEN/1.json
 
 ### ساخت
 
+ایک `line_break` جو ایک نئے سورس پیراگراف کو شروع کرتا ہے اس کی بیک سلیش کے بغیر سورس مارکر کے ساتھ `paragraph` پراپرٹی ہوتی ہے (مثال کے طور پر `{ "type": "line_break", "paragraph": "p" }` ؛ دوسرے مارکر میں شامل ہیں `m` ، `pi1` ، `mi` ، اور `pc` )۔ خالی لائن مارکر ( `\b` ) بغیر `paragraph` `line_break` آئٹمز تیار کرتے ہیں۔ جب ایک خالی لائن کے بعد براہ راست پیراگراف ( `\b` پھر `\m` ) آتا ہے تو وہ ایک واحد `{ "type": "line_break", "paragraph": "m" }` میں ضم ہو جاتے ہیں، جبکہ دو خالی لائنیں دو لائن بریک پیدا کرتی ہیں۔ `\nb` موجودہ پیراگراف کو جاری رکھتا ہے اور کوئی لائن بریک پیدا نہیں کرتا ہے۔ آیت کے اندر شروع ہونے والے پیراگراف کو آیت کے مواد میں `{ "lineBreak": true, "paragraph": "p" }` کے طور پر دکھایا گیا ہے۔
+
+رینڈررز جو صرف لائن بریک کو سمجھتے ہیں `paragraph` نظر انداز کر سکتے ہیں۔
+
 ```typescript:no-line-numbers title="chapter.ts"
 export interface TranslationBookChapter {
     /**
@@ -191,6 +195,11 @@ interface ChapterLineBreak {
      * اشارہ کرتا ہے کہ مواد لائن بریک کی نمائندگی کرتا ہے۔
      */
     type: 'line_break';
+
+    /**
+     * ماخذ پیراگراف مارکر (اس کے بیک سلیش کے بغیر) جب لائن بریک ایک نیا پیراگراف شروع کرتا ہے، مثال کے طور پر `p` ، `m` ، `pi1` یا `mi` ۔ سادہ لائن کے وقفوں کے لیے چھوڑ دیا گیا۔
+     */
+    paragraph?: string;
 }
 
 /**
@@ -270,6 +279,11 @@ interface InlineHeading {
  */
 interface InlineLineBreak {
     lineBreak: true;
+
+    /**
+     * ماخذ پیراگراف مارکر (اس کے بیک سلیش کے بغیر) جب لائن بریک ایک نیا پیراگراف شروع کرتا ہے، مثال کے طور پر `p` ، `m` ، `pi1` یا `mi` ۔ سادہ لائن کے وقفوں کے لیے چھوڑ دیا گیا۔
+     */
+    paragraph?: string;
 }
 
 
@@ -373,6 +387,7 @@ interface TranslationBookChapterAudioTimingsLinks {
         "translationId": "BSB",
         "name": "Genesis",
         "commonName": "Genesis",
+        "shortName": "Gen",
         "title": "Genesis",
         "order": 1,
         "numberOfChapters": 50,
@@ -538,7 +553,7 @@ interface TranslationBookChapterAudioTimingsLinks {
 
 صرف کچھ ترجمے اور قارئین کے پاس آڈیو ٹائمنگ ہے۔ ایک باب جس میں قاری کے لیے ان کا لنک ہے اس فائل سے `thisChapterAudioTimings` میں ایک اندراج کے ساتھ، اس قاری کی ID کے ذریعے کلید؛ جب ایک قاری اس نقشے میں کلید نہیں ہے، تو یہ فائل اس قاری اور باب کے لیے موجود نہیں ہے۔
 
--   `translation` ترجمہ کی ID ہے (مثلاً `BSB` )۔
+-   `translation` ترجمہ کی ID ہے (مثال کے طور پر `BSB` )۔
 -   `book` کتاب کی ID ہے (مثال کے طور پر پیدائش کے لیے `GEN` - آپ [یہاں](https://ubsicap.github.io/usfm/identification/books.html) کتاب کی شناخت کی فہرست تلاش کر سکتے ہیں)۔
 -   `chapter` عددی باب ہے (مثلاً `1` پہلے باب کے لیے)۔
 -   `reader` قاری کی ID ہے جس کے بیان کے اوقات (مثلاً `hays` ) کے لیے ہیں - ایک باب کے لیے دستیاب قارئین اس کے `thisChapterAudioLinks` کی کلید ہیں۔
@@ -806,7 +821,7 @@ interface ChapterWord {
     strongs?: string[];
 
     /**
-     * لغت (حوالہ) لفظ کی شکل۔
+     * لفظ کی لغت (حوالہ) شکل۔
      * اگر ترجمہ فراہم نہیں کرتا ہے تو چھوڑ دیا گیا ہے۔
      */
     lemma?: string;
@@ -830,7 +845,7 @@ interface ChapterWord {
     occurrence?: number;
 
     /**
-     * کل تعداد جو ماخذ کا لفظ واقع ہوتا ہے۔
+     * سورس لفظ کے آنے کی کل تعداد۔
      * اگر ترجمہ فراہم نہیں کرتا ہے تو چھوڑ دیا گیا ہے۔
      */
     occurrences?: number;
@@ -971,6 +986,12 @@ export interface TranslationCompleteBook {
     commonName: string;
 
     /**
+     * مختصر نام (مخفف) جو ترجمہ کتاب کے لیے فراہم کرتا ہے۔
+     * اگر دستیاب نہیں ہے، تو ایک ترجمہ کے ذریعہ فراہم نہیں کیا گیا تھا۔
+     */
+    shortName?: string;
+
+    /**
      * کتاب کا عنوان۔
      */
     title: string | null;
@@ -991,7 +1012,7 @@ export interface TranslationCompleteBook {
     totalNumberOfVerses: number;
 
     /**
-     * خواہ کتاب تصنیف ہو۔
+     * خواہ کتاب تصنیف شدہ ہو۔
      */
     isApocryphal?: boolean;
 
@@ -1023,7 +1044,7 @@ export interface TranslationCompleteChapter {
     thisChapterAudioTimings: TranslationBookChapterAudioTimingsMap;
 
     /**
-     * باب کے لیے لفظی سطح کے تشریحات کا لنک۔
+     * باب کے لیے لفظی سطح کی تشریحات کا لنک۔
      * اگر باب میں لفظی سطح کی کوئی تشریحات نہیں ہیں تو چھوڑ دیا جائے گا۔
      */
     thisChapterWordsLink?: string;
@@ -1035,8 +1056,8 @@ export interface TranslationCompleteChapter {
 }
 
 /**
- * کتابی باب کے لیے آڈیو ٹائمنگز، اس سے منسلک ہونے کے بجائے براہ راست سرایت کیے ہوئے ہیں۔
- * قاری کی شناخت کو ان اوقات کی فہرست میں (سیکنڈوں میں) جو ہر آیت شروع ہوتی ہے، آیت کی ترتیب میں۔
+ * کسی کتاب کے باب کے لیے آڈیو ٹائمنگز، اس سے منسلک ہونے کے بجائے براہ راست سرایت کیے ہوئے ہیں۔
+ * قاری کی شناخت کو اوقات کی فہرست میں (سیکنڈوں میں) نقشہ بناتا ہے جو ہر آیت شروع ہوتی ہے، آیت کی ترتیب میں۔
  */
 interface TranslationBookChapterAudioTimingsMap {
     [reader: string]: number[];
@@ -1075,6 +1096,7 @@ interface TranslationBookChapterAudioTimingsMap {
       "id": "GEN",
       "name": "Genesis",
       "commonName": "Genesis",
+      "shortName": "Gen",
       "title": "Genesis",
       "order": 1,
       "numberOfChapters": 50,

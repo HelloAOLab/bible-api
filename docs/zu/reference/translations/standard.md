@@ -41,6 +41,10 @@ curl https://bible.helloao.org/api/BSB/GEN/1.json
 
 ### Isakhiwo
 
+I `line_break` eqala isigaba esisha somthombo inesici esingu `paragraph` esinophawu lomthombo ngaphandle kokuhlehla kwaso (isibonelo `{ "type": "line_break", "paragraph": "p" }` ; ezinye izimpawu zifaka phakathi `m` , `pi1` , `mi` , no `pc` ). Izimpawu zomugqa ongenalutho ( `\b` ) zikhiqiza izinto ezingu `line_break` ngaphandle kuka- `paragraph` . Uma umugqa ongenalutho ulandelwa ngqo yisigaba ( `\b` bese kuba `\m` ), zihlanganiswa zibe yi `{ "type": "line_break", "paragraph": "m" }` eyodwa, kuyilapho imigqa emibili engenalutho ikhiqiza ukuhlukana kwemigqa emibili. `\nb` iqhubeka nesigaba samanje futhi ayikhiphi ukuhlukana kwemigqa. Isigaba esiqala ngaphakathi kwevesi simelelwa kokuqukethwe kwevesi njengo- `{ "lineBreak": true, "paragraph": "p" }` .
+
+Abahumushi abaqonda kuphela ukuhlukana kwemigqa bangawushaya indiva `paragraph` .
+
 ```typescript:no-line-numbers title="chapter.ts"
 export interface TranslationBookChapter {
     /**
@@ -191,6 +195,11 @@ interface ChapterLineBreak {
      * Kubonisa ukuthi okuqukethwe kumele ukuhlukana komugqa.
      */
     type: 'line_break';
+
+    /**
+     * Umaka wesigaba somthombo (ngaphandle kokuhlehla kwawo) lapho ukuhlukana komugqa kuqala isigaba esisha, isibonelo `p` , `m` , `pi1` noma `mi` Kushiywe ngenxa yokuhlukana komugqa ocacile.
+     */
+    paragraph?: string;
 }
 
 /**
@@ -270,6 +279,11 @@ interface InlineHeading {
  */
 interface InlineLineBreak {
     lineBreak: true;
+
+    /**
+     * Umaka wesigaba somthombo (ngaphandle kokuhlehla kwawo) lapho ukuhlukana komugqa kuqala isigaba esisha, isibonelo `p` , `m` , `pi1` noma `mi` Kushiywe ngenxa yokuhlukana komugqa ocacile.
+     */
+    paragraph?: string;
 }
 
 
@@ -373,6 +387,7 @@ interface TranslationBookChapterAudioTimingsLinks {
         "translationId": "BSB",
         "name": "Genesis",
         "commonName": "Genesis",
+        "shortName": "Gen",
         "title": "Genesis",
         "order": 1,
         "numberOfChapters": 50,
@@ -971,6 +986,12 @@ export interface TranslationCompleteBook {
     commonName: string;
 
     /**
+     * Igama elifushane (isifinyezo) elinikezwe yinguqulo yale ncwadi.
+     * Uma ingatholakali, khona-ke enye ayizange inikezwe yinguqulo.
+     */
+    shortName?: string;
+
+    /**
      * Isihloko sencwadi.
      */
     title: string | null;
@@ -1075,6 +1096,7 @@ interface TranslationBookChapterAudioTimingsMap {
       "id": "GEN",
       "name": "Genesis",
       "commonName": "Genesis",
+      "shortName": "Gen",
       "title": "Genesis",
       "order": 1,
       "numberOfChapters": 50,

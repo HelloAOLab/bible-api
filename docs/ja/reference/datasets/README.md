@@ -1,6 +1,6 @@
 # データセット
 
-聖書の補足データセット（相互参照や聖書の実体（人物、場所、出来事、民族集団など））を閲覧し、それらの書籍、章の内容、実体を取得するためのエンドポイント。
+聖書の補足データセット（相互参照、聖書の実体（人物、場所、出来事、民族集団）、原語の対訳語、語彙集、今日の聖句候補など）を閲覧し、それらの書籍、章の内容、実体、語彙集のエントリ、聖句のカテゴリを取得するためのエンドポイント。
 
 ## 利用可能なデータセット
 
@@ -62,6 +62,12 @@ export interface Dataset {
     licenseUrl: string;
 
     /**
+     * APIに追加されたライセンスに関する注記。
+     * メモがない場合は、nullまたはundefinedになります。
+     */
+    licenseNotes?: string | null;
+
+    /**
      * データセットの英語名。
      */
     englishName: string;
@@ -105,8 +111,15 @@ export interface Dataset {
 
     /**
      * このデータセットに含まれる相互参照の総数。
+     * 相互参照を含まないデータセットの場合は0。
      */
     totalNumberOfReferences: number;
+
+    /**
+     * このデータセットに含まれる、行間にある単語の総数。
+     * データセットに行間単語が含まれていない場合は省略されます。
+     */
+    totalNumberOfWords?: number;
 
     /**
      * データセットがどの言語で記述されているかを取得します。
@@ -137,6 +150,36 @@ export interface Dataset {
     totalNumberOfPlaces?: number;
     totalNumberOfEvents?: number;
     totalNumberOfPeopleGroups?: number;
+
+    /**
+     * データセット内の語彙項目一覧へのAPIリンク。
+     * データセットに語彙項目が含まれていない場合は省略されます。
+     */
+    listOfLexiconApiLink?: string;
+
+    /**
+     * データセットに含まれる語彙項目の総数。
+     * データセットに語彙項目が含まれていない場合は省略されます。
+     */
+    totalNumberOfLexicon?: number;
+
+    /**
+     * データセットに含まれるすべての詩句とそのカテゴリの一覧へのAPIリンク。
+     * データセットの詩にカテゴリがない場合は省略されます。
+     */
+    listOfVersesApiLink?: string;
+
+    /**
+     * データセット内の詩のカテゴリ一覧へのAPIリンク。
+     * データセットに詩のカテゴリが含まれていない場合は省略されます。
+     */
+    listOfCategoriesApiLink?: string;
+
+    /**
+     * データセットに含まれる詩のカテゴリの総数。
+     * データセットに詩のカテゴリが含まれていない場合は省略されます。
+     */
+    totalNumberOfCategories?: number;
 }
 ```
 
@@ -192,6 +235,94 @@ export interface Dataset {
             "totalNumberOfEvents": 450,
             "listOfPeopleGroupsApiLink": "/api/d/theographic/groups.json",
             "totalNumberOfPeopleGroups": 23
+        },
+        {
+            "id": "bsb-interlinear",
+            "name": "Berean Standard Bible Interlinear",
+            "website": "https://bereanbible.com/",
+            "licenseUrl": "https://berean.bible/terms.htm",
+            "licenseNotes": "The Berean Standard Bible and its interlinear tables are in the public domain. Changes were made to the data to fit the Free Use Bible API format.",
+            "englishName": "Berean Standard Bible Interlinear",
+            "language": "eng",
+            "textDirection": "ltr",
+            "availableFormats": [
+                "json"
+            ],
+            "listOfBooksApiLink": "/api/d/bsb-interlinear/books.json",
+            "numberOfBooks": 66,
+            "totalNumberOfChapters": 1189,
+            "totalNumberOfVerses": 31102,
+            "totalNumberOfReferences": 0,
+            "languageName": "English",
+            "languageEnglishName": "English",
+            "totalNumberOfWords": 443625
+        },
+        {
+            "id": "stepbible-lexicon",
+            "name": "STEPBible Brief Lexicons",
+            "website": "https://github.com/STEPBible/STEPBible-Data",
+            "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+            "licenseNotes": "The Translators Brief lexicons of Extended Strongs (TBESH and TBESG) are by STEPBible.org / Tyndale House, Cambridge, and are licensed under CC BY 4.0. Changes were made to the data to fit the Free Use Bible API format.",
+            "englishName": "STEPBible Brief Lexicons",
+            "language": "eng",
+            "textDirection": "ltr",
+            "availableFormats": [
+                "json"
+            ],
+            "listOfBooksApiLink": "/api/d/stepbible-lexicon/books.json",
+            "numberOfBooks": 0,
+            "totalNumberOfChapters": 0,
+            "totalNumberOfVerses": 0,
+            "totalNumberOfReferences": 0,
+            "languageName": "English",
+            "languageEnglishName": "English",
+            "listOfLexiconApiLink": "/api/d/stepbible-lexicon/lexicon.json",
+            "totalNumberOfLexicon": 18085
+        },
+        {
+            "id": "history-globe",
+            "name": "History Globe",
+            "website": "https://historyglobe.app",
+            "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+            "licenseNotes": "History Globe by Vadym Arnaut (https://historyglobe.app) is licensed under CC BY 4.0. Its places, verse tags, and coordinates start from the OpenBible.info Bible Geocoding Data (CC BY 4.0), with corrections, and some coordinates are from Wikidata (CC0). Changes were made to the data to fit the Free Use Bible API format.",
+            "englishName": "History Globe",
+            "language": "eng",
+            "textDirection": "ltr",
+            "availableFormats": [
+                "json"
+            ],
+            "listOfBooksApiLink": "/api/d/history-globe/books.json",
+            "numberOfBooks": 61,
+            "totalNumberOfChapters": 849,
+            "totalNumberOfVerses": 5546,
+            "totalNumberOfReferences": 8617,
+            "languageName": "English",
+            "languageEnglishName": "English",
+            "listOfPlacesApiLink": "/api/d/history-globe/places.json",
+            "totalNumberOfPlaces": 1231
+        },
+        {
+            "id": "verse-of-the-day",
+            "name": "Verse of the Day",
+            "website": "https://github.com/HelloAOLab/bible-api/blob/main/packages/helloao-tools/generation/verse-of-the-day.ts",
+            "licenseUrl": "https://github.com/HelloAOLab/bible-api/blob/main/LICENSE",
+            "licenseNotes": "A curated list of well-known verses by AO Lab, released under the MIT License.",
+            "englishName": "Verse of the Day",
+            "language": "eng",
+            "textDirection": "ltr",
+            "availableFormats": [
+                "json"
+            ],
+            "listOfBooksApiLink": "/api/d/verse-of-the-day/books.json",
+            "numberOfBooks": 65,
+            "totalNumberOfChapters": 381,
+            "totalNumberOfVerses": 750,
+            "totalNumberOfReferences": 0,
+            "languageName": "English",
+            "languageEnglishName": "English",
+            "listOfVersesApiLink": "/api/d/verse-of-the-day/verses.json",
+            "listOfCategoriesApiLink": "/api/d/verse-of-the-day/categories.json",
+            "totalNumberOfCategories": 31
         }
     ]
 }
@@ -247,7 +378,7 @@ export interface DatasetBooks {
 
 interface DatasetBook {
     /**
-     * 本のID。
+     * 書籍のID。
      * 聖書の対応する書（創世記、出エジプト記など）のIDと一致します。
      */
     id: string;
@@ -258,7 +389,7 @@ interface DatasetBook {
     order: number;
 
     /**
-     * 本書における最初の章の番号。
+     * その本の最初の章の番号。
      */
     firstChapterNumber: number;
 
@@ -353,7 +484,7 @@ interface DatasetBook {
 
 指定された書籍とデータセットから、1つの章の内容を取得します。
 
-相互参照データセット（例： `open-cross-ref` ）の場合、章には各節の相互参照リストが含まれます。エンティティデータセット（例： `theographic` ）の場合、章にはその章に登場する人物、場所、イベントが含まれます。詳しくは[「章内のエンティティを取得する」を](#get-the-entities-in-a-chapter)参照してください。
+相互参照データセット（例： `open-cross-ref` ）の場合、章には各節の相互参照リストが含まれます。行間データセット（例： `bsb-interlinear` ）の場合、章には各節の原語の単語が含まれます。[行間データセット](#interlinear-datasets)を参照してください。エンティティデータセット（例： `theographic` ）の場合、章には章に登場する人物、場所、イベントが含まれます。[章内のエンティティを取得するを](#get-the-entities-in-a-chapter)参照してください。6 データセットの場合、章には章内の今日の聖句候補とそのカテゴリが含まれます。[今日の聖句を](#verse-of-the-day)`verse-of-the-day`してください。
 
 -   `dataset`データセットの ID (例: `open-cross-ref` )。
 -   `book`は書籍のIDです（例：創世記の場合は`GEN` ）。
@@ -440,7 +571,16 @@ interface DatasetChapterData {
     content: DatasetVerse[];
 }
 
-interface DatasetVerse {
+/**
+ * 聖句には、 `references` （相互参照データセット）、 `words` （行間データセット）、または`categories` （今日の聖句データセット）のいずれかの番号が割り当てられます。
+ * `'words' in verse`または`'categories' in verse`でどちらが存在するかを確認してください。
+ */
+type DatasetVerse =
+    | DatasetReferencesVerse
+    | DatasetWordsVerse
+    | DatasetCategoriesVerse;
+
+interface DatasetReferencesVerse {
     /**
      * 節の番号。
      */
@@ -449,9 +589,55 @@ interface DatasetVerse {
     /**
      * その聖句の相互参照。
      *
-     * スコアの高い順に並べ替え（降順）。
+     * 得点の高い順に並べ替え（降順）。
      */
     references: DatasetReference[];
+}
+
+interface DatasetWordsVerse {
+    /**
+     * 節の番号。
+     */
+    verse: number;
+
+    /**
+     * 原文の順序で、詩の原語の単語を記載します。
+     * 下記の「相互参照データセット」を参照してください。
+     */
+    words: InterlinearWord[];
+}
+
+interface DatasetCategoriesVerse {
+    /**
+     * 節の番号。
+     * `endVerse`が存在する場合、これはその文章が始まる節です。
+     */
+    verse: number;
+
+    /**
+     * その文章が終わる節。
+     * 単一の詩句の場合は省略する。
+     */
+    endVerse?: number;
+
+    /**
+     * その詩が属するカテゴリのIDを、関連性の高い順に表示します。
+     * 下記の「今日の聖句」をご覧ください。
+     */
+    categories: string[];
+
+    /**
+     * その聖句が「今日の聖句」として採用される最初の年。
+     * 当該節が常にリストに含まれている場合は省略される。
+     */
+    addedIn?: number;
+
+    /**
+     * その聖句がもはや「今日の聖句」として使えなくなる最初の年。
+     * 削除された詩句もデータセット内に残るため、それ以前の年の詩句を選択することは可能です。
+     * リストから削除されていない節は省略されます。
+     */
+    removedIn?: number;
 }
 
 interface DatasetReference {
@@ -481,6 +667,8 @@ interface DatasetReference {
      */
     score?: number;
 }
+
+// InterlinearWordの構造については、下記の「Interlinear Datasets」を参照してください。
 ```
 
 ### 例
@@ -574,6 +762,8 @@ interface DatasetReference {
 
 [神学聖書メタデータ](https://github.com/robertrouse/theographic-bible-metadata)データセット（ `theographic` ）などのデータセットには、人物、場所、出来事、人々のグループなどのエンティティと、それらとそれらに言及している聖書の節との関係が含まれています。
 
+[History Globe](https://historyglobe.app)データセット ( `history-globe` ) には場所のみが含まれています。聖書に名前が付けられている場所とその座標、およびそれらの場所の名前が付けられた聖句です。場所 ID (エルサレムの場合は`a15257a`など) は History Globe の安定した場所 ID であり、独自の[オープン データ API](https://historyglobe.app/docs/api.html)で使用されているものと同じであるため、名前が修正されても変更されません。4 `featureType`値は Theographic データセットで使用されている値 ( `City` 、 `Region` 、 `Water`など) に従い、 `featureSubType`はより具体的な種類がある場合 ( `River` 、 `Gate` 、 `Spring`など) が含まれます。
+
 エンティティを含むデータセットには`listOfPlacesApiLink`エントリ`/api/available_datasets.json`に`listOfPeopleApiLink` 、および`listOfEventsApiLink` `listOfPeopleGroupsApiLink`プロパティが含まれます。
 
 エンティティデータセットには、章に合わせたデータも含まれています。1 `/api/d/{dataset}/books.json`エンティティデータを含む章を持つ書籍の一覧を表示し、 `/api/d/{dataset}/{book}/{chapter}.json`その章に登場する人物、場所、出来事と、それぞれが言及されている節番号を返します。詳しくは、 [「章内のエンティティを取得する」を](#get-the-entities-in-a-chapter)参照してください。
@@ -627,6 +817,10 @@ export interface VerseRef {
     endVerse?: number;
 }
 ```
+
+### 歴史地球儀の帰属
+
+History Globe のデータは[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)ライセンスで提供されています。このデータを使用する場合は、History Globe ( https://historyglobe.app ) および、その基盤となっている OpenBible.info Bible Geocoding Data をクレジットとして明記し、変更点があれば注記してください。データセットの`licenseNotes`プロパティにクレジットが記載されています。
 
 ## 章内のエンティティを取得する
 
@@ -1534,7 +1728,7 @@ interface DatasetEvent {
 
     /**
      * その出来事を記述している聖書の箇所一覧。
-     * 書籍の順番、章、節順に並べ替えられています。
+     * 書籍の順番、章、節ごとに並べ替えられています。
      */
     references: VerseRef[];
 }
@@ -1683,7 +1877,7 @@ interface DatasetPeopleGroup {
     name: string;
 
     /**
-     * その民族集団に属する人々。
+     * その民族集団のメンバーである人々。
      */
     members?: DatasetEntityRef[];
 
@@ -1694,7 +1888,7 @@ interface DatasetPeopleGroup {
 
     /**
      * その民族集団について言及している聖書箇所の一覧。
-     * 書籍の順番、章、節順に並べ替えられています。
+     * 書籍の順番、章、節ごとに並べ替えられています。
      */
     references: VerseRef[];
 }
@@ -1729,5 +1923,942 @@ interface DatasetPeopleGroup {
         "references": []
     },
     "thisPeopleGroupApiLink": "/api/d/theographic/groups/tribe-of-benjamin.json"
+}
+```
+
+## 相互参照データセット
+
+ベレア語対訳データセット（ `bsb-interlinear` ）には、聖書の各節の原語（ヘブライ語、アラム語、ギリシャ語）の単語が、原文に登場する順にリストされています。各単語には、音訳、文法解析、[ストロング番号](https://en.wikipedia.org/wiki/Strong%27s_Concordance)、および[ベレア標準聖書](https://berean.bible)で使用されている英語のフレーズが記載されています。
+
+このデータセットは、他のデータセットと同じエンドポイントを使用します。
+
+-   `GET https://bible.helloao.org/api/d/bsb-interlinear/books.json` 66冊の本がリストされています。
+-   `GET https://bible.helloao.org/api/d/bsb-interlinear/{book}/{chapter}.json` (例`/api/d/bsb-interlinear/GEN/1.json` ) は章を返し、各節に`{ verse, words }`割り当てられます。レスポンスは[データセット chapter](#get-a-chapter-from-a-dataset)です。
+
+単語データは、パブリックドメインである[ベレア標準聖書の対訳表](https://bereanbible.com/)から取得されています。単語のストロング番号は、[辞書](#lexicon)（ `stepbible-lexicon` ）で調べられます。
+
+### 構造
+
+```typescript:no-line-numbers title="interlinear-word.ts"
+interface InterlinearWord {
+    /**
+     * 原文における単語の順序を1から始まる順位で表したもの。
+     * 単語は以下の順序で記載されています。
+     */
+    pos: number;
+
+    /**
+     * ベレア標準聖書の英語の語順における、その単語の1から始まる順位。
+     */
+    bsbPos: number;
+
+    /**
+     * 言葉の言語。
+     */
+    language: 'hebrew' | 'aramaic' | 'greek';
+
+    /**
+     * 元のスクリプトにある単語。NFC規格化済み。
+     */
+    text: string;
+
+    /**
+     * その単語の音訳。
+     */
+    transliteration: string | null;
+
+    /**
+     * 単語の短い文法解析コード。例：「N-mp」または「V-Qal-Perf-3ms」。
+     */
+    parsing: string | null;
+
+    /**
+     * 単語の文法的な解析結果を詳細に示したもの。
+     */
+    parsingFull: string | null;
+
+    /**
+     * 単語のストロング番号（ゼロ埋め）。例：「H0430」または「G3056」。
+     * ゼロ埋め処理済み。これはKJVの`.words.json`値と一致する。
+     * 他の翻訳値の結合には、ゼロ埋めと接尾辞の削除が必要になる場合があります。
+     * ソースにストロング番号が記載されていない場合はnull（これは、代名詞の接尾辞など、一部の接尾辞に該当する単語に当てはまります）。
+     */
+    strongs: string | null;
+
+    /**
+     * ベレア標準訳聖書における、この単語の英語表現。
+     * BSBが単語を翻訳しない場合（ヘブライ語の直接目的語マーカーなど）はnullになります。
+     */
+    gloss: string | null;
+}
+```
+
+### 例
+
+```json:no-line-numbers title="/api/d/bsb-interlinear/GEN/1.json"
+{
+    "dataset": {
+        "id": "bsb-interlinear",
+        "name": "Berean Standard Bible Interlinear",
+        "totalNumberOfWords": 443625
+        // ...
+    },
+    "book": {
+        "id": "GEN",
+        "datasetId": "bsb-interlinear",
+        "order": 1,
+        "numberOfChapters": 50
+        // ...
+    },
+    "chapter": {
+        "number": 1,
+        "content": [
+            {
+                "verse": 1,
+                "words": [
+                    {
+                        "pos": 1,
+                        "bsbPos": 1,
+                        "language": "hebrew",
+                        "text": "בְּרֵאשִׁ֖ית",
+                        "transliteration": "bə·rê·šîṯ",
+                        "parsing": "Prep-b | N-fs",
+                        "parsingFull": "Preposition-b | Noun - feminine singular",
+                        "strongs": "H7225",
+                        "gloss": "In the beginning"
+                    },
+                    {
+                        "pos": 2,
+                        "bsbPos": 4,
+                        "language": "hebrew",
+                        "text": "בָּרָ֣א",
+                        "transliteration": "bā·rā",
+                        "parsing": "V-Qal-Perf-3ms",
+                        "parsingFull": "Verb - Qal - Perfect - third person masculine singular",
+                        "strongs": "H1254",
+                        "gloss": "created"
+                    }
+                    // ...
+                ]
+            }
+            // ...
+        ]
+    },
+    "thisChapterLink": "/api/d/bsb-interlinear/GEN/1.json",
+    "nextChapterApiLink": "/api/d/bsb-interlinear/GEN/2.json",
+    "previousChapterApiLink": null,
+    "numberOfVerses": 31,
+    "numberOfReferences": 0
+}
+```
+
+### 単語と翻訳を結びつける
+
+行間の`strongs`値はゼロ埋めされます（例： `H0430` ）。これは、KJVの単語注釈の`strongs`値と一致します（ `/api/eng_kjv/{book}/{chapter}.words.json` ）。他の翻訳の値は、結合する前にゼロ埋めと接尾辞の削除が必要になる場合があります（例： `H430`または`H1961a`から`H0430`と`H1961` ）。
+
+-   **KJV。**キング・ジェームズ版（ `eng_kjv`と`eng_kja` ）の場合、章の`.words.json`ファイルにあるストロング番号を、同じ節の行間単語の`strongs`と結合します。たとえば、 `H0853`節の`/api/eng_kjv/GEN/1.words.json`で注釈され`H8064`いるすべてのストロング番号（ `H7225` ） `H0430` `H1254` `H0776`の`/api/d/bsb-interlinear/GEN/1.json`節の単語の中に`strongs`値として表示されます。
+-   **ベレア標準聖書。**各単語の`gloss`は、その単語の BSB のフレーズです。節の単語を`bsbPos`順序でたどり、各`gloss` BSB 翻訳の節の本文と照合して、その単語の翻訳がどこにあるかを見つけます。
+
+2つの資料の番号付けは必ずしも一致しません。例えば、KJVでは「was」というタグが`G2258`になっていますが、ベレア表では`G1510`になっています。このような違いのために、いくつかの結合が失敗します。
+
+### 帰属
+
+ベレア語対訳表はパブリックドメインです。[語彙集は](#lexicon)CC BY 4.0ライセンスの下で提供されており、出典を明記する必要があります。
+
+## 用語集
+
+STEPBible語彙データセット（ `stepbible-lexicon` ）には、ケンブリッジのティンダル・ハウスにある[STEPBible.org](https://www.stepbible.org/)のヘブライ語、アラム語、ギリシャ語の簡略語彙集（TBESHおよびTBESG）が含まれています。各基本ストロング番号ごとに1つのエントリがあり、各エントリには、語幹、音訳、品詞、英語の注釈、定義とともに1つ以上の意味があります。
+
+語彙集に登録されている[単語](#interlinear-datasets)の、ゼロ埋めされた`strongs`値は、再フォーマットせずに`/api/d/stepbible-lexicon/lexicon/{strongs}.json`で検索できます。KJVの`.words.json`値についても同様です。他の翻訳では、まずゼロ埋めと接尾辞の削除が必要になる場合があります。ストロング番号のないギリシャ語の項目は、語彙集には掲載されません。
+
+語彙エントリを含むデータセットには、 `/api/available_datasets.json`のエントリに`listOfLexiconApiLink`と`totalNumberOfLexicon`含まれます。
+
+### 帰属
+
+この語彙データは[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)ライセンスの下で提供されています。ご利用の際は、STEPBible.org / Tyndale House, Cambridgeをクレジット表記し、変更点があれば明記してください。データセットのプロパティ`licenseNotes`にクレジット表記が記載されています。
+
+## データセット内の語彙項目を一覧表示する
+
+`GET https://bible.helloao.org/api/d/{dataset}/lexicon.json`
+
+データセットで使用可能な語彙エントリのリストを取得します。
+
+-   `dataset`データセットの ID (例: `stepbible-lexicon` )。
+
+### コード例
+
+::: code-tabs#lang
+
+@tab JavaScript
+
+```ts:no-line-numbers title="fetch-lexicon.js"
+fetch(`https://bible.helloao.org/api/d/stepbible-lexicon/lexicon.json`)
+    .then(request => request.json())
+    .then(lexicon => {
+        console.log('The lexicon has', lexicon.lexicon.length, 'entries');
+    });
+```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/d/stepbible-lexicon/lexicon.json
+```
+
+:::
+
+### 構造
+
+```typescript:no-line-numbers title="dataset-lexicon.ts"
+export interface DatasetLexicon {
+    /**
+     * 語彙集のデータセット情報。
+     */
+    dataset: Dataset;
+
+    /**
+     * データセットで使用可能な語彙項目の一覧。
+     */
+    lexicon: DatasetLexiconEntrySummary[];
+}
+
+export interface DatasetLexiconEntrySummary {
+    /**
+     * 語彙項目のストロング番号をゼロ埋めしたもの。例：「H0430」。
+     */
+    id: string;
+
+    /**
+     * 語彙項目の言語。
+     */
+    language: 'hebrew' | 'aramaic' | 'greek';
+
+    /**
+     * 語彙項目の名前。
+     * これは、この項目の第一の意味における補題です。
+     */
+    name: string;
+
+    /**
+     * 語彙項目へのAPIリンク。
+     */
+    apiLink: string;
+}
+```
+
+### 例
+
+```json:no-line-numbers title="/api/d/stepbible-lexicon/lexicon.json"
+{
+    "dataset": {
+        "id": "stepbible-lexicon",
+        "name": "STEPBible Brief Lexicons",
+        "totalNumberOfLexicon": 18085
+        // ...
+    },
+    "lexicon": [
+        {
+            "id": "G0001",
+            "language": "greek",
+            "name": "α, Ἀλφα",
+            "apiLink": "/api/d/stepbible-lexicon/lexicon/G0001.json"
+        },
+        {
+            "id": "G0002",
+            "language": "greek",
+            "name": "Ἀαρών",
+            "apiLink": "/api/d/stepbible-lexicon/lexicon/G0002.json"
+        }
+        // ...
+    ]
+}
+```
+
+## データセットから語彙エントリを取得する
+
+`GET https://bible.helloao.org/api/d/{dataset}/lexicon/{strongs}.json`
+
+単一の基本ストロング番号に対応する語彙エントリと、そのすべての意味を取得します。
+
+-   `dataset`データセットの ID (例: `stepbible-lexicon` )。
+-   `strongs`はゼロ埋めされたストロング番号です（例えば、ヘブライ語の単語*elohim*の場合は`H0430` 、ギリシャ語の単語*logos*の場合は`G3056` ）。
+
+### コード例
+
+::: code-tabs#lang
+
+@tab JavaScript
+
+```ts:no-line-numbers title="fetch-lexicon-entry.js"
+const strongs = 'H1254';
+
+fetch(`https://bible.helloao.org/api/d/stepbible-lexicon/lexicon/${strongs}.json`)
+    .then(request => request.json())
+    .then(({ entry }) => {
+        console.log('H1254:', entry.senses.map(sense => sense.gloss));
+    });
+```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/d/stepbible-lexicon/lexicon/H1254.json
+```
+
+:::
+
+### 構造
+
+```typescript:no-line-numbers title="dataset-lexicon-entry.ts"
+export interface DatasetLexiconEntry {
+    /**
+     * 語彙項目に関するデータセット情報。
+     */
+    dataset: Dataset;
+
+    /**
+     * 語彙項目。
+     */
+    entry: DatasetLexiconEntryContent;
+
+    /**
+     * この語彙項目のAPIリンク。
+     */
+    thisLexiconEntryApiLink: string;
+}
+
+export interface DatasetLexiconEntryContent {
+    /**
+     * エントリのストロング番号（ゼロ埋め）。例：「H0430」。
+     */
+    id: string;
+
+    /**
+     * エントリーの言語。
+     * これは、この項目の最初の意味における言語表現です。
+     */
+    language: 'hebrew' | 'aramaic' | 'greek';
+
+    /**
+     * エントリーの五感（ID順）。
+     */
+    senses: DatasetLexiconSense[];
+}
+
+export interface DatasetLexiconSense {
+    /**
+     * センスの拡張ID。例：「H0001G」。
+     * その数が単一の意味を持つ場合、基本ストロング番号と等しい。
+     */
+    id: string;
+
+    /**
+     * 感覚の言語。
+     */
+    language: 'hebrew' | 'aramaic' | 'greek';
+
+    /**
+     * 原文における意味の補題。
+     */
+    lemma: string;
+
+    /**
+     * 見出し語の音訳。
+     */
+    transliteration: string | null;
+
+    /**
+     * 意味を表す品詞（形態論）コード。
+     */
+    partOfSpeech: string | null;
+
+    /**
+     * その意味を簡潔に英語で説明したもの。
+     */
+    gloss: string | null;
+
+    /**
+     * 意味の定義を平文で示す。
+     * 段落は空白行で区切られています。ソースコード内のマークアップは削除されています。
+     */
+    definition: string;
+}
+```
+
+### 例
+
+```json:no-line-numbers title="/api/d/stepbible-lexicon/lexicon/H1254.json"
+{
+    "dataset": {
+        "id": "stepbible-lexicon",
+        "name": "STEPBible Brief Lexicons",
+        "totalNumberOfLexicon": 18085
+        // ...
+    },
+    "entry": {
+        "id": "H1254",
+        "language": "hebrew",
+        "senses": [
+            {
+                "id": "H1254A",
+                "language": "hebrew",
+                "lemma": "בָּרָא",
+                "transliteration": "ba.ra",
+                "partOfSpeech": "V",
+                "gloss": "to create",
+                "definition": "1) to create, shape, form\n\n1a) (Qal) to shape, fashion, create (always with God as subject)\n\n1b) (Niphal) to be created"
+            },
+            {
+                "id": "H1254B",
+                "language": "hebrew",
+                "lemma": "בָּרָא",
+                "transliteration": "ba.ra",
+                "partOfSpeech": "V",
+                "gloss": "to fatten",
+                "definition": "1) to be fat\n\n1a) (Hiphil) to make yourselves fat"
+            }
+        ]
+    },
+    "thisLexiconEntryApiLink": "/api/d/stepbible-lexicon/lexicon/H1254.json"
+}
+```
+
+## 今日の聖句
+
+「今日の聖句」データセット（ `verse-of-the-day` ）は、「今日の聖句」としてふさわしい、よく知られた聖句や短い一節（最大3節）を厳選したリストです。年間を通して毎日640以上、キリスト教の祝日には100以上が収録されています。それぞれ単独で意味を持ちます。
+
+毎日掲載される聖句は、以下の固定されたセットから、最も関連性の高いものから順に、1つから3つのカテゴリーに分類されます。
+
+| ID            | 説明                                                                         |
+| ------------- | ---------------------------------------------------------------------------- |
+| `comfort`     | 悲しみ、苦難、孤独の中にあっても、神はそばにいて、私たちを気遣ってくださる。 |
+| `courage`     | 毅然とした態度を保ち、恐れないこと。                                         |
+| `faith`       | 神と神の約束を信じる。                                                       |
+| `forgiveness` | 神による罪の赦しと、他者を赦すこと。                                         |
+| `gratitude`   | 神に感謝を捧げる。                                                           |
+| `guidance`    | 神は私たちの歩み、計画、決断を導いてくださる。                               |
+| `hope`        | 神が約束された未来への確信。                                                 |
+| `inspiration` | 信仰を実践し、善行を行うよう励ます。                                         |
+| `joy`         | 神にあって喜びと歓喜を。                                                     |
+| `love`        | 神の私たちへの愛、そして私たちが神と他者を愛すること。                       |
+| `peace`       | 休息、静寂、そして不安からの解放。                                           |
+| `praise`      | 神への崇拝と、神の偉大さを宣言すること。                                     |
+| `prayer`      | 神に祈り、神が耳を傾けてくださるという約束を信じる。                         |
+| `provision`   | 神は私たちに必要なものを与えてくださる。                                     |
+| `salvation`   | キリストにおける贖罪、恵み、そして新しい命。                                 |
+| `strength`    | 神が力と忍耐を与えてくださる。                                               |
+| `wisdom`      | 神の知恵と、人生のための実践的な教え。                                       |
+
+祝日には独自のカテゴリーがあります。祝日には、その日の聖句はその祝日の聖句の一つであり、他の日にはその聖句は使用されません。祝日は通常1日続きます。復活祭後祝日は復活祭後の3日間続くため、3つの日付すべてが記載されています。各祝日カテゴリーには日付とともに`holiday`が付きます。毎年同じ日付の祝日には`month`と`day`が付き、毎年日付が変わる祝日（復活祭または待降節に依存するため）には、2026年から2125年までのグレゴリオ暦で`dates`付きます。
+
+| ID                         | 休日           | 日付                        |
+| -------------------------- | -------------- | --------------------------- |
+| `epiphany`                 | 公現祭         | 1月6日                      |
+| `ash-wednesday`            | 灰の水曜日     | 復活祭の46日前              |
+| `palm-sunday`              | 棕櫚の主日     | 復活祭前の日曜日            |
+| `maundy-thursday`          | 聖木曜日       | 復活祭前の木曜日            |
+| `good-friday`              | 聖金曜日       | 復活祭前の金曜日            |
+| `resurrection-sunday`      | 復活祭         | イースターサンデー          |
+| `post-resurrection-sunday` | 復活祭後       | 復活祭の日曜日の後の3日間   |
+| `ascension-day`            | 昇天祭         | 復活祭から39日後            |
+| `pentecost`                | ペンテコステ   | 復活祭から49日後            |
+| `all-hallows-eve`          | 万聖節前夜     | 10月31日                    |
+| `all-saints-day`           | 万聖節         | 11月1日                     |
+| `advent-sunday`            | 待降節第一主日 | クリスマス前の4番目の日曜日 |
+| `christmas-eve`            | クリスマスイブ | 12月24日                    |
+| `christmas`                | クリスマス     | 12月25日                    |
+
+このデータセットには参照情報のみが含まれており、詩のテキストは含まれていないため、どの翻訳でも使用できます。詩の番号は標準的な英語の番号付け（BSBと同じ）を使用しています。データは3つの方法で読み取ることができます。
+
+-   [`/api/d/verse-of-the-day/verses.json`](#list-verses-in-a-dataset)データセット内のすべての詩とそのカテゴリ、および祝日とその日付が 1 つのファイルに一覧表示されています。
+-   [`/api/d/verse-of-the-day/categories/{category}.json`](#get-a-category-from-a-dataset) 、各カテゴリーに含まれるすべての聖句を一覧表示します。これは、一つのカテゴリーからその日の聖句を選ぶ最も簡単な方法です。
+-   [`/api/d/verse-of-the-day/{book}/{chapter}.json`](#get-a-chapter-from-a-dataset) 、各章の候補者とそのカテゴリーを一覧表示します。候補者が含まれている章のみが表示されます。書籍の章リンク、または`/api/d/verse-of-the-day/books.json`使用して候補者を探してください。
+
+詩のカテゴリを含むデータセットには`listOfCategoriesApiLink` `/api/available_datasets.json`のエントリにある`listOfVersesApiLink` 、および`totalNumberOfCategories`含まれます。
+
+### 今日の聖句を選ぶ
+
+APIは静的ファイルで構成されているため、自動的に聖句を選択するわけではありません。その代わりに、聖句を選択するための規約があり、それに従うすべてのアプリが同じ日に同じ聖句を表示するようになっています。アプリは自由に異なる聖句を選択することもできますが、この規約は共通のデフォルト値を提供するだけです。
+
+この規則では、 `/api/d/verse-of-the-day/verses.json`に含まれる聖句と祝日から選択します。祝日には、その祝日の聖句を 1 年ずつ選択していくので、祝日の聖句はすべて使い切られるまで、毎年異なる聖句が使用されます。その他の日には、その年に使用されている聖句が各年ごとにシャッフルされ (各聖句の参照、年、およびオプションのシードのハッシュによって順序付けられます)、その日の聖句はそのシャッフルでその日のその日の聖句になります。データセットには、毎年、毎日使用される 366 を超える聖句が含まれているため、聖句は暦年内で繰り返されることはなく、順序は毎年変わり、同じ日付では常に同じ聖句が使用されます。新しい聖句は ( `addedIn`で) 追加され、古い聖句は ( `removedIn`で) まだ始まっていない年にのみ削除されるため、過去の日付の聖句は変わりません。
+
+[「今日の聖句」の規約](./verse-of-the-day-convention.md)ページでは、アルゴリズムが擬似コードとテスト値を用いて段階的に説明されているため、どのプログラミング言語でも実装できます。
+
+独自の順番でシャッフルするには、独自のシード（例えば、アプリ名）を選択してください。これにより、同じ保証付きで異なるシャッフル結果が得られます。また、単一のカテゴリの詩から選択することもできますが、各カテゴリの詩の数は1年の日数よりも少ないため、同じ詩が繰り返される頻度が高くなります。
+
+SDKは以下の慣例に従います。
+
+```ts:no-line-numbers title="verse-of-the-day.js"
+import { FreeUseBibleApi } from 'free-use-bible-api';
+
+const api = new FreeUseBibleApi();
+
+// YYYY-MM-DD形式の日付、またはDateオブジェクト（ローカルカレンダーの日付が使用されます）。デフォルトは今日の日付です。
+const ref = await api.getVerseOfTheDay('2026-01-01');
+
+// 翻訳からその聖句のテキストを入手する。
+const chapter = await api.getTranslationBookChapter('BSB', ref.book, ref.chapter);
+const verses = chapter.chapter.content.filter(
+    (c) =>
+        c.type === 'verse' &&
+        c.number >= ref.verse &&
+        c.number <= (ref.endVerse ?? ref.verse)
+);
+console.log(ref, verses);
+```
+
+-   `getVerseOfTheDay(date?, { seed?, category?, dataset? }?)`詩のリストをダウンロードしてそこから選択します。1 `pickVerseOfTheDay(verses, date?, { seed?, category? }?)`既に持っているリストから選択します。
+-   Kotlin SDKには、日付を`YYYY-MM-DD`文字列として扱う`getVerseOfTheDay(date?, seed?, category?)`と`pickVerseOfTheDay(verses, date?, seed?, category?)`あります。
+-   Swift SDKには、日付を`YYYY-MM-DD`文字列または`Date` （現在のタイムゾーンのカレンダー日付が使用される）として受け取る`getVerseOfTheDay(date:seed:category:)`と`pickVerseOfTheDay(_:date:seed:category:holidays:)`あります。
+-   [MCPサーバーには、](https://github.com/HelloAOLab/bible-api/tree/main/packages/seed-bible-mcp)その日の聖句とそのテキストを返すツールが`getVerseOfTheDay`あります。
+-   `@helloao/tools`パッケージには`@helloao/tools/generation/verse-of-the-day.js`と同じリストと`getVerseOfTheDay(date?, { seed?, category? }?)`関数があります。
+
+### ライセンス
+
+このリストはAO Labによって作成され、 [MITライセンス](https://github.com/HelloAOLab/bible-api/blob/main/LICENSE)の下で公開されています。詩のテキストは、あなたが取得した翻訳版に基づいています。
+
+## データセット内の聖句を一覧表示する
+
+`GET https://bible.helloao.org/api/d/{dataset}/verses.json`
+
+データセット内のすべての詩節（または短い一節）を、それぞれが属するカテゴリとともに、正規の順序で取得します。カテゴリを持つ詩節を含むデータセットでのみ利用可能です（例： `verse-of-the-day` ）。
+
+-   `dataset`データセットの ID (例: `verse-of-the-day` )。
+
+### コード例
+
+::: code-tabs#lang
+
+@tab JavaScript
+
+```ts:no-line-numbers title="fetch-verses.js"
+fetch(`https://bible.helloao.org/api/d/verse-of-the-day/verses.json`)
+    .then(request => request.json())
+    .then(verses => {
+        console.log('The dataset has', verses.verses.length, 'verses');
+    });
+```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/d/verse-of-the-day/verses.json
+```
+
+:::
+
+### 構造
+
+```typescript:no-line-numbers title="dataset-verses.ts"
+export interface DatasetVerses {
+    /**
+     * 詩句に関するデータセット情報。
+     */
+    dataset: Dataset;
+
+    /**
+     * データセット内のすべての詩（または短い一節）とそのカテゴリを、標準的な順序で示します。
+     */
+    verses: DatasetCategorizedVerse[];
+
+    /**
+     * それぞれの祝日には、日付とともに独自の詩句が定められている。
+     * データセットに祝日が含まれていない場合は省略されます。
+     */
+    holidays?: DatasetVersesHoliday[];
+}
+
+export interface DatasetVersesHoliday extends DatasetCategoryHoliday {
+    /**
+     * 祝日のカテゴリID。例：「クリスマス」。
+     */
+    id: string;
+
+    /**
+     * 祝日の英語名。例：「クリスマス」。
+     */
+    name: string;
+}
+
+export interface DatasetCategoryHoliday {
+    /**
+     * 毎年同じ日に当たる祝日の月（1月の場合は1）と日。
+     * 毎年日付が変わる祝日は省略する。
+     */
+    month?: number;
+    day?: number;
+
+    /**
+     * 毎年日付が変わる祝日の日付（YYYY-MM-DD、グレゴリオ暦）を順番に表示します。
+     * これらの祝日は、一定期間（現在は2026年から2125年）にわたって事前に計算されており、記載されている日付にのみ祝日として扱われます。
+     * 毎年同じ日に当たる祝日は省略します。
+     */
+    dates?: string[];
+}
+
+export interface DatasetCategorizedVerse {
+    /**
+     * 書籍のID。例：「PRO」。
+     */
+    book: string;
+
+    /**
+     * 章番号。
+     */
+    chapter: number;
+
+    /**
+     * 節番号。
+     * `endVerse`が存在する場合、これはその文章が始まる節です。
+     */
+    verse: number;
+
+    /**
+     * その文章が終わる節。
+     * 単一の詩句の場合は省略する。
+     */
+    endVerse?: number;
+
+    /**
+     * その詩が属するカテゴリのIDを、関連性の高い順に表示します。
+     */
+    categories: string[];
+
+    /**
+     * その聖句が「今日の聖句」として採用される最初の年。
+     * 当該節が常にリストに含まれている場合は省略される。
+     */
+    addedIn?: number;
+
+    /**
+     * その聖句がもはや「今日の聖句」として使えなくなる最初の年。
+     * 削除された詩句もデータセット内に残るため、それ以前の年の詩句を選択することは可能です。
+     * リストから削除されていない節は省略されます。
+     */
+    removedIn?: number;
+}
+```
+
+### 例
+
+```json:no-line-numbers title="/api/d/verse-of-the-day/verses.json"
+{
+    "dataset": {
+        "id": "verse-of-the-day",
+        "name": "Verse of the Day",
+        "listOfVersesApiLink": "/api/d/verse-of-the-day/verses.json"
+        // ...
+    },
+    "verses": [
+        {
+            "book": "GEN",
+            "chapter": 1,
+            "verse": 1,
+            "categories": ["praise"]
+        },
+        {
+            "book": "GEN",
+            "chapter": 15,
+            "verse": 6,
+            "categories": ["faith", "salvation"]
+        },
+        // ...
+        {
+            "book": "PRO",
+            "chapter": 3,
+            "verse": 5,
+            "endVerse": 6,
+            "categories": ["faith", "guidance", "wisdom"]
+        },
+        // ...
+        {
+            "book": "LUK",
+            "chapter": 2,
+            "verse": 7,
+            "categories": ["christmas"]
+        }
+        // ...
+    ],
+    "holidays": [
+        {
+            "id": "christmas",
+            "name": "Christmas",
+            "month": 12,
+            "day": 25
+        },
+        {
+            "id": "good-friday",
+            "name": "Good Friday",
+            "dates": ["2026-04-03", "2027-03-26", "2028-04-14" /* ... */]
+        }
+        // ...
+    ]
+}
+```
+
+## データセット内のカテゴリを一覧表示する
+
+`GET https://bible.helloao.org/api/d/{dataset}/categories.json`
+
+データセットで使用可能な詩のカテゴリ一覧を取得します。
+
+-   `dataset`データセットの ID (例: `verse-of-the-day` )。
+
+### コード例
+
+::: code-tabs#lang
+
+@tab JavaScript
+
+```ts:no-line-numbers title="fetch-categories.js"
+fetch(`https://bible.helloao.org/api/d/verse-of-the-day/categories.json`)
+    .then(request => request.json())
+    .then(categories => {
+        console.log('The dataset has the following categories:', categories.categories);
+    });
+```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/d/verse-of-the-day/categories.json
+```
+
+:::
+
+### 構造
+
+```typescript:no-line-numbers title="dataset-categories.ts"
+export interface DatasetCategories {
+    /**
+     * カテゴリごとのデータセット情報。
+     */
+    dataset: Dataset;
+
+    /**
+     * データセットで使用可能な詩のカテゴリ一覧。
+     */
+    categories: DatasetCategorySummary[];
+}
+
+export interface DatasetCategorySummary {
+    /**
+     * カテゴリのID。例：「希望」。
+     */
+    id: string;
+
+    /**
+     * カテゴリーの英語名。例：「希望」。
+     */
+    name: string;
+
+    /**
+     * そのカテゴリーに含まれる詩句の内容の説明。
+     */
+    description: string;
+
+    /**
+     * そのカテゴリーに属する詩句（または短い一節）の数。
+     */
+    numberOfVerses: number;
+
+    /**
+     * そのカテゴリが対象とする祝日の日付（上記の DatasetCategoryHoliday を参照）。
+     * 祝日に関係しないカテゴリーは省略されています。
+     */
+    holiday?: DatasetCategoryHoliday;
+
+    /**
+     * そのカテゴリのAPIリンク。
+     */
+    apiLink: string;
+}
+```
+
+### 例
+
+```json:no-line-numbers title="/api/d/verse-of-the-day/categories.json"
+{
+    "dataset": {
+        "id": "verse-of-the-day",
+        "name": "Verse of the Day",
+        "totalNumberOfCategories": 31
+        // ...
+    },
+    "categories": [
+        {
+            "id": "comfort",
+            "name": "Comfort",
+            "description": "God's nearness and care in grief, trouble, and loneliness.",
+            "numberOfVerses": 65,
+            "apiLink": "/api/d/verse-of-the-day/categories/comfort.json"
+        },
+        {
+            "id": "courage",
+            "name": "Courage",
+            "description": "Standing firm and not being afraid.",
+            "numberOfVerses": 49,
+            "apiLink": "/api/d/verse-of-the-day/categories/courage.json"
+        }
+        // ...
+    ]
+}
+```
+
+## データセットからカテゴリを取得する
+
+`GET https://bible.helloao.org/api/d/{dataset}/categories/{category}.json`
+
+単一の詩のカテゴリと、それに属するすべての詩を取得します。
+
+-   `dataset`データセットの ID (例: `verse-of-the-day` )。
+-   `category`はカテゴリのIDです（例： `hope` ）。
+
+### コード例
+
+::: code-tabs#lang
+
+@tab JavaScript
+
+```ts:no-line-numbers title="fetch-category.js"
+fetch(`https://bible.helloao.org/api/d/verse-of-the-day/categories/hope.json`)
+    .then(request => request.json())
+    .then(category => {
+        console.log('Verses about hope:', category.category.verses);
+    });
+```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/d/verse-of-the-day/categories/hope.json
+```
+
+:::
+
+### 構造
+
+```typescript:no-line-numbers title="dataset-category.ts"
+export interface DatasetCategoryResponse {
+    /**
+     * カテゴリに関するデータセット情報。
+     */
+    dataset: Dataset;
+
+    /**
+     * カテゴリーと、それに属する詩句。
+     */
+    category: DatasetCategory;
+
+    /**
+     * このカテゴリのAPIリンク。
+     */
+    thisCategoryApiLink: string;
+}
+
+export interface DatasetCategory {
+    /**
+     * カテゴリのID。例：「希望」。
+     */
+    id: string;
+
+    /**
+     * カテゴリーの英語名。例：「希望」。
+     */
+    name: string;
+
+    /**
+     * そのカテゴリーに含まれる詩句の内容の説明。
+     */
+    description: string;
+
+    /**
+     * そのカテゴリが対象とする祝日の日付（「データセット内の聖句のリスト」の DatasetCategoryHoliday を参照）。
+     * これらの日付では、その日の聖句はそのカテゴリーに属する聖句の一つであり、他の日には使用されません。
+     * 祝日に関係しないカテゴリーは省略されています。
+     */
+    holiday?: DatasetCategoryHoliday;
+
+    /**
+     * このカテゴリーに属する詩句（または短い一節）を、正典の順序で示します。
+     * リストから削除された節も含まれています（ `removedIn`参照）。
+     */
+    verses: DatasetCategoryVerse[];
+}
+
+export interface DatasetCategoryVerse {
+    /**
+     * 書籍のID。例：「JER」。
+     */
+    book: string;
+
+    /**
+     * 章番号。
+     */
+    chapter: number;
+
+    /**
+     * 節番号。
+     * `endVerse`が存在する場合、これはその文章が始まる節です。
+     */
+    verse: number;
+
+    /**
+     * その文章が終わる節。
+     * 参照箇所が単一の詩節の場合は省略する。
+     */
+    endVerse?: number;
+
+    /**
+     * その聖句が「今日の聖句」として採用される最初の年。
+     * 当該節が常にリストに含まれている場合は省略される。
+     */
+    addedIn?: number;
+
+    /**
+     * その聖句がもはや「今日の聖句」として使えなくなる最初の年。
+     * 削除された詩句もデータセット内に残るため、それ以前の年の詩句を選択することは可能です。
+     * リストから削除されていない節は省略されます。
+     */
+    removedIn?: number;
+}
+```
+
+### 例
+
+```json:no-line-numbers title="/api/d/verse-of-the-day/categories/hope.json"
+{
+    "dataset": {
+        "id": "verse-of-the-day",
+        "name": "Verse of the Day",
+        "totalNumberOfCategories": 31
+        // ...
+    },
+    "category": {
+        "id": "hope",
+        "name": "Hope",
+        "description": "Confidence in the future that God has promised.",
+        "verses": [
+            {
+                "book": "GEN",
+                "chapter": 50,
+                "verse": 20
+            },
+            // ...
+            {
+                "book": "ISA",
+                "chapter": 43,
+                "verse": 18,
+                "endVerse": 19
+            },
+            {
+                "book": "JER",
+                "chapter": 29,
+                "verse": 11
+            }
+            // ...
+        ]
+    },
+    "thisCategoryApiLink": "/api/d/verse-of-the-day/categories/hope.json"
 }
 ```

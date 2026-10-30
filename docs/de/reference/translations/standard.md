@@ -41,6 +41,10 @@ curl https://bible.helloao.org/api/BSB/GEN/1.json
 
 ### Struktur
 
+Eine `line_break` , die einen neuen Quellabsatz einleitet, hat die Eigenschaft `paragraph` mit der Quellmarkierung ohne Backslash (z. B. `{ "type": "line_break", "paragraph": "p" }` ; weitere Markierungen sind `m` , `pi1` , `mi` und `pc` ). Leerzeilenmarkierungen ( `\b` ) erzeugen `line_break` Elemente ohne `paragraph` Folgt auf eine Leerzeile direkt ein Absatz ( `\b` dann `\m` ), werden diese zu einem einzigen Absatz ( `{ "type": "line_break", "paragraph": "m" }` ) zusammengefasst, während zwei Leerzeilen zwei Zeilenumbrüche erzeugen. `\nb` setzt den aktuellen Absatz fort und erzeugt keinen Zeilenumbruch. Ein Absatz, der innerhalb eines Verses beginnt, wird im Versinhalt als `{ "lineBreak": true, "paragraph": "p" }` dargestellt.
+
+Renderer, die nur Zeilenumbrüche verstehen, können `paragraph` ignorieren.
+
 ```typescript:no-line-numbers title="chapter.ts"
 export interface TranslationBookChapter {
     /**
@@ -191,6 +195,11 @@ interface ChapterLineBreak {
      * Zeigt an, dass der Inhalt einen Zeilenumbruch darstellt.
      */
     type: 'line_break';
+
+    /**
+     * Die Quellabsatzmarkierung (ohne Backslash), wenn der Zeilenumbruch einen neuen Absatz einleitet, z. B. `p` , `m` , `pi1` oder `mi` Wird bei einfachen Zeilenumbrüchen weggelassen.
+     */
+    paragraph?: string;
 }
 
 /**
@@ -270,6 +279,11 @@ interface InlineHeading {
  */
 interface InlineLineBreak {
     lineBreak: true;
+
+    /**
+     * Die Quellabsatzmarkierung (ohne Backslash), wenn der Zeilenumbruch einen neuen Absatz einleitet, z. B. `p` , `m` , `pi1` oder `mi` Wird bei einfachen Zeilenumbrüchen weggelassen.
+     */
+    paragraph?: string;
 }
 
 
@@ -373,6 +387,7 @@ interface TranslationBookChapterAudioTimingsLinks {
         "translationId": "BSB",
         "name": "Genesis",
         "commonName": "Genesis",
+        "shortName": "Gen",
         "title": "Genesis",
         "order": 1,
         "numberOfChapters": 50,
@@ -769,7 +784,7 @@ export interface TranslationBookChapterWords {
 
     /**
      * Der Link zu den Wörtern des vorherigen Kapitels.
-     * Null, falls dies das erste Kapitel der Übersetzung ist oder falls das vorherige Kapitel keine Wort-Ebene-Anmerkungen enthält.
+     * Null, falls dies das erste Kapitel der Übersetzung ist oder falls das vorherige Kapitel keine Wort-Ebenen-Anmerkungen enthält.
      */
     previousChapterWordsLink: string | null;
 
@@ -971,6 +986,12 @@ export interface TranslationCompleteBook {
     commonName: string;
 
     /**
+     * Der Kurzname (die Abkürzung), den die Übersetzung für das Buch vorsah.
+     * Falls keines verfügbar ist, wurde bei der Übersetzung keins bereitgestellt.
+     */
+    shortName?: string;
+
+    /**
      * Der Titel des Buches.
      */
     title: string | null;
@@ -1075,6 +1096,7 @@ interface TranslationBookChapterAudioTimingsMap {
       "id": "GEN",
       "name": "Genesis",
       "commonName": "Genesis",
+      "shortName": "Gen",
       "title": "Genesis",
       "order": 1,
       "numberOfChapters": 50,

@@ -41,6 +41,10 @@ curl https://bible.helloao.org/api/BSB/GEN/1.json
 
 ### Estructura
 
+Un `line_break` que inicia un nuevo párrafo fuente tiene una propiedad `paragraph` con el marcador fuente sin su barra invertida (por ejemplo, `{ "type": "line_break", "paragraph": "p" }` ; otros marcadores incluyen `m` , `pi1` , `mi` y `pc` ). Los marcadores de línea en blanco ( `\b` ) producen `line_break` elementos sin un `paragraph` Cuando una línea en blanco es seguida directamente por un párrafo ( `\b` y luego `\m` ), se fusionan en un solo `{ "type": "line_break", "paragraph": "m" }` , mientras que dos líneas en blanco producen dos saltos de línea. `\nb` continúa el párrafo actual y no produce ningún salto de línea. Un párrafo que comienza dentro de un versículo se representa en el contenido del versículo como `{ "lineBreak": true, "paragraph": "p" }` .
+
+Los renderizadores que solo entienden saltos de línea pueden ignorar `paragraph` .
+
 ```typescript:no-line-numbers title="chapter.ts"
 export interface TranslationBookChapter {
     /**
@@ -59,7 +63,7 @@ export interface TranslationBookChapter {
     thisChapterLink: string;
 
     /**
-     * Enlaces a diferentes versiones de audio para el capítulo.
+     * Los enlaces a las diferentes versiones de audio del capítulo.
      */
     thisChapterAudioLinks: TranslationBookChapterAudioLinks;
 
@@ -191,6 +195,11 @@ interface ChapterLineBreak {
      * Indica que el contenido representa un salto de línea.
      */
     type: 'line_break';
+
+    /**
+     * El marcador de párrafo de origen (sin su barra invertida) cuando el salto de línea inicia un nuevo párrafo, por ejemplo `p` , `m` , `pi1` o `mi` Se omite para saltos de línea simples.
+     */
+    paragraph?: string;
 }
 
 /**
@@ -270,6 +279,11 @@ interface InlineHeading {
  */
 interface InlineLineBreak {
     lineBreak: true;
+
+    /**
+     * El marcador de párrafo de origen (sin su barra invertida) cuando el salto de línea inicia un nuevo párrafo, por ejemplo `p` , `m` , `pi1` o `mi` Se omite para saltos de línea simples.
+     */
+    paragraph?: string;
 }
 
 
@@ -373,6 +387,7 @@ interface TranslationBookChapterAudioTimingsLinks {
         "translationId": "BSB",
         "name": "Genesis",
         "commonName": "Genesis",
+        "shortName": "Gen",
         "title": "Genesis",
         "order": 1,
         "numberOfChapters": 50,
@@ -971,6 +986,12 @@ export interface TranslationCompleteBook {
     commonName: string;
 
     /**
+     * El nombre corto (abreviatura) que la traducción proporcionó para el libro.
+     * Si no está disponible, entonces no fue proporcionada por la traducción.
+     */
+    shortName?: string;
+
+    /**
      * El título del libro.
      */
     title: string | null;
@@ -1075,6 +1096,7 @@ interface TranslationBookChapterAudioTimingsMap {
       "id": "GEN",
       "name": "Genesis",
       "commonName": "Genesis",
+      "shortName": "Gen",
       "title": "Genesis",
       "order": 1,
       "numberOfChapters": 50,

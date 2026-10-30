@@ -359,3 +359,60 @@ curl https://bible.helloao.org/api/d/open-cross-ref/GEN/1.json
 ```
 
 :::
+
+### একটি অধ্যায়ের মূল ভাষার শব্দগুলো পান
+
+( [তথ্যসূত্র](../reference/datasets/README.md#interlinear-datasets) )
+
+::: code-tabs#lang
+
+@ট্যাব জাভাস্ক্রিপ্ট
+
+```ts:no-line-numbers title="fetch-interlinear-chapter.js"
+const dataset = 'bsb-interlinear';
+const book = 'GEN';
+const chapter = 1;
+
+// bsb-interlinear ডেটাসেট থেকে আদিপুস্তক ১-এর হিব্রু শব্দগুলো খুঁজুন।
+fetch(`https://bible.helloao.org/api/d/${dataset}/${book}/${chapter}.json`)
+    .then(request => request.json())
+    .then(chapter => {
+        console.log('Genesis 1 (bsb-interlinear):', chapter);
+    });
+```
+
+@ট্যাব cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/d/bsb-interlinear/GEN/1.json
+```
+
+:::
+
+### একটি অভিধান ভুক্তি পান
+
+( [তথ্যসূত্র](../reference/datasets/README.md#get-a-lexicon-entry-from-a-dataset) )
+
+::: code-tabs#lang
+
+@ট্যাব জাভাস্ক্রিপ্ট
+
+```ts:no-line-numbers title="fetch-lexicon-entry.js"
+const dataset = 'stepbible-lexicon';
+const strongs = 'H0430';
+
+// stepbible-lexicon ডেটাসেট থেকে Strong's H0430-এর লেক্সিকন এন্ট্রিটি নিন।
+fetch(`https://bible.helloao.org/api/d/${dataset}/lexicon/${strongs}.json`)
+    .then(request => request.json())
+    .then(lexiconEntry => {
+        console.log('H0430 (stepbible-lexicon):', lexiconEntry);
+    });
+```
+
+@ট্যাব cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/d/stepbible-lexicon/lexicon/H0430.json
+```
+
+:::

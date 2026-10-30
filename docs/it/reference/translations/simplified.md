@@ -53,6 +53,8 @@ curl https://bible.helloao.org/api/BSB/GEN/1.simple.json
 
 ### Offset
 
+Il contenuto semplificato del capitolo mantiene gli elementi di livello `line_break` del capitolo, inclusa la loro proprietà `paragraph` Quando un paragrafo inizia all'interno di un verso, il testo del verso contiene un'interruzione di riga in quel punto e l'array `paragraphs` del verso lo registra come `{ offset, style }` , dove `offset` è l'indice del primo carattere dopo l'interruzione di riga.
+
 Tutti gli offset nel formato semplificato - `offset` , `start` e `end` - sono indici del versetto `text` che li contiene. Sono misurati in unità di codice UTF-16, che è quella utilizzata da JavaScript `String.prototype.length` e `String.prototype.slice()` .
 
 `start` è inclusivo e `end` è esclusivo, quindi `text.slice(start, end)` restituisce esattamente l'intervallo di testo selezionato. Gli offset delle note a piè di pagina indicano la posizione a cui appartiene chi richiama la nota, quindi `text.slice(0, offset)` è il testo che la precede.
@@ -185,6 +187,11 @@ interface ChapterLineBreak {
      * Indica che il contenuto rappresenta un'interruzione di riga.
      */
     type: 'line_break';
+
+    /**
+     * Il marcatore di paragrafo sorgente (senza la barra rovesciata) quando l'interruzione di riga inizia un nuovo paragrafo, ad esempio `p` , `m` , `pi1` o `mi` Omesso per le interruzioni di riga semplici.
+     */
+    paragraph?: string;
 }
 
 /**
@@ -217,6 +224,12 @@ interface SimpleChapterVerse {
      * Omesso se il verso non contiene intestazioni in linea.
      */
     headings?: SimpleInlineHeading[];
+
+    /**
+     * I paragrafi che iniziano a metà del verso.
+     * Omesso se il verso non ne contiene.
+     */
+    paragraphs?: SimpleVerseParagraph[];
 
     /**
      * Le parti del testo del versetto che rappresentano le parole di Gesù.
@@ -287,6 +300,21 @@ interface SimpleInlineHeading {
 }
 
 /**
+ * Un paragrafo che inizia nel mezzo di un verso.
+ */
+interface SimpleVerseParagraph {
+    /**
+     * L'indice nel testo del verso da cui inizia il paragrafo.
+     */
+    offset: number;
+
+    /**
+     * Il marcatore di paragrafo sorgente senza la barra rovesciata, ad esempio `p` o `m` .
+     */
+    style: string;
+}
+
+/**
  * Una porzione di testo all'interno di un verso.
  */
 interface SimpleTextRange {
@@ -339,6 +367,7 @@ interface SimplePoemRange extends SimpleTextRange {
         "id": "GEN",
         "name": "Genesis",
         "commonName": "Genesis",
+        "shortName": "Gen",
         "title": "Genesis",
         "order": 1,
         "numberOfChapters": 50,
@@ -796,6 +825,7 @@ export interface SimpleTranslationCompleteChapter {
             "id": "GEN",
             "name": "Genesis",
             "commonName": "Genesis",
+            "shortName": "Gen",
             "title": "Genesis",
             "order": 1,
             "numberOfChapters": 50,

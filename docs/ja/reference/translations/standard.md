@@ -41,6 +41,10 @@ curl https://bible.helloao.org/api/BSB/GEN/1.json
 
 ### 構造
 
+新しいソース段落を開始する`line_break`は`pi1`バックスラッシュのないソースマーカーを持つ`paragraph`プロパティを持ちます (たとえば`{ "type": "line_break", "paragraph": "p" }` 。他のマーカーには`m` `mi`あります)。空白行マーカー ( `\b` ) は`pc` `paragraph`ない`line_break`項目を生成します。空白行の直後に段落 ( `\b`後に`\m` ) が続く場合、それらは`{ "type": "line_break", "paragraph": "m" }`に結合されますが、2 つの空白行は 2 つの改行を生成します。13 `\nb`現在の段落を継続し、改行は生成しません。詩の中で始まる段落は、詩の内容では`{ "lineBreak": true, "paragraph": "p" }`として表されます。
+
+改行のみを理解するレンダラーは`paragraph`無視できます。
+
 ```typescript:no-line-numbers title="chapter.ts"
 export interface TranslationBookChapter {
     /**
@@ -191,6 +195,11 @@ interface ChapterLineBreak {
      * 内容が改行であることを示します。
      */
     type: 'line_break';
+
+    /**
+     * 改行によって新しい段落が始まる場合、元の段落マーカー（バックスラッシュなし）を指定`m` `p` `pi1` `mi`通常の改行の場合は省略します。
+     */
+    paragraph?: string;
 }
 
 /**
@@ -270,6 +279,11 @@ interface InlineHeading {
  */
 interface InlineLineBreak {
     lineBreak: true;
+
+    /**
+     * 改行によって新しい段落が始まる場合、元の段落マーカー（バックスラッシュなし）を指定`m` `p` `pi1` `mi`通常の改行の場合は省略します。
+     */
+    paragraph?: string;
 }
 
 
@@ -373,6 +387,7 @@ interface TranslationBookChapterAudioTimingsLinks {
         "translationId": "BSB",
         "name": "Genesis",
         "commonName": "Genesis",
+        "shortName": "Gen",
         "title": "Genesis",
         "order": 1,
         "numberOfChapters": 50,
@@ -971,6 +986,12 @@ export interface TranslationCompleteBook {
     commonName: string;
 
     /**
+     * 翻訳者がその書籍に付けた略称（短縮形）。
+     * 利用できない場合は、翻訳時に提供されなかったことを意味します。
+     */
+    shortName?: string;
+
+    /**
      * 本のタイトル。
      */
     title: string | null;
@@ -1075,6 +1096,7 @@ interface TranslationBookChapterAudioTimingsMap {
       "id": "GEN",
       "name": "Genesis",
       "commonName": "Genesis",
+      "shortName": "Gen",
       "title": "Genesis",
       "order": 1,
       "numberOfChapters": 50,

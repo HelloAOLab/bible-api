@@ -75,6 +75,25 @@ interface Translation {
     licenseUrl: string;
 
     /**
+     * የፈቃዱ ኤፒአይ-የተጨመሩ ማስታወሻዎች።
+     * ምንም ማስታወሻዎች ከሌሉ ባዶ ወይም ያልተገለጸ።
+     */
+    licenseNotes?: string | null;
+
+    /**
+     * ከትርጉሙ ውስጥ ይዘትን ሲያሳዩ መታየት ያለበት ማስታወቂያ።
+     * ትርጉሙ ማስታወቂያ ከሌለው ባዶ ወይም ያልተገለጸ።
+     */
+    licenseNotice?: string | null;
+
+    /**
+     * ለትርጉሙ የተገኙት የተዋቀሩ የፈቃድ ቃላት።
+     * ውሎቹ ሊታወቁ ካልቻሉ ባዶ ወይም ያልተገለጸ።
+     * በዚህ ሁኔታ፣ ውሎቹን ለማግኘት በ licenseUrl ላይ ያለውን ገጽ ይመልከቱ።
+     */
+    license?: License | null;
+
+    /**
      * የትርጉሙ አጭር ስም።
      */
     shortName: string;
@@ -152,7 +171,59 @@ interface Translation {
      */
     totalNumberOfApocryphalVerses?: number;
 }
+
+/**
+ * ለትርጉም የተገኙትን የተዋቀሩ የፈቃድ ውሎችን ይገልጻል።
+ */
+interface License {
+    /**
+     * ትርጉሙን ሲጠቀሙ ከዋናው ምንጭ ጋር መተዋወቅ አስፈላጊ መሆኑን ወይም አለመሆኑን።
+     */
+    attribution: 'required' | 'not-required';
+
+    /**
+     * የትርጉሙን የንግድ አጠቃቀም ይፈቀድ እንደሆነ።
+     */
+    commercialUse: 'allowed' | 'not-allowed';
+
+    /**
+     * የትርጉሙን ተዋጽኦዎች መፍጠር እና ማሰራጨት ይፈቀዳል ወይ የሚለው።
+     */
+    derivatives: 'allowed' | 'not-allowed';
+
+    /**
+     * የተለዋዋጭ ስራዎች በተመሳሳይ ፈቃድ ስር መሰራጨት አለባቸው ወይ የሚለው (ማለትም "ተመሳሳይ" መስፈርት)።
+     */
+    copyleft: boolean;
+
+    /**
+     * ትርጉሙ ለሕዝብ ጥቅም የተወሰነ መሆኑን ወይም አለመሆኑን።
+     */
+    publicDomain: boolean;
+}
 ```
+
+### ፈቃዶች
+
+እያንዳንዱ ትርጉም የሚታተመው በራሱ ፈቃድ ነው፣ ስለዚህ የትርጉሙን ቃላት ከመጠቀምዎ በፊት ያረጋግጡ።
+
+-   `licenseUrl` ሁልጊዜ ወደ ሙሉ የፈቃድ ውሎች ያገናኛል።
+-   `licenseNotice` ፣ ሲኖር፣ ከትርጉሙ ይዘት ጎን ለጎን የሚታየው የቅጂ መብት ወይም የባለቤትነት ማስታወቂያ ነው።
+-   `licenseNotes` በኤፒአይ የተጨመሩ ማስታወሻዎችን ይዟል፣ ለምሳሌ በምንጭ ጽሑፍ ላይ የተደረጉ ለውጦችን።
+-   `license` ፣ ሲኖር፣ ኮድዎ ሊፈትሽ በሚችለው መልኩ ቃላቶቹን ያጠቃልላል። ለምሳሌ፣ ዝርዝሩን ለንግድ አገልግሎት ወደሚፈቅዱ ትርጉሞች ማጣራት ይችላሉ
+
+```ts:no-line-numbers title="commercial-translations.js"
+fetch(`https://bible.helloao.org/api/available_translations.json`)
+    .then(request => request.json())
+    .then(({ translations }) => {
+        const commercial = translations.filter(
+            t => t.license?.commercialUse === 'allowed'
+        );
+        console.log('Translations that allow commercial use:', commercial);
+    });
+```
+
+`license` የሚቀመጠው ውሎቹ በራስ-ሰር ሊገኙ ሲችሉ ብቻ ነው። ያለሱ ትርጉሞች አሁንም ጥቅም ላይ እንዲውሉ ሊፈቅዱ ይችላሉ፣ ስለዚህ ለእነዚያ በ `licenseUrl` ላይ ያለውን ገጽ ያንብቡ።
 
 ### ለምሳሌ
 
@@ -247,6 +318,12 @@ interface TranslationBook {
     commonName: string;
 
     /**
+     * ትርጉሙ ለመጽሐፉ የሰጠው አጭር ስም (አህጽሮተ ቃል)።
+     * የማይገኝ ከሆነ፣ በትርጉሙ አንድ አልቀረበም።
+     */
+    shortName?: string;
+
+    /**
      * የመጽሐፉ ርዕስ።
      * ይህ ብዙውን ጊዜ የመጽሐፉን ስም የበለጠ ገላጭ ስሪት ነው።
      * የማይገኝ ከሆነ፣ በትርጉሙ አንድ አልቀረበም።
@@ -325,6 +402,7 @@ interface TranslationBook {
             "translationId": "BSB",
             "name": "Genesis",
             "commonName": "Genesis",
+            "shortName": "Gen",
             "title": "Genesis",
             "order": 1,
             "numberOfChapters": 50,

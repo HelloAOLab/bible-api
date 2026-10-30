@@ -53,6 +53,8 @@ curl https://bible.helloao.org/api/BSB/GEN/1.simple.json
 
 ### Malipo ya ziada
 
+Maudhui ya sura yaliyorahisishwa huweka vipengee vya kiwango cha sura `line_break` , ikijumuisha sifa yao `paragraph` Aya inapoanza ndani ya mstari, maandishi ya mstari huwa na mstari mpya katika sehemu hiyo na safu ya mstari wa `paragraphs` huirekodi kama `{ offset, style }` , ambapo `offset` ni faharasa ya herufi ya kwanza baada ya mstari mpya.
+
 Marekebisho yote katika umbizo lililorahisishwa - `offset` , `start` , na `end` - ni faharasa katika mstari wa `text` unaozijumuisha. Zinapimwa katika vitengo vya msimbo wa UTF-16, ambavyo ndivyo JavaScript hutumia `String.prototype.length` na `String.prototype.slice()` .
 
 `start` inajumuisha na `end` ni ya kipekee, kwa hivyo `text.slice(start, end)` inarudisha safu kamili ya maandishi ambayo yalitiwa alama. Marekebisho ya chinichini ni nafasi ambayo kipigaji cha chinichini kinamiliki, kwa hivyo `text.slice(0, offset)` ni maandishi yanayokuja kabla yake.
@@ -185,6 +187,11 @@ interface ChapterLineBreak {
      * Inaonyesha kwamba maudhui yanawakilisha mgawanyiko wa mstari.
      */
     type: 'line_break';
+
+    /**
+     * Alama ya aya chanzo (bila msuguano wake wa nyuma) wakati mgawanyiko wa mstari unapoanza aya mpya, kwa mfano `p` , `m` , `pi1` au `mi` Imeachwa kwa mgawanyiko wa mistari wazi.
+     */
+    paragraph?: string;
 }
 
 /**
@@ -217,6 +224,12 @@ interface SimpleChapterVerse {
      * Imeachwa ikiwa mstari hauna vichwa vya habari vilivyoandikwa kwa mstari.
      */
     headings?: SimpleInlineHeading[];
+
+    /**
+     * Aya zinazoanzia katikati ya mstari.
+     * Imeachwa ikiwa mstari hauna chochote.
+     */
+    paragraphs?: SimpleVerseParagraph[];
 
     /**
      * Safu za maandishi ya mistari zinazowakilisha Maneno ya Yesu.
@@ -287,6 +300,21 @@ interface SimpleInlineHeading {
 }
 
 /**
+ * Kifungu kinachoanzia katikati ya mstari.
+ */
+interface SimpleVerseParagraph {
+    /**
+     * Faharasa katika maandishi ya mstari ambayo aya inaanza.
+     */
+    offset: number;
+
+    /**
+     * Alama ya aya chanzo bila msuguano wake wa nyuma, kwa mfano `p` au `m` .
+     */
+    style: string;
+}
+
+/**
  * Aina mbalimbali za maandishi ndani ya mstari.
  */
 interface SimpleTextRange {
@@ -339,6 +367,7 @@ interface SimplePoemRange extends SimpleTextRange {
         "id": "GEN",
         "name": "Genesis",
         "commonName": "Genesis",
+        "shortName": "Gen",
         "title": "Genesis",
         "order": 1,
         "numberOfChapters": 50,
@@ -464,7 +493,7 @@ Mashairi na Maneno ya Yesu huhifadhiwa kulingana na safu katika maandishi ya mst
 
 Hupata maelezo ya kiwango cha neno kwa sura moja, huku marekebisho yake yakipangwa upya kwenye maandishi ya kila [mstari uliorahisishwa](#get-a-simplified-chapter-from-a-translation) .
 
-Vipunguzo katika [maelezo ya kawaida](./standard.md#get-the-words-of-a-chapter) vimeunganishwa na vipengee vya safu `content` ya mstari, ambayo umbizo lililorahisishwa hubadilisha na mfuatano mmoja - kwa hivyo haziwezi kutumika nayo. Tumia faili hii badala yake unapofanya kazi na sura zilizorahisishwa.
+Vipunguzi katika [maelezo ya kawaida](./standard.md#get-the-words-of-a-chapter) vimeunganishwa na vipengee vya safu `content` ya mstari, ambayo umbizo lililorahisishwa hubadilisha na mfuatano mmoja - kwa hivyo haziwezi kutumika nayo. Tumia faili hii badala yake unapofanya kazi na sura zilizorahisishwa.
 
 -   `translation` ni kitambulisho cha tafsiri (km `BSB` ).
 -   `book` ni kitambulisho cha kitabu (km `GEN` kwa Mwanzo - unaweza kupata orodha ya vitambulisho vya kitabu [hapa](https://ubsicap.github.io/usfm/identification/books.html) ).
@@ -724,7 +753,7 @@ export interface SimpleTranslationComplete {
 }
 
 /**
- * Kitabu katika tafsiri kamili ya kupakua, kwa kutumia umbizo rahisi la sura.
+ * Kitabu katika tafsiri kamili ya kupakua, kwa kutumia umbizo la sura lililorahisishwa.
  */
 export interface SimpleTranslationCompleteBook extends Omit<TranslationCompleteBook, 'chapters'> {
     /**
@@ -796,6 +825,7 @@ export interface SimpleTranslationCompleteChapter {
             "id": "GEN",
             "name": "Genesis",
             "commonName": "Genesis",
+            "shortName": "Gen",
             "title": "Genesis",
             "order": 1,
             "numberOfChapters": 50,

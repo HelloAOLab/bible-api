@@ -62,6 +62,12 @@ export interface Commentary {
     licenseUrl: string;
 
     /**
+     * Bayanan da aka ƙara ta API don lasisin.
+     * Ba a fayyace ko ba a fayyace ba idan babu bayanin kula.
+     */
+    licenseNotes?: string | null;
+
+    /**
      * Sunan Turanci don sharhin.
      */
     englishName: string;
@@ -105,7 +111,7 @@ export interface Commentary {
     /**
      * Jimillar ayoyin da ke cikin wannan sharhin.
      *
-     * Cikakkun sharhin ya kamata su kasance daidai da adadin ayoyi kamar na Littafi Mai Tsarki (kusan 31,102 - wasu sharhin ba su haɗa da ayoyi bisa ga yuwuwar wanzuwa a cikin rubutun tushe na asali ba).
+     * Cikakkun sharhin ya kamata su kasance daidai da adadin ayoyi kamar na Littafi Mai Tsarki (kusan 31,102 - wasu sharhin ba su haɗa da ayoyi bisa ga yuwuwar wanzuwa a cikin rubutun asali ba).
      */
     totalNumberOfVerses: number;
 
@@ -158,7 +164,7 @@ Yana samun jerin littattafan da ake da su don sharhin da aka bayar.
 
 -   `commentary` ID na sharhin (misali `adam-clarke` ).
 
-### Misalin Lambar
+### Misalin Lamba
 
 ::: code-tabs#lang
 
@@ -562,7 +568,7 @@ interface CommentaryProfile {
     thisProfileLink: string;
 
     /**
-     * Hanyar haɗi zuwa babin da wannan bayanin martaba ya yi nuni a cikin sharhin.
+     * Haɗin zuwa babin da wannan bayanin martaba ya yi nuni a cikin sharhin.
      */
     referenceChapterLink: string | null;
 }

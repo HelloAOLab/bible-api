@@ -62,6 +62,12 @@ export interface Commentary {
     licenseUrl: string;
 
     /**
+     * APIに追加されたライセンスに関する注記。
+     * メモがない場合は、nullまたはundefinedになります。
+     */
+    licenseNotes?: string | null;
+
+    /**
      * 解説の英語名。
      */
     englishName: string;
@@ -105,7 +111,7 @@ export interface Commentary {
     /**
      * この解説に含まれる聖句の総数。
      *
-     * 完全な注釈書は聖書と同じ節数（約31,102節）を持つべきである（ただし、注釈書によっては、原典に存在する可能性が高いと思われる節を除外している場合もある）。
+     * 完全な解説書は、聖書と同じ数の節（約31,102節）を含むべきである（ただし、一部の解説書は、原典に存在する可能性が高いと思われる節を除外している）。
      */
     totalNumberOfVerses: number;
 
@@ -317,7 +323,7 @@ interface CommentaryBook {
 -   `book`は書籍のIDです（例：創世記の場合は`GEN` ）。
 -   `chapter`は章番号（例えば、 `1`は第1章）を表します。
 
-このエンドポイントの簡略版は`https://bible.helloao.org/api/c/{commentary}/{book}/{chapter}.simple.json`で利用できます。これは[翻訳用の簡略化された章エンドポイント](../translations/simplified.md#get-a-simplified-chapter-from-a-translation)と同じように機能します。各節の内容は単一の文字列であり、章にはオプションの`introduction`保持されます。通常の解説章にはすべて、それを指す`simpleChapterApiLink`が含まれています。
+このエンドポイントの簡略版は`https://bible.helloao.org/api/c/{commentary}/{book}/{chapter}.simple.json`で利用できます。これは[翻訳用の簡略化された章エンドポイント](../translations/simplified.md#get-a-simplified-chapter-from-a-translation)と同じように機能します。各節の内容は単一の文字列であり、章はオプションの`introduction`を保持します。通常の解説章にはすべて、それを指す`simpleChapterApiLink`が含まれています。
 
 ### コード例
 

@@ -75,6 +75,25 @@ interface Translation {
     licenseUrl: string;
 
     /**
+     * Die API-bygevoegde notas vir die lisensie.
+     * Nul of ongedefinieerd indien daar geen notas is nie.
+     */
+    licenseNotes?: string | null;
+
+    /**
+     * Die kennisgewing wat vertoon moet word wanneer inhoud van die vertaling vertoon word.
+     * Nul of ongedefinieerd indien die vertaling nie 'n kennisgewing het nie.
+     */
+    licenseNotice?: string | null;
+
+    /**
+     * Die gestruktureerde lisensieterme wat vir die vertaling opgespoor is.
+     * Nul of ongedefinieerd indien die terme nie bepaal kon word nie.
+     * In daardie geval, kyk na die bladsy by licenseUrl vir die bepalings en voorwaardes.
+     */
+    license?: License | null;
+
+    /**
      * Die kort naam vir die vertaling.
      */
     shortName: string;
@@ -152,7 +171,59 @@ interface Translation {
      */
     totalNumberOfApocryphalVerses?: number;
 }
+
+/**
+ * Definieer die gestruktureerde lisensieterme wat vir 'n vertaling opgespoor is.
+ */
+interface License {
+    /**
+     * Of verwysing na die oorspronklike bron vereis word wanneer die vertaling gebruik word.
+     */
+    attribution: 'required' | 'not-required';
+
+    /**
+     * Of kommersiële gebruik van die vertaling toegelaat word.
+     */
+    commercialUse: 'allowed' | 'not-allowed';
+
+    /**
+     * Of die skep en verspreiding van afgeleide werke van die vertaling toegelaat word.
+     */
+    derivatives: 'allowed' | 'not-allowed';
+
+    /**
+     * Of afgeleide werke onder dieselfde lisensie versprei moet word (d.w.s. 'n "deel-gelyk"-vereiste).
+     */
+    copyleft: boolean;
+
+    /**
+     * Of die vertaling aan die publieke domein gewy is.
+     */
+    publicDomain: boolean;
+}
 ```
+
+### Lisensies
+
+Elke vertaling word onder sy eie lisensie gepubliseer, so kyk eers na die bepalings en voorwaardes van 'n vertaling voordat jy dit gebruik.
+
+-   `licenseUrl` skakel altyd na die volledige lisensievoorwaardes.
+-   `licenseNotice` , indien teenwoordig, is die kopiereg- of erkenningskennisgewing wat langs inhoud van die vertaling vertoon moet word.
+-   `licenseNotes` bevat notas wat deur die API bygevoeg is, soos veranderinge wat aan die bronteks aangebring is.
+-   `license` , wanneer teenwoordig, som die terme op in 'n vorm wat jou kode kan nagaan. Jy kan byvoorbeeld die lys filter na vertalings wat kommersiële gebruik toelaat:
+
+```ts:no-line-numbers title="commercial-translations.js"
+fetch(`https://bible.helloao.org/api/available_translations.json`)
+    .then(request => request.json())
+    .then(({ translations }) => {
+        const commercial = translations.filter(
+            t => t.license?.commercialUse === 'allowed'
+        );
+        console.log('Translations that allow commercial use:', commercial);
+    });
+```
+
+`license` word slegs gestel wanneer die terme outomaties opgespoor kan word. Vertalings daarsonder mag steeds jou gebruik toelaat, so lees die bladsy by `licenseUrl` daarvoor.
 
 ### Voorbeeld
 
@@ -247,6 +318,12 @@ interface TranslationBook {
     commonName: string;
 
     /**
+     * Die kort naam (afkorting) wat die vertaling vir die boek verskaf het.
+     * Indien nie beskikbaar nie, dan is een nie deur die vertaling verskaf nie.
+     */
+    shortName?: string;
+
+    /**
      * Die titel van die boek.
      * Dit is gewoonlik 'n meer beskrywende weergawe van die boeknaam.
      * Indien nie beskikbaar nie, dan is een nie deur die vertaling verskaf nie.
@@ -325,6 +402,7 @@ interface TranslationBook {
             "translationId": "BSB",
             "name": "Genesis",
             "commonName": "Genesis",
+            "shortName": "Gen",
             "title": "Genesis",
             "order": 1,
             "numberOfChapters": 50,

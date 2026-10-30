@@ -62,6 +62,12 @@ export interface Commentary {
     licenseUrl: string;
 
     /**
+     * ملاحظات إضافية متعلقة بالترخيص من خلال واجهة برمجة التطبيقات (API).
+     * تكون القيمة فارغة أو غير محددة إذا لم تكن هناك ملاحظات.
+     */
+    licenseNotes?: string | null;
+
+    /**
      * الاسم الإنجليزي للتعليق.
      */
     englishName: string;
@@ -330,7 +336,7 @@ const commentary = 'adam-clarke';
 const book = 'GEN';
 const chapter = 1;
 
-// احصل على شرح سفر التكوين 1 من تعليق آدم كلارك
+// احصل على تفسير سفر التكوين 1 من تعليق آدم كلارك
 fetch(`https://bible.helloao.org/api/c/${commentary}/${book}/${chapter}.json`)
     .then(request => request.json())
     .then(chapter => {

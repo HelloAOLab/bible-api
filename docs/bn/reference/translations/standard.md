@@ -41,6 +41,10 @@ curl https://bible.helloao.org/api/BSB/GEN/1.json
 
 ### কাঠামো
 
+একটি `line_break` যা একটি নতুন উৎস অনুচ্ছেদ শুরু করে, তার একটি `paragraph` বৈশিষ্ট্য থাকে যার সাথে উৎস মার্কারটি তার ব্যাকস্ল্যাশ ছাড়া থাকে (উদাহরণস্বরূপ `{ "type": "line_break", "paragraph": "p" }` ; অন্যান্য মার্কারগুলির মধ্যে `m` , `pi1` , `mi` , এবং `pc` অন্তর্ভুক্ত)। ফাঁকা-লাইন মার্কার ( `\b` ) `paragraph` ছাড়া `line_break` আইটেম তৈরি করে। যখন একটি ফাঁকা লাইনের ঠিক পরে একটি অনুচ্ছেদ থাকে ( `\b` তারপর `\m` ), তখন সেগুলি একটি একক `{ "type": "line_break", "paragraph": "m" }` এ একত্রিত হয়, যখন দুটি ফাঁকা লাইন দুটি লাইন ব্রেক তৈরি করে। `\nb` বর্তমান অনুচ্ছেদটি চালিয়ে যায় এবং কোনো লাইন ব্রেক তৈরি করে না। একটি অনুচ্ছেদ যা একটি শ্লোকের ভিতরে শুরু হয়, শ্লোকের বিষয়বস্তুতে `{ "lineBreak": true, "paragraph": "p" }` হিসাবে উপস্থাপিত হয়।
+
+যেসব রেন্ডারার শুধু লাইন ব্রেক বোঝে, তারা `paragraph` উপেক্ষা করতে পারে।
+
 ```typescript:no-line-numbers title="chapter.ts"
 export interface TranslationBookChapter {
     /**
@@ -71,25 +75,25 @@ export interface TranslationBookChapter {
 
     /**
      * পরবর্তী অধ্যায়ের লিঙ্ক।
-     * অনুবাদে এটি শেষ অধ্যায় হলে শূন্য হবে।
+     * অনুবাদটির শেষ অধ্যায় হলে এটি শূন্য হবে।
      */
     nextChapterApiLink: string | null;
 
     /**
      * পরবর্তী অধ্যায়ের বিভিন্ন অডিও সংস্করণের লিঙ্ক।
-     * অনুবাদে এটি শেষ অধ্যায় হলে শূন্য হবে।
+     * অনুবাদটির শেষ অধ্যায় হলে এটি শূন্য হবে।
      */
     nextChapterAudioLinks: TranslationBookChapterAudioLinks | null;
 
     /**
      * পরবর্তী অধ্যায়ের বিভিন্ন অডিও সংস্করণের অডিও টাইমিংয়ের লিঙ্ক।
-     * অনুবাদে এটি শেষ অধ্যায় হলে শূন্য হবে।
+     * অনুবাদটির শেষ অধ্যায় হলে এটি শূন্য হবে।
      */
     nextChapterAudioTimings: TranslationBookChapterAudioTimingsLinks | null;
 
     /**
      * পূর্ববর্তী অধ্যায়ের লিঙ্ক।
-     * অনুবাদটির প্রথম অধ্যায় হলে এটি শূন্য হবে।
+     * অনুবাদটির এটি প্রথম অধ্যায় হলে মানটি শূন্য হবে।
      */
     previousChapterApiLink: string | null;
 
@@ -161,7 +165,7 @@ interface ChapterData {
  * একটি ইউনিয়ন টাইপ যা অধ্যায়ের একটি একক বিষয়বস্তুকে উপস্থাপন করে।
  * অধ্যায়ের বিষয়বস্তু নিম্নলিখিত বিষয়গুলোর মধ্যে যেকোনো একটি হতে পারে:
  * একটি শিরোনাম।
- * লাইন ব্রেক।
+ * একটি লাইন ব্রেক।
  * একটি শ্লোক।
  * একটি হিব্রু সাবটাইটেল।
  */
@@ -191,6 +195,11 @@ interface ChapterLineBreak {
      * এটি নির্দেশ করে যে বিষয়বস্তুটি একটি লাইন ব্রেক।
      */
     type: 'line_break';
+
+    /**
+     * যখন লাইন ব্রেক একটি নতুন অনুচ্ছেদ শুরু করে, তখন উৎস অনুচ্ছেদের নির্দেশক (ব্যাকস্ল্যাশ ছাড়া), যেমন `p` , `m` , `pi1` বা `mi` সাধারণ লাইন ব্রেকের ক্ষেত্রে এটি বাদ দেওয়া হয়।
+     */
+    paragraph?: string;
 }
 
 /**
@@ -270,6 +279,11 @@ interface InlineHeading {
  */
 interface InlineLineBreak {
     lineBreak: true;
+
+    /**
+     * যখন লাইন ব্রেক একটি নতুন অনুচ্ছেদ শুরু করে, তখন উৎস অনুচ্ছেদের নির্দেশক (ব্যাকস্ল্যাশ ছাড়া), যেমন `p` , `m` , `pi1` বা `mi` সাধারণ লাইন ব্রেকের ক্ষেত্রে এটি বাদ দেওয়া হয়।
+     */
+    paragraph?: string;
 }
 
 
@@ -373,6 +387,7 @@ interface TranslationBookChapterAudioTimingsLinks {
         "translationId": "BSB",
         "name": "Genesis",
         "commonName": "Genesis",
+        "shortName": "Gen",
         "title": "Genesis",
         "order": 1,
         "numberOfChapters": 50,
@@ -615,13 +630,13 @@ export interface TranslationBookChapterAudioTimings {
 
     /**
      * পরবর্তী অধ্যায়ের তথ্যের লিঙ্ক।
-     * অনুবাদে এটি শেষ অধ্যায় হলে শূন্য হবে।
+     * অনুবাদটির শেষ অধ্যায় হলে এটি শূন্য হবে।
      */
     nextChapterLink: string | null;
 
     /**
      * পূর্ববর্তী অধ্যায়ের তথ্যের লিঙ্ক।
-     * অনুবাদটির প্রথম অধ্যায় হলে এটি শূন্য হবে।
+     * অনুবাদটির এটি প্রথম অধ্যায় হলে মানটি শূন্য হবে।
      */
     previousChapterLink: string | null;
 
@@ -638,7 +653,7 @@ export interface TranslationBookChapterAudioTimings {
 
     /**
      * একই পাঠকের জন্য পূর্ববর্তী অধ্যায়ের সময়সূচীর লিঙ্ক।
-     * অনুবাদটির প্রথম অধ্যায় হলে এটি শূন্য হবে।
+     * অনুবাদটির এটি প্রথম অধ্যায় হলে মানটি শূন্য হবে।
      */
     previousChapterAudioTimingsLink: string | null;
 
@@ -746,13 +761,13 @@ export interface TranslationBookChapterWords {
 
     /**
      * পরবর্তী অধ্যায়ের তথ্যের লিঙ্ক।
-     * অনুবাদে এটি শেষ অধ্যায় হলে শূন্য হবে।
+     * অনুবাদটির শেষ অধ্যায় হলে এটি শূন্য হবে।
      */
     nextChapterLink: string | null;
 
     /**
      * পূর্ববর্তী অধ্যায়ের তথ্যের লিঙ্ক।
-     * অনুবাদটির প্রথম অধ্যায় হলে এটি শূন্য হবে।
+     * অনুবাদটির এটি প্রথম অধ্যায় হলে মানটি শূন্য হবে।
      */
     previousChapterLink: string | null;
 
@@ -971,6 +986,12 @@ export interface TranslationCompleteBook {
     commonName: string;
 
     /**
+     * অনুবাদে বইটির জন্য প্রদত্ত সংক্ষিপ্ত নাম (সংক্ষেপণ)।
+     * যদি উপলব্ধ না থাকে, তাহলে অনুবাদের মাধ্যমে তা প্রদান করা হয়নি।
+     */
+    shortName?: string;
+
+    /**
      * বইটির শিরোনাম।
      */
     title: string | null;
@@ -1075,6 +1096,7 @@ interface TranslationBookChapterAudioTimingsMap {
       "id": "GEN",
       "name": "Genesis",
       "commonName": "Genesis",
+      "shortName": "Gen",
       "title": "Genesis",
       "order": 1,
       "numberOfChapters": 50,

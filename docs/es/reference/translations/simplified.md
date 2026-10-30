@@ -53,6 +53,8 @@ curl https://bible.helloao.org/api/BSB/GEN/1.simple.json
 
 ### Desfases
 
+El contenido simplificado del capítulo conserva los elementos `line_break` del nivel del capítulo, incluida su propiedad `paragraph` Cuando un párrafo comienza dentro de un versículo, el texto del versículo contiene un salto de línea en ese punto y la matriz `paragraphs` del versículo lo registra como `{ offset, style }` , donde `offset` es el índice del primer carácter después del salto de línea.
+
 Todos los desplazamientos en el formato simplificado ( `offset` , `start` y `end` ) son índices del `text` que los contiene. Se miden en unidades de código UTF-16, que es el `String.prototype.length` que utilizan `String.prototype.slice()` .
 
 `start` es inclusivo y `end` es exclusivo, por lo que `text.slice(start, end)` devuelve exactamente el rango de texto marcado. Los desplazamientos de las notas al pie indican la posición del elemento que las llama, por lo que `text.slice(0, offset)` representa el texto que las precede.
@@ -87,7 +89,7 @@ export interface SimpleTranslationBookChapter {
     thisChapterAudioLinks: TranslationBookChapterAudioLinks;
 
     /**
-     * Enlaces a los tiempos de audio para las diferentes versiones de audio del capítulo.
+     * Enlaces a la sincronización del audio para las diferentes versiones de audio del capítulo.
      * Consulte la sección "Obtener la sincronización de audio para un capítulo" en la documentación del formato estándar; el archivo de sincronización es el mismo independientemente del formato de capítulo al que esté vinculado.
      */
     thisChapterAudioTimings: TranslationBookChapterAudioTimingsLinks;
@@ -185,6 +187,11 @@ interface ChapterLineBreak {
      * Indica que el contenido representa un salto de línea.
      */
     type: 'line_break';
+
+    /**
+     * El marcador de párrafo de origen (sin su barra invertida) cuando el salto de línea inicia un nuevo párrafo, por ejemplo `p` , `m` , `pi1` o `mi` Se omite para saltos de línea simples.
+     */
+    paragraph?: string;
 }
 
 /**
@@ -213,10 +220,16 @@ interface SimpleChapterVerse {
     footnotes: SimpleVerseFootnote[];
 
     /**
-     * Los encabezados que aparecen en medio del versículo.
+     * Los encabezados que aparecen en medio del verso.
      * Se omite si el versículo no contiene encabezados en línea.
      */
     headings?: SimpleInlineHeading[];
+
+    /**
+     * Los párrafos que comienzan en medio del versículo.
+     * Se omite si el versículo no contiene ninguno.
+     */
+    paragraphs?: SimpleVerseParagraph[];
 
     /**
      * Los rangos del texto del versículo que representan las Palabras de Jesús.
@@ -287,6 +300,21 @@ interface SimpleInlineHeading {
 }
 
 /**
+ * Un párrafo que comienza en medio de un verso.
+ */
+interface SimpleVerseParagraph {
+    /**
+     * El índice en el texto del versículo donde comienza el párrafo.
+     */
+    offset: number;
+
+    /**
+     * El marcador de párrafo de origen sin su barra invertida, por ejemplo `p` o `m` .
+     */
+    style: string;
+}
+
+/**
  * Un fragmento de texto dentro de un verso.
  */
 interface SimpleTextRange {
@@ -339,6 +367,7 @@ interface SimplePoemRange extends SimpleTextRange {
         "id": "GEN",
         "name": "Genesis",
         "commonName": "Genesis",
+        "shortName": "Gen",
         "title": "Genesis",
         "order": 1,
         "numberOfChapters": 50,
@@ -470,7 +499,7 @@ Las marcas de desplazamiento en [las anotaciones regulares](./standard.md#get-th
 -   `book` es el ID del libro (por ejemplo, `GEN` para Génesis; puede encontrar una lista de ID de libros [aquí](https://ubsicap.github.io/usfm/identification/books.html) ).
 -   `chapter` es el número del capítulo (por ejemplo, `1` para el primer capítulo).
 
-Estas entradas no tienen `contentIndex` `start` y `end` son desplazamientos dentro del `text` del versículo, exactamente como los desplazamientos de la nota al pie, el poema y las Palabras de Jesús en los capítulos simplificados, por lo que `text.slice(start, end)` es la palabra anotada.
+Estas entradas no tienen `contentIndex` `start` y `end` son desplazamientos en el `text` del versículo, exactamente como los desplazamientos de la nota al pie, el poema y las Palabras de Jesús en los capítulos simplificados, por lo que `text.slice(start, end)` es la palabra anotada.
 
 Al igual que con las anotaciones regulares, solo algunas traducciones las incluyen. Un capítulo simplificado que las contiene enlaza con este archivo con `thisChapterWordsLink` ; cuando falta esta propiedad, este archivo no existe para ese capítulo.
 
@@ -796,6 +825,7 @@ export interface SimpleTranslationCompleteChapter {
             "id": "GEN",
             "name": "Genesis",
             "commonName": "Genesis",
+            "shortName": "Gen",
             "title": "Genesis",
             "order": 1,
             "numberOfChapters": 50,

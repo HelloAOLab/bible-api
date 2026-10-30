@@ -62,6 +62,12 @@ export interface Commentary {
     licenseUrl: string;
 
     /**
+     * Maelezo yaliyoongezwa na API kwa ajili ya leseni.
+     * Haijabainishwa au haijabainishwa ikiwa hakuna maelezo.
+     */
+    licenseNotes?: string | null;
+
+    /**
      * Jina la Kiingereza la ufafanuzi.
      */
     englishName: string;
@@ -105,7 +111,7 @@ export interface Commentary {
     /**
      * Jumla ya mistari iliyomo katika ufafanuzi huu.
      *
-     * Fafanuzi kamili zinapaswa kuwa na idadi sawa ya mistari kama Biblia (karibu 31,102 - baadhi ya fafanuzi huondoa mistari kulingana na uwezekano wa kuwepo katika maandishi asilia ya asili).
+     * Fasihi kamili zinapaswa kuwa na idadi sawa ya mistari kama Biblia (karibu 31,102 - baadhi ya fasihi hazijumuishi mistari kulingana na uwezekano wa kuwepo katika maandishi asilia ya asili).
      */
     totalNumberOfVerses: number;
 
@@ -229,14 +235,14 @@ interface CommentaryBook {
     /**
      * Nambari ya sura ya kwanza katika kitabu.
      *
-     * Batili ikiwa kitabu cha ufafanuzi hakina sura.
+     * Haifai ikiwa kitabu cha ufafanuzi hakina sura.
      */
     firstChapterNumber: number | null;
 
     /**
      * Kiungo cha sura ya kwanza ya kitabu.
      *
-     * Batili ikiwa kitabu cha ufafanuzi hakina sura.
+     * Haifai ikiwa kitabu cha ufafanuzi hakina sura.
      */
     firstChapterApiLink: string | null;
 

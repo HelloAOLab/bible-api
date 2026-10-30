@@ -41,6 +41,10 @@ curl https://bible.helloao.org/api/BSB/GEN/1.json
 
 ### 结构
 
+以`line_break`开头的新段落`pi1` `pc` `paragraph` `{ "type": "line_break", "paragraph": "p" }` `m` `mi`标记 ( `\b` ) 生成`line_break`项目，不带`paragraph`当空行后紧跟段落（ `\b`然后`\m` ）时，它们合并为一个`{ "type": "line_break", "paragraph": "m" }` ，而两个空行则生成两个换行符`\nb`延续当前段落，不生成换行符。在诗节内部开始的段落在诗节内容中表示为`{ "lineBreak": true, "paragraph": "p" }` 。
+
+仅能理解换行符的渲染器可以忽略`paragraph` 。
+
 ```typescript:no-line-numbers title="chapter.ts"
 export interface TranslationBookChapter {
     /**
@@ -191,6 +195,11 @@ interface ChapterLineBreak {
      * 表示内容为换行符。
      */
     type: 'line_break';
+
+    /**
+     * 当换行符开始一个新段落时，源段落标记（不带反斜杠），例如`p`或`pi1`对于普通换行符`m` `mi`省略。
+     */
+    paragraph?: string;
 }
 
 /**
@@ -270,6 +279,11 @@ interface InlineHeading {
  */
 interface InlineLineBreak {
     lineBreak: true;
+
+    /**
+     * 当换行符开始一个新段落时，源段落标记（不带反斜杠），例如`p`或`pi1`对于普通换行符`m` `mi`省略。
+     */
+    paragraph?: string;
 }
 
 
@@ -314,7 +328,7 @@ interface ChapterFootnote {
      *
      * ---- (a) 这是脚注。
      *
-     * “（a）”是调用者。
+     * “（a）”是呼叫者。
      *
      * 如果为“+”，则调用者应自动生成。
      * 如果为空，则调用者应为空。
@@ -373,6 +387,7 @@ interface TranslationBookChapterAudioTimingsLinks {
         "translationId": "BSB",
         "name": "Genesis",
         "commonName": "Genesis",
+        "shortName": "Gen",
         "title": "Genesis",
         "order": 1,
         "numberOfChapters": 50,
@@ -769,7 +784,7 @@ export interface TranslationBookChapterWords {
 
     /**
      * 上一章的文本链接。
-     * 如果这是翻译中的第一章，或者前一章没有任何词级注释，则返回 null。
+     * 如果这是翻译中的第一章，或者上一章没有任何词级注释，则返回 null。
      */
     previousChapterWordsLink: string | null;
 
@@ -971,6 +986,12 @@ export interface TranslationCompleteBook {
     commonName: string;
 
     /**
+     * 译者为本书提供的简称。
+     * 如果没有，则表示翻译过程中没有提供相关信息。
+     */
+    shortName?: string;
+
+    /**
      * 书名。
      */
     title: string | null;
@@ -1075,6 +1096,7 @@ interface TranslationBookChapterAudioTimingsMap {
       "id": "GEN",
       "name": "Genesis",
       "commonName": "Genesis",
+      "shortName": "Gen",
       "title": "Genesis",
       "order": 1,
       "numberOfChapters": 50,

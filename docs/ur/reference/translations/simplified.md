@@ -12,7 +12,7 @@
 
 جب آپ کسی باب کا متن چاہتے ہو تو اس اختتامی نقطہ کا استعمال کریں۔ جب آپ باب کو اس کی اصل فارمیٹنگ کے ساتھ رینڈر کرنا چاہتے ہیں تو [باقاعدہ باب کا اختتامی نقطہ](./standard.md#get-a-chapter-from-a-translation) استعمال کریں۔
 
--   `translation` ترجمہ کی ID ہے (مثلاً `BSB` )۔
+-   `translation` ترجمہ کی ID ہے (مثال کے طور پر `BSB` )۔
 -   `book` کتاب کی ID ہے (مثال کے طور پر پیدائش کے لیے `GEN` - آپ [یہاں](https://ubsicap.github.io/usfm/identification/books.html) کتاب کی شناخت کی فہرست تلاش کر سکتے ہیں)۔
 -   `chapter` عددی باب ہے (مثلاً `1` پہلے باب کے لیے)۔
 
@@ -52,6 +52,8 @@ curl https://bible.helloao.org/api/BSB/GEN/1.simple.json
 :::
 
 ### آفسیٹس
+
+آسان باب کا مواد باب کی سطح کے `line_break` آئٹمز کو رکھتا ہے، بشمول ان کی `paragraph` پراپرٹی۔ جب ایک پیراگراف کسی آیت کے اندر شروع ہوتا ہے، تو آیت کے متن میں اس مقام پر ایک نئی لائن ہوتی ہے اور آیت کی `paragraphs` صف اسے `{ offset, style }` کے طور پر ریکارڈ کرتی ہے، جہاں `offset` نئی لائن کے بعد پہلے حرف کا اشاریہ ہے۔
 
 آسان فارمیٹ میں تمام آفسیٹس - `offset` ، `start` ، اور `end` - آیت کے `text` میں اشاریہ جات ہیں جو ان پر مشتمل ہے۔ ان کی پیمائش UTF-16 کوڈ اکائیوں میں کی جاتی ہے، جو JavaScript کے `String.prototype.length` اور `String.prototype.slice()` استعمال کرتے ہیں۔
 
@@ -185,6 +187,11 @@ interface ChapterLineBreak {
      * اشارہ کرتا ہے کہ مواد لائن بریک کی نمائندگی کرتا ہے۔
      */
     type: 'line_break';
+
+    /**
+     * ماخذ پیراگراف مارکر (اس کے بیک سلیش کے بغیر) جب لائن بریک ایک نیا پیراگراف شروع کرتا ہے، مثال کے طور پر `p` ، `m` ، `pi1` یا `mi` ۔ سادہ لائن کے وقفوں کے لیے چھوڑ دیا گیا۔
+     */
+    paragraph?: string;
 }
 
 /**
@@ -217,6 +224,12 @@ interface SimpleChapterVerse {
      * اگر آیت میں کوئی ان لائن سرخی نہیں ہے تو چھوڑ دیا جائے گا۔
      */
     headings?: SimpleInlineHeading[];
+
+    /**
+     * وہ پیراگراف جو آیت کے بیچ میں شروع ہوتے ہیں۔
+     * اگر آیت میں کوئی نہ ہو۔
+     */
+    paragraphs?: SimpleVerseParagraph[];
 
     /**
      * آیت کے متن کی حدود جو یسوع کے الفاظ کی نمائندگی کرتی ہیں۔
@@ -287,6 +300,21 @@ interface SimpleInlineHeading {
 }
 
 /**
+ * ایک پیراگراف جو ایک آیت کے بیچ میں شروع ہوتا ہے۔
+ */
+interface SimpleVerseParagraph {
+    /**
+     * آیت کے متن میں اشاریہ جس سے پیراگراف شروع ہوتا ہے۔
+     */
+    offset: number;
+
+    /**
+     * ماخذ پیراگراف مارکر اس کے بیک سلیش کے بغیر، مثال کے طور پر `p` یا `m` ۔
+     */
+    style: string;
+}
+
+/**
  * ایک آیت کے اندر متن کی ایک حد۔
  */
 interface SimpleTextRange {
@@ -339,6 +367,7 @@ interface SimplePoemRange extends SimpleTextRange {
         "id": "GEN",
         "name": "Genesis",
         "commonName": "Genesis",
+        "shortName": "Gen",
         "title": "Genesis",
         "order": 1,
         "numberOfChapters": 50,
@@ -796,6 +825,7 @@ export interface SimpleTranslationCompleteChapter {
             "id": "GEN",
             "name": "Genesis",
             "commonName": "Genesis",
+            "shortName": "Gen",
             "title": "Genesis",
             "order": 1,
             "numberOfChapters": 50,

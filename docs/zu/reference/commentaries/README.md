@@ -62,6 +62,12 @@ export interface Commentary {
     licenseUrl: string;
 
     /**
+     * Amanothi angeziwe nge-API yelayisensi.
+     * Akunamsebenzi noma akuchaziwe uma kungekho amanothi.
+     */
+    licenseNotes?: string | null;
+
+    /**
      * Igama lesiNgisi lale ncazelo.
      */
     englishName: string;

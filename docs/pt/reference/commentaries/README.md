@@ -62,6 +62,12 @@ export interface Commentary {
     licenseUrl: string;
 
     /**
+     * Notas adicionais da API referentes à licença.
+     * Nulo ou indefinido se não houver anotações.
+     */
+    licenseNotes?: string | null;
+
+    /**
      * O nome em inglês para o comentário.
      */
     englishName: string;
@@ -216,7 +222,7 @@ interface CommentaryBook {
     commonName: string;
 
     /**
-     * Introdução ao livro, que serve de comentário.
+     * Introdução ao comentário do livro.
      * Omitido se o comentário não tiver uma introdução para o livro.
      */
     introduction?: string;

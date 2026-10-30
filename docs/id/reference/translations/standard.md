@@ -41,6 +41,10 @@ curl https://bible.helloao.org/api/BSB/GEN/1.json
 
 ### Struktur
 
+Angka `line_break` yang memulai paragraf sumber baru memiliki properti `paragraph` dengan penanda sumber tanpa garis miring terbaliknya (misalnya `{ "type": "line_break", "paragraph": "p" }` ; penanda lain termasuk `m` , `pi1` , `mi` , dan `pc` ). Penanda baris kosong ( `\b` ) menghasilkan `line_break` item tanpa `paragraph` Ketika baris kosong diikuti langsung oleh paragraf ( `\b` lalu `\m` ), keduanya digabungkan menjadi satu `{ "type": "line_break", "paragraph": "m" }` , sedangkan dua baris kosong menghasilkan dua jeda baris. `\nb` melanjutkan paragraf saat ini dan tidak menghasilkan jeda baris. Sebuah paragraf yang dimulai di dalam sebuah ayat direpresentasikan dalam isi ayat sebagai `{ "lineBreak": true, "paragraph": "p" }` .
+
+Renderer yang hanya memahami pemisah baris dapat mengabaikan `paragraph` .
+
 ```typescript:no-line-numbers title="chapter.ts"
 export interface TranslationBookChapter {
     /**
@@ -191,6 +195,11 @@ interface ChapterLineBreak {
      * Menunjukkan bahwa konten tersebut merupakan jeda baris.
      */
     type: 'line_break';
+
+    /**
+     * Penanda paragraf sumber (tanpa garis miring terbalik) ketika pemisah baris memulai paragraf baru, misalnya `p` , `m` , `pi1` atau `mi` Dihilangkan untuk pemisah baris biasa.
+     */
+    paragraph?: string;
 }
 
 /**
@@ -200,7 +209,7 @@ interface ChapterLineBreak {
  */
 interface ChapterHebrewSubtitle {
     /**
-     * Menunjukkan bahwa konten tersebut merupakan Subjudul Ibrani.
+     * Menunjukkan bahwa konten tersebut merupakan subjudul bahasa Ibrani.
      */
     type: 'hebrew_subtitle';
 
@@ -270,6 +279,11 @@ interface InlineHeading {
  */
 interface InlineLineBreak {
     lineBreak: true;
+
+    /**
+     * Penanda paragraf sumber (tanpa garis miring terbalik) ketika pemisah baris memulai paragraf baru, misalnya `p` , `m` , `pi1` atau `mi` Dihilangkan untuk pemisah baris biasa.
+     */
+    paragraph?: string;
 }
 
 
@@ -373,6 +387,7 @@ interface TranslationBookChapterAudioTimingsLinks {
         "translationId": "BSB",
         "name": "Genesis",
         "commonName": "Genesis",
+        "shortName": "Gen",
         "title": "Genesis",
         "order": 1,
         "numberOfChapters": 50,
@@ -971,6 +986,12 @@ export interface TranslationCompleteBook {
     commonName: string;
 
     /**
+     * Nama pendek (singkatan) yang diberikan terjemahan untuk buku tersebut.
+     * Jika tidak tersedia, berarti terjemahan tersebut tidak menyertakannya.
+     */
+    shortName?: string;
+
+    /**
      * Judul buku tersebut.
      */
     title: string | null;
@@ -1075,6 +1096,7 @@ interface TranslationBookChapterAudioTimingsMap {
       "id": "GEN",
       "name": "Genesis",
       "commonName": "Genesis",
+      "shortName": "Gen",
       "title": "Genesis",
       "order": 1,
       "numberOfChapters": 50,

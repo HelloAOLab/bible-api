@@ -75,6 +75,25 @@ interface Translation {
     licenseUrl: string;
 
     /**
+     * Notes ajoutées par l'API pour la licence.
+     * Valeur nulle ou indéfinie s'il n'y a pas de notes.
+     */
+    licenseNotes?: string | null;
+
+    /**
+     * Message à afficher lors de l'affichage du contenu traduit.
+     * Valeur nulle ou indéfinie si la traduction ne comporte pas d'avertissement.
+     */
+    licenseNotice?: string | null;
+
+    /**
+     * Les termes de licence structurés qui ont été détectés pour la traduction.
+     * Nul ou indéfini si les termes n'ont pas pu être déterminés.
+     * Dans ce cas, consultez la page à l'adresse licenseUrl pour connaître les conditions.
+     */
+    license?: License | null;
+
+    /**
      * Nom abrégé de la traduction.
      */
     shortName: string;
@@ -152,7 +171,59 @@ interface Translation {
      */
     totalNumberOfApocryphalVerses?: number;
 }
+
+/**
+ * Définit les termes de licence structurés qui ont été détectés pour une traduction.
+ */
+interface License {
+    /**
+     * Faut-il mentionner la source originale lors de l'utilisation de la traduction ?
+     */
+    attribution: 'required' | 'not-required';
+
+    /**
+     * L'utilisation commerciale de la traduction est-elle autorisée ?
+     */
+    commercialUse: 'allowed' | 'not-allowed';
+
+    /**
+     * La création et la distribution d'œuvres dérivées de la traduction sont-elles autorisées ?
+     */
+    derivatives: 'allowed' | 'not-allowed';
+
+    /**
+     * La question de savoir si les œuvres dérivées doivent être distribuées sous la même licence (c’est-à-dire une exigence de « partage à l’identique »).
+     */
+    copyleft: boolean;
+
+    /**
+     * Si la traduction a été placée dans le domaine public.
+     */
+    publicDomain: boolean;
+}
 ```
+
+### Licences
+
+Chaque traduction est publiée sous sa propre licence, veuillez donc vérifier les conditions d'utilisation avant de l'utiliser.
+
+-   `licenseUrl` renvoie toujours aux conditions générales de la licence.
+-   Le symbole `licenseNotice` , lorsqu'il est présent, est la mention de droit d'auteur ou d'attribution à afficher avec le contenu de la traduction.
+-   `licenseNotes` contient des notes ajoutées par l'API, telles que les modifications apportées au texte source.
+-   Le chiffre `license` , lorsqu'il est présent, résume les termes sous une forme vérifiable par votre code. Par exemple, vous pouvez filtrer la liste pour ne conserver que les traductions autorisant un usage commercial :
+
+```ts:no-line-numbers title="commercial-translations.js"
+fetch(`https://bible.helloao.org/api/available_translations.json`)
+    .then(request => request.json())
+    .then(({ translations }) => {
+        const commercial = translations.filter(
+            t => t.license?.commercialUse === 'allowed'
+        );
+        console.log('Translations that allow commercial use:', commercial);
+    });
+```
+
+La valeur `license` n'est attribuée que si les termes peuvent être détectés automatiquement. Les traductions sans cette valeur peuvent néanmoins être utilisables ; consultez la page correspondant à `licenseUrl` pour plus d'informations.
 
 ### Exemple
 
@@ -247,6 +318,12 @@ interface TranslationBook {
     commonName: string;
 
     /**
+     * Le nom court (abréviation) que la traduction a donné au livre.
+     * Si elle n'est pas disponible, c'est qu'elle n'a pas été fournie par la traduction.
+     */
+    shortName?: string;
+
+    /**
      * Le titre du livre.
      * Il s'agit généralement d'une version plus descriptive du titre du livre.
      * Si elle n'est pas disponible, c'est qu'elle n'a pas été fournie par la traduction.
@@ -325,6 +402,7 @@ interface TranslationBook {
             "translationId": "BSB",
             "name": "Genesis",
             "commonName": "Genesis",
+            "shortName": "Gen",
             "title": "Genesis",
             "order": 1,
             "numberOfChapters": 50,

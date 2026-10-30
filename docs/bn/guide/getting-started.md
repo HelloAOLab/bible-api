@@ -29,5 +29,10 @@ description: 'কয়েক মিনিটের মধ্যেই ফ্র
 -   [`https://bible.helloao.org/api/available_datasets.json`](../reference/datasets/README.md#available-datasets)
 -   [`https://bible.helloao.org/api/d/{dataset}/books.json`](../reference/datasets/README.md#list-books-in-a-dataset)
 -   [`https://bible.helloao.org/api/d/{dataset}/{book}/{chapter}.json`](../reference/datasets/README.md#get-a-chapter-from-a-dataset)
+-   [`https://bible.helloao.org/api/d/{dataset}/lexicon.json`](../reference/datasets/README.md#list-lexicon-entries-in-a-dataset)
+-   [`https://bible.helloao.org/api/d/{dataset}/lexicon/{strongs}.json`](../reference/datasets/README.md#get-a-lexicon-entry-from-a-dataset)
+-   [`https://bible.helloao.org/api/d/{dataset}/verses.json`](../reference/datasets/README.md#list-verses-in-a-dataset)
+-   [`https://bible.helloao.org/api/d/{dataset}/categories.json`](../reference/datasets/README.md#list-categories-in-a-dataset)
+-   [`https://bible.helloao.org/api/d/{dataset}/categories/{category}.json`](../reference/datasets/README.md#get-a-category-from-a-dataset)
 
 প্রতিটি এন্ডপয়েন্ট সম্পর্কে আরও তথ্যের জন্য [পরবর্তী পৃষ্ঠা](./making-requests.md) দেখুন।

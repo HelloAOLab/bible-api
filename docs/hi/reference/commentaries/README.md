@@ -62,6 +62,12 @@ export interface Commentary {
     licenseUrl: string;
 
     /**
+     * लाइसेंस के लिए एपीआई द्वारा जोड़े गए नोट्स।
+     * यदि कोई नोट्स नहीं हैं तो यह शून्य या अपरिभाषित होगा।
+     */
+    licenseNotes?: string | null;
+
+    /**
      * टिप्पणी का अंग्रेजी नाम।
      */
     englishName: string;

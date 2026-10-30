@@ -1,6 +1,6 @@
 # Datastelle
 
-Eindpunte vir die blaai van aanvullende Bybeldatastelle - soos kruisverwysings en Bybelse entiteite (mense, plekke, gebeure en mensegroepe) - en die ophaal van hul boeke, hoofstukinhoud en entiteite.
+Eindpunte vir die blaai van aanvullende Bybeldatastelle - soos kruisverwysings, Bybelse entiteite (mense, plekke, gebeure en mensegroepe), interlineêre woorde in die oorspronklike taal, leksikons en vers-van-die-dag-kandidate - en die ophaal van hul boeke, hoofstukinhoud, entiteite, leksikoninskrywings en verskategorieë.
 
 ## Beskikbare datastelle
 
@@ -62,6 +62,12 @@ export interface Dataset {
     licenseUrl: string;
 
     /**
+     * Die API-bygevoegde notas vir die lisensie.
+     * Nul of ongedefinieerd indien daar geen notas is nie.
+     */
+    licenseNotes?: string | null;
+
+    /**
      * Die Engelse naam vir die datastel.
      */
     englishName: string;
@@ -105,8 +111,15 @@ export interface Dataset {
 
     /**
      * Die totale aantal kruisverwysings wat in hierdie datastel voorkom.
+     * 0 vir datastelle wat nie kruisverwysings bevat nie.
      */
     totalNumberOfReferences: number;
+
+    /**
+     * Die totale aantal interlineêre woorde wat in hierdie datastel voorkom.
+     * Weglaat as die datastel nie interlineêre woorde bevat nie.
+     */
+    totalNumberOfWords?: number;
 
     /**
      * Kry die naam van die taal waarin die datastel is.
@@ -137,6 +150,36 @@ export interface Dataset {
     totalNumberOfPlaces?: number;
     totalNumberOfEvents?: number;
     totalNumberOfPeopleGroups?: number;
+
+    /**
+     * Die API-skakel vir die lys van leksikoninskrywings in die datastel.
+     * Weglaat as die datastel nie leksikoninskrywings bevat nie.
+     */
+    listOfLexiconApiLink?: string;
+
+    /**
+     * Die totale aantal leksikoninskrywings wat in die datastel voorkom.
+     * Weglaat as die datastel nie leksikoninskrywings bevat nie.
+     */
+    totalNumberOfLexicon?: number;
+
+    /**
+     * Die API-skakel vir die lys van elke vers in die datastel, met sy kategorieë.
+     * Weglaat as die verse van die datastel nie kategorieë het nie.
+     */
+    listOfVersesApiLink?: string;
+
+    /**
+     * Die API-skakel vir die lys van verskategorieë in die datastel.
+     * Weglaat as die datastel nie verskategorieë bevat nie.
+     */
+    listOfCategoriesApiLink?: string;
+
+    /**
+     * Die totale aantal verskategorieë wat in die datastel vervat is.
+     * Weglaat as die datastel nie verskategorieë bevat nie.
+     */
+    totalNumberOfCategories?: number;
 }
 ```
 
@@ -192,6 +235,94 @@ export interface Dataset {
             "totalNumberOfEvents": 450,
             "listOfPeopleGroupsApiLink": "/api/d/theographic/groups.json",
             "totalNumberOfPeopleGroups": 23
+        },
+        {
+            "id": "bsb-interlinear",
+            "name": "Berean Standard Bible Interlinear",
+            "website": "https://bereanbible.com/",
+            "licenseUrl": "https://berean.bible/terms.htm",
+            "licenseNotes": "The Berean Standard Bible and its interlinear tables are in the public domain. Changes were made to the data to fit the Free Use Bible API format.",
+            "englishName": "Berean Standard Bible Interlinear",
+            "language": "eng",
+            "textDirection": "ltr",
+            "availableFormats": [
+                "json"
+            ],
+            "listOfBooksApiLink": "/api/d/bsb-interlinear/books.json",
+            "numberOfBooks": 66,
+            "totalNumberOfChapters": 1189,
+            "totalNumberOfVerses": 31102,
+            "totalNumberOfReferences": 0,
+            "languageName": "English",
+            "languageEnglishName": "English",
+            "totalNumberOfWords": 443625
+        },
+        {
+            "id": "stepbible-lexicon",
+            "name": "STEPBible Brief Lexicons",
+            "website": "https://github.com/STEPBible/STEPBible-Data",
+            "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+            "licenseNotes": "The Translators Brief lexicons of Extended Strongs (TBESH and TBESG) are by STEPBible.org / Tyndale House, Cambridge, and are licensed under CC BY 4.0. Changes were made to the data to fit the Free Use Bible API format.",
+            "englishName": "STEPBible Brief Lexicons",
+            "language": "eng",
+            "textDirection": "ltr",
+            "availableFormats": [
+                "json"
+            ],
+            "listOfBooksApiLink": "/api/d/stepbible-lexicon/books.json",
+            "numberOfBooks": 0,
+            "totalNumberOfChapters": 0,
+            "totalNumberOfVerses": 0,
+            "totalNumberOfReferences": 0,
+            "languageName": "English",
+            "languageEnglishName": "English",
+            "listOfLexiconApiLink": "/api/d/stepbible-lexicon/lexicon.json",
+            "totalNumberOfLexicon": 18085
+        },
+        {
+            "id": "history-globe",
+            "name": "History Globe",
+            "website": "https://historyglobe.app",
+            "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+            "licenseNotes": "History Globe by Vadym Arnaut (https://historyglobe.app) is licensed under CC BY 4.0. Its places, verse tags, and coordinates start from the OpenBible.info Bible Geocoding Data (CC BY 4.0), with corrections, and some coordinates are from Wikidata (CC0). Changes were made to the data to fit the Free Use Bible API format.",
+            "englishName": "History Globe",
+            "language": "eng",
+            "textDirection": "ltr",
+            "availableFormats": [
+                "json"
+            ],
+            "listOfBooksApiLink": "/api/d/history-globe/books.json",
+            "numberOfBooks": 61,
+            "totalNumberOfChapters": 849,
+            "totalNumberOfVerses": 5546,
+            "totalNumberOfReferences": 8617,
+            "languageName": "English",
+            "languageEnglishName": "English",
+            "listOfPlacesApiLink": "/api/d/history-globe/places.json",
+            "totalNumberOfPlaces": 1231
+        },
+        {
+            "id": "verse-of-the-day",
+            "name": "Verse of the Day",
+            "website": "https://github.com/HelloAOLab/bible-api/blob/main/packages/helloao-tools/generation/verse-of-the-day.ts",
+            "licenseUrl": "https://github.com/HelloAOLab/bible-api/blob/main/LICENSE",
+            "licenseNotes": "A curated list of well-known verses by AO Lab, released under the MIT License.",
+            "englishName": "Verse of the Day",
+            "language": "eng",
+            "textDirection": "ltr",
+            "availableFormats": [
+                "json"
+            ],
+            "listOfBooksApiLink": "/api/d/verse-of-the-day/books.json",
+            "numberOfBooks": 65,
+            "totalNumberOfChapters": 381,
+            "totalNumberOfVerses": 750,
+            "totalNumberOfReferences": 0,
+            "languageName": "English",
+            "languageEnglishName": "English",
+            "listOfVersesApiLink": "/api/d/verse-of-the-day/verses.json",
+            "listOfCategoriesApiLink": "/api/d/verse-of-the-day/categories.json",
+            "totalNumberOfCategories": 31
         }
     ]
 }
@@ -353,7 +484,7 @@ interface DatasetBook {
 
 Kry die inhoud van 'n enkele hoofstuk vir 'n gegewe boek en datastel.
 
-Vir kruisverwysingsdatastelle (soos `open-cross-ref` ), bevat die hoofstuk die lys van kruisverwysings vir elke vers. Vir entiteitdatastelle (soos `theographic` ), bevat die hoofstuk die mense, plekke en gebeure wat in die hoofstuk verskyn - sien [Kry die Entiteite in 'n Hoofstuk](#get-the-entities-in-a-chapter) .
+Vir kruisverwysingsdatastelle (soos `open-cross-ref` ), bevat die hoofstuk die lys van kruisverwysings vir elke vers. Vir interlineêre datastelle (soos `bsb-interlinear` ), bevat die hoofstuk die woorde van elke vers in die oorspronklike taal - sien [Interlineêre datastelle](#interlinear-datasets) . Vir entiteitsdatastelle (soos `theographic` ), bevat die hoofstuk die mense, plekke en gebeure wat in die hoofstuk verskyn - sien [Kry die Entiteite in 'n Hoofstuk](#get-the-entities-in-a-chapter) . Vir die `verse-of-the-day` datastel bevat die hoofstuk die vers van die dag-kandidate in die hoofstuk en hul kategorieë - sien [Vers van die Dag](#verse-of-the-day) .
 
 -   `dataset` die ID van die datastel (bv. `open-cross-ref` ).
 -   `book` is die ID van die boek (bv. `GEN` vir Genesis).
@@ -440,7 +571,16 @@ interface DatasetChapterData {
     content: DatasetVerse[];
 }
 
-interface DatasetVerse {
+/**
+ * 'n Vers dra `references` (kruisverwysingsdatastelle), `words` (interlineêre datastelle) of `categories` (die vers-van-die-dag-datastel).
+ * Kontroleer watter een teenwoordig is met `'words' in verse` of `'categories' in verse` .
+ */
+type DatasetVerse =
+    | DatasetReferencesVerse
+    | DatasetWordsVerse
+    | DatasetCategoriesVerse;
+
+interface DatasetReferencesVerse {
     /**
      * Die nommer van die vers.
      */
@@ -452,6 +592,52 @@ interface DatasetVerse {
      * Gesorteer volgens telling, aflopend.
      */
     references: DatasetReference[];
+}
+
+interface DatasetWordsVerse {
+    /**
+     * Die nommer van die vers.
+     */
+    verse: number;
+
+    /**
+     * Die woorde van die vers in die oorspronklike taal, in volgorde van die oorspronklike teks.
+     * Sien "Interlineêre datastelle" hieronder.
+     */
+    words: InterlinearWord[];
+}
+
+interface DatasetCategoriesVerse {
+    /**
+     * Die nommer van die vers.
+     * As `endVerse` teenwoordig is, dan is dit die vers waar die gedeelte begin.
+     */
+    verse: number;
+
+    /**
+     * Die vers waarmee die gedeelte eindig.
+     * Weglaat indien die inskrywing 'n enkele vers is.
+     */
+    endVerse?: number;
+
+    /**
+     * Die ID's van die kategorieë waaraan die vers behoort, mees relevante eerste.
+     * Sien "Vers van die Dag" hieronder.
+     */
+    categories: string[];
+
+    /**
+     * Die eerste jaar wat die vers die vers van die dag kan wees.
+     * Weglaat as die vers nog altyd in die lys was.
+     */
+    addedIn?: number;
+
+    /**
+     * Die eerste jaar wat die vers nie meer die vers van die dag kan wees nie.
+     * Verwyderde verse bly in die datastel sodat die verse van vorige jare steeds gekies kan word.
+     * Weglaat indien die vers nie van die lys verwyder is nie.
+     */
+    removedIn?: number;
 }
 
 interface DatasetReference {
@@ -481,6 +667,8 @@ interface DatasetReference {
      */
     score?: number;
 }
+
+// Sien "Interlineêre Datastelle" hieronder vir die struktuur van InterlinearWord.
 ```
 
 ### Voorbeeld
@@ -574,6 +762,8 @@ interface DatasetReference {
 
 Sommige datastelle – soos die [Theographic Bible Metadata-](https://github.com/robertrouse/theographic-bible-metadata) datastel ( `theographic` ) – bevat entiteite: mense, plekke, gebeure en mensegroepe, tesame met die verwantskappe tussen hulle en die Bybelverse wat hulle noem.
 
+Die [History Globe-](https://historyglobe.app) datastel ( `history-globe` ) bevat slegs plekke: die plekke wat in die Bybel genoem word, met hul koördinate en die verse wat hulle benoem. Die plek-ID's (bv. `a15257a` vir Jerusalem) is History Globe se stabiele plek-ID's, dieselfde wat sy eie [oop data-API](https://historyglobe.app/docs/api.html) gebruik, so hulle verander nie wanneer 'n naam reggestel word nie. Die `featureType` waardes volg die waardes wat die Theographic-datastel gebruik ( `City` , `Region` , `Water` , ensovoorts), en `featureSubType` dra die meer spesifieke soort waar daar een is (bv. `River` , `Gate` , `Spring` ).
+
 Datastelle wat entiteite bevat, sluit `listOfPeopleApiLink` , `listOfPlacesApiLink` , `listOfEventsApiLink` en `listOfPeopleGroupsApiLink` eienskappe in hul inskrywing in `/api/available_datasets.json` .
 
 Entiteitsdatastelle verskaf ook hoofstuk-gerigte data: `/api/d/{dataset}/books.json` lys die boeke waarvan die hoofstukke entiteitsdata bevat, en `/api/d/{dataset}/{book}/{chapter}.json` gee die mense, plekke en gebeure terug wat in daardie hoofstuk verskyn, saam met die versnommers waar elkeen genoem word. Sien [Kry die Entiteite in 'n Hoofstuk](#get-the-entities-in-a-chapter) .
@@ -627,6 +817,10 @@ export interface VerseRef {
     endVerse?: number;
 }
 ```
+
+### Geskiedenis Globe Toeskrywing
+
+Die History Globe-data word gelisensieer onder [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) . Indien u dit gebruik, gee erkenning aan History Globe ( https://historyglobe.app ) en die OpenBible.info Bybel-geokoderingsdata waarop dit voortbou, en let op enige veranderinge. Die `licenseNotes` eienskap van die datastel dra die erkenning.
 
 ## Kry die entiteite in 'n hoofstuk
 
@@ -1729,5 +1923,942 @@ interface DatasetPeopleGroup {
         "references": []
     },
     "thisPeopleGroupApiLink": "/api/d/theographic/groups/tribe-of-benjamin.json"
+}
+```
+
+## Interlineêre datastelle
+
+Die Bereaanse interlineêre datastel ( `bsb-interlinear` ) lys die woorde in die oorspronklike taal (Hebreeus, Aramees en Grieks) van elke vers van die Bybel, in die volgorde waarin hulle in die oorspronklike teks verskyn. Elke woord het sy transliterasie, grammatikale ontleding, [Strong se nommer](https://en.wikipedia.org/wiki/Strong%27s_Concordance) en die Engelse frase wat die [Bereaanse Standaard Bybel](https://berean.bible) daarvoor gebruik.
+
+Die datastel gebruik dieselfde eindpunte as ander datastelle:
+
+-   `GET https://bible.helloao.org/api/d/bsb-interlinear/books.json` lys die 66 boeke.
+-   `GET https://bible.helloao.org/api/d/bsb-interlinear/{book}/{chapter}.json` (bv. `/api/d/bsb-interlinear/GEN/1.json` ) gee die hoofstuk terug, met `{ verse, words }` vir elke vers. Die antwoord is 'n [datastel hoofstuk](#get-a-chapter-from-a-dataset) .
+
+Die woorddata kom van die [Berean Standard Bible interlineêre tabelle](https://bereanbible.com/) , wat in die publieke domein is. Strong se nommers vir die woorde word in die [leksikon](#lexicon) opgesoek ( `stepbible-lexicon` ).
+
+### Struktuur
+
+```typescript:no-line-numbers title="interlinear-word.ts"
+interface InterlinearWord {
+    /**
+     * Die 1-gebaseerde rang van die woord in die oorspronklike teks se volgorde.
+     * Woorde word in hierdie volgorde gelys.
+     */
+    pos: number;
+
+    /**
+     * Die 1-gebaseerde rang van die woord in die Berean Standard Bible se Engelse volgorde.
+     */
+    bsbPos: number;
+
+    /**
+     * Die taal van die woord.
+     */
+    language: 'hebrew' | 'aramaic' | 'greek';
+
+    /**
+     * Die woord in die oorspronklike skrif. NFC-genormaliseer.
+     */
+    text: string;
+
+    /**
+     * Die transliterasie van die woord.
+     */
+    transliteration: string | null;
+
+    /**
+     * Die kort grammatikale ontledingskode van die woord, bv. "N-mp" of "V-Qal-Perf-3ms".
+     */
+    parsing: string | null;
+
+    /**
+     * Die uitgespelde grammatikale ontleding van die woord.
+     */
+    parsingFull: string | null;
+
+    /**
+     * Die nul-gevulde Strong-nommer van die woord, bv. "H0430" of "G3056".
+     * Nul-gevuld, wat ooreenstem met die KJV se `.words.json` waardes.
+     * Ander vertalings se waardes benodig dalk nul-opvulling en agtervoegsel-strooping voor samevoeging.
+     * Nul wanneer die bron die woord geen Strong se nommer gee nie (dit is die geval vir sommige woorde wat agtervoegsels is, soos voornaamwoord-agtervoegsels).
+     */
+    strongs: string | null;
+
+    /**
+     * Die Berean Standard Bible se Engelse frase vir die woord.
+     * Null wanneer die BSB die woord onvertaal laat (soos die Hebreeuse direkte voorwerpmerker).
+     */
+    gloss: string | null;
+}
+```
+
+### Voorbeeld
+
+```json:no-line-numbers title="/api/d/bsb-interlinear/GEN/1.json"
+{
+    "dataset": {
+        "id": "bsb-interlinear",
+        "name": "Berean Standard Bible Interlinear",
+        "totalNumberOfWords": 443625
+        // ...
+    },
+    "book": {
+        "id": "GEN",
+        "datasetId": "bsb-interlinear",
+        "order": 1,
+        "numberOfChapters": 50
+        // ...
+    },
+    "chapter": {
+        "number": 1,
+        "content": [
+            {
+                "verse": 1,
+                "words": [
+                    {
+                        "pos": 1,
+                        "bsbPos": 1,
+                        "language": "hebrew",
+                        "text": "בְּרֵאשִׁ֖ית",
+                        "transliteration": "bə·rê·šîṯ",
+                        "parsing": "Prep-b | N-fs",
+                        "parsingFull": "Preposition-b | Noun - feminine singular",
+                        "strongs": "H7225",
+                        "gloss": "In the beginning"
+                    },
+                    {
+                        "pos": 2,
+                        "bsbPos": 4,
+                        "language": "hebrew",
+                        "text": "בָּרָ֣א",
+                        "transliteration": "bā·rā",
+                        "parsing": "V-Qal-Perf-3ms",
+                        "parsingFull": "Verb - Qal - Perfect - third person masculine singular",
+                        "strongs": "H1254",
+                        "gloss": "created"
+                    }
+                    // ...
+                ]
+            }
+            // ...
+        ]
+    },
+    "thisChapterLink": "/api/d/bsb-interlinear/GEN/1.json",
+    "nextChapterApiLink": "/api/d/bsb-interlinear/GEN/2.json",
+    "previousChapterApiLink": null,
+    "numberOfVerses": 31,
+    "numberOfReferences": 0
+}
+```
+
+### Woorde aan vertalings koppel
+
+Interlineêre `strongs` waardes word met nul opgevul (bv. `H0430` ). Dit stem ooreen met die `strongs` waardes in die KJV se woordaantekeninge ( `/api/eng_kjv/{book}/{chapter}.words.json` ). Ander vertalings se waardes benodig moontlik nul-opvulling en agtervoegselstroop (bv. `H430` of `H1961a` tot `H0430` en `H1961` ) voordat hulle saamgevoeg kan word.
+
+-   **KJV.** Vir die King James-weergawe ( `eng_kjv` en `eng_kja` ), verbind die Strong-nommers in 'n hoofstuk se `.words.json` lêer met die `strongs` van die interliniêre woorde van dieselfde vers. Byvoorbeeld, elke Strong-nommer wat in `/api/eng_kjv/GEN/1.words.json` vir vers 1 ( `H7225` , `H1254` , `H0430` , `H0853` , `H8064` , `H0776` ) geannoteer is, verskyn as 'n `strongs` waarde tussen die woorde van vers 1 in `/api/d/bsb-interlinear/GEN/1.json` .
+-   **Berean Standard Bible.** Elke woord se `gloss` is die BSB-frase vir daardie woord. Loop die vers se woorde in `bsbPos` volgorde en pas elke `gloss` by die vers-teks van die BSB-vertaling om te vind waar die woord se vertaling staan.
+
+Die nommering van die twee bronne stem nie altyd ooreen nie. Byvoorbeeld, die KJV-etikette "was" as `G2258` waar die Bereaanse tabel `G1510` het. 'n Paar koppelings mis as gevolg van verskille soos hierdie.
+
+### Toeskrywing
+
+Die Bereaanse interlineêre tabelle is in die publieke domein. Die [leksikon](#lexicon) is gelisensieer onder CC BY 4.0 en vereis erkenning.
+
+## Leksikon
+
+Die STEPBible-leksikondatastel ( `stepbible-lexicon` ) bevat die Hebreeuse, Aramese en Griekse kortleksikons (TBESH en TBESG) van [STEPBible.org](https://www.stepbible.org/) by Tyndale House, Cambridge. Dit het een inskrywing vir elke basis Strong se getal, en elke inskrywing het een of meer betekenisse met die lemma, transliterasie, woordsoort, Engelse glans en 'n definisie.
+
+Enige nul-opgevulde `strongs` waarde van 'n [interlineêre woord](#interlinear-datasets) wat 'n leksikoninskrywing het, kan by `/api/d/stepbible-lexicon/lexicon/{strongs}.json` opgesoek word sonder om te herformateer. Dieselfde geld vir die KJV se `.words.json` waardes; ander vertalings se waardes benodig dalk eers nul-opvulling en agtervoegselstroop. Griekse inskrywings wat die leksikon sonder 'n Strong-nommer byvoeg, word nie gepubliseer nie.
+
+Datastelle wat leksikoninskrywings bevat, sluit `listOfLexiconApiLink` en `totalNumberOfLexicon` in hul inskrywing in `/api/available_datasets.json` .
+
+### Toeskrywing
+
+Die leksikondata word gelisensieer onder [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) . Indien u dit gebruik, gee erkenning aan STEPBible.org / Tyndale House, Cambridge, en let op enige veranderinge. Die `licenseNotes` eienskap van die datastel dra die erkenning.
+
+## Lys Leksikoninskrywings in 'n Datastel
+
+`GET https://bible.helloao.org/api/d/{dataset}/lexicon.json`
+
+Kry die lys van leksikoninskrywings wat beskikbaar is vir 'n datastel.
+
+-   `dataset` die ID van die datastel (bv. `stepbible-lexicon` ).
+
+### Kode Voorbeeld
+
+::: code-tabs#taal
+
+@tab JavaScript
+
+```ts:no-line-numbers title="fetch-lexicon.js"
+fetch(`https://bible.helloao.org/api/d/stepbible-lexicon/lexicon.json`)
+    .then(request => request.json())
+    .then(lexicon => {
+        console.log('The lexicon has', lexicon.lexicon.length, 'entries');
+    });
+```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/d/stepbible-lexicon/lexicon.json
+```
+
+:::
+
+### Struktuur
+
+```typescript:no-line-numbers title="dataset-lexicon.ts"
+export interface DatasetLexicon {
+    /**
+     * Die datastelinligting vir die leksikon.
+     */
+    dataset: Dataset;
+
+    /**
+     * Die lys van leksikoninskrywings wat vir die datastel beskikbaar is.
+     */
+    lexicon: DatasetLexiconEntrySummary[];
+}
+
+export interface DatasetLexiconEntrySummary {
+    /**
+     * Die nul-gevulde Strong-nommer van die leksikoninskrywing. bv. "H0430".
+     */
+    id: string;
+
+    /**
+     * Die taal van die leksikoninskrywing.
+     */
+    language: 'hebrew' | 'aramaic' | 'greek';
+
+    /**
+     * Die naam van die leksikoninskrywing.
+     * Dit is die lemma van die inskrywing se eerste betekenis.
+     */
+    name: string;
+
+    /**
+     * Die API-skakel vir die leksikoninskrywing.
+     */
+    apiLink: string;
+}
+```
+
+### Voorbeeld
+
+```json:no-line-numbers title="/api/d/stepbible-lexicon/lexicon.json"
+{
+    "dataset": {
+        "id": "stepbible-lexicon",
+        "name": "STEPBible Brief Lexicons",
+        "totalNumberOfLexicon": 18085
+        // ...
+    },
+    "lexicon": [
+        {
+            "id": "G0001",
+            "language": "greek",
+            "name": "α, Ἀλφα",
+            "apiLink": "/api/d/stepbible-lexicon/lexicon/G0001.json"
+        },
+        {
+            "id": "G0002",
+            "language": "greek",
+            "name": "Ἀαρών",
+            "apiLink": "/api/d/stepbible-lexicon/lexicon/G0002.json"
+        }
+        // ...
+    ]
+}
+```
+
+## Kry 'n leksikoninskrywing vanaf 'n datastel
+
+`GET https://bible.helloao.org/api/d/{dataset}/lexicon/{strongs}.json`
+
+Kry die leksikoninskrywing vir 'n enkele basis Strong se getal, met al sy sintuie.
+
+-   `dataset` die ID van die datastel (bv. `stepbible-lexicon` ).
+-   `strongs` is die nul-gevulde Strong-getal (bv. `H0430` vir die Hebreeuse woord _elohim_, of `G3056` vir die Griekse woord _logos_).
+
+### Kode Voorbeeld
+
+::: code-tabs#taal
+
+@tab JavaScript
+
+```ts:no-line-numbers title="fetch-lexicon-entry.js"
+const strongs = 'H1254';
+
+fetch(`https://bible.helloao.org/api/d/stepbible-lexicon/lexicon/${strongs}.json`)
+    .then(request => request.json())
+    .then(({ entry }) => {
+        console.log('H1254:', entry.senses.map(sense => sense.gloss));
+    });
+```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/d/stepbible-lexicon/lexicon/H1254.json
+```
+
+:::
+
+### Struktuur
+
+```typescript:no-line-numbers title="dataset-lexicon-entry.ts"
+export interface DatasetLexiconEntry {
+    /**
+     * Die datastelinligting vir die leksikoninskrywing.
+     */
+    dataset: Dataset;
+
+    /**
+     * Die leksikon-inskrywing.
+     */
+    entry: DatasetLexiconEntryContent;
+
+    /**
+     * Die API-skakel vir hierdie leksikoninskrywing.
+     */
+    thisLexiconEntryApiLink: string;
+}
+
+export interface DatasetLexiconEntryContent {
+    /**
+     * Die nul-gevulde Strong-nommer van die inskrywing. bv. "H0430".
+     */
+    id: string;
+
+    /**
+     * Die taal van die inskrywing.
+     * Dit is die taal van die inskrywing se eerste sin.
+     */
+    language: 'hebrew' | 'aramaic' | 'greek';
+
+    /**
+     * Die sintuie van die inskrywing, in ID-volgorde.
+     */
+    senses: DatasetLexiconSense[];
+}
+
+export interface DatasetLexiconSense {
+    /**
+     * Die uitgebreide ID van die sintuig. bv. "H0001G".
+     * Gelyk aan die basis van Strong se getal wanneer die getal 'n enkele betekenis het.
+     */
+    id: string;
+
+    /**
+     * Die taal van die sintuie.
+     */
+    language: 'hebrew' | 'aramaic' | 'greek';
+
+    /**
+     * Die lemma van die sin in die oorspronklike skrif.
+     */
+    lemma: string;
+
+    /**
+     * Die transliterasie van die lemma.
+     */
+    transliteration: string | null;
+
+    /**
+     * Die woordsoort (morfologie) kode van die sin.
+     */
+    partOfSpeech: string | null;
+
+    /**
+     * Die kort Engelse glans van die sin.
+     */
+    gloss: string | null;
+
+    /**
+     * Die definisie van die sin as gewone teks.
+     * Paragrawe word deur leë lyne geskei. Opmaak in die bronkode word verwyder.
+     */
+    definition: string;
+}
+```
+
+### Voorbeeld
+
+```json:no-line-numbers title="/api/d/stepbible-lexicon/lexicon/H1254.json"
+{
+    "dataset": {
+        "id": "stepbible-lexicon",
+        "name": "STEPBible Brief Lexicons",
+        "totalNumberOfLexicon": 18085
+        // ...
+    },
+    "entry": {
+        "id": "H1254",
+        "language": "hebrew",
+        "senses": [
+            {
+                "id": "H1254A",
+                "language": "hebrew",
+                "lemma": "בָּרָא",
+                "transliteration": "ba.ra",
+                "partOfSpeech": "V",
+                "gloss": "to create",
+                "definition": "1) to create, shape, form\n\n1a) (Qal) to shape, fashion, create (always with God as subject)\n\n1b) (Niphal) to be created"
+            },
+            {
+                "id": "H1254B",
+                "language": "hebrew",
+                "lemma": "בָּרָא",
+                "transliteration": "ba.ra",
+                "partOfSpeech": "V",
+                "gloss": "to fatten",
+                "definition": "1) to be fat\n\n1a) (Hiphil) to make yourselves fat"
+            }
+        ]
+    },
+    "thisLexiconEntryApiLink": "/api/d/stepbible-lexicon/lexicon/H1254.json"
+}
+```
+
+## Vers van die Dag
+
+Die vers van die dag-datastel ( `verse-of-the-day` ) is 'n saamgestelde lys van bekende verse en kort gedeeltes (hoogstens drie verse) wat goeie kandidate maak vir 'n "vers van die dag": meer as 640 vir elke dag van die jaar, en meer as 100 vir Christelike vakansiedae. Elkeen maak op sy eie sin.
+
+Elke vers vir elke dag het een tot drie kategorieë, die mees relevante eerste, uit hierdie vaste stel:
+
+| ID            | Beskrywing                                                       |
+| ------------- | ---------------------------------------------------------------- |
+| `comfort`     | God se nabyheid en sorg in hartseer, moeilikheid en eensaamheid. |
+| `courage`     | Standvastig staan ​​en nie bang wees nie.                        |
+| `faith`       | Vertrou op God en Sy beloftes.                                   |
+| `forgiveness` | God se vergifnis van sonde en die vergifnis van ander.           |
+| `gratitude`   | Dank aan God.                                                    |
+| `guidance`    | God wat ons stappe, planne en besluite lei.                      |
+| `hope`        | Vertroue in die toekoms wat God belowe het.                      |
+| `inspiration` | Aanmoediging om die geloof uit te leef en goed te doen.          |
+| `joy`         | Blydskap en vreugde in God.                                      |
+| `love`        | God se liefde vir ons en ons liefde vir God en ander.            |
+| `peace`       | Rus, stilte en vryheid van angs.                                 |
+| `praise`      | Aanbidding en verklarings van God se grootheid.                  |
+| `prayer`      | Om God aan te roep en Sy belofte om te hoor.                     |
+| `provision`   | God wat voorsien wat ons nodig het.                              |
+| `salvation`   | Verlossing, genade en nuwe lewe in Christus.                     |
+| `strength`    | God wat krag en uithouvermoë gee.                                |
+| `wisdom`      | Goddelike wysheid en praktiese onderrig vir die lewe.            |
+
+Vakansiedae het hul eie kategorieë. Op 'n vakansiedag is die vers van die dag een van die vakansiedag se verse, en daardie verse word nie op ander dae gebruik nie. 'n Vakansiedag duur gewoonlik een dag; Na Opstandingsondag duur die drie dae na Opstandingsondag, dus lys dit al drie datums. Elke vakansiekategorie het 'n `holiday` met sy datums: vakansiedae op dieselfde datum elke jaar het 'n `month` en `day` , en vakansiedae waarvan die datum elke jaar verander (omdat hulle afhang van Opstandingsondag of Advent) lys hul `dates` in die Gregoriaanse kalender, vooraf bereken vir 2026 tot 2125.
+
+| ID                         | Vakansie                 | Datum                                   |
+| -------------------------- | ------------------------ | --------------------------------------- |
+| `epiphany`                 | Epifanie                 | 6 Januarie                              |
+| `ash-wednesday`            | Aswoensdag               | 46 dae voor die Opstandingsondag        |
+| `palm-sunday`              | Palmsondag               | Die Sondag voor die Opstandingsondag    |
+| `maundy-thursday`          | Witte Donderdag          | Die Donderdag voor die Opstandingsondag |
+| `good-friday`              | Goeie Vrydag             | Die Vrydag voor die Opstandingsondag    |
+| `resurrection-sunday`      | Opstandingsondag         | Paassondag                              |
+| `post-resurrection-sunday` | Na die Opstanding Sondag | Die drie dae na die Opstandingsondag    |
+| `ascension-day`            | Hemelvaartdag            | 39 dae na die Opstandingsondag          |
+| `pentecost`                | Pinkster                 | 49 dae na die Opstandingsondag          |
+| `all-hallows-eve`          | Allerheiligeaand         | 31 Oktober                              |
+| `all-saints-day`           | Allerheiligedag          | 1 November                              |
+| `advent-sunday`            | Eerste Sondag van Advent | Die vierde Sondag voor Kersfees         |
+| `christmas-eve`            | Kersaand                 | 24 Desember                             |
+| `christmas`                | Kersfees                 | 25 Desember                             |
+
+Die datastel bevat slegs verwysings, nie vers teks nie, so dit werk met elke vertaling. Versnommers gebruik die standaard Engelse nommering (dieselfde as die BSB). Die data kan op drie maniere gelees word:
+
+-   [`/api/d/verse-of-the-day/verses.json`](#list-verses-in-a-dataset) lys elke vers in die datastel met sy kategorieë, en die vakansiedae met hul datums, in een lêer.
+-   [`/api/d/verse-of-the-day/categories/{category}.json`](#get-a-category-from-a-dataset) lys elke vers in 'n kategorie. Dit is die maklikste manier om 'n vers van die dag uit een kategorie te kies.
+-   [`/api/d/verse-of-the-day/{book}/{chapter}.json`](#get-a-chapter-from-a-dataset) lys die kandidate in 'n hoofstuk, met hul kategorieë. Slegs hoofstukke wat 'n kandidaat bevat, is beskikbaar; gebruik die boek se hoofstukskakels of `/api/d/verse-of-the-day/books.json` om hulle te vind.
+
+Datastelle wat verskategorieë bevat, sluit `listOfVersesApiLink` , `listOfCategoriesApiLink` en `totalNumberOfCategories` in hul inskrywing in `/api/available_datasets.json` .
+
+### Die keuse van 'n vers van die dag
+
+Die API is gemaak van statiese lêers, so dit kies nie 'n vers vir jou nie. In plaas daarvan is daar 'n konvensie vir die keuse van een, sodat elke toepassing wat dit volg dieselfde vers op dieselfde dag wys. Toepassings is vry om anders te kies; die konvensie gee hulle net 'n gedeelde verstekwaarde.
+
+Die konvensie kies uit die verse en vakansiedae in `/api/d/verse-of-the-day/verses.json` Op 'n vakansiedag kies dit een van die vakansiedag se verse en gaan jaar op jaar deur hulle, so 'n vakansiedag het elke jaar 'n ander vers totdat al sy verse gebruik is. Op ander dae kry elke jaar sy eie skommeling van die verse wat daardie jaar in gebruik is (georden volgens 'n huts van elke vers se verwysing, die jaar en 'n opsionele saad), en die vers van die dag is die een op die datum se dag van die jaar in daardie skommeling. Die datastel het meer as 366 verse vir elke dag wat elke jaar in gebruik is, so 'n vers herhaal nooit binne 'n kalenderjaar nie, die volgorde verander elke jaar, en dieselfde datum gee altyd dieselfde vers. Nuwe verse word bygevoeg (met `addedIn` ) en oues verwyder (met `removedIn` ) slegs van 'n jaar wat nog nie begin het nie, so die vers van die dag vir 'n vorige datum verander nooit.
+
+Die [Vers van die Dag Konvensie](./verse-of-the-day-convention.md) bladsy spesifiseer die algoritme stap vir stap, met pseudokode en toetswaardes, sodat jy dit in enige taal kan implementeer.
+
+Om jou eie volgorde te gebruik, kies jou eie saad (byvoorbeeld die naam van jou toepassing): dit gee 'n ander mengsel met dieselfde waarborge. Jy kan ook uit 'n enkele kategorie se verse kies, maar elke kategorie het minder verse as wat daar dae in 'n jaar is, so die verse word gouer herhaal.
+
+Die SDK's volg die konvensie:
+
+```ts:no-line-numbers title="verse-of-the-day.js"
+import { FreeUseBibleApi } from 'free-use-bible-api';
+
+const api = new FreeUseBibleApi();
+
+// 'n Datum as JJJJ-MM-DD, of 'n Datum (die plaaslike kalenderdatum word gebruik). Standaard is vandag.
+const ref = await api.getVerseOfTheDay('2026-01-01');
+
+// Kry die teks van die vers uit 'n vertaling.
+const chapter = await api.getTranslationBookChapter('BSB', ref.book, ref.chapter);
+const verses = chapter.chapter.content.filter(
+    (c) =>
+        c.type === 'verse' &&
+        c.number >= ref.verse &&
+        c.number <= (ref.endVerse ?? ref.verse)
+);
+console.log(ref, verses);
+```
+
+-   `getVerseOfTheDay(date?, { seed?, category?, dataset? }?)` laai die verslys af en kies daaruit. `pickVerseOfTheDay(verses, date?, { seed?, category? }?)` kies uit 'n lys wat jy reeds het.
+-   Die Kotlin SDK het `getVerseOfTheDay(date?, seed?, category?)` en `pickVerseOfTheDay(verses, date?, seed?, category?)` , wat die datum as 'n `YYYY-MM-DD` string neem.
+-   Die Swift SDK het `getVerseOfTheDay(date:seed:category:)` en `pickVerseOfTheDay(_:date:seed:category:holidays:)` , wat die datum as 'n `YYYY-MM-DD` string of 'n `Date` neem (die kalenderdatum in die huidige tydsone word gebruik).
+-   Die [MCP-bediener](https://github.com/HelloAOLab/bible-api/tree/main/packages/seed-bible-mcp) het 'n `getVerseOfTheDay` instrument wat die vers van die dag met sy teks teruggee.
+-   Die `@helloao/tools` pakket het dieselfde lys en 'n `getVerseOfTheDay(date?, { seed?, category? }?)` funksie in `@helloao/tools/generation/verse-of-the-day.js` .
+
+### Lisensie
+
+Die lys is saamgestel deur AO Lab en word vrygestel onder die [MIT-lisensie](https://github.com/HelloAOLab/bible-api/blob/main/LICENSE) . Die vers teks kom van watter vertaling jy dit ook al kry.
+
+## Lys Verse in 'n Datastel
+
+`GET https://bible.helloao.org/api/d/{dataset}/verses.json`
+
+Kry elke vers (of kort gedeelte) in 'n datastel, met die kategorieë waaraan elkeen behoort, in kanonieke volgorde. Slegs beskikbaar vir datastelle waarvan die verse kategorieë het, soos `verse-of-the-day` .
+
+-   `dataset` die ID van die datastel (bv. `verse-of-the-day` ).
+
+### Kode Voorbeeld
+
+::: code-tabs#taal
+
+@tab JavaScript
+
+```ts:no-line-numbers title="fetch-verses.js"
+fetch(`https://bible.helloao.org/api/d/verse-of-the-day/verses.json`)
+    .then(request => request.json())
+    .then(verses => {
+        console.log('The dataset has', verses.verses.length, 'verses');
+    });
+```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/d/verse-of-the-day/verses.json
+```
+
+:::
+
+### Struktuur
+
+```typescript:no-line-numbers title="dataset-verses.ts"
+export interface DatasetVerses {
+    /**
+     * Die datastelinligting vir die verse.
+     */
+    dataset: Dataset;
+
+    /**
+     * Elke vers (of kort gedeelte) in die datastel, met sy kategorieë, in kanonieke volgorde.
+     */
+    verses: DatasetCategorizedVerse[];
+
+    /**
+     * Die vakansiedae wat hul eie verse het, met hul datums.
+     * Weglaat as die datastel geen vakansiedae het nie.
+     */
+    holidays?: DatasetVersesHoliday[];
+}
+
+export interface DatasetVersesHoliday extends DatasetCategoryHoliday {
+    /**
+     * Die ID van die vakansiedag se kategorie. bv. "Kersfees".
+     */
+    id: string;
+
+    /**
+     * Die Engelse naam van die vakansiedag. bv. "Kersfees".
+     */
+    name: string;
+}
+
+export interface DatasetCategoryHoliday {
+    /**
+     * Die maand (1 vir Januarie) en dag van 'n vakansiedag wat elke jaar op dieselfde datum val.
+     * Weggelaat vir vakansiedae waarvan die datum elke jaar verander.
+     */
+    month?: number;
+    day?: number;
+
+    /**
+     * Die datums (JJJJ-MM-DD, Gregoriaanse kalender) van 'n vakansiedag waarvan die datum elke jaar verander, in volgorde.
+     * Hulle word vooraf bereken vir 'n reeks jare (tans 2026 tot 2125), en die vakansiedag word slegs gevier op die datums wat gelys word.
+     * Weggelaat vir vakansiedae wat elke jaar op dieselfde datum val.
+     */
+    dates?: string[];
+}
+
+export interface DatasetCategorizedVerse {
+    /**
+     * Die ID van die boek. bv. "PRO".
+     */
+    book: string;
+
+    /**
+     * Die hoofstuknommer.
+     */
+    chapter: number;
+
+    /**
+     * Die versnommer.
+     * As `endVerse` teenwoordig is, dan is dit die vers waar die gedeelte begin.
+     */
+    verse: number;
+
+    /**
+     * Die vers waarmee die gedeelte eindig.
+     * Weglaat indien die inskrywing 'n enkele vers is.
+     */
+    endVerse?: number;
+
+    /**
+     * Die ID's van die kategorieë waaraan die vers behoort, mees relevante eerste.
+     */
+    categories: string[];
+
+    /**
+     * Die eerste jaar wat die vers die vers van die dag kan wees.
+     * Weglaat as die vers nog altyd in die lys was.
+     */
+    addedIn?: number;
+
+    /**
+     * Die eerste jaar wat die vers nie meer die vers van die dag kan wees nie.
+     * Verwyderde verse bly in die datastel sodat die verse van vorige jare steeds gekies kan word.
+     * Weglaat indien die vers nie van die lys verwyder is nie.
+     */
+    removedIn?: number;
+}
+```
+
+### Voorbeeld
+
+```json:no-line-numbers title="/api/d/verse-of-the-day/verses.json"
+{
+    "dataset": {
+        "id": "verse-of-the-day",
+        "name": "Verse of the Day",
+        "listOfVersesApiLink": "/api/d/verse-of-the-day/verses.json"
+        // ...
+    },
+    "verses": [
+        {
+            "book": "GEN",
+            "chapter": 1,
+            "verse": 1,
+            "categories": ["praise"]
+        },
+        {
+            "book": "GEN",
+            "chapter": 15,
+            "verse": 6,
+            "categories": ["faith", "salvation"]
+        },
+        // ...
+        {
+            "book": "PRO",
+            "chapter": 3,
+            "verse": 5,
+            "endVerse": 6,
+            "categories": ["faith", "guidance", "wisdom"]
+        },
+        // ...
+        {
+            "book": "LUK",
+            "chapter": 2,
+            "verse": 7,
+            "categories": ["christmas"]
+        }
+        // ...
+    ],
+    "holidays": [
+        {
+            "id": "christmas",
+            "name": "Christmas",
+            "month": 12,
+            "day": 25
+        },
+        {
+            "id": "good-friday",
+            "name": "Good Friday",
+            "dates": ["2026-04-03", "2027-03-26", "2028-04-14" /* ... */]
+        }
+        // ...
+    ]
+}
+```
+
+## Lys kategorieë in 'n datastel
+
+`GET https://bible.helloao.org/api/d/{dataset}/categories.json`
+
+Kry die lys van verskategorieë wat beskikbaar is vir 'n datastel.
+
+-   `dataset` die ID van die datastel (bv. `verse-of-the-day` ).
+
+### Kode Voorbeeld
+
+::: code-tabs#taal
+
+@tab JavaScript
+
+```ts:no-line-numbers title="fetch-categories.js"
+fetch(`https://bible.helloao.org/api/d/verse-of-the-day/categories.json`)
+    .then(request => request.json())
+    .then(categories => {
+        console.log('The dataset has the following categories:', categories.categories);
+    });
+```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/d/verse-of-the-day/categories.json
+```
+
+:::
+
+### Struktuur
+
+```typescript:no-line-numbers title="dataset-categories.ts"
+export interface DatasetCategories {
+    /**
+     * Die datastelinligting vir die kategorieë.
+     */
+    dataset: Dataset;
+
+    /**
+     * Die lys van verskategorieë wat beskikbaar is vir die datastel.
+     */
+    categories: DatasetCategorySummary[];
+}
+
+export interface DatasetCategorySummary {
+    /**
+     * Die ID van die kategorie. bv. "hoop".
+     */
+    id: string;
+
+    /**
+     * Die Engelse naam van die kategorie. bv. "Hoop".
+     */
+    name: string;
+
+    /**
+     * Die beskrywing van waaroor die verse in die kategorie handel.
+     */
+    description: string;
+
+    /**
+     * Die aantal verse (of kort gedeeltes) wat tot die kategorie behoort.
+     */
+    numberOfVerses: number;
+
+    /**
+     * Die datums van die vakansie waarvoor die kategorie is (sien DatastelKategorieVakansie hierbo).
+     * Weggelaat vir kategorieë wat nie vir 'n vakansiedag is nie.
+     */
+    holiday?: DatasetCategoryHoliday;
+
+    /**
+     * Die API-skakel vir die kategorie.
+     */
+    apiLink: string;
+}
+```
+
+### Voorbeeld
+
+```json:no-line-numbers title="/api/d/verse-of-the-day/categories.json"
+{
+    "dataset": {
+        "id": "verse-of-the-day",
+        "name": "Verse of the Day",
+        "totalNumberOfCategories": 31
+        // ...
+    },
+    "categories": [
+        {
+            "id": "comfort",
+            "name": "Comfort",
+            "description": "God's nearness and care in grief, trouble, and loneliness.",
+            "numberOfVerses": 65,
+            "apiLink": "/api/d/verse-of-the-day/categories/comfort.json"
+        },
+        {
+            "id": "courage",
+            "name": "Courage",
+            "description": "Standing firm and not being afraid.",
+            "numberOfVerses": 49,
+            "apiLink": "/api/d/verse-of-the-day/categories/courage.json"
+        }
+        // ...
+    ]
+}
+```
+
+## Kry 'n kategorie uit 'n datastel
+
+`GET https://bible.helloao.org/api/d/{dataset}/categories/{category}.json`
+
+Kry 'n enkele verskategorie, met elke vers wat daaraan behoort.
+
+-   `dataset` die ID van die datastel (bv. `verse-of-the-day` ).
+-   `category` is die ID van die kategorie (bv. `hope` ).
+
+### Kode Voorbeeld
+
+::: code-tabs#taal
+
+@tab JavaScript
+
+```ts:no-line-numbers title="fetch-category.js"
+fetch(`https://bible.helloao.org/api/d/verse-of-the-day/categories/hope.json`)
+    .then(request => request.json())
+    .then(category => {
+        console.log('Verses about hope:', category.category.verses);
+    });
+```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/d/verse-of-the-day/categories/hope.json
+```
+
+:::
+
+### Struktuur
+
+```typescript:no-line-numbers title="dataset-category.ts"
+export interface DatasetCategoryResponse {
+    /**
+     * Die datastelinligting vir die kategorie.
+     */
+    dataset: Dataset;
+
+    /**
+     * Die kategorie, met die verse wat daarby hoort.
+     */
+    category: DatasetCategory;
+
+    /**
+     * Die API-skakel vir hierdie kategorie.
+     */
+    thisCategoryApiLink: string;
+}
+
+export interface DatasetCategory {
+    /**
+     * Die ID van die kategorie. bv. "hoop".
+     */
+    id: string;
+
+    /**
+     * Die Engelse naam van die kategorie. bv. "Hoop".
+     */
+    name: string;
+
+    /**
+     * Die beskrywing van waaroor die verse in die kategorie handel.
+     */
+    description: string;
+
+    /**
+     * Die datums van die vakansie waarvoor die kategorie is (sien DatastelKategorieVakansie in "Lys Verse in 'n Datastel").
+     * Op daardie datums is die vers van die dag een van die kategorie se verse, en hulle word nie op ander dae gebruik nie.
+     * Weggelaat vir kategorieë wat nie vir 'n vakansiedag is nie.
+     */
+    holiday?: DatasetCategoryHoliday;
+
+    /**
+     * Die verse (of kort gedeeltes) wat tot die kategorie behoort, in kanonieke volgorde.
+     * Sluit verse in wat van die lys verwyder is (sien `removedIn` ).
+     */
+    verses: DatasetCategoryVerse[];
+}
+
+export interface DatasetCategoryVerse {
+    /**
+     * Die ID van die boek. bv. "JER".
+     */
+    book: string;
+
+    /**
+     * Die hoofstuknommer.
+     */
+    chapter: number;
+
+    /**
+     * Die versnommer.
+     * As `endVerse` teenwoordig is, dan is dit die vers waar die gedeelte begin.
+     */
+    verse: number;
+
+    /**
+     * Die vers waarmee die gedeelte eindig.
+     * Weglaat indien die verwysing 'n enkele vers is.
+     */
+    endVerse?: number;
+
+    /**
+     * Die eerste jaar wat die vers die vers van die dag kan wees.
+     * Weglaat as die vers nog altyd in die lys was.
+     */
+    addedIn?: number;
+
+    /**
+     * Die eerste jaar wat die vers nie meer die vers van die dag kan wees nie.
+     * Verwyderde verse bly in die datastel sodat die verse van vorige jare steeds gekies kan word.
+     * Weglaat indien die vers nie van die lys verwyder is nie.
+     */
+    removedIn?: number;
+}
+```
+
+### Voorbeeld
+
+```json:no-line-numbers title="/api/d/verse-of-the-day/categories/hope.json"
+{
+    "dataset": {
+        "id": "verse-of-the-day",
+        "name": "Verse of the Day",
+        "totalNumberOfCategories": 31
+        // ...
+    },
+    "category": {
+        "id": "hope",
+        "name": "Hope",
+        "description": "Confidence in the future that God has promised.",
+        "verses": [
+            {
+                "book": "GEN",
+                "chapter": 50,
+                "verse": 20
+            },
+            // ...
+            {
+                "book": "ISA",
+                "chapter": 43,
+                "verse": 18,
+                "endVerse": 19
+            },
+            {
+                "book": "JER",
+                "chapter": 29,
+                "verse": 11
+            }
+            // ...
+        ]
+    },
+    "thisCategoryApiLink": "/api/d/verse-of-the-day/categories/hope.json"
 }
 ```

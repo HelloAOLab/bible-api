@@ -41,6 +41,10 @@ curl https://bible.helloao.org/api/BSB/GEN/1.json
 
 ### መዋቅር
 
+አዲስ የምንጭ አንቀጽ የሚጀምር `line_break` ያለ የኋላ ሰረዝ ከምንጭ ማርከር ጋር `paragraph` ባህሪ አለው (ለምሳሌ `{ "type": "line_break", "paragraph": "p" }` ፤ ሌሎች ማርከሮች `m` ፣ `pi1` ፣ `mi` እና `pc` ያካትታሉ)። ባዶ መስመር ማርከሮች ( `\b` ) `paragraph` የሌላቸው `line_break` እቃዎችን ያመርታሉ። ባዶ መስመር በቀጥታ በአንቀጽ ( `\b` ከዚያም `\m` ) ሲከተል፣ ወደ አንድ ነጠላ `{ "type": "line_break", "paragraph": "m" }` ይዋሃዳሉ፣ ሁለት ባዶ መስመሮች ደግሞ ሁለት የመስመር መግቻዎችን ያመነጫሉ። `\nb` የአሁኑን አንቀጽ ይቀጥላል እና የመስመር መግቻ አያመጣም። በጥቅስ ውስጥ የሚጀምር አንቀጽ በቁጥር ይዘት እንደ `{ "lineBreak": true, "paragraph": "p" }` ይወከላል።
+
+የመስመር ክፍተቶችን ብቻ የሚረዱ ሬነርስ `paragraph` ችላ ማለት ይችላሉ።
+
 ```typescript:no-line-numbers title="chapter.ts"
 export interface TranslationBookChapter {
     /**
@@ -191,6 +195,11 @@ interface ChapterLineBreak {
      * ይዘቱ የመስመር መግቻን እንደሚወክል ያመለክታል።
      */
     type: 'line_break';
+
+    /**
+     * የመስመር መግቻ አዲስ አንቀጽ ሲጀምር የምንጭ አንቀጽ ምልክት ማድረጊያ (ያለ የኋላ ሰረዝ)፣ ለምሳሌ `p` ፣ `m` ፣ `pi1` ወይም `mi` ለቀላል የመስመር መግቻዎች ተትቷል።
+     */
+    paragraph?: string;
 }
 
 /**
@@ -270,6 +279,11 @@ interface InlineHeading {
  */
 interface InlineLineBreak {
     lineBreak: true;
+
+    /**
+     * የመስመር መግቻ አዲስ አንቀጽ ሲጀምር የምንጭ አንቀጽ ምልክት ማድረጊያ (ያለ የኋላ ሰረዝ)፣ ለምሳሌ `p` ፣ `m` ፣ `pi1` ወይም `mi` ለቀላል የመስመር መግቻዎች ተትቷል።
+     */
+    paragraph?: string;
 }
 
 
@@ -373,6 +387,7 @@ interface TranslationBookChapterAudioTimingsLinks {
         "translationId": "BSB",
         "name": "Genesis",
         "commonName": "Genesis",
+        "shortName": "Gen",
         "title": "Genesis",
         "order": 1,
         "numberOfChapters": 50,
@@ -971,6 +986,12 @@ export interface TranslationCompleteBook {
     commonName: string;
 
     /**
+     * ትርጉሙ ለመጽሐፉ የሰጠው አጭር ስም (አህጽሮተ ቃል)።
+     * የማይገኝ ከሆነ፣ በትርጉሙ አንድ አልቀረበም።
+     */
+    shortName?: string;
+
+    /**
      * የመጽሐፉ ርዕስ።
      */
     title: string | null;
@@ -1075,6 +1096,7 @@ interface TranslationBookChapterAudioTimingsMap {
       "id": "GEN",
       "name": "Genesis",
       "commonName": "Genesis",
+      "shortName": "Gen",
       "title": "Genesis",
       "order": 1,
       "numberOfChapters": 50,

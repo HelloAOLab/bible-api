@@ -53,6 +53,8 @@ curl https://bible.helloao.org/api/BSB/GEN/1.simple.json
 
 ### Offset
 
+Konten bab yang disederhanakan mempertahankan item tingkat bab `line_break` , termasuk properti `paragraph` nya. Ketika sebuah paragraf dimulai di dalam sebuah ayat, teks ayat tersebut berisi baris baru pada titik tersebut dan larik `paragraphs` ayat tersebut mencatatnya sebagai `{ offset, style }` , di mana `offset` adalah indeks karakter pertama setelah baris baru.
+
 Semua offset dalam format yang disederhanakan - `offset` , `start` , dan `end` - adalah indeks ke dalam `text` dari ayat yang memuatnya. Offset tersebut diukur dalam satuan kode UTF-16, yang juga digunakan oleh JavaScript `String.prototype.length` dan `String.prototype.slice()` .
 
 `start` bersifat inklusif dan `end` bersifat eksklusif, jadi `text.slice(start, end)` mengembalikan tepat rentang teks yang ditandai. Offset catatan kaki adalah posisi pemanggil catatan kaki, jadi `text.slice(0, offset)` adalah teks yang mendahuluinya.
@@ -185,6 +187,11 @@ interface ChapterLineBreak {
      * Menunjukkan bahwa konten tersebut merupakan jeda baris.
      */
     type: 'line_break';
+
+    /**
+     * Penanda paragraf sumber (tanpa garis miring terbalik) ketika pemisah baris memulai paragraf baru, misalnya `p` , `m` , `pi1` atau `mi` . Dihilangkan untuk pemisah baris biasa.
+     */
+    paragraph?: string;
 }
 
 /**
@@ -219,6 +226,12 @@ interface SimpleChapterVerse {
     headings?: SimpleInlineHeading[];
 
     /**
+     * Paragraf-paragraf yang dimulai di tengah ayat.
+     * Dihilangkan jika ayat tersebut tidak memuatnya.
+     */
+    paragraphs?: SimpleVerseParagraph[];
+
+    /**
      * Rentang bagian teks ayat yang mewakili Firman Yesus.
      * Dihilangkan jika ayat tersebut tidak memuatnya.
      */
@@ -238,7 +251,7 @@ interface SimpleChapterVerse {
  */
 interface SimpleChapterHebrewSubtitle extends Omit<SimpleChapterVerse, 'type' | 'number'> {
     /**
-     * Menunjukkan bahwa konten tersebut merupakan Subjudul Ibrani.
+     * Menunjukkan bahwa konten tersebut merupakan subjudul bahasa Ibrani.
      */
     type: 'hebrew_subtitle';
 }
@@ -284,6 +297,21 @@ interface SimpleInlineHeading {
      * Teks judul.
      */
     text: string;
+}
+
+/**
+ * Sebuah paragraf yang dimulai di tengah-tengah sebuah ayat.
+ */
+interface SimpleVerseParagraph {
+    /**
+     * Indeks dalam teks ayat yang menjadi titik awal paragraf.
+     */
+    offset: number;
+
+    /**
+     * Penanda paragraf sumber tanpa garis miring terbalik, misalnya `p` atau `m` .
+     */
+    style: string;
 }
 
 /**
@@ -339,6 +367,7 @@ interface SimplePoemRange extends SimpleTextRange {
         "id": "GEN",
         "name": "Genesis",
         "commonName": "Genesis",
+        "shortName": "Gen",
         "title": "Genesis",
         "order": 1,
         "numberOfChapters": 50,
@@ -594,7 +623,7 @@ export interface SimpleChapterWord {
     strongs?: string[];
 
     /**
-     * Lemma (bentuk kamus) dari kata tersebut dalam bahasa sumber.
+     * Bentuk lema (bentuk kamus) dari kata tersebut dalam bahasa sumber.
      */
     lemma?: string;
 
@@ -796,6 +825,7 @@ export interface SimpleTranslationCompleteChapter {
             "id": "GEN",
             "name": "Genesis",
             "commonName": "Genesis",
+            "shortName": "Gen",
             "title": "Genesis",
             "order": 1,
             "numberOfChapters": 50,

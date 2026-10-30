@@ -53,6 +53,8 @@ curl https://bible.helloao.org/api/BSB/GEN/1.simple.json
 
 ### Смещения
 
+Упрощенное содержимое главы сохраняет элементы уровня главы `line_break` , включая их свойство `paragraph` Когда абзац начинается внутри стиха, текст стиха содержит в этом месте символ новой строки, и массив `paragraphs` стиха записывает это как `{ offset, style }` , где `offset` — индекс первого символа после символа новой строки.
+
 Все смещения в упрощенном формате — `offset` , `start` и `end` — являются индексами в `text` номере стиха, который их содержит. Они измеряются в единицах кода UTF-16, которые используются в JavaScript ( `String.prototype.length` и `String.prototype.slice()` .
 
 `start` включает диапазон текста, а `end` исключает, поэтому `text.slice(start, end)` возвращает точно тот диапазон текста, который был отмечен. Смещение сноски — это позиция, к которой относится вызывающая сноска, поэтому `text.slice(0, offset)` — это текст, который предшествует ей.
@@ -185,6 +187,11 @@ interface ChapterLineBreak {
      * Указывает, что содержимое представляет собой перенос строки.
      */
     type: 'line_break';
+
+    /**
+     * Маркер исходного абзаца (без обратной косой черты), когда перенос строки начинает новый абзац, например, `p` , `m` , `pi1` или `mi` Опускается для обычных переносов строк.
+     */
+    paragraph?: string;
 }
 
 /**
@@ -217,6 +224,12 @@ interface SimpleChapterVerse {
      * Опускается, если в тексте стиха отсутствуют заголовки.
      */
     headings?: SimpleInlineHeading[];
+
+    /**
+     * Абзацы, начинающиеся в середине стиха.
+     * Опускается, если в стихе нет ни одного слова.
+     */
+    paragraphs?: SimpleVerseParagraph[];
 
     /**
      * Диапазоны стихов, представляющие собой слова Иисуса.
@@ -287,6 +300,21 @@ interface SimpleInlineHeading {
 }
 
 /**
+ * Абзац, начинающийся в середине стиха.
+ */
+interface SimpleVerseParagraph {
+    /**
+     * Указатель в тексте стихотворения, с которого начинается абзац.
+     */
+    offset: number;
+
+    /**
+     * Маркер исходного абзаца без обратной косой черты, например, `p` или `m` .
+     */
+    style: string;
+}
+
+/**
  * Текстовый фрагмент внутри стихотворения.
  */
 interface SimpleTextRange {
@@ -339,6 +367,7 @@ interface SimplePoemRange extends SimpleTextRange {
         "id": "GEN",
         "name": "Genesis",
         "commonName": "Genesis",
+        "shortName": "Gen",
         "title": "Genesis",
         "order": 1,
         "numberOfChapters": 50,
@@ -796,6 +825,7 @@ export interface SimpleTranslationCompleteChapter {
             "id": "GEN",
             "name": "Genesis",
             "commonName": "Genesis",
+            "shortName": "Gen",
             "title": "Genesis",
             "order": 1,
             "numberOfChapters": 50,

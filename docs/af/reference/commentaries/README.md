@@ -62,6 +62,12 @@ export interface Commentary {
     licenseUrl: string;
 
     /**
+     * Die API-bygevoegde notas vir die lisensie.
+     * Nul of ongedefinieerd indien daar geen notas is nie.
+     */
+    licenseNotes?: string | null;
+
+    /**
      * Die Engelse naam vir die kommentaar.
      */
     englishName: string;
@@ -535,7 +541,7 @@ interface VerseRef {
 
     /**
      * Die vers waar die verwysing eindig.
-     * Indien weggelaat, strek die verwysing nie oor verskeie verse nie.
+     * Indien dit weggelaat word, strek die verwysing nie oor verskeie verse nie.
      */
     endVerse?: number;
 }

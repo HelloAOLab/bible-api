@@ -53,6 +53,8 @@ curl https://bible.helloao.org/api/BSB/GEN/1.simple.json
 
 ### অফসেট
 
+সরলীকৃত অধ্যায়ের বিষয়বস্তু অধ্যায়-স্তরের `line_break` আইটেমগুলো রাখে, যার মধ্যে তাদের `paragraph` প্রপার্টিও অন্তর্ভুক্ত। যখন কোনো অনুচ্ছেদ একটি শ্লোকের ভিতরে শুরু হয়, তখন শ্লোকের পাঠ্যে সেই স্থানে একটি নিউলাইন থাকে এবং শ্লোকের `paragraphs` অ্যারে এটিকে `{ offset, style }` হিসাবে রেকর্ড করে, যেখানে `offset` হলো নিউলাইনের পরের প্রথম অক্ষরের সূচক।
+
 সরলীকৃত বিন্যাসের সমস্ত অফসেট `offset` , `start` , এবং `end` —হলো তাদের ধারণকারী শ্লোকের `text` এর সূচক। এগুলোকে UTF-16 কোড ইউনিটে পরিমাপ করা হয়, যা জাভাস্ক্রিপ্টের `String.prototype.length` এবং `String.prototype.slice()` সংস্করণ ব্যবহার করে।
 
 `start` হলো অন্তর্ভুক্তিমূলক এবং `end` হলো বর্জনমূলক, তাই `text.slice(start, end)` ঠিক চিহ্নিত করা পাঠ্যাংশের পরিসরটিই ফেরত দেয়। পাদটীকার অফসেট হলো সেই অবস্থান যেখানে পাদটীকার আহ্বানকারী থাকে, তাই `text.slice(0, offset)` হলো এর আগের পাঠ্যাংশ।
@@ -185,6 +187,11 @@ interface ChapterLineBreak {
      * এটি নির্দেশ করে যে বিষয়বস্তুটি একটি লাইন ব্রেক।
      */
     type: 'line_break';
+
+    /**
+     * যখন লাইন ব্রেক একটি নতুন অনুচ্ছেদ শুরু করে, তখন উৎস অনুচ্ছেদের নির্দেশক (ব্যাকস্ল্যাশ ছাড়া), যেমন `p` , `m` , `pi1` বা `mi` সাধারণ লাইন ব্রেকের ক্ষেত্রে এটি বাদ দেওয়া হয়।
+     */
+    paragraph?: string;
 }
 
 /**
@@ -217,6 +224,12 @@ interface SimpleChapterVerse {
      * শ্লোকটিতে কোনো ইনলাইন শিরোনাম না থাকলে এটি বাদ দেওয়া হয়।
      */
     headings?: SimpleInlineHeading[];
+
+    /**
+     * যে অনুচ্ছেদগুলো শ্লোকের মাঝখান থেকে শুরু হয়।
+     * শ্লোকটিতে কিছু না থাকলে বাদ দেওয়া হয়।
+     */
+    paragraphs?: SimpleVerseParagraph[];
 
     /**
      * শ্লোকের সেই অংশগুলো যা যিশুর বাণীকে উপস্থাপন করে।
@@ -287,6 +300,21 @@ interface SimpleInlineHeading {
 }
 
 /**
+ * একটি অনুচ্ছেদ যা কোনো শ্লোকের মাঝখান থেকে শুরু হয়।
+ */
+interface SimpleVerseParagraph {
+    /**
+     * শ্লোকের পাঠ্যাংশে থাকা সেই সূচক, যেখান থেকে অনুচ্ছেদটি শুরু হয়।
+     */
+    offset: number;
+
+    /**
+     * ব্যাকস্ল্যাশ ছাড়া উৎস অনুচ্ছেদ নির্দেশক, যেমন `p` বা `m` ।
+     */
+    style: string;
+}
+
+/**
  * একটি শ্লোকের অভ্যন্তরে থাকা পাঠ্যাংশ।
  */
 interface SimpleTextRange {
@@ -339,6 +367,7 @@ interface SimplePoemRange extends SimpleTextRange {
         "id": "GEN",
         "name": "Genesis",
         "commonName": "Genesis",
+        "shortName": "Gen",
         "title": "Genesis",
         "order": 1,
         "numberOfChapters": 50,
@@ -661,7 +690,7 @@ export interface SimpleChapterWord {
 
 `GET https://bible.helloao.org/api/{translation}/complete.simple.json`
 
-সরলীকৃত বিন্যাস ব্যবহার করে একটি সম্পূর্ণ অনুবাদের বিষয়বস্তু পাওয়া যায়। এটি [সম্পূর্ণ অনুবাদ ডাউনলোডের](./standard.md#get-an-entire-translation) ক্ষেত্রে প্রয়োগ করা [সরলীকৃত অধ্যায় বিন্যাস](#get-a-simplified-chapter-from-a-translation) : একটি ফাইলে সম্পূর্ণ অনুবাদটি থাকে, যেখানে প্রতিটি শ্লোকের বিষয়বস্তু একটি একক স্ট্রিং।
+সরলীকৃত বিন্যাস ব্যবহার করে একটি সম্পূর্ণ অনুবাদের বিষয়বস্তু পাওয়া যায়। এটি [সম্পূর্ণ অনুবাদ ডাউনলোডের](./standard.md#get-an-entire-translation) ক্ষেত্রে প্রয়োগ করা [সরলীকৃত অধ্যায় বিন্যাস](#get-a-simplified-chapter-from-a-translation) : একটি ফাইলে পুরো অনুবাদটি থাকে, যেখানে প্রতিটি শ্লোকের বিষয়বস্তু একটি একক স্ট্রিং।
 
 যখন আপনি অধ্যায় অনুযায়ী অনুরোধ না করে এবং নিজে থেকে লেখাটি তৈরি না করেই সম্পূর্ণ অনুবাদের মূল লেখাটি পেতে চান, তখন এটি ব্যবহার করুন।
 
@@ -796,6 +825,7 @@ export interface SimpleTranslationCompleteChapter {
             "id": "GEN",
             "name": "Genesis",
             "commonName": "Genesis",
+            "shortName": "Gen",
             "title": "Genesis",
             "order": 1,
             "numberOfChapters": 50,

@@ -18,7 +18,7 @@ Gebruik hierdie eindpunt wanneer jy die teks van 'n hoofstuk wil hê. Gebruik [d
 
 Hoofstukke met woordvlak-aantekeninge skakel daarna met `thisChapterWordsLink` , wat na [die vereenvoudigde aantekeninge](#get-the-words-of-a-chapter-in-the-simplified-format) wys - die waarvan die verrekeninge ooreenstem met die teks in hierdie lêer.
 
-Hoofstukke wat per-leser oudio-tydsberekeninge het, skakel daarna met `thisChapterAudioTimings` , wat na [die oudio-tydsberekening-eindpunt](./standard.md#get-the-audio-timings-for-a-chapter) wys - dieselfde lêer waarna die gewone hoofstuk-eindpunt skakel, aangesien tydsberekeninge nie van die hoofstukformaat afhang nie.
+Hoofstukke wat per-leser oudio-tydsberekening het, skakel daarna met `thisChapterAudioTimings` , wat na [die oudio-tydsberekening-eindpunt](./standard.md#get-the-audio-timings-for-a-chapter) wys - dieselfde lêer waarna die gewone hoofstuk-eindpunt skakel, aangesien tydsberekening nie van die hoofstukformaat afhang nie.
 
 ### Kode Voorbeeld
 
@@ -52,6 +52,8 @@ curl https://bible.helloao.org/api/BSB/GEN/1.simple.json
 :::
 
 ### Verrekeninge
+
+Vereenvoudigde hoofstukinhoud behou die hoofstukvlak `line_break` items, insluitend hul `paragraph` eienskap. Wanneer 'n paragraaf binne 'n vers begin, bevat die vers-teks 'n nuwe reël op daardie punt en die vers se `paragraphs` -skikking teken dit as `{ offset, style }` aan, waar `offset` die indeks van die eerste karakter na die nuwe reël is.
 
 Al die verrekeninge in die vereenvoudigde formaat - `offset` , `start` en `end` - is indekse in die `text` van die vers wat hulle bevat. Hulle word gemeet in UTF-16-kode-eenhede, wat JavaScript se `String.prototype.length` en `String.prototype.slice()` gebruik.
 
@@ -185,6 +187,11 @@ interface ChapterLineBreak {
      * Dui aan dat die inhoud 'n reëlbreuk verteenwoordig.
      */
     type: 'line_break';
+
+    /**
+     * Die bronparagraafmerker (sonder sy agterskuinsstreep) wanneer die reëlbreuk 'n nuwe paragraaf begin, byvoorbeeld `p` , `m` , `pi1` of `mi` Weglating vir gewone reëlbreuke.
+     */
+    paragraph?: string;
 }
 
 /**
@@ -217,6 +224,12 @@ interface SimpleChapterVerse {
      * Weglaat indien die vers geen inlynopskrifte bevat nie.
      */
     headings?: SimpleInlineHeading[];
+
+    /**
+     * Die paragrawe wat in die middel van die vers begin.
+     * Weglaat as die vers niks bevat nie.
+     */
+    paragraphs?: SimpleVerseParagraph[];
 
     /**
      * Die reekse van die vers teks wat die Woorde van Jesus verteenwoordig.
@@ -287,6 +300,21 @@ interface SimpleInlineHeading {
 }
 
 /**
+ * 'n Paragraaf wat in die middel van 'n vers begin.
+ */
+interface SimpleVerseParagraph {
+    /**
+     * Die indeks in die versteks waar die paragraaf begin.
+     */
+    offset: number;
+
+    /**
+     * Die bronparagraafmerker sonder sy agterskuinsstreep, byvoorbeeld `p` of `m` .
+     */
+    style: string;
+}
+
+/**
  * 'n Teksreeks binne 'n vers.
  */
 interface SimpleTextRange {
@@ -339,6 +367,7 @@ interface SimplePoemRange extends SimpleTextRange {
         "id": "GEN",
         "name": "Genesis",
         "commonName": "Genesis",
+        "shortName": "Gen",
         "title": "Genesis",
         "order": 1,
         "numberOfChapters": 50,
@@ -796,6 +825,7 @@ export interface SimpleTranslationCompleteChapter {
             "id": "GEN",
             "name": "Genesis",
             "commonName": "Genesis",
+            "shortName": "Gen",
             "title": "Genesis",
             "order": 1,
             "numberOfChapters": 50,

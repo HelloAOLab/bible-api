@@ -75,6 +75,25 @@ interface Translation {
     licenseUrl: string;
 
     /**
+     * Die API fügte Hinweise zur Lizenz hinzu.
+     * Null oder undefiniert, wenn keine Notizen vorhanden sind.
+     */
+    licenseNotes?: string | null;
+
+    /**
+     * Der Hinweis, der beim Anzeigen von Inhalten aus der Übersetzung angezeigt werden soll.
+     * Null oder undefiniert, wenn die Übersetzung keinen Hinweis enthält.
+     */
+    licenseNotice?: string | null;
+
+    /**
+     * Die für die Übersetzung ermittelten strukturierten Lizenzbedingungen.
+     * Null oder undefiniert, wenn die Begriffe nicht bestimmt werden konnten.
+     * In diesem Fall finden Sie die Lizenzbedingungen auf der Seite unter licenseUrl.
+     */
+    license?: License | null;
+
+    /**
      * Die Kurzbezeichnung für die Übersetzung.
      */
     shortName: string;
@@ -152,7 +171,59 @@ interface Translation {
      */
     totalNumberOfApocryphalVerses?: number;
 }
+
+/**
+ * Definiert die strukturierten Lizenzbedingungen, die für eine Übersetzung ermittelt wurden.
+ */
+interface License {
+    /**
+     * Ob bei Verwendung der Übersetzung eine Quellenangabe erforderlich ist.
+     */
+    attribution: 'required' | 'not-required';
+
+    /**
+     * Ob die kommerzielle Nutzung der Übersetzung zulässig ist.
+     */
+    commercialUse: 'allowed' | 'not-allowed';
+
+    /**
+     * Ob die Erstellung und Verbreitung abgeleiteter Werke der Übersetzung zulässig ist.
+     */
+    derivatives: 'allowed' | 'not-allowed';
+
+    /**
+     * Ob abgeleitete Werke unter derselben Lizenz verbreitet werden müssen (d. h. eine „Share-Alike“-Anforderung).
+     */
+    copyleft: boolean;
+
+    /**
+     * Ob die Übersetzung der Öffentlichkeit zugänglich gemacht wurde.
+     */
+    publicDomain: boolean;
+}
 ```
+
+### Lizenzen
+
+Jede Übersetzung wird unter einer eigenen Lizenz veröffentlicht. Bitte prüfen Sie daher die Lizenzbedingungen der jeweiligen Übersetzung, bevor Sie sie verwenden.
+
+-   `licenseUrl` verlinkt immer zu den vollständigen Lizenzbedingungen.
+-   `licenseNotice` ist, sofern vorhanden, der Urheberrechts- oder Quellenvermerk, der neben dem Inhalt der Übersetzung angezeigt wird.
+-   `licenseNotes` enthält von der API hinzugefügte Notizen, wie z. B. Änderungen, die am Quelltext vorgenommen wurden.
+-   `license` , sofern vorhanden, fasst die Begriffe in einer Form zusammen, die Ihr Code überprüfen kann. Beispielsweise können Sie die Liste auf Übersetzungen filtern, die die kommerzielle Nutzung erlauben:
+
+```ts:no-line-numbers title="commercial-translations.js"
+fetch(`https://bible.helloao.org/api/available_translations.json`)
+    .then(request => request.json())
+    .then(({ translations }) => {
+        const commercial = translations.filter(
+            t => t.license?.commercialUse === 'allowed'
+        );
+        console.log('Translations that allow commercial use:', commercial);
+    });
+```
+
+Der `license` wird nur dann gesetzt, wenn die Begriffe automatisch erkannt werden konnten. Übersetzungen ohne diesen Wert erlauben möglicherweise trotzdem die Nutzung; lesen Sie dazu bitte die Seite unter Punkt `licenseUrl` .
 
 ### Beispiel
 
@@ -247,6 +318,12 @@ interface TranslationBook {
     commonName: string;
 
     /**
+     * Der Kurzname (die Abkürzung), den die Übersetzung für das Buch vorsah.
+     * Falls keines verfügbar ist, wurde bei der Übersetzung keins bereitgestellt.
+     */
+    shortName?: string;
+
+    /**
      * Der Titel des Buches.
      * Dies ist üblicherweise eine beschreibendere Version des Buchtitels.
      * Falls keines verfügbar ist, wurde bei der Übersetzung keins bereitgestellt.
@@ -325,6 +402,7 @@ interface TranslationBook {
             "translationId": "BSB",
             "name": "Genesis",
             "commonName": "Genesis",
+            "shortName": "Gen",
             "title": "Genesis",
             "order": 1,
             "numberOfChapters": 50,

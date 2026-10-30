@@ -75,6 +75,25 @@ interface Translation {
     licenseUrl: string;
 
     /**
+     * ملاحظات إضافية متعلقة بالترخيص من خلال واجهة برمجة التطبيقات (API).
+     * تكون القيمة فارغة أو غير محددة إذا لم تكن هناك ملاحظات.
+     */
+    licenseNotes?: string | null;
+
+    /**
+     * الإشعار الذي يجب عرضه عند عرض المحتوى المترجم.
+     * قيمة فارغة أو غير محددة إذا لم تتضمن الترجمة إشعارًا.
+     */
+    licenseNotice?: string | null;
+
+    /**
+     * شروط الترخيص المنظمة التي تم اكتشافها للترجمة.
+     * تكون القيمة فارغة أو غير محددة إذا تعذر تحديد المصطلحات.
+     * في هذه الحالة، تحقق من الصفحة الموجودة على licenseUrl للاطلاع على الشروط.
+     */
+    license?: License | null;
+
+    /**
      * الاسم المختصر للترجمة.
      */
     shortName: string;
@@ -152,7 +171,59 @@ interface Translation {
      */
     totalNumberOfApocryphalVerses?: number;
 }
+
+/**
+ * يحدد شروط الترخيص المنظمة التي تم اكتشافها للترجمة.
+ */
+interface License {
+    /**
+     * هل يلزم ذكر المصدر الأصلي عند استخدام الترجمة؟
+     */
+    attribution: 'required' | 'not-required';
+
+    /**
+     * ما إذا كان الاستخدام التجاري للترجمة مسموحًا به.
+     */
+    commercialUse: 'allowed' | 'not-allowed';
+
+    /**
+     * هل يُسمح بإنشاء وتوزيع أعمال مشتقة من الترجمة؟
+     */
+    derivatives: 'allowed' | 'not-allowed';
+
+    /**
+     * ما إذا كان يجب توزيع الأعمال المشتقة بموجب نفس الترخيص (أي شرط "المشاركة بالمثل").
+     */
+    copyleft: boolean;
+
+    /**
+     * ما إذا كانت الترجمة قد أُتيحت للملكية العامة.
+     */
+    publicDomain: boolean;
+}
 ```
+
+### التراخيص
+
+يتم نشر كل ترجمة بموجب ترخيصها الخاص، لذا تحقق من شروط الترجمة قبل استخدامها.
+
+-   `licenseUrl` يشير دائمًا إلى شروط الترخيص الكاملة.
+-   `licenseNotice` ، عند وجوده، هو إشعار حقوق النشر أو الإسناد الذي يتم عرضه بجانب محتوى الترجمة.
+-   يحتوي `licenseNotes` على ملاحظات تمت إضافتها بواسطة واجهة برمجة التطبيقات، مثل التغييرات التي تم إجراؤها على النص الأصلي.
+-   يُلخص `license` ، عند وجوده، المصطلحات بصيغة يمكن لبرنامجك التحقق منها. على سبيل المثال، يمكنك تصفية القائمة لعرض الترجمات التي تسمح بالاستخدام التجاري.
+
+```ts:no-line-numbers title="commercial-translations.js"
+fetch(`https://bible.helloao.org/api/available_translations.json`)
+    .then(request => request.json())
+    .then(({ translations }) => {
+        const commercial = translations.filter(
+            t => t.license?.commercialUse === 'allowed'
+        );
+        console.log('Translations that allow commercial use:', commercial);
+    });
+```
+
+يتم تعيين `license` فقط عندما يكون من الممكن اكتشاف المصطلحات تلقائيًا. قد تسمح لك الترجمات التي لا تحتوي على هذه القيمة بالاستخدام، لذا اقرأ الصفحة رقم `licenseUrl` للاطلاع على التفاصيل.
 
 ### مثال
 
@@ -247,6 +318,12 @@ interface TranslationBook {
     commonName: string;
 
     /**
+     * الاسم المختصر (الاختصار) الذي قدمته الترجمة للكتاب.
+     * إذا لم يكن متوفراً، فهذا يعني أن الترجمة لم تقدمه.
+     */
+    shortName?: string;
+
+    /**
      * عنوان الكتاب.
      * عادةً ما تكون هذه نسخة أكثر وصفية لاسم الكتاب.
      * إذا لم يكن متوفراً، فهذا يعني أن الترجمة لم تقدمه.
@@ -325,6 +402,7 @@ interface TranslationBook {
             "translationId": "BSB",
             "name": "Genesis",
             "commonName": "Genesis",
+            "shortName": "Gen",
             "title": "Genesis",
             "order": 1,
             "numberOfChapters": 50,
