@@ -6,5 +6,12 @@
     "language": "hin",
     "licenseUrl": "https://ebible.org/Scriptures/details.php?id=hin2017",
     "shortName": "IRV",
-    "website": "https://ebible.org/Scriptures/details.php?id=hin2017"
+    "website": "https://ebible.org/Scriptures/details.php?id=hin2017",
+    "license": {
+        "attribution": "required",
+        "commercialUse": "allowed",
+        "derivatives": "allowed",
+        "copyleft": true,
+        "publicDomain": false
+    }
 }

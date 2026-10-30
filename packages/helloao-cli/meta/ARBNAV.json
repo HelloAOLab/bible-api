@@ -6,5 +6,12 @@
     "language": "arb",
     "licenseUrl": "https://ebible.org/Scriptures/details.php?id=arbnav",
     "shortName": "NAV",
-    "website": "https://ebible.org/Scriptures/details.php?id=arbnav"
+    "website": "https://ebible.org/Scriptures/details.php?id=arbnav",
+    "license": {
+        "attribution": "required",
+        "commercialUse": "allowed",
+        "derivatives": "allowed",
+        "copyleft": true,
+        "publicDomain": false
+    }
 }

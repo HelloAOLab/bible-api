@@ -6,5 +6,12 @@
     "language": "eng",
     "licenseUrl": "https://berean.bible/",
     "shortName": "BSB",
-    "website": "https://berean.bible/"
+    "website": "https://berean.bible/",
+    "license": {
+        "attribution": "not-required",
+        "commercialUse": "allowed",
+        "derivatives": "allowed",
+        "copyleft": false,
+        "publicDomain": true
+    }
 }

@@ -6,5 +6,12 @@
     "language": "hbo",
     "licenseUrl": "https://ebible.org/Scriptures/details.php?id=hbo",
     "shortName": "MAS",
-    "website": "https://ebible.org/Scriptures/details.php?id=hbo"
+    "website": "https://ebible.org/Scriptures/details.php?id=hbo",
+    "license": {
+        "attribution": "not-required",
+        "commercialUse": "allowed",
+        "derivatives": "allowed",
+        "copyleft": false,
+        "publicDomain": true
+    }
 }
