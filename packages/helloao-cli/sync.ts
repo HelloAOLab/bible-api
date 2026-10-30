@@ -925,8 +925,10 @@ async function applyApiOverrides(sources: DiscoveredSource[]) {
         if (source.type === 'api') {
             continue;
         }
-        if (source.item) {
-            if (overrides.has(itemKey(source.item))) {
+        if (source.type === 'translation' || source.type === 'commentary') {
+            // Translations and commentaries don't provide datasets.
+            // Their item is missing when their ID can't be read (e.g. their metadata is missing).
+            if (source.item && overrides.has(itemKey(source.item))) {
                 source.settings = JSON.stringify({ overridden: true });
             }
         } else if (overriddenDatasets.length > 0) {

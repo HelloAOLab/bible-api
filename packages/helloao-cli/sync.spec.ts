@@ -1025,6 +1025,27 @@ describe('sync', () => {
                 const second = await runApiSync();
                 expect(second.import!.plan.imports).toEqual([]);
             });
+
+            it('should override datasets when a translation source has no metadata', async () => {
+                config.sources.push({ type: 'verse-of-the-day' });
+                await runSync();
+
+                mkdirSync(path.resolve(dir, 'sources', 'nometa'));
+                writeFileSync(
+                    path.resolve(dir, 'sources', 'nometa', 'GEN.usfm'),
+                    usfm('GEN', [['No metadata.']])
+                );
+                apiConfig.sources.push(
+                    { type: 'translations', path: 'sources' },
+                    { type: 'verse-of-the-day' }
+                );
+                const result = await runApiSync({ skipUpload: true });
+
+                expect(result.import!.imported).toContain('api:api-out');
+                expect(result.errors).toEqual([
+                    expect.stringContaining('translation:sources/nometa'),
+                ]);
+            });
         });
 
         it('should fail to import a directory without an api folder', async () => {
