@@ -1,9 +1,10 @@
 name: Release
 
 # Builds, tests, and publishes the public packages to NPM:
-#   - @helloao/tools        (packages/helloao-tools)
-#   - @helloao/cli          (packages/helloao-cli)
-#   - free-use-bible-api    (packages/free-use-bible-api)
+#   - @helloao/tools              (packages/helloao-tools)
+#   - @helloao/cli                (packages/helloao-cli)
+#   - free-use-bible-api          (packages/free-use-bible-api)
+#   - free-use-bible-api-react    (packages/free-use-bible-api-react)
 #
 # To release, bump the "version" in the package.json of each package that
 # should be published, merge it, and then publish a GitHub release (or run
@@ -11,7 +12,12 @@ name: Release
 # are published, so unchanged packages are skipped. Private packages are
 # never published.
 #
-# Requires an NPM_TOKEN repository secret with publish access to the packages.
+# Packages are published with NPM trusted publishing (OIDC), so each package
+# needs a trusted publisher configured on npmjs.com for this repository and
+# the release-workflow.yml workflow. Trusted publishers can only be added to
+# packages that already exist, so the first version of a new package has to be
+# published some other way: either publish it by hand, or set an NPM_TOKEN
+# repository secret with publish access, which is used when it is present.
 
 on:
     release:
@@ -58,6 +64,34 @@ jobs:
 
             - name: Build
               run: npm run build
+
+            # Trusted publishing does not work for packages that are not on NPM yet,
+            # so check for them before anything is published. Otherwise the release
+            # fails halfway through and only some of the packages get published.
+            - name: Check that new packages can be published
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+                  DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry-run }}
+              run: |
+                  level=error
+                  if [ "$DRY_RUN" = "true" ]; then level=warning; fi
+                  failed=false
+                  for name in $(pnpm ls -r --depth -1 --json | jq -r '.[] | select(.private | not) | .name'); do
+                      if ! output=$(npm view "$name" name 2>&1); then
+                          if ! grep -q E404 <<< "$output"; then
+                              echo "$output"
+                              echo "::error::Could not check whether $name is on NPM."
+                              exit 1
+                          fi
+                          if [ -z "$NODE_AUTH_TOKEN" ]; then
+                              echo "::$level::$name is not on NPM yet, so it can't be published with trusted publishing. Publish its first version by hand (or set the NPM_TOKEN secret), add a trusted publisher for it on npmjs.com, and then run this workflow again."
+                              failed=true
+                          fi
+                      fi
+                  done
+                  if [ "$failed" = "true" ] && [ "$level" = "error" ]; then
+                      exit 1
+                  fi
 
             - name: Publish to NPM (dry run)
               if: github.event_name == 'workflow_dispatch' && inputs.dry-run
