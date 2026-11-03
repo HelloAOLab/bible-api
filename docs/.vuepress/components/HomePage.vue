@@ -11,6 +11,11 @@ import {
 } from '../composables/useLocale';
 import { fillLabel, labelHtml } from '../composables/formatLabel';
 import { useVerses } from '../composables/useVerses';
+import {
+    countLicenceRows,
+    LICENCE_ROWS,
+    type LicenceRow,
+} from '../licenceRows';
 import type { Labels } from '../labels';
 
 const DISCORD_URL = 'https://discord.com/invite/NbEZMCJmqC';
@@ -37,9 +42,28 @@ const formatCount = (n: number) => {
 const translationCount = ref(1256);
 const languageCount = ref(1004);
 
-function paintCounts(t: number, l: number) {
+// The licence breakdown, by row. These are the counts as of November 2026,
+// shown until the live ones arrive. See licenceRows.ts.
+const licenceCounts = ref<Record<LicenceRow, number>>({
+    publicDomain: 102,
+    attribution: 36,
+    shareAlike: 283,
+    noDerivatives: 92,
+    nonCommercialNoDerivatives: 728,
+    other: 15,
+});
+
+function paintCounts(
+    t: number,
+    l: number,
+    lic?: Partial<Record<LicenceRow, number>>
+) {
     if (t) translationCount.value = t;
     if (l) languageCount.value = l;
+    // Only a complete set of counts replaces the snapshot.
+    if (lic && LICENCE_ROWS.every((row) => typeof lic[row] === 'number')) {
+        licenceCounts.value = lic as Record<LicenceRow, number>;
+    }
 }
 
 const translations = computed(() => formatCount(translationCount.value));
@@ -53,8 +77,12 @@ function fetchCounts() {
     if (hit) {
         try {
             const c = JSON.parse(hit);
-            paintCounts(c.t, c.l);
-            return;
+            // A count cached before the licence breakdown was added has no
+            // `lic`, so fetch again rather than show the snapshot.
+            if (c.lic) {
+                paintCounts(c.t, c.l, c.lic);
+                return;
+            }
         } catch (e) {}
     }
 
@@ -69,11 +97,12 @@ function fetchCounts() {
                         .map((x: any) => x.language)
                         .filter((x: any) => !!x)
                 ).size;
-                paintCounts(t, l);
+                const lic = countLicenceRows(j.translations);
+                paintCounts(t, l, lic);
                 try {
                     sessionStorage.setItem(
                         'fuba-counts',
-                        JSON.stringify({ t, l })
+                        JSON.stringify({ t, l, lic })
                     );
                 } catch (e) {}
             })
@@ -156,7 +185,7 @@ const FORBIDDEN: (keyof Labels['home']['forbidden'])[] = [
 
 /* ---------- the API's translations by licence ---------- */
 
-// A snapshot of the catalog's licences (1,256 translations, November 2026).
+// The counts come from licenceCounts, which is filled from the live catalog.
 type Use = keyof Labels['home']['licenceUses'];
 const USES: Use[] = ['copy', 'translate', 'revise', 'adapt', 'distribute'];
 const LICENCE_GROUPS: {
@@ -165,7 +194,6 @@ const LICENCE_GROUPS: {
     rows: {
         id: keyof Labels['home']['licenceRows'];
         marks: Mark[];
-        count: number;
     }[];
 }[] = [
     {
@@ -174,15 +202,14 @@ const LICENCE_GROUPS: {
             {
                 id: 'publicDomain',
                 marks: ['y', 'y', 'y', 'y', 'y'],
-                count: 102,
             },
         ],
     },
     {
         id: 'viable',
         rows: [
-            { id: 'attribution', marks: ['y', 'y', 'y', 'y', 'y'], count: 36 },
-            { id: 'shareAlike', marks: ['y', 'p', 'p', 'p', 'y'], count: 283 },
+            { id: 'attribution', marks: ['y', 'y', 'y', 'y', 'y'] },
+            { id: 'shareAlike', marks: ['y', 'p', 'p', 'p', 'y'] },
         ],
     },
     {
@@ -192,20 +219,17 @@ const LICENCE_GROUPS: {
             {
                 id: 'noDerivatives',
                 marks: ['y', 'n', 'n', 'n', 'y'],
-                count: 92,
             },
             {
                 id: 'nonCommercialNoDerivatives',
                 marks: ['p', 'n', 'n', 'n', 'p'],
-                count: 728,
             },
-            { id: 'other', marks: ['p', 'p', 'p', 'p', 'p'], count: 15 },
+            { id: 'other', marks: ['p', 'p', 'p', 'p', 'p'] },
         ],
     },
 ];
-const LICENCE_TOTAL = LICENCE_GROUPS.reduce(
-    (sum, g) => sum + g.rows.reduce((s, r) => s + r.count, 0),
-    0
+const licenceTotal = computed(() =>
+    LICENCE_ROWS.reduce((sum, row) => sum + licenceCounts.value[row], 0)
 );
 
 const licenceMark = computed<Record<Mark, string>>(() => ({
@@ -218,12 +242,18 @@ const licenceGroups = computed(() =>
     LICENCE_GROUPS.map((group) => ({
         ...group,
         name: labels.value.home.licenceGroups[group.id],
-        total: formatCount(group.rows.reduce((s, r) => s + r.count, 0)),
+        total: formatCount(
+            group.rows.reduce((s, r) => s + licenceCounts.value[r.id], 0)
+        ),
         rows: group.rows.map((row) => ({
             ...row,
             ...labels.value.home.licenceRows[row.id],
-            total: formatCount(row.count),
-            width: ((row.count / LICENCE_TOTAL) * 100).toFixed(2) + '%',
+            total: formatCount(licenceCounts.value[row.id]),
+            width:
+                (
+                    (licenceCounts.value[row.id] / (licenceTotal.value || 1)) *
+                    100
+                ).toFixed(2) + '%',
             marks: row.marks.map((mark, i) => ({
                 mark,
                 use: labels.value.home.licenceUses[USES[i]],
