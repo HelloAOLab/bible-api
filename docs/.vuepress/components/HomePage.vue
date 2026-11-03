@@ -1,77 +1,36 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
-import {
-    RouteLink,
-    usePageFrontmatter,
-    usePageLang,
-    withBase,
-} from 'vuepress/client';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { RouteLink, usePageFrontmatter, usePageLang } from 'vuepress/client';
 import SiteFooter from './SiteFooter.vue';
+import SupportWall from './SupportWall.vue';
+import VerseQuote from './VerseQuote.vue';
 import {
     useLabels,
-    useLocale,
+    useLocalePage,
     useLocalePath,
 } from '../composables/useLocale';
 import { fillLabel, labelHtml } from '../composables/formatLabel';
+import { useVerses } from '../composables/useVerses';
 import type { Labels } from '../labels';
-import {
-    HOME_VERSES,
-    type HomeVerse,
-    type Verses,
-    type VerseText,
-} from '../verses';
 
-// Every locale's verses, keyed by locale path. Defined in config.ts.
-declare const __SITE_VERSES__: Record<string, Verses>;
-
-const DONATE_URL = 'https://better.giving/marketplace/1118469';
 const DISCORD_URL = 'https://discord.com/invite/NbEZMCJmqC';
-const NEWSLETTER_URL = 'https://helloao.org';
 
 const localePath = useLocalePath();
+const localePage = useLocalePage();
 const labels = useLabels();
 const frontmatter = usePageFrontmatter();
 const lang = usePageLang();
-const locale = useLocale();
+const verses = useVerses();
 
-// The quoted verses come from verses.json files rather than the
-// machine-translated labels, falling back to English for a language that has
-// none. See verses.ts.
-const verses = computed(() => {
-    const code = locale.value === '/' ? 'en' : locale.value.slice(1, -1);
-    return Object.fromEntries(
-        (Object.keys(HOME_VERSES) as HomeVerse[]).map((key) => {
-            const own = __SITE_VERSES__[locale.value]?.[key];
-            const verse = own ?? __SITE_VERSES__['/'][key]!;
-            const { book, chapter, verse: number } = HOME_VERSES[key];
-            const reference = `${verse.bookName} ${chapter}:${number}`;
-            return [
-                key,
-                {
-                    ...verse,
-                    lang: verse.language ?? (own ? code : 'en'),
-                    reference,
-                    open: fillLabel(labels.value.home.openVerse, { reference }),
-                    url:
-                        'https://seedbible.org/?translation=' +
-                        encodeURIComponent(verse.translationId) +
-                        `&book=${book}&chapter=${chapter}&verse=${number}`,
-                },
-            ];
-        })
-    ) as Record<
-        HomeVerse,
-        VerseText & {
-            lang: string;
-            reference: string;
-            open: string;
-            url: string;
-        }
-    >;
-});
+const formatCount = (n: number) => {
+    try {
+        return n.toLocaleString(lang.value);
+    } catch {
+        return n.toLocaleString('en-US');
+    }
+};
 
-const logo = withBase('/seed_bible_logo.png');
-const logoDark = withBase('/seed_bible_logo_dark.png');
+/* ---------- live translation counts ---------- */
 
 // The catalog grows. Fill the printed numbers from the live endpoint rather
 // than letting them rot, but only once a session: the file is large.
@@ -83,17 +42,10 @@ function paintCounts(t: number, l: number) {
     if (l) languageCount.value = l;
 }
 
-const formatCount = (n: number) => {
-    try {
-        return n.toLocaleString(lang.value);
-    } catch {
-        return n.toLocaleString('en-US');
-    }
-};
 const translations = computed(() => formatCount(translationCount.value));
 const languages = computed(() => formatCount(languageCount.value));
 
-onMounted(() => {
+function fetchCounts() {
     let hit: string | null = null;
     try {
         hit = sessionStorage.getItem('fuba-counts');
@@ -133,7 +85,9 @@ onMounted(() => {
     } else {
         setTimeout(go, 1200);
     }
-});
+}
+
+/* ---------- the comparison table ---------- */
 
 type Mark = 'y' | 'p' | 'n';
 const markLabel = computed<Record<Mark, string>>(() => ({
@@ -189,49 +143,354 @@ const compareRows = computed(() =>
         ),
     }))
 );
+
+/* ---------- what copyright terms forbid ---------- */
+
+const FORBIDDEN: (keyof Labels['home']['forbidden'])[] = [
+    'copying',
+    'translating',
+    'revising',
+    'adapting',
+    'distributing',
+];
+
+/* ---------- the API's translations by licence ---------- */
+
+// A snapshot of the catalog's licences (1,256 translations, November 2026).
+type Use = keyof Labels['home']['licenceUses'];
+const USES: Use[] = ['copy', 'translate', 'revise', 'adapt', 'distribute'];
+const LICENCE_GROUPS: {
+    id: keyof Labels['home']['licenceGroups'];
+    restricted?: boolean;
+    rows: {
+        id: keyof Labels['home']['licenceRows'];
+        marks: Mark[];
+        count: number;
+    }[];
+}[] = [
+    {
+        id: 'ideal',
+        rows: [
+            {
+                id: 'publicDomain',
+                marks: ['y', 'y', 'y', 'y', 'y'],
+                count: 102,
+            },
+        ],
+    },
+    {
+        id: 'viable',
+        rows: [
+            { id: 'attribution', marks: ['y', 'y', 'y', 'y', 'y'], count: 36 },
+            { id: 'shareAlike', marks: ['y', 'p', 'p', 'p', 'y'], count: 283 },
+        ],
+    },
+    {
+        id: 'restricted',
+        restricted: true,
+        rows: [
+            {
+                id: 'noDerivatives',
+                marks: ['y', 'n', 'n', 'n', 'y'],
+                count: 92,
+            },
+            {
+                id: 'nonCommercialNoDerivatives',
+                marks: ['p', 'n', 'n', 'n', 'p'],
+                count: 728,
+            },
+            { id: 'other', marks: ['p', 'p', 'p', 'p', 'p'], count: 15 },
+        ],
+    },
+];
+const LICENCE_TOTAL = LICENCE_GROUPS.reduce(
+    (sum, g) => sum + g.rows.reduce((s, r) => s + r.count, 0),
+    0
+);
+
+const licenceMark = computed<Record<Mark, string>>(() => ({
+    y: labels.value.home.markAllowed,
+    p: labels.value.home.markSomeCases,
+    n: labels.value.home.markForbidden,
+}));
+
+const licenceGroups = computed(() =>
+    LICENCE_GROUPS.map((group) => ({
+        ...group,
+        name: labels.value.home.licenceGroups[group.id],
+        total: formatCount(group.rows.reduce((s, r) => s + r.count, 0)),
+        rows: group.rows.map((row) => ({
+            ...row,
+            ...labels.value.home.licenceRows[row.id],
+            total: formatCount(row.count),
+            width: ((row.count / LICENCE_TOTAL) * 100).toFixed(2) + '%',
+            marks: row.marks.map((mark, i) => ({
+                mark,
+                use: labels.value.home.licenceUses[USES[i]],
+                title: fillLabel(labels.value.home.markFor, {
+                    use: labels.value.home.licenceUses[USES[i]],
+                    mark: licenceMark.value[mark],
+                }),
+            })),
+        })),
+    }))
+);
+
+const FLYWHEEL: (keyof Labels['home']['flywheel'])[] = [
+    'start',
+    'build',
+    'release',
+    'next',
+];
+
+type FaqId = Exclude<keyof Labels['home']['faq'], 'money'>;
+const FAQ_ANSWERS: Record<FaqId, true> = {
+    problem: true,
+    attribution: true,
+    shareAlike: true,
+    conditions: true,
+    nonCommercial: true,
+};
+
+/* ---------- motion: confetti, the relay, the struck words ---------- */
+
+const reducedMotion = () =>
+    window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
+const milestone = ref<'party' | 'settle' | ''>('');
+const relay = ref<HTMLElement>();
+const struck = ref<HTMLElement>();
+const relayOn = ref(false);
+const struckArmed = ref(false);
+const struckOn = ref(false);
+const cueHidden = ref(false);
+const cueOnInvert = ref(false);
+const RELAY_DOTS = 66;
+
+const cleanups: (() => void)[] = [];
+
+/* A confetti burst on load, in bright colours. The banner text cycles the
+   same colours and is back to white at 2.75s; the confetti runs 30% longer,
+   ending at about 3.6s. Skipped for reduced motion. */
+function confetti() {
+    if (reducedMotion()) return;
+    milestone.value = 'party';
+    const c = document.createElement('canvas');
+    c.className = 'fuba-confetti';
+    c.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(c);
+    const x = c.getContext('2d')!;
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    let W = 0;
+    let H = 0;
+    const size = () => {
+        W = innerWidth;
+        H = innerHeight;
+        c.width = W * dpr;
+        c.height = H * dpr;
+        x.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+    size();
+    addEventListener('resize', size);
+    const tones = [
+        '#ff3b5c',
+        '#ffb400',
+        '#2f80ff',
+        '#00c389',
+        '#8b5cf6',
+        '#ff6a00',
+        '#ff2d95',
+        '#00b8d9',
+    ];
+    const N = W < 620 ? 90 : 170;
+    const P = Array.from({ length: N }, (_, i) => {
+        const left = i % 2 === 0;
+        return {
+            x: left ? -10 : W + 10,
+            y: H * (0.35 + Math.random() * 0.35),
+            vx: (left ? 1 : -1) * (4 + Math.random() * 9) * (W / 1280 + 0.4),
+            vy: -(8 + Math.random() * 10),
+            w: 5 + Math.random() * 6,
+            h: 8 + Math.random() * 8,
+            r: Math.random() * 6.3,
+            vr: (Math.random() - 0.5) * 0.35,
+            t: Math.random() * 6.3,
+            term: 1.8 + Math.random() * 1.8,
+            col: tones[i % tones.length],
+            round: Math.random() < 0.3,
+        };
+    });
+    const start = performance.now();
+    const DUR = 3575;
+    let raf = 0;
+    const stop = () => {
+        cancelAnimationFrame(raf);
+        c.remove();
+        removeEventListener('resize', size);
+    };
+    const frame = (now: number) => {
+        const k = now - start;
+        x.clearRect(0, 0, W, H);
+        const fade = k > DUR - 900 ? Math.max(0, (DUR - k) / 900) : 1;
+        if (k > 2000 && milestone.value === 'party') {
+            milestone.value = 'settle';
+            setTimeout(() => {
+                milestone.value = '';
+            }, 800);
+        }
+        x.globalAlpha = fade;
+        P.forEach((p) => {
+            p.vy = Math.min(p.vy + 0.22, p.term);
+            p.vx *= 0.985;
+            p.x += p.vx;
+            p.y += p.vy;
+            p.r += p.vr;
+            p.t += 0.12;
+            x.save();
+            x.translate(p.x + Math.sin(p.t) * 2, p.y);
+            x.rotate(p.r);
+            x.fillStyle = p.col;
+            if (p.round) {
+                x.beginPath();
+                x.arc(0, 0, p.w / 2, 0, 6.283);
+                x.fill();
+            } else {
+                x.fillRect(
+                    -p.w / 2,
+                    (-p.h / 2) * Math.abs(Math.cos(p.t)),
+                    p.w,
+                    p.h * Math.abs(Math.cos(p.t)) + 1
+                );
+            }
+            x.restore();
+        });
+        if (k < DUR) raf = requestAnimationFrame(frame);
+        else stop();
+    };
+    raf = requestAnimationFrame(frame);
+    cleanups.push(stop);
+}
+
+/** Runs `then` once `el` is this far into view. */
+function whenVisible(
+    el: HTMLElement | undefined,
+    threshold: number,
+    then: () => void
+) {
+    if (!el) return;
+    if (!('IntersectionObserver' in window)) {
+        then();
+        return;
+    }
+    const io = new IntersectionObserver(
+        (entries) => {
+            if (entries[0].isIntersecting) {
+                then();
+                io.disconnect();
+            }
+        },
+        { threshold }
+    );
+    io.observe(el);
+    cleanups.push(() => io.disconnect());
+}
+
+/* ---------- the scroll cue ---------- */
+
+const home = ref<HTMLElement>();
+
+function sections() {
+    return Array.from(
+        home.value?.querySelectorAll<HTMLElement>(
+            'main > section, .fuba-footer'
+        ) ?? []
+    );
+}
+
+function updateCue() {
+    cueHidden.value =
+        scrollY + innerHeight >= document.documentElement.scrollHeight - 160;
+    const cue = home.value?.querySelector('.scroll-cue');
+    if (!cue) return;
+    const c = cue.getBoundingClientRect();
+    const y = c.top + c.height / 2;
+    cueOnInvert.value = Array.from(
+        home.value!.querySelectorAll('section.invert')
+    ).some((s) => {
+        const r = s.getBoundingClientRect();
+        return y >= r.top && y <= r.bottom;
+    });
+}
+
+function nextSection() {
+    const head =
+        document.querySelector<HTMLElement>('.vp-navbar')?.offsetHeight ?? 0;
+    const next = sections().find(
+        (s) => s.getBoundingClientRect().top > head + 8 && s.offsetHeight > 150
+    );
+    if (next) {
+        const top = next.getBoundingClientRect().top + scrollY - head;
+        window.scrollTo({
+            top,
+            behavior: reducedMotion() ? 'auto' : 'smooth',
+        });
+    }
+}
+
+onMounted(() => {
+    fetchCounts();
+    confetti();
+    whenVisible(relay.value, 0.6, () => {
+        relayOn.value = true;
+    });
+    if ('IntersectionObserver' in window) {
+        struckArmed.value = true;
+        whenVisible(struck.value, 0.25, () => {
+            struckOn.value = true;
+        });
+    }
+    addEventListener('scroll', updateCue, { passive: true });
+    addEventListener('resize', updateCue);
+    cleanups.push(() => {
+        removeEventListener('scroll', updateCue);
+        removeEventListener('resize', updateCue);
+    });
+    updateCue();
+});
+
+onBeforeUnmount(() => {
+    cleanups.forEach((f) => f());
+});
 </script>
 
 <template>
-    <div class="fuba-home">
+    <div ref="home" class="fuba-page fuba-home">
+        <div class="milestone" :class="milestone">
+            <p>
+                <span>{{ labels.home.milestone }}</span>
+            </p>
+        </div>
+
         <main>
             <section class="hero">
                 <div class="shell">
                     <h1>{{ frontmatter.title }}</h1>
                     <p class="sub">{{ labels.home.tagline }}</p>
                     <div class="cta">
-                        <RouteLink class="btn primary" :to="localePath('/guide/getting-started.html')">
+                        <RouteLink
+                            class="btn primary"
+                            :to="localePath('/guide/getting-started.html')"
+                        >
                             {{ labels.home.quickStart }}
                             <span aria-hidden="true">&rarr;</span>
                         </RouteLink>
-                        <a class="btn secondary" :href="DONATE_URL">{{
-                            labels.home.donate
-                        }}</a>
                     </div>
-                </div>
-            </section>
-
-            <section class="demo">
-                <div class="shell">
-                    <a
-                        class="verse"
-                        :href="verses.freelyGive.url"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        :aria-label="verses.freelyGive.open"
-                    >
-                        <blockquote :lang="verses.freelyGive.lang" dir="auto">
-                            &ldquo;{{ verses.freelyGive.text }}&rdquo;
-                        </blockquote>
-                        <span class="ref">
-                            <img class="seed light-only" :src="logo" alt="" />
-                            <img class="seed dark-only" :src="logoDark" alt="" />
-                            <span :lang="verses.freelyGive.lang"
-                                >{{ verses.freelyGive.reference }} &middot;
-                                {{ verses.freelyGive.translationAbbreviation }}
-                                &#8599;</span
-                            >
-                        </span>
-                    </a>
+                    <p class="more">
+                        {{ labels.home.more }}
+                        <a href="#ecosystem"
+                            >{{ labels.home.learnMore }}&nbsp;&darr;</a
+                        >
+                    </p>
                 </div>
             </section>
 
@@ -260,11 +519,30 @@ const compareRows = computed(() =>
                 </div>
             </section>
 
-            <section class="section ecosystem" id="ecosystem">
+            <section class="section cause" id="cause">
+                <div class="shell">
+                    <div class="cause-top">
+                        <h2 class="cause-h">{{ labels.home.causeTitle }}</h2>
+                        <RouteLink
+                            class="btn primary cause-cta"
+                            :to="localePage('/support.html')"
+                        >
+                            {{ labels.home.support }}
+                            <span aria-hidden="true">&rarr;</span>
+                        </RouteLink>
+                    </div>
+                    <SupportWall
+                        :fund-link="localePage('/free-use-fund.html')"
+                        show-note
+                    />
+                </div>
+            </section>
+
+            <section class="section alt ecosystem" id="ecosystem">
                 <div class="shell">
                     <div class="head">
-                        <h2>{{ labels.home.welcome }}</h2>
-                        <p v-html="labelHtml(labels.home.welcomeDetail)"></p>
+                        <h2>{{ labels.home.frontierTitle }}</h2>
+                        <p v-html="labelHtml(labels.home.frontierDetail)"></p>
                         <p class="tiny-link">
                             <a href="#compare">
                                 {{ labels.home.compareLink }} &rarr;
@@ -272,7 +550,10 @@ const compareRows = computed(() =>
                         </p>
                     </div>
                     <div class="cards">
-                        <RouteLink class="card" :to="localePath('/reference/translations/')">
+                        <RouteLink
+                            class="card"
+                            :to="localePath('/reference/translations/')"
+                        >
                             <h3>{{ labels.home.translationsTitle }}</h3>
                             <p>
                                 {{
@@ -287,7 +568,11 @@ const compareRows = computed(() =>
                         </RouteLink>
                         <RouteLink
                             class="card"
-                            :to="localePath('/reference/translations/standard.html#get-the-audio-timings-for-a-chapter')"
+                            :to="
+                                localePath(
+                                    '/reference/translations/standard.html#get-the-audio-timings-for-a-chapter'
+                                )
+                            "
                         >
                             <h3>{{ labels.home.audioTitle }}</h3>
                             <p>{{ labels.home.audioBody }}</p>
@@ -295,7 +580,10 @@ const compareRows = computed(() =>
                                 >{{ labels.home.audioLink }} &rarr;</span
                             >
                         </RouteLink>
-                        <RouteLink class="card" :to="localePath('/reference/datasets/')">
+                        <RouteLink
+                            class="card"
+                            :to="localePath('/reference/datasets/')"
+                        >
                             <h3>{{ labels.home.datasetsTitle }}</h3>
                             <p>{{ labels.home.datasetsBody }}</p>
                             <span class="go"
@@ -313,7 +601,7 @@ const compareRows = computed(() =>
                 </div>
             </section>
 
-            <section class="section compare" id="compare">
+            <section class="section alt compare" id="compare">
                 <div class="shell">
                     <div class="head">
                         <h2>{{ labels.home.compareTitle }}</h2>
@@ -321,7 +609,9 @@ const compareRows = computed(() =>
                     <div class="matrix-wrap">
                         <table class="matrix">
                             <caption class="vh">
-                                {{ labels.home.compareCaption }}
+                                {{
+                                    labels.home.compareCaption
+                                }}
                             </caption>
                             <thead>
                                 <tr>
@@ -385,45 +675,177 @@ const compareRows = computed(() =>
                 </div>
             </section>
 
-            <section class="section contribute" id="contribute">
-                <div class="shell contribute-grid">
-                    <h2 class="contribute-title">
-                        {{ labels.home.contributeTitle }}
-                    </h2>
-                    <div class="contribute-copy">
-                        <p>{{ labels.home.contributeBody }}</p>
-                        <div class="cta">
-                            <a class="btn primary" :href="DONATE_URL">
-                                {{ labels.home.donate }}
-                                <span aria-hidden="true">&rarr;</span>
-                            </a>
-                            <a class="btn secondary" :href="DISCORD_URL">
-                                {{ labels.home.contributeDiscord }}
-                                <span aria-hidden="true">&#8599;</span>
-                            </a>
-                        </div>
-                    </div>
+            <section class="section beat fg" id="freely">
+                <div class="shell">
+                    <h2 class="fg-h">{{ labels.home.freelyTitle }}</h2>
+                    <VerseQuote
+                        class="fg-verse fg-big"
+                        :verse="verses.freelyGive"
+                    />
+                </div>
+            </section>
 
-                    <a
-                        class="verse"
-                        :href="verses.stewards.url"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        :aria-label="verses.stewards.open"
+            <section class="section beat fg alt" id="charge">
+                <div class="shell">
+                    <h2 class="fg-h">{{ labels.home.chargeTitle }}</h2>
+                    <VerseQuote class="fg-verse" :verse="verses.charge" />
+                </div>
+            </section>
+
+            <section class="section beat fg" id="since">
+                <div class="shell">
+                    <h2 class="fg-h">{{ labels.home.sinceTitle }}</h2>
+                    <p
+                        class="fg-p"
+                        v-html="labelHtml(labels.home.sinceBody)"
+                    ></p>
+                    <figure
+                        ref="relay"
+                        class="relay"
+                        :class="{ go: relayOn }"
+                        role="img"
+                        :aria-label="labels.home.relayLabel"
                     >
-                        <blockquote :lang="verses.stewards.lang" dir="auto">
-                            &ldquo;{{ verses.stewards.text }}&rdquo;
-                        </blockquote>
-                        <span class="ref">
-                            <img class="seed light-only" :src="logo" alt="" />
-                            <img class="seed dark-only" :src="logoDark" alt="" />
-                            <span :lang="verses.stewards.lang"
-                                >{{ verses.stewards.reference }} &middot;
-                                {{ verses.stewards.translationAbbreviation }}
-                                &#8599;</span
+                        <div class="relay-line">
+                            <i
+                                v-for="n in RELAY_DOTS"
+                                :key="n"
+                                :class="{
+                                    you: n === 1 || n === RELAY_DOTS,
+                                }"
+                                :style="{ '--n': n - 1 }"
+                            ></i>
+                        </div>
+                        <figcaption>
+                            <span>{{ labels.home.relayStart }}</span>
+                            <span>{{ labels.home.relayEnd }}</span>
+                        </figcaption>
+                    </figure>
+                </div>
+            </section>
+
+            <section class="section beat fg invert" id="forbid">
+                <div class="shell">
+                    <h2 class="meant-h">{{ labels.home.forbidTitle }}</h2>
+                    <p class="fg-p">{{ labels.home.forbidLead }}</p>
+                    <ul
+                        ref="struck"
+                        class="struck"
+                        :class="{ armed: struckArmed, go: struckOn }"
+                    >
+                        <li v-for="(id, i) in FORBIDDEN" :key="id">
+                            <strong :style="{ '--n': i }">{{
+                                labels.home.forbidden[id].name
+                            }}</strong>
+                            <p class="ex">
+                                {{ labels.home.forbidden[id].example }}
+                            </p>
+                            <p class="lic">
+                                {{ labels.home.forbidden[id].licence }}
+                            </p>
+                        </li>
+                    </ul>
+                    <p class="fg-p forbid-end">{{ labels.home.forbidEnd }}</p>
+                </div>
+            </section>
+
+            <section class="section beat fg" id="english">
+                <div class="shell">
+                    <h2 class="fg-h">{{ labels.home.englishTitle }}</h2>
+                    <p class="fg-p fg-p-wide">{{ labels.home.englishBody }}</p>
+                </div>
+            </section>
+
+            <section class="section beat fg alt" id="hinder">
+                <div class="shell">
+                    <h2 class="fg-h">{{ labels.home.hinderTitle }}</h2>
+                    <VerseQuote class="fg-verse" :verse="verses.hinder" />
+                </div>
+            </section>
+
+            <section class="section beat fg" id="frontier">
+                <div class="shell">
+                    <h2 class="fg-h">{{ labels.home.licencesTitle }}</h2>
+                    <div class="lic-groups">
+                        <p class="lr-head" aria-hidden="true">
+                            <span></span>
+                            <span class="lr-cols">
+                                <span v-for="use in USES" :key="use">{{
+                                    labels.home.licenceUses[use]
+                                }}</span>
+                            </span>
+                            <span></span>
+                        </p>
+                        <div
+                            v-for="group in licenceGroups"
+                            :key="group.id"
+                            class="lg"
+                            :class="{ 'lg-no': group.restricted }"
+                        >
+                            <p class="lg-h">
+                                <span>{{ group.name }}</span>
+                                <b>{{ group.total }}</b>
+                            </p>
+                            <ul class="lr">
+                                <li v-for="row in group.rows" :key="row.id">
+                                    <span class="lr-name">{{ row.name }}</span>
+                                    <span class="lr-why">{{ row.why }}</span>
+                                    <span class="lr-marks">
+                                        <span
+                                            v-for="(m, i) in row.marks"
+                                            :key="i"
+                                            class="lr-m"
+                                        >
+                                            <span
+                                                class="m"
+                                                :class="m.mark"
+                                                :title="m.title"
+                                            ></span>
+                                            <span
+                                                class="lr-v"
+                                                aria-hidden="true"
+                                                >{{ m.use }}</span
+                                            >
+                                            <span class="vh"
+                                                >{{ m.title }}.</span
+                                            >
+                                        </span>
+                                    </span>
+                                    <b class="lr-n">{{ row.total }}</b>
+                                    <span class="lr-bar"
+                                        ><span
+                                            :style="{ width: row.width }"
+                                        ></span
+                                    ></span>
+                                </li>
+                            </ul>
+                        </div>
+                        <p class="legend lr-legend">
+                            <span
+                                ><span class="m y"></span
+                                >{{ labels.home.markAllowed }}</span
                             >
-                        </span>
-                    </a>
+                            <span
+                                ><span class="m p"></span
+                                >{{ labels.home.markSomeCases }}</span
+                            >
+                            <span
+                                ><span class="m n"></span
+                                >{{ labels.home.markForbidden }}</span
+                            >
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section beat fg invert" id="flywheel">
+                <div class="shell">
+                    <h2 class="fg-h">{{ labels.home.flywheelTitle }}</h2>
+                    <ol class="fw-flow" :aria-label="labels.home.flywheelLabel">
+                        <li v-for="step in FLYWHEEL" :key="step">
+                            {{ labels.home.flywheel[step] }}
+                        </li>
+                    </ol>
                 </div>
             </section>
 
@@ -432,207 +854,242 @@ const compareRows = computed(() =>
                     <div class="build-card">
                         <div class="build-main">
                             <h3>{{ labels.home.buildTitle }}</h3>
-                            <RouteLink class="btn" :to="localePath('/guide/getting-started.html')">
+                            <RouteLink
+                                class="btn"
+                                :to="localePath('/guide/getting-started.html')"
+                            >
                                 {{ labels.home.quickStart }}
                                 <span aria-hidden="true">&rarr;</span>
                             </RouteLink>
                         </div>
                         <div class="build-opts">
-                            <a :href="NEWSLETTER_URL">
-                                <small>{{ labels.home.newsletterPrompt }}</small>
+                            <a href="#newsletter" class="js-newsletter-trigger">
+                                <small>{{
+                                    labels.home.newsletterPrompt
+                                }}</small>
                                 <strong
-                                    >{{ labels.home.newsletterLink }} &rarr;</strong
+                                    >{{
+                                        labels.home.newsletterLink
+                                    }}
+                                    &rarr;</strong
                                 >
                                 <p>{{ labels.home.newsletterBody }}</p>
                             </a>
-                            <RouteLink :to="localePath('/guide/making-requests.html#examples')">
-                                <small>{{ labels.home.examplesPrompt }}</small>
+                            <a
+                                :href="DISCORD_URL"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                <small>{{ labels.home.discordPrompt }}</small>
                                 <strong
-                                    >{{ labels.home.examplesLink }} &rarr;</strong
+                                    >{{
+                                        labels.home.contributeDiscord
+                                    }}
+                                    &#8599;</strong
                                 >
-                                <p>{{ labels.home.examplesBody }}</p>
-                            </RouteLink>
+                                <p>{{ labels.home.discordBody }}</p>
+                            </a>
                         </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section alt" id="faq">
+                <div class="shell">
+                    <h2 class="faq-h">{{ labels.home.faqTitle }}</h2>
+                    <div class="faq">
+                        <details class="faq-q">
+                            <summary>{{ labels.home.faq.problem.q }}</summary>
+                            <div class="faq-a">
+                                <p
+                                    v-html="
+                                        labelHtml(labels.home.faq.problem.a)
+                                    "
+                                ></p>
+                            </div>
+                        </details>
+                        <details class="faq-q">
+                            <summary>
+                                {{ labels.home.faq.attribution.q }}
+                            </summary>
+                            <div class="faq-a">
+                                <VerseQuote :verse="verses.notToUs" />
+                                <p
+                                    v-html="
+                                        labelHtml(labels.home.faq.attribution.a)
+                                    "
+                                ></p>
+                            </div>
+                        </details>
+                        <details class="faq-q">
+                            <summary>
+                                {{ labels.home.faq.shareAlike.q }}
+                            </summary>
+                            <div class="faq-a">
+                                <p
+                                    v-html="
+                                        labelHtml(labels.home.faq.shareAlike.a)
+                                    "
+                                ></p>
+                            </div>
+                        </details>
+                        <details class="faq-q">
+                            <summary>
+                                {{ labels.home.faq.conditions.q }}
+                            </summary>
+                            <div class="faq-a">
+                                <p
+                                    v-html="
+                                        labelHtml(labels.home.faq.conditions.a)
+                                    "
+                                ></p>
+                            </div>
+                        </details>
+                        <details class="faq-q">
+                            <summary>{{ labels.home.faq.money.q }}</summary>
+                            <div class="faq-a">
+                                <VerseQuote :verse="verses.doNotWorry" />
+                            </div>
+                        </details>
+                        <details class="faq-q">
+                            <summary>
+                                {{ labels.home.faq.nonCommercial.q }}
+                            </summary>
+                            <div class="faq-a">
+                                <p
+                                    v-html="
+                                        labelHtml(
+                                            labels.home.faq.nonCommercial.a
+                                        )
+                                    "
+                                ></p>
+                            </div>
+                        </details>
                     </div>
                 </div>
             </section>
         </main>
 
         <SiteFooter />
+
+        <button
+            type="button"
+            class="scroll-cue"
+            :class="{ 'on-invert': cueOnInvert, gone: cueHidden }"
+            :aria-label="labels.home.scrollCue"
+            :tabindex="cueHidden ? -1 : 0"
+            @click="nextSection"
+        >
+            <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+            >
+                <path d="M12 5v14M6 13l6 6 6-6" />
+            </svg>
+        </button>
     </div>
 </template>
 
 <style lang="scss">
-.fuba-home {
-    // Tokens are defined globally in styles/index.scss so the docs pages and
-    // the home page share one black-and-white system that follows the theme.
-    --bg: var(--vp-c-bg);
-    --surface: var(--vp-c-bg-alt);
-    --surface-2: var(--fuba-surface-2);
-    --text: var(--vp-c-text);
-    --text-2: var(--fuba-text-2);
-    --muted: var(--vp-c-text-mute);
-    --line: var(--vp-c-divider);
-    --line-strong: var(--fuba-line-strong);
-    --btn-bg: var(--vp-c-accent-bg);
-    --btn-fg: var(--vp-c-accent-text);
-    --card-line: var(--fuba-card-line);
-    --card-dim: var(--fuba-card-dim);
-    --max: 1160px;
+// The shared pieces (tokens, buttons, verses, the build card, the FAQ) are in
+// styles/pages.scss.
 
-    padding-top: var(--navbar-height);
-    background: var(--bg);
-    color: var(--text);
-    font-size: 16px;
-    line-height: 1.55;
-    font-variant-numeric: lining-nums tabular-nums;
+// The confetti is drawn on a canvas appended to <body>.
+.fuba-confetti {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 70;
+}
 
-    *,
-    *::before,
-    *::after {
-        box-sizing: border-box;
-    }
-    a {
-        color: inherit;
-        text-decoration: none;
-    }
-    h1,
-    h2,
-    h3 {
-        margin: 0;
-        padding: 0;
-        border: 0;
-        letter-spacing: -0.03em;
-        line-height: 1.05;
-        font-weight: 700;
-    }
-    :focus-visible {
-        outline: 2px solid var(--line-strong);
-        outline-offset: 3px;
-        border-radius: 3px;
-    }
-    .shell {
-        max-width: var(--max);
-        margin: 0 auto;
-        padding: 0 28px;
-    }
-
-    // swap the black and white logo with the theme
-    .dark-only {
-        display: none !important;
-    }
-
-    /* ---------- buttons ---------- */
-    .btn {
-        min-height: 48px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        padding: 0 20px;
-        border: 1px solid var(--line-strong);
-        border-radius: 8px;
-        font-size: 15px;
+.fuba-page.fuba-home {
+    /* ---------- the milestone ----------
+       A thin black band under the navbar, plus a one-time confetti burst on
+       load. To retire it, remove the .milestone element, these rules and the
+       confetti() call. */
+    .milestone {
+        background: #0d0d0d;
+        color: #ffffff;
+        text-align: center;
+        padding: 7px 16px;
+        font-size: 14px;
+        line-height: 1.35;
         font-weight: 600;
-        transition:
-            background 0.15s ease,
-            color 0.15s ease;
+        letter-spacing: -0.005em;
+        font-variant-numeric: lining-nums;
     }
-    .btn.primary {
-        background: var(--btn-bg);
-        color: var(--btn-fg);
+    .milestone p {
+        margin: 0;
     }
-    .btn.primary:hover {
-        background: var(--text-2);
+    /* while the confetti falls, the banner text runs through the confetti
+       colours, then fades back to white */
+    .milestone span {
+        color: #fff;
+        transition: color 0.75s ease;
     }
-    .btn.secondary {
-        background: transparent;
-        color: var(--text);
+    .milestone.party span,
+    .milestone.settle span {
+        background: linear-gradient(
+            90deg,
+            #ff3b5c,
+            #ffb400,
+            #00c389,
+            #00b8d9,
+            #2f80ff,
+            #8b5cf6,
+            #ff2d95,
+            #ff3b5c
+        );
+        background-size: 300% 100%;
+        -webkit-background-clip: text;
+        background-clip: text;
     }
-    .btn.secondary:hover {
-        background: var(--surface);
+    .milestone.party span {
+        color: transparent;
+        animation: fuba-party-shift 1.4s linear infinite;
     }
 
     /* ---------- hero ---------- */
     .hero {
-        padding: clamp(48px, 6.5vw, 84px) 0 clamp(40px, 4.6vw, 58px);
-        text-align: center;
+        padding-bottom: clamp(72px, 11vw, 160px);
     }
-    .hero h1 {
-        font-size: clamp(40px, 6vw, 68px);
-        letter-spacing: -0.045em;
-    }
-    .hero .sub {
-        margin: 16px auto 0;
-        color: var(--muted);
-        font-size: clamp(17px, 1.9vw, 21px);
-        letter-spacing: -0.015em;
-        text-wrap: balance;
-    }
-    .cta {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 12px;
-        margin-top: 28px;
-    }
-    .demo {
-        padding: 0 0 clamp(54px, 6vw, 78px);
-    }
-
-    /* ---------- verses ---------- */
-    .verse {
-        display: block;
-        max-width: none;
-        margin: 34px 0 4px;
-        padding: 0 0 0 20px;
-        border-left: 2px solid var(--line-strong);
-    }
-    .verse blockquote {
-        margin: 0;
-        padding: 0;
-        border: 0;
-        max-width: 1040px;
-        font-size: clamp(18px, 1.85vw, 22px);
-        line-height: 1.4;
-        letter-spacing: -0.02em;
-        color: var(--text);
-        text-wrap: pretty;
-    }
-    .verse .ref {
-        display: inline-flex;
-        align-items: center;
-        gap: 9px;
-        margin-top: 14px;
+    .more {
+        margin: 26px 0 0;
         font-size: 14px;
-        font-weight: 600;
         color: var(--muted);
     }
-    // the Seed Bible mark is wide, so it is sized by height
-    .verse .ref img.seed {
-        display: block;
-        width: auto;
-        height: 12px;
-    }
-    .verse:hover .ref {
+    .more a {
+        font-weight: 600;
         color: var(--text);
+        text-decoration: underline;
+        text-underline-offset: 3px;
     }
-    .demo .verse {
-        margin: 0 auto;
-        padding: 0;
-        border-left: 0;
-        text-align: center;
-    }
-    .demo .verse blockquote {
-        max-width: 30ch;
-        margin: 0 auto;
-        font-size: clamp(21px, 2.3vw, 27px);
-        font-weight: 500;
-        line-height: 1.3;
-    }
-    .demo .verse .ref {
-        justify-content: center;
-        margin-top: 11px;
+    @media (min-width: 721px) {
+        .hero {
+            min-height: calc(
+                100svh - var(--navbar-height) - 33px - 105px - 15svh
+            );
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: clamp(40px, 5vw, 64px) 0;
+        }
+        .hero .sub {
+            margin-top: 22px;
+        }
+        .hero .cta {
+            margin-top: 38px;
+        }
+        .hero .more {
+            margin-top: 34px;
+        }
     }
 
     /* ---------- proof row ---------- */
@@ -662,51 +1119,39 @@ const compareRows = computed(() =>
         font-size: 13.5px;
     }
 
-    /* ---------- sections ---------- */
-    .section {
-        padding: clamp(64px, 8vw, 100px) 0;
+    /* ---------- the cause: the support wall ---------- */
+    .cause-top {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 14px 40px;
     }
+    .cause-h {
+        flex: 0 1 auto;
+        max-width: 22ch;
+        margin: 0;
+        font-size: clamp(30px, 4vw, 48px);
+        letter-spacing: -0.04em;
+        text-wrap: balance;
+    }
+    .cause-cta {
+        flex: none;
+        margin-bottom: 0.3em;
+    }
+
+    /* ---------- ecosystem and the comparison ---------- */
     .ecosystem {
         padding-bottom: clamp(36px, 4.4vw, 56px);
-    }
-    .compare {
-        padding-top: clamp(28px, 3.6vw, 48px);
-    }
-    .head {
-        max-width: 720px;
-        margin-bottom: 36px;
+        border-bottom: 0;
     }
     .ecosystem .head {
         max-width: 1040px;
     }
-    .head h2 {
-        font-size: clamp(30px, 4vw, 48px);
-        letter-spacing: -0.04em;
+    .compare {
+        padding-top: clamp(28px, 3.6vw, 48px);
+        border-top: 0;
     }
-    .head p {
-        margin: 12px 0 0;
-        color: var(--muted);
-        font-size: 18px;
-    }
-    .head p strong {
-        color: var(--text);
-        font-weight: 700;
-    }
-    .tiny-link {
-        margin: 14px 0 0;
-        font-size: 15px;
-    }
-    .head p.tiny-link {
-        font-size: 15px;
-    }
-    .tiny-link a {
-        font-weight: 600;
-        color: var(--text);
-        text-decoration: underline;
-        text-underline-offset: 3px;
-    }
-
-    /* ---------- cards ---------- */
     .cards {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
@@ -747,11 +1192,11 @@ const compareRows = computed(() =>
         color: var(--muted);
     }
 
-    /* ---------- the feature matrix ---------- */
     .matrix-wrap {
         overflow-x: auto;
         border: 1px solid var(--line);
         border-radius: 12px;
+        background: var(--bg);
         -webkit-overflow-scrolling: touch;
     }
     .matrix {
@@ -827,47 +1272,12 @@ const compareRows = computed(() =>
         background: var(--surface-2);
         font-weight: 700;
     }
-    .m {
-        display: inline-block;
-        width: 12px;
-        height: 12px;
-        border-radius: 999px;
-        border: 1.5px solid var(--line-strong);
-        cursor: help;
-    }
-    .m.y {
-        background: var(--line-strong);
-    }
-    .m.p {
-        background: linear-gradient(
-            90deg,
-            var(--line-strong) 50%,
-            transparent 50%
-        );
-    }
-    .m.n {
-        border-color: var(--muted);
-        opacity: 0.38;
-    }
     .matrix-foot {
         display: flex;
         flex-wrap: wrap;
         align-items: baseline;
         gap: 10px clamp(18px, 3vw, 40px);
         margin-top: 16px;
-    }
-    .legend {
-        margin: 0;
-        display: flex;
-        gap: 18px;
-        font-size: 13.5px;
-        font-weight: 600;
-        white-space: nowrap;
-    }
-    .legend span span.m {
-        margin-right: 6px;
-        vertical-align: -1px;
-        cursor: default;
     }
     .legend-note {
         margin: 0;
@@ -877,128 +1287,446 @@ const compareRows = computed(() =>
         line-height: 1.5;
         color: var(--muted);
     }
-    .vh {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        margin: -1px;
+
+    /* ---------- the story: one claim per screen, centred ---------- */
+    .beat {
+        min-height: 86svh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    .beat > .shell {
+        width: 100%;
+    }
+    .invert {
+        background: var(--btn-bg);
+        color: var(--btn-fg);
+    }
+    .fg .shell {
+        text-align: center;
+    }
+    .fg-h {
+        max-width: 24ch;
+        margin: 0 auto;
+        font-size: clamp(32px, 4.4vw, 60px);
+        font-weight: 800;
+        letter-spacing: -0.04em;
+        line-height: 1.06;
+        text-wrap: balance;
+    }
+    #english .fg-h {
+        max-width: 28ch;
+        font-size: clamp(32px, 3.9vw, 54px);
+    }
+    #english {
+        border-top: 1px solid var(--line);
+    }
+    .meant-h {
+        margin: 0 auto;
+        text-align: center;
+        font-size: clamp(40px, 6.2vw, 88px);
+        font-weight: 800;
+        letter-spacing: -0.045em;
+        line-height: 1.04;
+        text-wrap: balance;
+    }
+    .fg-p {
+        margin: clamp(20px, 2.6vh, 30px) auto 0;
+        max-width: 44ch;
+        color: var(--text-2);
+        font-size: clamp(18px, 1.7vw, 21px);
+        line-height: 1.5;
+        letter-spacing: -0.012em;
+        text-wrap: balance;
+    }
+    .fg-p strong {
+        color: var(--text);
+        font-weight: 750;
+    }
+    .fg-p-wide {
+        max-width: 52ch;
+    }
+    .invert .fg-p {
+        color: var(--btn-fg);
+        opacity: 0.86;
+    }
+    .forbid-end {
+        margin-top: clamp(36px, 5vh, 56px);
+        font-weight: 700;
+    }
+    .invert .forbid-end {
+        opacity: 1;
+    }
+    .verse.fg-verse {
+        margin: clamp(34px, 5vh, 60px) auto 0;
         padding: 0;
-        overflow: hidden;
-        clip: rect(0 0 0 0);
-        white-space: nowrap;
-        border: 0;
+        border-left: 0;
+    }
+    .verse.fg-verse blockquote {
+        max-width: 34ch;
+        margin: 0 auto;
+        font-size: clamp(21px, 2.3vw, 29px);
+        font-weight: 400;
+        line-height: 1.36;
+        letter-spacing: -0.02em;
+    }
+    .verse.fg-verse .ref {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+        row-gap: 6px;
+        margin-top: clamp(16px, 2.2vh, 22px);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+    }
+    .verse.fg-big {
+        margin-top: clamp(22px, 3.4vh, 40px);
+    }
+    .verse.fg-big blockquote {
+        max-width: 18ch;
+        font-size: clamp(40px, 6.2vw, 88px);
+        font-weight: 800;
+        letter-spacing: -0.045em;
+        line-height: 1.04;
+        text-wrap: balance;
+    }
+    .verse.fg-big .ref {
+        margin-top: clamp(28px, 4.4vh, 52px);
     }
 
-    /* ---------- contribute ---------- */
-    .contribute {
-        padding: clamp(48px, 6vw, 76px) 0;
-        background: var(--surface);
-        border-top: 1px solid var(--line);
+    /* the relay: one mark per generation from the first letters to the
+       reader, filled in order */
+    .relay {
+        margin: clamp(44px, 6.5vh, 76px) auto 0;
+        max-width: 880px;
+    }
+    .relay-line {
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        height: 14px;
+    }
+    .relay-line::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 50%;
+        height: 1px;
+        background: var(--line);
+    }
+    .relay-line i {
+        position: relative;
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: var(--text);
+        opacity: 0.28;
+    }
+    .relay-line i.you {
+        width: 13px;
+        height: 13px;
+        opacity: 1;
+    }
+    .relay figcaption {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 14px;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--muted);
+    }
+    .relay figcaption span:last-child {
+        color: var(--text);
+    }
+    .relay.go .relay-line i {
+        animation: fuba-relay-on 0.5s ease forwards;
+        animation-delay: calc(var(--n) * 28ms);
+    }
+    .relay.go .relay-line i.you {
+        animation: fuba-relay-you 0.6s ease forwards;
+        animation-delay: calc(var(--n) * 28ms);
+    }
+
+    /* the five words return, struck through, each with what is forbidden and
+       the licence term that forbids it */
+    .struck {
+        list-style: none;
+        margin: clamp(44px, 6vh, 76px) auto 0;
+        padding: 0;
+        max-width: 700px;
+    }
+    .struck li + li {
+        margin-top: clamp(30px, 4.4vh, 46px);
+    }
+    .struck strong {
+        position: relative;
+        display: inline-block;
+        font-size: clamp(34px, 3.2vw, 46px);
+        font-weight: 800;
+        letter-spacing: -0.045em;
+        line-height: 1.1;
+    }
+    .struck strong::after {
+        content: '';
+        position: absolute;
+        left: -4%;
+        right: -4%;
+        top: 55%;
+        height: 0.075em;
+        background: currentColor;
+        transform-origin: left center;
+    }
+    .struck.armed strong::after {
+        transform: scaleX(0);
+        transition: transform 0.45s cubic-bezier(0.6, 0, 0.25, 1);
+        transition-delay: calc(var(--n) * 160ms + 120ms);
+    }
+    .struck.armed.go strong::after {
+        transform: scaleX(1);
+    }
+    .struck .ex {
+        margin: 10px auto 0;
+        max-width: 40ch;
+        font-size: clamp(17px, 1.5vw, 20px);
+        line-height: 1.45;
+        opacity: 0.86;
+    }
+    .struck .lic {
+        margin: 6px 0 0;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        opacity: 0.62;
+    }
+
+    /* the API's translations, grouped by what their licences allow */
+    .lic-groups {
+        max-width: 880px;
+        margin: clamp(40px, 6vh, 64px) auto 0;
+        text-align: left;
+    }
+    .lg + .lg {
+        margin-top: clamp(36px, 5vh, 52px);
+    }
+    .lg-h {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin: 0;
+        padding-bottom: 10px;
+        border-bottom: 2px solid var(--text);
+    }
+    .lg-h span {
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+    }
+    .lg-h b {
+        font-size: clamp(30px, 3.2vw, 44px);
+        font-weight: 800;
+        letter-spacing: -0.04em;
+        line-height: 1;
+    }
+    .lr {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+    .lr li {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto 56px;
+        column-gap: 24px;
+        padding: 16px 0 18px;
         border-bottom: 1px solid var(--line);
     }
-    .contribute-grid {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-        gap: clamp(22px, 2.6vw, 34px) clamp(36px, 5vw, 80px);
-        align-items: center;
-    }
-    .contribute-title {
+    .lr-name {
         grid-column: 1;
-        grid-row: 1;
-        margin: 0;
-        text-wrap: balance;
-        font-size: clamp(30px, 4vw, 48px);
-        letter-spacing: -0.04em;
+        font-size: 17px;
+        font-weight: 700;
+        letter-spacing: -0.01em;
     }
-    .contribute-copy {
+    .lr-why {
         grid-column: 1;
-        grid-row: 2;
+        margin-top: 3px;
+        font-size: 15px;
+        line-height: 1.45;
+        color: var(--text-2);
     }
-    .contribute-copy p {
-        margin: 0;
-        max-width: 44ch;
-        color: var(--muted);
-        font-size: 18px;
-    }
-    .contribute-copy .cta {
-        justify-content: flex-start;
-        margin-top: 26px;
-    }
-    .contribute .verse {
+    .lr-marks {
         grid-column: 2;
         grid-row: 1 / span 2;
         align-self: center;
-        margin: 0;
-        padding-left: clamp(20px, 2.2vw, 28px);
+        display: grid;
+        grid-template-columns: repeat(5, 88px);
     }
-    .contribute .verse blockquote {
-        max-width: 34ch;
-        font-size: clamp(20px, 1.7vw, 24px);
-        line-height: 1.4;
+    .lr-m {
+        display: flex;
+        justify-content: center;
+    }
+    .lr-v {
+        display: none;
+    }
+    .lr-n {
+        grid-column: 3;
+        grid-row: 1 / span 2;
+        align-self: center;
+        text-align: right;
+        font-size: clamp(20px, 2vw, 26px);
+        font-weight: 800;
+        letter-spacing: -0.03em;
+    }
+    .lr-bar {
+        grid-column: 1 / -1;
+        display: block;
+        height: 4px;
+        margin-top: 12px;
+        border-radius: 2px;
+        overflow: hidden;
+        background: color-mix(in srgb, var(--text) 8%, transparent);
+    }
+    .lr-bar span {
+        display: block;
+        height: 100%;
+        min-width: 3px;
+        background: var(--text);
+    }
+    .lg-no .lr-bar span {
+        background: color-mix(in srgb, var(--text) 42%, transparent);
+    }
+    .lr-head {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto 56px;
+        column-gap: 24px;
+        margin: 0 0 10px;
+    }
+    .lr-cols {
+        display: grid;
+        grid-template-columns: repeat(5, 88px);
+    }
+    .lr-cols span {
+        text-align: center;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+    }
+    .lr-legend {
+        flex-wrap: wrap;
+        gap: 8px 22px;
+        margin: 20px 0 0;
+        font-size: 13px;
+        font-weight: 400;
+        color: var(--muted);
+    }
+    .lr-legend span span.m {
+        margin-right: 7px;
+    }
+    /* here "forbidden" is the point, so it carries full ink: a ring with a
+       bar through it */
+    .lic-groups .m {
+        width: 14px;
+        height: 14px;
+    }
+    .lic-groups .m.y {
+        background: var(--text);
+        border-color: var(--text);
+    }
+    .lic-groups .m.p {
+        border: 1.5px solid var(--text);
+        background: linear-gradient(90deg, var(--text) 50%, transparent 50%);
+    }
+    .lic-groups .m.n {
+        position: relative;
+        opacity: 1;
+        border: 1.5px solid var(--text);
+        background: transparent;
+    }
+    .lic-groups .m.n::after {
+        content: '';
+        position: absolute;
+        left: 50%;
+        top: -1px;
+        bottom: -1px;
+        width: 1.5px;
+        margin-left: -0.75px;
+        background: var(--text);
+        transform: rotate(45deg);
     }
 
-    /* ---------- start building ---------- */
-    .build-card {
-        border-radius: 20px;
-        overflow: hidden;
-        background: var(--text);
-        color: var(--bg);
+    /* the flywheel */
+    .fw-flow {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        margin: clamp(30px, 4.4vh, 48px) 0 0;
+        padding: 0;
     }
-    .build-main {
-        padding: clamp(34px, 4.2vw, 60px) clamp(24px, 3.4vw, 56px)
-            clamp(32px, 3.6vw, 52px);
-        text-align: left;
+    .fw-flow li {
+        font-size: clamp(18px, 1.8vw, 22px);
+        font-weight: 700;
+        letter-spacing: -0.015em;
     }
-    .build-main h3 {
-        margin: 0;
-        font-size: clamp(30px, 4.2vw, 56px);
-        letter-spacing: -0.045em;
-        line-height: 1;
-    }
-    .build-main .btn {
-        margin-top: clamp(22px, 2.6vw, 32px);
-        background: var(--bg);
-        color: var(--text);
-        border-color: var(--bg);
-        white-space: nowrap;
-    }
-    .build-main .btn:hover {
-        background: var(--card-dim);
-        color: var(--text);
-    }
-    .build-opts {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        border-top: 1px solid var(--card-line);
-    }
-    .build-opts a {
-        padding: 26px clamp(24px, 3.4vw, 32px) 28px;
-        text-align: left;
-        min-width: 0;
-    }
-    .build-opts a + a {
-        border-left: 1px solid var(--card-line);
-    }
-    .build-opts a:hover {
-        background: var(--card-line);
-    }
-    .build-opts small {
+    .fw-flow li + li::before {
+        content: '\2193';
         display: block;
-        margin-bottom: 7px;
-        font-size: 13px;
-        font-weight: 600;
-        color: var(--card-dim);
+        margin: 0 0 8px;
+        font-weight: 400;
+        opacity: 0.55;
     }
-    .build-opts strong {
-        display: block;
-        font-size: 18px;
-        letter-spacing: -0.02em;
+
+    /* ---------- scroll cue: a quiet down arrow, bottom right ---------- */
+    .scroll-cue {
+        position: fixed;
+        right: clamp(16px, 2.4vw, 32px);
+        bottom: clamp(16px, 2.4vw, 32px);
+        z-index: 40;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: 0;
+        background: none;
+        color: var(--muted);
+        cursor: pointer;
+        transition:
+            opacity 0.25s ease,
+            color 0.2s ease;
     }
-    .build-opts p {
-        margin: 7px 0 0;
-        font-size: 15px;
-        line-height: 1.45;
-        color: var(--card-dim);
+    .scroll-cue.on-invert {
+        color: color-mix(in srgb, var(--btn-fg) 72%, transparent);
+    }
+    .scroll-cue.gone {
+        opacity: 0;
+        pointer-events: none;
+    }
+    .scroll-cue svg {
+        width: 22px;
+        height: 22px;
+        animation: fuba-cue-sway 4.5s ease-in-out 1.5s infinite;
+    }
+    @media (hover: hover) {
+        .scroll-cue:hover {
+            color: var(--text);
+        }
+        .scroll-cue.on-invert:hover {
+            color: var(--btn-fg);
+        }
+        .scroll-cue:hover svg {
+            animation-play-state: paused;
+        }
     }
 
     @media (max-width: 900px) {
@@ -1020,32 +1748,39 @@ const compareRows = computed(() =>
             border-left: 0;
             border-top: 1px solid var(--line);
         }
-    }
-    @media (max-width: 860px) {
-        .contribute-grid {
-            grid-template-columns: 1fr;
-            gap: 24px;
+        .lr-head {
+            display: none;
         }
-        .contribute-title,
-        .contribute-copy,
-        .contribute .verse {
-            grid-column: auto;
-            grid-row: auto;
+        .lr li {
+            grid-template-columns: minmax(0, 1fr) auto;
         }
-        .contribute .verse blockquote {
-            max-width: none;
+        .lr-n {
+            grid-column: 2;
         }
-    }
-    @media (max-width: 820px) {
-        .build-opts {
-            grid-template-columns: 1fr;
+        .lr-marks {
+            grid-column: 1 / -1;
+            grid-row: 3;
+            grid-template-columns: repeat(5, 1fr);
+            margin-top: 14px;
         }
-        .build-opts a + a {
-            border-left: 0;
-            border-top: 1px solid var(--card-line);
+        .lr-m {
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+        .lr-v {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: -0.005em;
+            color: var(--text-2);
         }
     }
     @media (max-width: 720px) {
+        .beat {
+            min-height: auto;
+            padding: clamp(88px, 22vw, 120px) 0;
+        }
         .matrix tbody th {
             white-space: normal;
             max-width: 126px;
@@ -1061,11 +1796,9 @@ const compareRows = computed(() =>
         }
     }
     @media (max-width: 620px) {
-        .shell {
-            padding: 0 16px;
-        }
-        .demo .verse blockquote {
-            max-width: 20ch;
+        .milestone {
+            font-size: 13px;
+            padding: 6px 16px;
         }
         .cards {
             grid-template-columns: 1fr;
@@ -1094,18 +1827,6 @@ const compareRows = computed(() =>
             padding-top: 11px;
             font-size: 13.5px;
         }
-        .section {
-            padding: clamp(40px, 9vw, 56px) 0;
-        }
-        .head {
-            margin-bottom: 22px;
-        }
-        .head h2 {
-            font-size: 29px;
-        }
-        .head p {
-            font-size: 16.5px;
-        }
         .matrix-foot {
             gap: 12px;
         }
@@ -1131,20 +1852,82 @@ const compareRows = computed(() =>
         .matrix tbody td {
             padding: 10px 2px;
         }
+        .relay-line i {
+            width: 3px;
+            height: 3px;
+        }
+        .relay-line i.you {
+            width: 11px;
+            height: 11px;
+        }
+        .lr-name {
+            font-size: 16px;
+        }
+        .lr-why {
+            font-size: 14px;
+        }
+    }
+    @media (max-width: 360px) {
+        .milestone {
+            font-size: 12px;
+            padding: 6px 12px;
+        }
     }
     @media (prefers-reduced-motion: reduce) {
-        * {
-            transition: none !important;
+        .struck.armed strong::after {
+            transform: none;
+            transition: none;
+        }
+        .relay .relay-line i {
+            opacity: 0.8;
+            animation: none !important;
+        }
+        .scroll-cue svg {
+            animation: none;
         }
     }
 }
 
-[data-theme='dark'] .fuba-home {
-    .light-only {
-        display: none !important;
+[data-theme='dark'] .fuba-home .milestone {
+    border-bottom: 1px solid #2a2a2a;
+}
+
+@keyframes fuba-party-shift {
+    to {
+        background-position: -300% 0;
     }
-    .dark-only {
-        display: block !important;
+}
+@keyframes fuba-relay-on {
+    to {
+        opacity: 0.8;
+    }
+}
+@keyframes fuba-relay-you {
+    0% {
+        transform: scale(0.4);
+    }
+    60% {
+        transform: scale(1.25);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+@keyframes fuba-cue-sway {
+    0%,
+    72%,
+    100% {
+        transform: rotate(0);
+    }
+    78% {
+        transform: rotate(-16deg);
+    }
+    86% {
+        transform: rotate(12deg);
+    }
+    93% {
+        transform: rotate(-5deg);
     }
 }
 </style>

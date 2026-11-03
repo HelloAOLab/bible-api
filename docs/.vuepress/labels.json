@@ -3,7 +3,7 @@
         "guide": "Guide",
         "reference": "Reference",
         "sdks": "SDKs",
-        "donate": "Donate",
+        "support": "Support",
         "translationsBooksChapters": "Translations, Books, & Chapters",
         "commentaries": "Commentaries",
         "datasets": "Datasets",
@@ -11,9 +11,11 @@
         "selectLanguage": "Select language"
     },
     "home": {
+        "milestone": "Celebrating 100,000,000+ API requests this year!",
         "tagline": "An easy-to-use and fully featured JSON API for Scripture.",
         "quickStart": "Quick Start",
-        "donate": "Donate",
+        "more": "Together we can build an open ecosystem for global Christianity.",
+        "learnMore": "Learn more",
         "openVerse": "Open {{ reference }} in Seed Bible",
         "translationCount": "{{ count }} translations",
         "languageCount": "across {{ count }} languages",
@@ -21,8 +23,10 @@
         "noApiKeyDetail": "Nothing to sign up for",
         "noUsageLimits": "No usage limits",
         "noUsageLimitsDetail": "Free forever",
-        "welcome": "Welcome to freedom.",
-        "welcomeDetail": "Get started today with **no limits** and **no red tape**.",
+        "causeTitle": "Supported by partners who believe Scripture should be truly free.",
+        "support": "Support",
+        "frontierTitle": "Welcome to the frontier.",
+        "frontierDetail": "Get started immediately with **no red tape**.",
         "compareLink": "Compare us to other Bible APIs",
         "translationsTitle": "Bible Translations",
         "translationsBody": "{{ count }} translations as static JSON, with headings, poetry, line breaks and footnotes kept intact.",
@@ -80,16 +84,131 @@
         "markConditional": "Conditional",
         "markNotGranted": "Not granted",
         "storageNote": "*Copy and store on your own hardware, servers, or on a device so it works offline.",
-        "contributeTitle": "Help us expand the frontier.",
-        "contributeBody": "Let’s create an open ecosystem of public domain content and open source tools.",
-        "contributeDiscord": "Contribute on Discord",
+        "freelyTitle": "We built this because Jesus said:",
+        "chargeTitle": "Likewise, Paul charged the churches to pass his letters on.",
+        "sinceTitle": "We have Scripture because many generations obeyed these commands.",
+        "sinceBody": "No original manuscripts survive. Scripture reached us through **copying**, **translating**, **revising**, **adapting**, and **distributing**.",
+        "relayLabel": "An unbroken line of generations, from Paul’s letters to you",
+        "relayStart": "Paul’s letters",
+        "relayEnd": "You",
+        "forbidTitle": "God’s word is absolute.",
+        "forbidLead": "Yet many copyright terms forbid:",
+        "forbidden": {
+            "copying": {
+                "name": "Copying",
+                "example": "A whole Bible to distribute to those in need.",
+                "licence": "All rights reserved"
+            },
+            "translating": {
+                "name": "Translating",
+                "example": "Scripture into another language and sharing it.",
+                "licence": "NoDerivatives (ND)"
+            },
+            "revising": {
+                "name": "Revising",
+                "example": "A translation and publishing the revision.",
+                "licence": "NoDerivatives (ND)"
+            },
+            "adapting": {
+                "name": "Adapting",
+                "example": "Scripture into an easy-read edition or audio Bible.",
+                "licence": "NoDerivatives (ND)"
+            },
+            "distributing": {
+                "name": "Distributing",
+                "example": "Bible files online or offline.",
+                "licence": "All rights reserved"
+            }
+        },
+        "forbidEnd": "Under these terms, Timothy could not have obeyed Paul.",
+        "englishTitle": "Without adapting and sharing Scripture, we would have no English Bible.",
+        "englishBody": "Yet many modern translators adapt work they cannot attribute, then demand attribution and forbid adaptation.",
+        "hinderTitle": "But that’s not Paul’s attitude.",
+        "licencesTitle": "Even in our API, few translations are ideal.",
+        "licenceUses": {
+            "copy": "Copy",
+            "translate": "Translate",
+            "revise": "Revise",
+            "adapt": "Adapt",
+            "distribute": "Distribute"
+        },
+        "licenceGroups": {
+            "ideal": "Ideal",
+            "viable": "Viable",
+            "restricted": "Restricted"
+        },
+        "licenceRows": {
+            "publicDomain": {
+                "name": "Public domain",
+                "why": "No conditions."
+            },
+            "attribution": {
+                "name": "CC BY 4.0 or attribution only",
+                "why": "Credit required."
+            },
+            "shareAlike": {
+                "name": "CC BY-SA 4.0 or share‑alike",
+                "why": "Changes only under the same licence."
+            },
+            "noDerivatives": {
+                "name": "CC BY-ND 4.0",
+                "why": "Unchanged copies only."
+            },
+            "nonCommercialNoDerivatives": {
+                "name": "CC BY-NC-ND 4.0",
+                "why": "Unchanged copies, and nothing commercial."
+            },
+            "other": {
+                "name": "Other",
+                "why": "Non-commercial or custom terms; each forbids at least one."
+            }
+        },
+        "markAllowed": "Allowed",
+        "markSomeCases": "Only in some cases",
+        "markForbidden": "Forbidden",
+        "markFor": "{{ use }}: {{ mark }}",
+        "flywheelTitle": "The answer is more public domain resources.",
+        "flywheelLabel": "The flywheel",
+        "flywheel": {
+            "start": "Start from free work",
+            "build": "Build something new",
+            "release": "Release it into the public domain",
+            "next": "The next builder starts further ahead"
+        },
         "buildTitle": "Let’s start building.",
         "newsletterPrompt": "Want to stay in the loop?",
         "newsletterLink": "Sign up for the newsletter",
         "newsletterBody": "Updates from the people building it, in your inbox.",
-        "examplesPrompt": "Want something to copy?",
-        "examplesLink": "See examples",
-        "examplesBody": "Common requests and working patterns you can adapt."
+        "discordPrompt": "Want to build with us?",
+        "contributeDiscord": "Contribute on Discord",
+        "discordBody": "Create and review CC0 resources with us.",
+        "faqTitle": "FAQ",
+        "faq": {
+            "problem": {
+                "q": "Is this really a problem today?",
+                "a": "Yes! It’s a massive problem, but most Christians are completely unaware of it because they have a Bible or have access to one they can read online. Because it is so easy to read a Bible online, the assumption is that the Bible must be easy to use and share, right? But anyone who has tried to get access to Scripture to **make** something (an app, a website, a new Bible translation, an audio Bible, etc.) knows that is not the case. And for a world that desperately needs the gospel, this is completely inexcusable."
+            },
+            "attribution": {
+                "q": "What’s wrong with requiring others to attribute the creator of a Bible translation?",
+                "a": "Requesting attribution is fine. **Requiring it** adds a human condition to passing on God’s word. Anyone may still copy, translate, revise, adapt, and distribute it, so we count it as viable, but it falls short of giving freely."
+            },
+            "shareAlike": {
+                "q": "Isn’t share-alike a good way to protect Scripture?",
+                "a": "Share-alike was built as a response to copyright in order to prevent anyone taking an open text, changing it, and locking the result away. It keeps all five uses (copying, translating, revising, adapting, and distributing) open, so we count it as viable. But it still forbids faithful work: a translator who builds on a share-alike text cannot release their translation into the public domain. But we would advocate that copyright is not the best response to copyright. Rather, the higher goal should be **so much** quality, public-domain material that anyone can adapt whatever they need for the kingdom."
+            },
+            "conditions": {
+                "q": "What if I still want to put conditions on my translation?",
+                "a": "Then at least make exceptions easy. Publish how to reach you, answer quickly, and grant exceptions for faithful uses. Plan who will answer when you no longer can, or release your work into the public domain at your death. If you cannot keep that up, release it now. Every request left unanswered closes a door for the kingdom, and even a quick yes fails the believer who cannot safely ask from a persecuted context."
+            },
+            "money": {
+                "q": "But how do Bible translators and publishers make money?"
+            },
+            "nonCommercial": {
+                "q": "What’s wrong with requiring noncommercial use?",
+                "a": "Non-commercial terms forbid faithful work, so we count them as restricted. There are many ways a Bible could be distributed commercially in a pure and faithful manner (for example, printing Bibles and selling them at just the price required to make a small profit to reinvest in the operation and increase distribution). The point, dear Christian, is that it is simply **not your place** to tell others how they can and cannot use God’s word."
+            }
+        },
+        "scrollCue": "Scroll to the next section"
     },
     "footer": {
         "madeWith": "Made with {{ love }} by {{ aoLab }}",
@@ -115,12 +234,251 @@
         "commentaries": "Bible commentaries",
         "datasets": "Bible data sets",
         "seedBibleSoon": "Seed Bible (Coming soon)",
-        "aboutUs": "About us",
-        "donate": "Donate to AO Lab",
+        "newsletterShort": "Newsletter",
+        "freeUseFund": "Free Use Fund",
+        "support": "Support AO Lab",
         "nonprofit": "A 501(c)(3) nonprofit",
         "established": "Established 2/2/2022",
         "privacy": "Privacy",
         "terms": "Terms"
+    },
+    "wall": {
+        "heading": "Annual support for {{ year }}",
+        "goal": "{{ amount }} annual goal",
+        "readStories": "Read all stories",
+        "hideStories": "Hide stories",
+        "storyCountOne": "1 partner shared how they use the API. Hover or tap the folded corner to read it.",
+        "storyCountMany": "{{ count }} partners shared how they use the API. Hover or tap a folded corner to read one.",
+        "received": "Received",
+        "story": "Testimony or note included",
+        "pledged": "Pledged",
+        "open": "Open",
+        "note": "Each square is **{{ month }} a month**, or **{{ year }} a year**.",
+        "fundTitle": "Free Use Fund",
+        "fundLabel": "Resources beyond our annual needs will fuel a bigger, better open ecosystem.",
+        "fundOverflow": "{{ year }} is fully pledged. The {{ amount }} pledged beyond it will fuel a bigger, better open ecosystem.",
+        "fundLink": "How the fund works",
+        "ariaLabel": "{{ year }} support wall: {{ squares }} squares at {{ monthly }} a month{{ tail }}. {{ received }} received, {{ pledged }} pledged.",
+        "ariaTail": ", plus a {{ amount }} closing piece",
+        "anonymous": "Anonymous",
+        "anonymousPartner": "Anonymous partner",
+        "hasStory": "has a story",
+        "kinds": {
+            "Individual": "Individual",
+            "Nonprofit": "Nonprofit",
+            "Business": "Business"
+        },
+        "square": "{{ count }} square",
+        "squares": "{{ count }} squares",
+        "perMonth": "{{ amount }} a month",
+        "oneTime": "{{ amount }} one-time",
+        "forYear": "{{ amount }} for the year",
+        "percentReceived": "{{ percent }}% received"
+    },
+    "newsletter": {
+        "title": "Sign up for the newsletter",
+        "intro": "Updates from AO Lab, the nonprofit behind the Free Use Bible API.",
+        "firstName": "First name",
+        "optional": "(optional)",
+        "email": "Email address",
+        "subscribe": "Subscribe",
+        "subscribing": "Subscribing…",
+        "fine": "Optional, and only used for the newsletter. Unsubscribe from any email.",
+        "howWeUse": "How we use it",
+        "close": "Close",
+        "thanksTitle": "Thanks for subscribing!",
+        "thanksBody": "You are almost done. Check your email and click the link to confirm your subscription.",
+        "invalid": "Enter a valid email address.",
+        "already": "This email address is already subscribed.",
+        "unsubscribed": "This address has unsubscribed. Write to hello@helloao.org to rejoin.",
+        "error": "Something went wrong. Please try again in a moment."
+    },
+    "support": {
+        "title": "Stand with us.",
+        "intro": "Support the people who maintain and build this open ecosystem with a gift, your story, or both. With your permission, either can appear on the {{ year }} support wall.",
+        "chooseTitle": "How would you like to help?",
+        "choices": {
+            "testimony": {
+                "name": "Share a testimony",
+                "detail": "Tell us what this work makes possible."
+            },
+            "gift": {
+                "name": "Make a gift",
+                "detail": "Support the people building it."
+            },
+            "both": {
+                "name": "Both",
+                "detail": "Connect your story and your gift on the wall."
+            }
+        },
+        "chooseNote": "You choose what appears publicly on the support wall.",
+        "testimonyTitle": "Share your testimony",
+        "testimonyBody": "Email us how you use the Free Use Bible API, and attach screenshots or your logo if you like. Tell us whether to show your name or keep it anonymous. If you also gave, include the name on your gift so we can put your story on your squares.",
+        "testimonyButton": "Email your testimony",
+        "testimonySubject": "My testimony for the support wall",
+        "testimonyEmail": "Name or organization:\nShow my name, or stay anonymous:\n\nHow we use the Free Use Bible API:\n\nLink to what we built (optional):\n\nIf we also gave: the name on our gift (optional):\nShort message for the wall, up to 80 characters (optional):\n\nAttach screenshots, or a logo as an SVG or a transparent PNG at least 600 pixels on its long side (optional).\n",
+        "giftTitle": "Make a gift",
+        "giftBody": "{{ month }} a month or {{ year }} a year fills one square on the support wall, but any amount, large or small, is **greatly appreciated**!",
+        "formTitle": "AO Lab donation form",
+        "formFallback": "Form not loading?",
+        "formOpen": "Open it in its own tab",
+        "waysLead": "Over 95% of all giving goes straight to operations.",
+        "otherWaysTitle": "Other ways to give",
+        "otherWaysBody": "Card, bank transfer, donor-advised fund, stock, IRA/QCD and crypto all work in the form.",
+        "otherWaysLink": "Give through NCF",
+        "booksTitle": "Tax-deductible, and open books",
+        "booksBody": "AO Lab is a 501(c)(3). Gifts are tax-deductible as allowed by law, and our financials are public.",
+        "booksLink": "Financial forecast",
+        "directorTitle": "Our Executive Director",
+        "directorBody": "Craig Bradley. Feel free to reach out to ask questions or discuss something.",
+        "recognitionTitle": "Choose how your gift appears.",
+        "recognitionBody": "We add your squares to the wall by hand once your gift arrives. Monthly gifts fill their squares month by month.",
+        "exampleLabel": "Example wall: a named gift, an anonymous gift, gifts with a testimony, and logo spaces at each minimum size",
+        "exampleCaption": "An example wall at actual size. Hover or tap a folded corner to read an example testimony.",
+        "example": {
+            "yourName": "Your name",
+            "yourOrganization": "Your organization",
+            "yourLogo": "Your logo here",
+            "yourLogoShort": "Your logo",
+            "here": "here",
+            "logo": "Logo",
+            "message": "Here is an example message, up to 80 characters.",
+            "namedStory": "Here is an example hover testimony! Tell visitors how you use the Free Use Bible API.",
+            "anonymousStory": "Here is another example testimony. Anonymous givers can share a story too.",
+            "logoStory": "Here is an example testimony beside a logo. Your logo and your story can share the same squares.",
+            "squareStory": "Here is an example hover testimony! A single square can carry a story too.",
+            "church": "A church in Kenya",
+            "churchStory": "Here is an example testimony from a church that uses the API in its Bible app.",
+            "namedGift": "Named gift",
+            "anonymousGift": "Anonymous gift, pledged",
+            "pledgedSuffix": "pledged",
+            "recommended": "recommended"
+        },
+        "rows": {
+            "nameTitle": "Named or anonymous",
+            "nameBody": "Choose in the form above. Anonymous gifts stay anonymous on the wall and in its yearly archive.",
+            "storyTitle": "Your story",
+            "storyBody": "A sentence or two on how you use the API. Your squares get a folded corner, and visitors read your story on hover or tap.",
+            "messageTitle": "A message",
+            "messageBody": "One short line, up to 80 characters, shown on hover. A dedication or a word of encouragement both work.",
+            "logoTitle": "Your logo",
+            "logoBody": "Give at least the minimum for your logo’s shape in the {{ sizes }}, then send an SVG, or a PNG at least 600 pixels on its long side with a transparent background. Logos sit on white in both light and dark mode.",
+            "logoSizesLink": "sizes below"
+        },
+        "sizesOpen": "Click here to expand for logo sizes",
+        "sizesClose": "Hide logo sizes",
+        "sizesIntro": "A square is about 16 pixels wide on a laptop and about 9 on a phone. A logo needs about 48 pixels on a laptop to read clearly, so the smallest rectangle for each shape is the minimum gift for a logo.",
+        "sizesColumns": {
+            "shape": "Logo shape",
+            "smallest": "Smallest that reads",
+            "recommended": "Recommended"
+        },
+        "shapes": {
+            "square": {
+                "name": "Square mark or badge",
+                "ratio": "1:1"
+            },
+            "horizontal": {
+                "name": "Horizontal logo",
+                "ratio": "about 2:1"
+            },
+            "wide": {
+                "name": "Wide wordmark",
+                "ratio": "3:1 to 4:1"
+            },
+            "veryWide": {
+                "name": "Very wide wordmark",
+                "ratio": "5:1 or wider"
+            },
+            "tall": {
+                "name": "Tall or stacked logo",
+                "ratio": "about 1:2"
+            }
+        },
+        "sizeCell": "{{ w }} × {{ h }} · {{ squares }}",
+        "sizesNote": "Rectangles are width × height, in squares. Without a logo, a rectangle at least 4 squares wide and 2 tall shows your name on the wall. Smaller gifts show it on hover.",
+        "detailsNote": "For a story, a message, or a logo, email us with the name on your gift so we can match it. We review each one before it goes on the wall.",
+        "detailsButton": "Email us your details",
+        "detailsSubject": "My gift on the {{ year }} wall",
+        "detailsEmail": "Name on my gift:\nAmount, and monthly or for the year:\nShow my name, or stay anonymous:\n\nHow we use the API (optional):\n\nShort message, up to 80 characters (optional):\n\nLogo: attached as SVG, or PNG at least 600 px with a transparent background (optional)\nRectangle (width x height), if sending a logo:\n",
+        "thanksTitle": "Thank you so much!",
+        "thanksBody": "Every show of support reminds us we are not alone and proves this is a global effort by Christians for Christians.",
+        "signOff": "In Christ,",
+        "team": "The AO Lab Team"
+    },
+    "fund": {
+        "eyebrow": "Introducing the",
+        "title": "Free Use Fund",
+        "sub": "We’re launching a project-based fund to kickstart an open ecosystem for global Christianity.",
+        "propose": "Propose a project",
+        "whatTitle": "What we fund",
+        "whatBody1": "Our vision is a growing ecosystem of Christians creating high-quality public-domain resources and open-source tools from one another’s work.",
+        "whatBody2": "We fund translations, tools, datasets, assets, and anything else the global Church can incorporate or build upon, prioritizing projects with the widest potential impact. We favor CC0 content and open-source software under licences such as MIT or AGPL. Each release gives the next builder more to work with.",
+        "statusTitle": "Current status",
+        "statusBody": "AO Lab’s annual support goal of {{ goal }} has not yet been met, so the Free Use Fund currently has no money. You can view the current support status {{ here }}.",
+        "statusHere": "here",
+        "statusInvite": "{{ proposals }} and welcome your {{ feedback }}.",
+        "statusProposals": "We encourage proposals anytime",
+        "statusFeedback": "feedback",
+        "feedbackSubject": "Free Use Fund Feedback",
+        "callEyebrow": "Open call for proposals",
+        "callTitle": "What would you build?",
+        "callIntro": "New projects and work already underway are both welcome. We recommend brief, direct applications with minimal details. We will reach out for more information.",
+        "steps": {
+            "build": {
+                "title": "What you intend to build.",
+                "body": "Describe the project, who would be involved, and what support you might need."
+            },
+            "licences": {
+                "title": "The proposed licences.",
+                "body": "State the licences for the content, software, and any existing material you would use."
+            },
+            "why": {
+                "title": "Why it matters.",
+                "body": "Explain its value to the open ecosystem we are building for global Christianity."
+            }
+        },
+        "submit": "Submit a project proposal",
+        "reportingEyebrow": "Accountability",
+        "reportingTitle": "Quarterly updates. Publicly shared work.",
+        "reportingBody": "We will publish quarterly spending and project updates here, including work in progress. Completed projects will be published and announced as they are finished.",
+        "faqTitle": "A few practical questions.",
+        "faq": {
+            "who": {
+                "q": "Who can submit a project?",
+                "a": "Anyone in the general public, including individuals and organizations. Describe what you want to build, its proposed licences, and why it matters to the open ecosystem serving global Christianity."
+            },
+            "early": {
+                "q": "Why submit before funding is available?",
+                "a": "Your proposals help us identify needs and show what support could make possible. They can help us raise support for AO Lab and the wider community, and give us projects to consider when funding becomes available."
+            },
+            "decides": {
+                "q": "Who decides which projects receive funding?",
+                "a": "AO Lab manages the fund and selects projects by their expected kingdom impact and benefit to the wider Church. Projects may be large or small, with priority given to work that the largest community can use and build upon."
+            },
+            "money": {
+                "q": "How does money reach the fund?",
+                "a": "Each September, we begin raising AO Lab’s annual support for the following year. Once that goal is met, all additional support goes to the Free Use Fund until the next September, when the cycle begins again."
+            },
+            "licences": {
+                "q": "What licences do you support?",
+                "a": "We prefer the most permissive terms possible, with CC0 as the ideal for content such as translations, datasets, and assets. Software may use MIT, AGPL, or other open-source licences. We review software licensing case by case, considering how well it supports reuse and the wider ecosystem. State your proposed licences in your proposal."
+            },
+            "translation": {
+                "q": "Could the fund support a Bible translation?",
+                "a": "Yes. A CC0 Bible translation can be considered alongside other resources and open-source tools. We evaluate projects by their potential kingdom impact and shared benefit, rather than giving one type of work automatic priority."
+            },
+            "progress": {
+                "q": "Where can I follow spending and project progress?",
+                "a": "On this page. Quarterly updates will show how money was spent and which projects it supported, including unfinished work. Completed projects will be published and announced as they are finished."
+            },
+            "public": {
+                "q": "Will every project’s details be public?",
+                "a": "The only exception to full project detail is safety: we may withhold information that could endanger people working in persecuted regions. Quarterly reporting will continue, with sensitive details withheld where needed. Funders are welcome to {{ contact }} to discuss what can safely be shared."
+            }
+        },
+        "contactUs": "contact us",
+        "questionSubject": "Free Use Fund Question"
     },
     "notFound": {
         "title": "Page not found",

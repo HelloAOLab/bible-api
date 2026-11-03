@@ -1,5 +1,5 @@
 /**
- * The Bible verses quoted on the home page.
+ * The Bible verses quoted on the home, Support and Free Use Fund pages.
  *
  * These are never machine-translated: Scripture is quoted from a real
  * translation in the Free Use Bible API. The English verses are in
@@ -13,11 +13,24 @@
  * they can be edited by hand.
  */
 
-/** Which verses the home page quotes. */
-export const HOME_VERSES = {
+/**
+ * Which verses the pages quote. `endVerse` makes a passage of several verses.
+ *
+ * The English texts in verses.json can quote part of a verse (Matthew 10:8 is
+ * just "Freely you have received; freely give."). Verses filled in for other
+ * languages are always whole.
+ */
+export const HOME_VERSES: Record<
+    'freelyGive' | 'charge' | 'hinder' | 'notToUs' | 'doNotWorry' | 'wholeBody',
+    { book: string; chapter: number; verse: number; endVerse?: number }
+> = {
     freelyGive: { book: 'MAT', chapter: 10, verse: 8 },
-    stewards: { book: '1PE', chapter: 4, verse: 10 },
-} as const;
+    charge: { book: '1TH', chapter: 5, verse: 27 },
+    hinder: { book: '1CO', chapter: 9, verse: 12 },
+    notToUs: { book: 'PSA', chapter: 115, verse: 1 },
+    doNotWorry: { book: 'MAT', chapter: 6, verse: 25, endVerse: 34 },
+    wholeBody: { book: 'EPH', chapter: 4, verse: 16 },
+};
 
 export type HomeVerse = keyof typeof HOME_VERSES;
 

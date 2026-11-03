@@ -7,7 +7,7 @@ import {
     type ComputedRef,
     type InjectionKey,
 } from 'vue';
-import { useRouteLocale } from 'vuepress/client';
+import { resolveRoute, useRouteLocale } from 'vuepress/client';
 import type { Labels } from '../labels';
 
 // Every locale's labels, keyed by locale path. Defined in config.ts.
@@ -55,4 +55,18 @@ export function useLabels(locale = useLocale()): ComputedRef<Labels> {
  */
 export function useLocalePath(locale = useLocale()) {
     return (path: string) => locale.value + path.replace(/^\//, '');
+}
+
+/**
+ * Like useLocalePath(), but for pages that may not be translated yet (the
+ * Support and Free Use Fund pages): when the page has no copy in the language
+ * being viewed, the link goes to the English page instead of a 404.
+ */
+export function useLocalePage(locale = useLocale()) {
+    const localePath = useLocalePath(locale);
+    return (path: string) => {
+        const translated = localePath(path);
+        const [pathname] = translated.split('#');
+        return resolveRoute(pathname).notFound ? path : translated;
+    };
 }
