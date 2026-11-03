@@ -175,6 +175,14 @@
             "release": "Release it into the public domain",
             "next": "The next builder starts further ahead"
         },
+        "reachTitle": "Help us spread God’s word to the entire world",
+        "reachLabel": "A world map of the countries the Free Use Bible API is used in, shaded by the number of requests from each",
+        "reachCountry": "{{ country }}: {{ count }} requests",
+        "reachStats": {
+            "requests": "API requests this year",
+            "countries": "countries with {{ count }}+ requests",
+            "continents": "inhabited continents"
+        },
         "buildTitle": "Let’s start building.",
         "newsletterPrompt": "Want to stay in the loop?",
         "newsletterLink": "Sign up for the newsletter",

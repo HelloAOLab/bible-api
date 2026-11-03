@@ -1,9 +1,16 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import {
+    computed,
+    defineAsyncComponent,
+    onBeforeUnmount,
+    onMounted,
+    ref,
+} from 'vue';
 import { RouteLink, usePageFrontmatter, usePageLang } from 'vuepress/client';
 import SiteFooter from './SiteFooter.vue';
 import SupportWall from './SupportWall.vue';
 import VerseQuote from './VerseQuote.vue';
+import { REACH_HITS } from '../reach';
 import {
     useLabels,
     useLocalePage,
@@ -17,6 +24,9 @@ import {
     type LicenceRow,
 } from '../licenceRows';
 import type { Labels } from '../labels';
+
+// The map's outlines are large, so they load in their own chunk.
+const ReachMap = defineAsyncComponent(() => import('./ReachMap.vue'));
 
 const DISCORD_URL = 'https://discord.com/invite/NbEZMCJmqC';
 
@@ -32,6 +42,16 @@ const formatCount = (n: number) => {
         return n.toLocaleString(lang.value);
     } catch {
         return n.toLocaleString('en-US');
+    }
+};
+
+const formatCompact = (n: number) => {
+    try {
+        return new Intl.NumberFormat(lang.value, {
+            notation: 'compact',
+        }).format(n);
+    } catch {
+        return formatCount(n);
     }
 };
 
@@ -272,6 +292,34 @@ const FLYWHEEL: (keyof Labels['home']['flywheel'])[] = [
     'release',
     'next',
 ];
+
+/* ---------- the reach map ---------- */
+
+// The numbers under the map. The request total matches the milestone banner;
+// the rest are counted from reach.ts.
+const reachCountries = (min: number) =>
+    Object.values(REACH_HITS).filter((n) => n >= min).length;
+const reachStats = computed(() => {
+    const stats = labels.value.home.reachStats;
+    return [
+        {
+            id: 'requests',
+            value: formatCompact(100_000_000) + '+',
+            label: stats.requests,
+        },
+        {
+            id: 'countries',
+            value: formatCount(reachCountries(100)),
+            label: fillLabel(stats.countries, { count: formatCount(100) }),
+        },
+        {
+            id: 'busy',
+            value: formatCount(reachCountries(10000)),
+            label: fillLabel(stats.countries, { count: formatCount(10000) }),
+        },
+        { id: 'continents', value: formatCount(6), label: stats.continents },
+    ];
+});
 
 type FaqId = Exclude<keyof Labels['home']['faq'], 'money'>;
 const FAQ_ANSWERS: Record<FaqId, true> = {
@@ -876,6 +924,21 @@ onBeforeUnmount(() => {
                             {{ labels.home.flywheel[step] }}
                         </li>
                     </ol>
+                </div>
+            </section>
+
+            <section class="section beat fg" id="reach">
+                <div class="shell">
+                    <h2 class="fg-h">{{ labels.home.reachTitle }}</h2>
+                    <figure class="reach">
+                        <ReachMap />
+                    </figure>
+                    <dl class="reach-stats">
+                        <div v-for="stat in reachStats" :key="stat.id">
+                            <dt>{{ stat.label }}</dt>
+                            <dd>{{ stat.value }}</dd>
+                        </div>
+                    </dl>
                 </div>
             </section>
 
@@ -1715,6 +1778,43 @@ onBeforeUnmount(() => {
         opacity: 0.55;
     }
 
+    /* the reach map */
+    .reach {
+        max-width: 1040px;
+        margin: clamp(30px, 4.4vh, 52px) auto 0;
+        aspect-ratio: 960 / 422;
+    }
+    .reach-stats {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        max-width: 960px;
+        margin: clamp(28px, 4vh, 48px) auto 0;
+        padding: 0;
+    }
+    .reach-stats div {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 4px 16px;
+    }
+    .reach-stats div + div {
+        border-left: 1px solid var(--line);
+    }
+    .reach-stats dd {
+        order: -1;
+        margin: 0;
+        font-size: clamp(30px, 3.6vw, 46px);
+        font-weight: 800;
+        letter-spacing: -0.04em;
+        line-height: 1;
+    }
+    .reach-stats dt {
+        font-size: 14px;
+        line-height: 1.35;
+        color: var(--text-2);
+        text-wrap: balance;
+    }
+
     /* ---------- scroll cue: a quiet down arrow, bottom right ---------- */
     .scroll-cue {
         position: fixed;
@@ -1807,6 +1907,13 @@ onBeforeUnmount(() => {
         }
     }
     @media (max-width: 720px) {
+        .reach-stats {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            row-gap: 24px;
+        }
+        .reach-stats div:nth-child(odd) {
+            border-left: 0;
+        }
         .beat {
             min-height: auto;
             padding: clamp(88px, 22vw, 120px) 0;
