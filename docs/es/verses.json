@@ -4,5 +4,35 @@
         "bookName": "Mateo",
         "translationAbbreviation": "ONBV",
         "translationId": "spa_onbv"
+    },
+    "charge": {
+        "text": "Les encargo en el Señor que lean esta carta a todos los hermanos.",
+        "bookName": "1 Tesalonicenses",
+        "translationAbbreviation": "ONBV",
+        "translationId": "spa_onbv"
+    },
+    "hinder": {
+        "text": "Si otros disfrutan de este privilegio de recibir de ustedes el sustento, ¿cuánto más deberíamos disfrutarlo nosotros? Sin embargo, jamás hemos ejercido este derecho; al contrario, soportamos todo con tal de no poner obstáculos al evangelio de Cristo.",
+        "bookName": "1 Corintios",
+        "translationAbbreviation": "ONBV",
+        "translationId": "spa_onbv"
+    },
+    "notToUs": {
+        "text": "La gloria, Señor, no es para nosotros, sino para ti; por causa de tu gran amor y tu fidelidad.",
+        "bookName": "Salmos",
+        "translationAbbreviation": "ONBV",
+        "translationId": "spa_onbv"
+    },
+    "doNotWorry": {
+        "text": "»Por ello les aconsejo que no se preocupen por la comida, la bebida o la ropa. ¡Es mucho más importante tener vida y un cuerpo, que tener qué comer y qué vestir! Fíjense en los pájaros, que no siembran ni cosechan ni andan guardando comida, y el Padre celestial los alimenta. ¡Para él ustedes valen más que cualquier ave! Además, ¿qué gana uno con preocuparse?; ¿podemos acaso alargar nuestra vida aunque sea una hora? ¿Para qué preocuparse de la ropa? ¡Miren los lirios del campo, que no tejen su propia ropa, y ni aun Salomón con todo su esplendor se vistió jamás con tanta belleza. Si Dios cuida tan admirablemente las flores, que hoy están aquí y mañana se queman en el fuego, ¿no los cuidará mucho más a ustedes, hombres de poca fe? Por eso, no se anden preocupando por la comida o por la ropa. ¡Los paganos son los que siempre se andan preocupando de esas cosas! Recuerden que su Padre celestial sabe lo que necesitan. Lo más importante es que primero busquen el reino de Dios y hagan lo que es justo. Así, Dios les proporcionará todo lo que necesiten. No se preocupen por lo que sucederá mañana, pues mañana tendrán tiempo para hacerlo. Ya tienen suficiente con los problemas de hoy.",
+        "bookName": "Mateo",
+        "translationAbbreviation": "ONBV",
+        "translationId": "spa_onbv"
+    },
+    "wholeBody": {
+        "text": "Por lo que él hace, cada una de las partes del cuerpo, según el don recibido, ayuda a las demás para que el cuerpo entero y unido crezca y se nutra de amor.",
+        "bookName": "Efesios",
+        "translationAbbreviation": "ONBV",
+        "translationId": "spa_onbv"
     }
 }

@@ -4,5 +4,17 @@
         "bookName": "Matthieu",
         "translationAbbreviation": "NCL",
         "translationId": "fra_ncl"
+    },
+    "charge": {
+        "text": "Je vous en conjure par le Seigneur, que cette lettre soit lue à tous les [saints] frères.",
+        "bookName": "1 Thessaloniciens",
+        "translationAbbreviation": "NCL",
+        "translationId": "fra_ncl"
+    },
+    "hinder": {
+        "text": "Si d’autres usent de ce droit sur vous, pourquoi pas plutôt nous-mêmes ! Cependant nous n’avons pas usé de ce droit ; mais nous supportons tout, afin de ne pas créer d’obstacle à l’Évangile du Christ.",
+        "bookName": "1 Corinthiens",
+        "translationAbbreviation": "NCL",
+        "translationId": "fra_ncl"
     }
 }
