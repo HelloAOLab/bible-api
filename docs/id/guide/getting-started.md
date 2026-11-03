@@ -1,5 +1,5 @@
 ---
-description: 'Mulai gunakan API Alkitab Gratis dalam hitungan menit. Instal SDK JavaScript atau panggil endpoint JSON secara langsung — tidak diperlukan kunci API atau pendaftaran.'
+description: 'Mulai gunakan API Alkitab Gratis dalam hitungan menit. Instal SDK untuk JavaScript, Kotlin, atau Swift, atau panggil endpoint JSON secara langsung — tidak diperlukan kunci API atau pendaftaran.'
 ---
 
 # Memulai
@@ -11,6 +11,8 @@ Mari kita langsung mulai!
 Kami memiliki klien API untuk bahasa-bahasa berikut:
 
 -   [JavaScript/TypeScript](../sdks/javascript.md)
+-   [Kotlin](../sdks/kotlin.md) (JVM dan Android)
+-   [Swift](../sdks/swift.md) (iOS, macOS, dan Linux)
 
 ## API
 

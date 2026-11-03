@@ -1,5 +1,5 @@
 ---
-description: 'Fara amfani da Free Use Bible API cikin mintuna. Shigar da JavaScript SDK ko kira maki na ƙarshe na JSON kai tsaye - babu buƙatar maɓallin API ko rajista.'
+description: 'Fara amfani da Free Use Bible API cikin mintuna. Shigar da SDK don JavaScript, Kotlin, ko Swift, ko kira maki na ƙarshe na JSON kai tsaye - babu buƙatar maɓallin API ko rajista.'
 ---
 
 # Farawa
@@ -11,6 +11,8 @@ Bari mu shiga cikin lamarin!
 Muna da abokan ciniki na API don harsunan masu zuwa:
 
 -   [JavaScript/TypeScript](../sdks/javascript.md)
+-   [Kotlin](../sdks/kotlin.md) (JVM da Android)
+-   [Swift](../sdks/swift.md) (iOS, macOS, da Linux)
 
 ## API
 

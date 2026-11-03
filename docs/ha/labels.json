@@ -1,19 +1,21 @@
 {
     "nav": {
         "guide": "Jagora",
-        "reference": "Bayanan API",
+        "reference": "Nassoshi",
         "sdks": "SDKs",
-        "donate": "Ba da gudummawa",
-        "translationsBooksChapters": "Fassarori, Littattafai da Surori",
-        "commentaries": "Sharhohi",
+        "support": "Tallafi",
+        "translationsBooksChapters": "Fassara, Littattafai, & Babi-babi",
+        "commentaries": "Sharhi",
         "datasets": "Saitunan Bayanai",
         "languages": "Harsuna",
         "selectLanguage": "Zaɓi harshe"
     },
     "home": {
+        "milestone": "Murnar buƙatun API 100,000,000+ a wannan shekarar!",
         "tagline": "API mai sauƙin amfani kuma cikakke mai fasali na JSON don Littafi Mai Tsarki.",
         "quickStart": "Farawa da Sauri",
-        "donate": "Ba da gudummawa",
+        "more": "Tare za mu iya gina tsarin halitta mai bude ga Kiristanci na duniya.",
+        "learnMore": "Ƙara koyo",
         "openVerse": "Buɗe {{ reference }} a cikin Littafi Mai Tsarki na Iri",
         "translationCount": "{{ count }} fassarori",
         "languageCount": "a cikin harsuna {{ count }}",
@@ -21,8 +23,10 @@
         "noApiKeyDetail": "Babu abin da za a yi rijista a kai",
         "noUsageLimits": "Babu iyakokin amfani",
         "noUsageLimitsDetail": "Kyauta har abada",
-        "welcome": "Barka da zuwa ga 'yanci.",
-        "welcomeDetail": "Fara yau **ba tare da iyaka ba** kuma **babu ja da baya** .",
+        "causeTitle": "Abokan hulɗa waɗanda suka yi imani da cewa Littafi Mai Tsarki ya kamata ya zama 'yanci da gaske.",
+        "support": "Tallafi",
+        "frontierTitle": "Barka da zuwa kan iyaka.",
+        "frontierDetail": "Fara nan take **ba tare da wani jan aiki ba** .",
         "compareLink": "Kwatanta mu da sauran API na Littafi Mai Tsarki",
         "translationsTitle": "Fassarorin Littafi Mai Tsarki",
         "translationsBody": "Fassara {{ count }} a matsayin JSON mai tsayayye, tare da kanun labarai, waƙoƙi, hutun layi da bayanan ƙasa a ajiye su.",
@@ -42,7 +46,7 @@
         "compareColumns": {
             "account": "Babu asusu",
             "usage": "Babu iyaka ga amfani",
-            "permission": "Ba tare da tambaya ba",
+            "permission": "Babu tambayoyi da aka yi",
             "storage": "Ajiya & adana bayanai*",
             "openSource": "Buɗaɗɗen tushe"
         },
@@ -58,7 +62,7 @@
                 "account": "Ana buƙatar maɓallin asusu da API",
                 "usage": "Kira 5,000 a wata akan Starter",
                 "permission": "Karɓi API. Sharuɗɗan Littafi Mai Tsarki; amfani da kasuwanci yana ƙara lasisi ga kowace fassara",
-                "storage": "An yarda da cache, amma dole ne a sabunta aƙalla kowace kwana 30",
+                "storage": "An yarda da cache, amma dole ne a sabunta aƙalla bayan kwana 30",
                 "openSource": "SDKs na abokin ciniki buɗaɗɗen tushe ne; API ɗin da kansa ba shi da tushe"
             },
             "youVersion": {
@@ -80,16 +84,131 @@
         "markConditional": "Sharaɗi",
         "markNotGranted": "Ba a ba da izini ba",
         "storageNote": "*Kwafi ka adana a kan kayan aikinka, sabar, ko kuma a kan na'ura don ta yi aiki ba tare da intanet ba.",
-        "contributeTitle": "Taimaka mana mu faɗaɗa iyaka.",
-        "contributeBody": "Bari mu ƙirƙiri tsarin halitta mai buɗewa na abubuwan da ke cikin yankin jama'a da kayan aikin buɗe tushen.",
-        "contributeDiscord": "Ba da gudummawa kan Discord",
+        "freelyTitle": "Mun gina wannan ne saboda Yesu ya ce:",
+        "chargeTitle": "Haka kuma, Bulus ya umurci majami'u su aika da wasiƙunsa.",
+        "sinceTitle": "Muna da Nassi domin tsararraki da yawa sun bi waɗannan umarni.",
+        "sinceBody": "Babu wani rubutun hannu na asali da ya tsira. Nassosi sun isa gare mu ta hanyar **kwafi** , **fassara** , **gyarawa** , **daidaitawa** , da **rarrabawa** .",
+        "relayLabel": "Tsari mai tsayuwa mara yankewa, daga wasiƙun Bulus zuwa gare ku",
+        "relayStart": "Wasikun Bulus",
+        "relayEnd": "Kai",
+        "forbidTitle": "Kalmar Allah cikakkiya ce.",
+        "forbidLead": "Duk da haka sharuɗɗan haƙƙin mallaka da yawa sun hana:",
+        "forbidden": {
+            "copying": {
+                "name": "Kwafi",
+                "example": "Littafi Mai Tsarki gaba ɗaya don rarrabawa ga waɗanda ke cikin bukata.",
+                "licence": "An kiyaye duk haƙƙoƙi"
+            },
+            "translating": {
+                "name": "Fassarawa",
+                "example": "Littafi Mai Tsarki cikin wani harshe kuma a raba shi.",
+                "licence": "Babu Abubuwan Da Suka Rage (ND)"
+            },
+            "revising": {
+                "name": "Bita",
+                "example": "Fassara da kuma buga gyaran.",
+                "licence": "Babu Abubuwan Da Suka Rage (ND)"
+            },
+            "adapting": {
+                "name": "Daidaitawa",
+                "example": "Littafi Mai Tsarki mai sauƙin karantawa ko kuma mai jiwuwa.",
+                "licence": "Babu Abubuwan Da Suka Rage (ND)"
+            },
+            "distributing": {
+                "name": "Rarrabawa",
+                "example": "Fayilolin Littafi Mai Tsarki a kan layi ko a layi.",
+                "licence": "An kiyaye duk haƙƙoƙi"
+            }
+        },
+        "forbidEnd": "A ƙarƙashin waɗannan sharuɗɗan, Timoti ba zai iya yin biyayya ga Bulus ba.",
+        "englishTitle": "Ba tare da daidaitawa da raba Nassosi ba, da ba za mu sami Littafi Mai Tsarki na Turanci ba.",
+        "englishBody": "Duk da haka, yawancin masu fassara na zamani suna daidaita aikin da ba za su iya dangantawa ba, sannan su buƙaci a danganta shi da kuma hana daidaitawa.",
+        "hinderTitle": "Amma ba haka halin Bulus yake ba.",
+        "licencesTitle": "Ko da a cikin API ɗinmu, fassarori kaɗan ne suka dace.",
+        "licenceUses": {
+            "copy": "Kwafi",
+            "translate": "Fassara",
+            "revise": "Bita",
+            "adapt": "Daidaita",
+            "distribute": "Rarraba"
+        },
+        "licenceGroups": {
+            "ideal": "Mafi kyau",
+            "viable": "Mai yiwuwa",
+            "restricted": "An takaita"
+        },
+        "licenceRows": {
+            "publicDomain": {
+                "name": "Shafin jama'a",
+                "why": "Babu sharuɗɗa."
+            },
+            "attribution": {
+                "name": "CC BY 4.0 ko kuma kawai a haɗa shi",
+                "why": "Ana buƙatar bashi."
+            },
+            "shareAlike": {
+                "name": "CC BY-SA 4.0 ko kuma raba-daidai",
+                "why": "Canje-canje ne kawai a ƙarƙashin lasisi ɗaya."
+            },
+            "noDerivatives": {
+                "name": "CC BY-ND 4.0",
+                "why": "Kwafi marasa canzawa kawai."
+            },
+            "nonCommercialNoDerivatives": {
+                "name": "CC BY-NC-ND 4.0",
+                "why": "Kwafi marasa canzawa, kuma babu wani abu na tallatawa."
+            },
+            "other": {
+                "name": "Wani",
+                "why": "Kalmomi marasa kasuwanci ko na al'ada; kowannensu ya haramta aƙalla ɗaya."
+            }
+        },
+        "markAllowed": "An yarda",
+        "markSomeCases": "Sai kawai a wasu lokutan",
+        "markForbidden": "An haramta",
+        "markFor": "{{ use }} : {{ mark }}",
+        "flywheelTitle": "Amsar ita ce ƙarin albarkatun jama'a.",
+        "flywheelLabel": "Kekunan tashi",
+        "flywheel": {
+            "start": "Fara daga aiki kyauta",
+            "build": "Gina wani sabon abu",
+            "release": "Saki shi a bainar jama'a",
+            "next": "Mai gini na gaba zai fara gaba gaba"
+        },
         "buildTitle": "Bari mu fara ginawa.",
         "newsletterPrompt": "Kuna son ci gaba da kasancewa a cikin madauki?",
         "newsletterLink": "Yi rijista don wasiƙar labarai",
         "newsletterBody": "Sabuntawa daga mutanen da ke gina shi, a cikin akwatin saƙonku.",
-        "examplesPrompt": "Kana son wani abu da za ka kwafi?",
-        "examplesLink": "Duba misalai",
-        "examplesBody": "Buƙatu na yau da kullun da tsarin aiki da za ku iya daidaitawa."
+        "discordPrompt": "Kana son ginawa tare da mu?",
+        "contributeDiscord": "Ba da gudummawa kan Discord",
+        "discordBody": "Ƙirƙiri da kuma sake duba albarkatun CC0 tare da mu.",
+        "faqTitle": "Tambayoyin da ake yawan yi akai-akai",
+        "faq": {
+            "problem": {
+                "q": "Shin da gaske wannan matsala ce a yau?",
+                "a": "Eh! Babbar matsala ce, amma yawancin Kiristoci ba su san komai game da ita ba domin suna da Littafi Mai Tsarki ko kuma suna da damar karantawa a intanet. Domin yana da sauƙin karanta Littafi Mai Tsarki a intanet, zato shine cewa Littafi Mai Tsarki dole ne ya kasance mai sauƙin amfani da rabawa, ko ba haka ba? Amma duk wanda ya yi ƙoƙarin samun damar shiga Littafi Mai Tsarki don **ƙirƙirar** wani abu (app, gidan yanar gizo, sabon fassarar Littafi Mai Tsarki, Littafi Mai Tsarki mai jiwuwa, da sauransu) ya san ba haka lamarin yake ba. Kuma ga duniyar da ke buƙatar bishara sosai, wannan ba shi da wani uzuri."
+            },
+            "attribution": {
+                "q": "Me ke damun wasu su danganta wanda ya halicci fassarar Littafi Mai Tsarki?",
+                "a": "Neman a ba da suna yana da kyau. **Buƙatar hakan** yana ƙara wa ɗan adam yanayin isar da kalmar Allah. Kowa zai iya kwafi, fassara, gyara, daidaita, da kuma rarraba ta, don haka muna ɗaukar ta a matsayin mai yiwuwa, amma ba ta da isasshen bayarwa."
+            },
+            "shareAlike": {
+                "q": "Shin raba-daidai ba hanya ce mai kyau ta kare Littafi Mai Tsarki ba?",
+                "a": "An gina Share-like a matsayin martani ga haƙƙin mallaka domin hana kowa ɗaukar rubutu a buɗe, canza shi, da kuma kulle sakamakon. Yana kiyaye dukkan amfani guda biyar (kwafi, fassara, gyarawa, daidaitawa, da rarrabawa) a buɗe, don haka muna ɗaukarsa a matsayin mai yiwuwa. Amma har yanzu yana hana aiki mai aminci: mai fassara wanda ya gina akan rubutu iri ɗaya da raba ba zai iya fitar da fassararsa zuwa ga jama'a ba. Amma za mu yi kira da cewa haƙƙin mallaka ba shine mafi kyawun martani ga haƙƙin mallaka ba. Maimakon haka, babban burin ya kamata ya zama kayan aiki **masu** inganci, na jama'a waɗanda kowa zai iya daidaita duk abin da yake buƙata don masarautar."
+            },
+            "conditions": {
+                "q": "Me zai faru idan har yanzu ina son sanya sharaɗi a kan fassarar ta?",
+                "a": "To, aƙalla a sauƙaƙe keɓewa. Buga yadda za a same ku, amsa da sauri, kuma a ba da keɓancewa don amfani mai aminci. Shirya wanda zai amsa lokacin da ba za ku iya ba, ko kuma ya saki aikinku ga jama'a a lokacin mutuwarku. Idan ba za ku iya ci gaba da hakan ba, ku sake shi yanzu. Kowace buƙata da aka bari ba a amsa ba tana rufe ƙofa ga mulkin, kuma ko da amsa cikin sauri ta gaza mai bi wanda ba zai iya tambaya cikin aminci daga mahallin da ake tsananta masa ba."
+            },
+            "money": {
+                "q": "Amma ta yaya masu fassara Littafi Mai Tsarki da masu wallafawa za su sami kuɗi?"
+            },
+            "nonCommercial": {
+                "q": "Me ke damun amfani da ba na kasuwanci ba?",
+                "a": "Kalmomin da ba na kasuwanci ba sun hana aiki mai aminci, don haka muna ƙirga su a matsayin ƙayyadadden lokaci. Akwai hanyoyi da yawa da za a iya rarraba Littafi Mai Tsarki a kasuwanci cikin tsarkakken tsari da aminci (misali, buga Littafi Mai Tsarki da sayar da su akan farashin da ake buƙata don samun ƙaramin riba don sake saka hannun jari a cikin aiki da kuma ƙara rarrabawa). Abin da ake nufi, ƙaunataccen Kirista, shine kawai **ba wurinka ba** ne ka gaya wa wasu yadda za su iya amfani da kalmar Allah da kuma yadda ba za su iya amfani da ita ba."
+            }
+        },
+        "scrollCue": "Gungura zuwa sashe na gaba"
     },
     "footer": {
         "madeWith": "An yi shi da {{ love }} ta {{ aoLab }}",
@@ -113,14 +232,253 @@
         "translations": "Fassarorin Littafi Mai Tsarki",
         "audio": "Sautin Littafi Mai Tsarki",
         "commentaries": "Sharhin Littafi Mai Tsarki",
-        "datasets": "Sassan bayanai na Littafi Mai Tsarki",
+        "datasets": "Saitin bayanai na Littafi Mai Tsarki",
         "seedBibleSoon": "Littafi Mai Tsarki na Seed (Za a fara nan ba da jimawa ba)",
-        "aboutUs": "Game da mu",
-        "donate": "Ba da gudummawa ga AO Lab",
+        "newsletterShort": "Wasikun Labarai",
+        "freeUseFund": "Asusun Amfani Kyauta",
+        "support": "Tallafawa AO Lab",
         "nonprofit": "Ƙungiyar agaji ta 501(c)(3) mai zaman kanta",
         "established": "An kafa 2/2/2022",
         "privacy": "Sirri",
         "terms": "Sharuɗɗa"
+    },
+    "wall": {
+        "heading": "Tallafin shekara-shekara na {{ year }}",
+        "goal": "{{ amount }} burin shekara-shekara",
+        "readStories": "Karanta duk labarai",
+        "hideStories": "Ɓoye labarai",
+        "storyCountOne": "Abokin hulɗa 1 ya raba yadda suke amfani da API ɗin. Danna ko danna kusurwar da aka naɗe don karanta shi.",
+        "storyCountMany": "Abokan hulɗa {{ count }} sun raba yadda suke amfani da API ɗin. Danna ko danna kusurwar da aka naɗe don karanta ɗaya.",
+        "received": "An karɓa",
+        "story": "Shaida ko bayanin kula da aka haɗa",
+        "pledged": "An yi alƙawari",
+        "open": "A buɗe",
+        "note": "Kowace murabba'i tana da **{{ month }} a wata** , ko kuma **{{ year }} a shekara** .",
+        "fundTitle": "Asusun Amfani Kyauta",
+        "fundLabel": "Albarkatu fiye da buƙatunmu na shekara-shekara za su samar da ingantaccen tsarin halitta mai buɗewa.",
+        "fundOverflow": "{{ year }} an yi masa alƙawarin cikawa. {{ amount }} da aka yi masa alƙawarin da ya wuce shi zai samar da ingantaccen tsarin halitta mai buɗewa.",
+        "fundLink": "Yadda asusun ke aiki",
+        "ariaLabel": "Bangon tallafi {{ year }} : murabba'i {{ squares }} a {{ monthly }} a wata {{ tail }} An karɓi {{ received }} , {{ pledged }} an yi alƙawari.",
+        "ariaTail": ", da kuma wani abu na rufewa {{ amount }}",
+        "anonymous": "Ba a san ko wanene ba",
+        "anonymousPartner": "Abokin hulɗa mara suna",
+        "hasStory": "yana da labari",
+        "kinds": {
+            "Individual": "Mutum ɗaya",
+            "Nonprofit": "Ƙungiyar agaji",
+            "Business": "Kasuwanci"
+        },
+        "square": "murabba'i {{ count }}",
+        "squares": "murabba'ai {{ count }}",
+        "perMonth": "{{ amount }} a wata",
+        "oneTime": "{{ amount }} sau ɗaya",
+        "forYear": "{{ amount }} na shekara",
+        "percentReceived": "An karɓi {{ percent }} %"
+    },
+    "newsletter": {
+        "title": "Yi rijista don wasiƙar labarai",
+        "intro": "Sabuntawa daga AO Lab, ƙungiyar agaji da ke goyon bayan Free Use Bible API.",
+        "firstName": "Sunan rana",
+        "optional": "(zaɓi ne)",
+        "email": "Adireshin i-mel",
+        "subscribe": "Yi rijista",
+        "subscribing": "Yin rijista…",
+        "fine": "Zabi ne kawai, kuma ana amfani da shi ne kawai don wasiƙar labarai. Cire rajista daga kowane imel.",
+        "howWeUse": "Yadda muke amfani da shi",
+        "close": "Rufe",
+        "thanksTitle": "Na gode da yin rijista!",
+        "thanksBody": "Kun kusa gamawa. Duba imel ɗinku kuma danna hanyar haɗin don tabbatar da biyan kuɗin ku.",
+        "invalid": "Shigar da adireshin imel mai inganci.",
+        "already": "An riga an yi rijistar wannan adireshin imel ɗin.",
+        "unsubscribed": "An cire wannan adireshin. Rubuta zuwa hello@helloao.org don sake shiga.",
+        "error": "Akwai matsala. Da fatan za a sake gwadawa nan da ɗan lokaci."
+    },
+    "support": {
+        "title": "Ku tsaya tare da mu.",
+        "intro": "Tallafa wa mutanen da ke kula da kuma gina wannan tsarin halitta mai buɗewa da kyauta, labarinka, ko duka biyun. Da izininka, ɗayansu zai iya bayyana a bangon tallafi {{ year }} .",
+        "chooseTitle": "Ta yaya kake son taimakawa?",
+        "choices": {
+            "testimony": {
+                "name": "Raba shaida",
+                "detail": "Faɗa mana abin da wannan aikin ya haifar."
+            },
+            "gift": {
+                "name": "Yi kyauta",
+                "detail": "Taimaka wa mutanen da ke gina shi."
+            },
+            "both": {
+                "name": "Dukansu biyun",
+                "detail": "Haɗa labarinka da kyautarka a bango."
+            }
+        },
+        "chooseNote": "Za ka zaɓi abin da ya bayyana a bainar jama'a a kan bangon tallafi.",
+        "testimonyTitle": "Raba shaidarka",
+        "testimonyBody": "Yi mana imel ta yadda kake amfani da Free Use Bible API, kuma ka haɗa hotunan kariyar kwamfuta ko tambarin ka idan kana so. Faɗa mana ko za ka nuna sunanka ko kuma ka ɓoye shi. Idan kuma ka bayar, ka haɗa sunan a kan kyautarka domin mu iya sanya labarinka a kan murabba'in ka.",
+        "testimonyButton": "Imel da shaidarka",
+        "testimonySubject": "Shaidata game da bangon tallafi",
+        "testimonyEmail": "Suna ko ƙungiya: Nuna sunana, ko kuma a ɓoye sunana: Yadda muke amfani da Free Use Bible API: Haɗi zuwa abin da muka gina (zaɓi): Idan muka bayar kuma: sunan da ke kan kyautarmu (zaɓi): Saƙon gajere don bango, har zuwa haruffa 80 (zaɓi): Haɗa hotunan kariyar kwamfuta, ko tambari azaman SVG ko PNG mai haske aƙalla pixels 600 a gefensa mai tsawo (zaɓi).",
+        "giftTitle": "Yi kyauta",
+        "giftBody": "{{ month }} a wata ko {{ year }} a shekara yana cika murabba'i ɗaya a kan bangon tallafi, amma duk wani adadi, babba ko ƙarami, ana **matuƙar godiya** !",
+        "formTitle": "Fom ɗin bayar da gudummawar AO Lab",
+        "formFallback": "Fom ɗin ba ya lodawa?",
+        "formOpen": "Buɗe shi a cikin shafinsa",
+        "waysLead": "Sama da kashi 95% na duk bayarwa ana yin ta ne kai tsaye ga ayyukan da ake gudanarwa.",
+        "otherWaysTitle": "Sauran hanyoyin bayarwa",
+        "otherWaysBody": "Kati, canja wurin banki, asusun da masu ba da shawara suka ba da shawara, hannun jari, IRA/QCD da crypto duk suna aiki a cikin fom ɗin.",
+        "otherWaysLink": "Bayar da gudummawa ta hanyar NCF",
+        "booksTitle": "Ana cire haraji, da kuma littattafan da aka buɗe",
+        "booksBody": "AO Lab wani sashe ne na 501(c)(3). Ana cire haraji daga kyaututtuka kamar yadda doka ta tanada, kuma kuɗinmu na jama'a ne.",
+        "booksLink": "Hasashen kuɗi",
+        "directorTitle": "Babban Daraktanmu",
+        "directorBody": "Craig Bradley. Jin daɗin tuntuɓar don yin tambayoyi ko tattauna wani abu.",
+        "recognitionTitle": "Zaɓi yadda kyautarka ta bayyana.",
+        "recognitionBody": "Muna ƙara murabba'ai a bango da hannu da zarar kyautar ku ta iso. Kyauta ta wata-wata tana cika murabba'ai kowane wata.",
+        "exampleLabel": "Misali bango: kyauta mai suna, kyautar da ba a san ko waye ba, kyaututtuka tare da shaida, da kuma wurare masu tambari a kowane ƙaramin girma",
+        "exampleCaption": "Misalin bango a girman gaske. Juya ko danna kusurwar da aka naɗe don karanta misalin shaidar.",
+        "example": {
+            "yourName": "Sunanka",
+            "yourOrganization": "Ƙungiyarku",
+            "yourLogo": "Tambarin ku a nan",
+            "yourLogoShort": "Tambarin ku",
+            "here": "nan",
+            "logo": "Alamar",
+            "message": "Ga misali saƙon, har zuwa haruffa 80.",
+            "namedStory": "Ga misali shaidar hover! Faɗa wa baƙi yadda kuke amfani da Free Use Bible API.",
+            "anonymousStory": "Ga wani misali na shaidar. Masu bayar da ba a san ko su waye ba za su iya raba labari.",
+            "logoStory": "Ga misali na shaidar da ke kusa da tambari. Tambarin ku da labarin ku na iya raba murabba'ai iri ɗaya.",
+            "squareStory": "Ga misali shaidar da ke shawagi! Murabba'i ɗaya zai iya ɗaukar labari ma.",
+            "church": "Coci a Kenya",
+            "churchStory": "Ga misali shaidar wata coci da ke amfani da API a cikin manhajar Littafi Mai Tsarki.",
+            "namedGift": "Kyauta mai suna",
+            "anonymousGift": "Kyauta mara suna, an yi alƙawari",
+            "pledgedSuffix": "an yi alƙawari",
+            "recommended": "shawarar"
+        },
+        "rows": {
+            "nameTitle": "An sanya masa suna ko ba a san shi ba",
+            "nameBody": "Zaɓi a cikin fom ɗin da ke sama. Kyautai marasa suna za su kasance ba a san su ba a bango da kuma a cikin tarihinta na shekara-shekara.",
+            "storyTitle": "Labarinka",
+            "storyBody": "Jumla ɗaya ko biyu kan yadda kake amfani da API ɗin. Murabba'inku suna samun kusurwa mai lanƙwasa, kuma baƙi suna karanta labarinku akan hover ko tap.",
+            "messageTitle": "Saƙo",
+            "messageBody": "Layi ɗaya gajere, har zuwa haruffa 80, an nuna shi a kan hover. Sadaukarwa ko kalmar ƙarfafawa duka suna aiki.",
+            "logoTitle": "Tambarin ku",
+            "logoBody": "Ka ba da aƙalla mafi ƙarancin siffar tambarinka a cikin {{ sizes }} , sannan ka aika da SVG, ko PNG aƙalla pixels 600 a gefensa mai haske. Tambayoyi suna zaune a kan fari a yanayin haske da duhu.",
+            "logoSizesLink": "girma dabam-dabam a ƙasa"
+        },
+        "sizesOpen": "Danna nan don faɗaɗa girman tambari",
+        "sizesClose": "Ɓoye girman tambari",
+        "sizesIntro": "Murabba'i yana da faɗin pixels 16 a kwamfutar tafi-da-gidanka da kuma kusan 9 a waya. Tambari yana buƙatar kimanin pixels 48 a kwamfutar tafi-da-gidanka don karantawa a sarari, don haka ƙaramin murabba'i mai kusurwa huɗu ga kowane siffa shine mafi ƙarancin kyautar tambari.",
+        "sizesColumns": {
+            "shape": "Siffar tambari",
+            "smallest": "Mafi ƙanƙanta wanda ke karatu",
+            "recommended": "An ba da shawarar"
+        },
+        "shapes": {
+            "square": {
+                "name": "Alamar murabba'i ko alama",
+                "ratio": "1:1"
+            },
+            "horizontal": {
+                "name": "Tambarin kwance",
+                "ratio": "kimanin 2:1"
+            },
+            "wide": {
+                "name": "Faɗin alamar kalmomi",
+                "ratio": "3:1 zuwa 4:1"
+            },
+            "veryWide": {
+                "name": "Alamar kalmomi mai faɗi sosai",
+                "ratio": "5: 1 ko mafi faɗi"
+            },
+            "tall": {
+                "name": "Tambari mai tsayi ko kuma mai tarin yawa",
+                "ratio": "kimanin 1:2"
+            }
+        },
+        "sizeCell": "{{ w }} × {{ h }} · {{ squares }}",
+        "sizesNote": "Mudubin kusurwa suna da faɗi × tsayi, a murabba'i. Ba tare da tambari ba, murabba'i mai faɗi murabba'i 4 da tsayi 2 yana nuna sunanka a bango. Ƙananan kyaututtuka suna nuna shi a kan hawa sama.",
+        "detailsNote": "Domin samun labari, saƙo, ko tambari, aiko mana da imel tare da sunan da ke kan kyautarku domin mu daidaita ta. Muna yin bitar kowannensu kafin a saka shi a bango.",
+        "detailsButton": "Cikakkun bayananka ta imel",
+        "detailsSubject": "Kyautata a bango {{ year }}",
+        "detailsEmail": "Suna a kan kyautar da na bayar: Adadin, da kuma kowane wata ko na shekara: Nuna sunana, ko kuma a ɓoye sunansa: Yadda muke amfani da API (zaɓi): Saƙon gajere, har zuwa haruffa 80 (zaɓi): Tambari: an haɗa shi azaman SVG, ko PNG aƙalla 600 px tare da bango mai haske (zaɓi) Muƙallin kusurwa (faɗi x tsayi), idan ana aika tambari:",
+        "thanksTitle": "Na gode sosai!",
+        "thanksBody": "Kowace nuna goyon baya tana tunatar da mu cewa ba mu kaɗai ba ne kuma tana tabbatar da cewa wannan wani ƙoƙari ne na Kiristoci a duniya ga Kiristoci.",
+        "signOff": "Cikin Almasihu,",
+        "team": "Ƙungiyar Lab ta AO"
+    },
+    "fund": {
+        "eyebrow": "Gabatar da",
+        "title": "Asusun Amfani Kyauta",
+        "sub": "Za mu ƙaddamar da wani asusu bisa ga ayyuka don fara tsarin halittu na duniya don Kiristanci.",
+        "propose": "Ba da shawarar aiki",
+        "whatTitle": "Abin da muke bayarwa",
+        "whatBody1": "Manufarmu ita ce ci gaban yanayin halittu na Kiristoci waɗanda ke ƙirƙirar albarkatu masu inganci na jama'a da kayan aikin buɗe tushen daga aikin juna.",
+        "whatBody2": "Muna ba da kuɗaɗen fassara, kayan aiki, bayanai, kadarori, da duk wani abu da Cocin duniya za ta iya haɗawa ko ginawa a kai, muna ba da fifiko ga ayyuka masu fa'ida mafi girma. Muna fifita abubuwan CC0 da software na buɗe tushen aiki a ƙarƙashin lasisi kamar MIT ko AGPL. Kowane fitarwa yana ba wa mai ginin na gaba ƙarin aiki da shi.",
+        "statusTitle": "Matsayin da ake ciki yanzu",
+        "statusBody": "Har yanzu ba a cimma burin tallafin AO Lab na shekara-shekara na {{ goal }} ba, don haka Asusun Amfani da Kyauta a halin yanzu ba shi da kuɗi. Kuna iya duba matsayin tallafin na yanzu {{ here }} .",
+        "statusHere": "nan",
+        "statusInvite": "{{ proposals }} kuma maraba da {{ feedback }} ɗinka.",
+        "statusProposals": "Muna ƙarfafa shawarwari a kowane lokaci",
+        "statusFeedback": "ra'ayi",
+        "feedbackSubject": "Ra'ayin Asusun Amfani Kyauta",
+        "callEyebrow": "Buɗe kira don shawarwari",
+        "callTitle": "Me za ka gina?",
+        "callIntro": "Ana maraba da sabbin ayyuka da ayyukan da ake gudanarwa. Muna ba da shawarar yin amfani da gajerun aikace-aikace kai tsaye ba tare da ƙarin bayani ba. Za mu tuntube ku don ƙarin bayani.",
+        "steps": {
+            "build": {
+                "title": "Abin da kake niyyar ginawa.",
+                "body": "Bayyana aikin, wanda zai shiga, da kuma irin tallafin da za ka iya buƙata."
+            },
+            "licences": {
+                "title": "Lasisin da aka gabatar.",
+                "body": "Bayyana lasisin abun ciki, software, da duk wani abu da kake amfani da shi a yanzu."
+            },
+            "why": {
+                "title": "Me yasa yake da muhimmanci?",
+                "body": "Bayyana muhimmancinsa ga tsarin halittu na bude da muke ginawa don Kiristanci na duniya."
+            }
+        },
+        "submit": "Aika da shawarar aiki",
+        "reportingEyebrow": "Hakkin mallaka",
+        "reportingTitle": "Sabuntawa na kwata-kwata. Aikin da aka raba a bainar jama'a.",
+        "reportingBody": "Za mu buga kashe kuɗi na kwata-kwata da sabuntawar ayyuka a nan, gami da aikin da ake ci gaba da yi. Za a buga kuma a sanar da ayyukan da aka kammala yayin da aka gama su.",
+        "faqTitle": "Wasu tambayoyi masu amfani.",
+        "faq": {
+            "who": {
+                "q": "Wa zai iya gabatar da aiki?",
+                "a": "Duk wanda ke cikin jama'a, har da daidaikun mutane da ƙungiyoyi. Bayyana abin da kake son ginawa, lasisin da aka tsara, da kuma dalilin da ya sa yake da mahimmanci ga tsarin halittu na buɗewa da ke hidimar Kiristanci na duniya."
+            },
+            "early": {
+                "q": "Me yasa ake miƙa kuɗi kafin a sami kuɗi?",
+                "a": "Shawarwarinku suna taimaka mana mu gano buƙatu da kuma nuna irin tallafin da za a iya bayarwa. Za su iya taimaka mana mu tara tallafi ga AO Lab da kuma al'umma baki ɗaya, da kuma ba mu ayyukan da za mu yi la'akari da su lokacin da aka sami kuɗi."
+            },
+            "decides": {
+                "q": "Wa zai yanke shawara kan ayyukan da za a ba da kuɗi?",
+                "a": "AO Lab tana kula da asusun kuma tana zaɓar ayyuka bisa ga tasirin da masarautar ke da shi da kuma fa'idar da take da shi ga Cocin. Ayyuka na iya zama babba ko ƙarami, tare da fifiko ga aikin da babban al'umma zai iya amfani da shi kuma ya gina a kai."
+            },
+            "money": {
+                "q": "Ta yaya kuɗi ke isa ga asusun?",
+                "a": "Kowace Satumba, muna fara tara tallafin shekara-shekara na AO Lab na shekara mai zuwa. Da zarar an cimma wannan burin, duk ƙarin tallafi yana zuwa ga Asusun Amfani Kyauta har zuwa Satumba mai zuwa, lokacin da zagayowar za ta sake farawa."
+            },
+            "licences": {
+                "q": "Wadanne lasisi kuke tallafawa?",
+                "a": "Mun fi son kalmomin da suka fi dacewa, tare da CC0 a matsayin mafi dacewa ga abubuwan da ke ciki kamar fassara, bayanai, da kadarori. Software na iya amfani da MIT, AGPL, ko wasu lasisin buɗaɗɗen tushe. Muna duba lasisin software kowane hali, idan aka yi la'akari da yadda yake tallafawa sake amfani da shi da kuma faffadan yanayin ƙasa. Bayyana lasisin da kuka gabatar a cikin shawarar ku."
+            },
+            "translation": {
+                "q": "Shin asusun zai iya tallafawa fassarar Littafi Mai Tsarki?",
+                "a": "Eh. Ana iya la'akari da fassarar Littafi Mai Tsarki na CC0 tare da wasu albarkatu da kayan aikin buɗe tushen. Muna kimanta ayyuka ta hanyar tasirin da masarautar za ta iya yi da fa'idodin da aka raba, maimakon ba da fifiko ga nau'in aiki ɗaya ta atomatik."
+            },
+            "progress": {
+                "q": "Ina zan iya bin diddigin kashe kuɗi da ci gaban aikin?",
+                "a": "A wannan shafin. Sabuntawar kwata-kwata za ta nuna yadda aka kashe kuɗi da kuma ayyukan da aka tallafa, gami da aikin da ba a gama ba. Za a buga ayyukan da aka kammala kuma a sanar da su yayin da aka gama."
+            },
+            "public": {
+                "q": "Shin bayanan kowane aiki za su kasance a bainar jama'a?",
+                "a": "Banda cikakken bayanin aikin shine tsaro: za mu iya ɓoye bayanai waɗanda za su iya jefa mutanen da ke aiki a yankunan da ake tsananta musu cikin haɗari. Za a ci gaba da bayar da rahotannin kwata-kwata, tare da ɓoye bayanai masu mahimmanci inda ake buƙata. Ana maraba da masu ba da kuɗi zuwa {{ contact }} don tattauna abin da za a iya rabawa lafiya."
+            }
+        },
+        "contactUs": "tuntuɓe mu",
+        "questionSubject": "Tambayar Asusun Amfani Kyauta"
     },
     "notFound": {
         "title": "Ba a sami shafi ba",

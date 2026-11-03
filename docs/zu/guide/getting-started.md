@@ -1,5 +1,5 @@
 ---
-description: 'Qala ukusebenzisa i-Free Use Bible API ngemizuzu embalwa. Faka i-JavaScript SDK noma ushayele ama-endpoint e-JSON ngqo — akudingeki ukhiye we-API noma ukubhalisa.'
+description: 'Qala ukusebenzisa i-Free Use Bible API ngemizuzu embalwa. Faka i-SDK ye-JavaScript, i-Kotlin, noma i-Swift, noma ushayele ama-endpoint e-JSON ngqo — akudingeki ukhiye we-API noma ukubhalisa.'
 ---
 
 # Ukuqalisa
@@ -11,6 +11,8 @@ Ake singene ngqo kukho!
 Sinamakhasimende e-API ezilimi ezilandelayo:
 
 -   [I-JavaScript/I-TypeScript](../sdks/javascript.md)
+-   [I-Kotlin](../sdks/kotlin.md) (i-JVM ne-Android)
+-   [I-Swift](../sdks/swift.md) (i-iOS, i-macOS, ne-Linux)
 
 ## I-API
 

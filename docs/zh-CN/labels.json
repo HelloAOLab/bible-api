@@ -1,19 +1,21 @@
 {
     "nav": {
-        "guide": "指南",
+        "guide": "指导",
         "reference": "参考",
         "sdks": "SDK",
-        "donate": "捐赠",
-        "translationsBooksChapters": "译本、书卷与章节",
-        "commentaries": "注释书",
+        "support": "支持",
+        "translationsBooksChapters": "译文、书籍和章节",
+        "commentaries": "评论",
         "datasets": "数据集",
         "languages": "语言",
         "selectLanguage": "选择语言"
     },
     "home": {
+        "milestone": "今年API请求量突破1亿！",
         "tagline": "一个易于使用且功能齐全的圣经 JSON API。",
         "quickStart": "快速入门",
-        "donate": "捐",
+        "more": "我们携手可以构建一个开放的全球基督教生态系统。",
+        "learnMore": "了解更多",
         "openVerse": "在《种子圣经》中打开{{ reference }}",
         "translationCount": "{{ count }}翻译",
         "languageCount": "涵盖{{ count }}语言",
@@ -21,8 +23,10 @@
         "noApiKeyDetail": "无需注册",
         "noUsageLimits": "无使用限制",
         "noUsageLimitsDetail": "永久免费",
-        "welcome": "欢迎来到自由的世界。",
-        "welcomeDetail": "立即开始，**没有任何限制**，也**没有任何繁琐的手续**。",
+        "causeTitle": "得到那些认为圣经应该真正自由的合作伙伴的支持。",
+        "support": "支持",
+        "frontierTitle": "欢迎来到边疆。",
+        "frontierDetail": "立即开始**，无需任何繁琐手续**。",
         "compareLink": "将我们与其他圣经API进行比较",
         "translationsTitle": "圣经译本",
         "translationsBody": "{{ count }}翻译以静态 JSON 格式保存，标题、诗歌、换行符和脚注均保持不变。",
@@ -42,7 +46,7 @@
         "compareColumns": {
             "account": "没有账户",
             "usage": "无使用限制",
-            "permission": "不问缘由",
+            "permission": "无需提问",
             "storage": "存储和缓存*",
             "openSource": "开源"
         },
@@ -69,7 +73,7 @@
                 "openSource": "客户端 SDK 是开源的；但 API 本身并非如此。"
             },
             "bibleBrain": {
-                "account": "需要钥匙，由他们酌情决定是否发放。",
+                "account": "需要钥匙，由他们酌情决定是否授予。",
                 "usage": "暂无公开信息，访问权限可能随时受到限制或撤销。",
                 "permission": "接受许可；钥匙是否批准由他们酌情决定。",
                 "storage": "仅可通过其下载端点离线使用",
@@ -80,16 +84,131 @@
         "markConditional": "条件",
         "markNotGranted": "未授予",
         "storageNote": "*复制并存储在您自己的硬件、服务器或设备上，以便离线使用。",
-        "contributeTitle": "帮助我们拓展疆界。",
-        "contributeBody": "让我们创建一个开放的公共领域内容和开源工具生态系统。",
-        "contributeDiscord": "在 Discord 上做出贡献",
+        "freelyTitle": "我们建造这座建筑是因为耶稣说过：",
+        "chargeTitle": "同样，保罗也嘱咐各教会将他的书信传下去。",
+        "sinceTitle": "我们之所以有圣经，是因为许多世代的人都遵守了这些诫命。",
+        "sinceBody": "没有留下任何原始手稿。圣经是通过**抄写**、**翻译**、**修订**、**改编**和**传播流传**至今的。",
+        "relayLabel": "从保罗写给你的信开始，世世代代的传承从未中断。",
+        "relayStart": "保罗的信件",
+        "relayEnd": "你",
+        "forbidTitle": "上帝的话语是绝对的。",
+        "forbidLead": "然而，许多版权条款禁止：",
+        "forbidden": {
+            "copying": {
+                "name": "复制",
+                "example": "一整本圣经，分发给有需要的人。",
+                "licence": "版权所有"
+            },
+            "translating": {
+                "name": "翻译",
+                "example": "圣经被翻译成另一种语言并分享。",
+                "licence": "禁止演绎 (ND)"
+            },
+            "revising": {
+                "name": "修改",
+                "example": "翻译并发布修订版。",
+                "licence": "禁止演绎 (ND)"
+            },
+            "adapting": {
+                "name": "适应",
+                "example": "将圣经翻译成简易阅读版或有声圣经。",
+                "licence": "禁止演绎 (ND)"
+            },
+            "distributing": {
+                "name": "分发",
+                "example": "圣经文件可在线或离线获取。",
+                "licence": "版权所有"
+            }
+        },
+        "forbidEnd": "根据这些条件，提摩太不可能服从保罗。",
+        "englishTitle": "如果没有对圣经的改编和分享，我们就不会有英文圣经。",
+        "englishBody": "然而，许多现代译者在无法注明出处的情况下改编作品，然后要求注明出处并禁止改编。",
+        "hinderTitle": "但保罗并非如此。",
+        "licencesTitle": "即使在我们的 API 中，也很少有翻译是完美的。",
+        "licenceUses": {
+            "copy": "复制",
+            "translate": "翻译",
+            "revise": "修订",
+            "adapt": "适应",
+            "distribute": "分发"
+        },
+        "licenceGroups": {
+            "ideal": "理想的",
+            "viable": "可行的",
+            "restricted": "受限制的"
+        },
+        "licenceRows": {
+            "publicDomain": {
+                "name": "公共领域",
+                "why": "无任何条件。"
+            },
+            "attribution": {
+                "name": "CC BY 4.0 或仅署名",
+                "why": "需要信用记录。"
+            },
+            "shareAlike": {
+                "name": "CC BY-SA 4.0 或相同方式共享",
+                "why": "仅在同一许可协议下进行更改。"
+            },
+            "noDerivatives": {
+                "name": "CC BY-ND 4.0",
+                "why": "仅提供未修改的副本。"
+            },
+            "nonCommercialNoDerivatives": {
+                "name": "CC BY-NC-ND 4.0",
+                "why": "未经修改的副本，不涉及任何商业用途。"
+            },
+            "other": {
+                "name": "其他",
+                "why": "非商业性或自定义条款；每项条款至少禁止一项。"
+            }
+        },
+        "markAllowed": "允许",
+        "markSomeCases": "仅在某些情况下",
+        "markForbidden": "禁忌",
+        "markFor": "{{ use }} : {{ mark }}",
+        "flywheelTitle": "答案是：更多公共领域资源。",
+        "flywheelLabel": "飞轮",
+        "flywheel": {
+            "start": "从免费工作开始",
+            "build": "创造新事物",
+            "release": "将其发布到公共领域",
+            "next": "下一位建造者从更靠前的位置开始。"
+        },
         "buildTitle": "让我们开始建造吧。",
         "newsletterPrompt": "想随时了解最新动态吗？",
         "newsletterLink": "订阅新闻简报",
         "newsletterBody": "来自项目开发团队的最新消息，直接发送到您的邮箱。",
-        "examplesPrompt": "想复制一些东西吗？",
-        "examplesLink": "请参阅示例",
-        "examplesBody": "您可以借鉴的常见请求和工作模式。"
+        "discordPrompt": "想和我们一起建设吗？",
+        "contributeDiscord": "在 Discord 上做出贡献",
+        "discordBody": "与我们一起创建和审核 CC0 资源。",
+        "faqTitle": "常问问题",
+        "faq": {
+            "problem": {
+                "q": "这在今天真的是个问题吗？",
+                "a": "没错！这的确是个大问题，但大多数基督徒对此却浑然不觉，因为他们手头有圣经，或者可以随时在线阅读。既然在线阅读圣经如此便捷，人们自然会想当然地认为圣经也一定易于使用和分享，对吧？然而，任何尝试过获取圣经资料并**进行创作**（例如开发应用程序、网站、新的圣经译本、有声圣经等等）的人都知道，事实并非如此。对于一个如此迫切需要福音的世界而言，这简直是不可原谅的。"
+            },
+            "attribution": {
+                "q": "要求他人注明圣经译本的作者有什么错？",
+                "a": "要求注明出处是可以的。**强制要求则**给传播神的话语增添了人为的因素。任何人仍然可以复制、翻译、修改、改编和分发，因此我们认为这种做法是可行的，但这与无偿分享有所出入。"
+            },
+            "shareAlike": {
+                "q": "共享版权难道不是保护圣经的好方法吗？",
+                "a": "“共享相同方式”协议的建立是为了应对版权问题，防止任何人获取开放文本、修改文本并将其据为己有。它保留了所有五种使用方式（复制、翻译、修改、改编和分发），因此我们认为它是可行的。但它仍然禁止忠实翻译：基于“共享相同方式”协议文本进行创作的译者不能将其译文发布到公共领域。但我们认为，版权并非应对版权的最佳方案。更高层次的目标应该是创造**大量**高质量的公共领域素材，让任何人都能根据自身需要进行改编，造福天国。"
+            },
+            "conditions": {
+                "q": "如果我仍然想对我的翻译附加条件呢？",
+                "a": "那么至少要让例外情况变得容易处理。公布联系方式，尽快回复，并为忠实的用途破例。计划好在你无法继续回复时由谁来接手，或者在你去世后将你的作品公之于众。如果你无法做到这一点，那就现在就发布。每一个未得到回应的请求都会关闭通往天国的大门，即使是匆匆的“是”，对于那些身处迫害环境、无法安全求助的信徒来说，也是一种失败。"
+            },
+            "money": {
+                "q": "但是圣经翻译者和出版商如何赚钱呢？"
+            },
+            "nonCommercial": {
+                "q": "要求非商业用途有什么问题？",
+                "a": "非商业条款禁止忠实地使用圣经，因此我们将其视为受限条款。圣经可以通过许多纯粹而忠实的方式进行商业发行（例如，印刷圣经并以仅能赚取少量利润的价格出售，以便将利润再投资于运营和扩大发行）。亲爱的基督徒，关键在于，**你无权**告诉别人如何使用或不如何使用神的话语。"
+            }
+        },
+        "scrollCue": "滚动到下一节"
     },
     "footer": {
         "madeWith": "由{{ love }}乘{{ aoLab }}制成",
@@ -115,12 +234,251 @@
         "commentaries": "圣经注释",
         "datasets": "圣经数据集",
         "seedBibleSoon": "种子圣经（即将推出）",
-        "aboutUs": "关于我们",
-        "donate": "向AO实验室捐款",
+        "newsletterShort": "通讯",
+        "freeUseFund": "免费使用基金",
+        "support": "支持AO实验室",
         "nonprofit": "一家 501(c)(3) 非营利组织",
         "established": "成立于2022年2月2日",
         "privacy": "隐私",
         "terms": "条款"
+    },
+    "wall": {
+        "heading": "年度支持金额为{{ year }}",
+        "goal": "年度目标为{{ amount }}",
+        "readStories": "阅读所有故事",
+        "hideStories": "隐藏故事",
+        "storyCountOne": "一位合作伙伴分享了他们如何使用 API。将鼠标悬停在折叠的角上或点击即可阅读。",
+        "storyCountMany": "{{ count }}合作伙伴分享他们如何使用 API。将鼠标悬停或点击折叠的角即可阅读详情。",
+        "received": "已收到",
+        "story": "证词或笔记",
+        "pledged": "承诺",
+        "open": "打开",
+        "note": "每个方格代表**{{ month }}个月**，或**{{ year }}年**。",
+        "fundTitle": "免费使用基金",
+        "fundLabel": "超出我们年度需求的资源将促进一个更大、更好的开放生态系统的发展。",
+        "fundOverflow": "{{ year }}已全部认捐。超出{{ amount }}认捐额将助力构建一个更大、更完善的开放生态系统。",
+        "fundLink": "基金运作方式",
+        "ariaLabel": "{{ year }}支撑墙： {{ squares }}方格，每月{{ monthly }}个方格， {{ tail }} {{ received }}已收到， {{ pledged }}已承诺。",
+        "ariaTail": "加上一个{{ amount }}结尾部分",
+        "anonymous": "匿名的",
+        "anonymousPartner": "匿名合伙人",
+        "hasStory": "有一个故事",
+        "kinds": {
+            "Individual": "个人",
+            "Nonprofit": "非营利组织",
+            "Business": "商业"
+        },
+        "square": "{{ count }}平方",
+        "squares": "{{ count }}方块",
+        "perMonth": "每月{{ amount }}",
+        "oneTime": "{{ amount }}一次性",
+        "forYear": "今年为{{ amount }}",
+        "percentReceived": "已收到{{ percent }} %"
+    },
+    "newsletter": {
+        "title": "订阅新闻简报",
+        "intro": "来自 AO Lab（Free Use Bible API 背后的非营利组织）的最新消息。",
+        "firstName": "名",
+        "optional": "（选修的）",
+        "email": "电子邮件",
+        "subscribe": "订阅",
+        "subscribing": "订阅中……",
+        "fine": "此项为可选，仅用于接收新闻简报。您可以随时取消订阅任何邮件。",
+        "howWeUse": "我们如何使用它",
+        "close": "关闭",
+        "thanksTitle": "感谢订阅！",
+        "thanksBody": "您即将完成订阅。请查看您的电子邮件并点击链接确认订阅。",
+        "invalid": "请输入有效的电子邮件地址。",
+        "already": "此邮箱地址已被订阅。",
+        "unsubscribed": "此地址已取消订阅。请发送邮件至 hello@helloao.org 重新订阅。",
+        "error": "出错了，请稍后再试。"
+    },
+    "support": {
+        "title": "与我们站在一起。",
+        "intro": "用礼物、分享你的故事或两者兼具的方式支持那些维护和构建这个开放生态系统的人们。经你同意，你的捐赠或故事都可以出现在{{ year }}支持墙”上。",
+        "chooseTitle": "你想如何帮忙？",
+        "choices": {
+            "testimony": {
+                "name": "分享见证",
+                "detail": "请告诉我们这项工作能带来哪些可能性。"
+            },
+            "gift": {
+                "name": "送一份礼物",
+                "detail": "支持建设者们。"
+            },
+            "both": {
+                "name": "两个都",
+                "detail": "将你的故事和礼物展示在墙上。"
+            }
+        },
+        "chooseNote": "您可以选择在支持墙上公开显示哪些内容。",
+        "testimonyTitle": "分享你的见证",
+        "testimonyBody": "请通过电子邮件告诉我们您如何使用免费圣经API，并附上屏幕截图或您的徽标（可选）。请告知我们是否显示您的姓名或保持匿名。如果您也进行了捐赠，请在捐赠记录中注明您的姓名，以便我们能将您的故事添加到您的捐赠方格中。",
+        "testimonyButton": "请通过电子邮件发送您的见证",
+        "testimonySubject": "我为支撑墙作证",
+        "testimonyEmail": "姓名或组织：显示我的姓名，或保持匿名：我们如何使用免费使用圣经 API：我们构建的内容链接（可选）：如果我们也捐赠了：捐赠者姓名（可选）：留言板简短信息，最多 80 个字符（可选）：附加屏幕截图，或徽标，格式为 SVG 或透明 PNG，长边至少 600 像素（可选）。",
+        "giftTitle": "送一份礼物",
+        "giftBody": "每月捐赠{{ month }}或每年捐赠{{ year }}即可填满支持墙上的一个方格，但无论金额大小，我们都**非常感谢**！",
+        "formTitle": "AO实验室捐赠表格",
+        "formFallback": "表单无法加载？",
+        "formOpen": "在新标签页中打开它",
+        "waysLead": "超过95%的捐款直接用于运营。",
+        "otherWaysTitle": "其他捐赠方式",
+        "otherWaysBody": "银行卡、银行转账、捐赠者建议基金、股票、IRA/QCD 和加密货币都可以接受。",
+        "otherWaysLink": "通过 NCF 捐款",
+        "booksTitle": "可抵税，且账目公开透明",
+        "booksBody": "AO Lab是一家501(c)(3)非营利组织。捐赠可依法享受税收减免，我们的财务状况也是公开的。",
+        "booksLink": "财务预测",
+        "directorTitle": "我们的执行董事",
+        "directorBody": "克雷格·布拉德利。欢迎随时联系我提问或讨论。",
+        "recognitionTitle": "选择您的礼物展示方式。",
+        "recognitionBody": "我们会在您送达礼物后，手工将您的方格贴到墙上。每月送出的礼物会逐月填满相应的方格。",
+        "exampleLabel": "示例墙：展示一份署名礼物、一份匿名礼物、附有见证的礼物，以及每个最小尺寸的标志空间",
+        "exampleCaption": "一张实际大小的示例墙。将鼠标悬停或点击折叠的角即可阅读示例证词。",
+        "example": {
+            "yourName": "你的名字",
+            "yourOrganization": "贵组织",
+            "yourLogo": "您的徽标在此处",
+            "yourLogoShort": "您的徽标",
+            "here": "这里",
+            "logo": "标识",
+            "message": "以下是一条示例消息，最多 80 个字符。",
+            "namedStory": "以下是一个鼠标悬停提示示例！告诉访客您是如何使用免费圣经API的。",
+            "anonymousStory": "以下是另一个见证示例。匿名捐赠者也可以分享他们的故事。",
+            "logoStory": "这里有一个带有徽标的证言示例。您的徽标和您的故事可以共享这些方格。",
+            "squareStory": "这里有一个鼠标悬停显示效果的例子！一个方格也能讲述一个故事。",
+            "church": "肯尼亚的一座教堂",
+            "churchStory": "以下是一个教会使用其圣经应用程序 API 的见证示例。",
+            "namedGift": "指定礼物",
+            "anonymousGift": "匿名捐赠，已承诺",
+            "pledgedSuffix": "承诺",
+            "recommended": "受到推崇的"
+        },
+        "rows": {
+            "nameTitle": "具名或匿名",
+            "nameBody": "请在上方表格中选择。匿名捐赠者的信息将始终保持匿名，不仅在墙上展示，也会在年度档案中存档。",
+            "storyTitle": "你的故事",
+            "storyBody": "用一两句话介绍一下你如何使用 API。你的方块会有一个折叠角，访客可以通过鼠标悬停或点击阅读你的故事。",
+            "messageTitle": "一条消息",
+            "messageBody": "鼠标悬停时显示一行简短文字，最多 80 个字符。可以是献词，也可以是鼓励的话语。",
+            "logoTitle": "您的徽标",
+            "logoBody": "请在{{ sizes }}处提供您徽标形状的最小尺寸，然后发送长边至少为 600 像素、背景透明的 SVG 或 PNG 文件。徽标在浅色和深色模式下均显示为白色背景。",
+            "logoSizesLink": "以下尺寸"
+        },
+        "sizesOpen": "点击此处查看徽标尺寸",
+        "sizesClose": "隐藏徽标尺寸",
+        "sizesIntro": "在笔记本电脑上，正方形的宽度约为 16 像素，在手机上约为 9 像素。一个清晰的 logo 在笔记本电脑上需要大约 48 像素，因此，每种形状的最小矩形就是 logo 的最小尺寸。",
+        "sizesColumns": {
+            "shape": "标志形状",
+            "smallest": "最小的读取尺寸",
+            "recommended": "受到推崇的"
+        },
+        "shapes": {
+            "square": {
+                "name": "方形标记或徽章",
+                "ratio": "1:1"
+            },
+            "horizontal": {
+                "name": "横向标志",
+                "ratio": "大约2:1"
+            },
+            "wide": {
+                "name": "宽幅文字商标",
+                "ratio": "3:1 至 4:1"
+            },
+            "veryWide": {
+                "name": "非常宽的文字商标",
+                "ratio": "5:1 或更宽"
+            },
+            "tall": {
+                "name": "高耸或堆叠式标志",
+                "ratio": "大约1:2"
+            }
+        },
+        "sizeCell": "{{ w }} × {{ h }} · {{ squares }}",
+        "sizesNote": "矩形的尺寸为宽×高，以正方形为单位。如果没有徽标，至少宽4格、高2格的矩形会在墙上显示您的名字。较小的礼品会在鼠标悬停时显示。",
+        "detailsNote": "如果您想添加故事、寄语或标志，请将礼物上的姓名发送邮件给我们，以便我们进行匹配。每件作品在挂到墙上之前都会经过审核。",
+        "detailsButton": "请将您的详细信息通过电子邮件发送给我们。",
+        "detailsSubject": "我在{{ year }}墙上的礼物",
+        "detailsEmail": "我的捐赠人姓名：金额，按月或按年捐赠：显示我的姓名，或保持匿名：我们如何使用 API（可选）：简短留言，最多 80 个字符（可选）：徽标：以 SVG 或至少 600 像素的透明背景 PNG 格式附加（可选）矩形（宽 x 高），如果发送徽标：",
+        "thanksTitle": "太感谢了！",
+        "thanksBody": "每一次支持都提醒我们，我们并不孤单，也证明这是基督徒为基督徒而发起的全球性努力。",
+        "signOff": "在基督里，",
+        "team": "AO实验室团队"
+    },
+    "fund": {
+        "eyebrow": "介绍",
+        "title": "免费使用基金",
+        "sub": "我们正在启动一个以项目为基础的基金，以促进全球基督教的开放生态系统。",
+        "propose": "提出一个项目",
+        "whatTitle": "我们资助的项目",
+        "whatBody1": "我们的愿景是建立一个不断发展的基督徒生态系统，让他们能够利用彼此的工作成果，创建高质量的公共领域资源和开源工具。",
+        "whatBody2": "我们资助翻译、工具、数据集、资源以及全球教会可以借鉴或拓展的任何其他资源，优先考虑具有最广泛潜在影响的项目。我们偏爱 CC0 内容和采用 MIT 或 AGPL 等许可协议的开源软件。每一次发布都为后续的开发者提供了更多资源。",
+        "statusTitle": "当前状态",
+        "statusBody": "AO Lab的年度筹款目标为{{ goal }}但尚未达到，因此免费使用基金目前没有资金。您可以查看当前的筹款状态{{ here }} 。",
+        "statusHere": "这里",
+        "statusInvite": "{{ proposals }} ，欢迎您的{{ feedback }} 。",
+        "statusProposals": "我们随时欢迎提案。",
+        "statusFeedback": "反馈",
+        "feedbackSubject": "免费使用基金反馈",
+        "callEyebrow": "公开征集提案",
+        "callTitle": "你会建造什么？",
+        "callIntro": "我们欢迎新项目和正在进行的项目。我们建议申请材料简洁明了，尽量减少细节。我们会联系您了解更多信息。",
+        "steps": {
+            "build": {
+                "title": "你打算建造什么。",
+                "body": "请描述项目内容、参与人员以及您可能需要的支持。"
+            },
+            "licences": {
+                "title": "拟议的许可证。",
+                "body": "请说明您将使用的内容、软件和任何现有材料的许可信息。"
+            },
+            "why": {
+                "title": "为什么这很重要。",
+                "body": "解释它对我们正在为全球基督教构建的开放生态系统的价值。"
+            }
+        },
+        "submit": "提交项目提案",
+        "reportingEyebrow": "问责制",
+        "reportingTitle": "季度更新。公开共享的工作成果。",
+        "reportingBody": "我们将在此发布季度支出和项目进展情况，包括在建项目。已完成的项目将在完成后发布并公布。",
+        "faqTitle": "几个实际问题。",
+        "faq": {
+            "who": {
+                "q": "谁可以提交项目？",
+                "a": "任何公众人士，包括个人和组织，都可以参与。请描述您想要构建的内容、拟议的许可协议，以及它对服务于全球基督教的开放生态系统的重要性。"
+            },
+            "early": {
+                "q": "为什么要在资金到位之前提交申请？",
+                "a": "您的建议有助于我们了解需求，并展示哪些支持能够带来实际成果。它们可以帮助我们为AO实验室和更广泛的社区筹集资金，并为我们提供资金到位时可考虑的项目。"
+            },
+            "decides": {
+                "q": "谁来决定哪些项目获得资助？",
+                "a": "AO Lab负责管理这笔资金，并根据项目对教会整体的预期影响和益处来遴选项目。项目规模可大可小，但优先考虑那些能够被最广泛的群体利用和发展的项目。"
+            },
+            "money": {
+                "q": "资金是如何进入基金的？",
+                "a": "每年九月，我们开始为AO实验室筹集下一年度的年度经费。一旦达到目标，所有额外的捐款都将进入免费使用基金，直到下一个九月，然后再次开始新一轮的筹款。"
+            },
+            "licences": {
+                "q": "你们支持哪些许可证？",
+                "a": "我们倾向于尽可能宽松的许可条款，CC0 是翻译、数据集和资源等内容的理想选择。软件可以使用 MIT、AGPL 或其他开源许可。我们会逐案审查软件许可，重点考虑其对重用性和更广泛生态系统的支持程度。请在提案中说明您拟采用的许可协议。"
+            },
+            "translation": {
+                "q": "该基金能否支持圣经翻译工作？",
+                "a": "是的。我们可以将CC0圣经翻译与其他资源和开源工具一起考虑。我们评估项目的标准是其对天国的潜在影响和共同利益，而不是自动优先考虑某种类型的工作。"
+            },
+            "progress": {
+                "q": "我可以在哪里查看支出和项目进度？",
+                "a": "本页面将按季度更新资金使用情况及支持的项目，包括未完成的项目。已完成的项目将在完成后发布和公布。"
+            },
+            "public": {
+                "q": "每个项目的细节都会公开吗？",
+                "a": "唯一例外情况是出于安全考虑：我们可能会隐瞒可能危及在受迫害地区工作的人员的信息。季度报告将继续进行，必要时会隐去敏感细节。欢迎资助方与{{ contact }}讨论哪些信息可以安全分享。"
+            }
+        },
+        "contactUs": "联系我们",
+        "questionSubject": "免费使用基金问题"
     },
     "notFound": {
         "title": "页面未找到",

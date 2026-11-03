@@ -1,5 +1,5 @@
 ---
-description: 'Начните использовать бесплатный API Библии за считанные минуты. Установите JavaScript SDK или напрямую вызывайте JSON-конечные точки — ключ API или регистрация не требуются.'
+description: 'Начните использовать бесплатный API Библии за считанные минуты. Установите SDK для JavaScript, Kotlin или Swift, или вызывайте JSON-конечные точки напрямую — ключ API или регистрация не требуются.'
 ---
 
 # Начиная
@@ -11,6 +11,8 @@ description: 'Начните использовать бесплатный API �
 У нас есть API-клиенты для следующих языков:
 
 -   [JavaScript/TypeScript](../sdks/javascript.md)
+-   [Kotlin](../sdks/kotlin.md) (JVM и Android)
+-   [Swift](../sdks/swift.md) (iOS, macOS и Linux)
 
 ## API
 
