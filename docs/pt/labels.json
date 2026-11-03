@@ -3,17 +3,19 @@
         "guide": "Guia",
         "reference": "Referência",
         "sdks": "SDKs",
-        "donate": "Doar",
+        "support": "Apoiar",
         "translationsBooksChapters": "Traduções, livros e capítulos",
         "commentaries": "Comentários",
         "datasets": "Conjuntos de dados",
-        "languages": "Idiomas",
-        "selectLanguage": "Selecionar idioma"
+        "languages": "Línguas",
+        "selectLanguage": "Selecione o idioma"
     },
     "home": {
+        "milestone": "Comemorando mais de 100.000.000 de requisições à API este ano!",
         "tagline": "Uma API JSON fácil de usar e completa para as Escrituras.",
         "quickStart": "Início rápido",
-        "donate": "Doar",
+        "more": "Juntos podemos construir um ecossistema aberto para o cristianismo global.",
+        "learnMore": "Saber mais",
         "openVerse": "Abra {{ reference }} na Bíblia Semente",
         "translationCount": "{{ count }} traduções",
         "languageCount": "em {{ count }} idiomas",
@@ -21,8 +23,10 @@
         "noApiKeyDetail": "Não é necessário se inscrever.",
         "noUsageLimits": "Sem limites de uso",
         "noUsageLimitsDetail": "Livre para sempre",
-        "welcome": "Bem-vindo à liberdade.",
-        "welcomeDetail": "Comece hoje mesmo, sem **limites** e **sem burocracia** .",
+        "causeTitle": "Apoiado por parceiros que acreditam que as Escrituras devem ser verdadeiramente gratuitas.",
+        "support": "Apoiar",
+        "frontierTitle": "Bem-vindo à fronteira.",
+        "frontierDetail": "Comece imediatamente, sem **burocracia** .",
         "compareLink": "Compare-nos com outras APIs bíblicas.",
         "translationsTitle": "Traduções da Bíblia",
         "translationsBody": "{{ count }} traduções em JSON estático, com títulos, poesia, quebras de linha e notas de rodapé mantidos intactos.",
@@ -42,7 +46,7 @@
         "compareColumns": {
             "account": "Sem conta",
             "usage": "Sem limite de uso",
-            "permission": "Sem perguntas",
+            "permission": "Sem perguntas.",
             "storage": "Armazene e guarde em cache*",
             "openSource": "Código aberto"
         },
@@ -80,16 +84,131 @@
         "markConditional": "Condicional",
         "markNotGranted": "Não concedido",
         "storageNote": "*Copie e armazene em seu próprio hardware, servidores ou em um dispositivo para que funcione offline.",
-        "contributeTitle": "Ajude-nos a expandir as fronteiras.",
-        "contributeBody": "Vamos criar um ecossistema aberto de conteúdo de domínio público e ferramentas de código aberto.",
-        "contributeDiscord": "Contribua no Discord",
+        "freelyTitle": "Construímos isto porque Jesus disse:",
+        "chargeTitle": "Da mesma forma, Paulo instruiu as igrejas a transmitirem suas cartas.",
+        "sinceTitle": "Temos as Escrituras porque muitas gerações obedeceram a esses mandamentos.",
+        "sinceBody": "Não sobreviveram manuscritos originais. As Escrituras chegaram até nós por meio de **cópias** , **traduções** , **revisões** , **adaptações** e **distribuição** .",
+        "relayLabel": "Uma linhagem ininterrupta de gerações, desde as cartas de Paulo para vocês.",
+        "relayStart": "Cartas de Paulo",
+        "relayEnd": "Você",
+        "forbidTitle": "A palavra de Deus é absoluta.",
+        "forbidLead": "No entanto, muitos termos de direitos autorais proíbem:",
+        "forbidden": {
+            "copying": {
+                "name": "Copiando",
+                "example": "Uma Bíblia inteira para distribuir aos necessitados.",
+                "licence": "Todos os direitos reservados"
+            },
+            "translating": {
+                "name": "Traduzindo",
+                "example": "Traduzir as Escrituras para outro idioma e compartilhá-las.",
+                "licence": "Sem Derivados (ND)"
+            },
+            "revising": {
+                "name": "Revisando",
+                "example": "Tradução e publicação da revisão.",
+                "licence": "Sem Derivados (ND)"
+            },
+            "adapting": {
+                "name": "Adaptação",
+                "example": "As Escrituras em uma edição de fácil leitura ou Bíblia em áudio.",
+                "licence": "Sem Derivados (ND)"
+            },
+            "distributing": {
+                "name": "Distribuindo",
+                "example": "Arquivos bíblicos online ou offline.",
+                "licence": "Todos os direitos reservados"
+            }
+        },
+        "forbidEnd": "Nessas condições, Timóteo não poderia ter obedecido a Paulo.",
+        "englishTitle": "Sem adaptar e compartilhar as Escrituras, não teríamos uma Bíblia em inglês.",
+        "englishBody": "No entanto, muitos tradutores modernos adaptam obras que não conseguem atribuir, exigem a atribuição e proíbem a adaptação.",
+        "hinderTitle": "Mas essa não é a atitude de Paulo.",
+        "licencesTitle": "Mesmo em nossa API, poucas traduções são ideais.",
+        "licenceUses": {
+            "copy": "Cópia",
+            "translate": "Traduzir",
+            "revise": "Rever",
+            "adapt": "Adaptar",
+            "distribute": "Distribuir"
+        },
+        "licenceGroups": {
+            "ideal": "Ideal",
+            "viable": "Viável",
+            "restricted": "Restrito"
+        },
+        "licenceRows": {
+            "publicDomain": {
+                "name": "Domínio público",
+                "why": "Sem condições."
+            },
+            "attribution": {
+                "name": "CC BY 4.0 ou somente atribuição",
+                "why": "É necessário ter crédito."
+            },
+            "shareAlike": {
+                "name": "CC BY-SA 4.0 ou compartilhar pela mesma licença",
+                "why": "Alterações válidas apenas sob a mesma licença."
+            },
+            "noDerivatives": {
+                "name": "CC BY-ND 4.0",
+                "why": "Somente cópias inalteradas."
+            },
+            "nonCommercialNoDerivatives": {
+                "name": "CC BY-NC-ND 4.0",
+                "why": "Cópias inalteradas e sem fins comerciais."
+            },
+            "other": {
+                "name": "Outro",
+                "why": "Termos não comerciais ou personalizados; cada um proíbe pelo menos um."
+            }
+        },
+        "markAllowed": "Permitido",
+        "markSomeCases": "Apenas em alguns casos",
+        "markForbidden": "Proibido",
+        "markFor": "{{ use }} : {{ mark }}",
+        "flywheelTitle": "A resposta é: mais recursos de domínio público.",
+        "flywheelLabel": "O volante",
+        "flywheel": {
+            "start": "Comece com trabalho gratuito",
+            "build": "Construa algo novo",
+            "release": "Libere-o para o domínio público.",
+            "next": "O próximo construtor começa mais à frente."
+        },
         "buildTitle": "Vamos começar a construir.",
         "newsletterPrompt": "Quer ficar por dentro de tudo?",
         "newsletterLink": "Inscreva-se na newsletter",
         "newsletterBody": "Receba atualizações das pessoas que estão desenvolvendo o projeto diretamente na sua caixa de entrada.",
-        "examplesPrompt": "Quer algo para copiar?",
-        "examplesLink": "Veja os exemplos",
-        "examplesBody": "Solicitações comuns e padrões de trabalho que você pode adaptar."
+        "discordPrompt": "Quer construir conosco?",
+        "contributeDiscord": "Contribua no Discord",
+        "discordBody": "Crie e revise recursos CC0 conosco.",
+        "faqTitle": "Perguntas frequentes",
+        "faq": {
+            "problem": {
+                "q": "Isso realmente é um problema hoje em dia?",
+                "a": "Sim! É um problema enorme, mas a maioria dos cristãos desconhece completamente isso porque possui uma Bíblia ou tem acesso a uma versão online. Como é tão fácil ler a Bíblia online, presume-se que ela também seja fácil de usar e compartilhar, certo? Mas qualquer pessoa que já tentou acessar as Escrituras para **criar** algo (um aplicativo, um site, uma nova tradução da Bíblia, uma Bíblia em áudio, etc.) sabe que não é bem assim. E para um mundo que precisa desesperadamente do Evangelho, isso é completamente imperdoável."
+            },
+            "attribution": {
+                "q": "Qual o problema em exigir que outros atribuam a autoria de uma tradução da Bíblia?",
+                "a": "Solicitar atribuição é aceitável. **Exigir atribuição** adiciona uma condição humana à transmissão da palavra de Deus. Qualquer pessoa ainda pode copiar, traduzir, revisar, adaptar e distribuir o texto, então o consideramos viável, mas não chega a ser uma transmissão gratuita."
+            },
+            "shareAlike": {
+                "q": "A opção \"compartilhar igual\" não é uma boa maneira de proteger as Escrituras?",
+                "a": "O compartilhamento pela mesma licença foi criado como uma resposta aos direitos autorais, a fim de impedir que alguém pegasse um texto aberto, o modificasse e o mantivesse em domínio público. Ele mantém todos os cinco usos (copiar, traduzir, revisar, adaptar e distribuir) abertos, por isso o consideramos viável. Mas ainda impede o trabalho fiel: um tradutor que se baseia em um texto compartilhado pela mesma licença não pode liberar sua tradução para o domínio público. Contudo, defendemos que o direito autoral não é a melhor resposta ao direito autoral. Em vez disso, o objetivo maior deveria ser **a existência de tanto** material de qualidade em domínio público que qualquer pessoa possa adaptar o que precisar para o Reino."
+            },
+            "conditions": {
+                "q": "E se eu ainda quiser impor condições à minha tradução?",
+                "a": "Então, pelo menos facilite as exceções. Publique como entrar em contato com você, responda rapidamente e conceda exceções para usos fiéis. Planeje quem responderá quando você não puder mais, ou libere sua obra para o domínio público após sua morte. Se não puder manter isso, libere-a agora. Cada pedido não respondido fecha uma porta para o reino, e mesmo um \"sim\" rápido falha com o crente que não pode pedir com segurança em um contexto de perseguição."
+            },
+            "money": {
+                "q": "Mas como os tradutores e editores da Bíblia ganharão dinheiro?"
+            },
+            "nonCommercial": {
+                "q": "Qual o problema em exigir uso não comercial?",
+                "a": "Termos não comerciais proíbem o trabalho fiel, portanto, os consideramos restritos. Existem muitas maneiras de distribuir uma Bíblia comercialmente de forma pura e fiel (por exemplo, imprimindo Bíblias e vendendo-as pelo preço necessário para obter um pequeno lucro e reinvestir na operação, ampliando a distribuição). A questão, caro cristão, é que simplesmente **não lhe cabe** dizer aos outros como eles podem ou não usar a palavra de Deus."
+            }
+        },
+        "scrollCue": "Deslize para a próxima seção."
     },
     "footer": {
         "madeWith": "Feito com {{ love }} por {{ aoLab }}",
@@ -115,12 +234,251 @@
         "commentaries": "Comentários bíblicos",
         "datasets": "conjuntos de dados bíblicos",
         "seedBibleSoon": "Bíblia da Semente (Em breve)",
-        "aboutUs": "Sobre nós",
-        "donate": "Faça uma doação para o Laboratório AO.",
+        "newsletterShort": "Boletim informativo",
+        "freeUseFund": "Fundo de Uso Livre",
+        "support": "Apoie o Laboratório AO",
         "nonprofit": "Uma organização sem fins lucrativos 501(c)(3)",
         "established": "Estabelecido em 02/02/2022",
         "privacy": "Privacidade",
         "terms": "Termos"
+    },
+    "wall": {
+        "heading": "Apoio anual para {{ year }}",
+        "goal": "meta anual {{ amount }}",
+        "readStories": "Leia todas as histórias",
+        "hideStories": "Ocultar histórias",
+        "storyCountOne": "Um parceiro compartilhou como utiliza a API. Passe o cursor ou toque no canto dobrado para ler.",
+        "storyCountMany": "{{ count }} parceiro compartilhou como usa a API. Passe o cursor ou toque em um canto dobrado para ler um deles.",
+        "received": "Recebido",
+        "story": "Depoimento ou nota incluída",
+        "pledged": "Prometido",
+        "open": "Abrir",
+        "note": "Cada quadrado representa **{{ month }} por mês** ou **{{ year }} por ano** .",
+        "fundTitle": "Fundo de Uso Livre",
+        "fundLabel": "Recursos que excedam nossas necessidades anuais alimentarão um ecossistema aberto maior e melhor.",
+        "fundOverflow": "{{ year }} já foi totalmente comprometido. O valor restante {{ amount }} contribuirá para um ecossistema aberto maior e melhor.",
+        "fundLink": "Como funciona o fundo",
+        "ariaLabel": "{{ year }} parede de apoio: {{ squares }} quadrado a {{ monthly }} por mês {{ tail }} {{ received }} recebidos, {{ pledged }} prometidos.",
+        "ariaTail": ", mais uma peça de fechamento {{ amount }}",
+        "anonymous": "Anônimo",
+        "anonymousPartner": "Parceiro anônimo",
+        "hasStory": "Tem uma história",
+        "kinds": {
+            "Individual": "Individual",
+            "Nonprofit": "Organização sem fins lucrativos",
+            "Business": "Negócios"
+        },
+        "square": "{{ count }} quadrado",
+        "squares": "{{ count }} quadrados",
+        "perMonth": "{{ amount }} por mês",
+        "oneTime": "{{ amount }} única vez",
+        "forYear": "{{ amount }} para o ano",
+        "percentReceived": "{{ percent }} % recebido"
+    },
+    "newsletter": {
+        "title": "Inscreva-se na newsletter",
+        "intro": "Novidades do AO Lab, a organização sem fins lucrativos por trás da API Free Use Bible.",
+        "firstName": "Primeiro nome",
+        "optional": "(opcional)",
+        "email": "Endereço de email",
+        "subscribe": "Inscreva-se",
+        "subscribing": "Inscrevendo-me…",
+        "fine": "Opcional e utilizado apenas para o envio da newsletter. Cancele a inscrição a partir de qualquer e-mail.",
+        "howWeUse": "Como o utilizamos",
+        "close": "Fechar",
+        "thanksTitle": "Obrigado por se inscrever!",
+        "thanksBody": "Você está quase terminando. Confira seu e-mail e clique no link para confirmar sua inscrição.",
+        "invalid": "Insira um endereço de e-mail válido.",
+        "already": "Este endereço de e-mail já está inscrito.",
+        "unsubscribed": "Este endereço foi desinscrito. Escreva para hello@helloao.org para se inscrever novamente.",
+        "error": "Algo deu errado. Por favor, tente novamente em instantes."
+    },
+    "support": {
+        "title": "Fique ao nosso lado.",
+        "intro": "Apoie as pessoas que mantêm e constroem este ecossistema aberto com uma doação, sua história ou ambos. Com sua permissão, qualquer um deles poderá aparecer no mural de {{ year }} .",
+        "chooseTitle": "Como você gostaria de ajudar?",
+        "choices": {
+            "testimony": {
+                "name": "Compartilhe um testemunho",
+                "detail": "Conte-nos o que este trabalho torna possível."
+            },
+            "gift": {
+                "name": "Faça um presente",
+                "detail": "Apoie as pessoas que estão construindo isso."
+            },
+            "both": {
+                "name": "Ambos",
+                "detail": "Conecte sua história e seu talento na parede."
+            }
+        },
+        "chooseNote": "Você escolhe o que aparece publicamente no mural de suporte.",
+        "testimonyTitle": "Compartilhe seu testemunho",
+        "testimonyBody": "Envie-nos um e-mail contando como você usa a API da Bíblia de Uso Gratuito e anexe capturas de tela ou seu logotipo, se desejar. Informe-nos se deseja que seu nome seja exibido ou mantido em anonimato. Se você também fez uma doação, inclua o nome da pessoa que a fez para que possamos adicionar sua história aos seus quadrados.",
+        "testimonyButton": "Envie seu depoimento por e-mail.",
+        "testimonySubject": "Meu depoimento sobre o muro de apoio",
+        "testimonyEmail": "Nome ou organização: Mostrar meu nome ou permanecer anônimo: Como usamos a API da Bíblia de Uso Livre: Link para o que construímos (opcional): Se também fizemos uma doação: o nome em nossa doação (opcional): Mensagem curta para o mural, até 80 caracteres (opcional): Anexe capturas de tela ou um logotipo como SVG ou PNG transparente com pelo menos 600 pixels no lado maior (opcional).",
+        "giftTitle": "Faça um presente",
+        "giftBody": "Doações {{ month }} por mês ou {{ year }} por ano preenchem um quadrado no muro de apoio, mas qualquer quantia, grande ou pequena, é **muito apreciada** !",
+        "formTitle": "Formulário de doação do AO Lab",
+        "formFallback": "O formulário não está carregando?",
+        "formOpen": "Abra em uma nova aba.",
+        "waysLead": "Mais de 95% de todas as doações são destinadas diretamente às operações.",
+        "otherWaysTitle": "Outras formas de doar",
+        "otherWaysBody": "Cartão, transferência bancária, fundo de doação recomendada, ações, IRA/QCD e criptomoedas, tudo funciona neste formulário.",
+        "otherWaysLink": "Faça sua doação através da NCF.",
+        "booksTitle": "Dedutíveis de impostos e com escrituração contábil transparente.",
+        "booksBody": "A AO Lab é uma organização 501(c)(3). As doações são dedutíveis de impostos conforme permitido por lei, e nossas demonstrações financeiras são públicas.",
+        "booksLink": "Previsão financeira",
+        "directorTitle": "Nosso Diretor Executivo",
+        "directorBody": "Craig Bradley. Fique à vontade para entrar em contato para fazer perguntas ou discutir algum assunto.",
+        "recognitionTitle": "Escolha como seu presente será apresentado.",
+        "recognitionBody": "Adicionamos seus quadrados à parede manualmente assim que seu presente chega. Os presentes mensais preenchem seus quadrados mês a mês.",
+        "exampleLabel": "Exemplo de mural: uma doação identificada, uma doação anônima, doações com depoimento e espaços para logotipos em cada tamanho mínimo.",
+        "exampleCaption": "Exemplo de parede em tamanho real. Passe o cursor ou toque em um canto dobrado para ler um exemplo de depoimento.",
+        "example": {
+            "yourName": "Seu nome",
+            "yourOrganization": "Sua organização",
+            "yourLogo": "Seu logotipo aqui",
+            "yourLogoShort": "Seu logotipo",
+            "here": "aqui",
+            "logo": "Logotipo",
+            "message": "Segue um exemplo de mensagem, com até 80 caracteres.",
+            "namedStory": "Aqui está um exemplo de depoimento ao passar o mouse! Conte aos visitantes como você usa a API da Bíblia de Uso Gratuito.",
+            "anonymousStory": "Aqui está outro exemplo de depoimento. Doadores anônimos também podem compartilhar uma história.",
+            "logoStory": "Aqui está um exemplo de depoimento ao lado de um logotipo. Seu logotipo e sua história podem compartilhar os mesmos quadrados.",
+            "squareStory": "Aqui está um exemplo de depoimento ao passar o cursor! Um único quadrado também pode contar uma história.",
+            "church": "Uma igreja no Quênia",
+            "churchStory": "Aqui está um exemplo de testemunho de uma igreja que usa a API em seu aplicativo bíblico.",
+            "namedGift": "presente com nome",
+            "anonymousGift": "Doação anônima, prometida",
+            "pledgedSuffix": "prometeu",
+            "recommended": "recomendado"
+        },
+        "rows": {
+            "nameTitle": "Nomeado ou anônimo",
+            "nameBody": "Escolha no formulário acima. Doações anônimas permanecem anônimas na parede e em seu arquivo anual.",
+            "storyTitle": "Sua história",
+            "storyBody": "Uma ou duas frases sobre como você usa a API. Seus quadrados ganham um canto dobrado e os visitantes leem sua história ao passar o mouse ou tocar na tela.",
+            "messageTitle": "Uma mensagem",
+            "messageBody": "Uma frase curta, com até 80 caracteres, exibida ao passar o cursor. Tanto uma dedicatória quanto uma palavra de incentivo são bem-vindas.",
+            "logoTitle": "Seu logotipo",
+            "logoBody": "Forneça pelo menos as dimensões mínimas do formato do seu logotipo no campo {{ sizes }} e, em seguida, envie um arquivo SVG ou PNG com pelo menos 600 pixels no lado maior e com fundo transparente. Os logotipos são exibidos em fundo branco, tanto no modo claro quanto no modo escuro.",
+            "logoSizesLink": "tamanhos abaixo"
+        },
+        "sizesOpen": "Clique aqui para expandir e ver os tamanhos dos logotipos.",
+        "sizesClose": "Ocultar tamanhos de logotipo",
+        "sizesIntro": "Um quadrado tem cerca de 16 pixels de largura em um laptop e cerca de 9 em um celular. Um logotipo precisa de cerca de 48 pixels em um laptop para ser lido com clareza, portanto, o menor retângulo para cada forma é o tamanho mínimo necessário para um logotipo.",
+        "sizesColumns": {
+            "shape": "Formato do logotipo",
+            "smallest": "O menor que lê",
+            "recommended": "Recomendado"
+        },
+        "shapes": {
+            "square": {
+                "name": "Marca quadrada ou emblema",
+                "ratio": "1:1"
+            },
+            "horizontal": {
+                "name": "Logotipo horizontal",
+                "ratio": "aproximadamente 2:1"
+            },
+            "wide": {
+                "name": "Logotipo amplo",
+                "ratio": "3:1 para 4:1"
+            },
+            "veryWide": {
+                "name": "Logotipo muito amplo",
+                "ratio": "5:1 ou mais amplo"
+            },
+            "tall": {
+                "name": "Logotipo alto ou empilhado",
+                "ratio": "aproximadamente 1:2"
+            }
+        },
+        "sizeCell": "{{ w }} × {{ h }} · {{ squares }}",
+        "sizesNote": "Os retângulos têm largura × altura, em quadrados. Sem um logotipo, um retângulo com pelo menos 4 quadrados de largura e 2 de altura exibe seu nome na parede. Presentes menores mostram o nome ao passar o cursor sobre eles.",
+        "detailsNote": "Para incluir uma história, uma mensagem ou um logotipo, envie-nos um e-mail com o nome que consta no seu presente para que possamos reproduzi-lo. Analisamos cada um deles antes de serem colocados na parede.",
+        "detailsButton": "Envie-nos seus dados por e-mail.",
+        "detailsSubject": "Meu presente na parede do {{ year }}",
+        "detailsEmail": "Nome no meu presente: Valor e periodicidade (mensal ou anual): Exibir meu nome ou permanecer anônimo: Como usaremos a API (opcional): Mensagem curta, até 80 caracteres (opcional): Logotipo: anexado como SVG ou PNG com pelo menos 600 px e fundo transparente (opcional) Retângulo (largura x altura), caso esteja enviando um logotipo:",
+        "thanksTitle": "Muito obrigado!",
+        "thanksBody": "Cada demonstração de apoio nos lembra que não estamos sozinhos e prova que este é um esforço global de cristãos para cristãos.",
+        "signOff": "Em Cristo,",
+        "team": "A equipe do Laboratório AO"
+    },
+    "fund": {
+        "eyebrow": "Apresentando o",
+        "title": "Fundo de Uso Livre",
+        "sub": "Estamos lançando um fundo baseado em projetos para impulsionar um ecossistema aberto para o cristianismo global.",
+        "propose": "Proponha um projeto",
+        "whatTitle": "O que financiamos",
+        "whatBody1": "Nossa visão é um ecossistema crescente de cristãos criando recursos de domínio público de alta qualidade e ferramentas de código aberto a partir do trabalho uns dos outros.",
+        "whatBody2": "Financiamos traduções, ferramentas, conjuntos de dados, recursos e tudo o mais que a Igreja global possa incorporar ou desenvolver, priorizando projetos com o maior potencial de impacto. Damos preferência a conteúdo CC0 e software de código aberto sob licenças como MIT ou AGPL. Cada lançamento oferece ao próximo desenvolvedor mais recursos para trabalhar.",
+        "statusTitle": "Situação atual",
+        "statusBody": "A meta anual de apoio financeiro do AO Lab, de {{ goal }} ainda não foi atingida, portanto o Fundo de Uso Livre está atualmente sem dinheiro. Você pode ver o status atual do apoio financeiro {{ here }} .",
+        "statusHere": "aqui",
+        "statusInvite": "{{ proposals }} e bem-vindo ao seu {{ feedback }} .",
+        "statusProposals": "Aceitamos propostas a qualquer momento.",
+        "statusFeedback": "opinião",
+        "feedbackSubject": "Feedback do Fundo de Uso Livre",
+        "callEyebrow": "Chamada aberta para apresentação de propostas",
+        "callTitle": "O que você construiria?",
+        "callIntro": "Novos projetos e trabalhos já em andamento são bem-vindos. Recomendamos candidaturas breves e diretas, com o mínimo de detalhes possível. Entraremos em contato para obter mais informações.",
+        "steps": {
+            "build": {
+                "title": "O que você pretende construir.",
+                "body": "Descreva o projeto, quem estaria envolvido e de que tipo de apoio você precisaria."
+            },
+            "licences": {
+                "title": "As licenças propostas.",
+                "body": "Indique as licenças relativas ao conteúdo, software e qualquer material existente que você pretende utilizar."
+            },
+            "why": {
+                "title": "Por que isso importa.",
+                "body": "Explique seu valor para o ecossistema aberto que estamos construindo para o cristianismo global."
+            }
+        },
+        "submit": "Submeta uma proposta de projeto.",
+        "reportingEyebrow": "Responsabilidade",
+        "reportingTitle": "Atualizações trimestrais. Trabalho compartilhado publicamente.",
+        "reportingBody": "Publicaremos aqui atualizações trimestrais sobre gastos e projetos, incluindo trabalhos em andamento. Os projetos concluídos serão publicados e anunciados assim que forem finalizados.",
+        "faqTitle": "Algumas questões práticas.",
+        "faq": {
+            "who": {
+                "q": "Quem pode submeter um projeto?",
+                "a": "Qualquer pessoa do público em geral, incluindo indivíduos e organizações. Descreva o que você deseja construir, as licenças propostas e por que isso é importante para o ecossistema aberto que serve ao cristianismo global."
+            },
+            "early": {
+                "q": "Por que submeter o pedido antes que o financiamento esteja disponível?",
+                "a": "Suas propostas nos ajudam a identificar necessidades e mostrar o que o apoio poderia viabilizar. Elas podem nos ajudar a angariar apoio para o AO Lab e para a comunidade em geral, além de nos fornecer projetos a serem considerados quando o financiamento estiver disponível."
+            },
+            "decides": {
+                "q": "Quem decide quais projetos receberão financiamento?",
+                "a": "A AO Lab administra o fundo e seleciona projetos com base no impacto esperado para o Reino e no benefício para a Igreja em geral. Os projetos podem ser grandes ou pequenos, com prioridade para aqueles que a comunidade em geral possa utilizar e desenvolver."
+            },
+            "money": {
+                "q": "Como o dinheiro chega ao fundo?",
+                "a": "Em setembro de cada ano, iniciamos a arrecadação de fundos para o apoio anual do AO Lab para o ano seguinte. Assim que essa meta é atingida, todo o apoio adicional é destinado ao Fundo de Uso Livre até o próximo setembro, quando o ciclo recomeça."
+            },
+            "licences": {
+                "q": "Que tipos de licenças vocês suportam?",
+                "a": "Damos preferência aos termos mais permissivos possíveis, sendo a licença CC0 ideal para conteúdos como traduções, conjuntos de dados e outros recursos. O software pode usar licenças MIT, AGPL ou outras licenças de código aberto. Analisamos o licenciamento de software caso a caso, considerando o quão bem ele suporta a reutilização e o ecossistema em geral. Indique as licenças propostas em sua proposta."
+            },
+            "translation": {
+                "q": "O fundo poderia financiar uma tradução da Bíblia?",
+                "a": "Sim. Uma tradução bíblica sob licença CC0 pode ser considerada juntamente com outros recursos e ferramentas de código aberto. Avaliamos os projetos pelo seu potencial impacto no Reino de Deus e benefício compartilhado, em vez de priorizar automaticamente um tipo de trabalho."
+            },
+            "progress": {
+                "q": "Onde posso acompanhar os gastos e o andamento do projeto?",
+                "a": "Nesta página, atualizações trimestrais mostrarão como o dinheiro foi gasto e quais projetos foram apoiados, incluindo trabalhos inacabados. Os projetos concluídos serão publicados e anunciados assim que forem finalizados."
+            },
+            "public": {
+                "q": "Os detalhes de todos os projetos serão públicos?",
+                "a": "A única exceção à divulgação completa dos detalhes do projeto é a segurança: podemos reter informações que possam colocar em risco pessoas que trabalham em regiões de perseguição. Os relatórios trimestrais continuarão, com detalhes sensíveis omitidos quando necessário. Os financiadores podem entrar em contato {{ contact }} para discutir o que pode ser compartilhado com segurança."
+            }
+        },
+        "contactUs": "Contate-nos",
+        "questionSubject": "Questão do Fundo de Uso Livre"
     },
     "notFound": {
         "title": "Página não encontrada",

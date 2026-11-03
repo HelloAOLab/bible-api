@@ -1,19 +1,21 @@
 {
     "nav": {
         "guide": "Gids",
-        "reference": "Naslaan",
+        "reference": "Verwysing",
         "sdks": "SDK's",
-        "donate": "Skenk",
-        "translationsBooksChapters": "Vertalings, boeke en hoofstukke",
+        "support": "Ondersteuning",
+        "translationsBooksChapters": "Vertalings, Boeke en Hoofstukke",
         "commentaries": "Kommentare",
         "datasets": "Datastelle",
         "languages": "Tale",
         "selectLanguage": "Kies taal"
     },
     "home": {
+        "milestone": "Vier 100,000,000+ API-versoeke vanjaar!",
         "tagline": "'n Maklik-om-te-gebruik en volledig toegeruste JSON API vir die Skrif.",
         "quickStart": "Vinnige Begin",
-        "donate": "Skenk",
+        "more": "Saam kan ons 'n oop ekosisteem vir globale Christendom bou.",
+        "learnMore": "Leer meer",
         "openVerse": "Maak {{ reference }} oop in Saadbybel",
         "translationCount": "{{ count }} vertalings",
         "languageCount": "oor {{ count }} tale",
@@ -21,8 +23,10 @@
         "noApiKeyDetail": "Niks om voor aan te meld nie",
         "noUsageLimits": "Geen gebruikslimiete nie",
         "noUsageLimitsDetail": "Vry vir altyd",
-        "welcome": "Welkom by vryheid.",
-        "welcomeDetail": "Begin vandag **sonder beperkings** en **sonder burokrasie** .",
+        "causeTitle": "Ondersteun deur vennote wat glo dat die Skrif werklik vry moet wees.",
+        "support": "Ondersteuning",
+        "frontierTitle": "Welkom by die grens.",
+        "frontierDetail": "Begin dadelik sonder **enige burokrasie** .",
         "compareLink": "Vergelyk ons ​​met ander Bybel-API's",
         "translationsTitle": "Bybelvertalings",
         "translationsBody": "{{ count }} vertalings as statiese JSON, met opskrifte, poësie, reëlbreuke en voetnotas ongeskonde.",
@@ -80,16 +84,131 @@
         "markConditional": "Voorwaardelik",
         "markNotGranted": "Nie toegestaan ​​nie",
         "storageNote": "*Kopieer en stoor op jou eie hardeware, bedieners of op 'n toestel sodat dit vanlyn werk.",
-        "contributeTitle": "Help ons om die grens te verbreed.",
-        "contributeBody": "Kom ons skep 'n oop ekosisteem van publieke domein inhoud en oopbron gereedskap.",
-        "contributeDiscord": "Dra by op Discord",
+        "freelyTitle": "Ons het dit gebou omdat Jesus gesê het:",
+        "chargeTitle": "Net so het Paulus die gemeentes opdrag gegee om sy briewe deur te stuur.",
+        "sinceTitle": "Ons het die Skrif omdat baie geslagte hierdie bevele gehoorsaam het.",
+        "sinceBody": "Geen oorspronklike manuskripte het behoue ​​gebly nie. Die Skrif het ons bereik deur **kopiëring** , **vertaling** , **hersiening** , **aanpassing** en **verspreiding** .",
+        "relayLabel": "'n Ononderbroke lyn van geslagte, van Paulus se briewe aan julle",
+        "relayStart": "Paulus se briewe",
+        "relayEnd": "Jy",
+        "forbidTitle": "God se woord is absoluut.",
+        "forbidLead": "Tog verbied baie kopieregterme:",
+        "forbidden": {
+            "copying": {
+                "name": "Kopiëring",
+                "example": "'n Hele Bybel om te versprei aan diegene in nood.",
+                "licence": "Alle regte voorbehou"
+            },
+            "translating": {
+                "name": "Vertaling",
+                "example": "Skrif in 'n ander taal oor en deel dit.",
+                "licence": "Geen Afgeleides (ND)"
+            },
+            "revising": {
+                "name": "Hersiening",
+                "example": "'n Vertaling en publikasie van die hersiening.",
+                "licence": "Geen Afgeleides (ND)"
+            },
+            "adapting": {
+                "name": "Aanpassing",
+                "example": "Skrif in 'n maklik-lees-uitgawe of oudio Bybel.",
+                "licence": "Geen Afgeleides (ND)"
+            },
+            "distributing": {
+                "name": "Verspreiding",
+                "example": "Bybellêers aanlyn of vanlyn.",
+                "licence": "Alle regte voorbehou"
+            }
+        },
+        "forbidEnd": "Onder hierdie voorwaardes kon Timoteus nie aan Paulus gehoorsaam het nie.",
+        "englishTitle": "Sonder die aanpassing en deel van die Skrif, sou ons geen Engelse Bybel hê nie.",
+        "englishBody": "Tog pas baie moderne vertalers werk aan wat hulle nie kan toeskryf nie, eis dan erkenning en verbied aanpassing.",
+        "hinderTitle": "Maar dis nie Paulus se houding nie.",
+        "licencesTitle": "Selfs in ons API is min vertalings ideaal.",
+        "licenceUses": {
+            "copy": "Kopieer",
+            "translate": "Vertaal",
+            "revise": "Hersien",
+            "adapt": "Aanpas",
+            "distribute": "Versprei"
+        },
+        "licenceGroups": {
+            "ideal": "Ideaal",
+            "viable": "Lewensvatbaar",
+            "restricted": "Beperk"
+        },
+        "licenceRows": {
+            "publicDomain": {
+                "name": "Publieke domein",
+                "why": "Geen voorwaardes nie."
+            },
+            "attribution": {
+                "name": "CC BY 4.0 of slegs erkenning",
+                "why": "Krediet benodig."
+            },
+            "shareAlike": {
+                "name": "CC BY-SA 4.0 of deel-gelyk",
+                "why": "Veranderinge slegs onder dieselfde lisensie."
+            },
+            "noDerivatives": {
+                "name": "CC BY-ND 4.0",
+                "why": "Slegs onveranderde kopieë."
+            },
+            "nonCommercialNoDerivatives": {
+                "name": "CC BY-NC-ND 4.0",
+                "why": "Onveranderde kopieë, en niks kommersieel nie."
+            },
+            "other": {
+                "name": "Ander",
+                "why": "Nie-kommersiële of persoonlike terme; elkeen verbied ten minste een."
+            }
+        },
+        "markAllowed": "Toegelaat",
+        "markSomeCases": "Slegs in sommige gevalle",
+        "markForbidden": "Verbode",
+        "markFor": "{{ use }} : {{ mark }}",
+        "flywheelTitle": "Die antwoord is meer openbare domeinbronne.",
+        "flywheelLabel": "Die vliegwiel",
+        "flywheel": {
+            "start": "Begin met gratis werk",
+            "build": "Bou iets nuuts",
+            "release": "Stel dit vry in die publieke domein",
+            "next": "Die volgende bouer begin verder vorentoe"
+        },
         "buildTitle": "Kom ons begin bou.",
         "newsletterPrompt": "Wil jy op hoogte bly?",
         "newsletterLink": "Teken in vir die nuusbrief",
         "newsletterBody": "Opdaterings van die mense wat dit bou, in jou inboks.",
-        "examplesPrompt": "Wil jy iets hê om te kopieer?",
-        "examplesLink": "Sien voorbeelde",
-        "examplesBody": "Algemene versoeke en werkpatrone wat jy kan aanpas."
+        "discordPrompt": "Wil jy saam met ons bou?",
+        "contributeDiscord": "Dra by op Discord",
+        "discordBody": "Skep en hersien CC0-hulpbronne saam met ons.",
+        "faqTitle": "Gereelde vrae",
+        "faq": {
+            "problem": {
+                "q": "Is dit werklik vandag 'n probleem?",
+                "a": "Ja! Dis 'n enorme probleem, maar die meeste Christene is heeltemal onbewus daarvan omdat hulle 'n Bybel het of toegang het tot een wat hulle aanlyn kan lees. Omdat dit so maklik is om 'n Bybel aanlyn te lees, is die aanname dat die Bybel maklik moet wees om te gebruik en te deel, reg? Maar enigiemand wat al probeer het om toegang tot die Skrif te kry om iets **te maak** (’n toepassing, ’n webwerf, ’n nuwe Bybelvertaling, ’n oudio-Bybel, ens.) weet dat dit nie die geval is nie. En vir 'n wêreld wat die evangelie dringend nodig het, is dit heeltemal onverskoonbaar."
+            },
+            "attribution": {
+                "q": "Wat is verkeerd daarmee om van ander te vereis om die skepper van 'n Bybelvertaling te erken?",
+                "a": "Dit is goed om erkenning te versoek. **Om dit te vereis,** voeg 'n menslike voorwaarde by tot die oordra van God se woord. Enigeen mag dit steeds kopieer, vertaal, hersien, aanpas en versprei, daarom beskou ons dit as lewensvatbaar, maar dit skiet tekort aan vrygewig gee."
+            },
+            "shareAlike": {
+                "q": "Is gelyke deel nie 'n goeie manier om die Skrif te beskerm nie?",
+                "a": "Deel-gelyk is gebou as 'n reaksie op kopiereg om te verhoed dat enigiemand 'n oop teks neem, dit verander en die resultaat wegsluit. Dit hou al vyf gebruike (kopiëring, vertaling, hersiening, aanpassing en verspreiding) oop, daarom beskou ons dit as lewensvatbaar. Maar dit verbied steeds getroue werk: 'n vertaler wat op 'n deel-gelyk teks voortbou, kan nie hul vertaling in die publieke domein vrystel nie. Maar ons sou voorstaan ​​dat kopiereg nie die beste reaksie op kopiereg is nie. Die hoër doelwit moet eerder **soveel** kwaliteit, publieke domein materiaal wees dat enigiemand kan aanpas wat hulle ook al nodig het vir die koninkryk."
+            },
+            "conditions": {
+                "q": "Wat as ek steeds voorwaardes aan my vertaling wil stel?",
+                "a": "Maak dan ten minste uitsonderings maklik. Publiseer hoe om jou te bereik, antwoord vinnig, en gee uitsonderings vir getroue gebruike. Beplan wie sal antwoord wanneer jy nie meer kan nie, of stel jou werk vry in die publieke domein met jou dood. As jy dit nie kan volhou nie, stel dit nou vry. Elke versoek wat onbeantwoord gelaat word, sluit 'n deur vir die koninkryk, en selfs 'n vinnige ja faal die gelowige wat nie veilig vanuit 'n vervolgde konteks kan vra nie."
+            },
+            "money": {
+                "q": "Maar hoe sal Bybelvertalers en -uitgewers geld maak?"
+            },
+            "nonCommercial": {
+                "q": "Wat is fout daarmee om nie-kommersiële gebruik te vereis?",
+                "a": "Nie-kommersiële terme verbied getroue werk, daarom beskou ons hulle as beperk. Daar is baie maniere waarop 'n Bybel kommersieel op 'n suiwer en getroue wyse versprei kan word (byvoorbeeld, Bybels druk en verkoop teen net die prys wat nodig is om 'n klein wins te maak om in die operasie te herbelê en verspreiding te verhoog). Die punt, liewe Christen, is dat dit eenvoudig **nie jou plek** is om vir ander te sê hoe hulle God se woord kan en nie kan gebruik nie."
+            }
+        },
+        "scrollCue": "Blaai na die volgende afdeling"
     },
     "footer": {
         "madeWith": "Gemaak met {{ love }} by {{ aoLab }}",
@@ -115,12 +234,251 @@
         "commentaries": "Bybelkommentare",
         "datasets": "Bybel datastelle",
         "seedBibleSoon": "Saad Bybel (Kom binnekort)",
-        "aboutUs": "Oor ons",
-        "donate": "Skenk aan AO Lab",
+        "newsletterShort": "Nuusbrief",
+        "freeUseFund": "Vrye Gebruiksfonds",
+        "support": "Ondersteun AO Lab",
         "nonprofit": "'n 501(c)(3) niewinsorganisasie",
         "established": "Gestig 2/2/2022",
         "privacy": "Privaatheid",
         "terms": "Terme"
+    },
+    "wall": {
+        "heading": "Jaarlikse ondersteuning vir {{ year }}",
+        "goal": "{{ amount }} jaarlikse doelwit",
+        "readStories": "Lees alle stories",
+        "hideStories": "Versteek stories",
+        "storyCountOne": "1 vennoot het gedeel hoe hulle die API gebruik. Beweeg of tik die gevoude hoek om dit te lees.",
+        "storyCountMany": "{{ count }} vennote het gedeel hoe hulle die API gebruik. Beweeg of tik op 'n gevoude hoek om een ​​te lees.",
+        "received": "Ontvang",
+        "story": "Getuienis of nota ingesluit",
+        "pledged": "Belowe",
+        "open": "Oop",
+        "note": "Elke vierkant is **{{ month }} per maand** , of **{{ year }} per jaar** .",
+        "fundTitle": "Vrye Gebruiksfonds",
+        "fundLabel": "Hulpbronne bo en behalwe ons jaarlikse behoeftes sal 'n groter, beter oop ekosisteem aanvuur.",
+        "fundOverflow": "{{ year }} is ten volle belowe. Die {{ amount }} wat verder as dit belowe is, sal 'n groter, beter oop ekosisteem aanvuur.",
+        "fundLink": "Hoe die fonds werk",
+        "ariaLabel": "{{ year }} ondersteuningsmuur: {{ squares }} blokkies teen {{ monthly }} per maand {{ tail }} {{ received }} ontvang, {{ pledged }} belowe.",
+        "ariaTail": ", plus 'n {{ amount }} afsluitstuk",
+        "anonymous": "Anoniem",
+        "anonymousPartner": "Anonieme vennoot",
+        "hasStory": "het 'n storie",
+        "kinds": {
+            "Individual": "Individueel",
+            "Nonprofit": "Nie-winsgewende organisasie",
+            "Business": "Besigheid"
+        },
+        "square": "{{ count }} vierkant",
+        "squares": "{{ count }} vierkante",
+        "perMonth": "{{ amount }} per maand",
+        "oneTime": "{{ amount }} eenmalig",
+        "forYear": "{{ amount }} vir die jaar",
+        "percentReceived": "{{ percent }} % ontvang"
+    },
+    "newsletter": {
+        "title": "Teken in vir die nuusbrief",
+        "intro": "Opdaterings van AO Lab, die niewinsorganisasie agter die Free Use Bible API.",
+        "firstName": "Voornaam",
+        "optional": "(opsioneel)",
+        "email": "E-posadres",
+        "subscribe": "Teken in",
+        "subscribing": "Teken tans in…",
+        "fine": "Opsioneel, en slegs vir die nuusbrief gebruik. Kanselleer intekening van enige e-pos.",
+        "howWeUse": "Hoe ons dit gebruik",
+        "close": "Maak toe",
+        "thanksTitle": "Dankie vir jou intekening!",
+        "thanksBody": "Jy is amper klaar. Gaan jou e-pos na en klik die skakel om jou intekening te bevestig.",
+        "invalid": "Voer 'n geldige e-posadres in.",
+        "already": "Hierdie e-posadres is reeds ingeteken.",
+        "unsubscribed": "Hierdie adres is uitgeteken. Skryf aan hello@helloao.org om weer aan te sluit.",
+        "error": "Iets het verkeerd geloop. Probeer asseblief weer oor 'n oomblik."
+    },
+    "support": {
+        "title": "Staan saam met ons.",
+        "intro": "Ondersteun die mense wat hierdie oop ekosisteem onderhou en bou met 'n geskenk, jou storie, of albei. Met jou toestemming kan enigeen op die {{ year }} ondersteuningsmuur verskyn.",
+        "chooseTitle": "Hoe wil jy graag help?",
+        "choices": {
+            "testimony": {
+                "name": "Deel 'n getuienis",
+                "detail": "Vertel ons wat hierdie werk moontlik maak."
+            },
+            "gift": {
+                "name": "Maak 'n geskenk",
+                "detail": "Ondersteun die mense wat dit bou."
+            },
+            "both": {
+                "name": "Beide",
+                "detail": "Verbind jou storie en jou geskenk teen die muur."
+            }
+        },
+        "chooseNote": "Jy kies wat publiek op die ondersteuningsmuur verskyn.",
+        "testimonyTitle": "Deel jou getuienis",
+        "testimonyBody": "Stuur vir ons 'n e-pos oor hoe jy die Free Use Bible API gebruik, en heg skermkiekies of jou logo aan as jy wil. Vertel ons of ons jou naam wil wys of anoniem wil hou. As jy ook gegee het, sluit die naam op jou geskenk in sodat ons jou storie op jou blokkies kan plaas.",
+        "testimonyButton": "E-pos jou getuienis",
+        "testimonySubject": "My getuienis vir die ondersteuningsmuur",
+        "testimonyEmail": "Naam of organisasie: Wys my naam, of bly anoniem: Hoe ons die Free Use Bible API gebruik: Skakel na wat ons gebou het (opsioneel): Indien ons ook gegee het: die naam op ons geskenk (opsioneel): Kort boodskap vir die muur, tot 80 karakters (opsioneel): Heg skermkiekies aan, of 'n logo as 'n SVG of 'n deursigtige PNG van minstens 600 pixels aan die lang kant (opsioneel).",
+        "giftTitle": "Maak 'n geskenk",
+        "giftBody": "{{ month }} per maand of {{ year }} per jaar vul een blokkie op die ondersteuningsmuur, maar enige bedrag, groot of klein, word **baie waardeer** !",
+        "formTitle": "AO Lab-skenkingsvorm",
+        "formFallback": "Vorm laai nie?",
+        "formOpen": "Maak dit oop in sy eie oortjie",
+        "waysLead": "Meer as 95% van alle skenkings gaan direk na bedrywighede.",
+        "otherWaysTitle": "Ander maniere om te gee",
+        "otherWaysBody": "Kaart, bankoorplasing, skenker-geadviseerde fonds, aandele, IRA/QCD en kripto werk almal in die vorm.",
+        "otherWaysLink": "Gee deur NCF",
+        "booksTitle": "Belastingaftrekbaar en oop boeke",
+        "booksBody": "AO Lab is 'n 501(c)(3). Geskenke is belastingaftrekbaar soos deur die wet toegelaat, en ons finansies is publiek.",
+        "booksLink": "Finansiële voorspelling",
+        "directorTitle": "Ons Uitvoerende Direkteur",
+        "directorBody": "Craig Bradley. Kontak ons ​​gerus om vrae te vra of iets te bespreek.",
+        "recognitionTitle": "Kies hoe jou geskenk lyk.",
+        "recognitionBody": "Ons voeg jou vierkante met die hand teen die muur sodra jou geskenk aankom. Maandelikse geskenke vul hul vierkante maand vir maand.",
+        "exampleLabel": "Voorbeeldmuur: 'n geskenk met 'n naam, 'n anonieme geskenk, geskenke met 'n getuienis, en logo-spasies by elke minimum grootte",
+        "exampleCaption": "'n Voorbeeldmuur in werklike grootte. Beweeg of tik op 'n gevoude hoek om 'n voorbeeldgetuienis te lees.",
+        "example": {
+            "yourName": "Jou naam",
+            "yourOrganization": "Jou organisasie",
+            "yourLogo": "Jou logo hier",
+            "yourLogoShort": "Jou logo",
+            "here": "hier",
+            "logo": "Logo",
+            "message": "Hier is 'n voorbeeldboodskap, tot 80 karakters.",
+            "namedStory": "Hier is 'n voorbeeld van 'n sweefgetuienis! Vertel besoekers hoe jy die Free Use Bible API gebruik.",
+            "anonymousStory": "Hier is nog 'n voorbeeld van 'n getuienis. Anonieme gewers kan ook 'n storie deel.",
+            "logoStory": "Hier is 'n voorbeeld van 'n getuienis langs 'n logo. Jou logo en jou storie kan dieselfde blokkies deel.",
+            "squareStory": "Hier is 'n voorbeeld van 'n sweefgetuienis! 'n Enkele vierkant kan ook 'n storie dra.",
+            "church": "'n Kerk in Kenia",
+            "churchStory": "Hier is 'n voorbeeld van 'n getuienis van 'n kerk wat die API in sy Bybel-app gebruik.",
+            "namedGift": "Benoemde geskenk",
+            "anonymousGift": "Anonieme geskenk, belowe",
+            "pledgedSuffix": "belowe",
+            "recommended": "aanbeveel"
+        },
+        "rows": {
+            "nameTitle": "Benoemd of anoniem",
+            "nameBody": "Kies in die vorm hierbo. Anonieme geskenke bly anoniem op die muur en in die jaarlikse argief.",
+            "storyTitle": "Jou storie",
+            "storyBody": "'n Sin of twee oor hoe jy die API gebruik. Jou vierkante kry 'n gevoude hoek, en besoekers lees jou storie deur te beweeg of te tik.",
+            "messageTitle": "'n Boodskap",
+            "messageBody": "Een kort reël, tot 80 karakters, word vertoon wanneer jy oor die knoppie sweef. ’n Toewyding of ’n woord van bemoediging werk albei.",
+            "logoTitle": "Jou logo",
+            "logoBody": "Gee ten minste die minimum vir jou logo se vorm in die {{ sizes }} , stuur dan 'n SVG, of 'n PNG ten minste 600 pixels aan die lang kant met 'n deursigtige agtergrond. Logo's staan ​​op wit in beide ligte en donker modus.",
+            "logoSizesLink": "groottes hieronder"
+        },
+        "sizesOpen": "Klik hier om uit te brei vir logo-groottes",
+        "sizesClose": "Versteek logo-groottes",
+        "sizesIntro": "'n Vierkant is omtrent 16 pixels breed op 'n skootrekenaar en omtrent 9 op 'n foon. 'n Logo benodig omtrent 48 pixels op 'n skootrekenaar om duidelik te lees, dus is die kleinste reghoek vir elke vorm die minimum gawe vir 'n logo.",
+        "sizesColumns": {
+            "shape": "Logo-vorm",
+            "smallest": "Kleinste wat lees",
+            "recommended": "Aanbeveel"
+        },
+        "shapes": {
+            "square": {
+                "name": "Vierkantige merk of kenteken",
+                "ratio": "1:1"
+            },
+            "horizontal": {
+                "name": "Horisontale logo",
+                "ratio": "ongeveer 2:1"
+            },
+            "wide": {
+                "name": "Breë woordmerk",
+                "ratio": "3:1 tot 4:1"
+            },
+            "veryWide": {
+                "name": "Baie wye woordmerk",
+                "ratio": "5:1 of wyer"
+            },
+            "tall": {
+                "name": "Lang of gestapelde logo",
+                "ratio": "ongeveer 1:2"
+            }
+        },
+        "sizeCell": "{{ w }} × {{ h }} · {{ squares }}",
+        "sizesNote": "Reghoeke is breedte × hoogte, in vierkante. Sonder 'n logo wys 'n reghoek van minstens 4 vierkante breed en 2 hoog jou naam teen die muur. Kleiner geskenke wys dit wanneer jy oor die muis beweeg.",
+        "detailsNote": "Vir 'n storie, 'n boodskap of 'n logo, stuur vir ons 'n e-pos met die naam op jou geskenk sodat ons dit kan pas. Ons hersien elkeen voordat dit teen die muur ophang.",
+        "detailsButton": "Stuur vir ons jou besonderhede per e-pos",
+        "detailsSubject": "My geskenk op die {{ year }} muur",
+        "detailsEmail": "Naam op my geskenk: Bedrag, en maandeliks of vir die jaar: Wys my naam, of bly anoniem: Hoe ons die API gebruik (opsioneel): Kort boodskap, tot 80 karakters (opsioneel): Logo: aangeheg as SVG, of PNG ten minste 600 px met 'n deursigtige agtergrond (opsioneel) Reghoek (breedte x hoogte), indien 'n logo gestuur word:",
+        "thanksTitle": "Baie dankie!",
+        "thanksBody": "Elke blyk van ondersteuning herinner ons dat ons nie alleen is nie en bewys dat hierdie 'n wêreldwye poging deur Christene vir Christene is.",
+        "signOff": "In Christus,",
+        "team": "Die AO Lab-span"
+    },
+    "fund": {
+        "eyebrow": "Bekendstelling van die",
+        "title": "Vrye Gebruiksfonds",
+        "sub": "Ons loods 'n projekgebaseerde fonds om 'n oop ekosisteem vir wêreldwye Christendom aan die gang te kry.",
+        "propose": "Stel 'n projek voor",
+        "whatTitle": "Wat ons befonds",
+        "whatBody1": "Ons visie is 'n groeiende ekosisteem van Christene wat hoëgehalte-publieke domeinbronne en oopbron-instrumente uit mekaar se werk skep.",
+        "whatBody2": "Ons befonds vertalings, gereedskap, datastelle, bates en enigiets anders wat die wêreldwye Kerk kan inkorporeer of waarop voortbou, en prioritiseer projekte met die grootste potensiële impak. Ons verkies CC0-inhoud en oopbronsagteware onder lisensies soos MIT of AGPL. Elke vrystelling gee die volgende bouer meer om mee te werk.",
+        "statusTitle": "Huidige status",
+        "statusBody": "AO Lab se jaarlikse ondersteuningsdoelwit van {{ goal }} is nog nie bereik nie, dus het die Vrye Gebruiksfonds tans geen geld nie. Jy kan die huidige ondersteuningsstatus {{ here }} sien.",
+        "statusHere": "hier",
+        "statusInvite": "{{ proposals }} en verwelkom jou {{ feedback }} .",
+        "statusProposals": "Ons moedig voorstelle enige tyd aan",
+        "statusFeedback": "terugvoer",
+        "feedbackSubject": "Terugvoer oor gratis gebruiksfondse",
+        "callEyebrow": "Oop oproep vir voorstelle",
+        "callTitle": "Wat sou jy bou?",
+        "callIntro": "Nuwe projekte en werk wat reeds aan die gang is, is albei welkom. Ons beveel kort, direkte aansoeke met minimale besonderhede aan. Ons sal met u in verbinding tree vir meer inligting.",
+        "steps": {
+            "build": {
+                "title": "Wat jy van plan is om te bou.",
+                "body": "Beskryf die projek, wie betrokke sal wees, en watter ondersteuning jy dalk nodig sal hê."
+            },
+            "licences": {
+                "title": "Die voorgestelde lisensies.",
+                "body": "Noem die lisensies vir die inhoud, sagteware en enige bestaande materiaal wat jy sal gebruik."
+            },
+            "why": {
+                "title": "Hoekom dit saak maak.",
+                "body": "Verduidelik die waarde daarvan vir die oop ekosisteem wat ons vir globale Christendom bou."
+            }
+        },
+        "submit": "Dien 'n projekvoorstel in",
+        "reportingEyebrow": "Verantwoordbaarheid",
+        "reportingTitle": "Kwartaallikse opdaterings. Werk wat in die openbaar gedeel word.",
+        "reportingBody": "Ons sal kwartaallikse bestedings- en projekopdaterings hier publiseer, insluitend werk in uitvoering. Voltooide projekte sal gepubliseer en aangekondig word sodra hulle voltooi is.",
+        "faqTitle": "'n Paar praktiese vrae.",
+        "faq": {
+            "who": {
+                "q": "Wie kan 'n projek indien?",
+                "a": "Enigeen in die algemene publiek, insluitend individue en organisasies. Beskryf wat jy wil bou, die voorgestelde lisensies, en hoekom dit saak maak vir die oop ekosisteem wat die wêreldwye Christendom dien."
+            },
+            "early": {
+                "q": "Waarom indien voordat befondsing beskikbaar is?",
+                "a": "Jou voorstelle help ons om behoeftes te identifiseer en te wys wat ondersteuning moontlik kan maak. Dit kan ons help om ondersteuning vir AO Lab en die breër gemeenskap te werf, en ons projekte gee om te oorweeg wanneer befondsing beskikbaar word."
+            },
+            "decides": {
+                "q": "Wie besluit watter projekte befondsing ontvang?",
+                "a": "AO Lab bestuur die fonds en kies projekte volgens hul verwagte impak op die koninkryk en voordeel vir die breër Kerk. Projekte kan groot of klein wees, met voorkeur gegee aan werk wat die grootste gemeenskap kan gebruik en waarop kan voortbou."
+            },
+            "money": {
+                "q": "Hoe bereik geld die fonds?",
+                "a": "Elke September begin ons AO Lab se jaarlikse ondersteuning vir die volgende jaar insamel. Sodra daardie doelwit bereik is, gaan alle bykomende ondersteuning na die Vrye Gebruiksfonds tot die volgende September, wanneer die siklus weer begin."
+            },
+            "licences": {
+                "q": "Watter lisensies ondersteun julle?",
+                "a": "Ons verkies die mees permissiewe terme moontlik, met CC0 as die ideaal vir inhoud soos vertalings, datastelle en bates. Sagteware mag MIT-, AGPL- of ander oopbronlisensies gebruik. Ons hersien sagtewarelisensiëring van geval tot geval, met inagneming van hoe goed dit hergebruik en die breër ekosisteem ondersteun. Meld u voorgestelde lisensies in u voorstel."
+            },
+            "translation": {
+                "q": "Kan die fonds 'n Bybelvertaling ondersteun?",
+                "a": "Ja. 'n CC0 Bybelvertaling kan saam met ander bronne en oopbron-instrumente oorweeg word. Ons evalueer projekte volgens hul potensiële koninkryksimpak en gedeelde voordeel, eerder as om een ​​tipe werk outomatiese prioriteit te gee."
+            },
+            "progress": {
+                "q": "Waar kan ek besteding en projekvordering volg?",
+                "a": "Op hierdie bladsy. Kwartaallikse opdaterings sal wys hoe geld bestee is en watter projekte dit ondersteun het, insluitend onvoltooide werk. Voltooide projekte sal gepubliseer en aangekondig word sodra hulle voltooi is."
+            },
+            "public": {
+                "q": "Sal elke projek se besonderhede publiek wees?",
+                "a": "Die enigste uitsondering op volledige projekbesonderhede is veiligheid: ons mag inligting weerhou wat mense wat in vervolgde streke werk, in gevaar kan stel. Kwartaallikse verslagdoening sal voortduur, met sensitiewe besonderhede wat weerhou word waar nodig. Befondsers is {{ contact }} om te bespreek wat veilig gedeel kan word."
+            }
+        },
+        "contactUs": "kontak ons",
+        "questionSubject": "Vraag oor die fonds vir gratis gebruik"
     },
     "notFound": {
         "title": "Bladsy nie gevind nie",

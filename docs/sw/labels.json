@@ -1,19 +1,21 @@
 {
     "nav": {
         "guide": "Mwongozo",
-        "reference": "Marejeo",
+        "reference": "Marejeleo",
         "sdks": "SDK",
-        "donate": "Changia",
-        "translationsBooksChapters": "Tafsiri, Vitabu na Sura",
+        "support": "Usaidizi",
+        "translationsBooksChapters": "Tafsiri, Vitabu, na Sura",
         "commentaries": "Maoni",
         "datasets": "Seti za data",
         "languages": "Lugha",
         "selectLanguage": "Chagua lugha"
     },
     "home": {
+        "milestone": "Tunasherehekea maombi zaidi ya 100,000,000 ya API mwaka huu!",
         "tagline": "API ya JSON rahisi kutumia na iliyoangaziwa kikamilifu kwa Maandiko Matakatifu.",
         "quickStart": "Anza Haraka",
-        "donate": "Toa mchango",
+        "more": "Kwa pamoja tunaweza kujenga mfumo ikolojia ulio wazi kwa ajili ya Ukristo wa kimataifa.",
+        "learnMore": "Pata maelezo zaidi",
         "openVerse": "Fungua {{ reference }} katika Biblia ya Mbegu",
         "translationCount": "Tafsiri {{ count }}",
         "languageCount": "katika lugha {{ count }}",
@@ -21,8 +23,10 @@
         "noApiKeyDetail": "Hakuna cha kujisajili",
         "noUsageLimits": "Hakuna mipaka ya matumizi",
         "noUsageLimitsDetail": "Bure milele",
-        "welcome": "Karibu kwenye uhuru.",
-        "welcomeDetail": "Anza leo bila **vikwazo** na **bila vikwazo** .",
+        "causeTitle": "Inaungwa mkono na washirika wanaoamini Maandiko Matakatifu yanapaswa kuwa bure kweli.",
+        "support": "Usaidizi",
+        "frontierTitle": "Karibu kwenye mpaka.",
+        "frontierDetail": "Anza mara moja bila **vikwazo** .",
         "compareLink": "Linganisha sisi na API zingine za Biblia",
         "translationsTitle": "Tafsiri za Biblia",
         "translationsBody": "Tafsiri {{ count }} kama JSON tuli, huku vichwa vya habari, ushairi, mgawanyiko wa mistari na tanbihi zikiwa zimehifadhiwa bila kubadilika.",
@@ -42,7 +46,7 @@
         "compareColumns": {
             "account": "Hakuna akaunti",
             "usage": "Hakuna kikomo cha matumizi",
-            "permission": "Bila maswali",
+            "permission": "Hakuna maswali yaliyoulizwa",
             "storage": "Hifadhi na hifadhi ya akiba*",
             "openSource": "Chanzo huria"
         },
@@ -80,16 +84,131 @@
         "markConditional": "Masharti",
         "markNotGranted": "Haijatolewa",
         "storageNote": "*Nakili na uhifadhi kwenye vifaa vyako mwenyewe, seva, au kwenye kifaa ili kifanye kazi nje ya mtandao.",
-        "contributeTitle": "Tusaidie kupanua mpaka.",
-        "contributeBody": "Tuunde mfumo ikolojia wazi wa maudhui ya kikoa cha umma na zana za chanzo huria.",
-        "contributeDiscord": "Changia kwenye Discord",
+        "freelyTitle": "Tulijenga hili kwa sababu Yesu alisema:",
+        "chargeTitle": "Vivyo hivyo, Paulo aliagiza makanisa kupitisha barua zake.",
+        "sinceTitle": "Tuna Maandiko Matakatifu kwa sababu vizazi vingi vilitii amri hizi.",
+        "sinceBody": "Hakuna hati za awali zilizosalia. Maandiko yalitufikia kupitia **kunakili** , **kutafsiri** , **kurekebisha** , **kurekebisha** , na **kusambaza** .",
+        "relayLabel": "Mstari usiokatika wa vizazi, kutoka kwa barua za Paulo kwenu",
+        "relayStart": "Barua za Paulo",
+        "relayEnd": "Wewe",
+        "forbidTitle": "Neno la Mungu ni kamili.",
+        "forbidLead": "Hata hivyo, masharti mengi ya hakimiliki yanakataza:",
+        "forbidden": {
+            "copying": {
+                "name": "Kunakili",
+                "example": "Biblia nzima ya kuwagawia wenye uhitaji.",
+                "licence": "Haki zote zimehifadhiwa"
+            },
+            "translating": {
+                "name": "Kutafsiri",
+                "example": "Maandiko katika lugha nyingine na kuyashiriki.",
+                "licence": "Hakuna Vizazi (ND)"
+            },
+            "revising": {
+                "name": "Kurekebisha",
+                "example": "Tafsiri na kuchapisha marekebisho.",
+                "licence": "Hakuna Vizazi (ND)"
+            },
+            "adapting": {
+                "name": "Kurekebisha",
+                "example": "Maandiko Matakatifu kuwa toleo rahisi kusoma au Biblia ya sauti.",
+                "licence": "Hakuna Vizazi (ND)"
+            },
+            "distributing": {
+                "name": "Kusambaza",
+                "example": "Faili za Biblia mtandaoni au nje ya mtandao.",
+                "licence": "Haki zote zimehifadhiwa"
+            }
+        },
+        "forbidEnd": "Chini ya masharti haya, Timotheo hangeweza kumtii Paulo.",
+        "englishTitle": "Bila kurekebisha na kushiriki Maandiko, hatungekuwa na Biblia ya Kiingereza.",
+        "englishBody": "Hata hivyo, watafsiri wengi wa kisasa hurekebisha kazi ambazo hawawezi kuzihusisha, kisha hudai sifa na kukataza urekebishaji.",
+        "hinderTitle": "Lakini hiyo si tabia ya Paulo.",
+        "licencesTitle": "Hata katika API yetu, tafsiri chache ni bora.",
+        "licenceUses": {
+            "copy": "Nakili",
+            "translate": "Tafsiri",
+            "revise": "Rekebisha",
+            "adapt": "Badilisha",
+            "distribute": "Sambaza"
+        },
+        "licenceGroups": {
+            "ideal": "Bora",
+            "viable": "Inaweza Kuwepo",
+            "restricted": "Imezuiliwa"
+        },
+        "licenceRows": {
+            "publicDomain": {
+                "name": "Kikoa cha umma",
+                "why": "Hakuna masharti."
+            },
+            "attribution": {
+                "name": "CC BY 4.0 au maelezo pekee",
+                "why": "Salio linahitajika."
+            },
+            "shareAlike": {
+                "name": "CC BY-SA 4.0 au shiriki sawa",
+                "why": "Mabadiliko yanafanywa chini ya leseni moja tu."
+            },
+            "noDerivatives": {
+                "name": "CC BY-ND 4.0",
+                "why": "Nakala ambazo hazijabadilishwa pekee."
+            },
+            "nonCommercialNoDerivatives": {
+                "name": "CC BY-NC-ND 4.0",
+                "why": "Nakala zisizobadilika, na hakuna kitu cha kibiashara."
+            },
+            "other": {
+                "name": "Nyingine",
+                "why": "Masharti yasiyo ya kibiashara au maalum; kila moja linakataza angalau moja."
+            }
+        },
+        "markAllowed": "Imeruhusiwa",
+        "markSomeCases": "Katika baadhi ya matukio pekee",
+        "markForbidden": "Imepigwa marufuku",
+        "markFor": "{{ use }} : {{ mark }}",
+        "flywheelTitle": "Jibu ni rasilimali zaidi za umma.",
+        "flywheelLabel": "Gurudumu la kuruka",
+        "flywheel": {
+            "start": "Anza kutoka kazi ya bure",
+            "build": "Jenga kitu kipya",
+            "release": "Iachilie hadharani",
+            "next": "Mjenzi anayefuata anaanza mbele zaidi"
+        },
         "buildTitle": "Tuanze kujenga.",
         "newsletterPrompt": "Unataka kubaki kwenye mzunguko?",
         "newsletterLink": "Jisajili kwa jarida",
         "newsletterBody": "Masasisho kutoka kwa watu wanaoijenga, kwenye kikasha chako.",
-        "examplesPrompt": "Unataka kitu cha kunakili?",
-        "examplesLink": "Tazama mifano",
-        "examplesBody": "Maombi ya kawaida na mifumo ya kufanya kazi unayoweza kurekebisha."
+        "discordPrompt": "Unataka kujenga nasi?",
+        "contributeDiscord": "Changia kwenye Discord",
+        "discordBody": "Unda na upitie rasilimali za CC0 pamoja nasi.",
+        "faqTitle": "Maswali Yanayoulizwa Mara kwa Mara",
+        "faq": {
+            "problem": {
+                "q": "Je, hili ni tatizo kweli leo?",
+                "a": "Ndiyo! Ni tatizo kubwa, lakini Wakristo wengi hawajui kabisa kwa sababu wana Biblia au wanapata ile wanayoweza kusoma mtandaoni. Kwa sababu ni rahisi sana kusoma Biblia mtandaoni, dhana ni kwamba Biblia lazima iwe rahisi kutumia na kushiriki, sivyo? Lakini mtu yeyote ambaye amejaribu kupata Maandiko ili **kutengeneza** kitu (programu, tovuti, tafsiri mpya ya Biblia, Biblia ya sauti, n.k.) anajua sivyo ilivyo. Na kwa ulimwengu unaohitaji sana injili, hili halina udhuru kabisa."
+            },
+            "attribution": {
+                "q": "Kuna ubaya gani kuwataka wengine kumtaja muundaji wa tafsiri ya Biblia?",
+                "a": "Kuomba sifa ni sawa. **Kuihitaji** inaongeza hali ya kibinadamu katika kueneza neno la Mungu. Mtu yeyote anaweza bado kuinakili, kutafsiri, kurekebisha, kurekebisha, na kusambaza, kwa hivyo tunaiona kama inayoweza kutumika, lakini haitoi kwa uhuru."
+            },
+            "shareAlike": {
+                "q": "Je, kushiriki sawa si njia nzuri ya kulinda Maandiko?",
+                "a": "Kushiriki sawa kulijengwa kama jibu la hakimiliki ili kuzuia mtu yeyote kuchukua maandishi wazi, kuyabadilisha, na kufunga matokeo. Huweka matumizi yote matano (kunakili, kutafsiri, kurekebisha, kurekebisha, na kusambaza) wazi, kwa hivyo tunaiona kuwa inawezekana. Lakini bado inakataza kazi ya uaminifu: mtafsiri anayejenga juu ya maandishi yanayofanana hawezi kutoa tafsiri yake kwa umma. Lakini tungetetea kwamba hakimiliki sio jibu bora kwa hakimiliki. Badala yake, lengo kuu linapaswa kuwa nyenzo **nyingi** za ubora, za umma kiasi kwamba mtu yeyote anaweza kurekebisha chochote anachohitaji kwa ajili ya ufalme."
+            },
+            "conditions": {
+                "q": "Vipi kama bado ninataka kuweka masharti kwenye tafsiri yangu?",
+                "a": "Kisha angalau fanya vighairi kuwa rahisi. Chapisha jinsi ya kukufikia, jibu haraka, na toa vighairi kwa matumizi ya uaminifu. Panga ni nani atakayejibu wakati huwezi tena, au toa kazi yako hadharani utakapokufa. Ikiwa huwezi kuendelea na hilo, liachilie sasa. Kila ombi lisilojibiwa hufunga mlango wa ufalme, na hata ndiyo ya haraka humshinda mwamini ambaye hawezi kuuliza kwa usalama kutoka katika muktadha unaoteswa."
+            },
+            "money": {
+                "q": "Lakini watafsiri na wachapishaji wa Biblia watapataje pesa?"
+            },
+            "nonCommercial": {
+                "q": "Kuna ubaya gani kuhitaji matumizi yasiyo ya kibiashara?",
+                "a": "Maneno yasiyo ya kibiashara yanakataza kazi ya uaminifu, kwa hivyo tunayahesabu kama yaliyowekewa mipaka. Kuna njia nyingi ambazo Biblia inaweza kusambazwa kibiashara kwa njia safi na ya uaminifu (kwa mfano, kuchapisha Biblia na kuziuza kwa bei inayohitajika ili kupata faida ndogo ili kuwekeza tena katika uendeshaji na kuongeza usambazaji). Jambo la msingi, Mkristo mpendwa, ni kwamba **si mahali pako** kuwaambia wengine jinsi wanavyoweza na jinsi wasivyoweza kutumia neno la Mungu."
+            }
+        },
+        "scrollCue": "Sogeza hadi sehemu inayofuata"
     },
     "footer": {
         "madeWith": "Imetengenezwa kwa {{ love }} kwa {{ aoLab }}",
@@ -115,12 +234,251 @@
         "commentaries": "Maoni ya Biblia",
         "datasets": "Seti za data za Biblia",
         "seedBibleSoon": "Biblia ya Mbegu (Inakuja hivi karibuni)",
-        "aboutUs": "Kuhusu sisi",
-        "donate": "Toa mchango kwa Maabara ya AO",
+        "newsletterShort": "Jarida",
+        "freeUseFund": "Mfuko wa Matumizi Bila Malipo",
+        "support": "Saidia Maabara ya AO",
         "nonprofit": "Shirika lisilo la faida la 501(c)(3)",
         "established": "Ilianzishwa 2/2/2022",
         "privacy": "Faragha",
         "terms": "Masharti"
+    },
+    "wall": {
+        "heading": "Usaidizi wa kila mwaka kwa {{ year }}",
+        "goal": "Lengo la mwaka {{ amount }}",
+        "readStories": "Soma hadithi zote",
+        "hideStories": "Ficha hadithi",
+        "storyCountOne": "Mshirika 1 alishiriki jinsi wanavyotumia API. Elea au gusa kona iliyokunjwa ili kuisoma.",
+        "storyCountMany": "Washirika {{ count }} walishiriki jinsi wanavyotumia API. Elea au gusa kona iliyokunjwa ili kusoma moja.",
+        "received": "Imepokelewa",
+        "story": "Ushuhuda au daftari limejumuishwa",
+        "pledged": "Imeahidiwa",
+        "open": "Fungua",
+        "note": "Kila mraba ni **{{ month }} kwa mwezi** , au **{{ year }} kwa mwaka** .",
+        "fundTitle": "Mfuko wa Matumizi Bila Malipo",
+        "fundLabel": "Rasilimali zaidi ya mahitaji yetu ya kila mwaka zitachochea mfumo ikolojia mkubwa na ulio wazi zaidi.",
+        "fundOverflow": "{{ year }} imeahidiwa kikamilifu. {{ amount }} iliyoahidiwa zaidi ya hiyo itachochea mfumo ikolojia ulio wazi na mkubwa zaidi.",
+        "fundLink": "Jinsi mfuko unavyofanya kazi",
+        "ariaLabel": "Ukuta wa usaidizi {{ year }} : mraba {{ squares }} kwa {{ monthly }} kwa mwezi {{ tail }} {{ received }} zimepokelewa, {{ pledged }} zimeahidiwa.",
+        "ariaTail": ", pamoja na kipande cha kufunga {{ amount }}",
+        "anonymous": "Mtu Asiyejulikana",
+        "anonymousPartner": "Mshirika asiyejulikana",
+        "hasStory": "ina hadithi",
+        "kinds": {
+            "Individual": "Mtu binafsi",
+            "Nonprofit": "Shirika lisilo la faida",
+            "Business": "Biashara"
+        },
+        "square": "Mraba {{ count }}",
+        "squares": "Miraba {{ count }}",
+        "perMonth": "{{ amount }} kwa mwezi",
+        "oneTime": "{{ amount }} mara moja",
+        "forYear": "{{ amount }} kwa mwaka",
+        "percentReceived": "{{ percent }} % imepokelewa"
+    },
+    "newsletter": {
+        "title": "Jisajili kwa jarida",
+        "intro": "Masasisho kutoka kwa AO Lab, shirika lisilo la faida linalounga mkono API ya Matumizi ya Biblia ya Bure.",
+        "firstName": "Jina la kwanza",
+        "optional": "(hiari)",
+        "email": "Anwani ya barua pepe",
+        "subscribe": "Jisajili",
+        "subscribing": "Inajisajili…",
+        "fine": "Hiari, na inatumika kwa jarida pekee. Jiondoe kwenye usajili ili usipokee barua pepe yoyote.",
+        "howWeUse": "Jinsi tunavyotumia",
+        "close": "Funga",
+        "thanksTitle": "Asante kwa kujisajili!",
+        "thanksBody": "Umekaribia kumaliza. Angalia barua pepe yako na ubofye kiungo ili kuthibitisha usajili wako.",
+        "invalid": "Ingiza anwani halali ya barua pepe.",
+        "already": "Anwani hii ya barua pepe tayari imesajiliwa.",
+        "unsubscribed": "Anwani hii imejiondoa. Andika kwa hello@helloao.org ili kujiunga tena.",
+        "error": "Kuna kitu kimeharibika. Tafadhali jaribu tena baada ya muda mfupi."
+    },
+    "support": {
+        "title": "Simama nasi.",
+        "intro": "Wasaidie watu wanaodumisha na kujenga mfumo huu wa ikolojia ulio wazi kwa zawadi, hadithi yako, au vyote viwili. Kwa ruhusa yako, yoyote kati ya hayo yanaweza kuonekana kwenye ukuta wa usaidizi wa {{ year }} .",
+        "chooseTitle": "Ungependa kusaidia vipi?",
+        "choices": {
+            "testimony": {
+                "name": "Shiriki ushuhuda",
+                "detail": "Tuambie kazi hii inawezesha nini."
+            },
+            "gift": {
+                "name": "Toa zawadi",
+                "detail": "Wasaidie watu kuijenga."
+            },
+            "both": {
+                "name": "Zote mbili",
+                "detail": "Unganisha hadithi yako na zawadi yako ukutani."
+            }
+        },
+        "chooseNote": "Unachagua kinachoonekana hadharani kwenye ukuta wa usaidizi.",
+        "testimonyTitle": "Shiriki ushuhuda wako",
+        "testimonyBody": "Tutumie barua pepe jinsi unavyotumia API ya Matumizi ya Bure ya Biblia, na ambatisha picha za skrini au nembo yako ukipenda. Tuambie kama tuonyeshe jina lako au tuliweke bila jina. Ikiwa pia ulitoa, jumuisha jina kwenye zawadi yako ili tuweze kuweka hadithi yako kwenye viwanja vyako.",
+        "testimonyButton": "Tuma ushuhuda wako kwa barua pepe",
+        "testimonySubject": "Ushuhuda wangu kwa ukuta wa usaidizi",
+        "testimonyEmail": "Jina au shirika: Onyesha jina langu, au usijulikane: Jinsi tunavyotumia API ya Matumizi ya Bure ya Biblia: Kiungo cha kile tulichojenga (hiari): Ikiwa pia tumetoa: jina kwenye zawadi yetu (hiari): Ujumbe mfupi wa ukutani, hadi herufi 80 (hiari): Ambatisha picha za skrini, au nembo kama SVG au PNG inayoonekana angalau pikseli 600 upande wake mrefu (hiari).",
+        "giftTitle": "Toa zawadi",
+        "giftBody": "{{ month }} kwa mwezi au {{ year }} kwa mwaka hujaza mraba mmoja kwenye ukuta wa usaidizi, lakini kiasi chochote, kikubwa au kidogo, **kinathaminiwa sana** !",
+        "formTitle": "Fomu ya mchango wa Maabara ya AO",
+        "formFallback": "Fomu haipakii?",
+        "formOpen": "Ifungue kwenye kichupo chake",
+        "waysLead": "Zaidi ya 95% ya utoaji wote huenda moja kwa moja kwenye shughuli.",
+        "otherWaysTitle": "Njia zingine za kutoa",
+        "otherWaysBody": "Kadi, uhamisho wa benki, mfuko unaoshauriwa na wafadhili, hisa, IRA/QCD na crypto zote zinafanya kazi katika fomu hiyo.",
+        "otherWaysLink": "Toa kupitia NCF",
+        "booksTitle": "Vitabu vinavyopunguzwa kodi, na vilivyo wazi",
+        "booksBody": "Maabara ya AO ni 501(c)(3). Zawadi zinaweza kupunguzwa kodi kama inavyoruhusiwa na sheria, na fedha zetu ni za umma.",
+        "booksLink": "Utabiri wa kifedha",
+        "directorTitle": "Mkurugenzi wetu Mtendaji",
+        "directorBody": "Craig Bradley. Jisikie huru kuwasiliana nasi ili kuuliza maswali au kujadili jambo fulani.",
+        "recognitionTitle": "Chagua jinsi zawadi yako inavyoonekana.",
+        "recognitionBody": "Tunaongeza viwanja vyako ukutani kwa mkono mara tu zawadi yako inapofika. Zawadi za kila mwezi hujaza viwanja vyao mwezi baada ya mwezi.",
+        "exampleLabel": "Mfano wa ukuta: zawadi iliyopewa jina, zawadi isiyojulikana, zawadi zenye ushuhuda, na nafasi za nembo kwa kila ukubwa wa chini kabisa",
+        "exampleCaption": "Mfano wa ukuta kwa ukubwa halisi. Elea au gusa kona iliyokunjwa ili kusoma mfano wa ushuhuda.",
+        "example": {
+            "yourName": "Jina lako",
+            "yourOrganization": "Shirika lako",
+            "yourLogo": "Nembo yako hapa",
+            "yourLogoShort": "Nembo yako",
+            "here": "hapa",
+            "logo": "Nembo",
+            "message": "Hapa kuna mfano wa ujumbe, hadi herufi 80.",
+            "namedStory": "Hapa kuna mfano wa ushuhuda wa kuelea! Waambie wageni jinsi unavyotumia API ya Matumizi ya Bure ya Biblia.",
+            "anonymousStory": "Hapa kuna mfano mwingine wa ushuhuda. Watoaji wasiojulikana wanaweza kushiriki hadithi pia.",
+            "logoStory": "Hapa kuna mfano wa ushuhuda kando ya nembo. Nembo yako na hadithi yako vinaweza kushiriki miraba sawa.",
+            "squareStory": "Hapa kuna mfano wa ushuhuda wa kuelea! Mraba mmoja unaweza kubeba hadithi pia.",
+            "church": "Kanisa nchini Kenya",
+            "churchStory": "Hapa kuna mfano wa ushuhuda kutoka kwa kanisa linalotumia API katika programu yake ya Biblia.",
+            "namedGift": "Zawadi iliyopewa jina",
+            "anonymousGift": "Zawadi isiyojulikana, iliyoahidiwa",
+            "pledgedSuffix": "ahadi",
+            "recommended": "iliyopendekezwa"
+        },
+        "rows": {
+            "nameTitle": "Imetajwa au haijulikani",
+            "nameBody": "Chagua katika fomu iliyo hapo juu. Zawadi zisizojulikana hubaki bila majina ukutani na kwenye kumbukumbu yake ya kila mwaka.",
+            "storyTitle": "Hadithi yako",
+            "storyBody": "Sentensi moja au mbili kuhusu jinsi unavyotumia API. Miraba yako huwekwa kona iliyokunjwa, na wageni husoma hadithi yako kwenye kielelezo cha kuelea au kugonga.",
+            "messageTitle": "Ujumbe",
+            "messageBody": "Mstari mmoja mfupi, hadi herufi 80, unaonyeshwa kwenye kielelezo. Kujitolea au neno la kutia moyo vyote vinafanya kazi.",
+            "logoTitle": "Nembo yako",
+            "logoBody": "Toa angalau kiwango cha chini cha umbo la nembo yako katika {{ sizes }} , kisha tuma SVG, au PNG angalau pikseli 600 upande wake mrefu na mandharinyuma inayong'aa. Nembo hukaa kwenye nyeupe katika hali ya mwanga na giza.",
+            "logoSizesLink": "ukubwa ulio chini"
+        },
+        "sizesOpen": "Bonyeza hapa ili kupanua ukubwa wa nembo",
+        "sizesClose": "Ficha ukubwa wa nembo",
+        "sizesIntro": "Mraba una upana wa takriban pikseli 16 kwenye kompyuta ya mkononi na takriban pikseli 9 kwenye simu. Nembo inahitaji takriban pikseli 48 kwenye kompyuta ya mkononi ili isomeke vizuri, kwa hivyo mstatili mdogo zaidi kwa kila umbo ndio zawadi ya chini kabisa kwa nembo.",
+        "sizesColumns": {
+            "shape": "Umbo la nembo",
+            "smallest": "Kidogo zaidi kinachosomeka",
+            "recommended": "Imependekezwa"
+        },
+        "shapes": {
+            "square": {
+                "name": "Alama ya mraba au beji",
+                "ratio": "1:1"
+            },
+            "horizontal": {
+                "name": "Nembo ya mlalo",
+                "ratio": "karibu 2:1"
+            },
+            "wide": {
+                "name": "Alama pana ya neno",
+                "ratio": "3:1 hadi 4:1"
+            },
+            "veryWide": {
+                "name": "Alama pana sana ya maneno",
+                "ratio": "5:1 au pana zaidi"
+            },
+            "tall": {
+                "name": "Nembo ndefu au iliyorundikwa",
+                "ratio": "kuhusu 1:2"
+            }
+        },
+        "sizeCell": "{{ w }} × {{ h }} · {{ squares }}",
+        "sizesNote": "Mstatili ni upana × urefu, katika miraba. Bila nembo, mstatili wenye upana wa angalau miraba 4 na urefu wa 2 unaonyesha jina lako ukutani. Zawadi ndogo huionyesha kwenye kielelezo.",
+        "detailsNote": "Kwa hadithi, ujumbe, au nembo, tutumie barua pepe yenye jina kwenye zawadi yako ili tuweze kuilinganisha. Tunakagua kila moja kabla haijawekwa ukutani.",
+        "detailsButton": "Tutumie maelezo yako kwa barua pepe",
+        "detailsSubject": "Zawadi yangu kwenye ukuta wa {{ year }}",
+        "detailsEmail": "Jina kwenye zawadi yangu: Kiasi, na kila mwezi au kwa mwaka: Onyesha jina langu, au usijulikane: Jinsi tunavyotumia API (hiari): Ujumbe mfupi, hadi herufi 80 (hiari): Nembo: imeambatanishwa kama SVG, au PNG angalau pikseli 600 yenye mandharinyuma inayong'aa (hiari) Mstatili (upana x urefu), ikiwa utatuma nembo:",
+        "thanksTitle": "Asante sana!",
+        "thanksBody": "Kila onyesho la usaidizi linatukumbusha kwamba hatuko peke yetu na linathibitisha kwamba hii ni juhudi ya kimataifa ya Wakristo kwa Wakristo.",
+        "signOff": "Katika Kristo,",
+        "team": "Timu ya Maabara ya AO"
+    },
+    "fund": {
+        "eyebrow": "Tunakuletea",
+        "title": "Mfuko wa Matumizi Bila Malipo",
+        "sub": "Tunazindua mfuko unaotegemea mradi ili kuanzisha mfumo ikolojia ulio wazi kwa Ukristo wa kimataifa.",
+        "propose": "Pendekeza mradi",
+        "whatTitle": "Tunachofadhili",
+        "whatBody1": "Maono yetu ni mfumo ikolojia unaokua wa Wakristo wanaounda rasilimali za umma zenye ubora wa hali ya juu na zana huria kutoka kwa kazi ya kila mmoja.",
+        "whatBody2": "Tunafadhili tafsiri, zana, seti za data, mali, na kitu kingine chochote ambacho Kanisa la kimataifa linaweza kujumuisha au kujenga juu yake, tukipa kipaumbele miradi yenye athari kubwa zaidi. Tunapendelea maudhui ya CC0 na programu huria chini ya leseni kama vile MIT au AGPL. Kila toleo humpa mjenzi anayefuata zaidi ya kufanya kazi naye.",
+        "statusTitle": "Hali ya sasa",
+        "statusBody": "Lengo la usaidizi la kila mwaka la AO Lab la {{ goal }} bado halijafikiwa, kwa hivyo Mfuko wa Matumizi Bila Malipo kwa sasa hauna pesa. Unaweza kutazama hali ya usaidizi wa sasa {{ here }} .",
+        "statusHere": "hapa",
+        "statusInvite": "{{ proposals }} na karibu {{ feedback }} yako.",
+        "statusProposals": "Tunahimiza mapendekezo wakati wowote",
+        "statusFeedback": "maoni",
+        "feedbackSubject": "Maoni ya Mfuko wa Matumizi Bila Malipo",
+        "callEyebrow": "Fungua wito wa mapendekezo",
+        "callTitle": "Ungejenga nini?",
+        "callIntro": "Miradi mipya na kazi ambayo tayari inaendelea zinakaribishwa. Tunapendekeza maombi mafupi, ya moja kwa moja yenye maelezo machache. Tutawasiliana nawe kwa maelezo zaidi.",
+        "steps": {
+            "build": {
+                "title": "Unachokusudia kujenga.",
+                "body": "Eleza mradi, ni nani atakayehusika, na ni usaidizi gani unaoweza kuhitaji."
+            },
+            "licences": {
+                "title": "Leseni zilizopendekezwa.",
+                "body": "Taja leseni za maudhui, programu, na nyenzo zozote zilizopo ambazo ungetumia."
+            },
+            "why": {
+                "title": "Kwa nini ni muhimu.",
+                "body": "Eleza thamani yake kwa mfumo ikolojia ulio wazi tunaoujenga kwa ajili ya Ukristo wa kimataifa."
+            }
+        },
+        "submit": "Tuma pendekezo la mradi",
+        "reportingEyebrow": "Uwajibikaji",
+        "reportingTitle": "Masasisho ya kila robo mwaka. Kazi inayoshirikiwa hadharani.",
+        "reportingBody": "Tutachapisha matumizi ya robo mwaka na masasisho ya miradi hapa, ikiwa ni pamoja na kazi inayoendelea. Miradi iliyokamilika itachapishwa na kutangazwa inapokamilika.",
+        "faqTitle": "Maswali machache ya vitendo.",
+        "faq": {
+            "who": {
+                "q": "Nani anaweza kuwasilisha mradi?",
+                "a": "Mtu yeyote katika umma kwa ujumla, ikiwa ni pamoja na watu binafsi na mashirika. Eleza unachotaka kujenga, leseni zake zilizopendekezwa, na kwa nini ni muhimu kwa mfumo ikolojia ulio wazi unaohudumia Ukristo wa kimataifa."
+            },
+            "early": {
+                "q": "Kwa nini uwasilishe kabla ya ufadhili kupatikana?",
+                "a": "Mapendekezo yako yanatusaidia kutambua mahitaji na kuonyesha ni msaada gani unaoweza kufanikisha. Yanaweza kutusaidia kuongeza usaidizi kwa AO Lab na jamii kwa ujumla, na kutupa miradi ya kuzingatia wakati ufadhili utakapopatikana."
+            },
+            "decides": {
+                "q": "Nani anaamua ni miradi gani inayopata ufadhili?",
+                "a": "AO Lab husimamia mfuko na kuchagua miradi kulingana na athari na manufaa ya ufalme wao kwa Kanisa pana. Miradi inaweza kuwa mikubwa au midogo, huku kipaumbele kikipewa kazi ambayo jamii kubwa zaidi inaweza kutumia na kujenga juu yake."
+            },
+            "money": {
+                "q": "Pesa hufikaje kwenye mfuko?",
+                "a": "Kila Septemba, tunaanza kukusanya usaidizi wa kila mwaka wa AO Lab kwa mwaka unaofuata. Mara tu lengo hilo litakapotimizwa, usaidizi wote wa ziada huenda kwa Mfuko wa Matumizi ya Bure hadi Septemba ijayo, wakati mzunguko unapoanza tena."
+            },
+            "licences": {
+                "q": "Unaunga mkono leseni gani?",
+                "a": "Tunapendelea masharti yanayoruhusu zaidi iwezekanavyo, huku CC0 ikiwa ndiyo bora kwa maudhui kama vile tafsiri, seti za data, na mali. Programu inaweza kutumia MIT, AGPL, au leseni zingine huria. Tunakagua leseni za programu kila baada ya kila kesi, tukizingatia jinsi inavyosaidia utumiaji tena na mfumo mpana wa ikolojia. Taja leseni zako zilizopendekezwa katika pendekezo lako."
+            },
+            "translation": {
+                "q": "Je, mfuko huo unaweza kuunga mkono tafsiri ya Biblia?",
+                "a": "Ndiyo. Tafsiri ya Biblia ya CC0 inaweza kuzingatiwa pamoja na rasilimali zingine na zana huria. Tunatathmini miradi kwa athari zake za ufalme na manufaa ya pamoja, badala ya kuipa aina moja ya kazi kipaumbele kiotomatiki."
+            },
+            "progress": {
+                "q": "Ninaweza kufuatilia wapi matumizi na maendeleo ya mradi?",
+                "a": "Kwenye ukurasa huu. Masasisho ya robo mwaka yataonyesha jinsi pesa zilivyotumika na ni miradi gani iliyofadhiliwa, ikiwa ni pamoja na kazi ambazo hazijakamilika. Miradi iliyokamilika itachapishwa na kutangazwa inapokamilika."
+            },
+            "public": {
+                "q": "Je, maelezo ya kila mradi yatakuwa ya umma?",
+                "a": "Isipokuwa tu kwa maelezo kamili ya mradi ni usalama: tunaweza kuficha taarifa ambazo zinaweza kuhatarisha watu wanaofanya kazi katika maeneo yanayoteswa. Ripoti za robo mwaka zitaendelea, huku maelezo nyeti yakifichwa inapohitajika. Wafadhili wanakaribishwa kwenye {{ contact }} kujadili kile kinachoweza kushirikiwa kwa usalama."
+            }
+        },
+        "contactUs": "Wasiliana nasi",
+        "questionSubject": "Swali la Mfuko wa Matumizi Bila Malipo"
     },
     "notFound": {
         "title": "Ukurasa haupatikani",

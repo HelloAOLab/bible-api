@@ -1,5 +1,5 @@
 ---
-description: 'Anza kutumia API ya Matumizi ya Bure ya Biblia kwa dakika chache. Sakinisha SDK ya JavaScript au piga simu sehemu za mwisho za JSON moja kwa moja — hakuna ufunguo wa API au usajili unaohitajika.'
+description: 'Anza kutumia API ya Matumizi ya Bure ya Biblia kwa dakika chache. Sakinisha SDK ya JavaScript, Kotlin, au Swift, au piga simu vituo vya mwisho vya JSON moja kwa moja — hakuna ufunguo wa API au usajili unaohitajika.'
 ---
 
 # Kuanza
@@ -11,6 +11,8 @@ Hebu tuingie moja kwa moja!
 Tuna wateja wa API kwa lugha zifuatazo:
 
 -   [JavaScript/TypeScript](../sdks/javascript.md)
+-   [Kotlin](../sdks/kotlin.md) (JVM na Android)
+-   [Swift](../sdks/swift.md) (iOS, macOS, na Linux)
 
 ## API
 

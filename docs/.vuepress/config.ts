@@ -136,6 +136,19 @@ const labelsFor = (lang: string): Labels => {
         : englishLabels;
 };
 
+/**
+ * The link to a top-level page in a language, or to the English page when it
+ * has not been translated yet (the Support and Free Use Fund pages are newer
+ * than most translations).
+ */
+const localePage = (prefix: string, page: string) =>
+    existsSync(path.join(docsDir, prefix, `${page}.md`))
+        ? `${prefix}${page}.html`
+        : `/${page}.html`;
+
+/** Layouts that render their own page rather than the markdown body. */
+const customLayouts = ['HomeLayout', 'SupportLayout', 'FreeUseFundLayout'];
+
 const navbar = (prefix: string, labels: Labels): NavbarOptions => [
     {
         text: labels.nav.guide,
@@ -154,8 +167,8 @@ const navbar = (prefix: string, labels: Labels): NavbarOptions => [
         link: 'https://github.com/HelloAOLab/bible-api',
     },
     {
-        text: labels.nav.donate,
-        link: 'https://better.giving/marketplace/1118469',
+        text: labels.nav.support,
+        link: localePage(prefix, 'support'),
     },
 ];
 
@@ -364,9 +377,11 @@ export default defineUserConfig({
 
     plugins: [
         searchPlugin({
-            // A home page's markdown body holds contributor notes for GitHub
-            // that HomeLayout never renders, so keep its headings out of search.
-            isSearchable: (page) => page.frontmatter.layout !== 'HomeLayout',
+            // The markdown body of a page with a custom layout holds
+            // contributor notes for GitHub that the layout never renders, so
+            // keep its headings out of search.
+            isSearchable: (page) =>
+                !customLayouts.includes(page.frontmatter.layout as string),
         }),
         shikiPlugin({
             // options

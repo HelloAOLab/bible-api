@@ -1,5 +1,5 @@
 ---
-description: 'Comece a usar a API gratuita da Bíblia em minutos. Instale o SDK JavaScript ou acesse os endpoints JSON diretamente — sem necessidade de chave de API ou cadastro.'
+description: 'Comece a usar a API gratuita da Bíblia em minutos. Instale um SDK para JavaScript, Kotlin ou Swift, ou acesse os endpoints JSON diretamente — sem necessidade de chave de API ou cadastro.'
 ---
 
 # Começando
@@ -11,6 +11,8 @@ Vamos direto ao assunto!
 Temos clientes de API para os seguintes idiomas:
 
 -   [JavaScript/TypeScript](../sdks/javascript.md)
+-   [Kotlin](../sdks/kotlin.md) (JVM e Android)
+-   [Swift](../sdks/swift.md) (iOS, macOS e Linux)
 
 ## API
 

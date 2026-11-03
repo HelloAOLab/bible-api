@@ -1,5 +1,5 @@
 ---
-description: 'Die Free Use Bible API ist in wenigen Minuten einsatzbereit. Installieren Sie das JavaScript SDK oder rufen Sie die JSON-Endpunkte direkt auf – API-Schlüssel oder Registrierung sind nicht erforderlich.'
+description: 'Legen Sie in wenigen Minuten mit der Free Use Bible API los. Installieren Sie ein SDK für JavaScript, Kotlin oder Swift oder rufen Sie die JSON-Endpunkte direkt auf – API-Schlüssel oder Registrierung sind nicht erforderlich.'
 ---
 
 # Erste Schritte
@@ -11,6 +11,8 @@ Legen wir gleich los!
 Wir bieten API-Clients für die folgenden Sprachen an:
 
 -   [JavaScript/TypeScript](../sdks/javascript.md)
+-   [Kotlin](../sdks/kotlin.md) (JVM und Android)
+-   [Swift](../sdks/swift.md) (iOS, macOS und Linux)
 
 ## API
 

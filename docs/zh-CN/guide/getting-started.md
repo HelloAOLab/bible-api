@@ -1,5 +1,5 @@
 ---
-description: '几分钟内即可开始使用免费圣经API。安装JavaScript SDK或直接调用JSON端点——无需API密钥或注册。'
+description: '几分钟内即可开始使用免费圣经 API。安装 JavaScript、Kotlin 或 Swift 的 SDK，或直接调用 JSON 端点——无需 API 密钥或注册。'
 ---
 
 # 入门
@@ -11,6 +11,8 @@ description: '几分钟内即可开始使用免费圣经API。安装JavaScript S
 我们提供以下语言的 API 客户端：
 
 -   [JavaScript/TypeScript](../sdks/javascript.md)
+-   [Kotlin](../sdks/kotlin.md) （JVM 和 Android）
+-   [Swift](../sdks/swift.md) （iOS、macOS 和 Linux）
 
 ## API
 

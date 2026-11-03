@@ -1,5 +1,5 @@
 ---
-description: 'Begin die Free Use Bible API binne minute gebruik. Installeer die JavaScript SDK of roep die JSON-eindpunte direk op — geen API-sleutel of registrasie nodig nie.'
+description: "Begin binne minute die Free Use Bible API gebruik. Installeer 'n SDK vir JavaScript, Kotlin of Swift, of roep die JSON-eindpunte direk op — geen API-sleutel of registrasie nodig nie."
 ---
 
 # Aan die gang kom
@@ -11,6 +11,8 @@ Kom ons begin dadelik!
 Ons het API-kliënte vir die volgende tale:
 
 -   [JavaScript/TypeScript](../sdks/javascript.md)
+-   [Kotlin](../sdks/kotlin.md) (JVM en Android)
+-   [Swift](../sdks/swift.md) (iOS, macOS en Linux)
 
 ## API
 

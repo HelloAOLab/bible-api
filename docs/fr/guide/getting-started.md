@@ -1,5 +1,5 @@
 ---
-description: "Commencez à utiliser l'API Bible gratuite en quelques minutes. Installez le SDK JavaScript ou appelez directement les points de terminaison JSON ; aucune clé API ni inscription n'est requise."
+description: "Commencez à utiliser l'API Bible gratuite en quelques minutes. Installez un SDK pour JavaScript, Kotlin ou Swift, ou appelez directement les points de terminaison JSON — aucune clé API ni inscription n'est requise."
 ---
 
 # Commencer
@@ -11,6 +11,8 @@ Entrons tout de suite dans le vif du sujet !
 Nous proposons des clients API pour les langages suivants :
 
 -   [JavaScript/TypeScript](../sdks/javascript.md)
+-   [Kotlin](../sdks/kotlin.md) (JVM et Android)
+-   [Swift](../sdks/swift.md) (iOS, macOS et Linux)
 
 ## API
 

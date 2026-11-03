@@ -1,19 +1,21 @@
 {
     "nav": {
         "guide": "Umhlahlandlela",
-        "reference": "Inkomba",
+        "reference": "Ireferensi",
         "sdks": "Ama-SDK",
-        "donate": "Nikela",
-        "translationsBooksChapters": "Ukuhumusha, Izincwadi Nezahluko",
-        "commentaries": "Izincazelo",
+        "support": "Usekelo",
+        "translationsBooksChapters": "Ukuhumusha, Izincwadi, kanye Nezahluko",
+        "commentaries": "Amazwana",
         "datasets": "Amasethi edatha",
         "languages": "Izilimi",
         "selectLanguage": "Khetha ulimi"
     },
     "home": {
+        "milestone": "Sigubha izicelo ze-API ezingaphezu kuka-100,000,000 kulo nyaka!",
         "tagline": "I-JSON API elula ukuyisebenzisa futhi efakiwe ngokugcwele yemiBhalo.",
         "quickStart": "Ukuqala Okusheshayo",
-        "donate": "Nikela",
+        "more": "Sisonke singakha uhlelo oluvulekile lobuKristu bomhlaba wonke.",
+        "learnMore": "Funda kabanzi",
         "openVerse": "Vula u {{ reference }} eBhayibhelini leMbewu",
         "translationCount": "{{ count }} izinguqulo",
         "languageCount": "kuzo zonke izilimi {{ count }}",
@@ -21,8 +23,10 @@
         "noApiKeyDetail": "Akukho okufanele ubhalisele kukho",
         "noUsageLimits": "Akukho mingcele yokusetshenziswa",
         "noUsageLimitsDetail": "Mahhala kuze kube phakade",
-        "welcome": "Siyakwamukela enkululekweni.",
-        "welcomeDetail": "Qala namuhla **ngaphandle kwemingcele** futhi **ngaphandle kwemingcele** .",
+        "causeTitle": "Kusekelwa abalingani abakholelwa ukuthi imiBhalo kufanele ibe mahhala ngempela.",
+        "support": "Usekelo",
+        "frontierTitle": "Siyakwamukela emngceleni.",
+        "frontierDetail": "Qala ngokushesha ngaphandle **kwemingcele** .",
         "compareLink": "Qhathanisa nathi namanye ama-API eBhayibheli",
         "translationsTitle": "Izinguqulo ZeBhayibheli",
         "translationsBody": "{{ count }} izinguqulo njenge-JSON engaguquki, enezihloko, izinkondlo, ukuhlukana kwemigqa kanye nemibhalo yaphansi egcinwe ingashintshi.",
@@ -42,7 +46,7 @@
         "compareColumns": {
             "account": "Ayikho i-akhawunti",
             "usage": "Akukho mkhawulo wokusetshenziswa",
-            "permission": "Akukho mibuzo ebuzwayo",
+            "permission": "Akukho mibuzo ebuziwe",
             "storage": "Isitolo kanye nenqolobane*",
             "openSource": "Umthombo ovulekile"
         },
@@ -79,17 +83,132 @@
         "markYes": "Yebo",
         "markConditional": "Okunemibandela",
         "markNotGranted": "Akuvunyelwe",
-        "storageNote": "*Kopisha bese ugcina kuhadiwe yakho, amaseva, noma kudivayisi ukuze isebenze ungaxhunyiwe ku-inthanethi.",
-        "contributeTitle": "Sisize sandise umngcele.",
-        "contributeBody": "Ake sakhe uhlelo oluvulekile lokuqukethwe kwesizinda somphakathi kanye namathuluzi omthombo ovulekile.",
-        "contributeDiscord": "Nikela ku-Discord",
+        "storageNote": "*Kopisha futhi ugcine kuhadiwe yakho, amaseva, noma kudivayisi ukuze isebenze ungaxhunyiwe ku-inthanethi.",
+        "freelyTitle": "Sakha lokhu ngoba uJesu wathi:",
+        "chargeTitle": "Ngokufanayo, uPawulu wayala amabandla ukuba adlulisele izincwadi zakhe phambili.",
+        "sinceTitle": "SinemiBhalo ngoba izizukulwane eziningi zalalela le miyalo.",
+        "sinceBody": "Akukho mibhalo yesandla yokuqala esindayo. ImiBhalo yasifinyelela **ngokukopisha** , **ukuhumusha** , **ukubukeza** , **ukulungisa** , **nokusabalalisa** .",
+        "relayLabel": "Uhlu lwezizukulwane olungapheli, oluvela ezincwadini zikaPawulu eziya kini",
+        "relayStart": "Izincwadi zikaPawulu",
+        "relayEnd": "Wena",
+        "forbidTitle": "Izwi likaNkulunkulu liphelele.",
+        "forbidLead": "Kodwa imigomo eminingi ye-copyright ayivumeli:",
+        "forbidden": {
+            "copying": {
+                "name": "Ukukopisha",
+                "example": "IBhayibheli eliphelele lokwabela abaswele.",
+                "licence": "Wonke Amalungelo Agodliwe"
+            },
+            "translating": {
+                "name": "Ukuhumusha",
+                "example": "ImiBhalo ibe ngolunye ulimi bese uyabelana ngayo.",
+                "licence": "Ama-NoDerivatives (ND)"
+            },
+            "revising": {
+                "name": "Ukubuyekeza",
+                "example": "Ukuhumusha nokushicilela ukubuyekezwa.",
+                "licence": "Ama-NoDerivatives (ND)"
+            },
+            "adapting": {
+                "name": "Ukuzivumelanisa nezimo",
+                "example": "ImiBhalo ibe uhlelo olufundeka kalula noma iBhayibheli elilalelwayo.",
+                "licence": "Ama-NoDerivatives (ND)"
+            },
+            "distributing": {
+                "name": "Ukusabalalisa",
+                "example": "Amafayela eBhayibheli aku-inthanethi noma angaxhunyiwe ku-inthanethi.",
+                "licence": "Wonke Amalungelo Agodliwe"
+            }
+        },
+        "forbidEnd": "Ngaphansi kwalezi zimiso, uThimothewu wayengenakukwazi ukumlalela uPawulu.",
+        "englishTitle": "Ngaphandle kokuvumelanisa nokwabelana ngemiBhalo, besingeke sibe neBhayibheli lesiNgisi.",
+        "englishBody": "Kodwa abahumushi abaningi banamuhla bavumelanisa umsebenzi abangenakuwubeka eceleni, bese befuna ukuqanjwa futhi benqabela ukuqanjwa kabusha.",
+        "hinderTitle": "Kodwa akusikho lokho isimo sengqondo sikaPawulu.",
+        "licencesTitle": "Ngisho naku-API yethu, zimbalwa izinguqulo ezifanele.",
+        "licenceUses": {
+            "copy": "Kopisha",
+            "translate": "Humusha",
+            "revise": "Buyekeza",
+            "adapt": "Ukuzivumelanisa nezimo",
+            "distribute": "Sabalalisa"
+        },
+        "licenceGroups": {
+            "ideal": "Okuhle kakhulu",
+            "viable": "Iyasebenza",
+            "restricted": "Kunqunyelwe"
+        },
+        "licenceRows": {
+            "publicDomain": {
+                "name": "Isizinda somphakathi",
+                "why": "Akukho mibandela."
+            },
+            "attribution": {
+                "name": "I-CC BY 4.0 noma i-attribution kuphela",
+                "why": "Isikweletu siyadingeka."
+            },
+            "shareAlike": {
+                "name": "I-CC BY-SA 4.0 noma yabelana ngokufanayo",
+                "why": "Izinguquko kuphela ngaphansi kwelayisensi efanayo."
+            },
+            "noDerivatives": {
+                "name": "I-CC BY-ND 4.0",
+                "why": "Amakhophi angashintshiwe kuphela."
+            },
+            "nonCommercialNoDerivatives": {
+                "name": "I-CC BY-NC-ND 4.0",
+                "why": "Amakhophi angashintshiwe, futhi akukho lutho lwezentengiso."
+            },
+            "other": {
+                "name": "Okunye",
+                "why": "Imigomo engeyona eyezentengiselwano noma eyenziwe ngokwezifiso; ngayinye yenqabela okungenani eyodwa."
+            }
+        },
+        "markAllowed": "Kuvunyelwe",
+        "markSomeCases": "Kwezinye izimo kuphela",
+        "markForbidden": "Kuvinjelwe",
+        "markFor": "{{ use }} : {{ mark }}",
+        "flywheelTitle": "Impendulo iwukuba izinsizakusebenza zomphakathi ezengeziwe.",
+        "flywheelLabel": "Isondo elindizayo",
+        "flywheel": {
+            "start": "Qala emsebenzini wamahhala",
+            "build": "Yakha into entsha",
+            "release": "Yikhulule esizindeni somphakathi",
+            "next": "Umakhi olandelayo uqala phambili kakhulu"
+        },
         "buildTitle": "Ake siqale ukwakha.",
         "newsletterPrompt": "Ufuna ukuhlala unolwazi?",
         "newsletterLink": "Bhalisela iphephandaba",
         "newsletterBody": "Izibuyekezo ezivela kubantu abayakhayo, ebhokisini lakho lokungenayo.",
-        "examplesPrompt": "Ufuna okuthile ongakukopisha?",
-        "examplesLink": "Bona izibonelo",
-        "examplesBody": "Izicelo ezivamile kanye namaphethini okusebenza ongawalungisa."
+        "discordPrompt": "Ufuna ukwakha nathi?",
+        "contributeDiscord": "Nikela ku-Discord",
+        "discordBody": "Dala futhi ubuyekeze izinsiza ze-CC0 nathi.",
+        "faqTitle": "Imibuzo Evame Ukubuzwa",
+        "faq": {
+            "problem": {
+                "q": "Ingabe lokhu kuyinkinga ngempela namuhla?",
+                "a": "Yebo! Kuyinkinga enkulu, kodwa amaKristu amaningi awakwazi nhlobo ngoba aneBhayibheli noma angakwazi ukulifunda ku-inthanethi. Ngenxa yokuthi kulula kakhulu ukufunda iBhayibheli ku-inthanethi, umcabango uwukuthi iBhayibheli kumelwe kube lula ukulisebenzisa nokwabelana ngalo, akunjalo? Kodwa noma ubani oye wazama ukuthola ukufinyelela emiBhalweni ukuze **enze** okuthile (uhlelo lokusebenza, iwebhusayithi, inguqulo entsha yeBhayibheli, iBhayibheli elilalelwayo, njll.) uyazi ukuthi akunjalo. Futhi ezweni elidinga kakhulu ivangeli, lokhu akunasizathu nhlobo."
+            },
+            "attribution": {
+                "q": "Yini engalungile ngokufuna abanye bathi ngumsunguli wenguqulo yeBhayibheli?",
+                "a": "Ukucela i-abilitation kulungile. **Ukuyidinga** kunezela isimo somuntu ekudluliseleni izwi likaNkulunkulu. Noma ubani angase alikopishe, alihumushe, alibuyekeze, alivumelanise, futhi alisakaze, ngakho-ke silibheka njengelisebenzayo, kodwa alikwazi ukupha ngokukhululeka."
+            },
+            "shareAlike": {
+                "q": "Ingabe ukwabelana ngokufana akuyona indlela enhle yokuvikela imiBhalo?",
+                "a": "I-share-alike yakhiwe njengempendulo ku-copyright ukuze kuvinjelwe noma ubani othatha umbhalo ovulekile, awushintshe, futhi awuvale umphumela. Igcina zonke izindlela ezinhlanu zokusebenzisa (ukukopisha, ukuhumusha, ukubukeza, ukulungisa, nokusabalalisa) zivulekile, ngakho-ke sibheka ukuthi ziyasebenza. Kodwa isavimbela umsebenzi othembekile: umhumushi owakhela kumbhalo ofana nokwabelana akanakukhipha ukuhumusha kwakhe emphakathini. Kodwa singakhuthaza ukuthi i-copyright akuyona impendulo engcono kakhulu ku-copyright. Kunalokho, umgomo ophakeme kufanele ube yizinto ezisezingeni **eliphezulu** , zomphakathi kangangokuthi noma ubani angakwazi ukuzivumelanisa nanoma yini ayidingayo embusweni."
+            },
+            "conditions": {
+                "q": "Kuthiwani uma ngisafuna ukubeka imibandela ekuhumusheni kwami?",
+                "a": "Bese okungenani yenza kube lula ukwehluka. Shicilela ukuthi ungakufinyelela kanjani, uphendule ngokushesha, futhi unikeze ukwehluka kokusetshenziswa okuthembekile. Hlela ukuthi ubani ozophendula uma ungasakwazi, noma ukhulule umsebenzi wakho emphakathini lapho ushona. Uma ungakwazi ukuqhubeka nalokho, kukhulule manje. Zonke izicelo ezingaphendulwanga zivala umnyango wombuso, futhi ngisho no-yebo osheshayo uyamhluleka okholwayo ongakwazi ukubuza ngokuphephile esesimweni sokushushiswa."
+            },
+            "money": {
+                "q": "Kodwa abahumushi beBhayibheli nabashicileli bazoyenza kanjani imali?"
+            },
+            "nonCommercial": {
+                "q": "Yini engalungile ngokudinga ukusetshenziswa okungeyona eyezentengiselwano?",
+                "a": "Amagama angewona awokuhweba avimbela umsebenzi wokwethembeka, ngakho siwabheka njengavinjelwe. Kunezindlela eziningi iBhayibheli elingasatshalaliswa ngazo ngokwezentengiselwano ngendlela emsulwa nethembekile (isibonelo, ukunyathelisa amaBhayibheli nokuwathengisa ngentengo edingekayo ukuze uthole inzuzo encane yokutshala imali kabusha ekusebenzeni nasekukhuliseni ukusatshalaliswa). Iphuzu, mKristu othandekayo, ukuthi **akuyona indawo yakho** ukutshela abanye ukuthi bangalisebenzisa kanjani izwi likaNkulunkulu nokuthi abakwazi kanjani."
+            }
+        },
+        "scrollCue": "Skrola uye esigabeni esilandelayo"
     },
     "footer": {
         "madeWith": "Kwenziwe ngo {{ love }} ngo {{ aoLab }}",
@@ -115,12 +234,251 @@
         "commentaries": "Izincazelo zeBhayibheli",
         "datasets": "Amasethi edatha eBhayibheli",
         "seedBibleSoon": "Imbewu yeBhayibheli (Iyeza maduze)",
-        "aboutUs": "Mayelana NATHI",
-        "donate": "Nikela ku-AO Lab",
+        "newsletterShort": "Iphephandaba",
+        "freeUseFund": "Isikhwama Sokusebenzisa Mahhala",
+        "support": "Sekela i-AO Lab",
         "nonprofit": "Inhlangano engenzi nzuzo engu-501(c)(3)",
         "established": "Yasungulwa ngo-2/2/2022",
         "privacy": "Ubumfihlo",
         "terms": "Imigomo"
+    },
+    "wall": {
+        "heading": "Usekelo lwaminyaka yonke lwe {{ year }}",
+        "goal": "Umgomo wonyaka {{ amount }}",
+        "readStories": "Funda zonke izindaba",
+        "hideStories": "Fihla izindaba",
+        "storyCountOne": "Umlingani oyedwa wabelane ngendlela abasebenzisa ngayo i-API. Hambisa phezulu noma thepha ekhoneni eligoqiwe ukuze ulifunde.",
+        "storyCountMany": "Ozakwethu {{ count }} babelane ngendlela abasebenzisa ngayo i-API. Hambisa phezulu noma thepha ekhoneni eligoqiwe ukuze ufunde elilodwa.",
+        "received": "Kwamukelwe",
+        "story": "Ubufakazi noma inothi kufakiwe",
+        "pledged": "Isithembiso",
+        "open": "Vula",
+        "note": "Isikwele ngasinye singu **{{ month }} ngenyanga** , noma **{{ year }} ngonyaka** .",
+        "fundTitle": "Isikhwama Sokusebenzisa Mahhala",
+        "fundLabel": "Izinsizakusebenza ezingaphezu kwezidingo zethu zonyaka zizokhuthaza uhlelo oluvulekile olukhulu nolungcono.",
+        "fundOverflow": "{{ year }} uthembisiwe ngokugcwele. U- {{ amount }} uthembisiwe ngale kwawo uzokhuthaza uhlelo olukhulu nolungcono lwemvelo oluvulekile.",
+        "fundLink": "Indlela esisebenza ngayo lesi sikhwama",
+        "ariaLabel": "Udonga olusekelayo olungu {{ year }} : izikwele {{ squares }} ku- {{ monthly }} ngenyanga {{ tail }} Kwamukelwe okungu {{ received }} , kwabekwa isithembiso esingu {{ pledged }} .",
+        "ariaTail": ", kanye nengxenye yokuvala engu {{ amount }}",
+        "anonymous": "Ongaziwa",
+        "anonymousPartner": "Uzakwethu ongaziwa",
+        "hasStory": "unendaba",
+        "kinds": {
+            "Individual": "Umuntu ngamunye",
+            "Nonprofit": "Inhlangano Engenzi Nzuzo",
+            "Business": "Ibhizinisi"
+        },
+        "square": "Isikwele esingu {{ count }}",
+        "squares": "Izikwele ezingu {{ count }}",
+        "perMonth": "{{ amount }} ngenyanga",
+        "oneTime": "{{ amount }} kanye",
+        "forYear": "{{ amount }} ngonyaka",
+        "percentReceived": "{{ percent }} % etholiwe"
+    },
+    "newsletter": {
+        "title": "Bhalisela iphephandaba",
+        "intro": "Izibuyekezo ezivela ku-AO Lab, inhlangano engenzi nzuzo ngemuva kwe-Free Use Bible API.",
+        "firstName": "Igama",
+        "optional": "(ongakukhetha)",
+        "email": "Ikheli le-imeyili",
+        "subscribe": "Bhalisa",
+        "subscribing": "Iyabhalisa…",
+        "fine": "Ongakukhetha, futhi kusetshenziselwa iphephandaba kuphela. Zikhiphe ohlwini lwanoma iyiphi i-imeyili.",
+        "howWeUse": "Indlela esiyisebenzisa ngayo",
+        "close": "Vala",
+        "thanksTitle": "Siyabonga ngokubhalisa!",
+        "thanksBody": "Usuzoqeda. Hlola i-imeyili yakho bese uchofoza isixhumanisi ukuqinisekisa ukubhalisa kwakho.",
+        "invalid": "Faka ikheli le-imeyili elivumelekile.",
+        "already": "Leli kheli le-imeyili selivele libhalisiwe.",
+        "unsubscribed": "Leli kheli lizikhiphile ohlwini. Bhala ku-hello@helloao.org ukuze ujoyine kabusha.",
+        "error": "Kukhona okungahambanga kahle. Sicela uzame futhi ngemuva kwesikhashana."
+    },
+    "support": {
+        "title": "Yima nathi.",
+        "intro": "Sekela abantu abanakekela futhi bakha le ndawo evulekile ngesipho, indaba yakho, noma kokubili. Ngemvume yakho, noma yikuphi kungavela odongeni lokusekela lwe {{ year }} .",
+        "chooseTitle": "Ungathanda ukusiza kanjani?",
+        "choices": {
+            "testimony": {
+                "name": "Yabelana ngobufakazi",
+                "detail": "Sitshele ukuthi lo msebenzi wenza kube nokwenzeka."
+            },
+            "gift": {
+                "name": "Yenza isipho",
+                "detail": "Sekela abantu abayakhayo."
+            },
+            "both": {
+                "name": "Kokubili",
+                "detail": "Xhuma indaba yakho nesipho sakho odongeni."
+            }
+        },
+        "chooseNote": "Ukhetha lokho okubonakala obala odongeni lokusekela.",
+        "testimonyTitle": "Yabelana ngobufakazi bakho",
+        "testimonyBody": "Sithumelele i-imeyili ukuthi usebenzisa kanjani i-Free Use Bible API, bese unamathisela izithombe-skrini noma ilogo yakho uma uthanda. Sitshele ukuthi silibonise yini igama lakho noma siligcine lingaziwa. Uma nawe unikeze, faka igama esiphweni sakho ukuze sikwazi ukubeka indaba yakho ezigcawini zakho.",
+        "testimonyButton": "Thumela ubufakazi bakho nge-imeyili",
+        "testimonySubject": "Ubufakazi bami ngodonga olusekelayo",
+        "testimonyEmail": "Igama noma inhlangano: Khombisa igama lami, noma uhlale ungaziwa: Indlela esisebenzisa ngayo i-Free Use Bible API: Isixhumanisi salokho esikwakhile (ongakukhetha): Uma sinikeze futhi: igama elisesipho sethu (ongakukhetha): Umlayezo omfushane wodonga, kuze kufike ezinhlamvwini ezingu-80 (ongakukhetha): Namathisela izithombe-skrini, noma ilogo njenge-SVG noma i-PNG esobala okungenani amaphikseli angu-600 ohlangothini lwayo olude (ongakukhetha).",
+        "giftTitle": "Yenza isipho",
+        "giftBody": "{{ month }} ngenyanga noma {{ year }} ngonyaka igcwalisa isikwele esisodwa odongeni lokusekela, kodwa noma yiliphi inani, elikhulu noma elincane, **liyaziswa kakhulu** !",
+        "formTitle": "Ifomu lomnikelo we-AO Lab",
+        "formFallback": "Ifomu alilayishwa?",
+        "formOpen": "Yivule kuthebhu yayo",
+        "waysLead": "Ngaphezu kwama-95% azo zonke izipho ziya ngqo emisebenzini.",
+        "otherWaysTitle": "Ezinye izindlela zokunikeza",
+        "otherWaysBody": "Ikhadi, ukudluliselwa kwemali ebhange, isikhwama esicelwe ngabanikeli, isitoko, i-IRA/QCD kanye ne-crypto konke kusebenza ngendlela.",
+        "otherWaysLink": "Nikela nge-NCF",
+        "booksTitle": "Izincwadi ezikhokhiswa intela, nezivuliwe",
+        "booksBody": "I-AO Lab iyi-501(c)(3). Izipho zingancishiswa intela njengoba kuvunyelwe ngumthetho, futhi izimali zethu zisesidlangalaleni.",
+        "booksLink": "Isibikezelo sezezimali",
+        "directorTitle": "Umqondisi Wethu Omkhulu",
+        "directorBody": "Craig Bradley. Zizwe ukhululekile ukuxhumana nathi ukuze ubuze imibuzo noma uxoxe ngokuthile.",
+        "recognitionTitle": "Khetha ukuthi isipho sakho sivela kanjani.",
+        "recognitionBody": "Sifaka izikwele zakho odongeni ngesandla uma isipho sakho sifika. Izipho zanyanga zonke zigcwalisa izikwele zazo inyanga nenyanga.",
+        "exampleLabel": "Udonga lwesibonelo: isipho esiqanjwe ngegama, isipho esingaziwa, izipho ezinobufakazi, kanye nezikhala zelogo ngobukhulu obuncane ngabunye",
+        "exampleCaption": "Isibonelo sodonga ngobukhulu bangempela. Hambisa phezulu noma thepha ekhoneni eligoqiwe ukuze ufunde ubufakazi obuyisibonelo.",
+        "example": {
+            "yourName": "Igama lakho",
+            "yourOrganization": "Inhlangano yakho",
+            "yourLogo": "Ilogo yakho lapha",
+            "yourLogoShort": "Ilogo yakho",
+            "here": "lapha",
+            "logo": "Ilogo",
+            "message": "Nasi isibonelo somlayezo, ofinyelela ezinhlamvwini ezingu-80.",
+            "namedStory": "Nasi isibonelo sobufakazi bokuzulazula! Tshela izivakashi ukuthi usebenzisa kanjani i-Free Use Bible API.",
+            "anonymousStory": "Nasi esinye isibonelo sobufakazi. Abanikeli abangaziwa bangabelana ngendaba nabo.",
+            "logoStory": "Nasi isibonelo sobufakazi eceleni kwelogo. Ilogo yakho nendaba yakho kungabelana ngezikwele ezifanayo.",
+            "squareStory": "Nasi isibonelo sobufakazi bokuzulazula! Isikwele esisodwa singathwala indaba futhi.",
+            "church": "Isonto eKenya",
+            "churchStory": "Nasi isibonelo sobufakazi obuvela esontweni elisebenzisa i-API kuhlelo lokusebenza lwalo lweBhayibheli.",
+            "namedGift": "Isipho esiqanjwe igama",
+            "anonymousGift": "Isipho esingaziwa, esithembisiwe",
+            "pledgedSuffix": "isithembiso",
+            "recommended": "kunconyiwe"
+        },
+        "rows": {
+            "nameTitle": "Igama noma igama elingaziwa",
+            "nameBody": "Khetha efomini elingenhla. Izipho ezingaziwa zihlala zingaziwa odongeni kanye nasenqolobaneni yalo yonyaka.",
+            "storyTitle": "Indaba yakho",
+            "storyBody": "Umusho owodwa noma emibili ngendlela osebenzisa ngayo i-API. Izikwele zakho zithola ikhona eligoqiwe, futhi izivakashi zifunda indaba yakho ku-hover noma ku-tap.",
+            "messageTitle": "Umlayezo",
+            "messageBody": "Umugqa omfushane owodwa, ofinyelela ezinhlamvwini ezingu-80, oboniswe ku-hover. Ukuzinikela noma izwi lesikhuthazo kokubili kuyasebenza.",
+            "logoTitle": "Ilogo yakho",
+            "logoBody": "Nikeza okungenani ubuncane besimo selogo yakho ku- {{ sizes }} , bese uthumela i-SVG, noma i-PNG okungenani amaphikseli angu-600 ohlangothini lwayo olude olunesizinda esibonakalayo. Amalogo ahlala kokumhlophe kokubili kumodi yokukhanya neyomnyama.",
+            "logoSizesLink": "osayizi abangezansi"
+        },
+        "sizesOpen": "Chofoza lapha ukuze wandise ukuze uthole osayizi belogo",
+        "sizesClose": "Fihla osayizi belogo",
+        "sizesIntro": "Isikwele singamaphikseli angu-16 ububanzi kwi-laptop kanye namaphikseli angu-9 efonini. Ilogo idinga amaphikseli angu-48 kwi-laptop ukuze ifundeke kahle, ngakho-ke unxande omncane kakhulu wesimo ngasinye uyisipho esincane selogo.",
+        "sizesColumns": {
+            "shape": "Isimo selogo",
+            "smallest": "Okuncane kakhulu okufundwayo",
+            "recommended": "Kunconyiwe"
+        },
+        "shapes": {
+            "square": {
+                "name": "Uphawu lwesikwele noma ibheji",
+                "ratio": "1:1"
+            },
+            "horizontal": {
+                "name": "Ilogo evundlile",
+                "ratio": "cishe ngo-2:1"
+            },
+            "wide": {
+                "name": "Uphawu lwamagama olubanzi",
+                "ratio": "3:1 kuya ku-4:1"
+            },
+            "veryWide": {
+                "name": "Uphawu lwamagama olubanzi kakhulu",
+                "ratio": "5:1 noma ngaphezulu"
+            },
+            "tall": {
+                "name": "Ilogo ende noma ehlanganisiwe",
+                "ratio": "cishe u-1:2"
+            }
+        },
+        "sizeCell": "{{ w }} × {{ h }} · {{ squares }}",
+        "sizesNote": "Onxande bangububanzi × ukuphakama, ngezikwele. Ngaphandle kwelogo, unxande okungenani ongama-4 izikwele ububanzi kanye nobude obungama-2 ubonisa igama lakho odongeni. Izipho ezincane zikubonisa ku-hover.",
+        "detailsNote": "Uma ufuna indaba, umlayezo, noma ilogo, sithumelele i-imeyili enegama elisesipho sakho ukuze sikwazi ukulifanisa. Sibuyekeza ngayinye ngaphambi kokuba ibekwe odongeni.",
+        "detailsButton": "Sithumelele imininingwane yakho nge-imeyili",
+        "detailsSubject": "Isipho sami odongeni lwe {{ year }}",
+        "detailsEmail": "Igama elisesipho sami: Inani, kanye nenyanga noma unyaka: Khombisa igama lami, noma uhlale ungaziwa: Indlela esisebenzisa ngayo i-API (ongakukhetha): Umlayezo omfushane, ofinyelela ezinhlamvwini ezingu-80 (ongakukhetha): Ilogo: inamathiselwe njenge-SVG, noma i-PNG okungenani engu-600 px enesizinda esibonakalayo (ongakukhetha) Unxande (ububanzi x ukuphakama), uma uthumela ilogo:",
+        "thanksTitle": "Ngibonga kakhulu!",
+        "thanksBody": "Yonke imibukiso yokusekelana isikhumbuza ukuthi asisodwa futhi ifakazela ukuthi lokhu kuwumzamo womhlaba wonke wamaKristu kumaKristu.",
+        "signOff": "KuKristu,",
+        "team": "Ithimba le-AO Lab"
+    },
+    "fund": {
+        "eyebrow": "Sethula",
+        "title": "Isikhwama Sokusebenzisa Mahhala",
+        "sub": "Sethula isikhwama esisekelwe kumaphrojekthi ukuze siqalise uhlelo oluvulekile lobuKristu bomhlaba wonke.",
+        "propose": "Phakamisa iphrojekthi",
+        "whatTitle": "Lokho esikuxhasayo",
+        "whatBody1": "Umbono wethu uwuhlelo olukhulayo lwamaKristu akha izinsiza zomphakathi ezisezingeni eliphezulu kanye namathuluzi omthombo ovulekile emsebenzini womunye nomunye.",
+        "whatBody2": "Sixhasa ukuhumusha, amathuluzi, amasethi edatha, izimpahla, nanoma yini enye iSonto lomhlaba wonke elingayifaka noma lakhele kuyo, sibeka phambili amaphrojekthi anethonya elikhulu kakhulu. Sithanda okuqukethwe kwe-CC0 kanye nesofthiwe yomthombo ovulekile ngaphansi kwamalayisense afana ne-MIT noma i-AGPL. Ukukhishwa ngakunye kunikeza umakhi olandelayo okwengeziwe ukusebenza naye.",
+        "statusTitle": "Isimo samanje",
+        "statusBody": "Umgomo wokusekela waminyaka yonke we-AO Lab ongu- {{ goal }} awukafinyelelwa, ngakho-ke iSikhwama Sokusebenzisa Mahhala asinayo imali okwamanje. Ungabuka isimo sokusekela samanje {{ here }} .",
+        "statusHere": "lapha",
+        "statusInvite": "{{ proposals }} futhi wamukele {{ feedback }} yakho.",
+        "statusProposals": "Sikhuthaza iziphakamiso noma nini",
+        "statusFeedback": "impendulo",
+        "feedbackSubject": "Impendulo Yesikhwama Sokusetshenziswa Kwamahhala",
+        "callEyebrow": "Vula isicelo seziphakamiso",
+        "callTitle": "Yini obungayakha?",
+        "callIntro": "Amaphrojekthi amasha kanye nomsebenzi osuqalile kokubili kwamukelekile. Sincoma izicelo ezimfushane neziqondile ezinemininingwane emincane. Sizoxhumana nathi ukuthola ulwazi olwengeziwe.",
+        "steps": {
+            "build": {
+                "title": "Lokho ohlose ukukwakha.",
+                "body": "Chaza iphrojekthi, ukuthi obani abazobandakanyeka, nokuthi yiluphi usizo ongaludinga."
+            },
+            "licences": {
+                "title": "Amalayisense aphakanyisiwe.",
+                "body": "Shayela amalayisense okuqukethwe, isofthiwe, nanoma yiziphi izinto ezikhona ongazisebenzisa."
+            },
+            "why": {
+                "title": "Kungani kubalulekile.",
+                "body": "Chaza ukubaluleka kwayo ohlelweni oluvulekile esilwakhayo lobuKristu bomhlaba wonke."
+            }
+        },
+        "submit": "Thumela isiphakamiso sephrojekthi",
+        "reportingEyebrow": "Ukuziphendulela",
+        "reportingTitle": "Izibuyekezo zekota. Umsebenzi owabiwe esidlangalaleni.",
+        "reportingBody": "Sizoshicilela ukusetshenziswa kwemali kanye nezibuyekezo zephrojekthi lapha, okuhlanganisa nomsebenzi oqhubekayo. Amaphrojekthi aqediwe azoshicilelwa futhi amenyezelwe njengoba eseqediwe.",
+        "faqTitle": "Imibuzo embalwa ewusizo.",
+        "faq": {
+            "who": {
+                "q": "Ubani ongathumela iphrojekthi?",
+                "a": "Noma ubani emphakathini jikelele, okuhlanganisa abantu ngabanye nezinhlangano. Chaza ukuthi yini ofuna ukuyakha, amalayisense ayo ahlongozwayo, nokuthi kungani kubalulekile ohlelweni oluvulekile olukhonza ubuKristu bomhlaba wonke."
+            },
+            "early": {
+                "q": "Kungani uthumela ngaphambi kokuba imali itholakale?",
+                "a": "Iziphakamiso zakho ziyasisiza ukuthi sibone izidingo futhi zibonise ukuthi yiluphi usizo olungenza kube nokwenzeka. Zingasisiza ukuthi siphakamise ukwesekwa kwe-AO Lab kanye nomphakathi wonke, futhi zisinike amaphrojekthi okufanele siwacabangele lapho uxhaso selutholakala."
+            },
+            "decides": {
+                "q": "Ubani onquma ukuthi yimaphi amaphrojekthi athola uxhaso?",
+                "a": "I-AO Lab iphatha isikhwama futhi ikhetha amaphrojekthi ngomthelela wawo olindelekile wombuso kanye nenzuzo eBandleni elibanzi. Amaphrojekthi angaba makhulu noma amancane, kubekwe phambili umsebenzi umphakathi omkhulu ongawusebenzisa futhi wakhe kuwo."
+            },
+            "money": {
+                "q": "Imali ifika kanjani esikhwameni?",
+                "a": "Njalo ngoSepthemba, siqala ukuqoqa ukwesekwa kwaminyaka yonke kwe-AO Lab konyaka olandelayo. Uma lowo mgomo usufeziwe, lonke ukwesekwa okwengeziwe kuya eSikhwameni Sokusetshenziswa Kwamahhala kuze kube uSepthemba olandelayo, lapho umjikelezo uqala futhi."
+            },
+            "licences": {
+                "q": "Yimaphi amalayisense owasekelayo?",
+                "a": "Sikhetha amagama avumela kakhulu ngangokunokwenzeka, nge-CC0 njengefanele okuqukethwe okufana nokuhumusha, amasethi edatha, kanye nezimpahla. Isofthiwe ingasebenzisa i-MIT, i-AGPL, noma amanye amalayisense omthombo ovulekile. Sibuyekeza ilayisensi yesofthiwe icala ngalinye, sicabangela ukuthi isekela kahle kangakanani ukusetshenziswa kabusha kanye nesistimu ebanzi. Bhala amalayisense akho aphakanyisiwe esiphakamisweni sakho."
+            },
+            "translation": {
+                "q": "Ingabe lesi sikhwama singasekela ukuhunyushwa kweBhayibheli?",
+                "a": "Yebo. Inguqulo yeBhayibheli ye-CC0 ingacatshangelwa kanye nezinye izinsiza kanye namathuluzi omthombo ovulekile. Sihlola amaphrojekthi ngomthelela wawo wombuso kanye nenzuzo ehlanganyelwe, kunokunikeza uhlobo olulodwa lomsebenzi kuqala ngokuzenzakalela."
+            },
+            "progress": {
+                "q": "Ngingalandela kuphi ukusetshenziswa kwemali kanye nenqubekela phambili yephrojekthi?",
+                "a": "Kuleli khasi. Izibuyekezo zekota zizobonisa ukuthi imali isetshenziswe kanjani nokuthi imaphi amaphrojekthi asekelwe, okuhlanganisa nomsebenzi ongaqedwanga. Amaphrojekthi aqediwe azoshicilelwa futhi amenyezelwe njengoba eseqediwe."
+            },
+            "public": {
+                "q": "Ingabe imininingwane yephrojekthi ngayinye izoba semphakathini?",
+                "a": "Okuwukuphela komehluko emininingwaneni ephelele yephrojekthi ukuphepha: singase sigodle ulwazi olungabeka abantu abasebenza ezindaweni ezishushiswayo engozini. Ukubika kwekota kuzoqhubeka, imininingwane ebucayi igodliwe lapho kudingeka khona. Abaxhasi bamukelekile ku- {{ contact }} ukuzoxoxa ngalokho okungabiwa ngokuphephile."
+            }
+        },
+        "contactUs": "Xhumana nathi",
+        "questionSubject": "Umbuzo Wesikhwama Sokusetshenziswa Kwamahhala"
     },
     "notFound": {
         "title": "Ikhasi alitholakalanga",

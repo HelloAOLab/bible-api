@@ -1,5 +1,5 @@
 ---
-description: '無料版聖書APIは数分で使い始められます。JavaScript SDKをインストールするか、JSONエンドポイントを直接呼び出すだけでOK。APIキーやサインアップは不要です。'
+description: '無料聖書APIは数分で使い始められます。JavaScript、Kotlin、またはSwift用のSDKをインストールするか、JSONエンドポイントを直接呼び出すだけでOK。APIキーやサインアップは不要です。'
 ---
 
 # はじめる
@@ -11,6 +11,8 @@ description: '無料版聖書APIは数分で使い始められます。JavaScrip
 以下の言語に対応したAPIクライアントをご用意しています。
 
 -   [JavaScript/TypeScript](../sdks/javascript.md)
+-   [Kotlin](../sdks/kotlin.md) （JVMおよびAndroid）
+-   [Swift](../sdks/swift.md) （iOS、macOS、Linux）
 
 ## API
 

@@ -1,5 +1,5 @@
 ---
-description: 'منٹوں میں مفت استعمال بائبل API کا استعمال شروع کریں۔ JavaScript SDK انسٹال کریں یا JSON اینڈ پوائنٹس کو براہ راست کال کریں — کسی API کلید یا سائن اپ کی ضرورت نہیں ہے۔'
+description: 'منٹوں میں مفت استعمال بائبل API کا استعمال شروع کریں۔ JavaScript، Kotlin، یا Swift کے لیے SDK انسٹال کریں، یا JSON اینڈ پوائنٹس کو براہ راست کال کریں — کسی API کلید یا سائن اپ کی ضرورت نہیں ہے۔'
 ---
 
 # شروع کرنا
@@ -11,6 +11,8 @@ description: 'منٹوں میں مفت استعمال بائبل API کا است
 ہمارے پاس درج ذیل زبانوں کے لیے API کلائنٹس ہیں:
 
 -   [JavaScript/TypeScript](../sdks/javascript.md)
+-   [کوٹلن](../sdks/kotlin.md) (JVM اور Android)
+-   [سوئفٹ](../sdks/swift.md) (iOS، macOS، اور Linux)
 
 ## API
 

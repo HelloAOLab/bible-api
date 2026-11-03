@@ -1,6 +1,6 @@
 /**
- * Fills in the Bible verses quoted on the docs home page for each translated
- * language, from the Free Use Bible API.
+ * Fills in the Bible verses quoted on the docs home, Support and Free Use Fund
+ * pages for each translated language, from the Free Use Bible API.
  *
  * Usage:
  *
@@ -88,21 +88,27 @@ async function fetchVerse(
     translationId: string,
     key: HomeVerse
 ): Promise<Omit<VerseText, 'language'>> {
-    const { book, chapter, verse } = HOME_VERSES[key];
+    const { book, chapter, verse, endVerse = verse } = HOME_VERSES[key];
     const result = await api.getTranslationBookChapter(
         translationId,
         book,
         chapter
     );
-    const found = result.chapter.content.find(
-        (content): content is ChapterVerse =>
-            content.type === 'verse' && content.number === verse
-    );
-    if (!found) {
-        throw new Error(`${translationId} has no ${book} ${chapter}:${verse}.`);
+    const found: ChapterVerse[] = [];
+    for (let number = verse; number <= endVerse; number++) {
+        const match = result.chapter.content.find(
+            (content): content is ChapterVerse =>
+                content.type === 'verse' && content.number === number
+        );
+        if (!match) {
+            throw new Error(
+                `${translationId} has no ${book} ${chapter}:${number}.`
+            );
+        }
+        found.push(match);
     }
     return {
-        text: verseText(api, found),
+        text: found.map((v) => verseText(api, v)).join(' '),
         bookName: result.book.name || result.book.commonName,
         translationAbbreviation:
             result.translation.shortName || result.translation.id,

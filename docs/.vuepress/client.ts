@@ -4,8 +4,11 @@ import {
     resolvers,
     useSiteLocaleData,
 } from 'vuepress/client';
+import NewsletterDialog from './components/NewsletterDialog.vue';
+import FreeUseFundLayout from './layouts/FreeUseFundLayout.vue';
 import HomeLayout from './layouts/HomeLayout.vue';
 import NotFound from './layouts/NotFound.vue';
+import SupportLayout from './layouts/SupportLayout.vue';
 
 // Let a page set its full <title> through a `headTitle` frontmatter field,
 // instead of the default "<page title> | <site title>".
@@ -35,9 +38,14 @@ function textDirection(lang: string): 'ltr' | 'rtl' {
 
 export default defineClientConfig({
     layouts: {
+        FreeUseFundLayout,
         HomeLayout,
         NotFound,
+        SupportLayout,
     },
+
+    // Opens from any link with the class js-newsletter-trigger.
+    rootComponents: [NewsletterDialog],
 
     // Arabic and Urdu read right to left. The page's `lang` is set from the
     // locale, but nothing sets `dir`, so do it here as the reader switches

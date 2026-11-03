@@ -1,19 +1,21 @@
 {
     "nav": {
-        "guide": "Panduan",
+        "guide": "Memandu",
         "reference": "Referensi",
         "sdks": "SDK",
-        "donate": "Donasi",
-        "translationsBooksChapters": "Terjemahan, Kitab, dan Pasal",
-        "commentaries": "Tafsiran",
-        "datasets": "Kumpulan Data",
+        "support": "Mendukung",
+        "translationsBooksChapters": "Terjemahan, Buku, & Bab",
+        "commentaries": "Komentar",
+        "datasets": "Kumpulan data",
         "languages": "Bahasa",
         "selectLanguage": "Pilih bahasa"
     },
     "home": {
+        "milestone": "Merayakan lebih dari 100.000.000 permintaan API tahun ini!",
         "tagline": "API JSON yang mudah digunakan dan berfitur lengkap untuk Kitab Suci.",
         "quickStart": "Panduan Singkat",
-        "donate": "Menyumbangkan",
+        "more": "Bersama-sama kita dapat membangun ekosistem terbuka untuk Kekristenan global.",
+        "learnMore": "Pelajari selengkapnya",
         "openVerse": "Buka {{ reference }} di Seed Bible",
         "translationCount": "{{ count }} terjemahan",
         "languageCount": "di seluruh {{ count }} bahasa",
@@ -21,8 +23,10 @@
         "noApiKeyDetail": "Tidak ada yang perlu didaftarkan",
         "noUsageLimits": "Tidak ada batasan penggunaan.",
         "noUsageLimitsDetail": "Gratis selamanya",
-        "welcome": "Selamat datang di kebebasan.",
-        "welcomeDetail": "Mulailah hari ini **tanpa batasan** dan **tanpa birokrasi yang rumit** .",
+        "causeTitle": "Didukung oleh mitra yang percaya bahwa Kitab Suci seharusnya benar-benar gratis.",
+        "support": "Mendukung",
+        "frontierTitle": "Selamat datang di wilayah perbatasan.",
+        "frontierDetail": "Mulailah segera tanpa **birokrasi yang rumit** .",
         "compareLink": "Bandingkan kami dengan API Alkitab lainnya",
         "translationsTitle": "Terjemahan Alkitab",
         "translationsBody": "{{ count }} terjemahan sebagai JSON statis, dengan judul, puisi, jeda baris, dan catatan kaki tetap utuh.",
@@ -42,7 +46,7 @@
         "compareColumns": {
             "account": "Tidak ada akun",
             "usage": "Tidak ada batasan penggunaan.",
-            "permission": "Tanpa banyak tanya",
+            "permission": "Tidak ada pertanyaan yang diajukan",
             "storage": "Simpan & cache*",
             "openSource": "Sumber terbuka"
         },
@@ -80,16 +84,131 @@
         "markConditional": "Bersyarat",
         "markNotGranted": "Tidak diberikan",
         "storageNote": "*Salin dan simpan di perangkat keras, server, atau perangkat Anda sendiri agar dapat berfungsi secara offline.",
-        "contributeTitle": "Bantu kami memperluas cakrawala.",
-        "contributeBody": "Mari kita ciptakan ekosistem terbuka untuk konten domain publik dan perangkat lunak sumber terbuka.",
-        "contributeDiscord": "Berkontribusi di Discord",
+        "freelyTitle": "Kami membangun ini karena Yesus berkata:",
+        "chargeTitle": "Demikian juga, Paulus memerintahkan gereja-gereja untuk meneruskan surat-suratnya.",
+        "sinceTitle": "Kita memiliki Kitab Suci karena banyak generasi telah menaati perintah-perintah ini.",
+        "sinceBody": "Tidak ada manuskrip asli yang ters сохрани. Kitab Suci sampai kepada kita melalui **penyalinan** , **penerjemahan** , **revisi** , **adaptasi** , dan **penyebaran** .",
+        "relayLabel": "Garis keturunan yang tak terputus, dari surat-surat Paulus kepada Anda.",
+        "relayStart": "Surat-surat Paulus",
+        "relayEnd": "Anda",
+        "forbidTitle": "Firman Tuhan bersifat mutlak.",
+        "forbidLead": "Namun banyak ketentuan hak cipta yang melarang:",
+        "forbidden": {
+            "copying": {
+                "name": "Penyalinan",
+                "example": "Sebuah Alkitab utuh untuk dibagikan kepada mereka yang membutuhkan.",
+                "licence": "Seluruh hak dilindungi undang-undang"
+            },
+            "translating": {
+                "name": "Menerjemahkan",
+                "example": "Menerjemahkan Kitab Suci ke dalam bahasa lain dan membagikannya.",
+                "licence": "Tidak Berturunan (ND)"
+            },
+            "revising": {
+                "name": "Merevisi",
+                "example": "Penerjemahan dan penerbitan revisi.",
+                "licence": "Tidak Berturunan (ND)"
+            },
+            "adapting": {
+                "name": "Beradaptasi",
+                "example": "Menerjemahkan Kitab Suci ke dalam edisi yang mudah dibaca atau Alkitab audio.",
+                "licence": "Tidak Berturunan (ND)"
+            },
+            "distributing": {
+                "name": "Mendistribusikan",
+                "example": "File Alkitab tersedia secara online atau offline.",
+                "licence": "Seluruh hak dilindungi undang-undang"
+            }
+        },
+        "forbidEnd": "Dengan syarat-syarat tersebut, Timotius tidak mungkin menaati Paulus.",
+        "englishTitle": "Tanpa mengadaptasi dan membagikan Kitab Suci, kita tidak akan memiliki Alkitab berbahasa Inggris.",
+        "englishBody": "Namun, banyak penerjemah modern mengadaptasi karya yang tidak dapat mereka sebutkan sumbernya, kemudian menuntut penyebutan sumber dan melarang adaptasi.",
+        "hinderTitle": "Namun, itu bukanlah sikap Paulus.",
+        "licencesTitle": "Bahkan dalam API kami, hanya sedikit terjemahan yang ideal.",
+        "licenceUses": {
+            "copy": "Menyalin",
+            "translate": "Menerjemahkan",
+            "revise": "Merevisi",
+            "adapt": "Menyesuaikan",
+            "distribute": "Mendistribusikan"
+        },
+        "licenceGroups": {
+            "ideal": "Ideal",
+            "viable": "Giat",
+            "restricted": "Terbatas"
+        },
+        "licenceRows": {
+            "publicDomain": {
+                "name": "Domain publik",
+                "why": "Tidak ada syarat."
+            },
+            "attribution": {
+                "name": "Lisensi CC BY 4.0 atau hanya dengan mencantumkan atribusi.",
+                "why": "Diperlukan bukti kredit."
+            },
+            "shareAlike": {
+                "name": "Lisensi CC BY-SA 4.0 atau share-alike",
+                "why": "Perubahan hanya diperbolehkan di bawah lisensi yang sama."
+            },
+            "noDerivatives": {
+                "name": "CC BY-ND 4.0",
+                "why": "Hanya salinan yang tidak diubah."
+            },
+            "nonCommercialNoDerivatives": {
+                "name": "CC BY-NC-ND 4.0",
+                "why": "Salinan yang tidak diubah, dan tidak ada unsur komersial."
+            },
+            "other": {
+                "name": "Lainnya",
+                "why": "Syarat non-komersial atau khusus; masing-masing melarang setidaknya satu hal."
+            }
+        },
+        "markAllowed": "Diizinkan",
+        "markSomeCases": "Hanya dalam beberapa kasus",
+        "markForbidden": "Terlarang",
+        "markFor": "{{ use }} : {{ mark }}",
+        "flywheelTitle": "Jawabannya adalah lebih banyak sumber daya domain publik.",
+        "flywheelLabel": "Roda gila",
+        "flywheel": {
+            "start": "Mulailah dari pekerjaan gratis.",
+            "build": "Bangun sesuatu yang baru",
+            "release": "Rilis ke domain publik",
+            "next": "Pembangun berikutnya mulai dari tempat yang lebih jauh di depan."
+        },
         "buildTitle": "Mari kita mulai membangun.",
         "newsletterPrompt": "Ingin tetap mendapatkan informasi terbaru?",
         "newsletterLink": "Daftar untuk menerima buletin",
         "newsletterBody": "Dapatkan pembaruan dari orang-orang yang membangunnya, langsung di kotak masuk Anda.",
-        "examplesPrompt": "Ingin sesuatu untuk disalin?",
-        "examplesLink": "Lihat contoh",
-        "examplesBody": "Permintaan umum dan pola kerja yang dapat Anda adaptasi."
+        "discordPrompt": "Ingin membangun bersama kami?",
+        "contributeDiscord": "Berkontribusi di Discord",
+        "discordBody": "Buat dan tinjau sumber daya CC0 bersama kami.",
+        "faqTitle": "Pertanyaan yang Sering Diajukan (FAQ)",
+        "faq": {
+            "problem": {
+                "q": "Apakah ini benar-benar masalah saat ini?",
+                "a": "Ya! Ini masalah besar, tetapi sebagian besar orang Kristen sama sekali tidak menyadarinya karena mereka memiliki Alkitab atau memiliki akses ke Alkitab yang dapat mereka baca secara online. Karena sangat mudah membaca Alkitab secara online, asumsinya adalah Alkitab pasti mudah digunakan dan dibagikan, bukan? Tetapi siapa pun yang pernah mencoba mengakses Kitab Suci untuk **membuat** sesuatu (aplikasi, situs web, terjemahan Alkitab baru, Alkitab audio, dll.) tahu bahwa itu tidak benar. Dan bagi dunia yang sangat membutuhkan Injil, ini sama sekali tidak dapat dimaafkan."
+            },
+            "attribution": {
+                "q": "Apa salahnya mewajibkan orang lain untuk menyebutkan nama pencipta terjemahan Alkitab?",
+                "a": "Meminta penyebutan sumber itu tidak masalah. **Namun, mewajibkannya** menambahkan unsur manusiawi pada penyampaian firman Tuhan. Siapa pun masih dapat menyalin, menerjemahkan, merevisi, mengadaptasi, dan mendistribusikannya, jadi kita menganggapnya sebagai hal yang layak, tetapi itu belum sepenuhnya memberikan secara cuma-cuma."
+            },
+            "shareAlike": {
+                "q": "Bukankah prinsip berbagi secara merata adalah cara yang baik untuk melindungi Kitab Suci?",
+                "a": "Share-alike dibangun sebagai respons terhadap hak cipta untuk mencegah siapa pun mengambil teks terbuka, mengubahnya, dan mengunci hasilnya. Sistem ini menjaga kelima penggunaan (menyalin, menerjemahkan, merevisi, mengadaptasi, dan mendistribusikan) tetap terbuka, sehingga kami menganggapnya layak. Namun, sistem ini masih melarang karya yang setia: seorang penerjemah yang mengembangkan teks share-alike tidak dapat merilis terjemahannya ke domain publik. Tetapi kami berpendapat bahwa hak cipta bukanlah respons terbaik terhadap hak cipta. Sebaliknya, tujuan yang lebih tinggi seharusnya adalah **begitu banyak** materi domain publik berkualitas sehingga siapa pun dapat mengadaptasi apa pun yang mereka butuhkan untuk kerajaan Allah."
+            },
+            "conditions": {
+                "q": "Bagaimana jika saya tetap ingin memberikan syarat pada terjemahan saya?",
+                "a": "Setidaknya, permudah pengecualian. Publikasikan cara menghubungi Anda, jawab dengan cepat, dan berikan pengecualian untuk penggunaan yang sesuai dengan keyakinan. Rencanakan siapa yang akan menjawab ketika Anda tidak lagi mampu, atau lepaskan karya Anda ke domain publik setelah kematian Anda. Jika Anda tidak dapat terus melakukannya, lepaskan sekarang juga. Setiap permintaan yang tidak terjawab menutup pintu bagi kerajaan Allah, dan bahkan jawaban \"ya\" yang cepat pun gagal bagi orang percaya yang tidak dapat meminta dengan aman dari konteks penganiayaan."
+            },
+            "money": {
+                "q": "Namun bagaimana penerjemah dan penerbit Alkitab akan menghasilkan uang?"
+            },
+            "nonCommercial": {
+                "q": "Apa yang salah dengan mensyaratkan penggunaan nonkomersial?",
+                "a": "Ketentuan non-komersial melarang pekerjaan yang setia, jadi kami menganggapnya sebagai ketentuan yang terbatas. Ada banyak cara Alkitab dapat didistribusikan secara komersial dengan cara yang murni dan setia (misalnya, mencetak Alkitab dan menjualnya hanya dengan harga yang diperlukan untuk mendapatkan sedikit keuntungan untuk diinvestasikan kembali dalam operasi dan meningkatkan distribusi). Intinya, Saudara seiman, **bukanlah hak Anda** untuk memberi tahu orang lain bagaimana mereka dapat dan tidak dapat menggunakan firman Tuhan."
+            }
+        },
+        "scrollCue": "Gulir ke bagian berikutnya"
     },
     "footer": {
         "madeWith": "Dibuat dengan {{ love }} kali {{ aoLab }}",
@@ -115,12 +234,251 @@
         "commentaries": "Tafsir Alkitab",
         "datasets": "Kumpulan data Alkitab",
         "seedBibleSoon": "Alkitab Benih (Segera hadir)",
-        "aboutUs": "Tentang kami",
-        "donate": "Berdonasi ke AO Lab",
+        "newsletterShort": "Buletin",
+        "freeUseFund": "Dana Penggunaan Bebas",
+        "support": "Dukung AO Lab",
         "nonprofit": "Organisasi nirlaba 501(c)(3)",
         "established": "Didirikan pada 2/2/2022",
         "privacy": "Pribadi",
         "terms": "Ketentuan"
+    },
+    "wall": {
+        "heading": "Dukungan tahunan untuk {{ year }}",
+        "goal": "{{ amount }} tujuan tahunan",
+        "readStories": "Baca semua cerita",
+        "hideStories": "Sembunyikan cerita",
+        "storyCountOne": "1 mitra membagikan bagaimana mereka menggunakan API. Arahkan kursor atau ketuk sudut yang terlipat untuk membacanya.",
+        "storyCountMany": "{{ count }} mitra membagikan bagaimana mereka menggunakan API. Arahkan kursor atau ketuk sudut yang terlipat untuk membacanya.",
+        "received": "Diterima",
+        "story": "Kesaksian atau catatan disertakan",
+        "pledged": "Berjanji",
+        "open": "Membuka",
+        "note": "Setiap kotak mewakili **{{ month }} bulan** , atau **{{ year }} tahun** .",
+        "fundTitle": "Dana Penggunaan Bebas",
+        "fundLabel": "Sumber daya yang melebihi kebutuhan tahunan kita akan mendorong terciptanya ekosistem terbuka yang lebih besar dan lebih baik.",
+        "fundOverflow": "Angka {{ year }} sepenuhnya berkomitmen. Angka {{ amount }} yang berkomitmen di luarnya akan mendorong ekosistem terbuka yang lebih besar dan lebih baik.",
+        "fundLink": "Cara kerja dana tersebut",
+        "ariaLabel": "{{ year }} dinding pendukung: {{ squares }} kotak pada {{ monthly }} per bulan {{ tail }} . {{ received }} diterima, {{ pledged }} dijanjikan.",
+        "ariaTail": ", ditambah bagian penutup {{ amount }}",
+        "anonymous": "Anonim",
+        "anonymousPartner": "Mitra anonim",
+        "hasStory": "memiliki sebuah cerita",
+        "kinds": {
+            "Individual": "Individu",
+            "Nonprofit": "Organisasi nirlaba",
+            "Business": "Bisnis"
+        },
+        "square": "{{ count }} persegi",
+        "squares": "{{ count }} kotak",
+        "perMonth": "{{ amount }} per bulan",
+        "oneTime": "{{ amount }} sekali bayar",
+        "forYear": "{{ amount }} untuk tahun ini",
+        "percentReceived": "{{ percent }} % diterima"
+    },
+    "newsletter": {
+        "title": "Daftar untuk menerima buletin",
+        "intro": "Informasi terbaru dari AO Lab, organisasi nirlaba di balik API Alkitab untuk Penggunaan Gratis.",
+        "firstName": "Nama depan",
+        "optional": "(opsional)",
+        "email": "Alamat email",
+        "subscribe": "Berlangganan",
+        "subscribing": "Berlangganan…",
+        "fine": "Opsional, dan hanya digunakan untuk buletin. Berhenti berlangganan dari email apa pun.",
+        "howWeUse": "Bagaimana cara kita menggunakannya",
+        "close": "Menutup",
+        "thanksTitle": "Terima kasih telah berlangganan!",
+        "thanksBody": "Anda hampir selesai. Periksa email Anda dan klik tautan untuk mengkonfirmasi langganan Anda.",
+        "invalid": "Masukkan alamat email yang valid.",
+        "already": "Alamat email ini sudah terdaftar.",
+        "unsubscribed": "Alamat ini telah berhenti berlangganan. Kirim email ke hello@helloao.org untuk bergabung kembali.",
+        "error": "Terjadi kesalahan. Silakan coba lagi sebentar lagi."
+    },
+    "support": {
+        "title": "Bergabunglah bersama kami.",
+        "intro": "Dukung orang-orang yang memelihara dan membangun ekosistem terbuka ini dengan donasi, cerita Anda, atau keduanya. Dengan izin Anda, salah satu dari keduanya dapat ditampilkan di dinding dukungan {{ year }} .",
+        "chooseTitle": "Bagaimana Anda ingin membantu?",
+        "choices": {
+            "testimony": {
+                "name": "Bagikan kesaksian",
+                "detail": "Ceritakan kepada kami apa yang dimungkinkan oleh karya ini."
+            },
+            "gift": {
+                "name": "Berikan hadiah",
+                "detail": "Dukunglah orang-orang yang membangunnya."
+            },
+            "both": {
+                "name": "Keduanya",
+                "detail": "Hubungkan kisah dan bakat Anda di dinding tersebut."
+            }
+        },
+        "chooseNote": "Anda memilih apa yang akan ditampilkan secara publik di dinding dukungan.",
+        "testimonyTitle": "Bagikan kesaksian Anda",
+        "testimonyBody": "Kirimkan email kepada kami tentang bagaimana Anda menggunakan API Alkitab Gratis, dan lampirkan tangkapan layar atau logo Anda jika Anda mau. Beri tahu kami apakah nama Anda akan ditampilkan atau dirahasiakan. Jika Anda juga memberikan donasi, sertakan nama yang tertera pada donasi Anda agar kami dapat menampilkan kisah Anda di halaman-halaman Alkitab yang Anda terima.",
+        "testimonyButton": "Kirimkan testimoni Anda melalui email.",
+        "testimonySubject": "Kesaksian saya untuk dinding dukungan",
+        "testimonyEmail": "Nama atau organisasi: Tampilkan nama saya, atau tetap anonim: Bagaimana kami menggunakan API Alkitab Gratis: Tautan ke apa yang telah kami buat (opsional): Jika kami juga memberi: nama pada donasi kami (opsional): Pesan singkat untuk dinding, maksimal 80 karakter (opsional): Lampirkan tangkapan layar, atau logo sebagai SVG atau PNG transparan dengan ukuran minimal 600 piksel pada sisi terpanjangnya (opsional).",
+        "giftTitle": "Berikan hadiah",
+        "giftBody": "{{ month }} per bulan atau {{ year }} per tahun akan mengisi satu kotak di dinding dukungan, tetapi jumlah berapa pun, besar atau kecil, **sangat dihargai** !",
+        "formTitle": "Formulir donasi AO Lab",
+        "formFallback": "Formulir tidak dimuat?",
+        "formOpen": "Buka di tab tersendiri",
+        "waysLead": "Lebih dari 95% dari seluruh donasi langsung dialokasikan untuk operasional.",
+        "otherWaysTitle": "Cara lain untuk memberi",
+        "otherWaysBody": "Kartu, transfer bank, dana yang dikelola oleh penasihat donor, saham, IRA/QCD, dan kripto semuanya dapat digunakan dalam formulir ini.",
+        "otherWaysLink": "Berikan donasi melalui NCF",
+        "booksTitle": "Dapat dikurangkan dari pajak, dan pembukuan transparan.",
+        "booksBody": "AO Lab adalah organisasi nirlaba 501(c)(3). Sumbangan dapat dikurangkan dari pajak sesuai dengan hukum yang berlaku, dan laporan keuangan kami bersifat publik.",
+        "booksLink": "Prakiraan keuangan",
+        "directorTitle": "Direktur Eksekutif kami",
+        "directorBody": "Craig Bradley. Jangan ragu untuk menghubungi jika ada pertanyaan atau ingin mendiskusikan sesuatu.",
+        "recognitionTitle": "Pilih bagaimana hadiah Anda akan ditampilkan.",
+        "recognitionBody": "Kami menambahkan kotak-kotak Anda ke dinding secara manual setelah hadiah Anda tiba. Hadiah bulanan akan mengisi kotak-kotaknya bulan demi bulan.",
+        "exampleLabel": "Contoh dinding: hadiah bernama, hadiah anonim, hadiah dengan testimoni, dan ruang logo pada setiap ukuran minimum.",
+        "exampleCaption": "Contoh dinding dalam ukuran sebenarnya. Arahkan kursor atau ketuk sudut yang terlipat untuk membaca contoh kesaksian.",
+        "example": {
+            "yourName": "Nama Anda",
+            "yourOrganization": "Organisasi Anda",
+            "yourLogo": "Logo Anda di sini",
+            "yourLogoShort": "Logo Anda",
+            "here": "Di Sini",
+            "logo": "Logo",
+            "message": "Berikut contoh pesan, maksimal 80 karakter.",
+            "namedStory": "Berikut contoh testimoni saat kursor diarahkan ke atasnya! Beri tahu pengunjung bagaimana Anda menggunakan API Alkitab Gratis.",
+            "anonymousStory": "Berikut contoh kesaksian lainnya. Para pemberi sumbangan anonim juga dapat berbagi cerita.",
+            "logoStory": "Berikut contoh testimoni di samping logo. Logo dan cerita Anda dapat berbagi kotak yang sama.",
+            "squareStory": "Berikut contoh testimoni saat kursor diarahkan ke gambar! Sebuah kotak tunggal pun dapat menceritakan sebuah kisah.",
+            "church": "Sebuah gereja di Kenya",
+            "churchStory": "Berikut adalah contoh testimoni dari sebuah gereja yang menggunakan API dalam aplikasi Alkitab mereka.",
+            "namedGift": "Hadiah yang diberi nama",
+            "anonymousGift": "Hadiah anonim, dijanjikan",
+            "pledgedSuffix": "berjanji",
+            "recommended": "direkomendasikan"
+        },
+        "rows": {
+            "nameTitle": "Disebutkan namanya atau anonim",
+            "nameBody": "Pilih di formulir di atas. Sumbangan anonim akan tetap anonim di dinding dan dalam arsip tahunannya.",
+            "storyTitle": "Kisahmu",
+            "storyBody": "Satu atau dua kalimat tentang cara Anda menggunakan API. Kotak Anda akan memiliki sudut yang terlipat, dan pengunjung dapat membaca cerita Anda saat mengarahkan kursor atau mengetuknya.",
+            "messageTitle": "Sebuah pesan",
+            "messageBody": "Satu baris pendek, maksimal 80 karakter, ditampilkan saat kursor diarahkan ke atasnya. Dedikasi atau kata-kata penyemangat sama-sama bisa digunakan.",
+            "logoTitle": "Logo Anda",
+            "logoBody": "Berikan setidaknya ukuran minimum untuk bentuk logo Anda di kolom {{ sizes }} , lalu kirimkan file SVG, atau PNG dengan sisi terpanjang minimal 600 piksel dan latar belakang transparan. Logo akan tampak di atas latar putih baik dalam mode terang maupun gelap.",
+            "logoSizesLink": "ukuran di bawah"
+        },
+        "sizesOpen": "Klik di sini untuk memperbesar ukuran logo",
+        "sizesClose": "Sembunyikan ukuran logo",
+        "sizesIntro": "Sebuah persegi memiliki lebar sekitar 16 piksel pada laptop dan sekitar 9 piksel pada ponsel. Sebuah logo membutuhkan sekitar 48 piksel pada laptop agar terbaca dengan jelas, jadi persegi panjang terkecil untuk setiap bentuk adalah ukuran minimum untuk sebuah logo.",
+        "sizesColumns": {
+            "shape": "Bentuk logo",
+            "smallest": "Terkecil yang bisa dibaca",
+            "recommended": "Direkomendasikan"
+        },
+        "shapes": {
+            "square": {
+                "name": "Tanda atau lencana persegi",
+                "ratio": "1:1"
+            },
+            "horizontal": {
+                "name": "Logo horizontal",
+                "ratio": "sekitar 2:1"
+            },
+            "wide": {
+                "name": "Logo lebar",
+                "ratio": "3:1 hingga 4:1"
+            },
+            "veryWide": {
+                "name": "Logo tulisan yang sangat lebar",
+                "ratio": "Rasio 5:1 atau lebih lebar"
+            },
+            "tall": {
+                "name": "Logo tinggi atau bertumpuk",
+                "ratio": "sekitar 1:2"
+            }
+        },
+        "sizeCell": "{{ w }} × {{ h }} · {{ squares }}",
+        "sizesNote": "Persegi panjang berukuran lebar × tinggi, dalam satuan kotak. Tanpa logo, persegi panjang dengan lebar minimal 4 kotak dan tinggi 2 kotak akan menampilkan nama Anda di dinding. Hadiah yang lebih kecil akan menampilkannya saat kursor diarahkan ke atasnya.",
+        "detailsNote": "Untuk cerita, pesan, atau logo, kirimkan email kepada kami dengan nama yang tertera pada hadiah Anda agar kami dapat mencocokkannya. Kami meninjau setiap desain sebelum dipajang.",
+        "detailsButton": "Kirimkan detail Anda melalui email.",
+        "detailsSubject": "Hadiahku di dinding {{ year }}",
+        "detailsEmail": "Nama pada hadiah saya: Jumlah, dan bulanan atau tahunan: Tampilkan nama saya, atau tetap anonim: Cara kami menggunakan API (opsional): Pesan singkat, maksimal 80 karakter (opsional): Logo: dilampirkan sebagai SVG, atau PNG minimal 600 px dengan latar belakang transparan (opsional) Persegi panjang (lebar x tinggi), jika mengirim logo:",
+        "thanksTitle": "Terima kasih banyak!",
+        "thanksBody": "Setiap dukungan yang diberikan mengingatkan kita bahwa kita tidak sendirian dan membuktikan bahwa ini adalah upaya global dari umat Kristen untuk umat Kristen.",
+        "signOff": "Dalam Kristus,",
+        "team": "Tim Laboratorium AO"
+    },
+    "fund": {
+        "eyebrow": "Memperkenalkan",
+        "title": "Dana Penggunaan Bebas",
+        "sub": "Kami meluncurkan dana berbasis proyek untuk memulai ekosistem terbuka bagi Kekristenan global.",
+        "propose": "Usulkan sebuah proyek",
+        "whatTitle": "Apa yang kami danai",
+        "whatBody1": "Visi kami adalah ekosistem yang berkembang dari umat Kristen yang menciptakan sumber daya domain publik berkualitas tinggi dan alat sumber terbuka dari karya satu sama lain.",
+        "whatBody2": "Kami mendanai penerjemahan, alat, kumpulan data, aset, dan apa pun yang dapat diintegrasikan atau dikembangkan oleh Gereja global, dengan memprioritaskan proyek-proyek yang memiliki potensi dampak terluas. Kami lebih menyukai konten CC0 dan perangkat lunak sumber terbuka di bawah lisensi seperti MIT atau AGPL. Setiap rilis memberikan lebih banyak bahan untuk dikembangkan oleh pengembang berikutnya.",
+        "statusTitle": "Status terkini",
+        "statusBody": "Target dukungan tahunan AO Lab sebesar {{ goal }} belum tercapai, sehingga Dana Penggunaan Gratis saat ini tidak memiliki dana. Anda dapat melihat status dukungan saat ini {{ here }} .",
+        "statusHere": "Di Sini",
+        "statusInvite": "{{ proposals }} dan selamat datang {{ feedback }} Anda.",
+        "statusProposals": "Kami menerima pengajuan proposal kapan saja.",
+        "statusFeedback": "masukan",
+        "feedbackSubject": "Umpan Balik Dana Penggunaan Gratis",
+        "callEyebrow": "Panggilan terbuka untuk pengajuan proposal",
+        "callTitle": "Apa yang akan kamu bangun?",
+        "callIntro": "Proyek baru dan pekerjaan yang sudah berjalan sama-sama diterima. Kami menyarankan pengajuan yang singkat dan langsung dengan detail seminimal mungkin. Kami akan menghubungi Anda untuk informasi lebih lanjut.",
+        "steps": {
+            "build": {
+                "title": "Apa yang ingin Anda bangun.",
+                "body": "Jelaskan proyek tersebut, siapa saja yang akan terlibat, dan dukungan apa yang mungkin Anda butuhkan."
+            },
+            "licences": {
+                "title": "Lisensi yang diusulkan.",
+                "body": "Sebutkan lisensi untuk konten, perangkat lunak, dan materi yang sudah ada yang akan Anda gunakan."
+            },
+            "why": {
+                "title": "Mengapa hal itu penting.",
+                "body": "Jelaskan nilai tambah hal ini bagi ekosistem terbuka yang sedang kita bangun untuk Kekristenan global."
+            }
+        },
+        "submit": "Ajukan proposal proyek",
+        "reportingEyebrow": "Akuntabilitas",
+        "reportingTitle": "Pembaruan triwulanan. Karya yang dibagikan secara publik.",
+        "reportingBody": "Kami akan mempublikasikan laporan pengeluaran dan proyek triwulanan di sini, termasuk pekerjaan yang sedang berlangsung. Proyek yang telah selesai akan dipublikasikan dan diumumkan segera setelah selesai.",
+        "faqTitle": "Beberapa pertanyaan praktis.",
+        "faq": {
+            "who": {
+                "q": "Siapa yang dapat mengirimkan proyek?",
+                "a": "Siapa pun di masyarakat umum, termasuk individu dan organisasi. Jelaskan apa yang ingin Anda bangun, lisensi yang diusulkan, dan mengapa hal itu penting bagi ekosistem terbuka yang melayani Kekristenan global."
+            },
+            "early": {
+                "q": "Mengapa mengajukan permohonan sebelum dana tersedia?",
+                "a": "Usulan Anda membantu kami mengidentifikasi kebutuhan dan menunjukkan dukungan apa yang dapat kami berikan. Usulan tersebut dapat membantu kami menggalang dukungan untuk AO Lab dan komunitas yang lebih luas, serta memberi kami proyek-proyek untuk dipertimbangkan ketika pendanaan tersedia."
+            },
+            "decides": {
+                "q": "Siapa yang memutuskan proyek mana yang menerima pendanaan?",
+                "a": "AO Lab mengelola dana dan memilih proyek berdasarkan dampak yang diharapkan bagi Kerajaan Allah dan manfaatnya bagi Gereja yang lebih luas. Proyek dapat berupa proyek besar atau kecil, dengan prioritas diberikan kepada pekerjaan yang dapat digunakan dan dikembangkan oleh komunitas terbesar."
+            },
+            "money": {
+                "q": "Bagaimana uang tersebut sampai ke dana tersebut?",
+                "a": "Setiap bulan September, kami mulai mengumpulkan dukungan tahunan untuk AO Lab untuk tahun berikutnya. Setelah target tersebut tercapai, semua dukungan tambahan akan masuk ke Dana Penggunaan Gratis hingga September berikutnya, dan siklus akan dimulai lagi."
+            },
+            "licences": {
+                "q": "Lisensi apa saja yang Anda dukung?",
+                "a": "Kami lebih menyukai persyaratan yang paling permisif, dengan CC0 sebagai pilihan ideal untuk konten seperti terjemahan, kumpulan data, dan aset. Perangkat lunak dapat menggunakan lisensi MIT, AGPL, atau lisensi sumber terbuka lainnya. Kami meninjau lisensi perangkat lunak berdasarkan kasus per kasus, dengan mempertimbangkan seberapa baik lisensi tersebut mendukung penggunaan kembali dan ekosistem yang lebih luas. Sebutkan lisensi yang Anda usulkan dalam proposal Anda."
+            },
+            "translation": {
+                "q": "Bisakah dana tersebut mendukung penerjemahan Alkitab?",
+                "a": "Ya. Terjemahan Alkitab CC0 dapat dipertimbangkan bersama dengan sumber daya dan alat sumber terbuka lainnya. Kami mengevaluasi proyek berdasarkan potensi dampaknya bagi kerajaan Allah dan manfaat bersama, bukan dengan memberikan prioritas otomatis pada satu jenis pekerjaan."
+            },
+            "progress": {
+                "q": "Di mana saya dapat memantau pengeluaran dan perkembangan proyek?",
+                "a": "Di halaman ini, pembaruan triwulanan akan menunjukkan bagaimana uang tersebut dibelanjakan dan proyek mana yang didukungnya, termasuk pekerjaan yang belum selesai. Proyek yang telah selesai akan dipublikasikan dan diumumkan setelah selesai."
+            },
+            "public": {
+                "q": "Apakah detail setiap proyek akan dipublikasikan?",
+                "a": "Satu-satunya pengecualian terhadap detail proyek lengkap adalah masalah keamanan: kami dapat menahan informasi yang dapat membahayakan orang-orang yang bekerja di wilayah yang teraniaya. Pelaporan triwulanan akan terus berlanjut, dengan detail sensitif ditahan jika diperlukan. Para pendana dipersilakan untuk {{ contact }} untuk mendiskusikan apa yang dapat dibagikan dengan aman."
+            }
+        },
+        "contactUs": "Hubungi kami",
+        "questionSubject": "Pertanyaan tentang Dana Penggunaan Bebas"
     },
     "notFound": {
         "title": "Halaman tidak ditemukan",

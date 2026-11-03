@@ -1,5 +1,5 @@
 ---
-description: 'Start using the Free Use Bible API in minutes. Install the JavaScript SDK or call the JSON endpoints directly — no API key or signup required.'
+description: 'Start using the Free Use Bible API in minutes. Install an SDK for JavaScript, Kotlin, or Swift, or call the JSON endpoints directly — no API key or signup required.'
 ---
 
 # Getting Started
@@ -11,6 +11,8 @@ Let's get right into it!
 We have API clients for the following languages:
 
 - [JavaScript/TypeScript](../sdks/javascript.md)
+- [Kotlin](../sdks/kotlin.md) (JVM and Android)
+- [Swift](../sdks/swift.md) (iOS, macOS, and Linux)
 
 ## API
 The Bible API is structured as a set of JSON files that are available for download from the internet.
