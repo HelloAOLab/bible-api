@@ -38,12 +38,13 @@ export function useVerses(): ComputedRef<Record<HomeVerse, QuotedVerse>> {
             (Object.keys(HOME_VERSES) as HomeVerse[]).map((key) => {
                 const own = __SITE_VERSES__[locale.value]?.[key];
                 const verse = own ?? __SITE_VERSES__['/'][key]!;
-                const {
-                    book,
-                    chapter,
-                    verse: first,
-                    endVerse,
-                } = HOME_VERSES[key];
+                const home = HOME_VERSES[key];
+                const { book } = home;
+                // A translation can number the verse differently.
+                const chapter = verse.chapter ?? home.chapter;
+                const first = verse.verse ?? home.verse;
+                const endVerse =
+                    home.endVerse && first + home.endVerse - home.verse;
                 const range = endVerse ? `${first}–${endVerse}` : `${first}`;
                 const reference = `${verse.bookName} ${chapter}:${range}`;
                 return [

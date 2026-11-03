@@ -4,5 +4,35 @@
         "bookName": "MATIUS",
         "translationAbbreviation": "AYT",
         "translationId": "ind_ayt"
+    },
+    "charge": {
+        "text": "Aku memintamu dengan sangat demi nama Tuhan, untuk membacakan surat ini kepada semua saudara di sana.",
+        "bookName": "1 TESALONIKA",
+        "translationAbbreviation": "AYT",
+        "translationId": "ind_ayt"
+    },
+    "hinder": {
+        "text": "Jika orang lain mempunyai hak ini atas kamu, bukankah kami lebih berhak lagi? Meskipun demikian, kami tidak menggunakan hak itu. Sebaliknya, kami menanggung segala sesuatu supaya kami tidak memberikan suatu halangan bagi Injil Kristus.",
+        "bookName": "1 KORINTUS",
+        "translationAbbreviation": "AYT",
+        "translationId": "ind_ayt"
+    },
+    "notToUs": {
+        "text": "Bukan kepada kami, ya TUHAN, bukan kepada kami, tetapi kepada nama-Mu kemuliaan diberi; oleh karena kasih setia-Mu, oleh karena kebenaran-Mu.",
+        "bookName": "MAZMUR",
+        "translationAbbreviation": "AYT",
+        "translationId": "ind_ayt"
+    },
+    "doNotWorry": {
+        "text": "“Sebab itu Aku berkata kepadamu, jangan khawatir tentang hidupmu, apa yang akan kamu makan atau apa yang kamu minum. Demikian juga tentang tubuhmu, apa yang akan kamu pakai. Bukankah hidup lebih penting daripada makanan, dan tubuh daripada pakaian? Lihatlah burung-burung di langit yang tidak menabur, tidak menuai, dan tidak mengumpulkan ke dalam lumbung, tetapi Bapa surgawimu memberi mereka makan. Bukankah kamu lebih berharga daripada mereka? Siapakah di antara kamu yang karena khawatir dapat menambah sehasta pada usianya? Dan, tentang pakaian, mengapa kamu khawatir? Perhatikan bunga bakung di padang, bagaimana mereka tumbuh, mereka tidak bekerja dan juga tidak memintal, tetapi Aku mengatakan kepadamu bahwa Salomo dalam segala kemuliaannya pun tidak berpakaian seperti salah satu dari bunga-bunga itu. Jadi, jika Allah mendandani sedemikian rupa rumput di padang, yang ada hari ini dan besok dilemparkan ke dalam perapian, bukankah terlebih lagi Dia akan mendandani kamu, hai kamu yang kurang iman? Karena itu, jangan kamu khawatir dengan berkata, ‘Apa yang akan kami makan?’, atau ‘Apa yang akan kami minum?’, atau ‘Apa yang akan kami pakai?’ Sebab, bangsa-bangsa lain mencari-cari semua ini dan Bapa surgawimu tahu bahwa kamu membutuhkan semua ini. Akan tetapi, carilah dahulu Kerajaan dan kebenaran-Nya, dan semuanya itu akan ditambahkan kepadamu. Jadi, jangan khawatir tentang hari esok karena hari esok akan mengkhawatirkan dirinya sendiri. Cukuplah suatu hari dengan kesusahannya sendiri.”",
+        "bookName": "MATIUS",
+        "translationAbbreviation": "AYT",
+        "translationId": "ind_ayt"
+    },
+    "wholeBody": {
+        "text": "Dari-Nya seluruh tubuh tersusun dan diikat bersama-sama menjadi satu melalui topangan setiap sendi. Jika masing-masing melakukan bagiannya, tubuh akan bertumbuh sehingga membangun dirinya sendiri dalam kasih.",
+        "bookName": "EFESUS",
+        "translationAbbreviation": "AYT",
+        "translationId": "ind_ayt"
     }
 }

@@ -44,6 +44,14 @@ export interface VerseText {
     /** The translation's ID in the Free Use Bible API, e.g. "AAB". */
     translationId: string;
     /**
+     * Where this translation numbers the verse, when it is not where
+     * HOME_VERSES says (the Russian Synodal numbers the Psalms as the
+     * Septuagint does, so Psalm 115:1 is its 113:9). Set by hand;
+     * fill-docs-verses keeps it.
+     */
+    chapter?: number;
+    verse?: number;
+    /**
      * The language of the text, when it is not the language of the page it
      * is shown on (a language with no Bible translation of its own can quote
      * one in a related language).
