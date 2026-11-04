@@ -285,11 +285,12 @@ const FLYWHEEL: (keyof Labels['home']['flywheel'])[] = [
 
 /* ---------- the reach map ---------- */
 
-// The number under the map: the countries in reach.ts, which lists those
-// with at least 100 requests.
-const reachCountries = computed(
-    () => formatCount(Object.keys(REACH_HITS).length) + '+'
+// The number under the map and in the text below it: the countries in
+// reach.ts, which lists those with at least 100 requests.
+const reachCountryCount = computed(() =>
+    formatCount(Object.keys(REACH_HITS).length)
 );
+const reachCountries = computed(() => reachCountryCount.value + '+');
 
 type FaqId = Exclude<keyof Labels['home']['faq'], 'money'>;
 const FAQ_ANSWERS: Record<FaqId, true> = {
@@ -906,6 +907,13 @@ onBeforeUnmount(() => {
                     <p class="reach-stat">
                         <b>{{ reachCountries }}</b>
                         <span>{{ labels.home.reachCountries }}</span>
+                    </p>
+                    <p class="fg-p fg-p-wide reach-body">
+                        {{
+                            fillLabel(labels.home.reachBody, {
+                                count: reachCountryCount,
+                            })
+                        }}
                     </p>
                 </div>
             </section>
@@ -1764,6 +1772,9 @@ onBeforeUnmount(() => {
         font-weight: 800;
         letter-spacing: -0.04em;
         line-height: 1;
+    }
+    .reach-body {
+        margin-top: clamp(28px, 4vh, 44px);
     }
     .reach-stat span {
         font-size: 16px;
