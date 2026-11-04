@@ -4,5 +4,35 @@
         "bookName": "Mathayo",
         "translationAbbreviation": "ONMM",
         "translationId": "swh_onmm"
+    },
+    "charge": {
+        "text": "Ninawaagiza mbele za Bwana Isa mhakikishe kuwa ndugu wote wanasomewa barua hii.",
+        "bookName": "1 Wathesalonike",
+        "translationAbbreviation": "ONMM",
+        "translationId": "swh_onmm"
+    },
+    "hinder": {
+        "text": "Kama wengine wana haki ya kupata msaada kutoka kwenu, isingepasa tuwe na haki hiyo hata zaidi? Lakini sisi hatukutumia haki hii. Kinyume chake, tunavumilia kila kitu ili tusije tukazuia Injili ya Al-Masihi.",
+        "bookName": "1 Wakorintho",
+        "translationAbbreviation": "ONMM",
+        "translationId": "swh_onmm"
+    },
+    "notToUs": {
+        "text": "Sio kwetu sisi, Ee Mwenyezi Mungu, sio kwetu sisi, bali utukufu ni kwa jina lako, kwa sababu ya upendo na uaminifu wako.",
+        "bookName": "Zaburi",
+        "translationAbbreviation": "ONMM",
+        "translationId": "swh_onmm"
+    },
+    "doNotWorry": {
+        "text": "“Kwa hiyo nawaambia, msisumbukie maisha yenu kwamba mtakula nini au mtakunywa nini; au msumbukie miili yenu kwamba mtavaa nini. Je, maisha si zaidi ya chakula, na mwili zaidi ya mavazi? Waangalieni ndege wa angani; wao hawapandi wala hawavuni au kuweka ghalani, lakini Baba yenu wa mbinguni huwalisha. Je, ninyi si wa thamani kuliko hao ndege? Ni nani miongoni mwenu ambaye kwa kujitaabisha kwake anaweza kujiongezea hata saa moja zaidi katika maisha yake? “Nanyi kwa nini mnajitaabisha kwa ajili ya mavazi? Fikirini maua ya shambani yameavyo. Hayafanyi kazi wala hayafumi. Lakini nawaambia, hata Sulemani katika fahari yake yote hakuvikwa vizuri kama mojawapo ya hayo maua. Basi ikiwa Mungu huyavika hivi majani ya shambani, ambayo leo yapo na kesho yanatupwa motoni, je, hatawavika ninyi vizuri zaidi, enyi wa imani haba? Kwa hiyo msiwe na wasiwasi, mkisema, ‘Tutakula nini?’ au ‘Tutakunywa nini?’ au ‘Tutavaa nini?’ Watu wasiomjua Mungu ndio wanaoshindania hayo, lakini Baba yenu wa mbinguni anafahamu kuwa mnahitaji haya yote. Lakini utafuteni kwanza ufalme wa Mungu na haki yake, na haya yote atawapa pia. Kwa hiyo msiwe na wasiwasi kuhusu kesho, kwa sababu kesho itajitaabikia yenyewe. Kila siku ina masumbufu yake ya kutosha.",
+        "bookName": "Mathayo",
+        "translationAbbreviation": "ONMM",
+        "translationId": "swh_onmm"
+    },
+    "wholeBody": {
+        "text": "Kutoka kwake, mwili wote ukiwa umeungamanishwa na kushikanishwa pamoja kwa msaada wa kila kiungo, hukua na kujijenga wenyewe katika upendo, huku kila kiungo kikifanya kazi yake.",
+        "bookName": "Waefeso",
+        "translationAbbreviation": "ONMM",
+        "translationId": "swh_onmm"
     }
 }

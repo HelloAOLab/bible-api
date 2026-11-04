@@ -414,6 +414,7 @@
         "whatTitle": "Wat ons befonds",
         "whatBody1": "Ons visie is 'n groeiende ekosisteem van Christene wat hoëgehalte-publieke domeinbronne en oopbron-instrumente uit mekaar se werk skep.",
         "whatBody2": "Ons befonds vertalings, gereedskap, datastelle, bates en enigiets anders wat die wêreldwye Kerk kan inkorporeer of waarop voortbou, en prioritiseer projekte met die grootste potensiële impak. Ons verkies CC0-inhoud en oopbronsagteware onder lisensies soos MIT of AGPL. Elke vrystelling gee die volgende bouer meer om mee te werk.",
+        "overview": "Lees die oorsig van die Vrye Gebruiksfonds",
         "statusTitle": "Huidige status",
         "statusBody": "AO Lab se jaarlikse ondersteuningsdoelwit van {{ goal }} is nog nie bereik nie, dus het die Vrye Gebruiksfonds tans geen geld nie. Jy kan die huidige ondersteuningsstatus {{ here }} sien.",
         "statusHere": "hier",
@@ -455,6 +456,14 @@
             "decides": {
                 "q": "Wie besluit watter projekte befondsing ontvang?",
                 "a": "AO Lab bestuur die fonds en kies projekte volgens hul verwagte impak op die koninkryk en voordeel vir die breër Kerk. Projekte kan groot of klein wees, met voorkeur gegee aan werk wat die grootste gemeenskap kan gebruik en waarop kan voortbou."
+            },
+            "staff": {
+                "q": "Kan AO Lab-personeel aansoek doen?",
+                "a": "Ja. Enigeen is welkom om aansoek te doen, insluitend AO Lab-personeel, en ons befonds die projekte wat ons glo die koninkryk die beste sal bevorder. Die fonds is ontwerp om die breër ekosisteem buite ons eie span te laat groei, daarom is ons sterk vooroordeel om uitwaarts te befonds. Ons verwag dat personeelbefondsing gering sal wees, maar ons sal dit nie uitsluit wanneer iemand in ons span duidelik die beste persoon vir 'n hoë-impakprojek is nie."
+            },
+            "commission": {
+                "q": "Gee AO Lab opdragte vir projekte of reël hulle geleenthede?",
+                "a": "Ja. Saam met oop voorstelle kan ons kritieke gapings in die ekosisteem identifiseer en bekwame individue of spanne nooi om hulle aan te pak. Soos die fonds groei, kan ons ook miskien 5% tot 10% aan hackathons, pryse en samewerkende sprinte toewys wat nuwe bouers in die werk betrek en vrylik herbruikbare hulpbronne produseer. Dit is 'n riglyn, nie 'n kwota nie: wanneer waardige projekte befondsing benodig, gaan die geld na die projekte."
             },
             "money": {
                 "q": "Hoe bereik geld die fonds?",

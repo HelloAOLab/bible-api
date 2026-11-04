@@ -4,5 +4,35 @@
         "bookName": "馬太福音",
         "translationAbbreviation": "CBT",
         "translationId": "cmn_cbt"
+    },
+    "charge": {
+        "text": "我奉主的名吩咐你們把這封信讀給所有弟兄姊妹聽。",
+        "bookName": "帖撒羅尼迦前書",
+        "translationAbbreviation": "CBT",
+        "translationId": "cmn_cbt"
+    },
+    "hinder": {
+        "text": "如果別人有權要求你們供應他們，我們豈不更有權嗎？可是我們從來沒有用過這權利，反而凡事忍耐，免得妨礙了基督的福音。",
+        "bookName": "哥林多前書",
+        "translationAbbreviation": "CBT",
+        "translationId": "cmn_cbt"
+    },
+    "notToUs": {
+        "text": "耶和華啊， 不要將榮耀歸於我們， 不要歸於我們。 榮耀歸於你的名， 因為你慈愛、信實！",
+        "bookName": "詩篇",
+        "translationAbbreviation": "CBT",
+        "translationId": "cmn_cbt"
+    },
+    "doNotWorry": {
+        "text": "「所以我告訴你們，不要為生活憂慮，比如吃什麼、喝什麼，也不要為身體憂慮，比如穿什麼。難道生命不比飲食重要嗎？身體不比穿著重要嗎？ 「你們看天上的飛鳥，牠們不種，不收，也不在倉裡積存糧食，你們的天父尚且養活牠們，難道你們還不如飛鳥貴重嗎？ 你們誰能用憂慮使自己多活片刻呢？ 「何必為穿著憂慮呢？你們看看野地的百合花是如何生長的，它們既不勞苦，也不紡織。 但我告訴你們，就連所羅門王最顯赫時的穿戴還不如一朵百合花！ 你們的信心太小了！野地的草今天還在，明天就被扔進爐中，上帝還這樣裝扮它們，何況你們呢？ 所以，你們不要憂慮『吃什麼？喝什麼？穿什麼？』 因為這些都是外族人的追求，你們的天父知道你們的需要。 「你們要先尋求上帝的國和祂的義，這一切都會賜給你們。 所以，不要為明天憂慮，因為明天自有明天的憂慮，一天的難處一天擔就夠了。",
+        "bookName": "馬太福音",
+        "translationAbbreviation": "CBT",
+        "translationId": "cmn_cbt"
+    },
+    "wholeBody": {
+        "text": "整個身體靠祂巧妙地結合在一起，筋骨相連，各部位各盡其職，身體便漸漸成長，在愛中建立起來。",
+        "bookName": "以弗所書",
+        "translationAbbreviation": "CBT",
+        "translationId": "cmn_cbt"
     }
 }

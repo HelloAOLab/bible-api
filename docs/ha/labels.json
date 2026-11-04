@@ -414,6 +414,7 @@
         "whatTitle": "Abin da muke bayarwa",
         "whatBody1": "Manufarmu ita ce ci gaban yanayin halittu na Kiristoci waɗanda ke ƙirƙirar albarkatu masu inganci na jama'a da kayan aikin buɗe tushen daga aikin juna.",
         "whatBody2": "Muna ba da kuɗaɗen fassara, kayan aiki, bayanai, kadarori, da duk wani abu da Cocin duniya za ta iya haɗawa ko ginawa a kai, muna ba da fifiko ga ayyuka masu fa'ida mafi girma. Muna fifita abubuwan CC0 da software na buɗe tushen aiki a ƙarƙashin lasisi kamar MIT ko AGPL. Kowane fitarwa yana ba wa mai ginin na gaba ƙarin aiki da shi.",
+        "overview": "Karanta taƙaitaccen Bayani game da Asusun Amfani Kyauta",
         "statusTitle": "Matsayin da ake ciki yanzu",
         "statusBody": "Har yanzu ba a cimma burin tallafin AO Lab na shekara-shekara na {{ goal }} ba, don haka Asusun Amfani da Kyauta a halin yanzu ba shi da kuɗi. Kuna iya duba matsayin tallafin na yanzu {{ here }} .",
         "statusHere": "nan",
@@ -455,6 +456,14 @@
             "decides": {
                 "q": "Wa zai yanke shawara kan ayyukan da za a ba da kuɗi?",
                 "a": "AO Lab tana kula da asusun kuma tana zaɓar ayyuka bisa ga tasirin da masarautar ke da shi da kuma fa'idar da take da shi ga Cocin. Ayyuka na iya zama babba ko ƙarami, tare da fifiko ga aikin da babban al'umma zai iya amfani da shi kuma ya gina a kai."
+            },
+            "staff": {
+                "q": "Shin ma'aikatan AO Lab za su iya neman aiki?",
+                "a": "Eh. Kowa yana da damar yin rijista, gami da ma'aikatan AO Lab, kuma muna ba da kuɗin ayyukan da muka yi imanin za su fi ciyar da ƙasar gaba. An tsara asusun ne don haɓaka yanayin muhalli fiye da na ƙungiyarmu, don haka babban son zuciyarmu shine don ba da kuɗi ga waje. Muna tsammanin kuɗin ma'aikata ba zai yi yawa ba, amma ba za mu yi watsi da shi ba idan wani a cikin ƙungiyarmu a bayyane yake shine mutumin da ya fi dacewa da wani aiki mai tasiri."
+            },
+            "commission": {
+                "q": "Shin AO Lab yana ba da umarni kan ayyuka ko gudanar da tarurruka?",
+                "a": "Eh. Tare da shawarwari masu buɗewa, za mu iya gano manyan gibin da ke cikin yanayin muhalli kuma mu gayyaci mutane ko ƙungiyoyi masu ƙwarewa su ɗauki nauyinsu. Yayin da asusun ke ƙaruwa, za mu iya kuma sanya kusan kashi 5% zuwa 10% ga hackathons, kyaututtuka, da kuma tseren haɗin gwiwa waɗanda ke kawo sabbin magina cikin aikin kuma suna samar da albarkatu masu sake amfani da su kyauta. Wannan jagora ne, ba ƙa'ida ba: lokacin da ayyuka masu kyau ke buƙatar kuɗi, kuɗin yana zuwa ga ayyukan."
             },
             "money": {
                 "q": "Ta yaya kuɗi ke isa ga asusun?",

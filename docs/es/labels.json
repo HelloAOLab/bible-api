@@ -414,6 +414,7 @@
         "whatTitle": "Lo que financiamos",
         "whatBody1": "Nuestra visión es la de un ecosistema creciente de cristianos que creen recursos de dominio público de alta calidad y herramientas de código abierto a partir del trabajo de los demás.",
         "whatBody2": "Financiamos traducciones, herramientas, conjuntos de datos, recursos y todo lo demás que la Iglesia global pueda incorporar o desarrollar, priorizando los proyectos con mayor potencial de impacto. Favorecemos el contenido CC0 y el software de código abierto bajo licencias como MIT o AGPL. Cada lanzamiento ofrece al siguiente desarrollador más recursos para trabajar.",
+        "overview": "Lea la descripción general del Fondo de Uso Libre.",
         "statusTitle": "Estado actual",
         "statusBody": "El objetivo de apoyo anual de AO Lab de {{ goal }} aún no se ha alcanzado, por lo que el Fondo de Uso Gratuito actualmente no tiene dinero. Puede ver el estado actual del apoyo {{ here }} .",
         "statusHere": "aquí",
@@ -455,6 +456,14 @@
             "decides": {
                 "q": "¿Quién decide qué proyectos reciben financiación?",
                 "a": "AO Lab administra el fondo y selecciona proyectos según su impacto previsto en el reino de Dios y su beneficio para la Iglesia en general. Los proyectos pueden ser grandes o pequeños, priorizando aquellos que la comunidad más amplia pueda aprovechar y desarrollar."
+            },
+            "staff": {
+                "q": "¿Puede presentar su solicitud el personal del laboratorio AO?",
+                "a": "Sí. Cualquiera puede presentar su solicitud, incluido el personal de AO Lab, y financiamos los proyectos que consideramos que impulsarán el desarrollo del sector. El fondo está diseñado para expandir el ecosistema más allá de nuestro equipo, por lo que priorizamos la financiación externa. Si bien prevemos que la financiación para el personal será menor, no la descartamos si algún miembro de nuestro equipo es claramente la persona idónea para un proyecto de gran impacto."
+            },
+            "commission": {
+                "q": "¿AO Lab encarga proyectos o organiza eventos?",
+                "a": "Sí. Además de las propuestas abiertas, podemos identificar carencias críticas en el ecosistema e invitar a personas o equipos capacitados a abordarlas. A medida que el fondo crezca, también podríamos destinar entre un 5 % y un 10 % a hackatones, premios y sprints colaborativos que incorporen a nuevos desarrolladores y generen recursos reutilizables. Esto es una pauta, no una cuota: cuando los proyectos valiosos necesitan financiación, el dinero se destina a ellos."
             },
             "money": {
                 "q": "¿Cómo llega el dinero al fondo?",

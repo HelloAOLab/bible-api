@@ -11,12 +11,16 @@
     "repository": "https://github.com/HelloAOLab/bible-api",
     "scripts": {
         "dev": "vuepress dev",
-        "build": "vuepress build --dest ../build/docs"
+        "build": "vuepress build --dest ../build/docs",
+        "build:cloudflare": "node ./cloudflare/prepare-site.mjs",
+        "build:cloudflare:preview": "node ./cloudflare/prepare-site.mjs --preview",
+        "deploy:cloudflare": "pnpm build && pnpm build:cloudflare && wrangler deploy"
     },
     "license": "MIT",
     "devDependencies": {
         "sass-embedded": "^1.83.0",
-        "vuepress": "^2.0.0-rc.31"
+        "vuepress": "^2.0.0-rc.31",
+        "wrangler": "^4.40.0"
     },
     "dependencies": {
         "@vuepress/bundler-vite": "2.0.0-rc.31",

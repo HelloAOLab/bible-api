@@ -25,7 +25,7 @@ gcloud auth application-default login
 gcloud auth application-default set-quota-project <project-id>
 
 pnpm translate:docs --list-languages   # Unterstützte Sprachcodes anzeigen
-pnpm translate:docs es fr zh-CN         # schreibt Dokumente in den Sprachen es, fr und zh-CN.
+pnpm translate:docs es fr zh-CN         # schreibt Dokumente in es, fr und zh-CN
 ```
 
 Kommentare in Codeblöcken werden ebenfalls übersetzt (für Sprachen wie TypeScript, JSON und Bash), der eigentliche Code, Inline-Code, URLs und HTML bleiben jedoch unverändert. Links werden so umgeschrieben, dass sie auf die übersetzten Seiten verweisen. Geben Sie `--skip-code-comments` an, um die Codekommentare auf Englisch zu belassen. Dateien, deren Übersetzung neuer als die englische Quelldatei ist, werden übersprungen; geben Sie `--force` an, um sie neu zu übersetzen. Die Beschriftungen der Navigations- und Seitenleiste sowie der Text der Startseite und der 404-Seite (in `.vuepress/labels.json` ) werden in `<language>/labels.json` übersetzt. Fehlende Beschriftungen werden auf Englisch zurückgeführt. Die auf der Startseite zitierten Bibelverse werden nicht maschinell übersetzt, sondern stammen aus einer Übersetzung der Free Use Bible API. `pnpm fill:docs-verses` füllt Schritt `<language>/verses.json` für jede Sprache aus und wählt dabei eine Übersetzung analog zur Seed Bible App. Bereits vorhandene Verse in einer Datei bleiben erhalten (geben Sie `--force` an, um sie zu ersetzen), sodass sie manuell bearbeitet werden können. Siehe Schritt `.vuepress/verses.ts` Führen Sie Schritt `pnpm translate:docs --help` aus, um alle Optionen anzuzeigen.
