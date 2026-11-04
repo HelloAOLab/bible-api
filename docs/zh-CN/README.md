@@ -1,7 +1,7 @@
 ---
 layout: HomeLayout
 sidebar: false
-title: '免费使用圣经 API'
+title: '免费使用圣经API'
 headTitle: '免费使用圣经 API | AO 实验室'
 description: '一个易于使用且功能齐全的圣经JSON API。无需API密钥，无使用限制，无版权限制。'
 ---

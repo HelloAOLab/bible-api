@@ -414,6 +414,7 @@
         "whatTitle": "Apa yang kami danai",
         "whatBody1": "Visi kami adalah ekosistem yang berkembang dari umat Kristen yang menciptakan sumber daya domain publik berkualitas tinggi dan alat sumber terbuka dari karya satu sama lain.",
         "whatBody2": "Kami mendanai penerjemahan, alat, kumpulan data, aset, dan apa pun yang dapat diintegrasikan atau dikembangkan oleh Gereja global, dengan memprioritaskan proyek-proyek yang memiliki potensi dampak terluas. Kami lebih menyukai konten CC0 dan perangkat lunak sumber terbuka di bawah lisensi seperti MIT atau AGPL. Setiap rilis memberikan lebih banyak bahan untuk dikembangkan oleh pengembang berikutnya.",
+        "overview": "Baca ringkasan Dana Penggunaan Gratis.",
         "statusTitle": "Status terkini",
         "statusBody": "Target dukungan tahunan AO Lab sebesar {{ goal }} belum tercapai, sehingga Dana Penggunaan Gratis saat ini tidak memiliki dana. Anda dapat melihat status dukungan saat ini {{ here }} .",
         "statusHere": "Di Sini",
@@ -455,6 +456,14 @@
             "decides": {
                 "q": "Siapa yang memutuskan proyek mana yang menerima pendanaan?",
                 "a": "AO Lab mengelola dana dan memilih proyek berdasarkan dampak yang diharapkan bagi Kerajaan Allah dan manfaatnya bagi Gereja yang lebih luas. Proyek dapat berupa proyek besar atau kecil, dengan prioritas diberikan kepada pekerjaan yang dapat digunakan dan dikembangkan oleh komunitas terbesar."
+            },
+            "staff": {
+                "q": "Apakah staf AO Lab dapat melamar?",
+                "a": "Ya. Siapa pun dipersilakan untuk mendaftar, termasuk staf AO Lab, dan kami mendanai proyek-proyek yang kami yakini akan paling memajukan kerajaan. Dana ini dirancang untuk mengembangkan ekosistem yang lebih luas di luar tim kami sendiri, jadi kami sangat memprioritaskan pendanaan ke luar. Kami memperkirakan pendanaan untuk staf akan bersifat kecil, tetapi kami tidak akan mengesampingkannya jika ada seseorang di tim kami yang jelas merupakan orang terbaik untuk proyek yang berdampak tinggi."
+            },
+            "commission": {
+                "q": "Apakah AO Lab memesan proyek atau menyelenggarakan acara?",
+                "a": "Ya. Selain proposal terbuka, kami dapat mengidentifikasi kesenjangan kritis dalam ekosistem dan mengundang individu atau tim yang kompeten untuk menanganinya. Seiring pertumbuhan dana, kami mungkin juga mengalokasikan sekitar 5% hingga 10% untuk hackathon, hadiah, dan sprint kolaboratif yang membawa pengembang baru ke dalam pekerjaan dan menghasilkan sumber daya yang dapat digunakan kembali secara gratis. Itu adalah pedoman, bukan kuota: ketika proyek yang layak membutuhkan dana, uang tersebut akan diberikan kepada proyek tersebut."
             },
             "money": {
                 "q": "Bagaimana uang tersebut sampai ke dana tersebut?",

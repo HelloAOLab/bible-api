@@ -414,6 +414,7 @@
         "whatTitle": "Tunachofadhili",
         "whatBody1": "Maono yetu ni mfumo ikolojia unaokua wa Wakristo wanaounda rasilimali za umma zenye ubora wa hali ya juu na zana huria kutoka kwa kazi ya kila mmoja.",
         "whatBody2": "Tunafadhili tafsiri, zana, seti za data, mali, na kitu kingine chochote ambacho Kanisa la kimataifa linaweza kujumuisha au kujenga juu yake, tukipa kipaumbele miradi yenye athari kubwa zaidi. Tunapendelea maudhui ya CC0 na programu huria chini ya leseni kama vile MIT au AGPL. Kila toleo humpa mjenzi anayefuata zaidi ya kufanya kazi naye.",
+        "overview": "Soma muhtasari wa Mfuko wa Matumizi Bila Malipo",
         "statusTitle": "Hali ya sasa",
         "statusBody": "Lengo la usaidizi la kila mwaka la AO Lab la {{ goal }} bado halijafikiwa, kwa hivyo Mfuko wa Matumizi Bila Malipo kwa sasa hauna pesa. Unaweza kutazama hali ya usaidizi wa sasa {{ here }} .",
         "statusHere": "hapa",
@@ -455,6 +456,14 @@
             "decides": {
                 "q": "Nani anaamua ni miradi gani inayopata ufadhili?",
                 "a": "AO Lab husimamia mfuko na kuchagua miradi kulingana na athari na manufaa ya ufalme wao kwa Kanisa pana. Miradi inaweza kuwa mikubwa au midogo, huku kipaumbele kikipewa kazi ambayo jamii kubwa zaidi inaweza kutumia na kujenga juu yake."
+            },
+            "staff": {
+                "q": "Je, wafanyakazi wa Maabara ya AO wanaweza kuomba?",
+                "a": "Ndiyo. Mtu yeyote anakaribishwa kutuma maombi, ikiwa ni pamoja na wafanyakazi wa AO Lab, na tunafadhili miradi tunayoamini itaendeleza vyema ufalme. Mfuko huu umeundwa ili kukuza mfumo mpana zaidi ya timu yetu wenyewe, kwa hivyo upendeleo wetu mkubwa ni kufadhili nje. Tunatarajia ufadhili wa wafanyakazi kuwa mdogo, lakini hatutapuuza wakati mtu katika timu yetu ndiye mtu bora zaidi kwa mradi wenye athari kubwa."
+            },
+            "commission": {
+                "q": "Je, Maabara ya AO huandaa au kuendesha matukio?",
+                "a": "Ndiyo. Pamoja na mapendekezo ya wazi, tunaweza kutambua mapengo muhimu katika mfumo ikolojia na kuwaalika watu binafsi au timu zenye uwezo kuyachukua. Kadri mfuko unavyokua, tunaweza pia kuweka labda 5% hadi 10% kwa hackathons, zawadi, na mbio za shirikishi zinazowaleta wajenzi wapya katika kazi hiyo na kutoa rasilimali zinazoweza kutumika tena kwa uhuru. Huo ni mwongozo, si mgao: miradi inayofaa inapohitaji ufadhili, pesa huenda kwa miradi."
             },
             "money": {
                 "q": "Pesa hufikaje kwenye mfuko?",

@@ -414,6 +414,7 @@
         "whatTitle": "Ce que nous finançons",
         "whatBody1": "Notre vision est celle d'un écosystème croissant de chrétiens créant des ressources de haute qualité du domaine public et des outils open source à partir du travail des uns et des autres.",
         "whatBody2": "Nous finançons les traductions, les outils, les ensembles de données, les ressources et tout ce que l'Église universelle peut intégrer ou développer, en privilégiant les projets à fort potentiel d'impact. Nous privilégions les contenus CC0 et les logiciels libres sous licences telles que MIT ou AGPL. Chaque nouvelle version offre davantage de ressources aux développeurs suivants.",
+        "overview": "Consultez l'aperçu du Fonds d'utilisation gratuite",
         "statusTitle": "État actuel",
         "statusBody": "L'objectif de soutien annuel d'AO Lab, fixé à {{ goal }} n'a pas encore été atteint. Par conséquent, le Fonds d'utilisation gratuite est actuellement à sec. Vous pouvez consulter l'état actuel du {{ here }} .",
         "statusHere": "ici",
@@ -455,6 +456,14 @@
             "decides": {
                 "q": "Qui décide quels projets reçoivent un financement ?",
                 "a": "AO Lab gère le fonds et sélectionne les projets en fonction de leur impact attendu sur le Royaume et de leurs retombées positives pour l'Église dans son ensemble. Les projets peuvent être de grande ou de petite envergure, la priorité étant donnée à ceux que la communauté la plus large peut utiliser et développer."
+            },
+            "staff": {
+                "q": "Le personnel du laboratoire AO peut-il postuler ?",
+                "a": "Oui. Toute personne intéressée peut candidater, y compris le personnel d'AO Lab. Nous finançons les projets qui, selon nous, contribueront le plus à l'avancement du royaume. Ce fonds vise à développer l'écosystème au-delà de notre propre équipe ; nous privilégions donc fortement les financements externes. Le financement du personnel devrait rester marginal, mais nous n'excluons pas cette possibilité si un membre de notre équipe se révèle être la personne la plus compétente pour un projet à fort impact."
+            },
+            "commission": {
+                "q": "Est-ce que AO Lab commande des projets ou organise des événements ?",
+                "a": "Oui. Parallèlement aux propositions ouvertes, nous pouvons identifier les lacunes critiques de l'écosystème et inviter des personnes ou des équipes compétentes à les combler. À mesure que le fonds se développe, nous pourrions également consacrer 5 à 10 % à des hackathons, des prix et des sprints collaboratifs qui permettent d'intégrer de nouveaux développeurs et de produire des ressources librement réutilisables. Il s'agit d'une indication, et non d'un quota : lorsque des projets méritants ont besoin de financement, les fonds leur sont alloués."
             },
             "money": {
                 "q": "Comment l'argent parvient-il au fonds ?",

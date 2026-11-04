@@ -414,6 +414,7 @@
         "whatTitle": "Lokho esikuxhasayo",
         "whatBody1": "Umbono wethu uwuhlelo olukhulayo lwamaKristu akha izinsiza zomphakathi ezisezingeni eliphezulu kanye namathuluzi omthombo ovulekile emsebenzini womunye nomunye.",
         "whatBody2": "Sixhasa ukuhumusha, amathuluzi, amasethi edatha, izimpahla, nanoma yini enye iSonto lomhlaba wonke elingayifaka noma lakhele kuyo, sibeka phambili amaphrojekthi anethonya elikhulu kakhulu. Sithanda okuqukethwe kwe-CC0 kanye nesofthiwe yomthombo ovulekile ngaphansi kwamalayisense afana ne-MIT noma i-AGPL. Ukukhishwa ngakunye kunikeza umakhi olandelayo okwengeziwe ukusebenza naye.",
+        "overview": "Funda ukubuka konke kweSikhwama Sokusetshenziswa Kwamahhala",
         "statusTitle": "Isimo samanje",
         "statusBody": "Umgomo wokusekela waminyaka yonke we-AO Lab ongu- {{ goal }} awukafinyelelwa, ngakho-ke iSikhwama Sokusebenzisa Mahhala asinayo imali okwamanje. Ungabuka isimo sokusekela samanje {{ here }} .",
         "statusHere": "lapha",
@@ -455,6 +456,14 @@
             "decides": {
                 "q": "Ubani onquma ukuthi yimaphi amaphrojekthi athola uxhaso?",
                 "a": "I-AO Lab iphatha isikhwama futhi ikhetha amaphrojekthi ngomthelela wawo olindelekile wombuso kanye nenzuzo eBandleni elibanzi. Amaphrojekthi angaba makhulu noma amancane, kubekwe phambili umsebenzi umphakathi omkhulu ongawusebenzisa futhi wakhe kuwo."
+            },
+            "staff": {
+                "q": "Ingabe abasebenzi be-AO Lab bangafaka izicelo?",
+                "a": "Yebo. Noma ubani wamukelekile ukufaka isicelo, okuhlanganisa nabasebenzi be-AO Lab, futhi sixhasa amaphrojekthi esikholelwa ukuthi azothuthukisa umbuso kangcono. Lesi sikhwama senzelwe ukukhulisa uhlelo olubanzi lwezemvelo ngale kwethimba lethu, ngakho-ke ukukhetha kwethu okukhulu ukuxhasa ngemali yangaphandle. Silindele ukuthi ukuxhaswa kwabasebenzi kube kuncane, kodwa ngeke sikulahle uma othile eqenjini lethu engumuntu ongcono kakhulu wephrojekthi enomthelela omkhulu."
+            },
+            "commission": {
+                "q": "Ingabe ikhomishini ye-AO Lab ihlela noma iqhuba imicimbi?",
+                "a": "Yebo. Kanye neziphakamiso ezivulekile, singase sibone izikhala ezibalulekile ohlelweni lwe-ecosystem bese simema abantu abanekhono noma amaqembu ukuthi bazithathe. Njengoba isikhwama sikhula, singase futhi sibeke u-5% kuya ku-10% kuma-hackathon, imiklomelo, kanye nama-sprints okubambisana aletha abakhi abasha emsebenzini futhi akhiqize izinsiza ezingasetshenziswa kabusha ngokukhululeka. Leso yisiqondiso, hhayi isabelo: lapho amaphrojekthi afanele edinga uxhaso, imali iya kumaphrojekthi."
             },
             "money": {
                 "q": "Imali ifika kanjani esikhwameni?",
