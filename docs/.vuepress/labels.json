@@ -180,9 +180,12 @@
                 "full": "Full Bible",
                 "newTestament": "New Testament",
                 "portions": "Portions",
-                "none": "Nothing free yet"
+                "none": "No Scripture in our API"
             },
-            "source": "Counts the most Scripture the Free Use Bible API has in each language under an open licence: public domain, CC BY or CC BY-SA. Some of these languages have Scripture elsewhere, under restrictive terms or not yet in the API. Speakers of Arabic and Chinese varieties are counted as served by Standard Arabic and Mandarin. First-language populations from the Joshua Project, June 2026; catalog as of November 2026."
+            "open": "Open",
+            "restricted": "Restricted",
+            "mixed": "Shapes nest: a grey square with a black triangle is a restricted full Bible and an open New Testament.",
+            "source": "Shows the most Scripture the Free Use Bible API has in each language. Open means public domain, CC BY or CC BY-SA; restricted is any other licence. Languages with no Scripture in the API may have some that is not in it yet. Speakers of Arabic and Chinese varieties are counted as served by Standard Arabic and Mandarin. First-language populations from the Joshua Project, June 2026; catalog as of November 2026."
         },
         "flywheelTitle": "The answer is more public domain resources.",
         "flywheelLabel": "The flywheel",

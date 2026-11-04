@@ -1,8 +1,12 @@
 <script setup lang="ts">
 /**
  * "The need" on the home page: the world's first languages, or its people, as
- * a grid of squares shaded by the most Scripture the API has for them under
- * an open licence. Drawn from needData.ts on a canvas.
+ * a grid of squares showing the most Scripture the API has for them. The
+ * shape is the amount (a square for a full Bible, a triangle for a New
+ * Testament, a small square for portions) and the ink is the licence: black
+ * for open, grey for restricted. When the API has more under restrictive
+ * terms than openly, the open shape is drawn inside the restricted one.
+ * Drawn from needData.ts on a canvas.
  */
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { usePageLang } from 'vuepress/client';
@@ -11,6 +15,8 @@ import { fillLabel, labelHtml } from '../composables/formatLabel';
 import { NEED, NEED_CODES, NEED_LEVELS, type NeedLevel } from '../needData';
 
 type View = 'languages' | 'people';
+/** The most Scripture under any licence, and under an open one. */
+type Cell = { any: NeedLevel; open: NeedLevel };
 
 const labels = useLabels();
 const lang = usePageLang();
@@ -35,21 +41,36 @@ const compact = (value: number) =>
         compactDisplay: 'long',
         maximumFractionDigits: 1,
     });
+const percent = (value: number) =>
+    format(value, { style: 'percent', maximumFractionDigits: 1 });
 
-const LANGUAGE_CELLS: NeedLevel[] = Array.from(
-    NEED.languageLevels,
-    (c) => NEED_CODES[c]
-);
+const LANGUAGE_CELLS: Cell[] = Array.from(NEED.anyLevels, (c, i) => ({
+    any: NEED_CODES[c],
+    open: NEED_CODES[NEED.openLevels[i]],
+}));
 const totalLanguages = LANGUAGE_CELLS.length;
-const world = NEED_LEVELS.reduce((s, l) => s + NEED.people[l], 0);
 
-// The people view: a thousand squares, split between the levels by largest
-// remainder so they add up, best level first.
-const PEOPLE_SQUARES = 1000;
-const PEOPLE_CELLS: NeedLevel[] = (() => {
-    const exact = NEED_LEVELS.map(
-        (l) => (NEED.people[l] / world) * PEOPLE_SQUARES
+// Every (any, open) pair with people in it, best first.
+const PEOPLE_GROUPS: (Cell & { people: number })[] = Object.entries(NEED.people)
+    .flatMap(([a, byOpen]) =>
+        Object.entries(byOpen).map(([o, people]) => ({
+            any: NEED_CODES[a],
+            open: NEED_CODES[o],
+            people,
+        }))
+    )
+    .sort(
+        (x, y) =>
+            NEED_LEVELS.indexOf(x.any) - NEED_LEVELS.indexOf(y.any) ||
+            NEED_LEVELS.indexOf(x.open) - NEED_LEVELS.indexOf(y.open)
     );
+const world = PEOPLE_GROUPS.reduce((s, g) => s + g.people, 0);
+
+// The people view: a thousand squares, split between the groups by largest
+// remainder so they add up.
+const PEOPLE_SQUARES = 1000;
+const PEOPLE_CELLS: Cell[] = (() => {
+    const exact = PEOPLE_GROUPS.map((g) => (g.people / world) * PEOPLE_SQUARES);
     const whole = exact.map(Math.floor);
     let left = PEOPLE_SQUARES - whole.reduce((a, b) => a + b, 0);
     exact
@@ -61,21 +82,40 @@ const PEOPLE_CELLS: NeedLevel[] = (() => {
                 left--;
             }
         });
-    return NEED_LEVELS.flatMap((l, i) => Array(whole[i]).fill(l));
+    return PEOPLE_GROUPS.flatMap((g, i) =>
+        Array.from({ length: whole[i] }, () => ({ any: g.any, open: g.open }))
+    );
 })();
 
 const cells = computed(() =>
     view.value === 'languages' ? LANGUAGE_CELLS : PEOPLE_CELLS
 );
 
+/** Languages and people by their best level, and whether it is open. */
+function tally(level: NeedLevel, open: boolean) {
+    const match = (c: Cell) => c.any === level && (c.open === level) === open;
+    return {
+        languages: LANGUAGE_CELLS.filter(match).length,
+        people: PEOPLE_GROUPS.filter(match).reduce((s, g) => s + g.people, 0),
+    };
+}
+
+const noOpenPeople = PEOPLE_GROUPS.filter((g) => g.open === 'none').reduce(
+    (s, g) => s + g.people,
+    0
+);
+
 const title = computed(() =>
-    fillLabel(n.value.title, { people: compact(NEED.people.none) })
+    fillLabel(n.value.title, { people: compact(noOpenPeople) })
 );
 const lead = computed(() =>
     labelHtml(n.value.lead, {
         total: format(totalLanguages),
-        full: format(NEED.languages.full),
-        restricted: format(NEED.restrictedOnly),
+        full: format(tally('full', true).languages),
+        restricted: format(
+            LANGUAGE_CELLS.filter((c) => c.open === 'none' && c.any !== 'none')
+                .length
+        ),
     })
 );
 const caption = computed(() =>
@@ -86,48 +126,75 @@ const caption = computed(() =>
           })
 );
 
-const legend = computed(() =>
-    NEED_LEVELS.map((level) => ({
+function figure(t: { languages: number; people: number }) {
+    return view.value === 'languages'
+        ? { value: format(t.languages), detail: '' }
+        : { value: percent(t.people / world), detail: compact(t.people) };
+}
+
+// The legend: a row for each amount, a column for each kind of licence.
+const legendRows = computed(() =>
+    (['full', 'newTestament', 'portions'] as NeedLevel[]).map((level) => ({
         level,
         name: n.value.levels[level],
-        value:
-            view.value === 'languages'
-                ? format(NEED.languages[level])
-                : format(NEED.people[level] / world, {
-                      style: 'percent',
-                      maximumFractionDigits: 1,
-                  }),
-        detail: view.value === 'people' ? compact(NEED.people[level]) : '',
+        open: figure(tally(level, true)),
+        restricted: figure(tally(level, false)),
     }))
 );
+const legendNone = computed(() => ({
+    name: n.value.levels.none,
+    ...figure(tally('none', true)),
+}));
 
-const ariaLabel = computed(
-    () =>
+const ariaLabel = computed(() => {
+    const part = (name: string, f: { value: string; detail: string }) =>
+        `${name}: ${f.value}${f.detail ? ` (${f.detail})` : ''}`;
+    return (
         caption.value +
         ' ' +
-        legend.value
-            .map(
-                (l) =>
-                    `${l.name}: ${l.value}${l.detail ? ` (${l.detail})` : ''}`
-            )
-            .join(', ') +
+        legendRows.value
+            .flatMap((r) => [
+                part(`${r.name}, ${n.value.open}`, r.open),
+                part(`${r.name}, ${n.value.restricted}`, r.restricted),
+            ])
+            .concat(part(legendNone.value.name, legendNone.value))
+            .join('; ') +
         '.'
-);
+    );
+});
 
 /* ---------- drawing ---------- */
 
-// How strongly each level is inked; "none" is drawn in the line colour.
-const INK: Record<NeedLevel, number> = {
-    full: 1,
-    newTestament: 0.55,
-    portions: 0.3,
-    none: 0,
-};
+// Restricted Scripture is drawn in the ink at this strength.
+const RESTRICTED_INK = 0.4;
 
 /** The grid's columns, by width: finer for languages, coarser for people. */
 function colsFor(width: number) {
     if (view.value === 'people') return width >= 620 ? 50 : 25;
-    return Math.max(40, Math.floor(width / (width >= 620 ? 8 : 5)));
+    return Math.max(40, Math.floor(width / (width >= 620 ? 9 : 6)));
+}
+
+/** Adds a level's shape, in a square of side s at x, y, to the path. */
+function shape(
+    ctx: CanvasRenderingContext2D,
+    level: NeedLevel,
+    x: number,
+    y: number,
+    s: number
+) {
+    if (level === 'full') {
+        ctx.rect(x, y, s, s);
+    } else if (level === 'newTestament') {
+        // the lower-left half
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + s, y + s);
+        ctx.lineTo(x, y + s);
+        ctx.closePath();
+    } else if (level === 'portions') {
+        // a small square in the lower-left corner, inside the triangle
+        const p = s * 0.46;
+        ctx.rect(x, y + s - p, p, p);
+    }
 }
 
 let progress = 1;
@@ -158,18 +225,32 @@ function draw() {
     const cs = getComputedStyle(el);
     const ink = cs.getPropertyValue('--text').trim();
     const line = cs.getPropertyValue('--line').trim();
-    // Squares are shaded in order as the grid comes into view.
+    // Squares are filled in order as the grid comes into view.
     const upTo = shown.value ? progress * list.length : 0;
-    // One pass per colour keeps the fill style changes to four.
-    for (const level of NEED_LEVELS) {
-        const alpha = INK[level];
-        ctx.fillStyle = alpha ? ink : line;
-        ctx.globalAlpha = alpha || 1;
+    const at = (i: number) => [(i % cols) * size, Math.floor(i / cols) * size];
+
+    // Three passes, one path each: the empty squares, the restricted shapes
+    // in grey, then the open shapes in black on top.
+    ctx.fillStyle = line;
+    ctx.beginPath();
+    list.forEach((cell, i) => {
+        if (i < upTo && cell.any === 'full') return;
+        const [x, y] = at(i);
+        ctx.rect(x, y, s, s);
+    });
+    ctx.fill();
+
+    ctx.fillStyle = ink;
+    for (const pass of ['any', 'open'] as const) {
+        ctx.globalAlpha = pass === 'any' ? RESTRICTED_INK : 1;
+        ctx.beginPath();
         list.forEach((cell, i) => {
-            const lit = i < upTo;
-            if ((lit ? cell : 'none') !== level) return;
-            ctx.fillRect((i % cols) * size, Math.floor(i / cols) * size, s, s);
+            if (i >= upTo) return;
+            if (pass === 'any' && cell.any === cell.open) return;
+            const [x, y] = at(i);
+            shape(ctx, cell[pass], x, y, s);
         });
+        ctx.fill();
     }
     ctx.globalAlpha = 1;
 }
@@ -190,11 +271,6 @@ function animate(duration: number) {
         if (t < 1) raf = requestAnimationFrame(step);
     };
     raf = requestAnimationFrame(step);
-}
-
-function show(next: View) {
-    if (next === view.value) return;
-    view.value = next;
 }
 
 watch(view, () => {
@@ -270,14 +346,14 @@ onBeforeUnmount(() => {
                     <button
                         type="button"
                         :aria-pressed="view === 'languages'"
-                        @click="show('languages')"
+                        @click="view = 'languages'"
                     >
                         {{ n.viewLanguages }}
                     </button>
                     <button
                         type="button"
                         :aria-pressed="view === 'people'"
-                        @click="show('people')"
+                        @click="view = 'people'"
                     >
                         {{ n.viewPeople }}
                     </button>
@@ -290,17 +366,38 @@ onBeforeUnmount(() => {
                     :aria-label="ariaLabel"
                 ></canvas>
             </div>
-            <ul class="need-legend">
-                <li v-for="item in legend" :key="item.level">
-                    <span class="need-swatch" :class="item.level"></span>
-                    <span class="need-name">{{ item.name }}</span>
-                    <b>{{ item.value }}</b>
-                    <span v-if="item.detail" class="need-detail">{{
-                        item.detail
-                    }}</span>
-                </li>
-            </ul>
-            <p class="need-source">{{ n.source }}</p>
+
+            <div class="need-legend" aria-hidden="true">
+                <span></span>
+                <span class="need-col">{{ n.open }}</span>
+                <span class="need-col">{{ n.restricted }}</span>
+                <template v-for="row in legendRows" :key="row.level">
+                    <span class="need-name">{{ row.name }}</span>
+                    <span class="need-fig">
+                        <i class="need-shape open" :class="row.level"></i>
+                        <b>{{ row.open.value }}</b>
+                        <small v-if="row.open.detail">{{
+                            row.open.detail
+                        }}</small>
+                    </span>
+                    <span class="need-fig">
+                        <i class="need-shape restricted" :class="row.level"></i>
+                        <b>{{ row.restricted.value }}</b>
+                        <small v-if="row.restricted.detail">{{
+                            row.restricted.detail
+                        }}</small>
+                    </span>
+                </template>
+                <span class="need-name">{{ legendNone.name }}</span>
+                <span class="need-fig need-fig-none">
+                    <i class="need-shape none"></i>
+                    <b>{{ legendNone.value }}</b>
+                    <small v-if="legendNone.detail">{{
+                        legendNone.detail
+                    }}</small>
+                </span>
+            </div>
+            <p class="need-source">{{ n.mixed }} {{ n.source }}</p>
         </div>
     </div>
 </template>
@@ -368,52 +465,78 @@ onBeforeUnmount(() => {
         display: block;
         width: 100%;
     }
+
+    /* the legend: amount by licence */
     .need-legend {
-        list-style: none;
         display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 14px 20px;
-        margin: 20px 0 0;
-        padding: 0;
+        grid-template-columns: minmax(0, 1fr) repeat(2, minmax(0, 150px));
+        align-items: baseline;
+        column-gap: 20px;
+        margin-top: 22px;
     }
-    .need-legend li {
-        display: grid;
-        grid-template-columns: auto 1fr;
-        align-items: center;
-        column-gap: 8px;
+    .need-legend > span {
+        padding: 9px 0;
+        border-bottom: 1px solid var(--line);
     }
-    .need-swatch {
-        width: 12px;
-        height: 12px;
-        border-radius: 1px;
-        background: var(--text);
+    .need-col {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
     }
-    .need-swatch.newTestament {
-        background: color-mix(in srgb, var(--text) 55%, transparent);
+    .need-legend > span:nth-child(-n + 3) {
+        padding-top: 0;
+        border-bottom-color: var(--text);
     }
-    .need-swatch.portions {
-        background: color-mix(in srgb, var(--text) 30%, transparent);
-    }
-    .need-swatch.none {
-        background: var(--line);
+    .need-legend > span:nth-last-child(-n + 2) {
+        border-bottom: 0;
     }
     .need-name {
-        font-size: 13px;
-        font-weight: 600;
-        color: var(--text-2);
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: -0.01em;
     }
-    .need-legend b {
-        grid-column: 2;
-        font-size: clamp(22px, 2.2vw, 30px);
+    .need-fig {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        column-gap: 8px;
+    }
+    .need-fig-none {
+        grid-column: 2 / -1;
+    }
+    .need-fig b {
+        font-size: clamp(20px, 2vw, 26px);
         font-weight: 800;
         letter-spacing: -0.03em;
-        line-height: 1.15;
+        line-height: 1.1;
     }
-    .need-detail {
-        grid-column: 2;
+    .need-fig small {
+        flex-basis: 100%;
+        padding-left: 20px;
         font-size: 13px;
         color: var(--muted);
     }
+    .need-shape {
+        flex: none;
+        width: 12px;
+        height: 12px;
+        background: var(--text);
+    }
+    .need-shape.restricted {
+        background: color-mix(in srgb, var(--text) 40%, transparent);
+    }
+    .need-shape.newTestament {
+        clip-path: polygon(0 0, 100% 100%, 0 100%);
+    }
+    .need-shape.portions {
+        clip-path: polygon(0 54%, 46% 54%, 46% 100%, 0 100%);
+    }
+    .need-shape.none {
+        background: var(--line);
+    }
+
     .need-source {
         margin: 24px 0 0;
         max-width: 80ch;
@@ -422,10 +545,14 @@ onBeforeUnmount(() => {
         color: var(--muted);
     }
     @media (max-width: 620px) {
-        .need-legend {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
         .need-caption {
+            font-size: 14px;
+        }
+        .need-legend {
+            grid-template-columns: minmax(0, 1fr) repeat(2, minmax(0, 96px));
+            column-gap: 12px;
+        }
+        .need-name {
             font-size: 14px;
         }
     }
