@@ -44,13 +44,38 @@ const compact = (value: number) =>
 const percent = (value: number) =>
     format(value, { style: 'percent', maximumFractionDigits: 1 });
 
+/**
+ * The order squares are drawn in: languages with open Scripture first, by
+ * the most of it (a full Bible, then a New Testament, then portions); then
+ * those with only restricted Scripture, by the same; then those with none.
+ * Where the API has more under restrictive terms than openly, the language
+ * sits with its open level, after the ones whose best is open.
+ */
+function byAccess(x: Cell, y: Cell) {
+    const key = (c: Cell) => {
+        const open = NEED_LEVELS.indexOf(c.open);
+        const any = NEED_LEVELS.indexOf(c.any);
+        const restrictedOnly = c.open === 'none' && c.any !== 'none';
+        return [
+            c.any === 'none' ? 2 : restrictedOnly ? 1 : 0,
+            restrictedOnly ? any : open,
+            any,
+        ];
+    };
+    const a = key(x);
+    const b = key(y);
+    return a[0] - b[0] || a[1] - b[1] || b[2] - a[2];
+}
+
+// needData.ts lists languages largest first; the sort is stable, so they
+// stay largest first within each group.
 const LANGUAGE_CELLS: Cell[] = Array.from(NEED.anyLevels, (c, i) => ({
     any: NEED_CODES[c],
     open: NEED_CODES[NEED.openLevels[i]],
-}));
+})).sort(byAccess);
 const totalLanguages = LANGUAGE_CELLS.length;
 
-// Every (any, open) pair with people in it, best first.
+// Every (any, open) pair with people in it, in the same order.
 const PEOPLE_GROUPS: (Cell & { people: number })[] = Object.entries(NEED.people)
     .flatMap(([a, byOpen]) =>
         Object.entries(byOpen).map(([o, people]) => ({
@@ -59,11 +84,7 @@ const PEOPLE_GROUPS: (Cell & { people: number })[] = Object.entries(NEED.people)
             people,
         }))
     )
-    .sort(
-        (x, y) =>
-            NEED_LEVELS.indexOf(x.any) - NEED_LEVELS.indexOf(y.any) ||
-            NEED_LEVELS.indexOf(x.open) - NEED_LEVELS.indexOf(y.open)
-    );
+    .sort(byAccess);
 const world = PEOPLE_GROUPS.reduce((s, g) => s + g.people, 0);
 
 // The people view: a thousand squares, split between the groups by largest

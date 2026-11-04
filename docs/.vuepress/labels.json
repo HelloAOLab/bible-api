@@ -174,7 +174,7 @@
             "views": "Show",
             "viewLanguages": "Languages",
             "viewPeople": "People",
-            "captionLanguages": "Each square is a language, largest first.",
+            "captionLanguages": "Each square is a language: open first, then restricted, then none.",
             "captionPeople": "Each square is about {{ size }} people.",
             "levels": {
                 "full": "Full Bible",
