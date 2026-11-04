@@ -4,5 +4,35 @@
         "bookName": "MATTEO",
         "translationAbbreviation": "DIO",
         "translationId": "ita_dio"
+    },
+    "charge": {
+        "text": "Io vi scongiuro per lo Signore, che questa epistola sia letta a tutti i santi fratelli.",
+        "bookName": "I TESSALONICESI",
+        "translationAbbreviation": "DIO",
+        "translationId": "ita_dio"
+    },
+    "hinder": {
+        "text": "Se gli altri hanno parte a questa podestà sopra voi, non l'avremmo noi molto più? ma noi non abbiamo usata questa podestà; anzi sofferiamo ogni cosa, per non dare alcuno sturbo all'evangelo di Cristo.",
+        "bookName": "I CORINTI",
+        "translationAbbreviation": "DIO",
+        "translationId": "ita_dio"
+    },
+    "notToUs": {
+        "text": "NON a noi, Signore, non a noi, Anzi al tuo Nome, da' gloria, Per la tua benignità, e verità.",
+        "bookName": "SALMI",
+        "translationAbbreviation": "DIO",
+        "translationId": "ita_dio"
+    },
+    "doNotWorry": {
+        "text": "Perciò, io vi dico: Non siate con ansietà solleciti per la vita vostra, di che mangerete, o di che berrete; nè per lo vostro corpo, di che vi vestirete; non è la vita più che il nutrimento, e il corpo più che il vestire? Riguardate agli uccelli del cielo; come non seminano, e non mietono, e non accolgono in granai; e pure il Padre vostro veleste li nudrisce; non siete voi da molto più di loro? E chi è colui di voi, che, con la sua sollecitudine, possa aggiungere alla sua statura pure un cubito? Ed intorno al vestire, perchè siete con ansietà solleciti? considerate come crescono i gigli della campagna; essi non faticano, e non filano; e pure io vi dico che Salomone stesso, con tutta la sua gloria, non fu vestito al pari dell'un di loro. Or se Iddio riveste in questa maniera l'erba de' campi, che oggi è, e domani è gettata nel forno, non vestirà egli molto più voi, o uomini di poca fede? Non siate adunque con ansietà solleciti, dicendo: Che mangeremo, o che berremo, o di che saremo vestiti? Poichè i pagani son quelli che procacciano tutte queste cose; perciocchè il Padre vostro celeste sa che voi avete bisogno di tutte queste cose. Anzi, cercate in prima il regno di Dio, e la sua giustizia; e tutte queste cose vi saranno sopraggiunte. Non siate adunque con ansietà solleciti del giorno di domani; perciocchè il giorno di domani sarà sollecito delle cose sue; basta a ciascun giorno il suo male.",
+        "bookName": "MATTEO",
+        "translationAbbreviation": "DIO",
+        "translationId": "ita_dio"
+    },
+    "wholeBody": {
+        "text": "Dal quale tutto il corpo ben composto, e commesso insieme per tutte le giunture di cui è fornito, secondo la virtù che è nella misura di ciascun membro, prende il suo accrescimento alla propria edificazione in carità.",
+        "bookName": "EFESI",
+        "translationAbbreviation": "DIO",
+        "translationId": "ita_dio"
     }
 }
