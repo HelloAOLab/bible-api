@@ -322,7 +322,7 @@
         "formTitle": "AO Lab donation form",
         "formFallback": "Form not loading?",
         "formOpen": "Open it in its own tab",
-        "waysLead": "Over 95% of all giving goes straight to operations.",
+        "waysLead": "Over 95% of all giving goes straight to the work.",
         "otherWaysTitle": "Other ways to give",
         "otherWaysBody": "Card, bank transfer, donor-advised fund, stock, IRA/QCD and crypto all work in the form.",
         "otherWaysLink": "Give through NCF",
@@ -413,9 +413,10 @@
         "propose": "Propose a project",
         "whatTitle": "What we fund",
         "whatBody1": "Our vision is a growing ecosystem of Christians creating high-quality public-domain resources and open-source tools from one another’s work.",
-        "whatBody2": "We fund translations, tools, datasets, assets, and anything else the global Church can incorporate or build upon, prioritizing projects with the widest potential impact. We favor CC0 content and open-source software under licences such as MIT or AGPL. Each release gives the next builder more to work with.",
+        "whatBody2": "We fund technology, tools, and shared resources that grow the global Christian ecosystem: Bible translations and audio, datasets, maps, charts, assets, software, and platforms. We prioritize projects with the widest potential impact and especially encourage individuals and small teams, since funding will be limited as the fund grows. We favor CC0 content and open-source software under licenses such as MIT or AGPL. Each release gives the next builder more to work with.",
+        "overview": "Read the Free Use Fund overview",
         "statusTitle": "Current status",
-        "statusBody": "AO Lab’s annual support goal of {{ goal }} has not yet been met, so the Free Use Fund currently has no money. You can view the current support status {{ here }}.",
+        "statusBody": "This is the fund’s first cycle, and AO Lab’s annual support goal of {{ goal }} has not yet been met, so the Free Use Fund currently has no money. You can view the current support status {{ here }}.",
         "statusHere": "here",
         "statusInvite": "{{ proposals }} and welcome your {{ feedback }}.",
         "statusProposals": "We encourage proposals anytime",
@@ -423,15 +424,15 @@
         "feedbackSubject": "Free Use Fund Feedback",
         "callEyebrow": "Open call for proposals",
         "callTitle": "What would you build?",
-        "callIntro": "New projects and work already underway are both welcome. We recommend brief, direct applications with minimal details. We will reach out for more information.",
+        "callIntro": "New projects and work already underway are both welcome. Tell us:",
         "steps": {
             "build": {
                 "title": "What you intend to build.",
                 "body": "Describe the project, who would be involved, and what support you might need."
             },
             "licences": {
-                "title": "The proposed licences.",
-                "body": "State the licences for the content, software, and any existing material you would use."
+                "title": "The proposed licenses.",
+                "body": "State the licenses for the content, software, and any existing material you would use."
             },
             "why": {
                 "title": "Why it matters.",
@@ -440,13 +441,13 @@
         },
         "submit": "Submit a project proposal",
         "reportingEyebrow": "Accountability",
-        "reportingTitle": "Quarterly updates. Publicly shared work.",
-        "reportingBody": "We will publish quarterly spending and project updates here, including work in progress. Completed projects will be published and announced as they are finished.",
+        "reportingTitle": "Transparent progress",
+        "reportingBody": "We will publish quarterly progress updates covering which projects were funded and the status of ongoing and completed work.",
         "faqTitle": "A few practical questions.",
         "faq": {
             "who": {
                 "q": "Who can submit a project?",
-                "a": "Anyone in the general public, including individuals and organizations. Describe what you want to build, its proposed licences, and why it matters to the open ecosystem serving global Christianity."
+                "a": "Anyone in the general public, including individuals, teams, churches, ministries, and organizations. Describe what you want to build, its proposed licenses, and why it matters to the open ecosystem serving global Christianity."
             },
             "early": {
                 "q": "Why submit before funding is available?",
@@ -454,19 +455,27 @@
             },
             "decides": {
                 "q": "Who decides which projects receive funding?",
-                "a": "AO Lab manages the fund and selects projects by their expected kingdom impact and benefit to the wider Church. Projects may be large or small, with priority given to work that the largest community can use and build upon."
+                "a": "AO Lab manages the fund and selects projects by their expected kingdom impact and benefit to the wider Church. Projects may be large or small, with priority given to work that the largest community can use and build upon. Because the fund aims for maximum global impact, we lean toward web-based solutions that anyone can reach, though this is not a requirement."
+            },
+            "staff": {
+                "q": "Can AO Lab staff apply?",
+                "a": "Yes. Anyone is welcome to apply, including AO Lab staff, and we fund the projects we believe will best advance the kingdom. The fund is designed to grow the wider ecosystem beyond our own team, so our heavy bias is to fund outward. We expect staff funding to be minor, but we won’t rule it out when someone on our team is clearly the best person for a high-impact project."
+            },
+            "commission": {
+                "q": "Does AO Lab commission projects or run events?",
+                "a": "Yes. Alongside open proposals, we may identify critical gaps in the ecosystem and invite capable individuals or teams to take them on. As the fund grows, we may also put perhaps 5% to 10% toward hackathons, prizes, and collaborative sprints that bring new builders into the work and produce freely reusable resources. That is a guideline, not a quota: when worthy projects need funding, the money goes to the projects."
             },
             "money": {
                 "q": "How does money reach the fund?",
-                "a": "Each September, we begin raising AO Lab’s annual support for the following year. Once that goal is met, all additional support goes to the Free Use Fund until the next September, when the cycle begins again."
+                "a": "From September onward, we raise AO Lab’s annual operating support for the coming year ({{ goal }} for this cycle). Once that goal is met, 100% of additional gifts go to the Free Use Fund until the next September cycle begins. Because this is our first cycle, we may adjust the annual goal or shift timelines as we see the fruit of this approach."
             },
             "licences": {
-                "q": "What licences do you support?",
-                "a": "We prefer the most permissive terms possible, with CC0 as the ideal for content such as translations, datasets, and assets. Software may use MIT, AGPL, or other open-source licences. We review software licensing case by case, considering how well it supports reuse and the wider ecosystem. State your proposed licences in your proposal."
+                "q": "What licenses do you support?",
+                "a": "We prefer the most permissive terms possible, with CC0 as the standard for content such as translations, datasets, and assets. We are open to other licenses for content, but only when a strong case is made. Software may use MIT, AGPL, or other open-source licenses. We review software licensing case by case, considering how well it supports reuse and the wider ecosystem. State your proposed licenses in your proposal."
             },
             "translation": {
                 "q": "Could the fund support a Bible translation?",
-                "a": "Yes. A CC0 Bible translation can be considered alongside other resources and open-source tools. We evaluate projects by their potential kingdom impact and shared benefit, rather than giving one type of work automatic priority."
+                "a": "Yes, though our preference is to fund capabilities, tools, and datasets that help translators create higher-quality resources more quickly. A CC0 Bible translation can be considered alongside other resources and open-source tools, but we prefer work that serves the greatest need. We evaluate projects by their potential kingdom impact and shared benefit, rather than giving one type of work automatic priority."
             },
             "progress": {
                 "q": "Where can I follow spending and project progress?",
@@ -474,7 +483,7 @@
             },
             "public": {
                 "q": "Will every project’s details be public?",
-                "a": "The only exception to full project detail is safety: we may withhold information that could endanger people working in persecuted regions. Quarterly reporting will continue, with sensitive details withheld where needed. Funders are welcome to {{ contact }} to discuss what can safely be shared."
+                "a": "Not always. We may withhold information that could endanger people working in persecuted regions. Builders may also choose to stay anonymous in anything we publish, as long as they share their name and email with us so we can verify them and their work. Quarterly reporting will continue either way, with those details withheld. Funders are welcome to {{ contact }} to discuss what can safely be shared."
             }
         },
         "contactUs": "contact us",

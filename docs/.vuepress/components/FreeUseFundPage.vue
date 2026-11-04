@@ -10,6 +10,8 @@ import type { Labels } from '../labels';
 import { WALL_DATA } from '../wallData';
 
 const PROPOSAL_FORM = 'https://forms.gle/sVqU2KsaNxdFqNZJ7';
+const OVERVIEW_URL =
+    'https://docs.google.com/document/d/1E_yD5NTNCuW-wiLt05BsoRXHBKAdo1b7OOKcsMnyjV0/edit';
 const HELLO_EMAIL = 'hello@helloao.org';
 
 const labels = useLabels();
@@ -54,6 +56,8 @@ const FAQ: (keyof Labels['fund']['faq'])[] = [
     'who',
     'early',
     'decides',
+    'staff',
+    'commission',
     'money',
     'licences',
     'translation',
@@ -63,6 +67,7 @@ const FAQ: (keyof Labels['fund']['faq'])[] = [
 const answer = (id: keyof Labels['fund']['faq']) =>
     labelHtml(f.value.faq[id].a, {
         contact: link(mailto(f.value.questionSubject), f.value.contactUs),
+        goal: money(WALL_DATA.goal),
     });
 </script>
 
@@ -92,6 +97,15 @@ const answer = (id: keyof Labels['fund']['faq']) =>
                         <div class="body-case">
                             <p>{{ f.whatBody1 }}</p>
                             <p>{{ f.whatBody2 }}</p>
+                            <p>
+                                <a
+                                    class="inref"
+                                    :href="OVERVIEW_URL"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    >{{ f.overview }}&nbsp;&#8599;</a
+                                >
+                            </p>
                         </div>
                         <VerseQuote :verse="verses.wholeBody" />
                     </div>
