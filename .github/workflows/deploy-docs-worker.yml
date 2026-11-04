@@ -1,0 +1,165 @@
+name: Deploy Docs Worker
+
+# Builds the docs site (docs/) and deploys it to Cloudflare Workers static assets.
+#
+# - Pushes to main that touch the docs: deploy the production version (`wrangler deploy`).
+# - Pull requests that touch the docs: upload a preview version
+#   (`wrangler versions upload --preview-alias pr-<number>`). Previews get their own
+#   URL (https://pr-<number>-free-use-bible-api-docs.<subdomain>.workers.dev), never
+#   receive production traffic, are marked noindex, and are linked from a PR comment.
+#   Pull requests from forks have no access to the secrets, so they are only built.
+# - Manual runs: production from main, or a preview aliased to the branch name otherwise.
+#
+# Requires these repository secrets:
+#   - CLOUDFLARE_API_TOKEN:  API token with the "Edit Cloudflare Workers" permission
+#   - CLOUDFLARE_ACCOUNT_ID: the Cloudflare account to deploy to
+
+on:
+    push:
+        branches: [main]
+        paths:
+            - 'docs/**'
+            - 'pnpm-lock.yaml'
+            - '.github/workflows/deploy-docs-worker.yml'
+    pull_request:
+        paths:
+            - 'docs/**'
+            - 'pnpm-lock.yaml'
+            - '.github/workflows/deploy-docs-worker.yml'
+    workflow_dispatch:
+
+concurrency:
+    group: deploy-docs-worker-${{ github.event.pull_request.number || github.ref }}
+    cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+    deploy:
+        name: ${{ (github.event_name == 'pull_request' || github.ref != 'refs/heads/main') && 'Deploy preview' || 'Deploy production' }}
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            pull-requests: write
+        environment:
+            name: ${{ (github.event_name == 'pull_request' || github.ref != 'refs/heads/main') && 'docs-preview' || 'docs-production' }}
+            url: ${{ steps.deploy.outputs.url }}
+        env:
+            CI: true
+        defaults:
+            run:
+                working-directory: docs
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Decide what to deploy
+              id: target
+              env:
+                  EVENT_NAME: ${{ github.event_name }}
+                  PR_NUMBER: ${{ github.event.pull_request.number }}
+                  IS_FORK: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
+              run: |
+                  if [ "$EVENT_NAME" = "pull_request" ]; then
+                      echo "mode=preview" >> "$GITHUB_OUTPUT"
+                      echo "alias=pr-$PR_NUMBER" >> "$GITHUB_OUTPUT"
+                  elif [ "$GITHUB_REF" = "refs/heads/main" ]; then
+                      echo "mode=production" >> "$GITHUB_OUTPUT"
+                  else
+                      # Aliases must be lowercase letters, digits and dashes.
+                      alias=$(echo "$GITHUB_REF_NAME" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//' | cut -c1-30 | sed -E 's/-+$//; s/^([^a-z])/b-\1/')
+                      echo "mode=preview" >> "$GITHUB_OUTPUT"
+                      echo "alias=$alias" >> "$GITHUB_OUTPUT"
+                  fi
+                  if [ "$IS_FORK" = "true" ]; then
+                      echo "deploy=false" >> "$GITHUB_OUTPUT"
+                  else
+                      echo "deploy=true" >> "$GITHUB_OUTPUT"
+                  fi
+
+            - name: Install pnpm
+              uses: pnpm/action-setup@v4
+
+            - name: Use Node.js 24.x
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 24.x
+                  cache: pnpm
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile --filter @helloao/bible-api-docs --ignore-scripts
+
+            - name: Build docs
+              run: pnpm build
+
+            - name: Prepare site for Workers
+              run: pnpm ${{ steps.target.outputs.mode == 'preview' && 'build:cloudflare:preview' || 'build:cloudflare' }}
+
+            - name: Check (dry run)
+              if: steps.target.outputs.deploy != 'true'
+              run: pnpm exec wrangler deploy --dry-run
+
+            - name: Deploy
+              id: deploy
+              if: steps.target.outputs.deploy == 'true'
+              env:
+                  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+                  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+                  MODE: ${{ steps.target.outputs.mode }}
+                  ALIAS: ${{ steps.target.outputs.alias }}
+                  COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+                  WRANGLER_OUTPUT_FILE_PATH: ${{ runner.temp }}/wrangler-output.json
+              run: |
+                  message="$GITHUB_REPOSITORY@${COMMIT_SHA:0:7} ($GITHUB_EVENT_NAME)"
+                  if [ "$MODE" = "production" ]; then
+                      pnpm exec wrangler deploy --message "$message"
+                      url=$(jq -r 'select(.type == "deploy") | .targets[]? | select(startswith("http"))' "$WRANGLER_OUTPUT_FILE_PATH" | head -n 1)
+                  else
+                      pnpm exec wrangler versions upload --preview-alias "$ALIAS" --tag "${COMMIT_SHA:0:7}" --message "$message"
+                      alias_url=$(jq -r 'select(.type == "version-upload") | .preview_alias_url // empty' "$WRANGLER_OUTPUT_FILE_PATH" | tail -n 1)
+                      version_url=$(jq -r 'select(.type == "version-upload") | .preview_url // empty' "$WRANGLER_OUTPUT_FILE_PATH" | tail -n 1)
+                      url=${alias_url:-$version_url}
+                  fi
+                  if [ -n "$url" ]; then
+                      url="${url%/}/docs/"
+                  fi
+                  if [ -n "${version_url:-}" ]; then
+                      echo "version_url=${version_url%/}/docs/" >> "$GITHUB_OUTPUT"
+                  fi
+                  echo "url=$url" >> "$GITHUB_OUTPUT"
+                  echo "Deployed $MODE docs: ${url:-(no URL reported)}" >> "$GITHUB_STEP_SUMMARY"
+
+            - name: Comment preview URL on the pull request
+              if: github.event_name == 'pull_request' && steps.target.outputs.deploy == 'true' && steps.deploy.outputs.url != ''
+              uses: actions/github-script@v7
+              env:
+                  PREVIEW_URL: ${{ steps.deploy.outputs.url }}
+                  VERSION_URL: ${{ steps.deploy.outputs.version_url }}
+                  COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
+              with:
+                  script: |
+                      const marker = '<!-- docs-worker-preview -->';
+                      const { PREVIEW_URL, VERSION_URL, COMMIT_SHA } = process.env;
+                      const lines = [
+                          marker,
+                          '### Docs preview',
+                          '',
+                          `Deployed ${COMMIT_SHA.slice(0, 7)} to Cloudflare Workers.`,
+                          '',
+                          `- Preview: ${PREVIEW_URL}`,
+                      ];
+                      if (VERSION_URL && VERSION_URL !== PREVIEW_URL) {
+                          lines.push(`- This commit: ${VERSION_URL}`);
+                      }
+                      const body = lines.join('\n');
+                      const { owner, repo } = context.repo;
+                      const issue_number = context.payload.pull_request.number;
+                      const comments = await github.paginate(github.rest.issues.listComments, {
+                          owner,
+                          repo,
+                          issue_number,
+                          per_page: 100,
+                      });
+                      const existing = comments.find((c) => c.body?.includes(marker));
+                      if (existing) {
+                          await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+                      } else {
+                          await github.rest.issues.createComment({ owner, repo, issue_number, body });
+                      }

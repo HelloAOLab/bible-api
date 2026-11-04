@@ -1,0 +1,30 @@
+{
+    "$schema": "node_modules/wrangler/config-schema.json",
+    // Serves the docs site from Cloudflare Workers static assets.
+    //
+    // The site is built with `pnpm build` and then laid out for the Worker with
+    // `pnpm build:cloudflare` (see cloudflare/prepare-site.mjs), which puts the
+    // pages under /docs/ to match the VuePress `base`.
+    //
+    // `wrangler deploy` publishes the production version. Pull requests upload
+    // preview versions with `wrangler versions upload --preview-alias pr-<n>`,
+    // which get their own URL and never receive production traffic.
+    //
+    // To serve it from a custom domain, add a "routes" entry, e.g.
+    //   "routes": [{ "pattern": "docs.example.org", "custom_domain": true }]
+    "name": "free-use-bible-api-docs",
+    "compatibility_date": "2026-10-01",
+    "workers_dev": true,
+    "preview_urls": true,
+    "assets": {
+        "directory": "../build/cloudflare-docs",
+        // `/docs/guide` redirects to `/docs/guide/` and serves its index.html,
+        // so relative links resolve the same way as the build.
+        "html_handling": "auto-trailing-slash",
+        // Unknown pages get the nearest 404.html (the VuePress 404 page under /docs/).
+        "not_found_handling": "404-page",
+    },
+    "observability": {
+        "enabled": true,
+    },
+}
