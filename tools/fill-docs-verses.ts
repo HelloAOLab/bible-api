@@ -9,8 +9,10 @@
  *     pnpm fill:docs-verses --force    # replace verses that are already set
  *
  * For each language, a translation is chosen the way the Seed Bible app
- * chooses its default (see seed-bible-translations.ts), and its text, book
- * name, abbreviation and ID are written to `docs/<language>/verses.json`.
+ * chooses its default (see seed-bible-translations.ts), unless the file
+ * already quotes one, and its text, book name, abbreviation and ID are written
+ * to `docs/<language>/verses.json`. A verse whose book that translation lacks
+ * is taken from another translation in the same language, if one has it.
  * Verses already in that file are kept unless `--force` is passed, so they
  * can be edited by hand. A language whose nearest translation is English is
  * left out, since the English verses are already its fallback.
@@ -86,9 +88,14 @@ function verseText(api: FreeUseBibleApi, verse: ChapterVerse): string {
 async function fetchVerse(
     api: FreeUseBibleApi,
     translationId: string,
-    key: HomeVerse
+    key: HomeVerse,
+    at?: Pick<VerseText, 'chapter' | 'verse'>
 ): Promise<Omit<VerseText, 'language'>> {
-    const { book, chapter, verse, endVerse = verse } = HOME_VERSES[key];
+    const home = HOME_VERSES[key];
+    const { book } = home;
+    const chapter = at?.chapter ?? home.chapter;
+    const verse = at?.verse ?? home.verse;
+    const endVerse = verse + (home.endVerse ?? home.verse) - home.verse;
     const result = await api.getTranslationBookChapter(
         translationId,
         book,
@@ -113,7 +120,27 @@ async function fetchVerse(
         translationAbbreviation:
             result.translation.shortName || result.translation.id,
         translationId: result.translation.id,
+        ...(at?.chapter !== undefined ? { chapter } : {}),
+        ...(at?.verse !== undefined ? { verse } : {}),
     };
+}
+
+/** The verse from the first of the translations that has it. */
+async function fetchVerseFromAny(
+    api: FreeUseBibleApi,
+    translationIds: string[],
+    key: HomeVerse,
+    at?: Pick<VerseText, 'chapter' | 'verse'>
+): Promise<Omit<VerseText, 'language'>> {
+    let firstError: unknown;
+    for (const id of translationIds) {
+        try {
+            return await fetchVerse(api, id, key, at);
+        } catch (err) {
+            firstError ??= err;
+        }
+    }
+    throw firstError;
 }
 
 const HELP = `Fill in the docs home page's Bible verses from the Free Use Bible API.
@@ -164,8 +191,20 @@ async function main() {
             continue;
         }
 
-        const { translation, resolvedUiLanguage, usedFallback } =
-            resolveNearestBibleTranslation(seedLanguage(lang), translations);
+        const nearest = resolveNearestBibleTranslation(
+            seedLanguage(lang),
+            translations
+        );
+        const { resolvedUiLanguage, usedFallback } = nearest;
+        // Keep quoting from the translation the file already uses, so that
+        // --force or a newly added verse does not switch translations when
+        // the Seed Bible's default for the language changes.
+        const current = Object.values(existing).find(
+            (v) => v?.translationId
+        )?.translationId;
+        const translation =
+            (current && translations.find((t) => t.id === current)) ||
+            nearest.translation;
         if (resolvedUiLanguage === 'en') {
             console.log(
                 `${lang}: skip (no translation found, so the English verses are used)`
@@ -181,10 +220,21 @@ async function main() {
 
         const verses: Verses = { ...existing };
         let filled = 0;
+        // A translation that lacks a verse's book (a New Testament has no
+        // Psalms) is backed up by the other translations in its language.
+        const backups = translations.filter(
+            (t) =>
+                t.language === translation.language && t.id !== translation.id
+        );
         for (const key of missing) {
             try {
                 verses[key] = {
-                    ...(await fetchVerse(api, translation.id, key)),
+                    ...(await fetchVerseFromAny(
+                        api,
+                        [translation.id, ...backups.map((t) => t.id)],
+                        key,
+                        existing[key]
+                    )),
                     ...(usedFallback
                         ? {
                               language:

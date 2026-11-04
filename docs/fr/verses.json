@@ -4,5 +4,35 @@
         "bookName": "Matthieu",
         "translationAbbreviation": "NCL",
         "translationId": "fra_ncl"
+    },
+    "charge": {
+        "text": "Je vous en conjure par le Seigneur, que cette lettre soit lue à tous les [saints] frères.",
+        "bookName": "1 Thessaloniciens",
+        "translationAbbreviation": "NCL",
+        "translationId": "fra_ncl"
+    },
+    "hinder": {
+        "text": "Si d’autres usent de ce droit sur vous, pourquoi pas plutôt nous-mêmes ! Cependant nous n’avons pas usé de ce droit ; mais nous supportons tout, afin de ne pas créer d’obstacle à l’Évangile du Christ.",
+        "bookName": "1 Corinthiens",
+        "translationAbbreviation": "NCL",
+        "translationId": "fra_ncl"
+    },
+    "notToUs": {
+        "text": "Non pas à nous, Yahweh, non pas à nous, mais à ton nom donne la gloire, à cause de ta bonté, à cause de ta fidélité !",
+        "bookName": "Psaumes",
+        "translationAbbreviation": "NCL",
+        "translationId": "fra_ncl"
+    },
+    "doNotWorry": {
+        "text": "C’est pourquoi je vous dis : Ne vous inquiétez pas pour votre vie, de ce que vous mangerez ou boirez ; ni pour votre corps, de quoi vous le vêtirez. La vie n’est-elle pas plus que la nourriture, et le corps plus que le vêtement ? Regardez les oiseaux du ciel : ils ne sèment ni ne moissonnent, ils n’amassent rien dans des greniers, et votre Père céleste les nourrit. Ne valez-vous pas beaucoup plus qu’eux ? Qui de vous, à force de soucis, pourrait ajouter une coudée à la longueur de sa vie ? Et pourquoi vous inquiétez-vous pour le vêtement ? Considérez les lis des champs, comment ils croissent : ils ne travaillent, ni ne filent. Et cependant je vous dis que Salomon même, dans toute sa gloire, n’a pas été vêtu comme l’un d’eux. Que si Dieu revêt ainsi l’herbe des champs, qui est aujourd’hui et demain sera jetée au four, ne le fera-t-il pas bien plus pour vous, gens de peu de foi ? Ne vous mettez donc pas en peine, disant : Que mangerons-nous, ou que boirons-nous, ou de quoi nous vêtirons-nous ? Car ce sont les Gentils qui recherchent toutes ces choses, et votre Père céleste sait que vous en avez besoin. Cherchez premièrement le royaume de Dieu et sa justice, et tout cela vous sera donné par-dessus. N’ayez donc pas de souci du lendemain, le lendemain aura souci de lui-même. À chaque jour suffit sa peine.",
+        "bookName": "Matthieu",
+        "translationAbbreviation": "NCL",
+        "translationId": "fra_ncl"
+    },
+    "wholeBody": {
+        "text": "C’est de lui que tout le corps, coordonné et uni par les liens des membres qui se prêtent un mutuel secours et dont chacun opère selon sa mesure d’activité, grandit et se perfectionne dans la charité.",
+        "bookName": "Éphésiens",
+        "translationAbbreviation": "NCL",
+        "translationId": "fra_ncl"
     }
 }

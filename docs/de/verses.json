@@ -4,5 +4,35 @@
         "bookName": "Matthäus",
         "translationAbbreviation": "ELBBK",
         "translationId": "deu_elbbk"
+    },
+    "charge": {
+        "text": "Ich beschwöre euch bei dem Herrn, dass der Brief allen [heiligen] Brüdern vorgelesen werde.",
+        "bookName": "1. Thessalonicher",
+        "translationAbbreviation": "ELBBK",
+        "translationId": "deu_elbbk"
+    },
+    "hinder": {
+        "text": "Wenn andere dieses Rechtes an euch teilhaftig sind, nicht vielmehr wir? Wir haben aber dieses Recht nicht gebraucht, sondern wir ertragen alles, damit wir dem Evangelium des Christus kein Hindernis bereiten.",
+        "bookName": "1. Korinther",
+        "translationAbbreviation": "ELBBK",
+        "translationId": "deu_elbbk"
+    },
+    "notToUs": {
+        "text": "Nicht uns, HERR, nicht uns, sondern deinem Namen gib Ehre, um deiner Güte, um deiner Wahrheit willen!",
+        "bookName": "Psalm",
+        "translationAbbreviation": "ELBBK",
+        "translationId": "deu_elbbk"
+    },
+    "doNotWorry": {
+        "text": "Deshalb sage ich euch: Seid nicht besorgt für euer Leben, was ihr essen und was ihr trinken sollt, noch für euren Leib, was ihr anziehen sollt. Ist nicht das Leben mehr als die Speise, und der Leib mehr als die Kleidung? Seht hin auf die Vögel des Himmels, dass sie nicht säen noch ernten, noch in Scheunen sammeln, und euer himmlischer Vater ernährt sie. Seid ihr nicht viel vorzüglicher als sie? Wer aber unter euch vermag mit Sorgen seiner Größe eine Elle zuzusetzen? Und warum seid ihr um Kleidung besorgt? Betrachtet die Lilien des Feldes, wie sie wachsen: Sie mühen sich nicht, auch spinnen sie nicht. Ich sage euch aber, dass selbst nicht Salomo in all seiner Herrlichkeit bekleidet war wie eine von diesen. Wenn aber Gott das Gras des Feldes, das heute ist und morgen in den Ofen geworfen wird, so kleidet, nicht vielmehr euch, Kleingläubige? So seid nun nicht besorgt, indem ihr sagt: Was sollen wir essen?, oder: Was sollen wir trinken?, oder: Was sollen wir anziehen? Denn nach allem diesem trachten die Nationen; denn euer himmlischer Vater weiß, dass ihr dies alles bedürft. Trachtet aber zuerst nach dem Reich Gottes und nach seiner Gerechtigkeit, und dies alles wird euch hinzugefügt werden. So seid nun nicht besorgt auf den morgigen Tag, denn der morgige Tag wird für sich selbst sorgen. Jeder Tag hat an seinem Übel genug.",
+        "bookName": "Matthäus",
+        "translationAbbreviation": "ELBBK",
+        "translationId": "deu_elbbk"
+    },
+    "wholeBody": {
+        "text": "aus dem der ganze Leib, wohl zusammengefügt und verbunden durch jedes Gelenk der Darreichung, nach der Wirksamkeit in dem Maß jedes einzelnen Teiles, für sich das Wachstum des Leibes bewirkt zu seiner Selbstauferbauung in Liebe.",
+        "bookName": "Epheser",
+        "translationAbbreviation": "ELBBK",
+        "translationId": "deu_elbbk"
     }
 }

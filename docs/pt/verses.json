@@ -4,5 +4,35 @@
         "bookName": "Mateus",
         "translationAbbreviation": "ONBV",
         "translationId": "por_onbv"
+    },
+    "charge": {
+        "text": "Ordeno-lhes, em nome do Senhor, que leiam esta carta a todos os irmãos.",
+        "bookName": "1 Tessalonicenses",
+        "translationAbbreviation": "ONBV",
+        "translationId": "por_onbv"
+    },
+    "hinder": {
+        "text": "Vocês dão isso aos outros que pregam a vocês, e é justo. Mas será que nós não temos muito mais direito do que eles? No entanto, nunca usamos tal direito, mas suprimos as nossas próprias necessidades sem a ajuda de vocês. Nunca exigimos pagamento de qualquer espécie para não colocar obstáculo algum ao evangelho de Cristo.",
+        "bookName": "1 Coríntios",
+        "translationAbbreviation": "ONBV",
+        "translationId": "por_onbv"
+    },
+    "notToUs": {
+        "text": "Glorifique o seu nome, Senhor; não o nosso nome. Torne o seu nome amado e respeitado e mostre ao mundo o seu amor e a sua fidelidade.",
+        "bookName": "Salmos",
+        "translationAbbreviation": "ONBV",
+        "translationId": "por_onbv"
+    },
+    "doNotWorry": {
+        "text": "“Portanto, minha palavra é a seguinte: Não fiquem preocupados a respeito de coisas: com a própria vida, quanto ao que comer ou beber, nem com seu próprio corpo, quanto ao que vestir. Não é a vida mais importante que a comida, e o corpo mais importante que a roupa? Olhem os passarinhos do céu! Eles não se preocupam com a comida; eles não precisam semear, nem colher, ou guardar a comida em depósitos, pois o Pai celeste os alimenta. Será que vocês não valem muito mais do que os passarinhos? Será que com todas as preocupações juntas poderão acrescentar um único momento à vida de vocês? “E por que ficar preocupado com a roupa? Olhem os lírios do campo! Eles não trabalham nem tecem. No entanto, nem o rei Salomão, em toda a sua glória, se vestiu como qualquer um deles. Se Deus cuida tão maravilhosamente das flores, que hoje estão aqui e amanhã já desaparecem, será que ele não vai, com toda a certeza, cuidar de vocês, gente de pequena fé? “Portanto não se preocupem de forma alguma com a necessidade de comida ou bebida ou com a roupa. Não sejam como os pagãos! Pois eles é que têm intenso interesse nessas coisas. Mas o Pai celeste sabe muito bem que vocês precisam delas. Coloquem, pois, em primeiro lugar o Reino de Deus e a sua justiça, e ele dará a vocês todas essas coisas. “Portanto, não fiquem preocupados com o dia de amanhã. Deus cuidará do dia de amanhã para vocês também. Já é suficiente a carga de cada dia.",
+        "bookName": "Mateus",
+        "translationAbbreviation": "ONBV",
+        "translationId": "por_onbv"
+    },
+    "wholeBody": {
+        "text": "Sob a direção dele todo o corpo se ajusta perfeitamente, e cada um dos membros em sua maneira particular auxilia os outros membros, de tal modo que todo o corpo seja saudável e cresça em amor.",
+        "bookName": "Efésios",
+        "translationAbbreviation": "ONBV",
+        "translationId": "por_onbv"
     }
 }
