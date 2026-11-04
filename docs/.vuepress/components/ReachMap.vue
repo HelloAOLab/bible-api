@@ -2,18 +2,17 @@
 import { computed, onMounted, ref } from 'vue';
 import { usePageLang } from 'vuepress/client';
 import { useLabels } from '../composables/useLocale';
-import { MAP_HEIGHT, MAP_POINTS, MAP_SHAPES, MAP_WIDTH } from '../worldMap';
+import { MAP_HEIGHT, MAP_SHAPES, MAP_WIDTH } from '../worldMap';
 import { REACH_HITS } from '../reach';
 
 /* The world map under "Help us spread God's word": each country shaded by
-   how many requests come from it, with a bubble sized by the same count.
+   how many requests come from it.
    Loaded on its own (see HomePage.vue), since the outlines are large. */
 
 const labels = useLabels();
 const lang = usePageLang();
 
-const MAX = Math.max(...Object.values(REACH_HITS));
-const LOG_MAX = Math.log10(MAX);
+const LOG_MAX = Math.log10(Math.max(...Object.values(REACH_HITS)));
 const LOG_MIN = 2; // REACH_HITS starts at 100 requests
 
 // Country names come from the browser, after hydration: Node and browsers
@@ -49,21 +48,6 @@ const shapes = computed(() =>
         };
     })
 );
-
-// The area of a bubble follows the count. The smallest are drawn last, on
-// top, so they stay visible where bubbles overlap.
-const bubbles = computed(() =>
-    Object.entries(REACH_HITS)
-        .filter(([id]) => MAP_POINTS[id])
-        .sort((a, b) => b[1] - a[1])
-        .map(([id, n]) => ({
-            id,
-            x: MAP_POINTS[id][0],
-            y: MAP_POINTS[id][1],
-            r: +(1.6 + 30 * Math.sqrt(n / MAX)).toFixed(1),
-            title: countryName.value(id),
-        }))
-);
 </script>
 
 <template>
@@ -84,17 +68,6 @@ const bubbles = computed(() =>
                 <title v-if="shape.title">{{ shape.title }}</title>
             </path>
         </g>
-        <g class="rm-dots">
-            <circle
-                v-for="dot in bubbles"
-                :key="dot.id"
-                :cx="dot.x"
-                :cy="dot.y"
-                :r="dot.r"
-            >
-                <title>{{ dot.title }}</title>
-            </circle>
-        </g>
     </svg>
 </template>
 
@@ -114,17 +87,9 @@ const bubbles = computed(() =>
     .rm-land path.hit {
         fill: color-mix(in srgb, var(--text) var(--shade), var(--surface-2));
     }
-    .rm-dots circle {
-        fill: color-mix(in srgb, #ffb400 78%, transparent);
-        stroke: var(--bg);
-        stroke-width: 0.7;
-    }
     @media (hover: hover) {
         .rm-land path.hit:hover {
             fill: var(--text);
-        }
-        .rm-dots circle:hover {
-            fill: #ffb400;
         }
     }
 }

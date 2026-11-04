@@ -1750,7 +1750,7 @@ onBeforeUnmount(() => {
     .reach {
         max-width: 1040px;
         margin: clamp(30px, 4.4vh, 52px) auto 0;
-        aspect-ratio: 960 / 422;
+        aspect-ratio: 960 / 470;
     }
     .reach-stat {
         display: flex;
