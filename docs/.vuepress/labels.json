@@ -167,6 +167,23 @@
         "markSomeCases": "Only in some cases",
         "markForbidden": "Forbidden",
         "markFor": "{{ use }}: {{ mark }}",
+        "need": {
+            "eyebrow": "The need",
+            "title": "We have no free Scripture yet for {{ people }} people.",
+            "lead": "Of the world’s {{ total }} first languages, only **{{ full }}** have a full Bible in our API that anyone may freely copy, translate and share. For {{ restricted }} more, all we have is under restrictive terms.",
+            "views": "Show",
+            "viewLanguages": "Languages",
+            "viewPeople": "People",
+            "captionLanguages": "Each square is a language, largest first.",
+            "captionPeople": "Each square is about {{ size }} people.",
+            "levels": {
+                "full": "Full Bible",
+                "newTestament": "New Testament",
+                "portions": "Portions",
+                "none": "Nothing free yet"
+            },
+            "source": "Counts the most Scripture the Free Use Bible API has in each language under an open licence: public domain, CC BY or CC BY-SA. Some of these languages have Scripture elsewhere, under restrictive terms or not yet in the API. Speakers of Arabic and Chinese varieties are counted as served by Standard Arabic and Mandarin. First-language populations from the Joshua Project, June 2026; catalog as of November 2026."
+        },
         "flywheelTitle": "The answer is more public domain resources.",
         "flywheelLabel": "The flywheel",
         "flywheel": {

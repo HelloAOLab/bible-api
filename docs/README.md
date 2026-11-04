@@ -38,4 +38,7 @@ The navbar and sidebar labels and the text of the home and 404 pages, in `.vuepr
 The Bible verses quoted on the home page are never machine-translated: they are quoted from a translation in the Free Use Bible API.
 `pnpm fill:docs-verses` fills in `<language>/verses.json` for each language, choosing a translation the way the Seed Bible app does.
 Verses already in a file are kept (pass `--force` to replace them), so they can be edited by hand. See `.vuepress/verses.ts`.
+The statistics in the home page's "The need" section are in `.vuepress/needData.ts`, which
+`pnpm fill:docs-need <bible_open_access_by_language.csv> <bible_open_access_summary.csv>` regenerates from the
+open-access-by-language reference data (the Free Use Bible API catalog against Joshua Project populations).
 Run `pnpm translate:docs --help` for all options.
