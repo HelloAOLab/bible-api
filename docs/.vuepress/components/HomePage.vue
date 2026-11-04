@@ -287,8 +287,8 @@ const FLYWHEEL: (keyof Labels['home']['flywheel'])[] = [
 
 // The number under the map: the countries in reach.ts, which lists those
 // with at least 100 requests.
-const reachCountries = computed(() =>
-    formatCount(Object.keys(REACH_HITS).length)
+const reachCountries = computed(
+    () => formatCount(Object.keys(REACH_HITS).length) + '+'
 );
 
 type FaqId = Exclude<keyof Labels['home']['faq'], 'money'>;
