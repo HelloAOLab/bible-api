@@ -175,6 +175,10 @@
             "release": "Release it into the public domain",
             "next": "The next builder starts further ahead"
         },
+        "reachTitle": "Help us spread God’s word to the entire world",
+        "reachLabel": "A world map of the countries the Free Use Bible API is used in, shaded by the number of requests from each",
+        "reachCountries": "countries using the API",
+        "reachBody": "Free Use Bible API is used in over {{ count }} countries around the world, but that’s not enough. We need your support to spread God’s word to every corner of the Earth.",
         "buildTitle": "Let’s start building.",
         "newsletterPrompt": "Want to stay in the loop?",
         "newsletterLink": "Sign up for the newsletter",

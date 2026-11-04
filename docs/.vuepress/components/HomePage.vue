@@ -1,9 +1,16 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import {
+    computed,
+    defineAsyncComponent,
+    onBeforeUnmount,
+    onMounted,
+    ref,
+} from 'vue';
 import { RouteLink, usePageFrontmatter, usePageLang } from 'vuepress/client';
 import SiteFooter from './SiteFooter.vue';
 import SupportWall from './SupportWall.vue';
 import VerseQuote from './VerseQuote.vue';
+import { REACH_HITS } from '../reach';
 import {
     useLabels,
     useLocalePage,
@@ -17,6 +24,9 @@ import {
     type LicenceRow,
 } from '../licenceRows';
 import type { Labels } from '../labels';
+
+// The map's outlines are large, so they load in their own chunk.
+const ReachMap = defineAsyncComponent(() => import('./ReachMap.vue'));
 
 const DISCORD_URL = 'https://discord.com/invite/NbEZMCJmqC';
 
@@ -272,6 +282,15 @@ const FLYWHEEL: (keyof Labels['home']['flywheel'])[] = [
     'release',
     'next',
 ];
+
+/* ---------- the reach map ---------- */
+
+// The number under the map and in the text below it: the countries in
+// reach.ts, which lists those with at least 100 requests.
+const reachCountryCount = computed(() =>
+    formatCount(Object.keys(REACH_HITS).length)
+);
+const reachCountries = computed(() => reachCountryCount.value + '+');
 
 type FaqId = Exclude<keyof Labels['home']['faq'], 'money'>;
 const FAQ_ANSWERS: Record<FaqId, true> = {
@@ -876,6 +895,26 @@ onBeforeUnmount(() => {
                             {{ labels.home.flywheel[step] }}
                         </li>
                     </ol>
+                </div>
+            </section>
+
+            <section class="section beat fg" id="reach">
+                <div class="shell">
+                    <h2 class="fg-h">{{ labels.home.reachTitle }}</h2>
+                    <figure class="reach">
+                        <ReachMap />
+                    </figure>
+                    <p class="reach-stat">
+                        <b>{{ reachCountries }}</b>
+                        <span>{{ labels.home.reachCountries }}</span>
+                    </p>
+                    <p class="fg-p fg-p-wide reach-body">
+                        {{
+                            fillLabel(labels.home.reachBody, {
+                                count: reachCountryCount,
+                            })
+                        }}
+                    </p>
                 </div>
             </section>
 
@@ -1713,6 +1752,33 @@ onBeforeUnmount(() => {
         margin: 0 0 8px;
         font-weight: 400;
         opacity: 0.55;
+    }
+
+    /* the reach map */
+    .reach {
+        max-width: 1040px;
+        margin: clamp(30px, 4.4vh, 52px) auto 0;
+        aspect-ratio: 960 / 470;
+    }
+    .reach-stat {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        margin: clamp(28px, 4vh, 48px) auto 0;
+    }
+    .reach-stat b {
+        font-size: clamp(40px, 5vw, 64px);
+        font-weight: 800;
+        letter-spacing: -0.04em;
+        line-height: 1;
+    }
+    .reach-body {
+        margin-top: clamp(28px, 4vh, 44px);
+    }
+    .reach-stat span {
+        font-size: 16px;
+        color: var(--text-2);
     }
 
     /* ---------- scroll cue: a quiet down arrow, bottom right ---------- */
