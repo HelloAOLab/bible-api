@@ -45,16 +45,6 @@ const formatCount = (n: number) => {
     }
 };
 
-const formatCompact = (n: number) => {
-    try {
-        return new Intl.NumberFormat(lang.value, {
-            notation: 'compact',
-        }).format(n);
-    } catch {
-        return formatCount(n);
-    }
-};
-
 /* ---------- live translation counts ---------- */
 
 // The catalog grows. Fill the printed numbers from the live endpoint rather
@@ -295,31 +285,11 @@ const FLYWHEEL: (keyof Labels['home']['flywheel'])[] = [
 
 /* ---------- the reach map ---------- */
 
-// The numbers under the map. The request total matches the milestone banner;
-// the rest are counted from reach.ts.
-const reachCountries = (min: number) =>
-    Object.values(REACH_HITS).filter((n) => n >= min).length;
-const reachStats = computed(() => {
-    const stats = labels.value.home.reachStats;
-    return [
-        {
-            id: 'requests',
-            value: formatCompact(100_000_000) + '+',
-            label: stats.requests,
-        },
-        {
-            id: 'countries',
-            value: formatCount(reachCountries(100)),
-            label: fillLabel(stats.countries, { count: formatCount(100) }),
-        },
-        {
-            id: 'busy',
-            value: formatCount(reachCountries(10000)),
-            label: fillLabel(stats.countries, { count: formatCount(10000) }),
-        },
-        { id: 'continents', value: formatCount(6), label: stats.continents },
-    ];
-});
+// The number under the map: the countries in reach.ts, which lists those
+// with at least 100 requests.
+const reachCountries = computed(() =>
+    formatCount(Object.keys(REACH_HITS).length)
+);
 
 type FaqId = Exclude<keyof Labels['home']['faq'], 'money'>;
 const FAQ_ANSWERS: Record<FaqId, true> = {
@@ -933,12 +903,10 @@ onBeforeUnmount(() => {
                     <figure class="reach">
                         <ReachMap />
                     </figure>
-                    <dl class="reach-stats">
-                        <div v-for="stat in reachStats" :key="stat.id">
-                            <dt>{{ stat.label }}</dt>
-                            <dd>{{ stat.value }}</dd>
-                        </div>
-                    </dl>
+                    <p class="reach-stat">
+                        <b>{{ reachCountries }}</b>
+                        <span>{{ labels.home.reachCountries }}</span>
+                    </p>
                 </div>
             </section>
 
@@ -1784,35 +1752,22 @@ onBeforeUnmount(() => {
         margin: clamp(30px, 4.4vh, 52px) auto 0;
         aspect-ratio: 960 / 422;
     }
-    .reach-stats {
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        max-width: 960px;
-        margin: clamp(28px, 4vh, 48px) auto 0;
-        padding: 0;
-    }
-    .reach-stats div {
+    .reach-stat {
         display: flex;
         flex-direction: column;
+        align-items: center;
         gap: 8px;
-        padding: 4px 16px;
+        margin: clamp(28px, 4vh, 48px) auto 0;
     }
-    .reach-stats div + div {
-        border-left: 1px solid var(--line);
-    }
-    .reach-stats dd {
-        order: -1;
-        margin: 0;
-        font-size: clamp(30px, 3.6vw, 46px);
+    .reach-stat b {
+        font-size: clamp(40px, 5vw, 64px);
         font-weight: 800;
         letter-spacing: -0.04em;
         line-height: 1;
     }
-    .reach-stats dt {
-        font-size: 14px;
-        line-height: 1.35;
+    .reach-stat span {
+        font-size: 16px;
         color: var(--text-2);
-        text-wrap: balance;
     }
 
     /* ---------- scroll cue: a quiet down arrow, bottom right ---------- */
@@ -1907,13 +1862,6 @@ onBeforeUnmount(() => {
         }
     }
     @media (max-width: 720px) {
-        .reach-stats {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            row-gap: 24px;
-        }
-        .reach-stats div:nth-child(odd) {
-            border-left: 0;
-        }
         .beat {
             min-height: auto;
             padding: clamp(88px, 22vw, 120px) 0;

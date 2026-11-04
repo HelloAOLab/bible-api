@@ -2,7 +2,6 @@
 import { computed, onMounted, ref } from 'vue';
 import { usePageLang } from 'vuepress/client';
 import { useLabels } from '../composables/useLocale';
-import { fillLabel } from '../composables/formatLabel';
 import { MAP_HEIGHT, MAP_POINTS, MAP_SHAPES, MAP_WIDTH } from '../worldMap';
 import { REACH_HITS } from '../reach';
 
@@ -34,20 +33,6 @@ const countryName = computed(() => {
     }
 });
 
-const formatCount = (n: number) => {
-    try {
-        return n.toLocaleString(lang.value);
-    } catch {
-        return n.toLocaleString('en-US');
-    }
-};
-
-const describe = (id: string, n: number) =>
-    fillLabel(labels.value.home.reachCountry, {
-        country: countryName.value(id),
-        count: formatCount(n),
-    });
-
 // Shade by the order of magnitude, so the long tail still shows.
 const shade = (n: number) =>
     Math.round(18 + ((Math.log10(n) - LOG_MIN) / (LOG_MAX - LOG_MIN)) * 70) +
@@ -60,7 +45,7 @@ const shapes = computed(() =>
             key: shape.id || `x${i}`,
             d: shape.d,
             fill: n ? shade(n) : undefined,
-            title: n ? describe(shape.id, n) : undefined,
+            title: n ? countryName.value(shape.id) : undefined,
         };
     })
 );
@@ -76,7 +61,7 @@ const bubbles = computed(() =>
             x: MAP_POINTS[id][0],
             y: MAP_POINTS[id][1],
             r: +(1.6 + 30 * Math.sqrt(n / MAX)).toFixed(1),
-            title: describe(id, n),
+            title: countryName.value(id),
         }))
 );
 </script>
