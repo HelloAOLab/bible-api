@@ -427,7 +427,11 @@ function whenVisible(
 
 /* ---------- the scroll cue ---------- */
 
+// A label may carry a "\n" where the line should break on wide screens.
+const causeLines = computed(() => labels.value.home.causeTitle.split('\n'));
+
 const home = ref<HTMLElement>();
+const cueProgress = ref(0);
 
 function sections() {
     return Array.from(
@@ -438,6 +442,8 @@ function sections() {
 }
 
 function updateCue() {
+    const max = document.documentElement.scrollHeight - innerHeight;
+    cueProgress.value = max > 0 ? Math.min(1, Math.max(0, scrollY / max)) : 0;
     cueHidden.value =
         scrollY + innerHeight >= document.documentElement.scrollHeight - 160;
     const cue = home.value?.querySelector('.scroll-cue');
@@ -552,7 +558,16 @@ onBeforeUnmount(() => {
             <section class="section cause" id="cause">
                 <div class="shell">
                     <div class="cause-top">
-                        <h2 class="cause-h">{{ labels.home.causeTitle }}</h2>
+                        <h2
+                            class="cause-h"
+                            :class="{ 'has-break': causeLines.length > 1 }"
+                        >
+                            <template
+                                v-for="(line, i) in causeLines"
+                                :key="i"
+                                ><br v-if="i" class="lb" />{{ line }}</template
+                            >
+                        </h2>
                         <RouteLink
                             class="btn primary cause-cta"
                             :to="localePage('/support.html')"
@@ -1010,7 +1025,19 @@ onBeforeUnmount(() => {
             :tabindex="cueHidden ? -1 : 0"
             @click="nextSection"
         >
+            <svg class="cue-ring" viewBox="0 0 48 48" aria-hidden="true">
+                <circle class="cue-track" cx="24" cy="24" r="22" />
+                <circle
+                    class="cue-fill"
+                    cx="24"
+                    cy="24"
+                    r="22"
+                    pathLength="100"
+                    :stroke-dashoffset="100 - cueProgress * 100"
+                />
+            </svg>
             <svg
+                class="cue-arrow"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -1164,6 +1191,18 @@ onBeforeUnmount(() => {
         font-size: clamp(30px, 4vw, 48px);
         letter-spacing: -0.04em;
         text-wrap: balance;
+    }
+    /* the label sets its own break, so let both lines run full width */
+    .cause-h.has-break {
+        max-width: none;
+    }
+    @media (max-width: 720px) {
+        .cause-h br.lb {
+            display: none;
+        }
+        .cause-h.has-break {
+            max-width: 22ch;
+        }
     }
     .cause-cta {
         flex: none;
@@ -1715,46 +1754,63 @@ onBeforeUnmount(() => {
         opacity: 0.55;
     }
 
-    /* ---------- scroll cue: a quiet down arrow, bottom right ---------- */
+    /* ---------- scroll cue: a down arrow in a ring that fills as you scroll ---------- */
     .scroll-cue {
         position: fixed;
         right: clamp(16px, 2.4vw, 32px);
         bottom: clamp(16px, 2.4vw, 32px);
         z-index: 40;
-        width: 40px;
-        height: 40px;
+        width: 48px;
+        height: 48px;
         display: flex;
         align-items: center;
         justify-content: center;
         padding: 0;
         border: 0;
-        background: none;
-        color: var(--muted);
+        border-radius: 50%;
+        background: var(--bg);
+        color: var(--text);
         cursor: pointer;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
         transition:
             opacity 0.25s ease,
-            color 0.2s ease;
+            color 0.2s ease,
+            background 0.2s ease;
     }
     .scroll-cue.on-invert {
-        color: color-mix(in srgb, var(--btn-fg) 72%, transparent);
+        background: var(--btn-bg);
+        color: var(--btn-fg);
     }
     .scroll-cue.gone {
         opacity: 0;
         pointer-events: none;
     }
-    .scroll-cue svg {
-        width: 22px;
-        height: 22px;
+    .scroll-cue .cue-ring {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        transform: rotate(-90deg);
+        fill: none;
+        stroke-width: 2.5;
+    }
+    .scroll-cue .cue-track {
+        stroke: color-mix(in srgb, currentColor 18%, transparent);
+    }
+    .scroll-cue .cue-fill {
+        stroke: currentColor;
+        stroke-dasharray: 100;
+        stroke-linecap: round;
+        transition: stroke-dashoffset 0.1s linear;
+    }
+    .scroll-cue .cue-arrow {
+        position: relative;
+        width: 20px;
+        height: 20px;
         animation: fuba-cue-sway 4.5s ease-in-out 1.5s infinite;
     }
     @media (hover: hover) {
-        .scroll-cue:hover {
-            color: var(--text);
-        }
-        .scroll-cue.on-invert:hover {
-            color: var(--btn-fg);
-        }
-        .scroll-cue:hover svg {
+        .scroll-cue:hover .cue-arrow {
             animation-play-state: paused;
         }
     }
@@ -1912,10 +1968,19 @@ onBeforeUnmount(() => {
             opacity: 0.8;
             animation: none !important;
         }
-        .scroll-cue svg {
+        .scroll-cue .cue-arrow {
             animation: none;
         }
+        .scroll-cue .cue-fill {
+            transition: none;
+        }
     }
+}
+
+/* The home page's scroll cue already shows progress, so it replaces the
+   site-wide back-to-top button there. */
+body:has(.fuba-home) .vp-back-to-top-button {
+    display: none;
 }
 
 [data-theme='dark'] .fuba-home .milestone {

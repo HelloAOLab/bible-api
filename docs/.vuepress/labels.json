@@ -23,7 +23,7 @@
         "noApiKeyDetail": "Nothing to sign up for",
         "noUsageLimits": "No usage limits",
         "noUsageLimitsDetail": "Free forever",
-        "causeTitle": "Supported by partners who believe Scripture should be truly free.",
+        "causeTitle": "Supported by partners who\nbelieve Scripture should be truly free.",
         "support": "Support",
         "frontierTitle": "Welcome to the frontier.",
         "frontierDetail": "Get started immediately with **no red tape**.",
@@ -181,7 +181,7 @@
         "newsletterBody": "Updates from the people building it, in your inbox.",
         "discordPrompt": "Want to build with us?",
         "contributeDiscord": "Contribute on Discord",
-        "discordBody": "Create and review CC0 resources with us.",
+        "discordBody": "Join the community and get involved.",
         "faqTitle": "FAQ",
         "faq": {
             "problem": {
