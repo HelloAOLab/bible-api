@@ -785,28 +785,32 @@ onBeforeUnmount(() => {
         padding-top: clamp(56px, 6vw, 88px);
         padding-bottom: clamp(56px, 6vw, 88px);
     }
+    /* one narrow column, on an even rhythm: 12px under the heading, 32px
+       to the paragraphs, 20px between them, 28px to the button */
+    .tell-story .shell > * {
+        max-width: 720px;
+    }
     .tell-story .head {
-        margin-bottom: clamp(28px, 3vw, 40px);
+        margin-bottom: 32px;
     }
     .story-steps {
         margin: 0;
         padding: 0;
         list-style: none;
         display: grid;
-        gap: 14px;
-        max-width: 860px;
+        gap: 20px;
     }
     .story-steps li {
         color: var(--text-2);
         font-size: 18px;
-        line-height: 1.55;
+        line-height: 1.5;
     }
     .story-steps strong {
         color: var(--text);
         font-weight: 700;
     }
     .story-after {
-        margin-top: clamp(24px, 2.6vw, 32px);
+        margin-top: 28px;
     }
     @media (max-width: 720px) {
         br.lb {
