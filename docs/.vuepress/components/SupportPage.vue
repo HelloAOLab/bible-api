@@ -82,15 +82,43 @@ const logos = ref<HTMLDetailsElement>();
 
 function fromHash() {
     const h = location.hash;
+    if (h === '#give' || h === '#testimony') {
+        setTimeout(() => scrollToSection(h.slice(1)), 0);
+    }
     if (h === '#logos' && logos.value) {
         logos.value.open = true;
         setTimeout(() => logos.value?.scrollIntoView({ block: 'start' }), 0);
     }
 }
 
+// Scroll to a section ourselves, below the fixed navbar, so in-page links
+// work however the router treats the hash.
+function scrollToSection(id: string) {
+    const el = document.getElementById(id);
+    if (!el) return false;
+    const head =
+        document.querySelector<HTMLElement>('.vp-navbar')?.offsetHeight ?? 0;
+    const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)')
+        .matches;
+    window.scrollTo({
+        top: el.getBoundingClientRect().top + scrollY - head - 16,
+        behavior: smooth ? 'smooth' : 'auto',
+    });
+    history.replaceState(history.state, '', `#${id}`);
+    return true;
+}
+
 function openLogos(e: MouseEvent) {
-    if ((e.target as Element).closest?.('a[href="#logos"]') && logos.value) {
+    const link = (e.target as Element).closest?.<HTMLAnchorElement>(
+        'a[href^="#"]'
+    );
+    if (!link) return;
+    const id = link.getAttribute('href')!.slice(1);
+    if (id === 'logos' && logos.value) {
         logos.value.open = true;
+    }
+    if (id === 'give' || id === 'testimony') {
+        if (scrollToSection(id)) e.preventDefault();
     }
 }
 
