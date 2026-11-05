@@ -47,7 +47,14 @@ const squaresLabel = (n: number) =>
 const mailto = (subject: string, body: string) =>
     `mailto:${HELLO_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 
-const intro = computed(() => fillLabel(s.value.intro, { year: YEAR }));
+const intro = computed(() =>
+    labelHtml(fillLabel(s.value.intro, { year: YEAR }), {
+        donation: `<a href="#give" class="inref">${labelHtml(s.value.introDonation)}</a>`,
+        story: `<a href="#testimony" class="inref">${labelHtml(s.value.introStory)}</a>`,
+    })
+);
+// A label may carry a "\n" where the line should break on wide screens.
+const thanksLines = computed(() => s.value.thanksBody.split('\n'));
 const giftBody = computed(() =>
     labelHtml(s.value.giftBody, {
         month: money(UNIT / 12),
@@ -373,24 +380,13 @@ onBeforeUnmount(() => {
             <section class="hero">
                 <div class="shell">
                     <h1>{{ s.title }}</h1>
-                    <p class="sub">{{ intro }}</p>
+                    <p class="sub" v-html="intro"></p>
                     <SupportWall />
                 </div>
             </section>
 
             <section class="section help">
                 <div class="shell">
-                    <div id="testimony">
-                        <h2 class="help-h">{{ s.testimonyTitle }}</h2>
-                        <p>{{ s.testimonyBody }}</p>
-                        <div class="cta left">
-                            <a class="btn primary" :href="testimonyMail"
-                                >{{ s.testimonyButton }}
-                                <span aria-hidden="true">&rarr;</span></a
-                            >
-                        </div>
-                    </div>
-
                     <div id="give">
                         <h2 class="help-h">{{ s.giftTitle }}</h2>
                         <p v-html="giftBody"></p>
@@ -689,10 +685,29 @@ onBeforeUnmount(() => {
                 </div>
             </section>
 
+            <section id="testimony" class="section story">
+                <div class="shell">
+                    <h2 class="help-h">{{ s.testimonyTitle }}</h2>
+                    <p>{{ s.testimonyBody }}</p>
+                    <div class="cta left">
+                        <a class="btn primary" :href="testimonyMail"
+                            >{{ s.testimonyButton }}
+                            <span aria-hidden="true">&rarr;</span></a
+                        >
+                    </div>
+                </div>
+            </section>
+
             <section class="section alt thanks">
                 <div class="shell">
                     <h2>{{ s.thanksTitle }}</h2>
-                    <p>{{ s.thanksBody }}</p>
+                    <p>
+                        <template
+                            v-for="(line, i) in thanksLines"
+                            :key="i"
+                            ><br v-if="i" class="lb" />{{ line }}</template
+                        >
+                    </p>
                     <p class="sign">{{ s.signOff }}</p>
                     <p class="sign team">{{ s.team }}</p>
                 </div>
@@ -719,8 +734,14 @@ onBeforeUnmount(() => {
     }
 
     /* ---------- share a testimony, then donate ---------- */
-    #give {
-        margin-top: clamp(48px, 5vw, 72px);
+    .story {
+        padding-top: clamp(56px, 6vw, 88px);
+        padding-bottom: clamp(56px, 6vw, 88px);
+    }
+    @media (max-width: 720px) {
+        br.lb {
+            display: none;
+        }
     }
 
     .help-h {
@@ -748,10 +769,13 @@ onBeforeUnmount(() => {
         overflow: hidden;
         background: #fff;
     }
+    /* Sized to the form's default card view at each width, so no blank
+       space shows under it. Longer tabs (bank transfer, stocks) scroll
+       inside the frame. */
     .give-form iframe {
         display: block;
         width: 100%;
-        height: 940px;
+        height: 980px;
         border: 0;
     }
     .give-alt {
@@ -814,9 +838,14 @@ onBeforeUnmount(() => {
     .way .to:hover {
         border-bottom-color: var(--line-strong);
     }
-    @media (min-width: 761px) {
+    @media (min-width: 521px) {
         .give-form iframe {
-            height: 740px;
+            height: 770px;
+        }
+    }
+    @media (min-width: 641px) {
+        .give-form iframe {
+            height: 640px;
         }
     }
     @media (min-width: 1000px) {

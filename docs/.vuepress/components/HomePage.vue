@@ -293,8 +293,6 @@ const struck = ref<HTMLElement>();
 const relayOn = ref(false);
 const struckArmed = ref(false);
 const struckOn = ref(false);
-const cueHidden = ref(false);
-const cueOnInvert = ref(false);
 const RELAY_DOTS = 66;
 
 const cleanups: (() => void)[] = [];
@@ -425,53 +423,10 @@ function whenVisible(
     cleanups.push(() => io.disconnect());
 }
 
-/* ---------- the scroll cue ---------- */
+/* ---------- the cause heading ---------- */
 
 // A label may carry a "\n" where the line should break on wide screens.
 const causeLines = computed(() => labels.value.home.causeTitle.split('\n'));
-
-const home = ref<HTMLElement>();
-const cueProgress = ref(0);
-
-function sections() {
-    return Array.from(
-        home.value?.querySelectorAll<HTMLElement>(
-            'main > section, .fuba-footer'
-        ) ?? []
-    );
-}
-
-function updateCue() {
-    const max = document.documentElement.scrollHeight - innerHeight;
-    cueProgress.value = max > 0 ? Math.min(1, Math.max(0, scrollY / max)) : 0;
-    cueHidden.value =
-        scrollY + innerHeight >= document.documentElement.scrollHeight - 160;
-    const cue = home.value?.querySelector('.scroll-cue');
-    if (!cue) return;
-    const c = cue.getBoundingClientRect();
-    const y = c.top + c.height / 2;
-    cueOnInvert.value = Array.from(
-        home.value!.querySelectorAll('section.invert')
-    ).some((s) => {
-        const r = s.getBoundingClientRect();
-        return y >= r.top && y <= r.bottom;
-    });
-}
-
-function nextSection() {
-    const head =
-        document.querySelector<HTMLElement>('.vp-navbar')?.offsetHeight ?? 0;
-    const next = sections().find(
-        (s) => s.getBoundingClientRect().top > head + 8 && s.offsetHeight > 150
-    );
-    if (next) {
-        const top = next.getBoundingClientRect().top + scrollY - head;
-        window.scrollTo({
-            top,
-            behavior: reducedMotion() ? 'auto' : 'smooth',
-        });
-    }
-}
 
 onMounted(() => {
     fetchCounts();
@@ -485,13 +440,6 @@ onMounted(() => {
             struckOn.value = true;
         });
     }
-    addEventListener('scroll', updateCue, { passive: true });
-    addEventListener('resize', updateCue);
-    cleanups.push(() => {
-        removeEventListener('scroll', updateCue);
-        removeEventListener('resize', updateCue);
-    });
-    updateCue();
 });
 
 onBeforeUnmount(() => {
@@ -500,7 +448,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <div ref="home" class="fuba-page fuba-home">
+    <div class="fuba-page fuba-home">
         <div class="milestone" :class="milestone">
             <p>
                 <span>{{ labels.home.milestone }}</span>
@@ -1016,39 +964,6 @@ onBeforeUnmount(() => {
         </main>
 
         <SiteFooter />
-
-        <button
-            type="button"
-            class="scroll-cue"
-            :class="{ 'on-invert': cueOnInvert, gone: cueHidden }"
-            :aria-label="labels.home.scrollCue"
-            :tabindex="cueHidden ? -1 : 0"
-            @click="nextSection"
-        >
-            <svg class="cue-ring" viewBox="0 0 48 48" aria-hidden="true">
-                <circle class="cue-track" cx="24" cy="24" r="22" />
-                <circle
-                    class="cue-fill"
-                    cx="24"
-                    cy="24"
-                    r="22"
-                    pathLength="100"
-                    :stroke-dashoffset="100 - cueProgress * 100"
-                />
-            </svg>
-            <svg
-                class="cue-arrow"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-            >
-                <path d="M12 5v14M6 13l6 6 6-6" />
-            </svg>
-        </button>
     </div>
 </template>
 
@@ -1754,67 +1669,6 @@ onBeforeUnmount(() => {
         opacity: 0.55;
     }
 
-    /* ---------- scroll cue: a down arrow in a ring that fills as you scroll ---------- */
-    .scroll-cue {
-        position: fixed;
-        right: clamp(16px, 2.4vw, 32px);
-        bottom: clamp(16px, 2.4vw, 32px);
-        z-index: 40;
-        width: 48px;
-        height: 48px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0;
-        border: 0;
-        border-radius: 50%;
-        background: var(--bg);
-        color: var(--text);
-        cursor: pointer;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
-        transition:
-            opacity 0.25s ease,
-            color 0.2s ease,
-            background 0.2s ease;
-    }
-    .scroll-cue.on-invert {
-        background: var(--btn-bg);
-        color: var(--btn-fg);
-    }
-    .scroll-cue.gone {
-        opacity: 0;
-        pointer-events: none;
-    }
-    .scroll-cue .cue-ring {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        transform: rotate(-90deg);
-        fill: none;
-        stroke-width: 2.5;
-    }
-    .scroll-cue .cue-track {
-        stroke: color-mix(in srgb, currentColor 18%, transparent);
-    }
-    .scroll-cue .cue-fill {
-        stroke: currentColor;
-        stroke-dasharray: 100;
-        stroke-linecap: round;
-        transition: stroke-dashoffset 0.1s linear;
-    }
-    .scroll-cue .cue-arrow {
-        position: relative;
-        width: 20px;
-        height: 20px;
-        animation: fuba-cue-sway 4.5s ease-in-out 1.5s infinite;
-    }
-    @media (hover: hover) {
-        .scroll-cue:hover .cue-arrow {
-            animation-play-state: paused;
-        }
-    }
-
     @media (max-width: 900px) {
         .cards {
             gap: 12px;
@@ -1968,19 +1822,7 @@ onBeforeUnmount(() => {
             opacity: 0.8;
             animation: none !important;
         }
-        .scroll-cue .cue-arrow {
-            animation: none;
-        }
-        .scroll-cue .cue-fill {
-            transition: none;
-        }
     }
-}
-
-/* The home page's scroll cue already shows progress, so it replaces the
-   site-wide back-to-top button there. */
-body:has(.fuba-home) .vp-back-to-top-button {
-    display: none;
 }
 
 [data-theme='dark'] .fuba-home .milestone {
@@ -2007,22 +1849,6 @@ body:has(.fuba-home) .vp-back-to-top-button {
     100% {
         transform: scale(1);
         opacity: 1;
-    }
-}
-@keyframes fuba-cue-sway {
-    0%,
-    72%,
-    100% {
-        transform: rotate(0);
-    }
-    78% {
-        transform: rotate(-16deg);
-    }
-    86% {
-        transform: rotate(12deg);
-    }
-    93% {
-        transform: rotate(-5deg);
     }
 }
 </style>

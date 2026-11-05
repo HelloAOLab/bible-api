@@ -5,6 +5,7 @@ import {
     useSiteLocaleData,
 } from 'vuepress/client';
 import NewsletterDialog from './components/NewsletterDialog.vue';
+import ScrollCue from './components/ScrollCue.vue';
 import FreeUseFundLayout from './layouts/FreeUseFundLayout.vue';
 import HomeLayout from './layouts/HomeLayout.vue';
 import NotFound from './layouts/NotFound.vue';
@@ -44,8 +45,9 @@ export default defineClientConfig({
         SupportLayout,
     },
 
-    // Opens from any link with the class js-newsletter-trigger.
-    rootComponents: [NewsletterDialog],
+    // The newsletter dialog opens from any link with the class
+    // js-newsletter-trigger. The scroll cue sits bottom right on every page.
+    rootComponents: [NewsletterDialog, ScrollCue],
 
     // Arabic and Urdu read right to left. The page's `lang` is set from the
     // locale, but nothing sets `dir`, so do it here as the reader switches

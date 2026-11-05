@@ -1,5 +1,4 @@
 import { defineUserConfig } from 'vuepress';
-import { backToTopPlugin } from '@vuepress/plugin-back-to-top';
 import { mediumZoomPlugin } from '@vuepress/plugin-medium-zoom';
 import { defaultTheme } from '@vuepress/theme-default';
 import { viteBundler } from '@vuepress/bundler-vite';
@@ -471,7 +470,6 @@ export default defineUserConfig({
         sitemapPlugin({
             hostname,
         }),
-        backToTopPlugin(),
         mediumZoomPlugin(),
         markdownIncludePlugin({}),
     ],

@@ -295,7 +295,9 @@
     },
     "support": {
         "title": "Stand with us.",
-        "intro": "Support the people who maintain and build this open ecosystem with a donation, your story, or both. With your permission, either can appear on the {{ year }} support wall.",
+        "intro": "Support the people who maintain and build this open ecosystem with a {{ donation }}, your {{ story }}, or both. With your permission, either can appear on the {{ year }} support wall.",
+        "introDonation": "donation",
+        "introStory": "story",
         "chooseTitle": "How would you like to help?",
         "choices": {
             "testimony": {
@@ -312,9 +314,9 @@
             }
         },
         "chooseNote": "You choose what appears publicly on the support wall.",
-        "testimonyTitle": "Share your testimony",
+        "testimonyTitle": "Please tell us your story",
         "testimonyBody": "How you use the API, a word of thanks, a note of encouragement: we’d love to hear it all. Tell us if we can share it by name or anonymously, and if you donated, include the name and amount so we can add it to your squares.",
-        "testimonyButton": "Email your testimony",
+        "testimonyButton": "Email us your story",
         "testimonySubject": "My testimony for the support wall",
         "testimonyEmail": "Name or organization:\nShare it by name, or anonymously:\n\nYour story (how you use the API, a word of thanks, or a note of encouragement):\n\nLink to what you built (optional):\n\nIf you donated, the name and amount on your donation (optional):\nShort message for the wall, up to 80 characters (optional):\n\nAttach screenshots, photos, or a logo as an SVG or a transparent PNG at least 600 pixels on its long side (optional).\n",
         "giftTitle": "Make a tax-deductible donation",
@@ -402,7 +404,7 @@
         "detailsSubject": "My donation on the {{ year }} wall",
         "detailsEmail": "Name on my donation:\nAmount, and monthly or for the year:\nShow my name, or stay anonymous:\n\nHow we use the API (optional):\n\nShort message, up to 80 characters (optional):\n\nLogo: attached as SVG, or PNG at least 600 px with a transparent background (optional)\nRectangle (width x height), if sending a logo:\n",
         "thanksTitle": "Thank you so much!",
-        "thanksBody": "Every show of support reminds us we are not alone and proves this is a global effort by Christians for Christians.",
+        "thanksBody": "Every show of support reminds us we are not alone\nand proves this is a global effort by Christians for Christians.",
         "signOff": "In Christ,",
         "team": "The AO Lab Team"
     },
