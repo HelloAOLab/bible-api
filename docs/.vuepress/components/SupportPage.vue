@@ -9,7 +9,7 @@ import type { Labels } from '../labels';
 import { WALL_DATA } from '../wallData';
 
 const FORM_URL =
-    'https://better.giving/forms/8c81946b-9395-4007-b74f-da7498778c0c';
+    'https://better.giving/forms/8377ac1c-e99c-4352-b1f1-8e5832da0bac';
 const NCF_URL =
     'https://secure.ncfgiving.com/charityprofile?cpid=a1HVx0000005n9lMAA&id=a0aVx00000DsuH6IAJ';
 const FORECAST_URL =
@@ -47,12 +47,24 @@ const squaresLabel = (n: number) =>
 const mailto = (subject: string, body: string) =>
     `mailto:${HELLO_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 
-const intro = computed(() => fillLabel(s.value.intro, { year: YEAR }));
+const intro = computed(() =>
+    labelHtml(fillLabel(s.value.intro, { year: YEAR }), {
+        donation: `<a href="#give" class="inref">${labelHtml(s.value.introDonation)}</a>`,
+        story: `<a href="#testimony" class="inref">${labelHtml(s.value.introStory)}</a>`,
+    })
+);
+// A label may carry a "\n" where the line should break on wide screens.
+const thanksLines = computed(() => s.value.thanksBody.split('\n'));
 const giftBody = computed(() =>
     labelHtml(s.value.giftBody, {
         month: money(UNIT / 12),
         year: money(UNIT),
     })
+);
+const storySteps = computed(() =>
+    [s.value.testimonyStepShare, s.value.testimonyStepPermission].map((l) =>
+        labelHtml(l)
+    )
 );
 const testimonyMail = computed(() =>
     mailto(s.value.testimonySubject, s.value.testimonyEmail)
@@ -69,25 +81,14 @@ const logoBody = computed(() =>
     })
 );
 
-/* ---------- testimony, gift or both ---------- */
-
-type Choice = 'testimony' | 'gift' | 'both';
-const CHOICES: Choice[] = ['testimony', 'gift', 'both'];
-const choice = ref<Choice | null>(null);
-// Until the page is interactive every panel shows, so nothing is hidden from
-// a reader without script.
-const ready = ref(false);
-const shows = (...forChoices: Choice[]) =>
-    !ready.value || (!!choice.value && forChoices.includes(choice.value));
+/* ---------- logo sizes link ---------- */
 
 const logos = ref<HTMLDetailsElement>();
 
 function fromHash() {
     const h = location.hash;
-    if (h === '#logos' || h === '#give' || h === '#recognition') {
-        choice.value = 'gift';
-    } else if (h === '#testimony') {
-        choice.value = 'testimony';
+    if (h === '#give' || h === '#testimony') {
+        setTimeout(() => scrollToSection(h.slice(1)), 0);
     }
     if (h === '#logos' && logos.value) {
         logos.value.open = true;
@@ -95,9 +96,34 @@ function fromHash() {
     }
 }
 
+// Scroll to a section ourselves, below the fixed navbar, so in-page links
+// work however the router treats the hash.
+function scrollToSection(id: string) {
+    const el = document.getElementById(id);
+    if (!el) return false;
+    const head =
+        document.querySelector<HTMLElement>('.vp-navbar')?.offsetHeight ?? 0;
+    const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)')
+        .matches;
+    window.scrollTo({
+        top: el.getBoundingClientRect().top + scrollY - head - 16,
+        behavior: smooth ? 'smooth' : 'auto',
+    });
+    history.replaceState(history.state, '', `#${id}`);
+    return true;
+}
+
 function openLogos(e: MouseEvent) {
-    if ((e.target as Element).closest?.('a[href="#logos"]') && logos.value) {
+    const link = (e.target as Element).closest?.<HTMLAnchorElement>(
+        'a[href^="#"]'
+    );
+    if (!link) return;
+    const id = link.getAttribute('href')!.slice(1);
+    if (id === 'logos' && logos.value) {
         logos.value.open = true;
+    }
+    if (id === 'give' || id === 'testimony') {
+        if (scrollToSection(id)) e.preventDefault();
     }
 }
 
@@ -365,7 +391,6 @@ function closeEx() {
 let resize: ResizeObserver | undefined;
 
 onMounted(() => {
-    ready.value = true;
     fromHash();
     window.addEventListener('hashchange', fromHash);
     document.addEventListener('click', closeEx);
@@ -388,56 +413,15 @@ onBeforeUnmount(() => {
             <section class="hero">
                 <div class="shell">
                     <h1>{{ s.title }}</h1>
-                    <p class="sub">{{ intro }}</p>
+                    <p class="sub" v-html="intro"></p>
                     <SupportWall />
                 </div>
             </section>
 
             <section class="section help">
                 <div class="shell">
-                    <fieldset class="choose">
-                        <legend>
-                            <h2 class="choose-h">{{ s.chooseTitle }}</h2>
-                        </legend>
-                        <label v-for="c in CHOICES" :key="c" class="pick">
-                            <input
-                                v-model="choice"
-                                type="radio"
-                                name="help"
-                                :value="c"
-                            />
-                            <span class="pick-body">
-                                <span>
-                                    <b>{{ s.choices[c].name }}</b>
-                                    <small>{{ s.choices[c].detail }}</small>
-                                </span>
-                                <i aria-hidden="true">&rarr;</i>
-                            </span>
-                        </label>
-                        <p class="choose-note">{{ s.chooseNote }}</p>
-                    </fieldset>
-
-                    <div
-                        v-show="shows('testimony', 'both')"
-                        id="testimony"
-                        class="help-panel"
-                    >
-                        <h3 class="help-h">{{ s.testimonyTitle }}</h3>
-                        <p>{{ s.testimonyBody }}</p>
-                        <div class="cta left">
-                            <a class="btn primary" :href="testimonyMail"
-                                >{{ s.testimonyButton }}
-                                <span aria-hidden="true">&rarr;</span></a
-                            >
-                        </div>
-                    </div>
-
-                    <div
-                        v-show="shows('gift', 'both')"
-                        id="give"
-                        class="help-panel"
-                    >
-                        <h3 class="help-h">{{ s.giftTitle }}</h3>
+                    <div id="give">
+                        <h2 class="help-h">{{ s.giftTitle }}</h2>
                         <p v-html="giftBody"></p>
                         <div class="give-grid">
                             <div class="give-main">
@@ -507,11 +491,7 @@ onBeforeUnmount(() => {
                 </div>
             </section>
 
-            <section
-                v-show="shows('gift', 'both')"
-                id="recognition"
-                class="section alt help-panel"
-            >
+            <section id="recognition" class="section alt">
                 <div class="shell">
                     <div class="head">
                         <h2>{{ s.recognitionTitle }}</h2>
@@ -726,7 +706,7 @@ onBeforeUnmount(() => {
                             </tr>
                         </tbody>
                     </table>
-                    <div v-show="shows('gift')" class="help-panel">
+                    <div>
                         <p class="gift-note">{{ s.detailsNote }}</p>
                         <div class="cta left">
                             <a class="btn primary" :href="detailsMail"
@@ -738,10 +718,39 @@ onBeforeUnmount(() => {
                 </div>
             </section>
 
+            <section id="testimony" class="section tell-story">
+                <div class="shell">
+                    <div class="head">
+                        <h2>{{ s.testimonyTitle }}</h2>
+                    </div>
+                    <ul class="story-steps">
+                        <li
+                            v-for="(step, i) in storySteps"
+                            :key="i"
+                            v-html="step"
+                        ></li>
+                    </ul>
+                    <div class="story-after">
+                        <div class="cta left">
+                            <a class="btn primary" :href="testimonyMail"
+                                >{{ s.testimonyButton }}
+                                <span aria-hidden="true">&rarr;</span></a
+                            >
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <section class="section alt thanks">
                 <div class="shell">
                     <h2>{{ s.thanksTitle }}</h2>
-                    <p>{{ s.thanksBody }}</p>
+                    <p>
+                        <template
+                            v-for="(line, i) in thanksLines"
+                            :key="i"
+                            ><br v-if="i" class="lb" />{{ line }}</template
+                        >
+                    </p>
                     <p class="sign">{{ s.signOff }}</p>
                     <p class="sign team">{{ s.team }}</p>
                 </div>
@@ -767,105 +776,52 @@ onBeforeUnmount(() => {
         padding-top: clamp(36px, 4vw, 52px);
     }
 
-    /* ---------- testimony / gift / both ---------- */
-    .choose {
-        border: 0;
+    /* ---------- share a testimony, then donate ---------- */
+    #recognition .head {
+        max-width: none;
+    }
+    .tell-story {
+        padding-top: clamp(56px, 6vw, 88px);
+        padding-bottom: clamp(56px, 6vw, 88px);
+    }
+    /* one narrow column, on an even rhythm: 12px under the heading, 32px
+       to the paragraphs, 20px between them, 28px to the button */
+    .tell-story .shell > * {
+        max-width: 720px;
+    }
+    .tell-story .head {
+        margin-bottom: 32px;
+    }
+    .story-steps {
         margin: 0;
         padding: 0;
-        min-inline-size: 0;
-        max-width: 760px;
+        list-style: none;
         display: grid;
-        gap: 10px;
+        gap: 20px;
     }
-    .choose legend {
-        padding: 0;
-        margin: 0 0 16px;
+    .story-steps li {
+        color: var(--text-2);
+        font-size: 18px;
+        line-height: 1.5;
     }
-    .choose-h {
-        margin: 0;
+    .story-steps strong {
+        color: var(--text);
+        font-weight: 700;
+    }
+    .story-after {
+        margin-top: 28px;
+    }
+    @media (max-width: 720px) {
+        br.lb {
+            display: none;
+        }
+    }
+
+    .help-h {
+        margin: 0 0 12px;
         font-size: clamp(24px, 2.6vw, 30px);
         letter-spacing: -0.03em;
     }
-    .pick {
-        position: relative;
-        display: block;
-        cursor: pointer;
-    }
-    .pick input {
-        position: absolute;
-        left: 20px;
-        top: 50%;
-        width: 18px;
-        height: 18px;
-        margin: -9px 0 0;
-        accent-color: var(--text);
-        cursor: pointer;
-    }
-    .pick-body {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 16px;
-        min-height: 70px;
-        padding: 14px 20px 14px 54px;
-        border: 1px solid var(--line);
-        border-radius: 12px;
-        transition:
-            border-color 0.15s ease,
-            background 0.15s ease;
-    }
-    .pick b {
-        display: block;
-        font-size: 17px;
-        letter-spacing: -0.015em;
-        line-height: 1.3;
-    }
-    .pick small {
-        display: block;
-        margin-top: 2px;
-        font-size: 14px;
-        color: var(--muted);
-    }
-    .pick i {
-        font-style: normal;
-        font-size: 19px;
-        color: var(--muted);
-    }
-    @media (hover: hover) {
-        .pick:hover .pick-body {
-            border-color: var(--muted);
-        }
-    }
-    .pick input:checked + .pick-body {
-        border-color: var(--text);
-        box-shadow: inset 0 0 0 1px var(--text);
-        background: var(--surface);
-    }
-    .pick input:checked + .pick-body i {
-        color: var(--text);
-    }
-    .pick input:focus-visible + .pick-body {
-        outline: 2px solid var(--line-strong);
-        outline-offset: 3px;
-    }
-    .choose-note {
-        margin: 6px 0 0;
-        font-size: 13.5px;
-        color: var(--muted);
-    }
-    #testimony,
-    #give {
-        margin-top: clamp(36px, 4vw, 52px);
-    }
-    #testimony {
-        max-width: 760px;
-    }
-    .help-h {
-        margin: 0 0 12px;
-        font-size: clamp(22px, 2.4vw, 26px);
-        letter-spacing: -0.03em;
-    }
-    #testimony p,
     #give > p {
         margin: 0 0 16px;
         color: var(--text-2);
@@ -884,12 +840,41 @@ onBeforeUnmount(() => {
         border-radius: 12px;
         overflow: hidden;
         background: #fff;
+        container-type: inline-size;
     }
+    /* Sized to the form's default card view at each width of the form
+       (measured November 2026), so no blank space shows under it. Longer
+       tabs (bank transfer, stocks) scroll inside the frame. */
     .give-form iframe {
         display: block;
         width: 100%;
-        height: 940px;
+        height: 1015px;
         border: 0;
+    }
+    @container (min-width: 440px) {
+        .give-form iframe {
+            height: 930px;
+        }
+    }
+    @container (min-width: 480px) {
+        .give-form iframe {
+            height: 752px;
+        }
+    }
+    @container (min-width: 600px) {
+        .give-form iframe {
+            height: 670px;
+        }
+    }
+    @container (min-width: 640px) {
+        .give-form iframe {
+            height: 650px;
+        }
+    }
+    @container (min-width: 730px) {
+        .give-form iframe {
+            height: 580px;
+        }
     }
     .give-alt {
         margin: 14px 0 0;
@@ -950,11 +935,6 @@ onBeforeUnmount(() => {
     }
     .way .to:hover {
         border-bottom-color: var(--line-strong);
-    }
-    @media (min-width: 761px) {
-        .give-form iframe {
-            height: 740px;
-        }
     }
     @media (min-width: 1000px) {
         .give-grid {

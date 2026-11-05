@@ -293,8 +293,6 @@ const struck = ref<HTMLElement>();
 const relayOn = ref(false);
 const struckArmed = ref(false);
 const struckOn = ref(false);
-const cueHidden = ref(false);
-const cueOnInvert = ref(false);
 const RELAY_DOTS = 66;
 
 const cleanups: (() => void)[] = [];
@@ -425,47 +423,10 @@ function whenVisible(
     cleanups.push(() => io.disconnect());
 }
 
-/* ---------- the scroll cue ---------- */
+/* ---------- the cause heading ---------- */
 
-const home = ref<HTMLElement>();
-
-function sections() {
-    return Array.from(
-        home.value?.querySelectorAll<HTMLElement>(
-            'main > section, .fuba-footer'
-        ) ?? []
-    );
-}
-
-function updateCue() {
-    cueHidden.value =
-        scrollY + innerHeight >= document.documentElement.scrollHeight - 160;
-    const cue = home.value?.querySelector('.scroll-cue');
-    if (!cue) return;
-    const c = cue.getBoundingClientRect();
-    const y = c.top + c.height / 2;
-    cueOnInvert.value = Array.from(
-        home.value!.querySelectorAll('section.invert')
-    ).some((s) => {
-        const r = s.getBoundingClientRect();
-        return y >= r.top && y <= r.bottom;
-    });
-}
-
-function nextSection() {
-    const head =
-        document.querySelector<HTMLElement>('.vp-navbar')?.offsetHeight ?? 0;
-    const next = sections().find(
-        (s) => s.getBoundingClientRect().top > head + 8 && s.offsetHeight > 150
-    );
-    if (next) {
-        const top = next.getBoundingClientRect().top + scrollY - head;
-        window.scrollTo({
-            top,
-            behavior: reducedMotion() ? 'auto' : 'smooth',
-        });
-    }
-}
+// A label may carry a "\n" where the line should break on wide screens.
+const causeLines = computed(() => labels.value.home.causeTitle.split('\n'));
 
 onMounted(() => {
     fetchCounts();
@@ -479,13 +440,6 @@ onMounted(() => {
             struckOn.value = true;
         });
     }
-    addEventListener('scroll', updateCue, { passive: true });
-    addEventListener('resize', updateCue);
-    cleanups.push(() => {
-        removeEventListener('scroll', updateCue);
-        removeEventListener('resize', updateCue);
-    });
-    updateCue();
 });
 
 onBeforeUnmount(() => {
@@ -494,7 +448,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <div ref="home" class="fuba-page fuba-home">
+    <div class="fuba-page fuba-home">
         <div class="milestone" :class="milestone">
             <p>
                 <span>{{ labels.home.milestone }}</span>
@@ -552,7 +506,16 @@ onBeforeUnmount(() => {
             <section class="section cause" id="cause">
                 <div class="shell">
                     <div class="cause-top">
-                        <h2 class="cause-h">{{ labels.home.causeTitle }}</h2>
+                        <h2
+                            class="cause-h"
+                            :class="{ 'has-break': causeLines.length > 1 }"
+                        >
+                            <template
+                                v-for="(line, i) in causeLines"
+                                :key="i"
+                                ><br v-if="i" class="lb" />{{ line }}</template
+                            >
+                        </h2>
                         <RouteLink
                             class="btn primary cause-cta"
                             :to="localePage('/support.html')"
@@ -1001,27 +964,6 @@ onBeforeUnmount(() => {
         </main>
 
         <SiteFooter />
-
-        <button
-            type="button"
-            class="scroll-cue"
-            :class="{ 'on-invert': cueOnInvert, gone: cueHidden }"
-            :aria-label="labels.home.scrollCue"
-            :tabindex="cueHidden ? -1 : 0"
-            @click="nextSection"
-        >
-            <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-            >
-                <path d="M12 5v14M6 13l6 6 6-6" />
-            </svg>
-        </button>
     </div>
 </template>
 
@@ -1164,6 +1106,18 @@ onBeforeUnmount(() => {
         font-size: clamp(30px, 4vw, 48px);
         letter-spacing: -0.04em;
         text-wrap: balance;
+    }
+    /* the label sets its own break, so let both lines run full width */
+    .cause-h.has-break {
+        max-width: none;
+    }
+    @media (max-width: 720px) {
+        .cause-h br.lb {
+            display: none;
+        }
+        .cause-h.has-break {
+            max-width: 22ch;
+        }
     }
     .cause-cta {
         flex: none;
@@ -1715,50 +1669,6 @@ onBeforeUnmount(() => {
         opacity: 0.55;
     }
 
-    /* ---------- scroll cue: a quiet down arrow, bottom right ---------- */
-    .scroll-cue {
-        position: fixed;
-        right: clamp(16px, 2.4vw, 32px);
-        bottom: clamp(16px, 2.4vw, 32px);
-        z-index: 40;
-        width: 40px;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0;
-        border: 0;
-        background: none;
-        color: var(--muted);
-        cursor: pointer;
-        transition:
-            opacity 0.25s ease,
-            color 0.2s ease;
-    }
-    .scroll-cue.on-invert {
-        color: color-mix(in srgb, var(--btn-fg) 72%, transparent);
-    }
-    .scroll-cue.gone {
-        opacity: 0;
-        pointer-events: none;
-    }
-    .scroll-cue svg {
-        width: 22px;
-        height: 22px;
-        animation: fuba-cue-sway 4.5s ease-in-out 1.5s infinite;
-    }
-    @media (hover: hover) {
-        .scroll-cue:hover {
-            color: var(--text);
-        }
-        .scroll-cue.on-invert:hover {
-            color: var(--btn-fg);
-        }
-        .scroll-cue:hover svg {
-            animation-play-state: paused;
-        }
-    }
-
     @media (max-width: 900px) {
         .cards {
             gap: 12px;
@@ -1912,9 +1822,6 @@ onBeforeUnmount(() => {
             opacity: 0.8;
             animation: none !important;
         }
-        .scroll-cue svg {
-            animation: none;
-        }
     }
 }
 
@@ -1942,22 +1849,6 @@ onBeforeUnmount(() => {
     100% {
         transform: scale(1);
         opacity: 1;
-    }
-}
-@keyframes fuba-cue-sway {
-    0%,
-    72%,
-    100% {
-        transform: rotate(0);
-    }
-    78% {
-        transform: rotate(-16deg);
-    }
-    86% {
-        transform: rotate(12deg);
-    }
-    93% {
-        transform: rotate(-5deg);
     }
 }
 </style>

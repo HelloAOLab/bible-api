@@ -1,5 +1,4 @@
 import { defineUserConfig } from 'vuepress';
-import { backToTopPlugin } from '@vuepress/plugin-back-to-top';
 import { mediumZoomPlugin } from '@vuepress/plugin-medium-zoom';
 import { defaultTheme } from '@vuepress/theme-default';
 import { viteBundler } from '@vuepress/bundler-vite';
@@ -360,6 +359,8 @@ export default defineUserConfig({
         logoDark: '/seed_bible_logo_dark.png',
         logoAlt: 'Seed Bible',
         themePlugins: {
+            // ScrollCue.vue replaces the back-to-top button on every page.
+            backToTop: false,
             // Disable the default theme's built-in prismjs highlighter since
             // shikiPlugin (registered below) already highlights code blocks.
             // Having both enabled caused code fences (and their titles) to be
@@ -471,7 +472,6 @@ export default defineUserConfig({
         sitemapPlugin({
             hostname,
         }),
-        backToTopPlugin(),
         mediumZoomPlugin(),
         markdownIncludePlugin({}),
     ],
