@@ -842,7 +842,6 @@ onBeforeUnmount(() => {
         font-size: clamp(24px, 2.6vw, 30px);
         letter-spacing: -0.03em;
     }
-    #testimony p,
     #give > p {
         margin: 0 0 16px;
         color: var(--text-2);
