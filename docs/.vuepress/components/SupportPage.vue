@@ -768,15 +768,41 @@ onBeforeUnmount(() => {
         border-radius: 12px;
         overflow: hidden;
         background: #fff;
+        container-type: inline-size;
     }
-    /* Sized to the form's default card view at each width, so no blank
-       space shows under it. Longer tabs (bank transfer, stocks) scroll
-       inside the frame. */
+    /* Sized to the form's default card view at each width of the form
+       (measured November 2026), so no blank space shows under it. Longer
+       tabs (bank transfer, stocks) scroll inside the frame. */
     .give-form iframe {
         display: block;
         width: 100%;
-        height: 980px;
+        height: 1015px;
         border: 0;
+    }
+    @container (min-width: 440px) {
+        .give-form iframe {
+            height: 930px;
+        }
+    }
+    @container (min-width: 480px) {
+        .give-form iframe {
+            height: 752px;
+        }
+    }
+    @container (min-width: 600px) {
+        .give-form iframe {
+            height: 670px;
+        }
+    }
+    @container (min-width: 640px) {
+        .give-form iframe {
+            height: 650px;
+        }
+    }
+    @container (min-width: 730px) {
+        .give-form iframe {
+            height: 580px;
+        }
     }
     .give-alt {
         margin: 14px 0 0;
@@ -837,16 +863,6 @@ onBeforeUnmount(() => {
     }
     .way .to:hover {
         border-bottom-color: var(--line-strong);
-    }
-    @media (min-width: 521px) {
-        .give-form iframe {
-            height: 770px;
-        }
-    }
-    @media (min-width: 641px) {
-        .give-form iframe {
-            height: 640px;
-        }
     }
     @media (min-width: 1000px) {
         .give-grid {
