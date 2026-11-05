@@ -713,7 +713,7 @@ onBeforeUnmount(() => {
                 </div>
             </section>
 
-            <section id="testimony" class="section story">
+            <section id="testimony" class="section tell-story">
                 <div class="shell">
                     <h2 class="help-h">{{ s.testimonyTitle }}</h2>
                     <p>{{ s.testimonyBody }}</p>
@@ -762,7 +762,10 @@ onBeforeUnmount(() => {
     }
 
     /* ---------- share a testimony, then donate ---------- */
-    .story {
+    #recognition .head {
+        max-width: none;
+    }
+    .tell-story {
         padding-top: clamp(56px, 6vw, 88px);
         padding-bottom: clamp(56px, 6vw, 88px);
     }
