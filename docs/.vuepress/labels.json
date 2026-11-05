@@ -295,7 +295,7 @@
     },
     "support": {
         "title": "Stand with us.",
-        "intro": "Support the people who maintain and build this open ecosystem with a {{ donation }}, your {{ story }}, or both. With your permission, either can appear on the {{ year }} support wall.",
+        "intro": "Please consider supporting those who maintain and build this ecosystem with a {{ donation }}, your {{ story }}, or both.",
         "introDonation": "donation",
         "introStory": "story",
         "chooseTitle": "How would you like to help?",
