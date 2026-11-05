@@ -359,6 +359,8 @@ export default defineUserConfig({
         logoDark: '/seed_bible_logo_dark.png',
         logoAlt: 'Seed Bible',
         themePlugins: {
+            // ScrollCue.vue replaces the back-to-top button on every page.
+            backToTop: false,
             // Disable the default theme's built-in prismjs highlighter since
             // shikiPlugin (registered below) already highlights code blocks.
             // Having both enabled caused code fences (and their titles) to be
