@@ -61,6 +61,12 @@ const giftBody = computed(() =>
         year: money(UNIT),
     })
 );
+const storySteps = computed(() =>
+    [s.value.testimonyStepShare, s.value.testimonyStepPermission].map((l) =>
+        labelHtml(l)
+    )
+);
+const storyDonated = computed(() => labelHtml(s.value.testimonyDonated));
 const testimonyMail = computed(() =>
     mailto(s.value.testimonySubject, s.value.testimonyEmail)
 );
@@ -715,13 +721,25 @@ onBeforeUnmount(() => {
 
             <section id="testimony" class="section tell-story">
                 <div class="shell">
-                    <h2 class="help-h">{{ s.testimonyTitle }}</h2>
-                    <p>{{ s.testimonyBody }}</p>
-                    <div class="cta left">
-                        <a class="btn primary" :href="testimonyMail"
-                            >{{ s.testimonyButton }}
-                            <span aria-hidden="true">&rarr;</span></a
-                        >
+                    <div class="head">
+                        <h2>{{ s.testimonyTitle }}</h2>
+                        <p>{{ s.testimonyLead }}</p>
+                    </div>
+                    <ol class="story-steps">
+                        <li
+                            v-for="(step, i) in storySteps"
+                            :key="i"
+                            v-html="step"
+                        ></li>
+                    </ol>
+                    <div class="story-after">
+                        <p class="story-donated" v-html="storyDonated"></p>
+                        <div class="cta left">
+                            <a class="btn primary" :href="testimonyMail"
+                                >{{ s.testimonyButton }}
+                                <span aria-hidden="true">&rarr;</span></a
+                            >
+                        </div>
                     </div>
                 </div>
             </section>
@@ -768,6 +786,50 @@ onBeforeUnmount(() => {
     .tell-story {
         padding-top: clamp(56px, 6vw, 88px);
         padding-bottom: clamp(56px, 6vw, 88px);
+    }
+    .tell-story .head {
+        margin-bottom: clamp(28px, 3vw, 40px);
+    }
+    .story-steps {
+        --story-indent: 34px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        counter-reset: story;
+        display: grid;
+        gap: 18px;
+    }
+    .story-steps li {
+        position: relative;
+        padding-left: var(--story-indent);
+        color: var(--text-2);
+        font-size: 18px;
+        line-height: 1.55;
+        counter-increment: story;
+    }
+    .story-steps li::before {
+        content: counter(story) '.';
+        position: absolute;
+        left: 0;
+        font-weight: 700;
+        color: var(--text);
+    }
+    .story-steps strong {
+        color: var(--text);
+        font-weight: 700;
+    }
+    .story-after {
+        padding-left: 34px;
+        margin-top: clamp(24px, 2.6vw, 32px);
+    }
+    #testimony .story-donated {
+        margin: 0 0 20px;
+        font-size: 16px;
+        color: var(--text-2);
+    }
+    .story-donated strong {
+        color: var(--text);
+        font-weight: 700;
     }
     @media (max-width: 720px) {
         br.lb {
