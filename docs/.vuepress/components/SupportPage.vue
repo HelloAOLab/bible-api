@@ -722,9 +722,7 @@ onBeforeUnmount(() => {
     #give {
         margin-top: clamp(48px, 5vw, 72px);
     }
-    #testimony {
-        max-width: 760px;
-    }
+
     .help-h {
         margin: 0 0 12px;
         font-size: clamp(24px, 2.6vw, 30px);
