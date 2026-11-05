@@ -314,8 +314,7 @@
             }
         },
         "chooseNote": "You choose what appears publicly on the support wall.",
-        "testimonyTitle": "Tell us your story",
-        "testimonyLead": "We’d love to hear from you!",
+        "testimonyTitle": "We’d love to hear from you!",
         "testimonyStepShare": "**Share your story.** How are you using the API? Or simply send a word of thanks or encouragement.",
         "testimonyStepPermission": "**May we share your story?** If you would like to redact anything or remain anonymous, let us know! Did you make a donation? If so, please include the amount so we can add it to the support wall.",
         "testimonyButton": "Email us your story",

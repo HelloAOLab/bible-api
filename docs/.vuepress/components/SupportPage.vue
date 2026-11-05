@@ -722,7 +722,6 @@ onBeforeUnmount(() => {
                 <div class="shell">
                     <div class="head">
                         <h2>{{ s.testimonyTitle }}</h2>
-                        <p>{{ s.testimonyLead }}</p>
                     </div>
                     <ul class="story-steps">
                         <li
