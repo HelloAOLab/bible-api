@@ -295,7 +295,7 @@
     },
     "support": {
         "title": "Stand with us.",
-        "intro": "Support the people who maintain and build this open ecosystem with a gift, your story, or both. With your permission, either can appear on the {{ year }} support wall.",
+        "intro": "Support the people who maintain and build this open ecosystem with a donation, your story, or both. With your permission, either can appear on the {{ year }} support wall.",
         "chooseTitle": "How would you like to help?",
         "choices": {
             "testimony": {
@@ -313,11 +313,11 @@
         },
         "chooseNote": "You choose what appears publicly on the support wall.",
         "testimonyTitle": "Share your testimony",
-        "testimonyBody": "Email us how you use the Free Use Bible API, and attach screenshots or your logo if you like. Tell us whether to show your name or keep it anonymous. If you also gave, include the name on your gift so we can put your story on your squares.",
+        "testimonyBody": "Email us how you use the Free Use Bible API, and attach screenshots or your logo if you like. Tell us whether to show your name or keep it anonymous. If you also donated, include the name on your donation so we can put your story on your squares.",
         "testimonyButton": "Email your testimony",
         "testimonySubject": "My testimony for the support wall",
-        "testimonyEmail": "Name or organization:\nShow my name, or stay anonymous:\n\nHow we use the Free Use Bible API:\n\nLink to what we built (optional):\n\nIf we also gave: the name on our gift (optional):\nShort message for the wall, up to 80 characters (optional):\n\nAttach screenshots, or a logo as an SVG or a transparent PNG at least 600 pixels on its long side (optional).\n",
-        "giftTitle": "Make a gift",
+        "testimonyEmail": "Name or organization:\nShow my name, or stay anonymous:\n\nHow we use the Free Use Bible API:\n\nLink to what we built (optional):\n\nIf we also donated: the name on our donation (optional):\nShort message for the wall, up to 80 characters (optional):\n\nAttach screenshots, or a logo as an SVG or a transparent PNG at least 600 pixels on its long side (optional).\n",
+        "giftTitle": "Make a tax-deductible donation",
         "giftBody": "{{ month }} a month or {{ year }} a year fills one square on the support wall, but any amount, large or small, is **greatly appreciated**!",
         "formTitle": "AO Lab donation form",
         "formFallback": "Form not loading?",
@@ -327,13 +327,13 @@
         "otherWaysBody": "Card, bank transfer, donor-advised fund, stock, IRA/QCD and crypto all work in the form.",
         "otherWaysLink": "Give through NCF",
         "booksTitle": "Tax-deductible, and open books",
-        "booksBody": "AO Lab is a 501(c)(3). Gifts are tax-deductible as allowed by law, and our financials are public.",
+        "booksBody": "AO Lab is a 501(c)(3). Donations are tax-deductible as allowed by law, and our financials are public.",
         "booksLink": "Financial forecast",
         "directorTitle": "Our Executive Director",
         "directorBody": "Craig Bradley. Feel free to reach out to ask questions or discuss something.",
-        "recognitionTitle": "Choose how your gift appears.",
-        "recognitionBody": "We add your squares to the wall by hand once your gift arrives. Monthly gifts fill their squares month by month.",
-        "exampleLabel": "Example wall: a named gift, an anonymous gift, gifts with a testimony, and logo spaces at each minimum size",
+        "recognitionTitle": "Choose how your donation appears.",
+        "recognitionBody": "We add your squares to the wall by hand once your donation arrives. Monthly donations fill their squares month by month.",
+        "exampleLabel": "Example wall: a named donation, an anonymous donation, donations with a testimony, and logo spaces at each minimum size",
         "exampleCaption": "An example wall at actual size. Hover or tap a folded corner to read an example testimony.",
         "example": {
             "yourName": "Your name",
@@ -349,14 +349,14 @@
             "squareStory": "Here is an example hover testimony! A single square can carry a story too.",
             "church": "A church in Kenya",
             "churchStory": "Here is an example testimony from a church that uses the API in its Bible app.",
-            "namedGift": "Named gift",
-            "anonymousGift": "Anonymous gift, pledged",
+            "namedGift": "Named donation",
+            "anonymousGift": "Anonymous donation, pledged",
             "pledgedSuffix": "pledged",
             "recommended": "recommended"
         },
         "rows": {
             "nameTitle": "Named or anonymous",
-            "nameBody": "Choose in the form above. Anonymous gifts stay anonymous on the wall and in its yearly archive.",
+            "nameBody": "Choose in the form above. Anonymous donations stay anonymous on the wall and in its yearly archive.",
             "storyTitle": "Your story",
             "storyBody": "A sentence or two on how you use the API. Your squares get a folded corner, and visitors read your story on hover or tap.",
             "messageTitle": "A message",
@@ -367,7 +367,7 @@
         },
         "sizesOpen": "Click here to expand for logo sizes",
         "sizesClose": "Hide logo sizes",
-        "sizesIntro": "A square is about 16 pixels wide on a laptop and about 9 on a phone. A logo needs about 48 pixels on a laptop to read clearly, so the smallest rectangle for each shape is the minimum gift for a logo.",
+        "sizesIntro": "A square is about 16 pixels wide on a laptop and about 9 on a phone. A logo needs about 48 pixels on a laptop to read clearly, so the smallest rectangle for each shape is the minimum donation for a logo.",
         "sizesColumns": {
             "shape": "Logo shape",
             "smallest": "Smallest that reads",
@@ -396,11 +396,11 @@
             }
         },
         "sizeCell": "{{ w }} × {{ h }} · {{ squares }}",
-        "sizesNote": "Rectangles are width × height, in squares. Without a logo, a rectangle at least 4 squares wide and 2 tall shows your name on the wall. Smaller gifts show it on hover.",
-        "detailsNote": "For a story, a message, or a logo, email us with the name on your gift so we can match it. We review each one before it goes on the wall.",
+        "sizesNote": "Rectangles are width × height, in squares. Without a logo, a rectangle at least 4 squares wide and 2 tall shows your name on the wall. Smaller donations show it on hover.",
+        "detailsNote": "For a story, a message, or a logo, email us with the name on your donation so we can match it. We review each one before it goes on the wall.",
         "detailsButton": "Email us your details",
-        "detailsSubject": "My gift on the {{ year }} wall",
-        "detailsEmail": "Name on my gift:\nAmount, and monthly or for the year:\nShow my name, or stay anonymous:\n\nHow we use the API (optional):\n\nShort message, up to 80 characters (optional):\n\nLogo: attached as SVG, or PNG at least 600 px with a transparent background (optional)\nRectangle (width x height), if sending a logo:\n",
+        "detailsSubject": "My donation on the {{ year }} wall",
+        "detailsEmail": "Name on my donation:\nAmount, and monthly or for the year:\nShow my name, or stay anonymous:\n\nHow we use the API (optional):\n\nShort message, up to 80 characters (optional):\n\nLogo: attached as SVG, or PNG at least 600 px with a transparent background (optional)\nRectangle (width x height), if sending a logo:\n",
         "thanksTitle": "Thank you so much!",
         "thanksBody": "Every show of support reminds us we are not alone and proves this is a global effort by Christians for Christians.",
         "signOff": "In Christ,",
@@ -467,7 +467,7 @@
             },
             "money": {
                 "q": "How does money reach the fund?",
-                "a": "From September onward, we raise AO Lab’s annual operating support for the coming year ({{ goal }} for this cycle). Once that goal is met, 100% of additional gifts go to the Free Use Fund until the next September cycle begins. Because this is our first cycle, we may adjust the annual goal or shift timelines as we see the fruit of this approach."
+                "a": "From September onward, we raise AO Lab’s annual operating support for the coming year ({{ goal }} for this cycle). Once that goal is met, 100% of additional donations go to the Free Use Fund until the next September cycle begins. Because this is our first cycle, we may adjust the annual goal or shift timelines as we see the fruit of this approach."
             },
             "licences": {
                 "q": "What licenses do you support?",

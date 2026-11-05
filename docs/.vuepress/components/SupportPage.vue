@@ -69,26 +69,12 @@ const logoBody = computed(() =>
     })
 );
 
-/* ---------- testimony, gift or both ---------- */
-
-type Choice = 'testimony' | 'gift' | 'both';
-const CHOICES: Choice[] = ['testimony', 'gift', 'both'];
-const choice = ref<Choice | null>(null);
-// Until the page is interactive every panel shows, so nothing is hidden from
-// a reader without script.
-const ready = ref(false);
-const shows = (...forChoices: Choice[]) =>
-    !ready.value || (!!choice.value && forChoices.includes(choice.value));
+/* ---------- logo sizes link ---------- */
 
 const logos = ref<HTMLDetailsElement>();
 
 function fromHash() {
     const h = location.hash;
-    if (h === '#logos' || h === '#give' || h === '#recognition') {
-        choice.value = 'gift';
-    } else if (h === '#testimony') {
-        choice.value = 'testimony';
-    }
     if (h === '#logos' && logos.value) {
         logos.value.open = true;
         setTimeout(() => logos.value?.scrollIntoView({ block: 'start' }), 0);
@@ -365,7 +351,6 @@ function closeEx() {
 let resize: ResizeObserver | undefined;
 
 onMounted(() => {
-    ready.value = true;
     fromHash();
     window.addEventListener('hashchange', fromHash);
     document.addEventListener('click', closeEx);
@@ -395,34 +380,8 @@ onBeforeUnmount(() => {
 
             <section class="section help">
                 <div class="shell">
-                    <fieldset class="choose">
-                        <legend>
-                            <h2 class="choose-h">{{ s.chooseTitle }}</h2>
-                        </legend>
-                        <label v-for="c in CHOICES" :key="c" class="pick">
-                            <input
-                                v-model="choice"
-                                type="radio"
-                                name="help"
-                                :value="c"
-                            />
-                            <span class="pick-body">
-                                <span>
-                                    <b>{{ s.choices[c].name }}</b>
-                                    <small>{{ s.choices[c].detail }}</small>
-                                </span>
-                                <i aria-hidden="true">&rarr;</i>
-                            </span>
-                        </label>
-                        <p class="choose-note">{{ s.chooseNote }}</p>
-                    </fieldset>
-
-                    <div
-                        v-show="shows('testimony', 'both')"
-                        id="testimony"
-                        class="help-panel"
-                    >
-                        <h3 class="help-h">{{ s.testimonyTitle }}</h3>
+                    <div id="testimony">
+                        <h2 class="help-h">{{ s.testimonyTitle }}</h2>
                         <p>{{ s.testimonyBody }}</p>
                         <div class="cta left">
                             <a class="btn primary" :href="testimonyMail"
@@ -432,12 +391,8 @@ onBeforeUnmount(() => {
                         </div>
                     </div>
 
-                    <div
-                        v-show="shows('gift', 'both')"
-                        id="give"
-                        class="help-panel"
-                    >
-                        <h3 class="help-h">{{ s.giftTitle }}</h3>
+                    <div id="give">
+                        <h2 class="help-h">{{ s.giftTitle }}</h2>
                         <p v-html="giftBody"></p>
                         <div class="give-grid">
                             <div class="give-main">
@@ -507,11 +462,7 @@ onBeforeUnmount(() => {
                 </div>
             </section>
 
-            <section
-                v-show="shows('gift', 'both')"
-                id="recognition"
-                class="section alt help-panel"
-            >
+            <section id="recognition" class="section alt">
                 <div class="shell">
                     <div class="head">
                         <h2>{{ s.recognitionTitle }}</h2>
@@ -726,7 +677,7 @@ onBeforeUnmount(() => {
                             </tr>
                         </tbody>
                     </table>
-                    <div v-show="shows('gift')" class="help-panel">
+                    <div>
                         <p class="gift-note">{{ s.detailsNote }}</p>
                         <div class="cta left">
                             <a class="btn primary" :href="detailsMail"
@@ -767,102 +718,16 @@ onBeforeUnmount(() => {
         padding-top: clamp(36px, 4vw, 52px);
     }
 
-    /* ---------- testimony / gift / both ---------- */
-    .choose {
-        border: 0;
-        margin: 0;
-        padding: 0;
-        min-inline-size: 0;
-        max-width: 760px;
-        display: grid;
-        gap: 10px;
-    }
-    .choose legend {
-        padding: 0;
-        margin: 0 0 16px;
-    }
-    .choose-h {
-        margin: 0;
-        font-size: clamp(24px, 2.6vw, 30px);
-        letter-spacing: -0.03em;
-    }
-    .pick {
-        position: relative;
-        display: block;
-        cursor: pointer;
-    }
-    .pick input {
-        position: absolute;
-        left: 20px;
-        top: 50%;
-        width: 18px;
-        height: 18px;
-        margin: -9px 0 0;
-        accent-color: var(--text);
-        cursor: pointer;
-    }
-    .pick-body {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 16px;
-        min-height: 70px;
-        padding: 14px 20px 14px 54px;
-        border: 1px solid var(--line);
-        border-radius: 12px;
-        transition:
-            border-color 0.15s ease,
-            background 0.15s ease;
-    }
-    .pick b {
-        display: block;
-        font-size: 17px;
-        letter-spacing: -0.015em;
-        line-height: 1.3;
-    }
-    .pick small {
-        display: block;
-        margin-top: 2px;
-        font-size: 14px;
-        color: var(--muted);
-    }
-    .pick i {
-        font-style: normal;
-        font-size: 19px;
-        color: var(--muted);
-    }
-    @media (hover: hover) {
-        .pick:hover .pick-body {
-            border-color: var(--muted);
-        }
-    }
-    .pick input:checked + .pick-body {
-        border-color: var(--text);
-        box-shadow: inset 0 0 0 1px var(--text);
-        background: var(--surface);
-    }
-    .pick input:checked + .pick-body i {
-        color: var(--text);
-    }
-    .pick input:focus-visible + .pick-body {
-        outline: 2px solid var(--line-strong);
-        outline-offset: 3px;
-    }
-    .choose-note {
-        margin: 6px 0 0;
-        font-size: 13.5px;
-        color: var(--muted);
-    }
-    #testimony,
+    /* ---------- share a testimony, then donate ---------- */
     #give {
-        margin-top: clamp(36px, 4vw, 52px);
+        margin-top: clamp(48px, 5vw, 72px);
     }
     #testimony {
         max-width: 760px;
     }
     .help-h {
         margin: 0 0 12px;
-        font-size: clamp(22px, 2.4vw, 26px);
+        font-size: clamp(24px, 2.6vw, 30px);
         letter-spacing: -0.03em;
     }
     #testimony p,

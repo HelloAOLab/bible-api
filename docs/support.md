@@ -3,7 +3,7 @@ layout: SupportLayout
 sidebar: false
 title: Support
 headTitle: Support | Free Use Bible API
-description: Support the people who maintain and build the Free Use Bible API with a gift, your story, or both.
+description: Support the people who maintain and build the Free Use Bible API with a donation, your story, or both.
 ---
 
 <!--
@@ -14,5 +14,5 @@ description: Support the people who maintain and build the Free Use Bible API wi
 
 # Support
 
-The Support page: the yearly support wall, a way to share a testimony or make a gift, and how gifts appear on the wall.
+The Support page: the yearly support wall, a way to share a testimony or make a donation, and how donations appear on the wall.
 See `.vuepress/components/SupportPage.vue`.
