@@ -46,7 +46,7 @@ const status = computed(() =>
 );
 const invite = computed(() =>
     labelHtml(f.value.statusInvite, {
-        proposals: `<strong>${link('#propose', f.value.statusProposals)}</strong>`,
+        proposals: `<strong>${labelHtml(f.value.statusProposals)}</strong>`,
         feedback: link(mailto(f.value.feedbackSubject), f.value.statusFeedback),
     })
 );
