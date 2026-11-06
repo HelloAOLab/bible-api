@@ -157,6 +157,9 @@ type ExCard = {
 };
 type ExItem = {
     type: 'name' | 'logo' | 'anon';
+    // What a logo space's placeholder invites: a logo (the default), a
+    // message, a link, or any of the three.
+    fill?: 'message' | 'link' | 'any';
     w: number;
     h: number;
     text: string;
@@ -195,11 +198,12 @@ const exItems = computed<ExItem[]>(() => {
                 who: labels.value.wall.anonymous,
                 kind: k.Business,
                 story: e.anonymousStory,
-                gift: `${squaresLabel(8)} · ${perMonth(8)} · ${e.pledgedSuffix}`,
+                gift: `${squaresLabel(8)} · ${perMonth(8)}`,
             },
         },
         {
             type: 'logo',
+            fill: 'message',
             w: 4,
             h: 2,
             text: '',
@@ -221,6 +225,7 @@ const exItems = computed<ExItem[]>(() => {
         },
         {
             type: 'logo',
+            fill: 'link',
             w: 10,
             h: 2,
             text: '',
@@ -228,6 +233,7 @@ const exItems = computed<ExItem[]>(() => {
         },
         {
             type: 'logo',
+            fill: 'any',
             w: 15,
             h: 3,
             text: '',
@@ -269,9 +275,23 @@ const exLayout = computed(() => {
         // The biggest text that fits, trying shorter wordings for logos.
         const bw = it.w * size + (it.w - 1) * gap - 8;
         const bh = it.h * size + (it.h - 1) * gap - 4;
+        const placeholders = {
+            logo: [[e.yourLogo], [e.yourLogoShort, e.here], [e.logo]],
+            message: [
+                [e.yourMessage],
+                [e.yourMessageShort, e.here],
+                [e.messageWord],
+            ],
+            link: [[e.yourLink], [e.yourLinkShort, e.here], [e.linkWord]],
+            any: [
+                [e.yourAnyLine1, e.yourAnyLine2],
+                [e.yourAny],
+                [e.yourLogo],
+            ],
+        };
         const options =
             it.type === 'logo'
-                ? [[e.yourLogo], [e.yourLogoShort, e.here], [e.logo]]
+                ? placeholders[it.fill ?? 'logo']
                 : [[it.text]];
         let lines: string[] = [];
         let fontSize = 0;
@@ -792,12 +812,22 @@ onBeforeUnmount(() => {
     .tell-story .head {
         margin-bottom: 32px;
     }
+    /* As wide as the first paragraph's one line; the second paragraph
+       wraps to that same width instead of setting it. */
+    .tell-story .shell > .story-steps {
+        width: fit-content;
+        max-width: 100%;
+    }
     .story-steps {
         margin: 0;
         padding: 0;
         list-style: none;
         display: grid;
         gap: 20px;
+    }
+    .story-steps li + li {
+        width: 0;
+        min-width: 100%;
     }
     .story-steps li {
         color: var(--text-2);
@@ -843,37 +873,38 @@ onBeforeUnmount(() => {
         container-type: inline-size;
     }
     /* Sized to the form's default card view at each width of the form
-       (measured November 2026), so no blank space shows under it. Longer
-       tabs (bank transfer, stocks) scroll inside the frame. */
+       (measured November 2026), with room for the wallet buttons (Google
+       Pay, Link, Amazon Pay) some browsers add. Longer tabs (bank
+       transfer, stocks) scroll inside the frame. */
     .give-form iframe {
         display: block;
         width: 100%;
-        height: 1015px;
+        height: 1120px;
         border: 0;
     }
     @container (min-width: 440px) {
         .give-form iframe {
-            height: 930px;
+            height: 1030px;
         }
     }
     @container (min-width: 480px) {
         .give-form iframe {
-            height: 752px;
+            height: 852px;
         }
     }
     @container (min-width: 600px) {
         .give-form iframe {
-            height: 670px;
+            height: 770px;
         }
     }
     @container (min-width: 640px) {
         .give-form iframe {
-            height: 650px;
+            height: 750px;
         }
     }
     @container (min-width: 730px) {
         .give-form iframe {
-            height: 580px;
+            height: 690px;
         }
     }
     .give-alt {
@@ -992,16 +1023,11 @@ onBeforeUnmount(() => {
         letter-spacing: -0.01em;
         white-space: nowrap;
     }
-    .ex-name {
+    .ex-name,
+    .ex-anon {
         background: var(--text);
         color: var(--bg);
         font-weight: 700;
-    }
-    .ex-anon {
-        box-shadow: inset 0 0 0 1px var(--muted);
-        color: var(--text);
-        font-style: italic;
-        font-weight: 600;
     }
     .ex-logo {
         background: #fff;
