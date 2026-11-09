@@ -2,6 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { RouteLink, usePageFrontmatter, usePageLang } from 'vuepress/client';
 import SiteFooter from './SiteFooter.vue';
+import NeedGrid from './NeedGrid.vue';
 import SupportWall from './SupportWall.vue';
 import VerseQuote from './VerseQuote.vue';
 import {
@@ -828,6 +829,12 @@ onBeforeUnmount(() => {
                             >
                         </p>
                     </div>
+                </div>
+            </section>
+
+            <section class="section beat fg alt" id="need">
+                <div class="shell">
+                    <NeedGrid />
                 </div>
             </section>
 
