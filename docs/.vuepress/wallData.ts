@@ -7,15 +7,22 @@
  * Claims beyond the goal are reported as going to the Free Use Fund. On the
  * page, "claimed" is labelled "Pledged".
  *
- * Current base (November 3, 2026):
- *   three active monthly donors on better.giving, $125 + $70 + $3 = $198 a
- *     month = $2,376 pledged for 2027, nothing received yet
+ * Current base (November 9, 2026):
+ *   four active monthly donors on better.giving, $125 + $70 + $3 + $20 =
+ *     $218 a month (the $20 donor joined Nov 4, 2026)
+ *     pledged: 12 months of 2027 ($2,616) plus Nov and Dec 2026 payments
+ *       ($436) = $3,052
+ *     received so far: Nov 4 $20, Nov 7 $70 = $90
  *   $5,000 annual support, received
  *   $2 one-time gift, Oct 31, 2026, received
- *   others = { claimed: 2376 + 5000 + 2 = 7378, received: 5000 + 2 = 5002 }
+ *   others = { claimed: 3052 + 5000 + 2 = 8054, received: 90 + 5000 + 2 = 5092 }
+ * Amounts are gross gifts, before processing fees.
  * Shown anonymously until each donor agrees to be named.
  *
- * Cutoff: from October 27, 2026, all new support counts toward the 2027 wall.
+ * Cutoff rule: AO Lab is already funded through December 2026, so all
+ * support received from October 27, 2026 counts toward the 2027 wall,
+ * including monthly payments made in November and December 2026 (Craig's
+ * call, until he says otherwise).
  */
 
 export interface WallSupporter {
@@ -65,6 +72,6 @@ export const WALL_DATA: WallData = {
     year: 2027,
     goal: 500000,
     unit: 240,
-    others: { claimed: 7378, received: 5002 },
+    others: { claimed: 8054, received: 5092 },
     supporters: [],
 };
