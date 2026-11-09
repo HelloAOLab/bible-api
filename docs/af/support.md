@@ -3,7 +3,7 @@ layout: SupportLayout
 sidebar: false
 title: 'Ondersteuning'
 headTitle: 'Ondersteuning | Gratis Gebruik Bybel API'
-description: "Ondersteun die mense wat die Free Use Bible API onderhou en bou met 'n geskenk, jou storie, of albei."
+description: "Ondersteun die mense wat die Free Use Bible API onderhou en bou met 'n skenking, jou storie, of albei."
 ---
 
 <!--
@@ -14,4 +14,4 @@ description: "Ondersteun die mense wat die Free Use Bible API onderhou en bou me
 
 # Ondersteuning
 
-Die Ondersteuningsbladsy: die jaarlikse ondersteuningsmuur, 'n manier om 'n getuienis te deel of 'n geskenk te maak, en hoe geskenke op die muur verskyn. Sien `.vuepress/components/SupportPage.vue` .
+Die Ondersteuningsbladsy: die jaarlikse ondersteuningsmuur, 'n manier om 'n getuienis te deel of 'n skenking te maak, en hoe skenkings op die muur verskyn. Sien `.vuepress/components/SupportPage.vue` .

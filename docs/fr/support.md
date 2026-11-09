@@ -3,7 +3,7 @@ layout: SupportLayout
 sidebar: false
 title: 'Soutien'
 headTitle: "Assistance | Utilisation gratuite de l'API biblique"
-description: "Soutenez les personnes qui maintiennent et développent l'API Free Use Bible par un don, votre témoignage, ou les deux."
+description: "Soutenez les personnes qui maintiennent et développent l'API Free Use Bible en faisant un don, en partageant votre témoignage, ou les deux."
 ---
 
 <!--

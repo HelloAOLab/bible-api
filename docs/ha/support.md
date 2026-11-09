@@ -3,7 +3,7 @@ layout: SupportLayout
 sidebar: false
 title: 'Tallafi'
 headTitle: 'Taimako | API ɗin Littafi Mai Tsarki na Amfani Kyauta'
-description: 'Tallafa wa mutanen da ke kula da kuma gina Free Use Bible API ta hanyar kyauta, labarinka, ko duka biyun.'
+description: 'Tallafa wa mutanen da ke kula da kuma gina Free Use Bible API ta hanyar bayar da gudummawa, labarinka, ko duka biyun.'
 ---
 
 <!--
@@ -14,4 +14,4 @@ description: 'Tallafa wa mutanen da ke kula da kuma gina Free Use Bible API ta h
 
 # Tallafi
 
-Shafin Tallafi: bangon tallafi na shekara-shekara, hanyar raba shaida ko yin kyauta, da kuma yadda kyaututtuka ke bayyana a bango. Duba `.vuepress/components/SupportPage.vue` .
+Shafin Tallafi: bangon tallafi na shekara-shekara, hanyar raba shaida ko bayar da gudummawa, da kuma yadda gudummawa ke bayyana a bango. Duba `.vuepress/components/SupportPage.vue` .

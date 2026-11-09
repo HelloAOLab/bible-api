@@ -3,7 +3,7 @@ layout: SupportLayout
 sidebar: false
 title: 'Supporto'
 headTitle: 'Supporto | API biblica ad uso gratuito'
-description: "Sostieni chi si occupa della manutenzione e dello sviluppo dell'API gratuita della Bibbia con una donazione, la tua storia o entrambe le cose."
+description: "Sostieni chi si occupa della manutenzione e dello sviluppo dell'API gratuita della Bibbia con una donazione, condividendo la tua storia o entrambe le cose."
 ---
 
 <!--

@@ -3,7 +3,7 @@ layout: SupportLayout
 sidebar: false
 title: 'Usaidizi'
 headTitle: 'Usaidizi | API ya Matumizi ya Biblia Bila Malipo'
-description: 'Wasaidie watu wanaodumisha na kujenga API ya Matumizi ya Bure ya Biblia kwa zawadi, hadithi yako, au vyote viwili.'
+description: 'Wasaidie watu wanaodumisha na kujenga API ya Matumizi ya Bure ya Biblia kwa mchango, hadithi yako, au vyote viwili.'
 ---
 
 <!--
@@ -14,4 +14,4 @@ description: 'Wasaidie watu wanaodumisha na kujenga API ya Matumizi ya Bure ya B
 
 # Usaidizi
 
-Ukurasa wa Usaidizi: ukuta wa usaidizi wa kila mwaka, njia ya kushiriki ushuhuda au kutoa zawadi, na jinsi zawadi zinavyoonekana ukutani. Tazama `.vuepress/components/SupportPage.vue` .
+Ukurasa wa Usaidizi: ukuta wa usaidizi wa kila mwaka, njia ya kushiriki ushuhuda au kutoa mchango, na jinsi michango inavyoonekana ukutani. Tazama `.vuepress/components/SupportPage.vue` .

@@ -14,4 +14,4 @@ description: 'Unterstützen Sie die Menschen, die die Free Use Bible API pflegen
 
 # Unterstützung
 
-Die Unterstützungsseite: die jährliche Unterstützerwand, eine Möglichkeit, ein Zeugnis abzugeben oder eine Spende zu tätigen, und wie Spenden auf der Wand angezeigt werden. Siehe `.vuepress/components/SupportPage.vue` .
+Die Unterstützungsseite: die jährliche Unterstützerwand, eine Möglichkeit, ein Zeugnis abzugeben oder zu spenden, und wie Spenden auf der Wand angezeigt werden. Siehe `.vuepress/components/SupportPage.vue` .

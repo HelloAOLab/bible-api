@@ -14,4 +14,4 @@ description: 'Apoie as pessoas que mantêm e desenvolvem a API da Bíblia de Uso
 
 # Apoiar
 
-A página de Apoio: o mural de apoio anual, uma forma de compartilhar um testemunho ou fazer uma doação, e como as doações aparecem no mural. Veja `.vuepress/components/SupportPage.vue` .
+A página de Apoio: o mural de apoio anual, uma forma de compartilhar um testemunho ou fazer uma doação e como as doações aparecem no mural. Veja `.vuepress/components/SupportPage.vue` .
