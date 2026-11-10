@@ -69,6 +69,11 @@ import {
 } from './conversion.js';
 import { fetchEBibleMetadata } from './ebible.js';
 import {
+    parseVerseNumberedAudioTimingsBook,
+    toVerseOrderTimings,
+    VerseNumberedAudioTimingsBook,
+} from './audio-timings.js';
+import {
     createEBibleCoverage,
     createFetchBibleMetadata,
     EBibleCoverage,
@@ -1255,6 +1260,184 @@ export async function importAudioTimings(
         database.updateTranslationHashes(db, [
             ...new Set(records.map((r) => r.translationId)),
         ]);
+    } finally {
+        db.close();
+    }
+}
+
+export interface ImportAudioTimingsFolderOptions {
+    /**
+     * The database to import the timings into.
+     */
+    db?: string | null;
+
+    /**
+     * The ID of the translation that the timings are for. (e.g. "BSB")
+     */
+    translation: string;
+
+    /**
+     * The reader (audio version) that the timings are for. (e.g. "souer")
+     */
+    reader: string;
+
+    /**
+     * Only import these books (USFM IDs, e.g. ["GEN", "EXO"]). If omitted, every book file in the folder is imported.
+     */
+    books?: string[];
+
+    /**
+     * Check the timings against the translation and report what would be imported, without writing to the database.
+     */
+    dryRun?: boolean;
+}
+
+/**
+ * Imports a folder of per-book audio timing files (one narrator's `<book>.biblejson` files, as in
+ * https://github.com/New-York-Chinese-Seventh-day-Adventist/sda-church-app/tree/main/assets/bible/audio-timings)
+ * into the database.
+ *
+ * Those files index each chapter's start times by verse number. They are converted into one time per verse
+ * in the order of the translation's verses in the database. A chapter whose times don't line up with the
+ * translation's verses is skipped and reported.
+ * @param dir The folder that contains the `<book>.biblejson` files.
+ * @param options The options.
+ */
+export async function importAudioTimingsFolder(
+    dir: string,
+    options: ImportAudioTimingsFolderOptions
+): Promise<void> {
+    const logger = log.getLogger();
+    if (!options.translation) {
+        throw new Error('A translation is required. Use --translation <id>.');
+    }
+    if (!options.reader) {
+        throw new Error('A reader is required. Use --reader <reader>.');
+    }
+
+    const onlyBooks = options.books?.length
+        ? new Set(options.books.map((b) => b.toUpperCase()))
+        : null;
+    const files = (await readdir(dir))
+        .filter((f) => extname(f).toLowerCase() === '.biblejson')
+        .filter(
+            (f) =>
+                !onlyBooks ||
+                onlyBooks.has(basename(f, extname(f)).toUpperCase())
+        )
+        .sort();
+    if (files.length === 0) {
+        throw new Error(`No .biblejson files were found in ${dir}.`);
+    }
+
+    const db = await database.getDb(options.db);
+    try {
+        const translation = db
+            .prepare('SELECT id FROM Translation WHERE id = ?;')
+            .get(options.translation);
+        if (!translation) {
+            throw new Error(
+                `The translation "${options.translation}" is not in the database.`
+            );
+        }
+
+        const getVerseNumbers = db.prepare(
+            'SELECT chapterNumber, number FROM ChapterVerse WHERE translationId = ? AND bookId = ? ORDER BY chapterNumber ASC, number ASC;'
+        );
+
+        const records: AudioTimingRecord[] = [];
+        const skipped: string[] = [];
+        for (let file of files) {
+            const bookId = basename(file, extname(file)).toUpperCase();
+            let book: VerseNumberedAudioTimingsBook;
+            try {
+                book = parseVerseNumberedAudioTimingsBook(
+                    await readFile(path.resolve(dir, file), 'utf-8')
+                );
+            } catch (err) {
+                throw new Error(`${file}: ${(err as Error).message}`);
+            }
+
+            const verseNumbersByChapter = new Map<number, number[]>();
+            for (let row of getVerseNumbers.all(
+                options.translation,
+                bookId
+            ) as { chapterNumber: number; number: number }[]) {
+                let list = verseNumbersByChapter.get(row.chapterNumber);
+                if (!list) {
+                    list = [];
+                    verseNumbersByChapter.set(row.chapterNumber, list);
+                }
+                list.push(row.number);
+            }
+            if (verseNumbersByChapter.size === 0) {
+                skipped.push(
+                    `${bookId}: the book is not in ${options.translation}`
+                );
+                continue;
+            }
+
+            book.chapters.forEach((times, chapterNumber) => {
+                if (chapterNumber === 0 || !times) {
+                    return;
+                }
+                const verseNumbers = verseNumbersByChapter.get(chapterNumber);
+                if (!verseNumbers) {
+                    skipped.push(
+                        `${bookId} ${chapterNumber}: the chapter is not in ${options.translation}`
+                    );
+                    return;
+                }
+                const result = toVerseOrderTimings(verseNumbers, times);
+                if (result.error !== undefined) {
+                    skipped.push(`${bookId} ${chapterNumber}: ${result.error}`);
+                    return;
+                }
+                records.push({
+                    translationId: options.translation,
+                    bookId,
+                    chapterNumber,
+                    reader: options.reader,
+                    verses: result.verses,
+                });
+            });
+        }
+
+        if (skipped.length > 0) {
+            logger.warn(
+                `Skipped ${skipped.length} chapter(s) or book(s):\n  ${skipped.join('\n  ')}`
+            );
+        }
+
+        if (options.dryRun) {
+            logger.log(
+                `Dry run: would import ${records.length} chapters of audio timings for ${options.translation}/${options.reader}.`
+            );
+            return;
+        }
+
+        const importTimings = db.transaction(() => {
+            for (let record of records) {
+                database.upsertChapterAudioTiming(
+                    db,
+                    record.translationId,
+                    record.bookId,
+                    record.chapterNumber,
+                    record.reader,
+                    record.verses
+                );
+            }
+        });
+        importTimings();
+        logger.log(
+            `Imported ${records.length} chapters of audio timings for ${options.translation}/${options.reader}.`
+        );
+
+        if (records.length > 0) {
+            // The translation hashes include the audio timings,
+            // so they need to be updated for the timings to be picked up by uploads.
+            database.updateTranslationHashes(db, [options.translation]);
+        }
     } finally {
         db.close();
     }
