@@ -238,7 +238,10 @@ async function main() {
     }
 }
 
-/** Lists chapters missing from any book that has at least one file. */
+/**
+ * Lists the books (GEN–REV) that have no files at all, and the chapters
+ * missing from books that have some files.
+ */
 function reportMissingChapters(planned: PlannedFile[]) {
     const chaptersByBook = new Map<string, Set<number>>();
     for (const file of planned) {
@@ -250,10 +253,14 @@ function reportMissingChapters(planned: PlannedFile[]) {
         set.add(file.chapter);
     }
 
+    const missingBooks: string[] = [];
     const gaps: string[] = [];
-    for (const [bookId, chapters] of chaptersByBook) {
-        const count = bookChapterCountMap.get(bookId);
-        if (!count) continue;
+    for (const [bookId, count] of bookChapterCountMap) {
+        const chapters = chaptersByBook.get(bookId);
+        if (!chapters) {
+            missingBooks.push(bookId);
+            continue;
+        }
         const missing: number[] = [];
         for (let c = 1; c <= count; c++) {
             if (!chapters.has(c)) missing.push(c);
@@ -261,6 +268,12 @@ function reportMissingChapters(planned: PlannedFile[]) {
         if (missing.length > 0) {
             gaps.push(`  ${bookId}: ${missing.join(', ')}`);
         }
+    }
+
+    if (missingBooks.length > 0) {
+        console.warn(
+            `\nBooks with no files (${missingBooks.length}): ${missingBooks.join(', ')}`
+        );
     }
 
     if (gaps.length > 0) {
