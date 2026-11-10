@@ -258,6 +258,122 @@ Next: Genesis Chapter 1
             });
         });
 
+        it('should follow the verse references when a book row is missing', () => {
+            const result = parser.parseLines([
+                {
+                    book: 'Numbers',
+                    chapter: '',
+                    verse: 'Book Introduction',
+                    commentaries: 'Introduction to Numbers.',
+                },
+                {
+                    book: '',
+                    chapter: '36',
+                    verse: 'Chapter Introduction',
+                    commentaries: 'Introduction to Numbers 36.',
+                },
+                {
+                    book: '',
+                    chapter: '',
+                    verse: 'Num 36:1',
+                    commentaries: 'Commentary for Numbers 36:1.',
+                },
+                // No "Deuteronomy" book row here.
+                {
+                    book: '',
+                    chapter: '1',
+                    verse: 'Chapter Introduction',
+                    commentaries: 'Introduction to Deuteronomy 1.',
+                },
+                {
+                    book: '',
+                    chapter: '',
+                    verse: 'Deu 1:1',
+                    commentaries: 'Commentary for Deuteronomy 1:1.',
+                },
+                {
+                    book: '',
+                    chapter: '',
+                    verse: 'Deu 2:1',
+                    commentaries: 'Commentary for Deuteronomy 2:1.',
+                },
+                {
+                    book: 'Joshua',
+                    chapter: '',
+                    verse: 'Book Introduction',
+                    commentaries: 'Introduction to Joshua.',
+                },
+            ]);
+
+            expect(result).toEqual({
+                type: 'commentary/root',
+                books: [
+                    {
+                        type: 'book',
+                        book: 'NUM',
+                        introduction: 'Introduction to Numbers.',
+                        chapters: [
+                            {
+                                type: 'chapter',
+                                number: 36,
+                                introduction: 'Introduction to Numbers 36.',
+                                verses: [
+                                    {
+                                        type: 'verse',
+                                        number: 1,
+                                        content: [
+                                            'Commentary for Numbers 36:1.',
+                                        ],
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                    {
+                        type: 'book',
+                        book: 'DEU',
+                        introduction: null,
+                        chapters: [
+                            {
+                                type: 'chapter',
+                                number: 1,
+                                introduction: 'Introduction to Deuteronomy 1.',
+                                verses: [
+                                    {
+                                        type: 'verse',
+                                        number: 1,
+                                        content: [
+                                            'Commentary for Deuteronomy 1:1.',
+                                        ],
+                                    },
+                                ],
+                            },
+                            {
+                                type: 'chapter',
+                                number: 2,
+                                introduction: null,
+                                verses: [
+                                    {
+                                        type: 'verse',
+                                        number: 1,
+                                        content: [
+                                            'Commentary for Deuteronomy 2:1.',
+                                        ],
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                    {
+                        type: 'book',
+                        book: 'JOS',
+                        introduction: 'Introduction to Joshua.',
+                        chapters: [],
+                    },
+                ],
+            });
+        });
+
         it('should be able to infer chapers', () => {
             const result = parser.parseLines([
                 {

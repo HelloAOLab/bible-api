@@ -97,6 +97,42 @@ export class CommentaryCsvParser {
                 book.chapters.push(chapter);
             } else if (hasValue(line.verse)) {
                 const ref = parseVerseReference(line.verse);
+                if (
+                    ref &&
+                    book &&
+                    ref.book !== book.book &&
+                    // Only follow references that name a real book.
+                    getBookId(ref.book) === ref.book
+                ) {
+                    // Some source files have no book row where a new book
+                    // starts, so its chapter rows were filed under the
+                    // previous book and its verse rows would be dropped.
+                    // Follow the book named by the verse reference instead.
+                    const next: CommentaryBookNode = tree.books.find(
+                        (b) => b.book === ref.book
+                    ) ?? {
+                        type: 'book',
+                        book: ref.book,
+                        introduction: null,
+                        chapters: [],
+                    };
+                    if (!tree.books.includes(next)) {
+                        tree.books.push(next);
+                    }
+                    if (
+                        chapter &&
+                        chapter.number === ref.chapter &&
+                        chapter.verses.length === 0 &&
+                        book.chapters[book.chapters.length - 1] === chapter
+                    ) {
+                        // The chapter row just read belongs to the new book.
+                        book.chapters.pop();
+                        next.chapters.push(chapter);
+                    } else {
+                        chapter = null;
+                    }
+                    book = next;
+                }
                 if (ref) {
                     if (ref.book === book?.book) {
                         // @ts-ignore
