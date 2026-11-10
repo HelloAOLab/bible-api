@@ -15,7 +15,7 @@
  *
  * Usage:
  *
- *     npm run rename:audio -- --input ./cuv-audio --translation cmn_cuv --reader default
+ *     npm run rename:cuv:audio -- --input ./cuv-audio --translation cmn_cuv --reader default
  *
  * Options:
  *     --input, -i        Directory that holds the flat list of audio files. (required)
@@ -42,7 +42,7 @@ import {
 const DEFAULT_PATTERN = 'B(\\d+)C(\\d+)';
 const AUDIO_EXTENSION = '.mp3';
 
-const HELP = `Usage: npm run rename:audio -- --input <dir> --translation <id> --reader <id> [options]
+const HELP = `Usage: npm run rename:cuv:audio -- --input <dir> --translation <id> --reader <id> [options]
 
 Renames files like CUV_B01C001.mp3 into api/{translation}/GEN/1/audio/{reader}.mp3
 
