@@ -168,6 +168,11 @@ const aoLabLogoDark = withBase('/ao_lab_logo_dark.png');
                     <ul>
                         <li><a href="https://helloao.org">AO Lab</a></li>
                         <li>
+                            <a :href="DISCORD_URL">{{
+                                labels.footer.discordShort
+                            }}</a>
+                        </li>
+                        <li>
                             <a
                                 :href="NEWSLETTER_URL"
                                 class="js-newsletter-trigger"
