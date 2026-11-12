@@ -85,6 +85,18 @@ describe('KNOWN_AUDIO_TRANSLATIONS', () => {
             110,
             'https://audio.bible.helloao.org/api/BSB/PSA/110/audio/david.mp3',
         ] as const,
+
+        // Chinese Union Version translations share the CUV audio
+        ...['cmn_cuv', 'cmn_cuvmps', 'CUVMPS', 'cmn_cuvmpt', 'cmn_cu1'].map(
+            (translationId) =>
+                [
+                    translationId,
+                    'default',
+                    'JHN',
+                    3,
+                    'https://audio.bible.helloao.org/api/cmv_cuv/JHN/3/audio/default.mp3',
+                ] as const
+        ),
     ];
 
     it.each(cases)(
