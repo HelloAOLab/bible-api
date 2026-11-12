@@ -108,6 +108,19 @@ export const KNOWN_AUDIO_TRANSLATIONS: Map<
             ['david', freeUseBibleApiGenerator('BSB', 'david')],
         ]),
     ],
+    // The Chinese Union Version translations all share the same CUV audio files
+    ...['cmn_cuv', 'cmn_cuvmps', 'CUVMPS', 'cmn_cuvmpt', 'cmn_cu1'].map(
+        (translationId) =>
+            [
+                translationId,
+                new Map([
+                    [
+                        'mandarin',
+                        freeUseBibleApiGenerator('cmn_cuv', 'mandarin'),
+                    ],
+                ]),
+            ] as const
+    ),
 ]);
 
 /**
