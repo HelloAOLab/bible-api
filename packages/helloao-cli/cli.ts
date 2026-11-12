@@ -603,8 +603,8 @@ async function start() {
             "Imports a folder of per-book audio timing files into the database: one narrator's <book>.biblejson files, where each file is { chapters: [null, chapter 1, chapter 2, ...] } and each chapter is a list of verse start times (seconds) indexed by verse number (index 0 is verse 1), or null.\nThis is the format of https://github.com/New-York-Chinese-Seventh-day-Adventist/sda-church-app/tree/main/assets/bible/audio-timings.\nChapters whose times don't line up with the translation's verses are skipped and reported."
         )
         .requiredOption(
-            '--translation <id>',
-            'The ID of the translation that the timings are for. (e.g. "BSB")'
+            '--translation <ids...>',
+            'The ID(s) of the translation(s) that the timings are for. (e.g. "BSB", or "cmn_cuv cmn_cu1" to import the same timings into both). Each translation is checked against its own verses.'
         )
         .requiredOption(
             '--reader <reader>',

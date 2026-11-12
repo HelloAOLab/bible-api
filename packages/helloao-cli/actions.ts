@@ -1272,9 +1272,10 @@ export interface ImportAudioTimingsFolderOptions {
     db?: string | null;
 
     /**
-     * The ID of the translation that the timings are for. (e.g. "BSB")
+     * The ID(s) of the translation(s) that the timings are for. (e.g. "BSB" or ["cmn_cuv", "cmn_cu1"])
+     * The same timings are imported into each translation, and checked against each translation's own verses.
      */
-    translation: string;
+    translation: string | string[];
 
     /**
      * The reader (audio version) that the timings are for. (e.g. "souer")
@@ -1287,7 +1288,7 @@ export interface ImportAudioTimingsFolderOptions {
     books?: string[];
 
     /**
-     * Check the timings against the translation and report what would be imported, without writing to the database.
+     * Check the timings against the translation(s) and report what would be imported, without writing to the database.
      */
     dryRun?: boolean;
 }
@@ -1295,11 +1296,11 @@ export interface ImportAudioTimingsFolderOptions {
 /**
  * Imports a folder of per-book audio timing files (one narrator's `<book>.biblejson` files, as in
  * https://github.com/New-York-Chinese-Seventh-day-Adventist/sda-church-app/tree/main/assets/bible/audio-timings)
- * into the database.
+ * into the database, for one or more translations.
  *
  * Those files index each chapter's start times by verse number. They are converted into one time per verse
- * in the order of the translation's verses in the database. A chapter whose times don't line up with the
- * translation's verses is skipped and reported.
+ * in the order of each translation's verses in the database. A chapter whose times don't line up with a
+ * translation's verses is skipped for that translation and reported.
  * @param dir The folder that contains the `<book>.biblejson` files.
  * @param options The options.
  */
@@ -1308,8 +1309,18 @@ export async function importAudioTimingsFolder(
     options: ImportAudioTimingsFolderOptions
 ): Promise<void> {
     const logger = log.getLogger();
-    if (!options.translation) {
-        throw new Error('A translation is required. Use --translation <id>.');
+    const translationIds = [
+        ...new Set(
+            (Array.isArray(options.translation)
+                ? options.translation
+                : [options.translation]
+            ).filter((t) => !!t)
+        ),
+    ];
+    if (translationIds.length === 0) {
+        throw new Error(
+            'At least one translation is required. Use --translation <ids...>.'
+        );
     }
     if (!options.reader) {
         throw new Error('A reader is required. Use --reader <reader>.');
@@ -1330,14 +1341,32 @@ export async function importAudioTimingsFolder(
         throw new Error(`No .biblejson files were found in ${dir}.`);
     }
 
+    // Read every file before touching the database, so a bad file doesn't leave a partial import.
+    const books: { bookId: string; book: VerseNumberedAudioTimingsBook }[] = [];
+    for (let file of files) {
+        try {
+            books.push({
+                bookId: basename(file, extname(file)).toUpperCase(),
+                book: parseVerseNumberedAudioTimingsBook(
+                    await readFile(path.resolve(dir, file), 'utf-8')
+                ),
+            });
+        } catch (err) {
+            throw new Error(`${file}: ${(err as Error).message}`);
+        }
+    }
+
     const db = await database.getDb(options.db);
     try {
-        const translation = db
-            .prepare('SELECT id FROM Translation WHERE id = ?;')
-            .get(options.translation);
-        if (!translation) {
+        const getTranslation = db.prepare(
+            'SELECT id FROM Translation WHERE id = ?;'
+        );
+        const missingTranslations = translationIds.filter(
+            (id) => !getTranslation.get(id)
+        );
+        if (missingTranslations.length > 0) {
             throw new Error(
-                `The translation "${options.translation}" is not in the database.`
+                `These translations are not in the database: ${missingTranslations.join(', ')}.`
             );
         }
 
@@ -1346,73 +1375,74 @@ export async function importAudioTimingsFolder(
         );
 
         const records: AudioTimingRecord[] = [];
-        const skipped: string[] = [];
-        for (let file of files) {
-            const bookId = basename(file, extname(file)).toUpperCase();
-            let book: VerseNumberedAudioTimingsBook;
-            try {
-                book = parseVerseNumberedAudioTimingsBook(
-                    await readFile(path.resolve(dir, file), 'utf-8')
-                );
-            } catch (err) {
-                throw new Error(`${file}: ${(err as Error).message}`);
-            }
-
-            const verseNumbersByChapter = new Map<number, number[]>();
-            for (let row of getVerseNumbers.all(
-                options.translation,
-                bookId
-            ) as { chapterNumber: number; number: number }[]) {
-                let list = verseNumbersByChapter.get(row.chapterNumber);
-                if (!list) {
-                    list = [];
-                    verseNumbersByChapter.set(row.chapterNumber, list);
+        const counts = new Map<string, number>();
+        for (let translationId of translationIds) {
+            const skipped: string[] = [];
+            let count = 0;
+            for (let { bookId, book } of books) {
+                const verseNumbersByChapter = new Map<number, number[]>();
+                for (let row of getVerseNumbers.all(translationId, bookId) as {
+                    chapterNumber: number;
+                    number: number;
+                }[]) {
+                    let list = verseNumbersByChapter.get(row.chapterNumber);
+                    if (!list) {
+                        list = [];
+                        verseNumbersByChapter.set(row.chapterNumber, list);
+                    }
+                    list.push(row.number);
                 }
-                list.push(row.number);
-            }
-            if (verseNumbersByChapter.size === 0) {
-                skipped.push(
-                    `${bookId}: the book is not in ${options.translation}`
-                );
-                continue;
-            }
-
-            book.chapters.forEach((times, chapterNumber) => {
-                if (chapterNumber === 0 || !times) {
-                    return;
-                }
-                const verseNumbers = verseNumbersByChapter.get(chapterNumber);
-                if (!verseNumbers) {
+                if (verseNumbersByChapter.size === 0) {
                     skipped.push(
-                        `${bookId} ${chapterNumber}: the chapter is not in ${options.translation}`
+                        `${bookId}: the book is not in the translation`
                     );
-                    return;
+                    continue;
                 }
-                const result = toVerseOrderTimings(verseNumbers, times);
-                if (result.error !== undefined) {
-                    skipped.push(`${bookId} ${chapterNumber}: ${result.error}`);
-                    return;
-                }
-                records.push({
-                    translationId: options.translation,
-                    bookId,
-                    chapterNumber,
-                    reader: options.reader,
-                    verses: result.verses,
+
+                book.chapters.forEach((times, chapterNumber) => {
+                    if (chapterNumber === 0 || !times) {
+                        return;
+                    }
+                    const verseNumbers =
+                        verseNumbersByChapter.get(chapterNumber);
+                    if (!verseNumbers) {
+                        skipped.push(
+                            `${bookId} ${chapterNumber}: the chapter is not in the translation`
+                        );
+                        return;
+                    }
+                    const result = toVerseOrderTimings(verseNumbers, times);
+                    if (result.error !== undefined) {
+                        skipped.push(
+                            `${bookId} ${chapterNumber}: ${result.error}`
+                        );
+                        return;
+                    }
+                    records.push({
+                        translationId,
+                        bookId,
+                        chapterNumber,
+                        reader: options.reader,
+                        verses: result.verses,
+                    });
+                    count++;
                 });
-            });
+            }
+            counts.set(translationId, count);
+
+            if (skipped.length > 0) {
+                logger.warn(
+                    `${translationId}: skipped ${skipped.length} chapter(s) or book(s):\n  ${skipped.join('\n  ')}`
+                );
+            }
         }
 
-        if (skipped.length > 0) {
-            logger.warn(
-                `Skipped ${skipped.length} chapter(s) or book(s):\n  ${skipped.join('\n  ')}`
-            );
-        }
+        const summary = translationIds
+            .map((id) => `${id}/${options.reader}: ${counts.get(id)} chapters`)
+            .join(', ');
 
         if (options.dryRun) {
-            logger.log(
-                `Dry run: would import ${records.length} chapters of audio timings for ${options.translation}/${options.reader}.`
-            );
+            logger.log(`Dry run: would import audio timings for ${summary}.`);
             return;
         }
 
@@ -1429,14 +1459,13 @@ export async function importAudioTimingsFolder(
             }
         });
         importTimings();
-        logger.log(
-            `Imported ${records.length} chapters of audio timings for ${options.translation}/${options.reader}.`
-        );
+        logger.log(`Imported audio timings for ${summary}.`);
 
-        if (records.length > 0) {
+        const changed = translationIds.filter((id) => counts.get(id)! > 0);
+        if (changed.length > 0) {
             // The translation hashes include the audio timings,
             // so they need to be updated for the timings to be picked up by uploads.
-            database.updateTranslationHashes(db, [options.translation]);
+            database.updateTranslationHashes(db, changed);
         }
     } finally {
         db.close();
