@@ -49,6 +49,11 @@ function usfm(bookId: string, chapters: string[][]): string {
 }
 
 describe('sync', () => {
+    // These tests run the whole sync pipeline (fresh database, migrations, generation and upload)
+    // several times per test. They take about a second each on their own, but on a busy CI runner
+    // (especially macOS) they can take over 5x longer and exceed Jest's default 5 second timeout.
+    jest.setTimeout(30_000);
+
     let dir: string;
     let config: LoadedSyncConfig;
     let dbPath: string;
