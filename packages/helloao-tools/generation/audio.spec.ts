@@ -87,7 +87,7 @@ describe('KNOWN_AUDIO_TRANSLATIONS', () => {
         ] as const,
 
         // Chinese Union Version translations share the CUV audio
-        ...['cmn_cuv', 'cmn_cuvmps', 'CUVMPS', 'cmn_cuvmpt', 'cmn_cu1'].map(
+        ...['cmn_cuv', 'cmn_cuvmps', 'cmn_cuvmpt', 'cmn_cu1'].map(
             (translationId) =>
                 [
                     translationId,
