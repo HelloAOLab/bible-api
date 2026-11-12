@@ -109,7 +109,7 @@ export const KNOWN_AUDIO_TRANSLATIONS: Map<
         ]),
     ],
     // The Chinese Union Version translations all share the same CUV audio files
-    ...['cmn_cuv', 'cmn_cuvmps', 'CUVMPS', 'cmn_cuvmpt', 'cmn_cu1'].map(
+    ...['cmn_cuv', 'cmn_cuvmps', 'cmn_cuvmpt', 'cmn_cu1'].map(
         (translationId) =>
             [
                 translationId,
