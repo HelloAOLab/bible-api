@@ -94,7 +94,7 @@ describe('KNOWN_AUDIO_TRANSLATIONS', () => {
                     'mandarin',
                     'JHN',
                     3,
-                    'https://audio.bible.helloao.org/api/cmv_cuv/JHN/3/audio/mandarin.mp3',
+                    'https://audio.bible.helloao.org/api/cmn_cuv/JHN/3/audio/mandarin.mp3',
                 ] as const
         ),
     ];

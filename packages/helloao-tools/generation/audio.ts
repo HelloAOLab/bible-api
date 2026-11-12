@@ -116,7 +116,7 @@ export const KNOWN_AUDIO_TRANSLATIONS: Map<
                 new Map([
                     [
                         'mandarin',
-                        freeUseBibleApiGenerator('cmv_cuv', 'mandarin'),
+                        freeUseBibleApiGenerator('cmn_cuv', 'mandarin'),
                     ],
                 ]),
             ] as const
