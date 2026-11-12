@@ -77,6 +77,12 @@ Commands:
 
 > **Audio timings.** The `import-audio-timings <file>` command loads per-verse start times for a chapter's audio into the database, from a JSON array of `{ translationId, bookId, chapterNumber, reader, verses }` records. To generate that file from the audio itself, see [`tools/audio-timings`](../../tools/audio-timings/README.md), which transcribes a chapter with whisperX and aligns the result against the chapter's known verse text.
 
+> **Importing a folder of audio timings.** `import-audio-timings-folder <dir> --translation <id> --reader <reader>` loads one narrator's timings from a folder with one `<book>.biblejson` file per book (named by lowercase USFM ID, e.g. `1ch.biblejson`), the format used by the [SDA church app](https://github.com/New-York-Chinese-Seventh-day-Adventist/sda-church-app/tree/main/assets/bible/audio-timings). Each file is `{ "chapters": [null, chapter 1, chapter 2, ...] }`, and each chapter is a list of verse start times in seconds indexed by verse number (index 0 is verse 1), with `null` for a verse that has no time, or `null` for a chapter with no times. The times are converted to one time per verse in the order of the translation's verses in the database. A chapter is skipped (and listed in the output) when its times don't line up with the translation: a verse in the translation has no time, there is a time for a verse the translation doesn't have, or the times go backwards. Use `--books GEN EXO` to import only some books, and `--dry-run` to check the timings without changing the database. For example:
+>
+> ```bash
+> helloao --db ./bible-api.db import-audio-timings-folder ./sda-church-app/assets/bible/audio-timings/rv1909 --translation spa_r09 --reader rv1909
+> ```
+
 ### Keeping an API up to date with `sync`
 
 The `sync` command runs the whole pipeline (import into the database, generate, and upload) incrementally, from a JSON config that lists exactly which sources make up the API:

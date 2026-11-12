@@ -28,6 +28,7 @@ import {
     reviewVerseOfTheDay,
     importInterlinear,
     importAudioTimings,
+    importAudioTimingsFolder,
     importCommentaries,
     importCommentary,
     importTranslation,
@@ -591,6 +592,34 @@ async function start() {
         )
         .action(async (file: string, options: any) => {
             await importAudioTimings(file, {
+                ...program.opts(),
+                ...options,
+            });
+        });
+
+    program
+        .command('import-audio-timings-folder <dir>')
+        .description(
+            "Imports a folder of per-book audio timing files into the database: one narrator's <book>.biblejson files, where each file is { chapters: [null, chapter 1, chapter 2, ...] } and each chapter is a list of verse start times (seconds) indexed by verse number (index 0 is verse 1), or null.\nThis is the format of https://github.com/New-York-Chinese-Seventh-day-Adventist/sda-church-app/tree/main/assets/bible/audio-timings.\nChapters whose times don't line up with the translation's verses are skipped and reported."
+        )
+        .requiredOption(
+            '--translation <id>',
+            'The ID of the translation that the timings are for. (e.g. "BSB")'
+        )
+        .requiredOption(
+            '--reader <reader>',
+            'The reader (audio version) that the timings are for. (e.g. "souer")'
+        )
+        .option(
+            '--books <books...>',
+            'Only import these books, by USFM ID. (e.g. GEN EXO)'
+        )
+        .option(
+            '--dry-run',
+            'Check the timings against the translation and report what would be imported, without changing the database.'
+        )
+        .action(async (dir: string, options: any) => {
+            await importAudioTimingsFolder(dir, {
                 ...program.opts(),
                 ...options,
             });
