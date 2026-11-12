@@ -91,10 +91,10 @@ describe('KNOWN_AUDIO_TRANSLATIONS', () => {
             (translationId) =>
                 [
                     translationId,
-                    'default',
+                    'mandarin',
                     'JHN',
                     3,
-                    'https://audio.bible.helloao.org/api/cmv_cuv/JHN/3/audio/default.mp3',
+                    'https://audio.bible.helloao.org/api/cmv_cuv/JHN/3/audio/mandarin.mp3',
                 ] as const
         ),
     ];
