@@ -17,6 +17,11 @@
         },
         {
             "url": "./free-use-bible-api.zip"
+        },
+        {
+            "type": "typesense",
+            "url": "https://typesense.example.com",
+            "translations": ["BSB"]
         }
     ]
 }
