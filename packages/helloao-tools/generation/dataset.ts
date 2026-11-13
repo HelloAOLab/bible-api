@@ -39,6 +39,7 @@ import {
     ParseTree,
 } from '../parser/types.js';
 import { TyndaleXmlParser } from '../parser/tyndale-xml-parser.js';
+import { SwordCommentaryParser } from '../parser/sword-commentary-parser.js';
 import { getLogger } from '../log.js';
 import { LockmanParser } from '../parser/lockman-parser.js';
 import { BookId } from '../utils.js';
@@ -181,6 +182,7 @@ export function generateDataset(
     let codexParser = new CodexParser(parser);
     let csvCommentaryParser = new CommentaryCsvParser();
     let tyndaleXmlParser = new TyndaleXmlParser(parser);
+    let swordCommentaryParser = new SwordCommentaryParser();
     let lockmanParser = new LockmanParser();
 
     let parsedTranslations = new Map<string, DatasetTranslation>();
@@ -195,6 +197,7 @@ export function generateDataset(
                 | CodexParser
                 | CommentaryCsvParser
                 | TyndaleXmlParser
+                | SwordCommentaryParser
                 | LockmanParser;
             if (file.fileType === 'usfm') {
                 parser = usfmParser;
@@ -206,6 +209,8 @@ export function generateDataset(
                 parser = csvCommentaryParser;
             } else if (file.fileType === 'commentary/tyndale-xml') {
                 parser = tyndaleXmlParser;
+            } else if (file.fileType === 'commentary/sword') {
+                parser = swordCommentaryParser;
             } else if (file.fileType === 'lockman') {
                 parser = lockmanParser;
             } else {
