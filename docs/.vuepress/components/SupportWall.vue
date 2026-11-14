@@ -662,7 +662,9 @@ watch(labels, () => draw());
         <div class="wall-key">
             <div class="wall-legend">
                 <span><i class="k-rec"></i>{{ w.received }}</span>
-                <span><i class="k-story"></i>{{ w.story }}</span>
+                <span v-if="stories.length"
+                    ><i class="k-story"></i>{{ w.story }}</span
+                >
                 <span><i class="k-cl"></i>{{ w.pledged }}</span>
                 <span><i class="k-av"></i>{{ w.open }}</span>
             </div>
