@@ -88,7 +88,16 @@ const logos = ref<HTMLDetailsElement>();
 function fromHash() {
     const h = location.hash;
     if (h === '#give' || h === '#testimony') {
-        setTimeout(() => scrollToSection(h.slice(1)), 0);
+        let y0 = 0;
+        setTimeout(() => {
+            y0 = scrollY;
+            scrollToSection(h.slice(1));
+        }, 0);
+        // Arriving from another page, the router's own scroll can cancel the
+        // first pass. If nothing has moved by now, jump there instead.
+        setTimeout(() => {
+            if (scrollY === y0) scrollToSection(h.slice(1), true);
+        }, 450);
     }
     if (h === '#logos' && logos.value) {
         logos.value.open = true;
@@ -98,16 +107,17 @@ function fromHash() {
 
 // Scroll to a section ourselves, below the fixed navbar, so in-page links
 // work however the router treats the hash.
-function scrollToSection(id: string) {
+function scrollToSection(id: string, instant = false) {
     const el = document.getElementById(id);
     if (!el) return false;
     const head =
         document.querySelector<HTMLElement>('.vp-navbar')?.offsetHeight ?? 0;
-    const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)')
-        .matches;
+    const smooth =
+        !instant &&
+        !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     window.scrollTo({
         top: el.getBoundingClientRect().top + scrollY - head - 16,
-        behavior: smooth ? 'smooth' : 'auto',
+        behavior: smooth ? 'smooth' : 'instant',
     });
     history.replaceState(history.state, '', `#${id}`);
     return true;

@@ -175,6 +175,7 @@
             "release": "Release it into the public domain",
             "next": "The next builder starts further ahead"
         },
+        "flywheelLink": "See how the flywheel works",
         "buildTitle": "Let’s start building.",
         "newsletterPrompt": "Want to stay in the loop?",
         "newsletterLink": "Sign up for the newsletter",
@@ -208,7 +209,20 @@
                 "a": "Non-commercial terms forbid faithful work, so we count them as restricted. There are many ways a Bible could be distributed commercially in a pure and faithful manner (for example, printing Bibles and selling them at just the price required to make a small profit to reinvest in the operation and increase distribution). The point, dear Christian, is that it is simply **not your place** to tell others how they can and cannot use God’s word."
             }
         },
-        "scrollCue": "Scroll to the next section"
+        "scrollCue": "Scroll to the next section",
+        "river": {
+            "label": "Testimonies from people who use and support the Free Use Bible API",
+            "invite": "Your testimony here!",
+            "inviteCta": "Share how you use it",
+            "seeAll": "See all {{ count }} stories",
+            "showLess": "Show less",
+            "supporter": "Supporter"
+        },
+        "timeline": {
+            "slider": "Paul’s letters through history",
+            "about": "About this evidence",
+            "hint": "Drag the dot, or use the arrow keys."
+        }
     },
     "footer": {
         "madeWith": "Made with {{ love }} by {{ aoLab }}",
@@ -316,8 +330,8 @@
         },
         "chooseNote": "You choose what appears publicly on the support wall.",
         "testimonyTitle": "We’d love to hear from you!",
-        "testimonyStepShare": "**Share your story.** How are you using the API? Or simply send a word of thanks or encouragement.",
-        "testimonyStepPermission": "**May we share your story?** If you would like to redact anything or remain anonymous, let us know! Did you make a donation? If so, please include the amount so we can add it to the support wall.",
+        "testimonyStepShare": "**How are you using the API?** Please let us know so we can potentially partner or showcase you!",
+        "testimonyStepPermission": "**Did you make a donation?** If so, please include the amount so we can add it to the support wall. If not, please pray for us for this movement. Nothing is more important than that!",
         "testimonyButton": "Email us your story",
         "testimonySubject": "My testimony for the support wall",
         "testimonyEmail": "Name or organization:\nMay we share your story? Anything to redact, or should we keep you anonymous?:\n\nYour story (how you use the API, a word of thanks, or a note of encouragement):\n\nLink to what you built (optional):\n\nIf you donated, the amount (optional):\nShort message for the wall, up to 80 characters (optional):\n\nAttach screenshots, photos, or a logo as an SVG or a transparent PNG at least 600 pixels on its long side (optional).\n",
@@ -513,5 +527,147 @@
         "guide": "Guide",
         "guideDetail": "Learn how to use the API, step by step.",
         "scene": "Decorative ASCII art scene"
+    },
+    "openEcosystem": {
+        "title": "Let’s build an open ecosystem\nfor global Christianity.",
+        "sub": "Scripture, tools and data that any Christian may freely use, build on and share.",
+        "join": "Join us",
+        "forbidTitle": "Most Scripture can\nbe read but not {{ used }}.",
+        "forbidUsed": "used",
+        "forbidLead": "Copyright restrictions prevent:",
+        "forbidEnd": "Together we can change that.",
+        "flywheelTitle": "The answer is more\npublic domain resources.",
+        "apiTitle": "Welcome to the Free Use Bible API.",
+        "apiSub": "Get started immediately with **no red tape**.",
+        "cardsLabel": "What is in the API",
+        "cards": {
+            "translations": {
+                "title": "Bible Translations",
+                "body": "Static JSON with headings, poetry, line breaks and footnotes kept intact."
+            },
+            "audio": {
+                "title": "Bible Audio",
+                "body": "Plain readings and dramatized Scripture audio for listening and accessibility."
+            },
+            "datasets": {
+                "title": "Bible Data Sets",
+                "body": "Cross-references and other Bible data in formats ready to build with."
+            },
+            "seedBible": {
+                "title": "Seed Bible",
+                "body": "Build on our open Bible platform, or extend it."
+            }
+        },
+        "seedBibleComing": "Developer docs coming December",
+        "fundTitle": "Introducing the Free Use Fund.",
+        "fundBody1": "It’s going to take all of us to get this done.",
+        "fundBody2": "We’re launching a project-based fund to kickstart an open ecosystem for global Christianity.",
+        "fundBody3": "The fund is currently empty, but we are asking everyone to submit projects and help find donors to make this a reality!",
+        "fundLink": "Learn more about the fund",
+        "buildLabel": "Start building"
+    },
+    "flywheelPage": {
+        "kicker": "Why Christians Should Build Open Ecosystems",
+        "bodyTitle": "The body of Christ\nis meant to build as one.",
+        "flywheelTitle": "An open ecosystem multiplies the work.",
+        "flywheelLead": "Every open release gives the next builder more to start from.",
+        "wheelLabel": "The flywheel: start from free work, build something new, release it into the public domain, and the next builder starts further ahead, then the cycle begins again.",
+        "wheelCore": "Each turn,\nmore to build on",
+        "steps": {
+            "start": {
+                "title": "Start from free work",
+                "body": "Public-domain content and data, or open-source software"
+            },
+            "build": {
+                "title": "Build something new",
+                "body": "A translation, a recording, a data set, a tool or an extension"
+            },
+            "release": {
+                "title": "Release it into the public domain",
+                "body": "Content and data under CC0, software under an open-source licence"
+            },
+            "next": {
+                "title": "The next builder starts further ahead",
+                "body": "Everything you had, plus everything you made"
+            }
+        },
+        "again": "And around again",
+        "restrictTitle": "Restrictions block faithful work.",
+        "restrictions": {
+            "copying": {
+                "title": "Copying",
+                "body": "A whole Bible to distribute to those in need.",
+                "licence": "All rights reserved"
+            },
+            "translating": {
+                "title": "Translating",
+                "body": "Scripture into another language and sharing it.",
+                "licence": "No derivatives"
+            },
+            "revising": {
+                "title": "Revising",
+                "body": "A translation and publishing the revision.",
+                "licence": "No derivatives"
+            },
+            "adapting": {
+                "title": "Adapting",
+                "body": "Scripture into an easy-read edition or audio Bible.",
+                "licence": "No derivatives"
+            },
+            "distributing": {
+                "title": "Distributing",
+                "body": "Bible files online or offline.",
+                "licence": "All rights reserved"
+            }
+        },
+        "restrictLead": "That is why we call on those who hold restricted Scripture to release it.",
+        "restrictLink": "Why Scripture should be free",
+        "openTitle": "The more open, the more believers can build.",
+        "open": {
+            "content": {
+                "title": "Content and data",
+                "body": "Release under CC0, the public-domain dedication. CC BY 4.0 and CC BY-SA 4.0 also allow reuse, with conditions."
+            },
+            "software": {
+                "title": "Software",
+                "body": "Release under a permissive licence such as MIT. Copyleft licences such as the AGPL also allow reuse, with more conditions."
+            }
+        },
+        "manyTitle": "There is so much left to be done.",
+        "manyLead": "Any of this could be built once and shared with every believer.",
+        "todo": {
+            "scripture": {
+                "title": "Scripture and Christian texts",
+                "items": "New public-domain translations\nTranslations for unreached languages\nEasy-read and children’s editions\nStudy Bibles and notes\nInterlinears and reader’s editions\nChristian history and historic writings"
+            },
+            "data": {
+                "title": "Data and reference",
+                "items": "Original-language alignments\nLexicons and morphology\nPeople, places and events\nMaps, geography and timelines\nShared identifiers that link passages, people and places across every resource"
+            },
+            "media": {
+                "title": "Art and media",
+                "items": "Audio and dramatized Bibles\nSign-language Bibles\nScripture music\nBible films and animation\nIllustrations and 3D assets\nFonts for every script\nEditable source files: layered art, animation rigs, recording tracks"
+            },
+            "teaching": {
+                "title": "Teaching and discipleship",
+                "items": "Kids programs and Sunday school curricula\nArts and crafts activities\nFamily discipleship resources\nSmall-group studies\nTheological courses"
+            },
+            "extensions": {
+                "title": "Seed Bible extensions",
+                "items": "Scripture memory\nBible games\nReading programs\nGroup Bible study\nDiscipleship pathways\nChurch engagement"
+            },
+            "tools": {
+                "title": "Tools and infrastructure",
+                "items": "Translation and checking platforms\nReusable components and starter projects\nAn open registry of resources and extensions\nLocalization and accessibility workflows\nPublishing to web, print, offline and messaging\nReview, correction and version histories\nSDKs and AI-ready data"
+            }
+        },
+        "workTitle": "Let’s get to work!",
+        "workCta": "Contribute on Discord",
+        "fundAsk": "Rather fund the work?",
+        "fundLink": "Stand with us",
+        "fundBody": "Support beyond AO Lab’s yearly need goes to the Free Use Fund, for open content and software.",
+        "codeAsk": "Want to build on the code?",
+        "codeLink": "The API on GitHub",
+        "codeBody": "The Free Use Bible API is MIT licensed."
     }
 }

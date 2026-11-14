@@ -146,7 +146,13 @@ const localePage = (prefix: string, page: string) =>
         : `/${page}.html`;
 
 /** Layouts that render their own page rather than the markdown body. */
-const customLayouts = ['HomeLayout', 'SupportLayout', 'FreeUseFundLayout'];
+const customLayouts = [
+    'HomeLayout',
+    'SupportLayout',
+    'FreeUseFundLayout',
+    'OpenEcosystemLayout',
+    'FlywheelLayout',
+];
 
 const navbar = (prefix: string, labels: Labels): NavbarOptions => [
     {

@@ -6,9 +6,11 @@ import {
 } from 'vuepress/client';
 import NewsletterDialog from './components/NewsletterDialog.vue';
 import ScrollCue from './components/ScrollCue.vue';
+import FlywheelLayout from './layouts/FlywheelLayout.vue';
 import FreeUseFundLayout from './layouts/FreeUseFundLayout.vue';
 import HomeLayout from './layouts/HomeLayout.vue';
 import NotFound from './layouts/NotFound.vue';
+import OpenEcosystemLayout from './layouts/OpenEcosystemLayout.vue';
 import SupportLayout from './layouts/SupportLayout.vue';
 
 // Let a page set its full <title> through a `headTitle` frontmatter field,
@@ -39,9 +41,11 @@ function textDirection(lang: string): 'ltr' | 'rtl' {
 
 export default defineClientConfig({
     layouts: {
+        FlywheelLayout,
         FreeUseFundLayout,
         HomeLayout,
         NotFound,
+        OpenEcosystemLayout,
         SupportLayout,
     },
 

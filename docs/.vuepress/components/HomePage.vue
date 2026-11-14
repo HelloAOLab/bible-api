@@ -3,6 +3,8 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { RouteLink, usePageFrontmatter, usePageLang } from 'vuepress/client';
 import SiteFooter from './SiteFooter.vue';
 import SupportWall from './SupportWall.vue';
+import TestimonyRiver from './TestimonyRiver.vue';
+import RelayTimeline from './RelayTimeline.vue';
 import VerseQuote from './VerseQuote.vue';
 import {
     useLabels,
@@ -11,11 +13,8 @@ import {
 } from '../composables/useLocale';
 import { fillLabel, labelHtml } from '../composables/formatLabel';
 import { useVerses } from '../composables/useVerses';
-import {
-    countLicenceRows,
-    LICENCE_ROWS,
-    type LicenceRow,
-} from '../licenceRows';
+import { LICENCE_ROWS } from '../licenceRows';
+import { useCounts } from '../composables/useCounts';
 import type { Labels } from '../labels';
 
 const DISCORD_URL = 'https://discord.com/invite/NbEZMCJmqC';
@@ -37,84 +36,11 @@ const formatCount = (n: number) => {
 
 /* ---------- live translation counts ---------- */
 
-// The catalog grows. Fill the printed numbers from the live endpoint rather
-// than letting them rot, but only once a session: the file is large.
-const translationCount = ref(1256);
-const languageCount = ref(1004);
-
-// The licence breakdown, by row. These are the counts as of November 2026,
-// shown until the live ones arrive. See licenceRows.ts.
-const licenceCounts = ref<Record<LicenceRow, number>>({
-    publicDomain: 102,
-    attribution: 36,
-    shareAlike: 283,
-    noDerivatives: 92,
-    nonCommercialNoDerivatives: 728,
-    other: 15,
-});
-
-function paintCounts(
-    t: number,
-    l: number,
-    lic?: Partial<Record<LicenceRow, number>>
-) {
-    if (t) translationCount.value = t;
-    if (l) languageCount.value = l;
-    // Only a complete set of counts replaces the snapshot.
-    if (lic && LICENCE_ROWS.every((row) => typeof lic[row] === 'number')) {
-        licenceCounts.value = lic as Record<LicenceRow, number>;
-    }
-}
+// Filled from the live catalog once mounted. See composables/useCounts.ts.
+const { translationCount, languageCount, licenceCounts } = useCounts();
 
 const translations = computed(() => formatCount(translationCount.value));
 const languages = computed(() => formatCount(languageCount.value));
-
-function fetchCounts() {
-    let hit: string | null = null;
-    try {
-        hit = sessionStorage.getItem('fuba-counts');
-    } catch (e) {}
-    if (hit) {
-        try {
-            const c = JSON.parse(hit);
-            // A count cached before the licence breakdown was added has no
-            // `lic`, so fetch again rather than show the snapshot.
-            if (c.lic) {
-                paintCounts(c.t, c.l, c.lic);
-                return;
-            }
-        } catch (e) {}
-    }
-
-    const go = () => {
-        fetch('https://bible.helloao.org/api/available_translations.json')
-            .then((r) => (r.ok ? r.json() : null))
-            .then((j) => {
-                if (!j || !j.translations || !j.translations.length) return;
-                const t = j.translations.length;
-                const l = new Set(
-                    j.translations
-                        .map((x: any) => x.language)
-                        .filter((x: any) => !!x)
-                ).size;
-                const lic = countLicenceRows(j.translations);
-                paintCounts(t, l, lic);
-                try {
-                    sessionStorage.setItem(
-                        'fuba-counts',
-                        JSON.stringify({ t, l, lic })
-                    );
-                } catch (e) {}
-            })
-            .catch(() => {});
-    };
-
-    if ('requestIdleCallback' in window) {
-        (window as any).requestIdleCallback(go, { timeout: 4000 });
-    } else {
-        setTimeout(go, 1200);
-    }
-}
 
 /* ---------- the comparison table ---------- */
 
@@ -282,18 +208,15 @@ const FAQ_ANSWERS: Record<FaqId, true> = {
     nonCommercial: true,
 };
 
-/* ---------- motion: confetti, the relay, the struck words ---------- */
+/* ---------- motion: confetti and the struck words (the relay is RelayTimeline.vue) ---------- */
 
 const reducedMotion = () =>
     window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
 const milestone = ref<'party' | 'settle' | ''>('');
-const relay = ref<HTMLElement>();
 const struck = ref<HTMLElement>();
-const relayOn = ref(false);
 const struckArmed = ref(false);
 const struckOn = ref(false);
-const RELAY_DOTS = 66;
 
 const cleanups: (() => void)[] = [];
 
@@ -429,11 +352,7 @@ function whenVisible(
 const causeLines = computed(() => labels.value.home.causeTitle.split('\n'));
 
 onMounted(() => {
-    fetchCounts();
     confetti();
-    whenVisible(relay.value, 0.6, () => {
-        relayOn.value = true;
-    });
     if ('IntersectionObserver' in window) {
         struckArmed.value = true;
         whenVisible(struck.value, 0.25, () => {
@@ -510,10 +429,10 @@ onBeforeUnmount(() => {
                             class="cause-h"
                             :class="{ 'has-break': causeLines.length > 1 }"
                         >
-                            <template
-                                v-for="(line, i) in causeLines"
-                                :key="i"
-                                ><br v-if="i" class="lb" />{{ line }}</template
+                            <template v-for="(line, i) in causeLines" :key="i"
+                                ><br v-if="i" class="lb" />{{
+                                    i ? ' ' + line : line
+                                }}</template
                             >
                         </h2>
                         <RouteLink
@@ -524,6 +443,7 @@ onBeforeUnmount(() => {
                             <span aria-hidden="true">&rarr;</span>
                         </RouteLink>
                     </div>
+                    <TestimonyRiver />
                     <SupportWall
                         :fund-link="localePage('/free-use-fund.html')"
                         show-note
@@ -692,28 +612,7 @@ onBeforeUnmount(() => {
                         class="fg-p"
                         v-html="labelHtml(labels.home.sinceBody)"
                     ></p>
-                    <figure
-                        ref="relay"
-                        class="relay"
-                        :class="{ go: relayOn }"
-                        role="img"
-                        :aria-label="labels.home.relayLabel"
-                    >
-                        <div class="relay-line">
-                            <i
-                                v-for="n in RELAY_DOTS"
-                                :key="n"
-                                :class="{
-                                    you: n === 1 || n === RELAY_DOTS,
-                                }"
-                                :style="{ '--n': n - 1 }"
-                            ></i>
-                        </div>
-                        <figcaption>
-                            <span>{{ labels.home.relayStart }}</span>
-                            <span>{{ labels.home.relayEnd }}</span>
-                        </figcaption>
-                    </figure>
+                    <RelayTimeline />
                 </div>
             </section>
 
@@ -839,6 +738,13 @@ onBeforeUnmount(() => {
                             {{ labels.home.flywheel[step] }}
                         </li>
                     </ol>
+                    <p class="fw-more">
+                        <RouteLink
+                            :to="localePage('/open-ecosystem-flywheel.html')"
+                            >{{ labels.home.flywheelLink }}
+                            <span aria-hidden="true">&rarr;</span></RouteLink
+                        >
+                    </p>
                 </div>
             </section>
 
@@ -1437,6 +1343,131 @@ onBeforeUnmount(() => {
         animation-delay: calc(var(--n) * 28ms);
     }
 
+    /* the relay as a hidden timeline (RelayTimeline.vue): the reader's dot
+       can be dragged from Paul's letters toward "You". Nothing changes until
+       someone drags it (or arrows to it); then the stops, the five activity
+       words above, and a short panel come alive. */
+    .relay.can-drag .relay-line i.you:first-child {
+        cursor: grab;
+        touch-action: none;
+        outline: none;
+        z-index: 2;
+    }
+    .relay.can-drag .relay-line i.you:first-child::before {
+        content: '';
+        position: absolute;
+        inset: -16px;
+    }
+    .relay-line i.you:focus-visible {
+        box-shadow:
+            0 0 0 3px var(--bg),
+            0 0 0 5px var(--text);
+    }
+    .relay.dragging .relay-line i.you:first-child {
+        cursor: grabbing;
+    }
+    .relay.live .relay-line i:not(.you) {
+        opacity: 0.28 !important;
+        transition: opacity 0.15s ease;
+    }
+    .relay.live .relay-line i.past {
+        opacity: 0.9 !important;
+    }
+    /* the starting point stays marked once the dot leaves it */
+    .relay.live .relay-line::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        width: 13px;
+        height: 13px;
+        margin-top: -6.5px;
+        box-sizing: border-box;
+        border: 1.5px solid var(--text);
+        border-radius: 50%;
+        background: var(--bg);
+    }
+    #since .fg-p strong {
+        transition: opacity 0.2s ease;
+    }
+    #since.live .fg-p strong {
+        opacity: 0.35;
+    }
+    #since.live .fg-p strong.on {
+        opacity: 1;
+        text-decoration: underline;
+        text-decoration-thickness: 2px;
+        text-underline-offset: 4px;
+    }
+    /* the panel grows open from nothing (animated in the script), so
+       nothing pops */
+    .relay-panel {
+        max-width: 640px;
+        margin: clamp(26px, 3.6vh, 40px) auto 0;
+    }
+    .rp-when {
+        margin: 0;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--muted);
+    }
+    .rp-title {
+        margin: 10px 0 0;
+        padding: 0;
+        border: 0;
+        font-size: clamp(21px, 2.2vw, 26px);
+        letter-spacing: -0.025em;
+        line-height: 1.2;
+    }
+    .rp-body {
+        margin: 10px 0 0;
+        font-size: 16.5px;
+        line-height: 1.55;
+        color: var(--text-2);
+    }
+    .rp-src {
+        margin: 12px 0 0;
+        font-size: 14px;
+        color: var(--muted);
+    }
+    .rp-src a {
+        display: inline-block;
+        margin: 0 8px;
+        color: var(--text);
+        font-weight: 600;
+        text-decoration: underline;
+        text-decoration-color: var(--line);
+        text-underline-offset: 3px;
+    }
+    .rp-note {
+        margin: 10px auto 0;
+        font-size: 13.5px;
+        color: var(--muted);
+    }
+    .rp-note summary {
+        cursor: pointer;
+        display: inline-block;
+        list-style: none;
+        text-decoration: underline;
+        text-decoration-color: var(--line);
+        text-underline-offset: 3px;
+    }
+    .rp-note summary::-webkit-details-marker {
+        display: none;
+    }
+    .rp-note p {
+        margin: 8px auto 0;
+        max-width: 560px;
+        line-height: 1.55;
+    }
+    .rp-hint {
+        margin: 14px 0 0;
+        font-size: 12.5px;
+        color: var(--muted);
+    }
+
     /* the five words return, struck through, each with what is forbidden and
        the licence term that forbids it */
     .struck {
@@ -1661,6 +1692,15 @@ onBeforeUnmount(() => {
         font-weight: 700;
         letter-spacing: -0.015em;
     }
+    .fw-more {
+        margin: clamp(30px, 4.4vh, 44px) 0 0;
+        font-size: 15px;
+        font-weight: 600;
+    }
+    .fw-more a {
+        text-decoration: underline;
+        text-underline-offset: 4px;
+    }
     .fw-flow li + li::before {
         content: '\2193';
         display: block;
@@ -1799,6 +1839,15 @@ onBeforeUnmount(() => {
         .relay-line i.you {
             width: 11px;
             height: 11px;
+        }
+        .relay.live .relay-line::after {
+            width: 11px;
+            height: 11px;
+            margin-top: -5.5px;
+        }
+        .rp-src a {
+            display: block;
+            margin: 6px 0 0;
         }
         .lr-name {
             font-size: 16px;
