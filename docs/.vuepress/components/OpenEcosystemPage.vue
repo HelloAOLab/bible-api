@@ -154,6 +154,13 @@ onBeforeUnmount(() => io?.disconnect());
                             {{ labels.home.flywheel[step] }}
                         </li>
                     </ol>
+                    <p class="fw-more">
+                        <RouteLink
+                            :to="localePage('/open-ecosystem-flywheel.html')"
+                            >{{ labels.home.flywheelLink }}
+                            <span aria-hidden="true">&rarr;</span></RouteLink
+                        >
+                    </p>
                 </div>
             </section>
 
@@ -449,6 +456,16 @@ onBeforeUnmount(() => io?.disconnect());
         }
     }
 
+    .fw-more {
+        margin: clamp(30px, 4.4vh, 44px) 0 0;
+        font-size: 15px;
+        font-weight: 600;
+    }
+    .fw-more a {
+        color: inherit;
+        text-decoration: underline;
+        text-underline-offset: 4px;
+    }
     /* ---------- the flywheel ---------- */
     .fw-flow {
         list-style: none;

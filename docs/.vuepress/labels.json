@@ -250,7 +250,6 @@
         "seedBibleSoon": "Seed Bible (Coming soon)",
         "discordShort": "Discord",
         "newsletterShort": "Newsletter",
-        "flywheel": "Why an open ecosystem",
         "freeUseFund": "Free Use Fund",
         "support": "Support AO Lab",
         "nonprofit": "A 501(c)(3) nonprofit",
@@ -568,7 +567,7 @@
         "buildLabel": "Start building"
     },
     "flywheelPage": {
-        "kicker": "Why Christians should support an open ecosystem",
+        "kicker": "Why Christians Should Build Open Ecosystems",
         "bodyTitle": "The body of Christ\nis meant to build as one.",
         "flywheelTitle": "An open ecosystem multiplies the work.",
         "flywheelLead": "Every open release gives the next builder more to start from.",

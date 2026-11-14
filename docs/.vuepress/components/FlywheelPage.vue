@@ -11,7 +11,7 @@ import {
 import { useVerses } from '../composables/useVerses';
 import type { Labels } from '../labels';
 
-// Why Christians should support an open ecosystem: the long form of the home
+// Why Christians Should Build Open Ecosystems: the long form of the home
 // page's flywheel section. The body of Christ, the flywheel drawn as a wheel,
 // the restrictions that stop it, the licences that keep it turning, and what
 // is left to build.

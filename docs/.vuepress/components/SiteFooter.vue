@@ -181,14 +181,6 @@ const aoLabLogoDark = withBase('/ao_lab_logo_dark.png');
                         </li>
                         <li>
                             <RouteLink
-                                :to="
-                                    localePage('/open-ecosystem-flywheel.html')
-                                "
-                                >{{ labels.footer.flywheel }}</RouteLink
-                            >
-                        </li>
-                        <li>
-                            <RouteLink
                                 :to="localePage('/free-use-fund.html')"
                                 >{{ labels.footer.freeUseFund }}</RouteLink
                             >
