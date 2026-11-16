@@ -47,6 +47,7 @@ import {
 } from './actions.js';
 import { getPrismaDb } from './db.js';
 import { sync } from './sync.js';
+import { BSB_USFM_ZIP_URL, fetchBsbTranslation } from './bsb.js';
 import {
     FETCH_BIBLE_COLLECTION_REF,
     FETCH_BIBLE_COLLECTION_REPO,
@@ -1364,6 +1365,33 @@ async function start() {
         )
         .action(async (dir: string) => {
             await fetchOsisTranslations(dir);
+        });
+
+    program
+        .command('fetch-bsb <dir>')
+        .description(
+            'Fetches the Berean Standard Bible USFM files from bereanbible.com, converts them to USX3 (like source-translations --convert-to-usx3) and places them in <dir>/BSB.\nThe translation is only replaced when the download or metadata has changed.'
+        )
+        .option('--url <url>', 'The URL of the USFM zip file', BSB_USFM_ZIP_URL)
+        .option(
+            '--no-convert-to-usx3',
+            'Keep the USFM files instead of converting them to USX3'
+        )
+        .option(
+            '--bible-multi-converter-path <path>',
+            'Path to BibleMultiConverter.jar file'
+        )
+        .option(
+            '--overwrite',
+            'Replace the translation even if the download has not changed'
+        )
+        .action(async (dir: string, options: any) => {
+            await fetchBsbTranslation(dir, {
+                url: options.url,
+                convertToUsx3: options.convertToUsx3,
+                bibleMultiConverterPath: options.bibleMultiConverterPath,
+                overwrite: options.overwrite,
+            });
         });
 
     program

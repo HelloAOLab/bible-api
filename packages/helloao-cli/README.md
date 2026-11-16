@@ -66,11 +66,15 @@ Commands:
   fetch-bible-metadata <dir>                             Fetches the Theographic bible metadata and places it in the given directory.
   fetch-interlinear <dir>                                Fetches the Berean interlinear table and the STEPBible lexicons (with their license) and places them in the given directory.
   fetch-osis-translations <dir>                          Fetches the pinned OSIS translations (the Japanese Kougo-yaku and Bungo-yaku), checks their hashes, converts them to USFM and places them in the given directory.
+  fetch-bsb [options] <dir>                              Fetches the Berean Standard Bible USFM files from bereanbible.com, converts them to USX3 (like source-translations --convert-to-usx3) and places them in <dir>/BSB.
+                                                         The translation is only replaced when the download or metadata has changed.
   fetch-history-globe <dir>                              Fetches the History Globe places and their verse references and places them in the given directory.
   fetch-sword-commentaries [options] <dir> [modules...]  Fetches the commentaries from the CrossWire SWORD module repository, with a metadata.json for each.
   fetch-tyndale-open-resources <dir>                     Fetches the Tyndale Open Bible Resources and places it in the given directory.
   help [command]                                         display help for command
 ```
+
+> **Berean Standard Bible.** eBible's copy of the BSB is often out of date, so `fetch-bsb <dir>` (`npm run fetch:bible:bsb`) downloads it straight from [bereanbible.com](https://bereanbible.com/bsb_usfm.zip) instead. The USFM files are converted to USX3 with [BibleMultiConverter](https://github.com/schierlm/BibleMultiConverter), the same way `source-translations --convert-to-usx3` converts eBible translations (use `--no-convert-to-usx3` to keep the USFM files), and written to `<dir>/BSB` with a `metadata.json` (from `meta/BSB.json`). A `bsb.txt` file records the SHA-256 hash of the download, so later runs only replace the translation when the zip or metadata changes (or with `--overwrite`). To avoid importing the BSB twice, exclude `BSB` from the eBible source (e.g. `"exclude": ["BSB"]` in a sync config).
 
 > **eBible licenses.** `source-translations` detects the license of each eBible translation (from the Creative Commons link on its ebible.org details page, falling back to a "public domain" copyright notice) and stores it in `metadata.json`. To add licenses to a database that was imported before license detection existed, run `helloao refresh-ebible-licenses --db <path> --dir <sourced translations dir>`. It updates the `license` column of each eBible translation in place, and `--dir` also writes the licenses into the matching `metadata.json` files so that a later re-import doesn't clear them. Translations whose license can't be detected are left unchanged.
 

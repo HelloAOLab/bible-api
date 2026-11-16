@@ -317,7 +317,7 @@ export async function getMetaPath() {
 /**
  * Loads the override metadata for the given translation from the meta directory, if it has one.
  */
-async function loadMetadataOverride(
+export async function loadMetadataOverride(
     translationId: string
 ): Promise<InputTranslationMetadata | null> {
     const logger = log.getLogger();
