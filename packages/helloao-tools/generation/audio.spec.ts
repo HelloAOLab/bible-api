@@ -104,13 +104,13 @@ describe('KNOWN_AUDIO_TRANSLATIONS', () => {
 
         // Wordproject audio
         ...WORDPROJECT_AUDIO.map(
-            ({ translationId, reader, file }) =>
+            ({ translationId, reader, file, audioTranslationId }) =>
                 [
                     translationId,
                     reader,
                     'JHN',
                     3,
-                    `https://audio.bible.helloao.org/api/${translationId}/JHN/3/audio/${file}.mp3`,
+                    `https://audio.bible.helloao.org/api/${audioTranslationId ?? translationId}/JHN/3/audio/${file}.mp3`,
                 ] as const
         ),
         [
@@ -120,20 +120,24 @@ describe('KNOWN_AUDIO_TRANSLATIONS', () => {
             1,
             'https://audio.bible.helloao.org/api/HINIRV/GEN/1/audio/wordproject.mp3',
         ] as const,
-        [
-            'cmn_cuv',
-            'wordproject_mandarin',
-            'JHN',
-            3,
-            'https://audio.bible.helloao.org/api/cmn_cuv/JHN/3/audio/wordproject.mp3',
-        ] as const,
-        [
-            'cmn_cuv',
-            'wordproject_cantonese',
-            'JHN',
-            3,
-            'https://audio.bible.helloao.org/api/cmn_cuv/JHN/3/audio/wordproject_cantonese.mp3',
-        ] as const,
+        ...['cmn_cuv', 'cmn_cuvmps', 'cmn_cuvmpt', 'cmn_cu1'].flatMap(
+            (translationId) => [
+                [
+                    translationId,
+                    'wordproject_mandarin',
+                    'JHN',
+                    3,
+                    'https://audio.bible.helloao.org/api/cmn_cuv/JHN/3/audio/wordproject.mp3',
+                ] as const,
+                [
+                    translationId,
+                    'wordproject_cantonese',
+                    'JHN',
+                    3,
+                    'https://audio.bible.helloao.org/api/cmn_cuv/JHN/3/audio/wordproject_cantonese.mp3',
+                ] as const,
+            ]
+        ),
     ];
 
     it.each(cases)(
@@ -151,13 +155,19 @@ describe('KNOWN_AUDIO_TRANSLATIONS', () => {
             'souer',
             'david',
         ]);
-        expect([...KNOWN_AUDIO_TRANSLATIONS.get('cmn_cuv')!.keys()]).toEqual([
-            'mandarin',
-            'wordproject_mandarin',
-            'wordproject_cantonese',
-        ]);
-        expect([...KNOWN_AUDIO_TRANSLATIONS.get('cmn_cuvmps')!.keys()]).toEqual(
-            ['mandarin']
-        );
+        for (const translationId of [
+            'cmn_cuv',
+            'cmn_cuvmps',
+            'cmn_cuvmpt',
+            'cmn_cu1',
+        ]) {
+            expect([
+                ...KNOWN_AUDIO_TRANSLATIONS.get(translationId)!.keys(),
+            ]).toEqual([
+                'mandarin',
+                'wordproject_mandarin',
+                'wordproject_cantonese',
+            ]);
+        }
     });
 });

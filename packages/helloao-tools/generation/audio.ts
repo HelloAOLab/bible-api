@@ -84,6 +84,11 @@ export const KNOWN_AUDIO_FILE_TRANSLATIONS: Map<
     ],
 ]);
 
+/**
+ * The Chinese Union Version translations. They all share the CUV audio files.
+ */
+const CUV_TRANSLATIONS = ['cmn_cuv', 'cmn_cuvmps', 'cmn_cuvmpt', 'cmn_cu1'];
+
 export interface WordprojectAudio {
     /**
      * The ID of the translation.
@@ -97,9 +102,15 @@ export interface WordprojectAudio {
 
     /**
      * The name of the audio file (without .mp3) on the audio server:
-     * /api/{translationId}/{book}/{chapter}/audio/{file}.mp3
+     * /api/{audioTranslationId}/{book}/{chapter}/audio/{file}.mp3
      */
     file: string;
+
+    /**
+     * The translation whose folder the audio files are in on the audio server.
+     * Defaults to {@link translationId}.
+     */
+    audioTranslationId?: string;
 }
 
 /**
@@ -110,17 +121,22 @@ export const WORDPROJECT_AUDIO: readonly WordprojectAudio[] = [
     { translationId: 'amh_amh', reader: 'wordproject', file: 'wordproject' },
     { translationId: 'arb_vdv', reader: 'wordproject', file: 'wordproject' },
     { translationId: 'ces_bkr', reader: 'wordproject', file: 'wordproject' },
-    // The CUV has both a Mandarin and a Cantonese reading. The Mandarin files are named wordproject.mp3.
-    {
-        translationId: 'cmn_cuv',
-        reader: 'wordproject_mandarin',
-        file: 'wordproject',
-    },
-    {
-        translationId: 'cmn_cuv',
-        reader: 'wordproject_cantonese',
-        file: 'wordproject_cantonese',
-    },
+    // The CUV has both a Mandarin and a Cantonese reading, stored under cmn_cuv and shared by
+    // all the CUV translations. The Mandarin files are named wordproject.mp3.
+    ...CUV_TRANSLATIONS.flatMap((translationId) => [
+        {
+            translationId,
+            reader: 'wordproject_mandarin',
+            file: 'wordproject',
+            audioTranslationId: 'cmn_cuv',
+        },
+        {
+            translationId,
+            reader: 'wordproject_cantonese',
+            file: 'wordproject_cantonese',
+            audioTranslationId: 'cmn_cuv',
+        },
+    ]),
     { translationId: 'deu_l12', reader: 'wordproject', file: 'wordproject' },
     { translationId: 'eng_kjv', reader: 'wordproject', file: 'wordproject' },
     { translationId: 'fra_lsg', reader: 'wordproject', file: 'wordproject' },
@@ -152,13 +168,21 @@ export const WORDPROJECT_AUDIO: readonly WordprojectAudio[] = [
 function addWordprojectAudio(
     translations: Map<string, Map<string, AudioTranslationUrlGenerator>>
 ): Map<string, Map<string, AudioTranslationUrlGenerator>> {
-    for (const { translationId, reader, file } of WORDPROJECT_AUDIO) {
+    for (const {
+        translationId,
+        reader,
+        file,
+        audioTranslationId,
+    } of WORDPROJECT_AUDIO) {
         let readers = translations.get(translationId);
         if (!readers) {
             readers = new Map();
             translations.set(translationId, readers);
         }
-        readers.set(reader, freeUseBibleApiGenerator(translationId, file));
+        readers.set(
+            reader,
+            freeUseBibleApiGenerator(audioTranslationId ?? translationId, file)
+        );
     }
     return translations;
 }
@@ -189,7 +213,7 @@ export const KNOWN_AUDIO_TRANSLATIONS: Map<
             ]),
         ],
         // The Chinese Union Version translations all share the same CUV audio files
-        ...['cmn_cuv', 'cmn_cuvmps', 'cmn_cuvmpt', 'cmn_cu1'].map(
+        ...CUV_TRANSLATIONS.map(
             (translationId) =>
                 [
                     translationId,
