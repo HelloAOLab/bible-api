@@ -64,6 +64,32 @@ describe('getSwordCommentaryFileNames()', () => {
         });
     });
 
+    it.each([
+        ['BOOK', 'b'],
+        ['CHAPTER', 'c'],
+        ['VERSE', 'v'],
+    ])(
+        'should name the compressed files after the %s block type',
+        (blockType, prefix) => {
+            expect(
+                getSwordCommentaryFileNames(
+                    parseSwordConfig(`[A]\nModDrv=zCom\nBlockType=${blockType}`)
+                )
+            ).toEqual({
+                ot: {
+                    blocks: `ot.${prefix}zs`,
+                    index: `ot.${prefix}zv`,
+                    data: `ot.${prefix}zz`,
+                },
+                nt: {
+                    blocks: `nt.${prefix}zs`,
+                    index: `nt.${prefix}zv`,
+                    data: `nt.${prefix}zz`,
+                },
+            });
+        }
+    );
+
     it('should return the names of the raw files', () => {
         expect(
             getSwordCommentaryFileNames(parseSwordConfig('[A]\nModDrv=RawCom'))
