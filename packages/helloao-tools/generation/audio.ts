@@ -84,57 +84,81 @@ export const KNOWN_AUDIO_FILE_TRANSLATIONS: Map<
     ],
 ]);
 
+export interface WordprojectAudio {
+    /**
+     * The ID of the translation.
+     */
+    translationId: string;
+
+    /**
+     * The ID of the reader in the API.
+     */
+    reader: string;
+
+    /**
+     * The name of the audio file (without .mp3) on the audio server:
+     * /api/{translationId}/{book}/{chapter}/audio/{file}.mp3
+     */
+    file: string;
+}
+
 /**
- * The translations that have Wordproject audio (https://www.wordproject.org/bibles/audio/index.htm)
- * on the Free Use Bible API audio server, under the "wordproject" reader.
+ * The Wordproject audio (https://www.wordproject.org/bibles/audio/index.htm)
+ * on the Free Use Bible API audio server.
  */
-export const WORDPROJECT_AUDIO_TRANSLATIONS: readonly string[] = [
-    'amh_amh',
-    'arb_vdv',
-    'BSB',
-    'ces_bkr',
-    'cmn_cuv',
-    'deu_l12',
-    'eng_kjv',
-    'fra_lsg',
-    'grc_gtr',
-    'heb_mod',
-    'HINIRV',
-    'hun_bib',
-    'ita_riv',
-    'jpn_kou',
-    'kor_old',
-    'lat_clv',
-    'mal_fbf',
-    'mya_jvb',
-    'pes_pbs',
-    'ron_924',
-    'rus_syn',
-    'som_sim',
-    'spa_r09',
-    'srp_dkl',
-    'tam_irv',
-    'tha_kjv',
-    'vie_1934',
+export const WORDPROJECT_AUDIO: readonly WordprojectAudio[] = [
+    { translationId: 'amh_amh', reader: 'wordproject', file: 'wordproject' },
+    { translationId: 'arb_vdv', reader: 'wordproject', file: 'wordproject' },
+    { translationId: 'ces_bkr', reader: 'wordproject', file: 'wordproject' },
+    // The CUV has both a Mandarin and a Cantonese reading. The Mandarin files are named wordproject.mp3.
+    {
+        translationId: 'cmn_cuv',
+        reader: 'wordproject_mandarin',
+        file: 'wordproject',
+    },
+    {
+        translationId: 'cmn_cuv',
+        reader: 'wordproject_cantonese',
+        file: 'wordproject_cantonese',
+    },
+    { translationId: 'deu_l12', reader: 'wordproject', file: 'wordproject' },
+    { translationId: 'eng_kjv', reader: 'wordproject', file: 'wordproject' },
+    { translationId: 'fra_lsg', reader: 'wordproject', file: 'wordproject' },
+    { translationId: 'grc_gtr', reader: 'wordproject', file: 'wordproject' },
+    { translationId: 'heb_mod', reader: 'wordproject', file: 'wordproject' },
+    { translationId: 'HINIRV', reader: 'wordproject', file: 'wordproject' },
+    { translationId: 'hun_bib', reader: 'wordproject', file: 'wordproject' },
+    { translationId: 'ita_riv', reader: 'wordproject', file: 'wordproject' },
+    { translationId: 'jpn_kou', reader: 'wordproject', file: 'wordproject' },
+    { translationId: 'kor_old', reader: 'wordproject', file: 'wordproject' },
+    { translationId: 'lat_clv', reader: 'wordproject', file: 'wordproject' },
+    { translationId: 'mal_fbf', reader: 'wordproject', file: 'wordproject' },
+    { translationId: 'mya_jvb', reader: 'wordproject', file: 'wordproject' },
+    { translationId: 'pes_pbs', reader: 'wordproject', file: 'wordproject' },
+    { translationId: 'ron_924', reader: 'wordproject', file: 'wordproject' },
+    { translationId: 'rus_syn', reader: 'wordproject', file: 'wordproject' },
+    { translationId: 'som_sim', reader: 'wordproject', file: 'wordproject' },
+    { translationId: 'spa_r09', reader: 'wordproject', file: 'wordproject' },
+    { translationId: 'srp_dkl', reader: 'wordproject', file: 'wordproject' },
+    { translationId: 'tam_irv', reader: 'wordproject', file: 'wordproject' },
+    { translationId: 'tha_kjv', reader: 'wordproject', file: 'wordproject' },
+    { translationId: 'vie_1934', reader: 'wordproject', file: 'wordproject' },
 ];
 
 /**
- * Adds the "wordproject" reader to each of the {@link WORDPROJECT_AUDIO_TRANSLATIONS}.
+ * Adds the {@link WORDPROJECT_AUDIO} readers to the given translations.
  * @param translations The map of translations to add the readers to.
  */
 function addWordprojectAudio(
     translations: Map<string, Map<string, AudioTranslationUrlGenerator>>
 ): Map<string, Map<string, AudioTranslationUrlGenerator>> {
-    for (const translationId of WORDPROJECT_AUDIO_TRANSLATIONS) {
+    for (const { translationId, reader, file } of WORDPROJECT_AUDIO) {
         let readers = translations.get(translationId);
         if (!readers) {
             readers = new Map();
             translations.set(translationId, readers);
         }
-        readers.set(
-            'wordproject',
-            freeUseBibleApiGenerator(translationId, 'wordproject')
-        );
+        readers.set(reader, freeUseBibleApiGenerator(translationId, file));
     }
     return translations;
 }
