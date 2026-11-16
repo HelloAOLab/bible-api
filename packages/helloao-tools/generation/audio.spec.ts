@@ -1,4 +1,8 @@
-import { capitalize, KNOWN_AUDIO_TRANSLATIONS } from './audio.js';
+import {
+    capitalize,
+    KNOWN_AUDIO_TRANSLATIONS,
+    WORDPROJECT_AUDIO_TRANSLATIONS,
+} from './audio.js';
 
 describe('capitalize()', () => {
     const cases = [
@@ -97,6 +101,18 @@ describe('KNOWN_AUDIO_TRANSLATIONS', () => {
                     'https://audio.bible.helloao.org/api/cmn_cuv/JHN/3/audio/mandarin.mp3',
                 ] as const
         ),
+
+        // Wordproject audio
+        ...WORDPROJECT_AUDIO_TRANSLATIONS.map(
+            (translationId) =>
+                [
+                    translationId,
+                    'wordproject',
+                    'JHN',
+                    3,
+                    `https://audio.bible.helloao.org/api/${translationId}/JHN/3/audio/wordproject.mp3`,
+                ] as const
+        ),
     ];
 
     it.each(cases)(
@@ -107,4 +123,20 @@ describe('KNOWN_AUDIO_TRANSLATIONS', () => {
             expect(generator(bookId, chapter)).toBe(expected);
         }
     );
+
+    it('should keep the existing readers for translations that also have Wordproject audio', () => {
+        expect([...KNOWN_AUDIO_TRANSLATIONS.get('BSB')!.keys()]).toEqual([
+            'hays',
+            'souer',
+            'david',
+            'wordproject',
+        ]);
+        expect([...KNOWN_AUDIO_TRANSLATIONS.get('cmn_cuv')!.keys()]).toEqual([
+            'mandarin',
+            'wordproject',
+        ]);
+        expect([...KNOWN_AUDIO_TRANSLATIONS.get('cmn_cuvmps')!.keys()]).toEqual(
+            ['mandarin']
+        );
+    });
 });

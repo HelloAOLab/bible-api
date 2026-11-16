@@ -85,43 +85,100 @@ export const KNOWN_AUDIO_FILE_TRANSLATIONS: Map<
 ]);
 
 /**
+ * The translations that have Wordproject audio (https://www.wordproject.org/bibles/audio/index.htm)
+ * on the Free Use Bible API audio server, under the "wordproject" reader.
+ */
+export const WORDPROJECT_AUDIO_TRANSLATIONS: readonly string[] = [
+    'amh_amh',
+    'arb_vdv',
+    'BSB',
+    'ces_bkr',
+    'cmn_cuv',
+    'deu_l12',
+    'eng_kjv',
+    'fra_lsg',
+    'grc_gtr',
+    'heb_mod',
+    'HINIRV',
+    'hun_bib',
+    'ita_riv',
+    'jpn_kou',
+    'kor_old',
+    'lat_clv',
+    'mal_fbf',
+    'mya_jvb',
+    'pes_pbs',
+    'ron_924',
+    'rus_syn',
+    'som_sim',
+    'spa_r09',
+    'srp_dkl',
+    'tam_irv',
+    'tha_kjv',
+    'vie_1934',
+];
+
+/**
+ * Adds the "wordproject" reader to each of the {@link WORDPROJECT_AUDIO_TRANSLATIONS}.
+ * @param translations The map of translations to add the readers to.
+ */
+function addWordprojectAudio(
+    translations: Map<string, Map<string, AudioTranslationUrlGenerator>>
+): Map<string, Map<string, AudioTranslationUrlGenerator>> {
+    for (const translationId of WORDPROJECT_AUDIO_TRANSLATIONS) {
+        let readers = translations.get(translationId);
+        if (!readers) {
+            readers = new Map();
+            translations.set(translationId, readers);
+        }
+        readers.set(
+            'wordproject',
+            freeUseBibleApiGenerator(translationId, 'wordproject')
+        );
+    }
+    return translations;
+}
+
+/**
  * A map of translation IDs to a map of reader IDs to the URL generator for the audio file.
  */
 export const KNOWN_AUDIO_TRANSLATIONS: Map<
     string,
     Map<string, AudioTranslationUrlGenerator>
-> = new Map([
-    [
-        'BSB',
-        new Map([
-            ['hays', freeUseBibleApiGenerator('BSB', 'hays')],
-            ['souer', freeUseBibleApiGenerator('BSB', 'souer')],
-            ['david', freeUseBibleApiGenerator('BSB', 'david')],
-        ]),
-    ],
-    [
-        'AAB',
-        // AAB re-uses the BSB audio files
-        new Map([
-            ['hays', freeUseBibleApiGenerator('BSB', 'hays')],
-            ['souer', freeUseBibleApiGenerator('BSB', 'souer')],
-            ['david', freeUseBibleApiGenerator('BSB', 'david')],
-        ]),
-    ],
-    // The Chinese Union Version translations all share the same CUV audio files
-    ...['cmn_cuv', 'cmn_cuvmps', 'cmn_cuvmpt', 'cmn_cu1'].map(
-        (translationId) =>
-            [
-                translationId,
-                new Map([
-                    [
-                        'mandarin',
-                        freeUseBibleApiGenerator('cmn_cuv', 'mandarin'),
-                    ],
-                ]),
-            ] as const
-    ),
-]);
+> = addWordprojectAudio(
+    new Map([
+        [
+            'BSB',
+            new Map([
+                ['hays', freeUseBibleApiGenerator('BSB', 'hays')],
+                ['souer', freeUseBibleApiGenerator('BSB', 'souer')],
+                ['david', freeUseBibleApiGenerator('BSB', 'david')],
+            ]),
+        ],
+        [
+            'AAB',
+            // AAB re-uses the BSB audio files
+            new Map([
+                ['hays', freeUseBibleApiGenerator('BSB', 'hays')],
+                ['souer', freeUseBibleApiGenerator('BSB', 'souer')],
+                ['david', freeUseBibleApiGenerator('BSB', 'david')],
+            ]),
+        ],
+        // The Chinese Union Version translations all share the same CUV audio files
+        ...['cmn_cuv', 'cmn_cuvmps', 'cmn_cuvmpt', 'cmn_cu1'].map(
+            (translationId) =>
+                [
+                    translationId,
+                    new Map([
+                        [
+                            'mandarin',
+                            freeUseBibleApiGenerator('cmn_cuv', 'mandarin'),
+                        ],
+                    ]),
+                ] as const
+        ),
+    ])
+);
 
 /**
  * Gets the audio URLs for the given translation, book, and chapter.
