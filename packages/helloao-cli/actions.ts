@@ -69,7 +69,10 @@ import {
     findBibleMultiConverterJar,
     promptForBibleMultiConverter,
     convertUsfmToUsx3,
+    printConversionInstructions,
 } from './conversion.js';
+import { loadMetadataOverride } from './meta.js';
+import { fetchBsbTranslation, BSB_TRANSLATION_ID } from './bsb.js';
 import { fetchEBibleMetadata } from './ebible.js';
 import {
     parseVerseNumberedAudioTimingsBook,
@@ -108,6 +111,11 @@ import {
 } from './osis.js';
 
 export { convertOsisToUsfmFiles, fetchOsisTranslations } from './osis.js';
+export { getMetaPath, loadMetadataOverride } from './meta.js';
+export {
+    CONVERSION_INSTRUCTIONS,
+    printConversionInstructions,
+} from './conversion.js';
 
 export interface GetTranslationsItem {
     id: string;
@@ -274,6 +282,18 @@ export interface SourceAllTranslationsOptions extends Omit<
      * Defaults to the pinned OSIS translations.
      */
     osisSources?: OsisTranslationSource[];
+
+    /**
+     * The directory that the Berean Standard Bible (see fetch-bsb) should be downloaded to.
+     * Defaults to the same directory as the eBible translations.
+     */
+    bsbDir?: string;
+
+    /**
+     * Whether the Berean Standard Bible should be downloaded from bereanbible.com (instead of eBible).
+     * Defaults to true.
+     */
+    includeBsb?: boolean;
 }
 
 /**
@@ -294,46 +314,6 @@ export interface SourceTranslationsResult {
      * The IDs of the translations that the source does not provide files for.
      */
     unavailable: string[];
-}
-
-let metaDir: string | null = null;
-export async function getMetaPath() {
-    if (metaDir) {
-        return metaDir;
-    }
-    const metaPaths = ['../../meta'];
-
-    for (let metaPath of metaPaths) {
-        const fullPath = path.resolve(__dirname, metaPath);
-        if (await exists(fullPath)) {
-            metaDir = fullPath;
-            return fullPath;
-        }
-    }
-
-    return null;
-}
-
-/**
- * Loads the override metadata for the given translation from the meta directory, if it has one.
- */
-export async function loadMetadataOverride(
-    translationId: string
-): Promise<InputTranslationMetadata | null> {
-    const logger = log.getLogger();
-    const metaDir = await getMetaPath();
-    if (!metaDir) {
-        return null;
-    }
-
-    const overridePath = path.resolve(metaDir, `${translationId}.json`);
-    if (!(await exists(overridePath))) {
-        return null;
-    }
-
-    logger.log(`Using override metadata file: ${overridePath}`);
-    const overrideMetadata = await readFile(overridePath, 'utf-8');
-    return JSON.parse(overrideMetadata);
 }
 
 /**
@@ -1535,55 +1515,6 @@ export async function generateTranslationsFiles(
 }
 
 /**
- * Instructions for manual USFM to USX3 conversion using BibleMultiConverter
- */
-export const CONVERSION_INSTRUCTIONS = {
-    downloadUrl: 'https://github.com/schierlm/BibleMultiConverter/releases',
-    javaRequirement: 'Java 8 or higher required',
-
-    getConversionCommand: (
-        inputDir: string,
-        outputDir: string,
-        filenamePattern: string = '*.usx'
-    ) => {
-        return `java -jar BibleMultiConverter.jar ParatextConverter USFM "${inputDir}" USX3 "${outputDir}" "${filenamePattern}"`;
-    },
-
-    examples: {
-        windows:
-            'java -jar BibleMultiConverter.jar ParatextConverter USFM "C:\\input\\usfm" USX3 "C:\\output\\usx3" "*.usx"',
-        unix: 'java -jar BibleMultiConverter.jar ParatextConverter USFM "/path/to/input/usfm" USX3 "/path/to/output/usx3" "*.usx"',
-    },
-};
-
-/**
- * Prints conversion instructions for the user
- */
-export function printConversionInstructions(): void {
-    const logger = log.getLogger();
-    logger.log('\n=== MANUAL CONVERSION REQUIRED ===');
-    logger.log('Automatic conversion is not available.');
-    logger.log('');
-    logger.log('To enable automatic conversion, please:');
-    logger.log('1. Download BibleMultiConverter.zip from:');
-    logger.log(`   ${CONVERSION_INSTRUCTIONS.downloadUrl}`);
-    logger.log('');
-    logger.log('2. Extract the zip file to one of these locations:');
-    logger.log('   • Current directory (./BibleMultiConverter/)');
-    logger.log('   • Tools subdirectory (./tools/BibleMultiConverter/)');
-    logger.log('   • Parent directory (../BibleMultiConverter/)');
-    logger.log(
-        '   • Or extract anywhere and provide the JAR path when prompted'
-    );
-    logger.log('');
-    logger.log('3. Ensure Java 8+ is installed');
-    logger.log('');
-    logger.log('4. Re-run this command with the --convertToUsx3 option');
-    logger.log('');
-    logger.log('==========================================\n');
-}
-
-/**
  * Helper function to check if a translation ID matches a source
  */
 function matchesTranslation(
@@ -2585,6 +2516,7 @@ export async function sourceFetchBibleTranslations(
  * - Translations that are only available from fetch.bible (or that eBible doesn't provide files for) are downloaded from fetch.bible.
  * - The pinned OSIS translations (see fetch-osis-translations) are downloaded from their pinned URLs and converted to USFM.
  *   Their IDs are never downloaded from eBible or fetch.bible.
+ * - The Berean Standard Bible (see fetch-bsb) is downloaded from bereanbible.com instead of eBible, since eBible's copy is often out of date.
  *
  * Only new and changed translations are downloaded (when database tracking is enabled),
  * USFM files are converted to USX3 (unless disabled), and a metadata.json is created for each translation.
@@ -2604,15 +2536,19 @@ export async function sourceAllTranslations(
         osisDir: __,
         includeOsis = true,
         osisSources = OSIS_TRANSLATIONS,
+        bsbDir: ___,
+        includeBsb = true,
         ...sourceOptions
     } = options;
     const fetchBibleDir = options.fetchBibleDir ?? outputDir;
     const osisDir = options.osisDir ?? outputDir;
+    const bsbDir = options.bsbDir ?? outputDir;
     // The directories that translations are sourced into, without duplicates
     const sourceDirs = [
         outputDir,
         fetchBibleDir,
         ...(includeOsis ? [osisDir] : []),
+        ...(includeBsb ? [bsbDir] : []),
     ].filter(
         (dir, index, all) =>
             all.findIndex((d) => path.resolve(d) === path.resolve(dir)) ===
@@ -2662,10 +2598,17 @@ export async function sourceAllTranslations(
                       requested.has(source.metadata.id.toLowerCase()))
           )
         : [];
-    // The pinned OSIS translations are never sourced from eBible or fetch.bible, so that they aren't imported twice.
-    const otherSourcesIgnorelist = includeOsis
-        ? [...ignorelist, ...osisSources.map((source) => source.metadata.id)]
-        : ignorelist;
+    const bsbSelected =
+        includeBsb &&
+        !ignorelist.includes(BSB_TRANSLATION_ID) &&
+        (requested.size === 0 ||
+            requested.has(BSB_TRANSLATION_ID.toLowerCase()));
+    // The pinned OSIS translations and the BSB are never sourced from eBible or fetch.bible, so that they aren't imported twice.
+    const otherSourcesIgnorelist = [
+        ...ignorelist,
+        ...(includeOsis ? osisSources.map((source) => source.metadata.id) : []),
+        ...(includeBsb ? [BSB_TRANSLATION_ID] : []),
+    ];
 
     // eBible sources that source-translations is able to download
     const ebibleAvailable = ebibleSources.filter(
@@ -2689,6 +2632,9 @@ export async function sourceAllTranslations(
     );
     if (includeOsis) {
         logger.log(`   Pinned OSIS: ${osisSources.length} translations`);
+    }
+    if (includeBsb) {
+        logger.log(`   bereanbible.com: ${BSB_TRANSLATION_ID}`);
     }
     logger.log('');
 
@@ -2755,16 +2701,42 @@ export async function sourceAllTranslations(
         }
     }
 
+    const bsbResult: SourceTranslationsResult = {
+        downloaded: [],
+        failed: [],
+        unavailable: [],
+    };
+    if (bsbSelected) {
+        logger.log('');
+        logger.log('=== Sourcing the BSB from bereanbible.com ===');
+        try {
+            if (
+                await fetchBsbTranslation(bsbDir, {
+                    convertToUsx3,
+                    bibleMultiConverterPath,
+                    overwrite: options.overwrite,
+                })
+            ) {
+                bsbResult.downloaded.push(BSB_TRANSLATION_ID);
+            }
+        } catch (err) {
+            logger.error(`Error processing ${BSB_TRANSLATION_ID}:`, err);
+            bsbResult.failed.push(BSB_TRANSLATION_ID);
+        }
+    }
+
     const fetchBibleDownloaded = new Set(fetchBibleResult.downloaded);
     result.downloaded = [
         ...ebibleResult.downloaded,
         ...fetchBibleResult.downloaded,
         ...osisResult.downloaded,
+        ...bsbResult.downloaded,
     ];
     result.failed = [
         ...ebibleResult.failed,
         ...fetchBibleResult.failed,
         ...osisResult.failed,
+        ...bsbResult.failed,
     ];
     result.unavailable = [
         ...ebibleResult.unavailable.filter(
@@ -2782,6 +2754,11 @@ export async function sourceAllTranslations(
     if (includeOsis) {
         logger.log(
             `   Downloaded from pinned OSIS sources: ${osisResult.downloaded.length}`
+        );
+    }
+    if (includeBsb) {
+        logger.log(
+            `   Downloaded from bereanbible.com: ${bsbResult.downloaded.length}`
         );
     }
     logger.log(`   Errored: ${result.failed.length}`);

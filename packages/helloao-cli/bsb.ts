@@ -17,12 +17,10 @@ import { InputTranslationMetadata } from '@helloao/tools/generation/common-types
 import {
     convertUsfmToUsx3,
     findBibleMultiConverterJar,
+    printConversionInstructions,
     promptForBibleMultiConverter,
 } from './conversion.js';
-import {
-    loadMetadataOverride,
-    printConversionInstructions,
-} from './actions.js';
+import { loadMetadataOverride } from './meta.js';
 
 const { exists, readFile } = fsExtra;
 

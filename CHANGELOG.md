@@ -64,7 +64,7 @@ This is the log of changes for the Free Use Bible API.
 -   Added `source-fetch-bible-translations` and `list-fetch-bible-translations` commands.
 -   `import-translations` now accepts multiple directories.
 -   Added `fetch-osis-translations` and `convert-osis-to-usfm` commands for OSIS sources.
--   Added the `fetch-bsb` command (`npm run fetch:bible:bsb`), which downloads the Berean Standard Bible USFM from [bereanbible.com](https://bereanbible.com/bsb_usfm.zip) and converts it to USX3, since eBible's copy is often out of date.
+-   Added the `fetch-bsb` command (`npm run fetch:bible:bsb`), which downloads the Berean Standard Bible USFM from [bereanbible.com](https://bereanbible.com/bsb_usfm.zip) and converts it to USX3, since eBible's copy is often out of date. `source-all-translations` now sources the BSB this way too (`--bsb-dir <dir>`, or `--no-bsb` to keep using eBible).
 -   `import-commentary`, `import-commentaries`, and `sync` can import commentaries from [SWORD](https://crosswire.org/sword/) modules (`zCom`, `zCom4`, `RawCom`, and `RawCom4` with the KJV versification), either extracted or as `.zip` files. See the [CLI README](./packages/helloao-cli/README.md).
 -   Added the `fetch-sword-commentaries` command (`npm run fetch:sword:commentaries`), which downloads the commentaries from the [CrossWire module repository](https://www.crosswire.org/sword/modules/ModDisp.jsp?modType=Commentaries) with a `metadata.json` for each (license, English name, language). By default it only downloads the public domain and openly licensed commentaries that can be imported.
 

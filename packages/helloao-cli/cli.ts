@@ -1210,7 +1210,7 @@ async function start() {
     program
         .command('source-all-translations <dir> [translations...]')
         .description(
-            'Finds translation sources from eBible and fetch.bible, and downloads them (along with the pinned OSIS translations) into the given directory so that they can be imported with import-translations.\nTranslations available from eBible are downloaded from eBible, and the rest are downloaded from fetch.bible. Only new and changed translations are downloaded.'
+            'Finds translation sources from eBible and fetch.bible, and downloads them (along with the pinned OSIS translations and the Berean Standard Bible from bereanbible.com) into the given directory so that they can be imported with import-translations.\nTranslations available from eBible are downloaded from eBible, and the rest are downloaded from fetch.bible. Only new and changed translations are downloaded.'
         )
         .option(
             '--no-convert-to-usx3',
@@ -1240,6 +1240,14 @@ async function start() {
         )
         .option('--no-osis', 'Skip the pinned OSIS translations')
         .option(
+            '--bsb-dir <dir>',
+            'Put the Berean Standard Bible (see fetch-bsb) in this directory instead of <dir>.'
+        )
+        .option(
+            '--no-bsb',
+            'Skip downloading the Berean Standard Bible from bereanbible.com (it is then sourced from eBible)'
+        )
+        .option(
             '--manifest-url <url>',
             'The URL of the fetch.bible manifest',
             FETCH_BIBLE_MANIFEST_URL
@@ -1265,6 +1273,8 @@ async function start() {
                 fetchBibleDir: options.fetchBibleDir,
                 osisDir: options.osisDir,
                 includeOsis: options.osis !== false,
+                bsbDir: options.bsbDir,
+                includeBsb: options.bsb !== false,
                 manifestUrl: options.manifestUrl,
                 repo: options.collectionRepo,
                 ref: options.collectionRef,
