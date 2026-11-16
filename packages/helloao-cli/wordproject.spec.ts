@@ -22,6 +22,8 @@ import {
     createWordprojectUsx,
     getWordprojectVerseText,
     getWordprojectZipUrl,
+    isReplacedByWordproject,
+    WORDPROJECT_REPLACED_TRANSLATION_IDS,
     fetchWordprojectTranslations,
     getWordprojectBookId,
     parseWordprojectChapter,
@@ -374,7 +376,7 @@ describe('selectWordprojectTranslations()', () => {
         const selected = selectWordprojectTranslations({});
         expect(selected.map((t) => t.id).sort()).toEqual(
             [
-                'amh_wp',
+                'amh_amh',
                 'ceb_wp',
                 'cmn_wppy',
                 'fin_wp',
@@ -407,9 +409,9 @@ describe('selectWordprojectTranslations()', () => {
     it('should find translations by ID or folder', () => {
         expect(
             selectWordprojectTranslations({
-                translations: ['kj', 'amh_wp', 'new/hau'],
+                translations: ['kj', 'amh_amh', 'new/hau'],
             }).map((t) => t.id)
-        ).toEqual(['eng_wpkjv', 'amh_wp', 'hau_wp']);
+        ).toEqual(['eng_wpkjv', 'amh_amh', 'hau_wp']);
     });
 
     it('should throw for unknown translations', () => {
@@ -430,7 +432,7 @@ describe('selectWordprojectTranslations()', () => {
 
 describe('createWordprojectMetadata()', () => {
     it('should write the license of non-commercial texts', () => {
-        const amh = WORDPROJECT_TRANSLATIONS.find((t) => t.id === 'amh_wp')!;
+        const amh = WORDPROJECT_TRANSLATIONS.find((t) => t.id === 'amh_amh')!;
         expect(createWordprojectMetadata(amh)).toMatchObject({
             licenseUrl: 'https://ebible.org/amh/copyright.htm',
             licenseNotice: expect.stringContaining(
@@ -805,5 +807,41 @@ describe('fetchWordprojectTranslations()', () => {
         expect((await readdir(path.join(out, 'tst_wp'))).sort()).toContain(
             'jhn.usx'
         );
+    });
+});
+
+describe('isReplacedByWordproject()', () => {
+    let dir: string;
+
+    beforeEach(async () => {
+        dir = await mkdtemp(path.join(tmpdir(), 'wordproject-replaced-'));
+    });
+
+    afterEach(async () => {
+        await rm(dir, { recursive: true, force: true });
+    });
+
+    it('should replace the eBible copy of amh_amh', () => {
+        expect(WORDPROJECT_REPLACED_TRANSLATION_IDS).toEqual(['amh_amh']);
+    });
+
+    it('should skip copies that do not come from Wordproject', async () => {
+        const ebible = path.join(dir, 'ebible', 'amh_amh');
+        await mkdir(ebible, { recursive: true });
+        expect(isReplacedByWordproject('amh_amh', ebible)).toBe(true);
+    });
+
+    it('should keep the Wordproject copy', async () => {
+        const wordproject = path.join(dir, 'wordproject', 'amh_amh');
+        await mkdir(wordproject, { recursive: true });
+        await writeFile(
+            path.join(wordproject, WORDPROJECT_MARKER_FILE),
+            'Source: x\n'
+        );
+        expect(isReplacedByWordproject('amh_amh', wordproject)).toBe(false);
+    });
+
+    it('should keep other translations', async () => {
+        expect(isReplacedByWordproject('eng_kjv', dir)).toBe(false);
     });
 });

@@ -1,4 +1,5 @@
 import path from 'node:path';
+import { existsSync } from 'node:fs';
 import { mkdir, readdir, rename, rm, writeFile } from 'node:fs/promises';
 import fsExtra from 'fs-extra';
 import { DOMParser } from 'linkedom';
@@ -94,7 +95,7 @@ export interface WordprojectTranslation {
      * Found by comparing the text of 7 chapters (GEN 1, PSA 23, ISA 53, MAT 5, JHN 3, ROM 8, REV 22) of each Wordproject Bible
      * with every API translation in the same language (character similarity after removing punctuation and diacritics),
      * and comparing their numbers of books. A similarity of 0.85 or more counts as the same text.
-     * Texts that are the same as an API translation with fewer books (like amh_wp) are not duplicates.
+     * Texts that are the same as an API translation with fewer books (like amh_amh) are not duplicates.
      */
     duplicateOf?: string;
 
@@ -148,6 +149,13 @@ export interface WordprojectTranslation {
     includeByDefault?: boolean;
 
     /**
+     * Whether the text replaces a translation with the same ID that comes from another source (like eBible).
+     * That translation is not downloaded by source-translations, and only its Wordproject copy is imported
+     * by import-translations and sync (see {@link isReplacedByWordproject}), so that the two copies aren't mixed.
+     */
+    replacesExisting?: boolean;
+
+    /**
      * Whether verse texts start with the verse number of another versification, like `(22-1)`, that should be removed.
      */
     stripAltVerseNumbers?: boolean;
@@ -197,11 +205,13 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
     },
     {
         path: 'am',
-        id: 'amh_wp',
+        id: 'amh_amh',
         language: 'amh',
         name: 'መጽሐፍ ቅዱስ',
-        englishName: 'Amharic Bible (Wordproject)',
-        notes: 'The same text as amh_amh, which only has the New Testament.',
+        englishName: 'Amharic Bible (1962)',
+        shortName: 'AMH',
+        notes: 'The complete Bible of the text that the API had as amh_amh from eBible, which only has the New Testament. It replaces that copy.',
+        replacesExisting: true,
         licenseStatus: 'non-commercial',
         identifiedAs:
             "Amharic Bible 1962 ('Haile Selassie Bible'), Bible Society of Ethiopia / United Bible Societies",
@@ -1100,6 +1110,28 @@ const BOOK_ID_BY_NUMBER = new Map<number, string>(
 );
 
 /**
+ * The IDs of the translations whose Wordproject copy replaces a copy from another source (see {@link WordprojectTranslation.replacesExisting}).
+ */
+export const WORDPROJECT_REPLACED_TRANSLATION_IDS: readonly string[] =
+    WORDPROJECT_TRANSLATIONS.filter((t) => t.replacesExisting).map((t) => t.id);
+
+/**
+ * Determines whether the translation in the given directory is replaced by its Wordproject copy and should not be imported.
+ * This is the case for translations that are replaced by a Wordproject text (like amh_amh), unless the directory holds the Wordproject copy.
+ * @param translationId The ID of the translation (or the name of its directory).
+ * @param translationDir The directory that the translation is stored in.
+ */
+export function isReplacedByWordproject(
+    translationId: string,
+    translationDir: string
+): boolean {
+    return (
+        WORDPROJECT_REPLACED_TRANSLATION_IDS.includes(translationId) &&
+        !existsSync(path.join(translationDir, WORDPROJECT_MARKER_FILE))
+    );
+}
+
+/**
  * A book that is listed on the index page of a Wordproject Bible.
  */
 export interface WordprojectBookLink {
@@ -1709,7 +1741,7 @@ async function downloadWordprojectZip(
 
 /**
  * Finds the Wordproject translations with the given IDs or Wordproject folders.
- * @param ids The translation IDs (like `amh_wp`) or Wordproject folders (like `am` or `new/hau`).
+ * @param ids The translation IDs (like `hau_wp`) or Wordproject folders (like `am` or `new/hau`).
  */
 export function findWordprojectTranslations(
     ids: string[],

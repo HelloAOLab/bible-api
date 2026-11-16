@@ -112,6 +112,10 @@ export {
     fetchWordprojectTranslations,
     WORDPROJECT_TRANSLATIONS,
 } from './wordproject.js';
+import {
+    isReplacedByWordproject,
+    WORDPROJECT_REPLACED_TRANSLATION_IDS,
+} from './wordproject.js';
 
 export interface GetTranslationsItem {
     id: string;
@@ -656,7 +660,16 @@ export async function importTranslations(
         const translationDirs: string[] = [];
         for (const d of dirs) {
             const files = await readdir(d);
-            translationDirs.push(...files.map((f) => path.resolve(d, f)));
+            for (const f of files) {
+                const translationDir = path.resolve(d, f);
+                if (isReplacedByWordproject(f, translationDir)) {
+                    logger.log(
+                        `Skipping ${translationDir} because ${f} is replaced by its Wordproject copy (see fetch-wordproject-translations).`
+                    );
+                    continue;
+                }
+                translationDirs.push(translationDir);
+            }
         }
         logger.log(`Importing ${translationDirs.length} translations`);
         await database.importTranslations(
@@ -1782,6 +1795,8 @@ export async function sourceTranslations(
         ...new Set([
             ...(await readIgnorelist(outputDir)),
             ...(options.ignorelist ?? []),
+            // Translations whose Wordproject copy replaces this source's copy (like amh_amh).
+            ...WORDPROJECT_REPLACED_TRANSLATION_IDS,
         ]),
     ];
     if (ignorelist.length > 0) {
@@ -2264,6 +2279,8 @@ export async function sourceFetchBibleTranslations(
         ...new Set([
             ...(await readIgnorelist(outputDir)),
             ...(options.ignorelist ?? []),
+            // Translations whose Wordproject copy replaces this source's copy (like amh_amh).
+            ...WORDPROJECT_REPLACED_TRANSLATION_IDS,
         ]),
     ];
     if (ignorelist.length > 0) {

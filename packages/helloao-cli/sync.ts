@@ -2,6 +2,7 @@ import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { createReadStream } from 'node:fs';
 import { readdir, readFile, stat } from 'node:fs/promises';
+import { isReplacedByWordproject } from './wordproject.js';
 import { Database } from 'better-sqlite3';
 import { DOMParser, Element, Node } from 'linkedom';
 import { z } from 'zod';
@@ -885,6 +886,16 @@ export async function discoverSources(
                 // Check the ID before the source is processed so that excluded sources are never read.
                 const id = await getSourceId(dir.type, dir.fullPath);
                 if (!sourceFilter(id ?? dirName)) {
+                    continue;
+                }
+                // Translations whose Wordproject copy replaces this one (like amh_amh) are only imported from the Wordproject copy.
+                if (
+                    dir.type === 'translation' &&
+                    isReplacedByWordproject(id ?? dirName, dir.fullPath)
+                ) {
+                    log.getLogger().log(
+                        `Skipping ${dir.fullPath} because ${id ?? dirName} is replaced by its Wordproject copy.`
+                    );
                     continue;
                 }
                 if (id) {

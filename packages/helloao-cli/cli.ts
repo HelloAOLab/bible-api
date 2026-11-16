@@ -1373,7 +1373,7 @@ async function start() {
         .command('fetch-wordproject-translations <dir> [translations...]')
         .description(
             'Downloads Bible texts from wordproject.org, converts them to USX and places them in the given directory, ready for import-translations.\n' +
-                'Translations can be given by ID (e.g. amh_wp) or by their wordproject.org folder (e.g. am). ' +
+                'Translations can be given by ID (e.g. hau_wp) or by their wordproject.org folder (e.g. am). ' +
                 'Defaults to the translations that the API does not already have and that may be published (public domain, plus the non-commercial Amharic Bible). Run list-wordproject-translations to see them.'
         )
         .option(
