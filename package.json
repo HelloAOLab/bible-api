@@ -29,6 +29,7 @@
         "fetch:bible:osis": "npm run cli fetch-osis-translations -- ./sources/osis",
         "fetch:bible:history-globe": "npm run cli fetch-history-globe -- ./sources/history-globe",
         "fetch:bible:commentaries": "npm run cli fetch-tyndale-open-resources -- ./sources/comment/tyndale",
+        "fetch:sword:commentaries": "npm run cli fetch-sword-commentaries -- ./sources/comment",
         "fetch:ebible": "npm run cli source-translations -- --convert-to-usx3 ./sources/ebible",
         "import:bible:ebible": "npm run cli import-translations -- --db ./free-use-bible-api.db ./sources/ebible",
         "fetch:translations": "npm run cli source-all-translations -- ./sources/ebible --fetch-bible-dir ./sources/fetch-bible --osis-dir ./sources/osis",

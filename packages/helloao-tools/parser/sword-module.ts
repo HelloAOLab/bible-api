@@ -116,12 +116,18 @@ export function getSwordCommentaryFileNames(config: SwordModuleConfig): {
     nt: SwordTestamentFileNames;
 } {
     const driver = getCommentaryDriver(config);
+    // Compressed modules name their files after the size of their blocks: "b" for BOOK, "c" for CHAPTER, and "v" for VERSE.
+    const blockType = (
+        getSwordConfigValue(config, 'BlockType') ?? 'BOOK'
+    ).toUpperCase();
+    const prefix =
+        blockType === 'CHAPTER' ? 'c' : blockType === 'VERSE' ? 'v' : 'b';
     const names = (testament: string): SwordTestamentFileNames =>
         driver.startsWith('z')
             ? {
-                  blocks: `${testament}.bzs`,
-                  index: `${testament}.bzv`,
-                  data: `${testament}.bzz`,
+                  blocks: `${testament}.${prefix}zs`,
+                  index: `${testament}.${prefix}zv`,
+                  data: `${testament}.${prefix}zz`,
               }
             : {
                   index: `${testament}.vss`,

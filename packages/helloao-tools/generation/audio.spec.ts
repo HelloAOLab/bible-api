@@ -1,8 +1,5 @@
-import {
-    capitalize,
-    KNOWN_AUDIO_TRANSLATIONS,
-    WORDPROJECT_AUDIO,
-} from './audio.js';
+import { capitalize, KNOWN_AUDIO_TRANSLATIONS } from './audio.js';
+import { WORDPROJECT_AUDIO_TRANSLATIONS } from './audio-translations.js';
 
 describe('capitalize()', () => {
     const cases = [
@@ -103,14 +100,14 @@ describe('KNOWN_AUDIO_TRANSLATIONS', () => {
         ),
 
         // Wordproject audio
-        ...WORDPROJECT_AUDIO.map(
-            ({ translationId, reader, file, audioTranslationId }) =>
+        ...WORDPROJECT_AUDIO_TRANSLATIONS.map(
+            (translationId) =>
                 [
                     translationId,
-                    reader,
+                    'wordproject',
                     'JHN',
                     3,
-                    `https://audio.bible.helloao.org/api/${audioTranslationId ?? translationId}/JHN/3/audio/${file}.mp3`,
+                    `https://audio.bible.helloao.org/api/${translationId}/JHN/3/audio/wordproject.mp3`,
                 ] as const
         ),
         [

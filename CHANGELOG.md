@@ -65,6 +65,7 @@ This is the log of changes for the Free Use Bible API.
 -   `import-translations` now accepts multiple directories.
 -   Added `fetch-osis-translations` and `convert-osis-to-usfm` commands for OSIS sources.
 -   `import-commentary`, `import-commentaries`, and `sync` can import commentaries from [SWORD](https://crosswire.org/sword/) modules (`zCom`, `zCom4`, `RawCom`, and `RawCom4` with the KJV versification), either extracted or as `.zip` files. See the [CLI README](./packages/helloao-cli/README.md).
+-   Added the `fetch-sword-commentaries` command (`npm run fetch:sword:commentaries`), which downloads the commentaries from the [CrossWire module repository](https://www.crosswire.org/sword/modules/ModDisp.jsp?modType=Commentaries) with a `metadata.json` for each (license, English name, language). By default it only downloads the public domain and openly licensed commentaries that can be imported.
 
 #### :bug: Bug Fixes
 
@@ -72,6 +73,7 @@ This is the log of changes for the Free Use Bible API.
 -   `source-translations` no longer marks failed eBible USFM downloads as downloaded.
 -   `source-translations` re-downloads translations missing from the output directory.
 -   `ignorelist.txt` now accepts translation IDs.
+-   SWORD commentaries that store their text in chapter or verse blocks (`BlockType=CHAPTER` or `VERSE`, like Barnes, Robertson's Word Pictures, and the NET notes) can now be imported. Only book blocks were read before.
 
 #### :warning: Changes
 
