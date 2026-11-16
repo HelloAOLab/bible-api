@@ -1636,10 +1636,25 @@ export async function fetchWordprojectTranslations(
                             stripAltVerseNumbers:
                                 translation.stripAltVerseNumbers,
                         };
-                        let chapter = parseWordprojectChapter(
-                            html,
-                            parseOptions
-                        );
+                        let chapter: WordprojectChapter;
+                        try {
+                            chapter = parseWordprojectChapter(
+                                html,
+                                parseOptions
+                            );
+                        } catch (err) {
+                            // Some pages are empty or broken (like 1 Corinthians 1 in new/kik).
+                            // Treat them as chapters without text, so that the website's copy is tried for zip pages,
+                            // and the chapter is otherwise skipped.
+                            logger.warn(
+                                `${translation.id} ${book.bookId} ${link.number}: could not read ${link.url}${zipPages?.has(link.url) ? ' in the zip' : ''}: ${err instanceof Error ? err.message : err}`
+                            );
+                            chapter = {
+                                title: null,
+                                paragraphs: [],
+                                emptyVerses: [],
+                            };
+                        }
                         // Some zips are older than the website and are missing the text of some verses.
                         // Use the website's copy of those chapters when it is more complete.
                         if (

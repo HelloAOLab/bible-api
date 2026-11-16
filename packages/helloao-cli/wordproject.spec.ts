@@ -656,4 +656,56 @@ describe('fetchWordprojectTranslations()', () => {
         );
         expect(chapter.emptyVerses).toEqual(['2']);
     });
+
+    it('should skip chapter pages that have no text body', async () => {
+        const out = path.join(dir, 'out');
+        const broken: Record<string, string> = {
+            ...pages,
+            [`${base}01/2.htm`]: '',
+        };
+        await fetchWordprojectTranslations(out, {
+            catalog: [translation],
+            fetch: async (url) =>
+                broken[url] !== undefined
+                    ? new Response(broken[url])
+                    : new Response('', {
+                          status: 404,
+                          statusText: 'Not Found',
+                      }),
+        });
+        const gen = await readFile(
+            path.join(out, 'tst_wp', 'gen.usx'),
+            'utf-8'
+        );
+        expect(gen).toContain('sid="GEN 1"');
+        expect(gen).not.toContain('sid="GEN 2"');
+    });
+
+    it('should use the website for zip pages that cannot be read', async () => {
+        const writer = new ZipWriter(new Uint8ArrayWriter());
+        for (const [url, page] of Object.entries(pages)) {
+            await writer.add(
+                `test_new/${url.slice(base.length)}`,
+                new TextReader(
+                    url.endsWith('01/2.htm') ? '<html></html>' : page
+                )
+            );
+        }
+        const zip = await writer.close();
+        const zipUrl = getWordprojectZipUrl(translation);
+        const out = path.join(dir, 'out');
+        await fetchWordprojectTranslations(out, {
+            catalog: [translation],
+            fetch: async (url) => {
+                requests.push(url);
+                return url === zipUrl
+                    ? new Response(zip)
+                    : new Response(pages[url]);
+            },
+        });
+        expect(requests).toEqual([zipUrl, `${base}01/2.htm`]);
+        expect(
+            await readFile(path.join(out, 'tst_wp', 'gen.usx'), 'utf-8')
+        ).toContain('Thus the heavens.');
+    });
 });
