@@ -63,6 +63,10 @@ import {
     KOTLIN_MODELS_PATH,
 } from './kotlin.js';
 import { generateSwiftClient } from './swift.js';
+import {
+    fetchWordprojectTranslations,
+    WORDPROJECT_TRANSLATIONS,
+} from './wordproject.js';
 import { fetchCrossWireCommentaries } from './crosswire.js';
 
 const OPENAPI_CLIENT_LANGUAGES = [
@@ -1371,7 +1375,7 @@ async function start() {
     program
         .command('fetch-osis-translations <dir>')
         .description(
-            'Fetches the pinned OSIS translations (the Japanese Kougo-yaku and Bungo-yaku), checks their SHA-256 hashes, converts them to USFM and places them in the given directory.'
+            'Fetches the pinned OSIS translations (the Japanese Kougo-yaku and Bungo-yaku), checks their SHA-256 hashes, converts them to USX and places them in the given directory.'
         )
         .action(async (dir: string) => {
             await fetchOsisTranslations(dir);
@@ -1402,6 +1406,95 @@ async function start() {
                 bibleMultiConverterPath: options.bibleMultiConverterPath,
                 overwrite: options.overwrite,
             });
+        });
+
+    program
+        .command('fetch-wordproject-translations <dir> [translations...]')
+        .description(
+            'Downloads Bible texts from wordproject.org, converts them to USX and places them in the given directory, ready for import-translations.\n' +
+                'Translations can be given by ID (e.g. hau_wp) or by their wordproject.org folder (e.g. am). ' +
+                'Defaults to the translations that the API does not already have and that may be published (public domain, plus the non-commercial Amharic Bible). Run list-wordproject-translations to see them.'
+        )
+        .option(
+            '--all',
+            'Fetch every translation in the catalog instead of only the default ones (only when no translations are given). Check the license of each one before publishing it.'
+        )
+        .option(
+            '--public-domain-only',
+            'Only fetch translations that are known to be in the public domain'
+        )
+        .option(
+            '--overwrite',
+            'Download translations again even if they were already downloaded'
+        )
+        .option(
+            '--no-zip',
+            "Download each chapter page from the website instead of the Bible's zip file"
+        )
+        .option(
+            '--concurrency <n>',
+            'The number of pages to download at once',
+            (value) => {
+                const n = parseInt(value, 10);
+                if (!Number.isInteger(n) || n < 1) {
+                    throw new InvalidArgumentError(
+                        'Must be a positive whole number.'
+                    );
+                }
+                return n;
+            },
+            4
+        )
+        .action(async (dir: string, translations: string[], options: any) => {
+            await fetchWordprojectTranslations(dir, {
+                translations,
+                all: !!options.all,
+                publicDomainOnly: !!options.publicDomainOnly,
+                overwrite: !!options.overwrite,
+                zip: options.zip !== false,
+                concurrency: options.concurrency,
+            });
+        });
+
+    program
+        .command('list-wordproject-translations')
+        .description(
+            'Lists the Bible texts on wordproject.org that fetch-wordproject-translations can download.'
+        )
+        .action(() => {
+            const rows = WORDPROJECT_TRANSLATIONS.map((t) => [
+                t.id,
+                t.path,
+                t.language,
+                t.englishName,
+                t.includeByDefault ? 'yes' : '',
+                t.publicDomain
+                    ? 'public-domain'
+                    : (t.licenseStatus ?? 'not checked'),
+                t.duplicateOf ? `same as ${t.duplicateOf}` : '',
+            ]);
+            const header = [
+                'id',
+                'folder',
+                'lang',
+                'name',
+                'default',
+                'license',
+                'duplicate',
+            ];
+            const widths = header.map((h, i) =>
+                Math.max(h.length, ...rows.map((r) => r[i].length))
+            );
+            const line = (r: string[]) =>
+                r
+                    .map((c, i) => c.padEnd(widths[i]))
+                    .join('  ')
+                    .trimEnd();
+            console.log(line(header));
+            console.log(line(widths.map((w) => '-'.repeat(w))));
+            for (const r of rows) {
+                console.log(line(r));
+            }
         });
 
     program

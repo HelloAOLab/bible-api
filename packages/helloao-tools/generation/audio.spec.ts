@@ -1,4 +1,8 @@
 import { capitalize, KNOWN_AUDIO_TRANSLATIONS } from './audio.js';
+import {
+    WORDPROJECT_AUDIO_TRANSLATIONS,
+    WORDPROJECT_SHARED_AUDIO_TRANSLATIONS,
+} from './audio-translations.js';
 
 describe('capitalize()', () => {
     const cases = [
@@ -97,6 +101,65 @@ describe('KNOWN_AUDIO_TRANSLATIONS', () => {
                     'https://audio.bible.helloao.org/api/cmn_cuv/JHN/3/audio/mandarin.mp3',
                 ] as const
         ),
+
+        // Wordproject audio
+        ...WORDPROJECT_AUDIO_TRANSLATIONS.map(
+            (translationId) =>
+                [
+                    translationId,
+                    'wordproject',
+                    'JHN',
+                    3,
+                    `https://audio.bible.helloao.org/api/${translationId}/JHN/3/audio/wordproject.mp3`,
+                ] as const
+        ),
+        // Wordproject texts that share the audio of another translation
+        ...Object.entries(WORDPROJECT_SHARED_AUDIO_TRANSLATIONS).map(
+            ([translationId, audioTranslationId]) =>
+                [
+                    translationId,
+                    'wordproject',
+                    'JHN',
+                    3,
+                    `https://audio.bible.helloao.org/api/${audioTranslationId}/JHN/3/audio/wordproject.mp3`,
+                ] as const
+        ),
+        [
+            'amh_wp',
+            'wordproject',
+            'GEN',
+            1,
+            'https://audio.bible.helloao.org/api/amh_amh/GEN/1/audio/wordproject.mp3',
+        ] as const,
+        [
+            'HINIRV',
+            'wordproject',
+            'GEN',
+            1,
+            'https://audio.bible.helloao.org/api/HINIRV/GEN/1/audio/wordproject.mp3',
+        ] as const,
+        ...[
+            'cmn_cuv',
+            'cmn_cuvmps',
+            'cmn_cuvmpt',
+            'cmn_cu1',
+            'cmn_wppy',
+        ].flatMap((translationId) => [
+            [
+                translationId,
+                'wordproject_mandarin',
+                'JHN',
+                3,
+                'https://audio.bible.helloao.org/api/cmn_cuv/JHN/3/audio/wordproject.mp3',
+            ] as const,
+            [
+                translationId,
+                'wordproject_cantonese',
+                'JHN',
+                3,
+                'https://audio.bible.helloao.org/api/cmn_cuv/JHN/3/audio/wordproject_cantonese.mp3',
+            ] as const,
+        ]),
     ];
 
     it.each(cases)(
@@ -107,4 +170,27 @@ describe('KNOWN_AUDIO_TRANSLATIONS', () => {
             expect(generator(bookId, chapter)).toBe(expected);
         }
     );
+
+    it('should keep the existing readers for translations that also have Wordproject audio', () => {
+        expect([...KNOWN_AUDIO_TRANSLATIONS.get('BSB')!.keys()]).toEqual([
+            'hays',
+            'souer',
+            'david',
+        ]);
+        for (const translationId of [
+            'cmn_cuv',
+            'cmn_cuvmps',
+            'cmn_cuvmpt',
+            'cmn_cu1',
+            'cmn_wppy',
+        ]) {
+            expect([
+                ...KNOWN_AUDIO_TRANSLATIONS.get(translationId)!.keys(),
+            ]).toEqual([
+                'mandarin',
+                'wordproject_mandarin',
+                'wordproject_cantonese',
+            ]);
+        }
+    });
 });
