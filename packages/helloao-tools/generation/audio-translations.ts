@@ -118,9 +118,31 @@ export const WORDPROJECT_AUDIO_TRANSLATIONS: readonly string[] = [
 ];
 
 /**
- * The Chinese Union Version translations. They all share the same CUV audio files.
+ * The Wordproject texts (imported with the wordproject commands) that re-use the Wordproject audio
+ * of another translation, mapped to the ID of the translation whose audio folder they use.
  */
-const CUV_TRANSLATIONS = ['cmn_cuv', 'cmn_cuvmps', 'cmn_cuvmpt', 'cmn_cu1'];
+export const WORDPROJECT_SHARED_AUDIO_TRANSLATIONS: Readonly<
+    Record<string, string>
+> = {
+    // Amharic 1962
+    amh_wp: 'amh_amh',
+    // Hungarian Károli 1908
+    hun_wp: 'hun_bib',
+    // Romanian Cornilescu 1924, in the Latin alphabet
+    ron_wp: 'ron_924',
+};
+
+/**
+ * The Chinese Union Version translations. They all share the same CUV audio files.
+ * cmn_wppy is the CUV in Pinyin from Wordproject.
+ */
+const CUV_TRANSLATIONS = [
+    'cmn_cuv',
+    'cmn_cuvmps',
+    'cmn_cuvmpt',
+    'cmn_cu1',
+    'cmn_wppy',
+];
 
 /**
  * The audio that is linked from the chapters of each translation.
@@ -147,6 +169,20 @@ export const AUDIO_TRANSLATIONS: AudioTranslations = {
                 },
             },
         ])
+    ),
+    ...Object.fromEntries(
+        Object.entries(WORDPROJECT_SHARED_AUDIO_TRANSLATIONS).map(
+            ([translationId, audioTranslationId]) => [
+                translationId,
+                {
+                    wordproject: {
+                        type: 'free-use-bible-api',
+                        translation: audioTranslationId,
+                        reader: 'wordproject',
+                    },
+                },
+            ]
+        )
     ),
 };
 
