@@ -141,3 +141,52 @@ export async function convertUsfmToUsx3(
         return false;
     }
 }
+
+/**
+ * Instructions for manual USFM to USX3 conversion using BibleMultiConverter
+ */
+export const CONVERSION_INSTRUCTIONS = {
+    downloadUrl: 'https://github.com/schierlm/BibleMultiConverter/releases',
+    javaRequirement: 'Java 8 or higher required',
+
+    getConversionCommand: (
+        inputDir: string,
+        outputDir: string,
+        filenamePattern: string = '*.usx'
+    ) => {
+        return `java -jar BibleMultiConverter.jar ParatextConverter USFM "${inputDir}" USX3 "${outputDir}" "${filenamePattern}"`;
+    },
+
+    examples: {
+        windows:
+            'java -jar BibleMultiConverter.jar ParatextConverter USFM "C:\\input\\usfm" USX3 "C:\\output\\usx3" "*.usx"',
+        unix: 'java -jar BibleMultiConverter.jar ParatextConverter USFM "/path/to/input/usfm" USX3 "/path/to/output/usx3" "*.usx"',
+    },
+};
+
+/**
+ * Prints conversion instructions for the user
+ */
+export function printConversionInstructions(): void {
+    const logger = log.getLogger();
+    logger.log('\n=== MANUAL CONVERSION REQUIRED ===');
+    logger.log('Automatic conversion is not available.');
+    logger.log('');
+    logger.log('To enable automatic conversion, please:');
+    logger.log('1. Download BibleMultiConverter.zip from:');
+    logger.log(`   ${CONVERSION_INSTRUCTIONS.downloadUrl}`);
+    logger.log('');
+    logger.log('2. Extract the zip file to one of these locations:');
+    logger.log('   • Current directory (./BibleMultiConverter/)');
+    logger.log('   • Tools subdirectory (./tools/BibleMultiConverter/)');
+    logger.log('   • Parent directory (../BibleMultiConverter/)');
+    logger.log(
+        '   • Or extract anywhere and provide the JAR path when prompted'
+    );
+    logger.log('');
+    logger.log('3. Ensure Java 8+ is installed');
+    logger.log('');
+    logger.log('4. Re-run this command with the --convertToUsx3 option');
+    logger.log('');
+    logger.log('==========================================\n');
+}
