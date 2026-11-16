@@ -62,6 +62,10 @@ import {
     KOTLIN_MODELS_PATH,
 } from './kotlin.js';
 import { generateSwiftClient } from './swift.js';
+import {
+    fetchWordprojectTranslations,
+    WORDPROJECT_TRANSLATIONS,
+} from './wordproject.js';
 
 const OPENAPI_CLIENT_LANGUAGES = [
     // ['csharp', 'csharp'],
@@ -1363,6 +1367,86 @@ async function start() {
         )
         .action(async (dir: string) => {
             await fetchOsisTranslations(dir);
+        });
+
+    program
+        .command('fetch-wordproject-translations <dir> [translations...]')
+        .description(
+            'Downloads Bible texts from wordproject.org, converts them to USFM and places them in the given directory, ready for import-translations.\n' +
+                'Translations can be given by ID (e.g. amh_wp) or by their wordproject.org folder (e.g. am). ' +
+                'Defaults to every translation that the API does not already have a copy of. Run list-wordproject-translations to see them.'
+        )
+        .option(
+            '--include-duplicates',
+            'Also fetch translations that the API already has a copy of (only when no translations are given)'
+        )
+        .option(
+            '--public-domain-only',
+            'Only fetch translations that are known to be in the public domain'
+        )
+        .option(
+            '--overwrite',
+            'Download translations again even if they were already downloaded'
+        )
+        .option(
+            '--concurrency <n>',
+            'The number of pages to download at once',
+            (value) => {
+                const n = parseInt(value, 10);
+                if (!Number.isInteger(n) || n < 1) {
+                    throw new InvalidArgumentError(
+                        'Must be a positive whole number.'
+                    );
+                }
+                return n;
+            },
+            4
+        )
+        .action(async (dir: string, translations: string[], options: any) => {
+            await fetchWordprojectTranslations(dir, {
+                translations,
+                includeDuplicates: !!options.includeDuplicates,
+                publicDomainOnly: !!options.publicDomainOnly,
+                overwrite: !!options.overwrite,
+                concurrency: options.concurrency,
+            });
+        });
+
+    program
+        .command('list-wordproject-translations')
+        .description(
+            'Lists the Bible texts on wordproject.org that fetch-wordproject-translations can download.'
+        )
+        .action(() => {
+            const rows = WORDPROJECT_TRANSLATIONS.map((t) => [
+                t.id,
+                t.path,
+                t.language,
+                t.englishName,
+                t.publicDomain ? 'public domain' : 'unknown',
+                t.duplicateOf ? `same as ${t.duplicateOf}` : '',
+            ]);
+            const header = [
+                'id',
+                'folder',
+                'lang',
+                'name',
+                'license',
+                'duplicate',
+            ];
+            const widths = header.map((h, i) =>
+                Math.max(h.length, ...rows.map((r) => r[i].length))
+            );
+            const line = (r: string[]) =>
+                r
+                    .map((c, i) => c.padEnd(widths[i]))
+                    .join('  ')
+                    .trimEnd();
+            console.log(line(header));
+            console.log(line(widths.map((w) => '-'.repeat(w))));
+            for (const r of rows) {
+                console.log(line(r));
+            }
         });
 
     program

@@ -108,6 +108,10 @@ import {
 } from './osis.js';
 
 export { convertOsisToUsfmFiles, fetchOsisTranslations } from './osis.js';
+export {
+    fetchWordprojectTranslations,
+    WORDPROJECT_TRANSLATIONS,
+} from './wordproject.js';
 
 export interface GetTranslationsItem {
     id: string;

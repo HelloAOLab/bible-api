@@ -64,6 +64,7 @@ This is the log of changes for the Free Use Bible API.
 -   Added `source-fetch-bible-translations` and `list-fetch-bible-translations` commands.
 -   `import-translations` now accepts multiple directories.
 -   Added `fetch-osis-translations` and `convert-osis-to-usfm` commands for OSIS sources.
+-   Added `fetch-wordproject-translations` and `list-wordproject-translations` commands, which download the Bible texts on [wordproject.org](https://www.wordproject.org/bibles/index.htm) and convert them to USFM for `import-translations`. Use the `fetch:bible:wordproject` and `import:bible:wordproject` scripts.
 -   `import-commentary`, `import-commentaries`, and `sync` can import commentaries from [SWORD](https://crosswire.org/sword/) modules (`zCom`, `zCom4`, `RawCom`, and `RawCom4` with the KJV versification), either extracted or as `.zip` files. See the [CLI README](./packages/helloao-cli/README.md).
 
 #### :bug: Bug Fixes
