@@ -1,7 +1,10 @@
 import path, { basename, extname } from 'node:path';
 import * as database from './db.js';
 import Sql, { Database } from 'better-sqlite3';
-import Typesense from 'typesense';
+import Typesense, {
+    Client as TypesenseClient,
+    type CollectionSchema,
+} from 'typesense';
 import { Book, Prisma, PrismaClient } from './prisma-gen/client.js';
 import { DOMParser, Element, Node } from 'linkedom';
 import { mkdir, readdir, rename, rm, stat, writeFile } from 'node:fs/promises';
@@ -3472,14 +3475,15 @@ const ISO_639_3_TO_1_LOCALE: Record<string, string> = {
     zul: 'zu',
 };
 
-export async function uploadTypesenseVerses(
+/**
+ * Creates a Typesense client for the given node URLs (like "https://search.example.com").
+ * @param nodes The URLs of the Typesense nodes.
+ * @param apiKey The Typesense API key.
+ */
+export function createTypesenseClient(
     nodes: string[],
-    apiKey: string,
-    db: PrismaClient,
-    options: UploadTypesenseVersesOptions
-): Promise<void> {
-    const logger = log.getLogger();
-
+    apiKey: string
+): TypesenseClient {
     const parsedNodes = nodes.map((node) => {
         const url = new URL(node);
         const protocol = url.protocol.replace(':', '');
@@ -3492,11 +3496,222 @@ export async function uploadTypesenseVerses(
         return { host, port, protocol };
     });
 
-    const client = new Typesense.Client({
+    return new Typesense.Client({
         nodes: parsedNodes,
         apiKey,
         connectionTimeoutSeconds: 10,
     });
+}
+
+/**
+ * Gets the name of the Typesense collection that the verses of translations in the given language are uploaded to.
+ * @param languageCode The ISO 639-3 language code of the translation.
+ */
+export function getTypesenseVerseCollectionName(languageCode: string): string {
+    return `bibleVerses.${languageCode}`;
+}
+
+/**
+ * Creates the Typesense collection for the verses of the given language, or adds the missing fields to it if it already exists.
+ * @param client The Typesense client.
+ * @param languageCode The ISO 639-3 language code.
+ * @returns The name of the collection, or null if the language has no ISO 639-1 locale, which Typesense needs to stem the verse text.
+ */
+export async function ensureTypesenseVerseCollection(
+    client: TypesenseClient,
+    languageCode: string
+): Promise<string | null> {
+    const logger = log.getLogger();
+    const locale = ISO_639_3_TO_1_LOCALE[languageCode] ?? null;
+
+    if (!locale) {
+        logger.warn(
+            `No ISO-639-1 locale mapping found for language code '${languageCode}'. Skipping.`
+        );
+        return null;
+    }
+
+    const collectionName = getTypesenseVerseCollectionName(languageCode);
+    const schema = {
+        name: collectionName,
+        fields: [
+            { name: 'translation', type: 'string' as const },
+            { name: 'reference', type: 'string' as const },
+            { name: 'referenceNormalized', type: 'string' as const },
+            { name: 'book', type: 'string' as const },
+            { name: 'chapter', type: 'int32' as const },
+            { name: 'verse', type: 'int32' as const },
+            { name: 'language', type: 'string' as const },
+            {
+                name: 'text',
+                type: 'string' as const,
+                stem: true,
+                locale,
+            },
+        ],
+        token_separators: [':'],
+    };
+
+    let existing: CollectionSchema | null;
+    try {
+        existing = await client.collections(collectionName).retrieve();
+    } catch {
+        existing = null;
+    }
+
+    if (existing) {
+        logger.log(`Collection '${collectionName}' already exists.`);
+
+        const existingFields = existing.fields.map((f) => f.name);
+        const missingFields = schema.fields.filter(
+            (f) => !existingFields.includes(f.name)
+        );
+
+        if (missingFields.length > 0) {
+            logger.log(
+                `Collection '${collectionName}' is missing fields: ${missingFields.map((f) => f.name).join(', ')}. Updating schema...`
+            );
+            await client
+                .collections(collectionName)
+                .update({ fields: missingFields });
+        }
+    } else {
+        logger.log(
+            `Creating collection '${collectionName}' with locale '${locale}'...`
+        );
+        await client.collections().create(schema);
+        logger.log(`Collection '${collectionName}' created.`);
+    }
+
+    return collectionName;
+}
+
+/**
+ * Upserts every verse of the given translation into the given Typesense collection.
+ * @param client The Typesense client.
+ * @param db The database.
+ * @param translation The translation.
+ * @param collectionName The name of the collection (see ensureTypesenseVerseCollection()).
+ * @returns The number of verses that were uploaded.
+ */
+export async function uploadTypesenseTranslationVerses(
+    client: TypesenseClient,
+    db: PrismaClient,
+    translation: { id: string; language: string },
+    collectionName: string
+): Promise<number> {
+    const logger = log.getLogger();
+    const BATCH_SIZE = 1000;
+
+    logger.log(
+        `Processing translation: ${translation.id} -> ${collectionName}`
+    );
+
+    const books = new Map<string, Book>(
+        (
+            await db.book.findMany({
+                where: { translationId: translation.id },
+            })
+        ).map((b) => [b.id, b])
+    );
+
+    let skip = 0;
+    while (true) {
+        const verses = await db.chapterVerse.findMany({
+            where: { translationId: translation.id },
+            select: {
+                translationId: true,
+                bookId: true,
+                chapterNumber: true,
+                number: true,
+                text: true,
+            },
+            orderBy: [
+                { bookId: 'asc' },
+                { chapterNumber: 'asc' },
+                { number: 'asc' },
+            ],
+            skip,
+            take: BATCH_SIZE,
+        });
+
+        if (verses.length === 0) {
+            break;
+        }
+
+        const documents = verses.map((verse) => {
+            const book = books.get(verse.bookId);
+            if (!book) {
+                logger.warn(
+                    `Book not found for translation ${verse.translationId} and book ID ${verse.bookId}`
+                );
+            }
+            return {
+                id: `${verse.translationId}_${verse.bookId}_${verse.chapterNumber}_${verse.number}`,
+                translation: verse.translationId,
+                reference: `${book ? book.commonName : verse.bookId} ${verse.chapterNumber}:${verse.number}`,
+                referenceNormalized: `${verse.bookId} ${verse.chapterNumber}:${verse.number}`,
+                book: verse.bookId,
+                chapter: verse.chapterNumber,
+                verse: verse.number,
+                language: translation.language,
+                text: verse.text,
+            };
+        });
+
+        await client
+            .collections(collectionName)
+            .documents()
+            .import(documents, { action: 'upsert' });
+
+        logger.log(
+            `  Uploaded ${skip + verses.length} verses for ${translation.id}`
+        );
+
+        skip += verses.length;
+        if (verses.length < BATCH_SIZE) {
+            break;
+        }
+    }
+
+    return skip;
+}
+
+/**
+ * Deletes every verse of the given translation from the given Typesense collection.
+ * Does nothing if the collection doesn't exist.
+ * @param client The Typesense client.
+ * @param translationId The ID of the translation.
+ * @param collectionName The name of the collection.
+ */
+export async function deleteTypesenseTranslationVerses(
+    client: TypesenseClient,
+    translationId: string,
+    collectionName: string
+): Promise<void> {
+    try {
+        await client
+            .collections(collectionName)
+            .documents()
+            .delete({
+                filter_by: `translation:=\`${translationId}\``,
+            });
+    } catch (err) {
+        if ((err as any)?.httpStatus === 404) {
+            return;
+        }
+        throw err;
+    }
+}
+
+export async function uploadTypesenseVerses(
+    nodes: string[],
+    apiKey: string,
+    db: PrismaClient,
+    options: UploadTypesenseVersesOptions
+): Promise<void> {
+    const logger = log.getLogger();
+    const client = createTypesenseClient(nodes, apiKey);
 
     let translationWhere: Prisma.TranslationWhereInput | undefined =
         options.translations && options.translations.length > 0
@@ -3522,146 +3737,24 @@ export async function uploadTypesenseVerses(
         `Grouped into ${Object.keys(translationsByLanguage).length} language collection(s).`
     );
 
-    const BATCH_SIZE = 1000;
-
     for (const [languageCode, languageTranslations] of Object.entries(
         translationsByLanguage
     )) {
-        const locale = ISO_639_3_TO_1_LOCALE[languageCode] ?? null;
-
-        if (!locale) {
-            logger.warn(
-                `No ISO-639-1 locale mapping found for language code '${languageCode}'. Skipping.`
-            );
+        const collectionName = await ensureTypesenseVerseCollection(
+            client,
+            languageCode
+        );
+        if (!collectionName) {
             continue;
         }
 
-        const collectionName = `bibleVerses.${languageCode}`;
-        const schema = {
-            name: collectionName,
-            fields: [
-                { name: 'translation', type: 'string' as const },
-                { name: 'reference', type: 'string' as const },
-                { name: 'referenceNormalized', type: 'string' as const },
-                { name: 'book', type: 'string' as const },
-                { name: 'chapter', type: 'int32' as const },
-                { name: 'verse', type: 'int32' as const },
-                { name: 'language', type: 'string' as const },
-                {
-                    name: 'text',
-                    type: 'string' as const,
-                    stem: true,
-                    locale,
-                },
-            ],
-            token_separators: [':'],
-        };
-
-        try {
-            const existing = await client
-                .collections(collectionName)
-                .retrieve();
-            logger.log(`Collection '${collectionName}' already exists.`);
-
-            const existingFields = existing.fields.map((f) => f.name);
-            const requiredFields = schema.fields.map((f) => f.name);
-            const missingFields = requiredFields.filter(
-                (f) => !existingFields.includes(f)
-            );
-
-            if (missingFields.length > 0) {
-                logger.log(
-                    `Collection '${collectionName}' is missing fields: ${missingFields.join(', ')}. Updating schema...`
-                );
-                await client.collections(collectionName).update(schema);
-            }
-        } catch {
-            logger.log(
-                `Creating collection '${collectionName}' with locale '${locale}'...`
-            );
-            await client.collections().create(schema);
-            logger.log(`Collection '${collectionName}' created.`);
-        }
-
         for (const translation of languageTranslations) {
-            logger.log(
-                `Processing translation: ${translation.id} -> ${collectionName}`
+            await uploadTypesenseTranslationVerses(
+                client,
+                db,
+                translation,
+                collectionName
             );
-            let skip = 0;
-
-            while (true) {
-                const verses = await db.chapterVerse.findMany({
-                    where: { translationId: translation.id },
-                    select: {
-                        translationId: true,
-                        bookId: true,
-                        chapterNumber: true,
-                        number: true,
-                        text: true,
-                    },
-                    orderBy: [
-                        { bookId: 'asc' },
-                        { chapterNumber: 'asc' },
-                        { number: 'asc' },
-                    ],
-                    skip,
-                    take: BATCH_SIZE,
-                });
-
-                if (verses.length === 0) {
-                    break;
-                }
-
-                let documents = [] as any[];
-                let books = new Map<string, Book | null>();
-
-                for (const verse of verses) {
-                    let book = books.get(verse.bookId) ?? null;
-                    if (!book) {
-                        book = await db.book.findFirst({
-                            where: {
-                                translationId: translation.id,
-                                id: verse.bookId,
-                            },
-                        });
-                        if (book) {
-                            books.set(verse.bookId, book);
-                        } else {
-                            logger.warn(
-                                `Book not found for translation ${verse.translationId} and book ID ${verse.bookId}`
-                            );
-                        }
-                    }
-
-                    let normalizedReference = `${verse.bookId} ${verse.chapterNumber}:${verse.number}`;
-
-                    documents.push({
-                        id: `${verse.translationId}_${verse.bookId}_${verse.chapterNumber}_${verse.number}`,
-                        translation: verse.translationId,
-                        reference: `${book ? book.commonName : verse.bookId} ${verse.chapterNumber}:${verse.number}`,
-                        referenceNormalized: normalizedReference,
-                        book: verse.bookId,
-                        chapter: verse.chapterNumber,
-                        verse: verse.number,
-                        language: translation.language,
-                        text: verse.text,
-                    });
-                }
-
-                await client
-                    .collections(collectionName)
-                    .documents()
-                    .import(documents, { action: 'upsert' });
-
-                logger.log(
-                    `  Uploaded ${skip + verses.length} verses for ${translation.id}`
-                );
-
-                if (verses.length < BATCH_SIZE) {
-                    break;
-                }
-                skip += BATCH_SIZE;
-            }
         }
     }
 
@@ -3673,23 +3766,7 @@ export async function searchTypesenseVerses(
     apiKey: string,
     options: TypesenseSearchOptions
 ) {
-    const parsedNodes = nodes.map((node) => {
-        const url = new URL(node);
-        const protocol = url.protocol.replace(':', '');
-        const host = url.hostname;
-        const port = url.port
-            ? parseInt(url.port, 10)
-            : protocol === 'https'
-              ? 443
-              : 80;
-        return { host, port, protocol };
-    });
-
-    const client = new Typesense.Client({
-        nodes: parsedNodes,
-        apiKey,
-        connectionTimeoutSeconds: 10,
-    });
+    const client = createTypesenseClient(nodes, apiKey);
 
     const filterByParts = [] as string[];
     if (options.translation) {

@@ -22,6 +22,92 @@ import {
 import { CodeHashes } from './processor';
 import { importVerseOfTheDay } from './actions';
 
+/**
+ * An in-memory Typesense server. Maps collection names to their documents (by ID).
+ */
+const typesenseCollections = new Map<string, Map<string, any>>();
+const typesenseRequests: string[] = [];
+
+jest.mock('typesense', () => {
+    class FakeClient {
+        constructor(public config: any) {}
+
+        collections(name?: string) {
+            if (!name) {
+                return {
+                    create: async (schema: any) => {
+                        typesenseRequests.push(`create ${schema.name}`);
+                        typesenseCollections.set(schema.name, new Map());
+                        return schema;
+                    },
+                };
+            }
+            const notFound = () =>
+                Object.assign(new Error('Not Found'), { httpStatus: 404 });
+            return {
+                retrieve: async () => {
+                    if (!typesenseCollections.has(name)) {
+                        throw notFound();
+                    }
+                    return {
+                        name,
+                        fields: [
+                            'translation',
+                            'reference',
+                            'referenceNormalized',
+                            'book',
+                            'chapter',
+                            'verse',
+                            'language',
+                            'text',
+                        ].map((f) => ({ name: f })),
+                    };
+                },
+                documents: () => ({
+                    import: async (docs: any[]) => {
+                        const collection = typesenseCollections.get(name);
+                        if (!collection) {
+                            throw notFound();
+                        }
+                        typesenseRequests.push(
+                            `import ${name} ${docs[0]?.translation}`
+                        );
+                        for (let doc of docs) {
+                            collection.set(doc.id, doc);
+                        }
+                        return docs.map(() => ({ success: true }));
+                    },
+                    delete: async ({ filter_by }: { filter_by: string }) => {
+                        const collection = typesenseCollections.get(name);
+                        if (!collection) {
+                            throw notFound();
+                        }
+                        const match = /^translation:=`(.+)`$/.exec(filter_by);
+                        if (!match) {
+                            throw new Error(`Unsupported filter: ${filter_by}`);
+                        }
+                        typesenseRequests.push(`delete ${name} ${match[1]}`);
+                        let numDeleted = 0;
+                        for (let [id, doc] of collection) {
+                            if (doc.translation === match[1]) {
+                                collection.delete(id);
+                                numDeleted++;
+                            }
+                        }
+                        return { num_deleted: numDeleted };
+                    },
+                }),
+            };
+        }
+    }
+
+    return {
+        __esModule: true,
+        default: { Client: FakeClient },
+        Client: FakeClient,
+    };
+});
+
 const silentLogger = {
     log: () => {},
     warn: () => {},
@@ -62,7 +148,8 @@ describe('sync', () => {
     function writeTranslation(
         name: string,
         id: string,
-        books: Record<string, string>
+        books: Record<string, string>,
+        language: string = 'eng'
     ) {
         const translationDir = path.resolve(dir, 'sources', name);
         mkdirSync(translationDir, { recursive: true });
@@ -73,7 +160,7 @@ describe('sync', () => {
                 name: `Translation ${id}`,
                 englishName: `Translation ${id}`,
                 shortName: id,
-                language: 'eng',
+                language,
                 direction: 'ltr',
                 licenseUrl: 'https://example.com/license',
                 website: 'https://example.com',
@@ -650,6 +737,269 @@ describe('sync', () => {
                 (d: any) => d.id
             )
         ).toEqual(['verse-of-the-day']);
+    });
+
+    describe('typesense destinations', () => {
+        const typesenseUrl = 'https://typesense.example.com';
+
+        function verseIds(collection: string): string[] {
+            return [
+                ...(typesenseCollections.get(collection)?.keys() ?? []),
+            ].sort();
+        }
+
+        beforeEach(() => {
+            typesenseCollections.clear();
+            typesenseRequests.length = 0;
+            config.destinations = [
+                {
+                    type: 'typesense',
+                    url: typesenseUrl,
+                    apiKey: 'test-key',
+                },
+            ];
+        });
+
+        it('should upload the verses of every translation when no translations are listed', async () => {
+            const result = await runSync();
+
+            expect(result.errors).toEqual([]);
+            expect(result.uploads[0].uploaded.map((i) => i.id)).toEqual([
+                'AAA',
+                'BBB',
+            ]);
+            expect(verseIds('bibleVerses.eng')).toEqual([
+                'AAA_EXO_1_1',
+                'AAA_GEN_1_1',
+                'AAA_GEN_1_2',
+                'BBB_GEN_1_1',
+            ]);
+            expect(
+                typesenseCollections.get('bibleVerses.eng')!.get('AAA_GEN_1_2')
+            ).toEqual({
+                id: 'AAA_GEN_1_2',
+                translation: 'AAA',
+                reference: 'Genesis 1:2',
+                referenceNormalized: 'GEN 1:2',
+                book: 'GEN',
+                chapter: 1,
+                verse: 2,
+                language: 'eng',
+                text: 'And the earth.',
+            });
+        });
+
+        it('should only upload the listed translations', async () => {
+            config.destinations = [
+                {
+                    type: 'typesense',
+                    url: typesenseUrl,
+                    apiKey: 'test-key',
+                    translations: ['bbb'],
+                },
+            ];
+
+            const result = await runSync();
+
+            expect(result.errors).toEqual([]);
+            expect(result.uploads[0].uploaded.map((i) => i.id)).toEqual([
+                'BBB',
+            ]);
+            expect(verseIds('bibleVerses.eng')).toEqual(['BBB_GEN_1_1']);
+        });
+
+        it('should only upload the translations that changed', async () => {
+            await runSync();
+            typesenseRequests.length = 0;
+
+            const unchanged = await runSync();
+            expect(unchanged.uploads[0].uploaded).toEqual([]);
+            expect(typesenseRequests).toEqual([]);
+
+            writeTranslation('aaa', 'AAA', {
+                'GEN.usfm': usfm('GEN', [['In the beginning, God.']]),
+            });
+            rmSync(path.resolve(dir, 'sources', 'aaa', 'EXO.usfm'));
+
+            const changed = await runSync();
+            expect(changed.errors).toEqual([]);
+            expect(changed.uploads[0].uploaded.map((i) => i.id)).toEqual([
+                'AAA',
+            ]);
+            // Verses that were removed from the translation are removed from the index.
+            expect(verseIds('bibleVerses.eng')).toEqual([
+                'AAA_GEN_1_1',
+                'BBB_GEN_1_1',
+            ]);
+            expect(
+                typesenseCollections.get('bibleVerses.eng')!.get('AAA_GEN_1_1')
+                    .text
+            ).toBe('In the beginning, God.');
+        });
+
+        it('should delete the verses of translations that are removed from the list', async () => {
+            await runSync();
+
+            config.destinations = [
+                {
+                    type: 'typesense',
+                    url: typesenseUrl,
+                    apiKey: 'test-key',
+                    translations: ['AAA'],
+                },
+            ];
+            const result = await runSync();
+
+            expect(result.errors).toEqual([]);
+            expect(result.uploads[0].uploaded).toEqual([]);
+            expect(result.uploads[0].removed).toEqual([
+                { kind: 'translation', id: 'BBB' },
+            ]);
+            expect(verseIds('bibleVerses.eng')).toEqual([
+                'AAA_EXO_1_1',
+                'AAA_GEN_1_1',
+                'AAA_GEN_1_2',
+            ]);
+        });
+
+        it('should delete the verses of translations that are deleted from the sources', async () => {
+            await runSync();
+
+            rmSync(path.resolve(dir, 'sources', 'bbb'), { recursive: true });
+            const result = await runSync();
+
+            expect(result.errors).toEqual([]);
+            expect(result.uploads[0].removed).toEqual([
+                { kind: 'translation', id: 'BBB' },
+            ]);
+            expect(verseIds('bibleVerses.eng')).toEqual([
+                'AAA_EXO_1_1',
+                'AAA_GEN_1_1',
+                'AAA_GEN_1_2',
+            ]);
+        });
+
+        it('should skip translations whose language has no locale without retrying them', async () => {
+            writeTranslation(
+                'ccc',
+                'CCC',
+                { 'GEN.usfm': usfm('GEN', [['Verse.']]) },
+                'xyz'
+            );
+
+            const result = await runSync();
+            expect(result.errors).toEqual([]);
+            expect((result.uploads[0] as any).skipped).toEqual([
+                { kind: 'translation', id: 'CCC' },
+            ]);
+            expect(typesenseCollections.has('bibleVerses.xyz')).toBe(false);
+
+            const second = await runSync();
+            expect(second.uploads[0].uploaded).toEqual([]);
+        });
+
+        it('should not upload anything in a dry run', async () => {
+            await runSync({ skipUpload: true });
+
+            const result = await runSync({ dryRun: true });
+
+            expect(result.uploads[0].uploaded.map((i) => i.id)).toEqual([
+                'AAA',
+                'BBB',
+            ]);
+            expect(typesenseRequests).toEqual([]);
+            expect(typesenseCollections.size).toBe(0);
+        });
+
+        it('should report an error when there is no API key', async () => {
+            const previous = process.env.TYPESENSE_API_KEY;
+            delete process.env.TYPESENSE_API_KEY;
+            try {
+                config.destinations = [
+                    { type: 'typesense', url: typesenseUrl },
+                ];
+                const result = await runSync();
+
+                expect(result.errors).toHaveLength(1);
+                expect(result.errors[0]).toContain('TYPESENSE_API_KEY');
+                expect(typesenseRequests).toEqual([]);
+            } finally {
+                if (previous !== undefined) {
+                    process.env.TYPESENSE_API_KEY = previous;
+                }
+            }
+        });
+
+        it('should upload to file and Typesense destinations independently', async () => {
+            config.destinations = [
+                {
+                    url: 'api-out',
+                    generateOpenApiDocument: false,
+                    generateCompleteTranslationFiles: false,
+                    generateSimpleChapterFiles: false,
+                },
+                {
+                    type: 'typesense',
+                    url: typesenseUrl,
+                    apiKey: 'test-key',
+                    translations: ['AAA'],
+                },
+            ];
+
+            const result = await runSync();
+
+            expect(result.errors).toEqual([]);
+            expect(result.uploads[0].uploaded).toHaveLength(2);
+            expect(result.uploads[1].uploaded.map((i) => i.id)).toEqual([
+                'AAA',
+            ]);
+            expect(
+                readApiFile('api/available_translations.json').translations
+            ).toHaveLength(2);
+
+            const onlyTypesense = await runSync({
+                destinations: [typesenseUrl],
+                reuploadAll: true,
+            });
+            expect(onlyTypesense.uploads).toHaveLength(1);
+            expect(onlyTypesense.uploads[0].destination).toBe(typesenseUrl);
+        });
+
+        it('should validate Typesense destinations in the config file', async () => {
+            const configPath = path.resolve(dir, 'sync.config.json');
+            writeFileSync(
+                configPath,
+                JSON.stringify({
+                    sources: [],
+                    destinations: [
+                        {
+                            type: 'typesense',
+                            url: typesenseUrl,
+                            translations: ['BSB', 'eng_*'],
+                        },
+                    ],
+                })
+            );
+            const loaded = await loadSyncConfig(configPath);
+            expect(loaded.destinations).toEqual([
+                {
+                    type: 'typesense',
+                    url: typesenseUrl,
+                    translations: ['BSB', 'eng_*'],
+                },
+            ]);
+
+            writeFileSync(
+                configPath,
+                JSON.stringify({
+                    sources: [],
+                    destinations: [{ type: 'typesense', url: 'not a url' }],
+                })
+            );
+            await expect(loadSyncConfig(configPath)).rejects.toThrow(
+                'Invalid sync config'
+            );
+        });
     });
 
     describe('api sources', () => {

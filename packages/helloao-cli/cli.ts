@@ -1009,6 +1009,7 @@ async function start() {
         .command('sync [config]')
         .description(
             'Imports the new, changed, and deleted sources from the given sync config into the database, and uploads the changed translations, commentaries, and datasets to the destinations in the config.\n' +
+                'Destinations can also be Typesense instances, which receive the verses of every translation or only the listed ones.\n' +
                 'Only the sources in the config are kept in the database and uploaded. Sources are reprocessed when they change or when the code that processes them changes.\n' +
                 'The config defaults to ./sync.config.json. See the README for its format.'
         )
@@ -1023,7 +1024,7 @@ async function start() {
         .option('--skip-upload', 'Skip uploading to the destinations.')
         .option(
             '--destination <urls...>',
-            'Only upload to the given destinations from the config.'
+            'Only upload to the given destinations from the config. Matches the url of each destination (including Typesense destinations).'
         )
         .option(
             '--reprocess-all',

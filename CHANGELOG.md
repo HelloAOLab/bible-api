@@ -53,6 +53,7 @@ This is the log of changes for the Free Use Bible API.
 
 -   Added the `sync` command, which keeps a database and API up to date from a JSON config, importing and uploading only what changed. See the [CLI README](./packages/helloao-cli/README.md#keeping-an-api-up-to-date-with-sync).
     -   Supports `api`, `history-globe`, and `verse-of-the-day` sources.
+    -   Supports `typesense` destinations, which upload the verses of every translation (or only the listed ones) to a Typesense instance, uploading only translations that changed and deleting the verses of removed translations.
     -   Warns about items in the database that no source provides.
 -   Added `import-verse-of-the-day` and `review-verse-of-the-day` commands. The verse list and `getVerseOfTheDay()` are also exported from `@helloao/tools`.
 -   Added `fetch-interlinear` and `import-interlinear` commands.

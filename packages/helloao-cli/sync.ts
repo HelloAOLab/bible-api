@@ -38,6 +38,10 @@ import {
     SyncDestinationConfig,
     syncDestination,
 } from './sync-upload.js';
+import {
+    SyncTypesenseDestinationConfig,
+    syncTypesenseDestination,
+} from './sync-typesense.js';
 
 /**
  * The kinds of items that sources produce.
@@ -129,9 +133,10 @@ export interface SyncConfig {
     sources: SyncSourceConfig[];
 
     /**
-     * The destinations that the API files should be uploaded to.
+     * The destinations that the API files should be uploaded to,
+     * and the Typesense instances that the verses should be uploaded to.
      */
-    destinations?: SyncDestinationConfig[];
+    destinations?: (SyncDestinationConfig | SyncTypesenseDestinationConfig)[];
 }
 
 /**
@@ -180,17 +185,27 @@ const syncConfigSchema = z.object({
     ),
     destinations: z
         .array(
-            z.object({
-                url: z.string(),
-                profile: z.string().optional(),
-                s3Region: z.string().optional(),
-                pretty: z.boolean().optional(),
-                useCommonName: z.boolean().optional(),
-                generateAudioFiles: z.boolean().optional(),
-                generateCompleteTranslationFiles: z.boolean().optional(),
-                generateSimpleChapterFiles: z.boolean().optional(),
-                generateOpenApiDocument: z.boolean().optional(),
-            })
+            z.union([
+                z.object({
+                    type: z.literal('typesense'),
+                    url: z.url({ protocol: /^https?$/ }),
+                    nodes: z.array(z.url({ protocol: /^https?$/ })).optional(),
+                    apiKey: z.string().optional(),
+                    translations: z.array(z.string()).optional(),
+                }),
+                z.object({
+                    type: z.literal('files').optional(),
+                    url: z.string(),
+                    profile: z.string().optional(),
+                    s3Region: z.string().optional(),
+                    pretty: z.boolean().optional(),
+                    useCommonName: z.boolean().optional(),
+                    generateAudioFiles: z.boolean().optional(),
+                    generateCompleteTranslationFiles: z.boolean().optional(),
+                    generateSimpleChapterFiles: z.boolean().optional(),
+                    generateOpenApiDocument: z.boolean().optional(),
+                }),
+            ])
         )
         .optional(),
 });
@@ -374,14 +389,23 @@ export async function syncWithConfig(
                 const prisma = await database.getPrismaDb(dbPath);
                 try {
                     for (let destination of destinations) {
-                        const upload = await syncDestination(
-                            db,
-                            prisma,
-                            destination,
-                            items,
-                            config.baseDir,
-                            options
-                        );
+                        const upload =
+                            destination.type === 'typesense'
+                                ? await syncTypesenseDestination(
+                                      db,
+                                      prisma,
+                                      destination,
+                                      items,
+                                      options
+                                  )
+                                : await syncDestination(
+                                      db,
+                                      prisma,
+                                      destination,
+                                      items,
+                                      config.baseDir,
+                                      options
+                                  );
                         result.uploads.push(upload);
                         result.errors.push(...upload.errors);
                     }

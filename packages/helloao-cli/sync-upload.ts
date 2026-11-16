@@ -41,6 +41,11 @@ export interface SyncDestinationConfig extends Pick<
     | 'generateOpenApiDocument'
 > {
     /**
+     * The type of the destination. API file destinations are the default, so the type can be omitted.
+     */
+    type?: 'files';
+
+    /**
      * The destination to upload the API files to.
      * Supports S3 (s3://bucket-name/path/to/folder), zip files, and local directories.
      * Relative paths are relative to the config file.
@@ -304,8 +309,9 @@ export async function syncDestination(
 
 /**
  * Gets the current hash of every translation, commentary, and dataset in the database, keyed by "{kind}:{id}".
+ * @param db The database.
  */
-function getItemHashes(db: Database): Map<string, string> {
+export function getItemHashes(db: Database): Map<string, string> {
     const hashes = new Map<string, string>();
     const tables = [
         ['translation', 'Translation'],
