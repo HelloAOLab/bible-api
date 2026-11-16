@@ -22,6 +22,7 @@ import {
     loadTranslationsFromDirectory,
 } from './files.js';
 import { generateVerseOfTheDayDataset } from '@helloao/tools/generation/verse-of-the-day.js';
+import { getAudioSourcesForTranslation } from '@helloao/tools/generation/audio.js';
 import {
     loadHistoryGlobeDataset,
     loadInterlinearDatasets,
@@ -889,6 +890,17 @@ export async function discoverSources(
                 }
                 if (id) {
                     item = { kind: dir.type, id };
+                }
+
+                // The known audio of a translation isn't part of the processor version (see tools/build.ts),
+                // so it is included in the settings of the translation instead.
+                // This way, changing the audio of a translation only causes that translation to be reprocessed.
+                const audio =
+                    dir.type === 'translation' && id
+                        ? getAudioSourcesForTranslation(id)
+                        : null;
+                if (audio) {
+                    settings = JSON.stringify({ audio });
                 }
             }
 

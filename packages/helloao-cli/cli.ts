@@ -66,6 +66,7 @@ import {
     fetchWordprojectTranslations,
     WORDPROJECT_TRANSLATIONS,
 } from './wordproject.js';
+import { fetchCrossWireCommentaries } from './crosswire.js';
 
 const OPENAPI_CLIENT_LANGUAGES = [
     // ['csharp', 'csharp'],
@@ -1465,6 +1466,63 @@ async function start() {
         )
         .action(async (dir: string) => {
             await fetchHistoryGlobe(dir);
+        });
+
+    program
+        .command('fetch-sword-commentaries <dir> [modules...]')
+        .description(
+            'Fetches the commentaries from the CrossWire SWORD module repository (https://www.crosswire.org/sword/modules/ModDisp.jsp?modType=Commentaries) into the given directory, one directory per commentary with its module ZIP and a metadata.json. ' +
+                'Only fetches public domain and openly licensed commentaries that can be imported, unless --all-licenses or --include-unsupported is given. Optionally limited to the given module names (e.g. "Clarke TSK").'
+        )
+        .option(
+            '--all-licenses',
+            'Also fetch commentaries that are copyrighted, non-commercial, or have no license. Their metadata.json includes the license notice.'
+        )
+        .option(
+            '--include-unsupported',
+            "Also fetch commentaries that can't be imported yet (like ones that use a non-KJV versification). Keep them out of the directory you import from, since importing them fails."
+        )
+        .option(
+            '--overwrite',
+            'Download commentaries again even if the same version was already downloaded'
+        )
+        .option(
+            '--dry-run',
+            'Only list what would be downloaded, and why commentaries are skipped'
+        )
+        .option(
+            '--concurrency <n>',
+            'The number of commentaries to download at once',
+            parsePositiveInteger,
+            3
+        )
+        .action(async (dir: string, modules: string[], options: any) => {
+            const results = await fetchCrossWireCommentaries(dir, {
+                modules,
+                allLicenses: options.allLicenses,
+                includeUnsupported: options.includeUnsupported,
+                overwrite: options.overwrite,
+                dryRun: options.dryRun,
+                concurrency: options.concurrency,
+            });
+
+            console.table(
+                results.map((r) => ({
+                    module: r.module,
+                    id: r.id ?? '',
+                    status: r.status,
+                    license: r.license ?? '',
+                    note: r.reason ?? '',
+                }))
+            );
+            const count = (status: string) =>
+                results.filter((r) => r.status === status).length;
+            console.log(
+                `${count('downloaded')} downloaded, ${count('up-to-date')} up to date, ${count('would-download')} to download, ${count('skipped')} skipped, ${count('failed')} failed.`
+            );
+            if (count('failed') > 0) {
+                process.exitCode = 1;
+            }
         });
 
     program
