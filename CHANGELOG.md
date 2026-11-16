@@ -27,6 +27,7 @@ This is the log of changes for the Free Use Bible API.
 -   Added roughly 100 translations from [fetch.bible](https://fetch.bible).
 -   Added two public domain Japanese Bibles: `jpn_kou` (口語訳, Kougo-yaku) and `jpn_bun` (文語訳, Bungo-yaku).
 -   Line breaks that start a paragraph now include the paragraph marker (e.g. `"paragraph": "p"`), and `.simple.json` verses list mid-verse paragraphs in `paragraphs`. More translations now have paragraph breaks.
+-   Fixed section headings (`\s`, `\s1`–`\s4`) in the middle of a verse being included in the verse text for translations imported from USX (including the BSB). They are now inline headings (`{ "heading": "..." }`), like they are for USFM. For example, the speaker headings in Song of Songs 1:4.
 
 #### :warning: Changes
 

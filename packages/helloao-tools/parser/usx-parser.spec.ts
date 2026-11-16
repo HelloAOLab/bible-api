@@ -475,6 +475,87 @@ describe('USXParser', () => {
             });
         });
 
+        it('should keep section headings in the middle of a verse as inline headings', () => {
+            const usx = `
+                <usx version="3.0">
+                    <book code="SNG" style="id">- Berean Standard Bible</book>
+                    <chapter number="1" style="c" sid="SNG 1"/>
+                    <para style="q1"><verse number="4" style="v" sid="SNG 1:4"/>Take me away with you—let us hurry!</para>
+                    <para style="q2">May the king bring me to his chambers.</para>
+                    <para style="s2">The Friends</para>
+                    <para style="b"/>
+                    <para style="q1">We will rejoice and delight in you;</para>
+                    <para style="s2">The Bride</para>
+                    <para style="b"/>
+                    <para style="q1">It is only right that they adore you.<verse eid="SNG 1:4"/></para>
+                    <para style="s">The Groom</para>
+                    <para style="q1"><verse number="5" style="v" sid="SNG 1:5"/>I am dark, yet lovely.<verse eid="SNG 1:5"/></para>
+                    <chapter eid="SNG 1"/>
+                </usx>
+            `;
+            const tree = parser.parse(usx);
+            const chapter = tree.content.find(
+                (c) => c.type === 'chapter'
+            ) as Chapter;
+            expect(chapter.content).toEqual([
+                {
+                    type: 'verse',
+                    number: 4,
+                    content: [
+                        {
+                            text: 'Take me away with you—let us hurry!',
+                            poem: 1,
+                        },
+                        {
+                            text: 'May the king bring me to his chambers.',
+                            poem: 2,
+                        },
+                        { heading: 'The Friends' },
+                        { lineBreak: true },
+                        {
+                            text: 'We will rejoice and delight in you;',
+                            poem: 1,
+                        },
+                        { heading: 'The Bride' },
+                        { lineBreak: true },
+                        {
+                            text: 'It is only right that they adore you.',
+                            poem: 1,
+                        },
+                    ],
+                },
+                { type: 'heading', content: ['The Groom'] },
+                {
+                    type: 'verse',
+                    number: 5,
+                    content: [{ text: 'I am dark, yet lovely.', poem: 1 }],
+                },
+            ]);
+        });
+
+        it('should hoist a section heading before the next verse to the chapter when verses have no end markers', () => {
+            const usx = `
+                <usx version="2.0">
+                    <book code="SNG" style="id">- Test</book>
+                    <chapter number="1" style="c"/>
+                    <para style="p"><verse number="1" style="v"/>First.</para>
+                    <para style="s1">Next Section</para>
+                    <para style="p"><verse number="2" style="v"/>Second.</para>
+                </usx>
+            `;
+            const tree = parser.parse(usx);
+            const chapter = tree.content.find(
+                (c) => c.type === 'chapter'
+            ) as Chapter;
+            expect(chapter.content).toEqual([
+                { type: 'line_break', paragraph: 'p' },
+                { type: 'verse', number: 1, content: ['First.'] },
+                { type: 'heading', content: ['Next Section'] },
+                { type: 'line_break', paragraph: 'p' },
+                { type: 'verse', number: 2, content: ['Second.'] },
+            ]);
+        });
+
         it('should support multiple chapters', () => {
             const usx = `
                 <usx version="3.0">
