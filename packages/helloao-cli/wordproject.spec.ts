@@ -8,10 +8,20 @@ import {
 } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
+import {
+    TextReader,
+    Uint8ArrayWriter,
+    ZipWriter,
+    configure,
+} from '@zip.js/zip.js';
+import { DOMParser, Element, Node } from 'linkedom';
+import { USXParser } from '@helloao/tools/parser/usx-parser.js';
 import path from 'node:path';
 import {
     createWordprojectMetadata,
-    createWordprojectUsfm,
+    createWordprojectUsx,
+    getWordprojectVerseText,
+    getWordprojectZipUrl,
     fetchWordprojectTranslations,
     getWordprojectBookId,
     parseWordprojectChapter,
@@ -22,6 +32,8 @@ import {
     WORDPROJECT_TRANSLATIONS,
     WordprojectTranslation,
 } from './wordproject.js';
+
+configure({ useWebWorkers: false });
 
 const chapterPage = (body: string, chapters = '') => `<!doctype html>
 <html><head><meta charset="utf-8"></head><body>
@@ -160,14 +172,23 @@ describe('parseWordprojectChapter()', () => {
 </p>`);
         expect(parseWordprojectChapter(html)).toEqual({
             title: null,
+            emptyVerses: [],
             paragraphs: [
                 [
-                    { number: '1', text: 'In the beginning was the Word.' },
+                    {
+                        number: '1',
+                        content: [{ text: 'In the beginning was the Word.' }],
+                    },
                     {
                         number: '2',
-                        text: 'The same was in the beginning with God.',
+                        content: [
+                            { text: 'The same was in the beginning with God.' },
+                        ],
                     },
-                    { number: '3', text: 'All things were made by him.' },
+                    {
+                        number: '3',
+                        content: [{ text: 'All things were made by him.' }],
+                    },
                 ],
             ],
         });
@@ -182,7 +203,10 @@ describe('parseWordprojectChapter()', () => {
         expect(chapter.title).toBe('A Psalm of David.');
         expect(chapter.paragraphs[0][1]).toEqual({
             number: '2',
-            text: 'He saith, \\wj Follow me.\\wj*',
+            content: [
+                { text: 'He saith, ' },
+                { text: 'Follow me.', wordsOfJesus: true },
+            ],
         });
     });
 
@@ -192,20 +216,29 @@ describe('parseWordprojectChapter()', () => {
 <p>verse continued.
 <br /><span class="verse" id="3">3 </span>Third.</p>`);
         const chapter = parseWordprojectChapter(html);
-        expect(chapter.paragraphs).toEqual([
+        expect(
+            chapter.paragraphs.map((p) =>
+                p.map((v) => [v.number, getWordprojectVerseText(v)])
+            )
+        ).toEqual([
             [
-                { number: '1', text: 'First verse.' },
-                { number: '2', text: 'Second' },
+                ['1', 'First verse.'],
+                ['2', 'Second'],
             ],
             [
-                { number: '2', text: 'verse continued.' },
-                { number: '3', text: 'Third.' },
+                ['2', 'verse continued.'],
+                ['3', 'Third.'],
             ],
         ]);
         expect(
-            createWordprojectUsfm('JHN', 'John', [{ number: 1, chapter }])
-        ).toBe(
-            '\\id JHN\n\\h John\n\\toc1 John\n\\toc2 John\n\\mt1 John\n\\c 1\n\\p\n\\v 1 First verse.\n\\v 2 Second\n\\p\nverse continued.\n\\v 3 Third.\n'
+            createWordprojectUsx('JHN', 'John', [{ number: 1, chapter }])
+        ).toContain(
+            [
+                '  <chapter number="1" style="c" sid="JHN 1" />',
+                '  <para style="p"><verse number="1" style="v" sid="JHN 1:1" />First verse.<verse eid="JHN 1:1" /> <verse number="2" style="v" sid="JHN 1:2" />Second</para>',
+                '  <para style="p">verse continued.<verse eid="JHN 1:2" /> <verse number="3" style="v" sid="JHN 1:3" />Third.<verse eid="JHN 1:3" /></para>',
+                '  <chapter eid="JHN 1" />',
+            ].join('\n')
         );
     });
 
@@ -218,7 +251,9 @@ describe('parseWordprojectChapter()', () => {
             stripAltVerseNumbers: true,
         });
         expect(chapter.title).toBe('Псалом Давида.');
-        expect(chapter.paragraphs[0][1].text).toBe('Он покоит меня');
+        expect(getWordprojectVerseText(chapter.paragraphs[0][1])).toBe(
+            'Он покоит меня'
+        );
     });
 
     it('should return no paragraphs when the page has no text', () => {
@@ -232,19 +267,71 @@ describe('parseWordprojectChapter()', () => {
     });
 });
 
-describe('createWordprojectUsfm()', () => {
-    it('should write a hebrew subtitle for chapter titles', () => {
-        expect(
-            createWordprojectUsfm('PSA', 'Psalms', [
+describe('createWordprojectUsx()', () => {
+    const psalm = {
+        title: 'A Psalm of <David> & "Asaph".',
+        emptyVerses: [],
+        paragraphs: [
+            [
                 {
-                    number: 23,
-                    chapter: {
-                        title: 'A Psalm of David.',
-                        paragraphs: [[{ number: '1', text: 'The LORD.' }]],
-                    },
+                    number: '1',
+                    content: [
+                        { text: 'He said, ' },
+                        { text: 'Follow me.', wordsOfJesus: true },
+                    ],
                 },
+            ],
+        ],
+    };
+
+    it('should write a USX 3.0 book', () => {
+        expect(
+            createWordprojectUsx('PSA', 'Psalms', [
+                { number: 23, chapter: psalm },
             ])
-        ).toContain('\\c 23\n\\d A Psalm of David.\n\\p\n\\v 1 The LORD.\n');
+        ).toBe(
+            [
+                '<?xml version="1.0" encoding="utf-8"?>',
+                '<usx version="3.0">',
+                '  <book code="PSA" style="id" />',
+                '  <para style="h">Psalms</para>',
+                '  <para style="toc1">Psalms</para>',
+                '  <para style="toc2">Psalms</para>',
+                '  <para style="mt1">Psalms</para>',
+                '  <chapter number="23" style="c" sid="PSA 23" />',
+                '  <para style="d">A Psalm of &lt;David&gt; &amp; &quot;Asaph&quot;.</para>',
+                '  <para style="p"><verse number="1" style="v" sid="PSA 23:1" />He said, <char style="wj">Follow me.</char><verse eid="PSA 23:1" /></para>',
+                '  <chapter eid="PSA 23" />',
+                '</usx>',
+                '',
+            ].join('\n')
+        );
+    });
+
+    it('should be readable by the USX parser', () => {
+        // The parser uses the DOM globals, like import-translations sets them up.
+        globalThis.DOMParser = DOMParser as any;
+        globalThis.Element = Element as any;
+        globalThis.Node = Node as any;
+        const parser = new USXParser(new DOMParser() as any);
+        const tree = parser.parse(
+            createWordprojectUsx('PSA', 'Psalms', [
+                { number: 23, chapter: psalm },
+            ])
+        );
+        expect(tree.id).toBe('PSA');
+        expect(tree.header).toBe('Psalms');
+        const chapter = tree.content.find((c) => c.type === 'chapter') as any;
+        expect(chapter.number).toBe(23);
+        expect(JSON.stringify(chapter.content)).toContain('Follow me.');
+        expect(
+            chapter.content.some((c: any) => c.type === 'hebrew_subtitle')
+        ).toBe(true);
+        expect(
+            chapter.content.some(
+                (c: any) => c.type === 'verse' && c.number === 1
+            )
+        ).toBe(true);
     });
 });
 
@@ -355,7 +442,7 @@ describe('fetchWordprojectTranslations()', () => {
         await rm(dir, { recursive: true, force: true });
     });
 
-    it('should write USFM files and metadata that can be imported', async () => {
+    it('should write USX files and metadata that can be imported', async () => {
         const out = path.join(dir, 'out');
         const downloaded = await fetchWordprojectTranslations(out, {
             catalog: [translation],
@@ -364,16 +451,29 @@ describe('fetchWordprojectTranslations()', () => {
         expect(downloaded).toEqual(['tst_wp']);
         expect((await readdir(out)).sort()).toEqual(['tst_wp']);
         expect((await readdir(path.join(out, 'tst_wp'))).sort()).toEqual([
-            'gen.usfm',
-            'jhn.usfm',
+            'gen.usx',
+            'jhn.usx',
             'metadata.json',
             WORDPROJECT_MARKER_FILE,
         ]);
-        expect(
-            await readFile(path.join(out, 'tst_wp', 'gen.usfm'), 'utf-8')
-        ).toBe(
-            '\\id GEN\n\\h Genesis\n\\toc1 Genesis\n\\toc2 Genesis\n\\mt1 Genesis\n\\c 1\n\\p\n\\v 1 In the beginning.\n\\v 2 And the earth.\n\\c 2\n\\p\n\\v 1 Thus the heavens.\n'
+        const gen = await readFile(
+            path.join(out, 'tst_wp', 'gen.usx'),
+            'utf-8'
         );
+        expect(gen).toContain('<book code="GEN" style="id" />');
+        expect(gen).toContain('<para style="h">Genesis</para>');
+        expect(gen).toContain(
+            '<para style="p"><verse number="1" style="v" sid="GEN 1:1" />In the beginning.<verse eid="GEN 1:1" /> <verse number="2" style="v" sid="GEN 1:2" />And the earth.<verse eid="GEN 1:2" /></para>'
+        );
+        expect(gen).toContain(
+            '<chapter number="2" style="c" sid="GEN 2" />\n  <para style="p"><verse number="1" style="v" sid="GEN 2:1" />Thus the heavens.<verse eid="GEN 2:1" /></para>'
+        );
+        expect(
+            await readFile(
+                path.join(out, 'tst_wp', WORDPROJECT_MARKER_FILE),
+                'utf-8'
+            )
+        ).toBe(`Source: ${base}index.htm\n`);
         const metadata = JSON.parse(
             await readFile(path.join(out, 'tst_wp', 'metadata.json'), 'utf-8')
         );
@@ -406,15 +506,15 @@ describe('fetchWordprojectTranslations()', () => {
         const out = path.join(dir, 'out');
         const partial = path.join(`${out}.partial`, 'tst_wp');
         await mkdir(partial, { recursive: true });
-        await writeFile(path.join(partial, 'gen.usfm'), '\\id GEN\n');
+        await writeFile(path.join(partial, 'gen.usx'), '<usx />');
         await fetchWordprojectTranslations(out, {
             catalog: [translation],
             fetch: fakeFetch,
         });
         expect(requests).not.toContain(`${base}01/1.htm`);
         expect(
-            await readFile(path.join(out, 'tst_wp', 'gen.usfm'), 'utf-8')
-        ).toBe('\\id GEN\n');
+            await readFile(path.join(out, 'tst_wp', 'gen.usx'), 'utf-8')
+        ).toBe('<usx />');
     });
 
     it('should keep the downloaded books when a page fails', async () => {
@@ -431,7 +531,129 @@ describe('fetchWordprojectTranslations()', () => {
         ).rejects.toThrow(/tst_wp/);
         expect(existsSync(path.join(out, 'tst_wp'))).toBe(false);
         expect(await readdir(path.join(`${out}.partial`, 'tst_wp'))).toEqual([
-            'gen.usfm',
+            'gen.usx',
         ]);
+    });
+
+    it('should read the pages from the zip download when there is one', async () => {
+        const writer = new ZipWriter(new Uint8ArrayWriter());
+        for (const [url, page] of Object.entries(pages)) {
+            // Leave a page out to check that it is downloaded from the website instead.
+            if (url.endsWith('01/2.htm')) continue;
+            await writer.add(
+                `test_new/${url.slice(base.length)}`,
+                new TextReader(page)
+            );
+        }
+        await writer.add('test_new/_assets/x.css', new TextReader('body {}'));
+        const zip = await writer.close();
+        const zipUrl = getWordprojectZipUrl(translation);
+        expect(zipUrl).toBe(
+            'https://www.wordpocket.org/bibles/download_zip/test_new.zip'
+        );
+
+        const out = path.join(dir, 'out');
+        await fetchWordprojectTranslations(out, {
+            catalog: [translation],
+            fetch: async (url) =>
+                url === zipUrl
+                    ? (requests.push(url), new Response(zip))
+                    : fakeFetch(url),
+        });
+        expect(requests).toEqual([zipUrl, `${base}01/2.htm`]);
+        expect(
+            await readFile(
+                path.join(out, 'tst_wp', WORDPROJECT_MARKER_FILE),
+                'utf-8'
+            )
+        ).toBe(`Source: ${zipUrl}\n`);
+        expect(
+            await readFile(path.join(out, 'tst_wp', 'gen.usx'), 'utf-8')
+        ).toContain('Thus the heavens.');
+    });
+
+    it('should download every page from the website when asked', async () => {
+        const out = path.join(dir, 'out');
+        await fetchWordprojectTranslations(out, {
+            catalog: [translation],
+            fetch: fakeFetch,
+            zip: false,
+        });
+        expect(requests).not.toContain(getWordprojectZipUrl(translation));
+    });
+
+    it('should skip chapters that are linked but do not exist', async () => {
+        const out = path.join(dir, 'out');
+        const broken: Record<string, string> = {
+            ...pages,
+            [`${base}43/1.htm`]: chapterPage(
+                '<p>In the beginning was.</p>',
+                '<a href="3.htm#0">3</a>'
+            ),
+        };
+        await fetchWordprojectTranslations(out, {
+            catalog: [translation],
+            fetch: async (url) =>
+                broken[url]
+                    ? new Response(broken[url])
+                    : new Response('', {
+                          status: 404,
+                          statusText: 'Not Found',
+                      }),
+        });
+        const jhn = await readFile(
+            path.join(out, 'tst_wp', 'jhn.usx'),
+            'utf-8'
+        );
+        expect(jhn).toContain('sid="JHN 1"');
+        expect(jhn).not.toContain('sid="JHN 3"');
+    });
+
+    it('should use the website for chapters that are incomplete in the zip', async () => {
+        const writer = new ZipWriter(new Uint8ArrayWriter());
+        for (const [url, page] of Object.entries(pages)) {
+            await writer.add(
+                `test_new/${url.slice(base.length)}`,
+                new TextReader(
+                    url.endsWith('01/2.htm')
+                        ? chapterPage(
+                              '<p>Thus the heavens.<br /><span class="verse" id="2">2 </span></p>'
+                          )
+                        : page
+                )
+            );
+        }
+        const zip = await writer.close();
+        const zipUrl = getWordprojectZipUrl(translation);
+        const website: Record<string, string> = {
+            ...pages,
+            [`${base}01/2.htm`]: chapterPage(
+                '<p>Thus the heavens.<br /><span class="verse" id="2">2 </span>And on the seventh day.</p>'
+            ),
+        };
+
+        const out = path.join(dir, 'out');
+        await fetchWordprojectTranslations(out, {
+            catalog: [translation],
+            fetch: async (url) => {
+                requests.push(url);
+                return url === zipUrl
+                    ? new Response(zip)
+                    : new Response(website[url]);
+            },
+        });
+        expect(requests).toEqual([zipUrl, `${base}01/2.htm`]);
+        expect(
+            await readFile(path.join(out, 'tst_wp', 'gen.usx'), 'utf-8')
+        ).toContain('And on the seventh day.');
+    });
+
+    it('should list the verses that have no text', () => {
+        const chapter = parseWordprojectChapter(
+            chapterPage(
+                '<p>One.<br /><span class="verse" id="2">2 </span><br /><span class="verse" id="3">3 </span>Three.</p>'
+            )
+        );
+        expect(chapter.emptyVerses).toEqual(['2']);
     });
 });

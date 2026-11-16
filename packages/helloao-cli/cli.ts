@@ -1363,7 +1363,7 @@ async function start() {
     program
         .command('fetch-osis-translations <dir>')
         .description(
-            'Fetches the pinned OSIS translations (the Japanese Kougo-yaku and Bungo-yaku), checks their SHA-256 hashes, converts them to USFM and places them in the given directory.'
+            'Fetches the pinned OSIS translations (the Japanese Kougo-yaku and Bungo-yaku), checks their SHA-256 hashes, converts them to USX and places them in the given directory.'
         )
         .action(async (dir: string) => {
             await fetchOsisTranslations(dir);
@@ -1372,7 +1372,7 @@ async function start() {
     program
         .command('fetch-wordproject-translations <dir> [translations...]')
         .description(
-            'Downloads Bible texts from wordproject.org, converts them to USFM and places them in the given directory, ready for import-translations.\n' +
+            'Downloads Bible texts from wordproject.org, converts them to USX and places them in the given directory, ready for import-translations.\n' +
                 'Translations can be given by ID (e.g. amh_wp) or by their wordproject.org folder (e.g. am). ' +
                 'Defaults to every translation that the API does not already have a copy of. Run list-wordproject-translations to see them.'
         )
@@ -1387,6 +1387,10 @@ async function start() {
         .option(
             '--overwrite',
             'Download translations again even if they were already downloaded'
+        )
+        .option(
+            '--no-zip',
+            "Download each chapter page from the website instead of the Bible's zip file"
         )
         .option(
             '--concurrency <n>',
@@ -1408,6 +1412,7 @@ async function start() {
                 includeDuplicates: !!options.includeDuplicates,
                 publicDomainOnly: !!options.publicDomainOnly,
                 overwrite: !!options.overwrite,
+                zip: options.zip !== false,
                 concurrency: options.concurrency,
             });
         });

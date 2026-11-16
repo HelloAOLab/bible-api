@@ -8,6 +8,12 @@ import type {
     InputTranslationMetadata,
     License,
 } from '@helloao/tools/generation/common-types.js';
+import {
+    configure as configureZip,
+    TextWriter,
+    Uint8ArrayReader,
+    ZipReader,
+} from '@zip.js/zip.js';
 import { fetchWithRetry, mapConcurrent } from './fetch-bible.js';
 
 const { exists } = fsExtra;
@@ -22,6 +28,13 @@ export const WORDPROJECT_INDEX_URL =
  * The URL that the Bible texts are served under.
  */
 export const WORDPROJECT_BIBLES_URL = 'https://www.wordproject.org/bibles/';
+
+/**
+ * The URL that Wordproject's whole-Bible zip downloads are served under.
+ * Each zip holds the same chapter pages as the website (see https://www.wordproject.org/download/bibles/index.htm).
+ */
+export const WORDPROJECT_ZIP_URL =
+    'https://www.wordpocket.org/bibles/download_zip/';
 
 /**
  * Wordproject's statement about the copyright of the texts it publishes.
@@ -911,6 +924,26 @@ export interface WordprojectChapterOptions {
 }
 
 /**
+ * A run of text in a verse.
+ */
+export interface WordprojectText {
+    text: string;
+
+    /**
+     * Whether the text is words of Jesus (red letter text).
+     */
+    wordsOfJesus?: boolean;
+}
+
+/**
+ * A verse, or the part of a verse that is in one paragraph.
+ */
+export interface WordprojectVerse {
+    number: string;
+    content: WordprojectText[];
+}
+
+/**
  * The text of a chapter on a Wordproject page.
  */
 export interface WordprojectChapter {
@@ -920,13 +953,19 @@ export interface WordprojectChapter {
     title: string | null;
 
     /**
-     * The paragraphs of the chapter. Each paragraph is a list of verses (or parts of verses).
+     * The paragraphs of the chapter. Each paragraph is a list of verses.
+     * A verse that is split across paragraphs is listed in each of them, with the same number.
      */
-    paragraphs: { number: string; text: string }[][];
+    paragraphs: WordprojectVerse[][];
+
+    /**
+     * The numbers of the verses that have a verse number on the page but no text.
+     */
+    emptyVerses: string[];
 }
 
 type Token =
-    | { type: 'text'; text: string }
+    | { type: 'text'; text: string; wordsOfJesus: boolean }
     | { type: 'verse'; number: string }
     | { type: 'paragraph' };
 
@@ -934,7 +973,7 @@ type Token =
  * Reads the text of a chapter from a Wordproject chapter page.
  *
  * Each verse starts with a `<span class="verse" id="N">`, except for the first verse which usually has no marker.
- * Words of Jesus (`<span class="word">`) are marked with `\wj`.
+ * Words of Jesus (`<span class="word">`) are kept as separate runs of text.
  * @param html The HTML of the chapter page.
  * @param options The options.
  */
@@ -950,10 +989,14 @@ export function parseWordprojectChapter(
 
     let title = '';
     const tokens: Token[] = [];
-    const visit = (node: Node) => {
+    const visit = (node: Node, wordsOfJesus: boolean) => {
         for (const child of Array.from(node.childNodes)) {
             if (child.nodeType === 3) {
-                tokens.push({ type: 'text', text: child.textContent ?? '' });
+                tokens.push({
+                    type: 'text',
+                    text: child.textContent ?? '',
+                    wordsOfJesus,
+                });
                 continue;
             }
             if (child.nodeType !== 1) {
@@ -985,30 +1028,25 @@ export function parseWordprojectChapter(
                 continue;
             }
             if (tag === 'br') {
-                tokens.push({ type: 'text', text: ' ' });
+                tokens.push({ type: 'text', text: ' ', wordsOfJesus });
                 continue;
             }
             if (tag === 'p' || tag === 'div') {
                 tokens.push({ type: 'paragraph' });
-                visit(element);
+                visit(element, wordsOfJesus);
                 tokens.push({ type: 'paragraph' });
                 continue;
             }
-            if (classes.includes('word')) {
-                tokens.push({ type: 'text', text: ' \\wj ' });
-                visit(element);
-                tokens.push({ type: 'text', text: '\\wj* ' });
-                continue;
-            }
-            visit(element);
+            visit(element, wordsOfJesus || classes.includes('word'));
         }
     };
-    visit(body);
+    visit(body, false);
 
-    const paragraphs: { number: string; text: string }[][] = [];
-    let paragraph: { number: string; text: string }[] = [];
-    let verse: { number: string; text: string } | null = null;
+    const paragraphs: WordprojectVerse[][] = [];
+    let paragraph: WordprojectVerse[] = [];
+    let verse: WordprojectVerse | null = null;
     let verseCount = 0;
+    const markers: string[] = [];
     const endParagraph = () => {
         if (paragraph.length > 0) {
             paragraphs.push(paragraph);
@@ -1019,37 +1057,47 @@ export function parseWordprojectChapter(
         if (token.type === 'paragraph') {
             if (verse) {
                 // The rest of the verse goes into the next paragraph.
-                verse = { number: verse.number, text: '' };
+                verse = { number: verse.number, content: [] };
             }
             endParagraph();
         } else if (token.type === 'verse') {
-            verse = { number: token.number, text: '' };
+            verse = { number: token.number, content: [] };
             verseCount++;
+            markers.push(token.number);
         } else {
             if (!verse) {
                 if (/^\s*$/.test(token.text)) {
                     continue;
                 }
                 // The first verse has no marker.
-                verse = { number: '1', text: '' };
+                verse = { number: '1', content: [] };
                 verseCount++;
             }
             if (paragraph[paragraph.length - 1] !== verse) {
                 paragraph.push(verse);
             }
-            verse.text += token.text;
+            const last = verse.content[verse.content.length - 1];
+            if (last && !!last.wordsOfJesus === token.wordsOfJesus) {
+                last.text += token.text;
+            } else {
+                verse.content.push(
+                    token.wordsOfJesus
+                        ? { text: token.text, wordsOfJesus: true }
+                        : { text: token.text }
+                );
+            }
         }
     }
     endParagraph();
 
     for (const p of paragraphs) {
         for (const v of p) {
-            v.text = cleanVerseText(v.text, options);
+            v.content = cleanVerseContent(v.content, options);
         }
     }
 
     const cleaned = paragraphs
-        .map((p) => p.filter((v) => v.text.length > 0))
+        .map((p) => p.filter((v) => v.content.length > 0))
         .filter((p) => p.length > 0);
 
     title = cleanText(title.replace(/\^\^/g, ''));
@@ -1059,65 +1107,134 @@ export function parseWordprojectChapter(
     return {
         title: title.length > 0 ? title : null,
         paragraphs: verseCount > 0 ? cleaned : [],
+        emptyVerses: [...new Set(markers)].filter(
+            (n) => !cleaned.some((p) => p.some((v) => v.number === n))
+        ),
     };
 }
 
-function cleanVerseText(
-    text: string,
+/**
+ * Collapses the whitespace in the runs of a verse, trims the start and end of the verse,
+ * moves spaces at the edges of words of Jesus outside of them, and removes empty runs.
+ */
+function cleanVerseContent(
+    content: WordprojectText[],
     options: WordprojectChapterOptions
-): string {
-    let result = text.replace(/\^\^/g, '').replace(/\s+/g, ' ');
-    // Remove empty words of Jesus markers and tidy up the spaces around the markers.
-    result = result
-        .replace(/\\wj\s*\\wj\*/g, '')
-        .replace(/\\wj\s+/g, '\\wj ')
-        .replace(/\s+\\wj\*/g, '\\wj*')
-        .trim();
-    if (options.stripAltVerseNumbers) {
-        result = result.replace(/^\(\d+[-:]\d+\)\s*/, '');
+): WordprojectText[] {
+    // Split the spaces at the edges of the words of Jesus into their own runs, so that they can be collapsed with their neighbours.
+    const runs: WordprojectText[] = [];
+    for (const run of content) {
+        const text = run.text.replace(/\^\^/g, '').replace(/\s+/g, ' ');
+        if (!run.wordsOfJesus) {
+            runs.push({ text });
+            continue;
+        }
+        const match = /^( ?)(.*?)( ?)$/.exec(text)!;
+        if (match[1]) runs.push({ text: ' ' });
+        if (match[2]) runs.push({ text: match[2], wordsOfJesus: true });
+        if (match[3]) runs.push({ text: ' ' });
     }
-    return result;
+
+    const merged: WordprojectText[] = [];
+    for (const run of runs) {
+        const last = merged[merged.length - 1];
+        if (last && !!last.wordsOfJesus === !!run.wordsOfJesus) {
+            last.text += run.text;
+        } else {
+            merged.push({ ...run });
+        }
+    }
+    for (const run of merged) {
+        if (!run.wordsOfJesus) {
+            run.text = run.text.replace(/ {2,}/g, ' ');
+        }
+    }
+    if (merged.length > 0) {
+        merged[0].text = merged[0].text.trimStart();
+        if (options.stripAltVerseNumbers) {
+            merged[0].text = merged[0].text.replace(/^\(\d+[-:]\d+\)\s*/, '');
+        }
+        const last = merged[merged.length - 1];
+        last.text = last.text.trimEnd();
+    }
+    return merged.filter((r) => r.text.length > 0);
 }
 
 /**
- * Converts the chapters of a book into USFM.
+ * Gets the plain text of a verse.
+ */
+export function getWordprojectVerseText(verse: WordprojectVerse): string {
+    return verse.content.map((c) => c.text).join('');
+}
+
+function escapeXml(text: string): string {
+    return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
+/**
+ * Converts the chapters of a book into USX 3.0.
  * @param bookId The USFM ID of the book.
  * @param name The name of the book.
  * @param chapters The chapters of the book.
  */
-export function createWordprojectUsfm(
+export function createWordprojectUsx(
     bookId: string,
     name: string,
     chapters: { number: number; chapter: WordprojectChapter }[]
 ): string {
-    const lines = [`\\id ${bookId}`];
+    const lines = [
+        '<?xml version="1.0" encoding="utf-8"?>',
+        '<usx version="3.0">',
+        `  <book code="${bookId}" style="id" />`,
+    ];
     if (name) {
-        lines.push(
-            `\\h ${name}`,
-            `\\toc1 ${name}`,
-            `\\toc2 ${name}`,
-            `\\mt1 ${name}`
-        );
+        const escaped = escapeXml(name);
+        for (const style of ['h', 'toc1', 'toc2', 'mt1']) {
+            lines.push(`  <para style="${style}">${escaped}</para>`);
+        }
     }
     for (const { number, chapter } of chapters) {
-        lines.push(`\\c ${number}`);
+        const chapterId = `${bookId} ${number}`;
+        lines.push(
+            `  <chapter number="${number}" style="c" sid="${chapterId}" />`
+        );
         if (chapter.title) {
-            lines.push(`\\d ${chapter.title}`);
+            lines.push(`  <para style="d">${escapeXml(chapter.title)}</para>`);
         }
-        let lastVerse: string | null = null;
+        const verses = chapter.paragraphs.flat();
+        let index = 0;
         for (const paragraph of chapter.paragraphs) {
-            lines.push('\\p');
+            let xml = '';
             for (const verse of paragraph) {
-                // A verse that continues from the previous paragraph has no \v marker.
-                lines.push(
-                    verse.number === lastVerse
-                        ? verse.text
-                        : `\\v ${verse.number} ${verse.text}`
-                );
-                lastVerse = verse.number;
+                const verseId = `${chapterId}:${verse.number}`;
+                const previous = verses[index - 1];
+                const next = verses[index + 1];
+                index++;
+                // A verse that continues from the previous paragraph has no start marker.
+                if (previous?.number !== verse.number) {
+                    if (xml) xml += ' ';
+                    xml += `<verse number="${verse.number}" style="v" sid="${verseId}" />`;
+                }
+                for (const run of verse.content) {
+                    const text = escapeXml(run.text);
+                    xml += run.wordsOfJesus
+                        ? `<char style="wj">${text}</char>`
+                        : text;
+                }
+                // A verse that continues in the next paragraph ends there.
+                if (next?.number !== verse.number) {
+                    xml += `<verse eid="${verseId}" />`;
+                }
             }
+            lines.push(`  <para style="p">${xml}</para>`);
         }
+        lines.push(`  <chapter eid="${chapterId}" />`);
     }
+    lines.push('</usx>');
     return lines.join('\n') + '\n';
 }
 
@@ -1161,6 +1278,108 @@ export function getWordprojectTranslationUrl(
 ): string {
     return new URL(`${translation.path}/index.htm`, WORDPROJECT_BIBLES_URL)
         .href;
+}
+
+/**
+ * Thrown when a page does not exist on the website.
+ */
+class PageNotFoundError extends Error {}
+
+/**
+ * Gets the URL of the zip download of a Wordproject translation.
+ * Not every translation has one (the ones under `new/`, for example, don't).
+ */
+export function getWordprojectZipUrl(
+    translation: WordprojectTranslation
+): string {
+    return `${WORDPROJECT_ZIP_URL}${translation.path.replace(/\//g, '_')}_new.zip`;
+}
+
+/**
+ * Reads the pages of a Wordproject zip download.
+ * The zip holds a folder (like `kj_new/`) with the same `index.htm` and chapter pages as the website.
+ * @param data The contents of the zip file.
+ * @param indexUrl The URL of the translation's index page on the website.
+ * @returns The HTML of each page, by the URL that the page has on the website.
+ */
+export async function readWordprojectZip(
+    data: Uint8Array,
+    indexUrl: string
+): Promise<Map<string, string>> {
+    configureZip({ useWebWorkers: false });
+    const zip = new ZipReader(new Uint8ArrayReader(data));
+    try {
+        const entries = (await zip.getEntries()).filter(
+            (e) =>
+                !e.directory &&
+                /\.html?$/i.test(e.filename) &&
+                !e.filename.startsWith('__MACOSX/')
+        );
+        // The root of the Bible is the folder with the shallowest index.htm.
+        const index = entries
+            .filter((e) => /(^|\/)index\.htm$/i.test(e.filename))
+            .sort(
+                (a, b) =>
+                    a.filename.split('/').length - b.filename.split('/').length
+            )[0];
+        if (!index) {
+            throw new Error('The zip has no index.htm.');
+        }
+        const root = index.filename.slice(
+            0,
+            index.filename.length - 'index.htm'.length
+        );
+        const pages = new Map<string, string>();
+        for (const entry of entries) {
+            if (!entry.filename.startsWith(root)) {
+                continue;
+            }
+            const relative = entry.filename.slice(root.length);
+            const url = new URL(relative, indexUrl).href;
+            pages.set(url, await entry.getData!(new TextWriter('utf-8')));
+        }
+        return pages;
+    } finally {
+        await zip.close();
+    }
+}
+
+/**
+ * Downloads and reads the zip download of a Wordproject translation.
+ * @returns The pages in the zip, or null if Wordproject has no zip for the translation.
+ */
+async function downloadWordprojectZip(
+    zipUrl: string,
+    indexUrl: string,
+    fetchPage: (url: string) => Promise<Response>
+): Promise<Map<string, string> | null> {
+    const logger = log.getLogger();
+    let response: Response;
+    try {
+        response = await fetchPage(zipUrl);
+    } catch (err) {
+        logger.warn(
+            `Could not download ${zipUrl}: ${err instanceof Error ? err.message : err}`
+        );
+        return null;
+    }
+    if (!response.ok) {
+        await response.body?.cancel();
+        return null;
+    }
+    const data = new Uint8Array(await response.arrayBuffer());
+    // Missing zips may be answered with an HTML page.
+    if (data.length < 4 || data[0] !== 0x50 || data[1] !== 0x4b) {
+        return null;
+    }
+    try {
+        return await readWordprojectZip(data, indexUrl);
+    } catch (err) {
+        logger.warn(
+            `Could not read ${zipUrl}: ${err instanceof Error ? err.message : err}`
+        );
+        return null;
+    }
 }
 
 /**
@@ -1224,6 +1443,12 @@ export interface FetchWordprojectTranslationsOptions {
     concurrency?: number;
 
     /**
+     * Whether to download each Bible as a zip file when Wordproject offers one. Defaults to true.
+     * Bibles without a zip (and pages missing from a zip) are downloaded page by page from the website.
+     */
+    zip?: boolean;
+
+    /**
      * The catalog to pick translations from. Defaults to {@link WORDPROJECT_TRANSLATIONS}.
      */
     catalog?: WordprojectTranslation[];
@@ -1254,9 +1479,9 @@ export function selectWordprojectTranslations(
 }
 
 /**
- * Downloads Bible texts from wordproject.org and converts them into USFM.
+ * Downloads Bible texts from wordproject.org and converts them into USX 3.0.
  *
- * Each translation is written to `<dir>/<id>/` as one USFM file per book plus a `metadata.json`,
+ * Each translation is written to `<dir>/<id>/` as one USX file per book plus a `metadata.json`,
  * so the directory can be imported with the import-translations command.
  * Books are saved to `<dir>.partial/<id>/` as they are downloaded, so an interrupted download continues where it stopped.
  * The translation's directory is only replaced once every book has been downloaded.
@@ -1279,9 +1504,10 @@ export async function fetchWordprojectTranslations(
         const response = await fetchPage(url);
         if (!response.ok) {
             await response.body?.cancel();
-            throw new Error(
-                `Failed to download ${url}: ${response.status} ${response.statusText}`
-            );
+            const message = `Failed to download ${url}: ${response.status} ${response.statusText}`;
+            throw response.status === 404
+                ? new PageNotFoundError(message)
+                : new Error(message);
         }
         return await response.text();
     };
@@ -1298,7 +1524,6 @@ export async function fetchWordprojectTranslations(
         const metadata =
             JSON.stringify(createWordprojectMetadata(translation), null, 4) +
             '\n';
-        const marker = `Source: ${indexUrl}\n`;
 
         if (
             !options.overwrite &&
@@ -1323,9 +1548,43 @@ export async function fetchWordprojectTranslations(
         }
 
         try {
-            logger.log(`Downloading ${translation.id} from ${indexUrl}`);
+            let zipPages: Map<string, string> | null = null;
+            let source = indexUrl;
+            if (options.zip !== false) {
+                const zipUrl = getWordprojectZipUrl(translation);
+                zipPages = await downloadWordprojectZip(
+                    zipUrl,
+                    indexUrl,
+                    fetchPage
+                );
+                if (zipPages) {
+                    source = zipUrl;
+                    logger.log(
+                        `Downloaded ${translation.id} from ${zipUrl} (${zipPages.size} pages)`
+                    );
+                } else {
+                    logger.log(
+                        `${translation.id} has no zip download. Downloading each chapter from ${indexUrl}`
+                    );
+                }
+            } else {
+                logger.log(`Downloading ${translation.id} from ${indexUrl}`);
+            }
+            let missingFromZip = 0;
+            let incompleteInZip = 0;
+            const getTranslationPage = async (url: string) => {
+                const page = zipPages?.get(url);
+                if (page !== undefined) {
+                    return page;
+                }
+                if (zipPages) {
+                    missingFromZip++;
+                }
+                return await getPage(url);
+            };
+
             const books = parseWordprojectIndex(
-                await getPage(indexUrl),
+                await getTranslationPage(indexUrl),
                 indexUrl
             );
             if (books.length === 0) {
@@ -1337,12 +1596,12 @@ export async function fetchWordprojectTranslations(
 
             let bookCount = 0;
             for (const book of books) {
-                const fileName = `${book.bookId.toLowerCase()}.usfm`;
+                const fileName = `${book.bookId.toLowerCase()}.usx`;
                 if (existing.has(fileName)) {
                     bookCount++;
                     continue;
                 }
-                const firstPage = await getPage(book.url);
+                const firstPage = await getTranslationPage(book.url);
                 const links = parseWordprojectChapterLinks(firstPage, book.url);
                 if (links.length === 0) {
                     logger.warn(
@@ -1354,20 +1613,78 @@ export async function fetchWordprojectTranslations(
                     links,
                     concurrency,
                     async (link) => {
-                        const html =
-                            link.url === book.url
-                                ? firstPage
-                                : await getPage(link.url);
-                        return {
-                            number: link.number,
-                            chapter: parseWordprojectChapter(html, {
-                                stripAltVerseNumbers:
-                                    translation.stripAltVerseNumbers,
-                            }),
+                        let html: string;
+                        try {
+                            html =
+                                link.url === book.url
+                                    ? firstPage
+                                    : await getTranslationPage(link.url);
+                        } catch (err) {
+                            // Some pages link to chapters that don't exist (like chapter 3 of Obadiah in gb_cat).
+                            if (err instanceof PageNotFoundError) {
+                                logger.warn(
+                                    `${translation.id} ${book.bookId}: chapter ${link.number} does not exist (${link.url}). Skipping it.`
+                                );
+                                return {
+                                    number: link.number,
+                                    chapter: null,
+                                };
+                            }
+                            throw err;
+                        }
+                        const parseOptions = {
+                            stripAltVerseNumbers:
+                                translation.stripAltVerseNumbers,
                         };
+                        let chapter = parseWordprojectChapter(
+                            html,
+                            parseOptions
+                        );
+                        // Some zips are older than the website and are missing the text of some verses.
+                        // Use the website's copy of those chapters when it is more complete.
+                        if (
+                            zipPages?.has(link.url) &&
+                            (chapter.emptyVerses.length > 0 ||
+                                chapter.paragraphs.length === 0)
+                        ) {
+                            try {
+                                const web = parseWordprojectChapter(
+                                    await getPage(link.url),
+                                    parseOptions
+                                );
+                                if (
+                                    web.paragraphs.length > 0 &&
+                                    (chapter.paragraphs.length === 0 ||
+                                        web.emptyVerses.length <
+                                            chapter.emptyVerses.length)
+                                ) {
+                                    chapter = web;
+                                    incompleteInZip++;
+                                }
+                            } catch (err) {
+                                logger.warn(
+                                    `${translation.id} ${book.bookId} ${link.number}: could not download the chapter from the website: ${err instanceof Error ? err.message : err}`
+                                );
+                            }
+                        }
+                        return { number: link.number, chapter };
                     }
                 );
-                const empty = chapters.filter(
+                const found = chapters.filter(
+                    (c): c is { number: number; chapter: WordprojectChapter } =>
+                        c.chapter !== null
+                );
+                const withEmptyVerses = found.filter(
+                    (c) =>
+                        c.chapter.paragraphs.length > 0 &&
+                        c.chapter.emptyVerses.length > 0
+                );
+                if (withEmptyVerses.length > 0) {
+                    logger.warn(
+                        `${translation.id} ${book.bookId}: verses with no text: ${withEmptyVerses.map((c) => `${c.number}:${c.chapter.emptyVerses.join(',')}`).join('; ')}`
+                    );
+                }
+                const empty = found.filter(
                     (c) => c.chapter.paragraphs.length === 0
                 );
                 if (empty.length > 0) {
@@ -1375,19 +1692,19 @@ export async function fetchWordprojectTranslations(
                         `${translation.id} ${book.bookId}: no verses were found in chapter(s) ${empty.map((c) => c.number).join(', ')}`
                     );
                 }
-                const nonEmpty = chapters.filter(
+                const nonEmpty = found.filter(
                     (c) => c.chapter.paragraphs.length > 0
                 );
                 if (nonEmpty.length === 0) {
                     continue;
                 }
-                const usfm = createWordprojectUsfm(
+                const usx = createWordprojectUsx(
                     book.bookId,
                     book.name,
                     nonEmpty
                 );
                 const filePath = path.join(partDir, fileName);
-                await writeFile(`${filePath}.tmp`, usfm, 'utf-8');
+                await writeFile(`${filePath}.tmp`, usx, 'utf-8');
                 await rename(`${filePath}.tmp`, filePath);
                 bookCount++;
                 logger.log(
@@ -1398,6 +1715,16 @@ export async function fetchWordprojectTranslations(
             if (bookCount === 0) {
                 throw new Error('No books could be converted.');
             }
+            if (incompleteInZip > 0) {
+                logger.log(
+                    `${translation.id}: ${incompleteInZip} chapter(s) were incomplete in the zip and were downloaded from the website.`
+                );
+            }
+            if (missingFromZip > 0) {
+                logger.log(
+                    `${translation.id}: ${missingFromZip} page(s) were missing from the zip and were downloaded from the website.`
+                );
+            }
 
             await writeFile(
                 path.join(partDir, 'metadata.json'),
@@ -1406,7 +1733,7 @@ export async function fetchWordprojectTranslations(
             );
             await writeFile(
                 path.join(partDir, WORDPROJECT_MARKER_FILE),
-                marker,
+                `Source: ${source}\n`,
                 'utf-8'
             );
             await rm(translationDir, { recursive: true, force: true });
