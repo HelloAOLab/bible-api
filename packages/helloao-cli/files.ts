@@ -62,6 +62,11 @@ import {
     replaceSpacesWithUnderscores,
 } from '@helloao/tools/generation/api.js';
 import { ZodType } from 'zod';
+import {
+    findSwordCommentaryModules,
+    getSwordCommentaryMetadata,
+    loadSwordCommentaryFile,
+} from './sword.js';
 
 /**
  * Defines an interface that contains information about a serialized file.
@@ -390,13 +395,17 @@ export async function loadCommentaryFiles(
     let commentaryFiles = files.filter(
         (f) => extname(f) === '.csv' || f.endsWith('.tyndale.xml')
     );
+    const swordModules = await findSwordCommentaryModules(commentary);
 
-    if (commentaryFiles.length <= 0) {
+    if (commentaryFiles.length <= 0 && swordModules.length <= 0) {
         logger.error('Could not find files for commentary!', commentary);
         return [];
     }
 
     let promises = [] as Promise<InputFile>[];
+    for (let module of swordModules) {
+        promises.push(loadSwordCommentaryFile(module, metadata));
+    }
     for (let file of commentaryFiles) {
         if (path.parse(file).name === 'metadata') {
             continue;
@@ -1025,17 +1034,32 @@ export async function loadCommentaryMetadata(
     commentary: string
 ): Promise<InputCommentaryMetadata | null> {
     const logger = log.getLogger();
+    let metadata: InputCommentaryMetadata | null = null;
     const metadataTs = path.resolve(commentary, 'metadata.ts');
     if (existsSync(metadataTs)) {
-        return (await import(metadataTs)).default as InputCommentaryMetadata;
+        metadata = (await import(metadataTs))
+            .default as InputCommentaryMetadata;
     } else {
         const metadataJson = path.resolve(commentary, 'metadata.json');
         if (existsSync(metadataJson)) {
             const data = await readFile(metadataJson, {
                 encoding: 'utf-8',
             });
-            return JSON.parse(data) as InputCommentaryMetadata;
+            metadata = JSON.parse(data) as InputCommentaryMetadata;
         }
+    }
+
+    // SWORD modules describe themselves, so their metadata files only need to contain the values that should be overridden.
+    const [swordModule] = await findSwordCommentaryModules(commentary);
+    if (swordModule) {
+        return {
+            ...getSwordCommentaryMetadata(swordModule.config),
+            ...metadata,
+        };
+    }
+
+    if (metadata) {
+        return metadata;
     }
     logger.error('Could not find metadata for commentary!', commentary);
     return null;

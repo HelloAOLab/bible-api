@@ -22,7 +22,11 @@ export interface InputTranslationFile extends InputFileBase {
 }
 
 export interface InputCommentaryFile extends InputFileBase {
-    fileType: 'commentary/csv' | 'commentary/tyndale-xml';
+    /**
+     * The type of the file.
+     * "commentary/sword" files contain a JSON serialized SwordCommentaryContent that was read from a SWORD module.
+     */
+    fileType: 'commentary/csv' | 'commentary/tyndale-xml' | 'commentary/sword';
     metadata: InputCommentaryMetadata;
 }
 
