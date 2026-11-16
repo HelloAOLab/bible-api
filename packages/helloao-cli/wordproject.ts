@@ -150,8 +150,9 @@ export interface WordprojectTranslation {
 
     /**
      * Whether the text replaces a translation with the same ID that comes from another source (like eBible).
-     * That translation is not downloaded by source-translations, and only its Wordproject copy is imported
-     * by import-translations and sync (see {@link isReplacedByWordproject}), so that the two copies aren't mixed.
+     * That translation is not downloaded by source-translations, and import-translations only imports its Wordproject copy
+     * (see {@link isReplacedByWordproject}), so that the two copies aren't mixed.
+     * Sync configs should exclude it from the other source instead (see sync.config.example.json).
      */
     replacesExisting?: boolean;
 
