@@ -21,6 +21,14 @@ import {
 } from './sync';
 import { CodeHashes } from './processor';
 import { importVerseOfTheDay } from './actions';
+import {
+    createAudioUrlGenerator,
+    KNOWN_AUDIO_TRANSLATIONS,
+} from '@helloao/tools/generation/audio.js';
+import {
+    AUDIO_TRANSLATIONS,
+    AudioSource,
+} from '@helloao/tools/generation/audio-translations.js';
 
 /**
  * An in-memory Typesense server. Maps collection names to their documents (by ID).
@@ -305,6 +313,76 @@ describe('sync', () => {
             'In the beginning, God.',
             'Earth.',
         ]);
+    });
+
+    describe('known audio translations', () => {
+        function setAudio(
+            translationId: string,
+            readers: Record<string, AudioSource>
+        ) {
+            AUDIO_TRANSLATIONS[translationId] = readers;
+            KNOWN_AUDIO_TRANSLATIONS.set(
+                translationId,
+                new Map(
+                    Object.entries(readers).map(([reader, source]) => [
+                        reader,
+                        createAudioUrlGenerator(source),
+                    ])
+                )
+            );
+        }
+
+        afterEach(() => {
+            delete AUDIO_TRANSLATIONS['AAA'];
+            KNOWN_AUDIO_TRANSLATIONS.delete('AAA');
+        });
+
+        it('should only reimport and upload the translations whose audio changed', async () => {
+            await runSync();
+
+            setAudio('AAA', {
+                reader: {
+                    type: 'free-use-bible-api',
+                    translation: 'AAA',
+                    reader: 'reader',
+                },
+            });
+
+            const result = await runSync();
+            expect(
+                result.import!.plan.imports.map((s) => [s.key, s.reason])
+            ).toEqual([['translation:sources/aaa', 'changed']]);
+            expect(result.import!.plan.processorChanged).toEqual([]);
+            expect(result.uploads[0].uploaded).toEqual([
+                { kind: 'translation', id: 'AAA' },
+            ]);
+            expect(
+                readApiFile('api/AAA/GEN/1.json').thisChapterAudioLinks
+            ).toEqual({
+                reader: 'https://audio.bible.helloao.org/api/AAA/GEN/1/audio/reader.mp3',
+            });
+
+            const unchanged = await runSync();
+            expect(unchanged.import!.plan.imports).toEqual([]);
+
+            setAudio('AAA', {
+                other: {
+                    type: 'free-use-bible-api',
+                    translation: 'AAA',
+                    reader: 'other',
+                },
+            });
+
+            const changed = await runSync();
+            expect(
+                changed.import!.plan.imports.map((s) => [s.key, s.reason])
+            ).toEqual([['translation:sources/aaa', 'changed']]);
+            expect(
+                readApiFile('api/AAA/GEN/1.json').thisChapterAudioLinks
+            ).toEqual({
+                other: 'https://audio.bible.helloao.org/api/AAA/GEN/1/audio/other.mp3',
+            });
+        });
     });
 
     it('should reimport and reupload a source when only its metadata changes', async () => {

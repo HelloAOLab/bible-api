@@ -75,9 +75,31 @@ async function entryPoints(
 }
 
 /**
+ * The modules that only contain data which the sync tracks per source, so they are left out of the code hashes.
+ * Changing them shouldn't cause every source to be reprocessed. Instead, the sync includes the relevant data
+ * in the settings of each source (see packages/helloao-cli/sync.ts), so only the affected sources are reprocessed.
+ * These modules must not import any code, since anything that they import would also be left out of the hashes.
+ */
+const UNHASHED_DATA_MODULES = /(^|[\\/])audio-translations(\.[jt]s)?$/;
+
+/**
+ * An esbuild plugin that marks the unhashed data modules as external, so their contents aren't part of the bundle that gets hashed.
+ */
+const excludeUnhashedDataModules: esbuild.Plugin = {
+    name: 'exclude-unhashed-data-modules',
+    setup(build) {
+        build.onResolve({ filter: UNHASHED_DATA_MODULES }, (args) => ({
+            path: args.path,
+            external: true,
+        }));
+    },
+};
+
+/**
  * Calculates the hash of the code that the given entry points run.
  * The code is bundled and minified first so that changes to comments, formatting, and types don't change the hash.
  * Third-party packages are left out. Their versions are pinned by the lockfile.
+ * Data modules that the sync tracks per source are also left out (see UNHASHED_DATA_MODULES).
  * @param entries The entry points, relative to the tools package.
  */
 async function hashCode(entries: string[]): Promise<string> {
@@ -96,6 +118,7 @@ async function hashCode(entries: string[]): Promise<string> {
         platform: 'node',
         format: 'esm',
         packages: 'external',
+        plugins: [excludeUnhashedDataModules],
     });
 
     const hash = createHash('sha256');

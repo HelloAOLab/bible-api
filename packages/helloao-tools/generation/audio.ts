@@ -1,6 +1,14 @@
 import { padStart } from 'es-toolkit/compat';
 import { bookOrderMap } from './book-order.js';
 import { TranslationBookChapterAudioLinks } from './common-types.js';
+import {
+    AUDIO_FILE_TRANSLATIONS,
+    AUDIO_TRANSLATIONS,
+    AudioSource,
+    AudioTranslations,
+} from './audio-translations.js';
+
+export type { AudioSource, AudioTranslations };
 
 type AudioTranslationUrlGenerator = (bookId: string, chapter: number) => string;
 
@@ -68,60 +76,71 @@ const freeUseBibleApiGenerator: (
 };
 
 /**
+ * Creates the URL generator for the given audio source.
+ * @param source The source of the audio.
+ */
+export function createAudioUrlGenerator(
+    source: AudioSource
+): AudioTranslationUrlGenerator {
+    if (source.type === 'free-use-bible-api') {
+        return freeUseBibleApiGenerator(source.translation, source.reader);
+    } else {
+        return openBibleFilenameGenerator(source.translation, source.postfix);
+    }
+}
+
+/**
+ * Creates a map of translation IDs to a map of reader IDs to the URL generator for the audio file.
+ * @param translations The audio sources for each translation.
+ */
+function createAudioUrlGenerators(
+    translations: AudioTranslations
+): Map<string, Map<string, AudioTranslationUrlGenerator>> {
+    return new Map(
+        Object.entries(translations).map(([translationId, readers]) => [
+            translationId,
+            new Map(
+                Object.entries(readers).map(([reader, source]) => [
+                    reader,
+                    createAudioUrlGenerator(source),
+                ])
+            ),
+        ])
+    );
+}
+
+/**
+ * Gets the audio sources that are linked from the chapters of the given translation.
+ * Returns null if the translation has no known audio.
+ *
+ * The sources are plain data, so they can be included in hashes to determine when the translation needs to be reprocessed.
+ * @param translationId The ID of the translation.
+ */
+export function getAudioSourcesForTranslation(
+    translationId: string
+): Record<string, AudioSource> | null {
+    return Object.hasOwn(AUDIO_TRANSLATIONS, translationId)
+        ? AUDIO_TRANSLATIONS[translationId]
+        : null;
+}
+
+/**
  * A map of translation IDs to a map of reader IDs to the URL generator for the audio file.
+ * The translations are defined in audio-translations.ts.
  */
 export const KNOWN_AUDIO_FILE_TRANSLATIONS: Map<
     string,
     Map<string, AudioTranslationUrlGenerator>
-> = new Map([
-    [
-        'BSB',
-        new Map([
-            ['hays', openBibleFilenameGenerator('BSB', 'H')],
-            ['souer', openBibleFilenameGenerator('BSB', null)],
-            ['david', openBibleFilenameGenerator('BSB', 'D')],
-        ]),
-    ],
-]);
+> = createAudioUrlGenerators(AUDIO_FILE_TRANSLATIONS);
 
 /**
  * A map of translation IDs to a map of reader IDs to the URL generator for the audio file.
+ * The translations are defined in audio-translations.ts.
  */
 export const KNOWN_AUDIO_TRANSLATIONS: Map<
     string,
     Map<string, AudioTranslationUrlGenerator>
-> = new Map([
-    [
-        'BSB',
-        new Map([
-            ['hays', freeUseBibleApiGenerator('BSB', 'hays')],
-            ['souer', freeUseBibleApiGenerator('BSB', 'souer')],
-            ['david', freeUseBibleApiGenerator('BSB', 'david')],
-        ]),
-    ],
-    [
-        'AAB',
-        // AAB re-uses the BSB audio files
-        new Map([
-            ['hays', freeUseBibleApiGenerator('BSB', 'hays')],
-            ['souer', freeUseBibleApiGenerator('BSB', 'souer')],
-            ['david', freeUseBibleApiGenerator('BSB', 'david')],
-        ]),
-    ],
-    // The Chinese Union Version translations all share the same CUV audio files
-    ...['cmn_cuv', 'cmn_cuvmps', 'cmn_cuvmpt', 'cmn_cu1'].map(
-        (translationId) =>
-            [
-                translationId,
-                new Map([
-                    [
-                        'mandarin',
-                        freeUseBibleApiGenerator('cmn_cuv', 'mandarin'),
-                    ],
-                ]),
-            ] as const
-    ),
-]);
+> = createAudioUrlGenerators(AUDIO_TRANSLATIONS);
 
 /**
  * Gets the audio URLs for the given translation, book, and chapter.
