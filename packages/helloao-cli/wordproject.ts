@@ -88,9 +88,13 @@ export interface WordprojectTranslation {
     direction?: 'ltr' | 'rtl';
 
     /**
-     * The API translation that has the same text, if any.
+     * The API translation that has the same text (or a close edition of it) and is at least as complete, if any.
      * These translations are skipped unless `includeDuplicates` is set, since importing them would add a second copy of the same text.
-     * Taken from the text comparison in tools/wordproject-audio.ts (only `exact` matches are listed).
+     *
+     * Found by comparing the text of 7 chapters (GEN 1, PSA 23, ISA 53, MAT 5, JHN 3, ROM 8, REV 22) of each Wordproject Bible
+     * with every API translation in the same language (character similarity after removing punctuation and diacritics),
+     * and comparing their numbers of books. A similarity of 0.85 or more counts as the same text.
+     * Texts that are the same as an API translation with fewer books (like amh_wp) are not duplicates.
      */
     duplicateOf?: string;
 
@@ -146,7 +150,7 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'amh',
         name: 'መጽሐፍ ቅዱስ',
         englishName: 'Amharic Bible (Wordproject)',
-        notes: 'The 1962 Haile Selassie Bible. A close, but not identical, copy is in the API as amh_amh.',
+        notes: 'The same text as amh_amh, which only has the New Testament.',
     },
     {
         path: 'ar',
@@ -155,7 +159,8 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         name: 'الكتاب المقدس',
         englishName: 'Arabic Bible - Van Dyck (Wordproject)',
         direction: 'rtl',
-        notes: 'The Van Dyck translation with vowel marks. A close, but not identical, copy is in the API as arb_vdv.',
+        duplicateOf: 'arb_vdv',
+        notes: 'Same text as arb_vdv (Van Dyck).',
     },
     {
         path: 'ben',
@@ -178,6 +183,8 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         name: '聖經 (和合本)',
         englishName: 'Chinese Union Version - Traditional (Wordproject)',
         shortName: '和合本',
+        duplicateOf: 'cmn_cuvmpt',
+        notes: 'Same text as cmn_cuvmpt (Chinese Union Version, Traditional).',
     },
     {
         path: 'big5_cath',
@@ -201,6 +208,7 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'hrv',
         name: 'Biblija',
         englishName: 'Croatian Bible (Wordproject)',
+        notes: 'The same text as hrv_iva, which is missing Esther.',
     },
     {
         path: 'cz',
@@ -208,8 +216,9 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'ces',
         name: 'Bible kralická',
         englishName: 'Czech Bible Kralická (Wordproject)',
-        duplicateOf: 'ces_bkr',
         publicDomain: true,
+        duplicateOf: 'ces_bkr',
+        notes: 'Same text as ces_bkr.',
     },
     {
         path: 'de',
@@ -217,8 +226,9 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'deu',
         name: 'Lutherbibel 1912',
         englishName: 'German Luther Bible 1912 (Wordproject)',
-        duplicateOf: 'deu_l12',
         publicDomain: true,
+        duplicateOf: 'deu_l12',
+        notes: 'Same text as deu_l12.',
     },
     {
         path: 'dk',
@@ -226,6 +236,8 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'dan',
         name: 'Bibelen',
         englishName: 'Danish Bible (Wordproject)',
+        duplicateOf: 'dan_det',
+        notes: 'Same text as dan_det.',
     },
     {
         path: 'drc',
@@ -235,6 +247,8 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         englishName: 'Douay-Rheims Bible (Wordproject)',
         shortName: 'DRC',
         publicDomain: true,
+        duplicateOf: 'eng_dra',
+        notes: 'The same Douay-Rheims (Challoner) text as eng_dra, which also has the deuterocanonical books.',
     },
     {
         path: 'et',
@@ -242,6 +256,7 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'est',
         name: 'Eestikeelne piibel',
         englishName: 'Estonian Bible (Wordproject)',
+        notes: 'ekk_bib in the API is a different text that only has the New Testament.',
     },
     {
         path: 'fa',
@@ -251,6 +266,7 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         englishName: 'Persian Old Version (Wordproject)',
         direction: 'rtl',
         duplicateOf: 'pes_pbs',
+        notes: 'Same text as pes_pbs.',
     },
     {
         path: 'fi',
@@ -272,8 +288,9 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'fra',
         name: 'La Bible Louis Segond',
         englishName: 'French Louis Segond 1910 (Wordproject)',
-        duplicateOf: 'fra_lsg',
         publicDomain: true,
+        duplicateOf: 'fra_lsg',
+        notes: 'Same text as fra_lsg.',
     },
     {
         path: 'gb',
@@ -282,7 +299,8 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         name: '圣经 (和合本)',
         englishName: 'Chinese Union Version - Simplified (Wordproject)',
         shortName: '和合本',
-        duplicateOf: 'cmn_cuv',
+        duplicateOf: 'cmn_cu1',
+        notes: 'Same text as cmn_cu1 and cmn_cuvmps (Chinese Union Version, Simplified).',
     },
     {
         path: 'gb_cat',
@@ -299,6 +317,8 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'grc',
         name: 'Βίβλος',
         englishName: 'Greek Bible - Old Greek (Wordproject)',
+        duplicateOf: 'grc_gtr',
+        notes: 'The New Testament is the Textus Receptus (grc_gtr) and the Old Testament is the Modern Greek text of ell_wp.',
     },
     {
         path: 'gk_2',
@@ -306,6 +326,7 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'ell',
         name: 'Βίβλος',
         englishName: 'Modern Greek Bible (Wordproject)',
+        notes: 'The New Testament is in Ancient Greek (polytonic).',
     },
     {
         path: 'guj',
@@ -322,6 +343,7 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         englishName: 'Hebrew Bible (Wordproject)',
         direction: 'rtl',
         duplicateOf: 'heb_mod',
+        notes: 'Same text as heb_mod.',
     },
     {
         path: 'hu',
@@ -329,7 +351,7 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'hun',
         name: 'Károli Biblia',
         englishName: 'Hungarian Károli Bible (Wordproject)',
-        notes: 'A close, but not identical, copy is in the API as hun_bib.',
+        notes: 'The same Károli text as hun_bib, which only has the New Testament.',
     },
     {
         path: 'hy',
@@ -358,6 +380,8 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'hin',
         name: 'पवित्र बाइबिल',
         englishName: 'Hindi Bible (Wordproject)',
+        duplicateOf: 'HINIRV',
+        notes: 'A close edition of HINIRV (Hindi Indian Revised Version).',
     },
     {
         path: 'in_tr',
@@ -365,6 +389,7 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'hin',
         name: 'Pavitra Baaibil',
         englishName: 'Hindi Bible - Romanized (Wordproject)',
+        notes: 'A Hindi Bible in the Latin alphabet.',
     },
     {
         path: 'is',
@@ -380,6 +405,7 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         name: 'La Sacra Bibbia Riveduta',
         englishName: 'Italian Riveduta 1927 (Wordproject)',
         duplicateOf: 'ita_riv',
+        notes: 'Same text as ita_riv.',
     },
     {
         path: 'jp',
@@ -388,6 +414,7 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         name: '口語訳',
         englishName: 'Japanese Kougo-yaku (Wordproject)',
         duplicateOf: 'jpn_kou',
+        notes: 'Same text as jpn_kou.',
     },
     {
         path: 'khmer',
@@ -403,8 +430,9 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         name: 'King James Version',
         englishName: 'King James Version (Wordproject)',
         shortName: 'KJV',
-        duplicateOf: 'eng_kjv',
         publicDomain: true,
+        duplicateOf: 'eng_kjv',
+        notes: 'Same text as eng_kjv.',
     },
     {
         path: 'kk',
@@ -427,6 +455,7 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         name: '성경 개역한글판',
         englishName: 'Korean Revised Version (Wordproject)',
         duplicateOf: 'kor_old',
+        notes: 'Same text as kor_old.',
     },
     {
         path: 'lug',
@@ -449,6 +478,7 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         name: 'സത്യവേദപുസ്തകം',
         englishName: 'Malayalam Sathyavedapusthakam 1910 (Wordproject)',
         duplicateOf: 'mal_fbf',
+        notes: 'Same text as mal_fbf.',
     },
     {
         path: 'mn',
@@ -464,6 +494,7 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         name: 'သမ္မာကျမ်းစာ',
         englishName: 'Burmese Judson Bible (Wordproject)',
         duplicateOf: 'mya_jvb',
+        notes: 'Same text as mya_jvb.',
     },
     {
         path: 'ne',
@@ -485,6 +516,8 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'kde',
         name: 'Biblia Maconde',
         englishName: 'Makonde New Testament (Wordproject)',
+        duplicateOf: 'kde_wbt',
+        notes: 'Same text as kde_wbt, which also has more books.',
     },
     {
         path: 'new/kik',
@@ -492,6 +525,7 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'kik',
         name: 'Kĩrĩkanĩro',
         englishName: 'Kikuyu Bible (Wordproject)',
+        notes: 'Wordproject only has 55 books of this Bible.',
     },
     {
         path: 'new/kin',
@@ -506,6 +540,8 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'lin',
         name: 'Biblia Mosantu',
         englishName: 'Lingala Bible (Wordproject)',
+        duplicateOf: 'lin_bib',
+        notes: 'Same text as the New Testament of lin_bib, which also has the Old Testament.',
     },
     {
         path: 'new/mas',
@@ -520,6 +556,7 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'gaz',
         name: 'Macaafa Qulqulluu',
         englishName: 'Oromo New Testament (Wordproject)',
+        notes: 'Wordproject has the New Testament and a few Old Testament books.',
     },
     {
         path: 'new/run',
@@ -534,6 +571,8 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'sna',
         name: 'Bhaibheri Dzvene',
         englishName: 'Shona New Testament (Wordproject)',
+        duplicateOf: 'sna_bib',
+        notes: 'Same text as the New Testament of sna_bib, which also has the Old Testament.',
     },
     {
         path: 'new/vmw',
@@ -548,6 +587,7 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'yor',
         name: 'Bibeli Mimọ',
         englishName: 'Yoruba Bible (Wordproject)',
+        notes: 'Related to yor_bib, but a different edition.',
     },
     {
         path: 'nl',
@@ -555,6 +595,8 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'nld',
         name: 'De Bijbel',
         englishName: 'Dutch Bible (Wordproject)',
+        duplicateOf: 'nld_',
+        notes: 'Same text as nld_.',
     },
     {
         path: 'no',
@@ -590,6 +632,7 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'cmn',
         name: 'Shèng Jīng',
         englishName: 'Chinese Union Version - Pinyin (Wordproject)',
+        notes: 'The Chinese Union Version in Pinyin.',
     },
     {
         path: 'po-BR',
@@ -598,6 +641,7 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         name: 'Almeida Corrigida Fiel',
         englishName: 'Portuguese Almeida Corrigida Fiel (Wordproject)',
         shortName: 'ACF',
+        notes: 'A different Almeida edition from por_blj and por_bsl.',
     },
     {
         path: 'po',
@@ -606,6 +650,7 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         name: 'Almeida Revista e Corrigida',
         englishName: 'Portuguese Almeida Revista e Corrigida (Wordproject)',
         shortName: 'ARC',
+        notes: 'A different Almeida edition from por_blj and por_bsl.',
     },
     {
         path: 'pus',
@@ -621,7 +666,7 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'ron',
         name: 'Biblia Cornilescu',
         englishName: 'Romanian Cornilescu Bible (Wordproject)',
-        notes: 'A close, but not identical, copy is in the API as ron_924.',
+        notes: 'The Cornilescu 1924 text in the Latin alphabet. The API has it in Cyrillic letters as ron_924.',
     },
     {
         path: 'ru',
@@ -630,7 +675,8 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         name: 'Синодальный перевод',
         englishName: 'Russian Synodal Translation (Wordproject)',
         stripAltVerseNumbers: true,
-        notes: 'A close, but not identical, copy is in the API as rus_syn.',
+        duplicateOf: 'rus_syn',
+        notes: 'A close edition of rus_syn (Synodal Translation).',
     },
     {
         path: 'se',
@@ -653,6 +699,7 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         name: 'Kitaabka Quduuska Ah',
         englishName: 'Somali Bible (Wordproject)',
         duplicateOf: 'som_sim',
+        notes: 'Same text as som_sim.',
     },
     {
         path: 'sp',
@@ -660,8 +707,9 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'spa',
         name: 'Reina-Valera 1909',
         englishName: 'Spanish Reina-Valera 1909 (Wordproject)',
-        duplicateOf: 'spa_r09',
         publicDomain: true,
+        duplicateOf: 'spa_r09',
+        notes: 'Same text as spa_r09.',
     },
     {
         path: 'sr',
@@ -670,6 +718,7 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         name: 'Српска Библија',
         englishName: 'Serbian Daničić-Karadžić Bible (Wordproject)',
         duplicateOf: 'srp_dkl',
+        notes: 'Same text as srp_dkl.',
     },
     {
         path: 'sw',
@@ -692,6 +741,7 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         name: 'พระคัมภีร์ไบเบิล',
         englishName: 'Thai KJV (Wordproject)',
         duplicateOf: 'tha_kjv',
+        notes: 'Same text as tha_kjv.',
     },
     {
         path: 'tk',
@@ -713,6 +763,8 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'tam',
         name: 'வேதாகமம்',
         englishName: 'Tamil Bible (Wordproject)',
+        duplicateOf: 'tam_irv',
+        notes: 'A close edition of tam_irv.',
     },
     {
         path: 'tr',
@@ -749,8 +801,9 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'lat',
         name: 'Biblia Sacra Vulgata',
         englishName: 'Latin Vulgate (Wordproject)',
-        duplicateOf: 'lat_clv',
         publicDomain: true,
+        duplicateOf: 'lat_clv',
+        notes: 'A close edition of lat_clv (Clementine Vulgate).',
     },
     {
         path: 'vt',
@@ -758,8 +811,9 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'vie',
         name: 'Kinh Thánh',
         englishName: 'Vietnamese Bible 1934 (Wordproject)',
-        duplicateOf: 'vie_1934',
         publicDomain: true,
+        duplicateOf: 'vie_1934',
+        notes: 'Same text as vie_1934.',
     },
     {
         path: 'xho_2',
@@ -870,15 +924,35 @@ export function parseWordprojectIndex(
         if (!match) {
             continue;
         }
-        const bookId = getWordprojectBookId(match[1]);
+        let folder = match[1];
+        let bookId = getWordprojectBookId(folder);
+        // The title of each link has the book number, like "[38] Zechariah".
+        // Some index pages link a book to the wrong folder (Zechariah to Malachi's folder 39 in the Icelandic, Norwegian and Swedish Bibles),
+        // so the number in the title wins when they disagree.
+        const titleNumber = /\[(\d+(?:_[A-Z])?)\]/.exec(
+            a.getAttribute('title') ?? ''
+        )?.[1];
+        const titleBookId = titleNumber
+            ? getWordprojectBookId(titleNumber)
+            : null;
+        if (bookId && titleBookId && titleBookId !== bookId) {
+            const digits = /\d+/.exec(folder)![0];
+            folder =
+                (folder.startsWith('B') ? 'B' : '') +
+                titleNumber!.replace(/^\d+/, (n) =>
+                    parseInt(n, 10).toString().padStart(digits.length, '0')
+                );
+            bookId = titleBookId;
+        }
         if (!bookId || seen.has(bookId)) {
             continue;
         }
         seen.add(bookId);
+        const fixedHref = href.replace(/^[^/]+/, folder);
         books.push({
             bookId,
             name: cleanText(a.textContent),
-            url: new URL(href, pageUrl).href.replace(/#.*$/, ''),
+            url: new URL(fixedHref, pageUrl).href.replace(/#.*$/, ''),
         });
     }
     return books;
@@ -1583,10 +1657,22 @@ export async function fetchWordprojectTranslations(
                 return await getPage(url);
             };
 
-            const books = parseWordprojectIndex(
-                await getTranslationPage(indexUrl),
-                indexUrl
-            );
+            // The book list always comes from the website, since the index pages in some zips link books to the wrong folder
+            // (the Danish zip links Zechariah to Malachi's folder, for example).
+            let indexPage: string;
+            try {
+                indexPage = await getPage(indexUrl);
+            } catch (err) {
+                const zipIndex = zipPages?.get(indexUrl);
+                if (zipIndex === undefined) {
+                    throw err;
+                }
+                logger.warn(
+                    `${translation.id}: could not download ${indexUrl}, so the book list in the zip is used: ${err instanceof Error ? err.message : err}`
+                );
+                indexPage = zipIndex;
+            }
+            const books = parseWordprojectIndex(indexPage, indexUrl);
             if (books.length === 0) {
                 throw new Error(`No books were found on ${indexUrl}`);
             }

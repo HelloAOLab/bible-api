@@ -99,6 +99,24 @@ describe('parseWordprojectIndex()', () => {
         ]);
     });
 
+    it('should use the book number in the title when the link goes to the wrong folder', () => {
+        const html = `<li><a title="[37] Haggai" href="37/1.htm">Haggai</a></li>
+<li><a title="[38] Zechariah" href="39/1.htm">Sakaria</a></li>
+<li><a title="[39] Malachi" href="39/1.htm">Malaki</a></li>
+<li><a title="[02]" href="B03/C001.htm">Exodus</a></li>`;
+        expect(
+            parseWordprojectIndex(
+                html,
+                'https://www.wordproject.org/bibles/se/index.htm'
+            ).map((b) => [b.bookId, b.url])
+        ).toEqual([
+            ['HAG', 'https://www.wordproject.org/bibles/se/37/1.htm'],
+            ['ZEC', 'https://www.wordproject.org/bibles/se/38/1.htm'],
+            ['MAL', 'https://www.wordproject.org/bibles/se/39/1.htm'],
+            ['EXO', 'https://www.wordproject.org/bibles/se/B02/C001.htm'],
+        ]);
+    });
+
     it('should support the layout of the newer Bibles', () => {
         const html = `<a href="1/index.htm">Farawa</a><a href="40/index.htm">Matiyu</a>`;
         expect(
@@ -560,7 +578,11 @@ describe('fetchWordprojectTranslations()', () => {
                     ? (requests.push(url), new Response(zip))
                     : fakeFetch(url),
         });
-        expect(requests).toEqual([zipUrl, `${base}01/2.htm`]);
+        expect(requests).toEqual([
+            zipUrl,
+            `${base}index.htm`,
+            `${base}01/2.htm`,
+        ]);
         expect(
             await readFile(
                 path.join(out, 'tst_wp', WORDPROJECT_MARKER_FILE),
@@ -642,7 +664,11 @@ describe('fetchWordprojectTranslations()', () => {
                     : new Response(website[url]);
             },
         });
-        expect(requests).toEqual([zipUrl, `${base}01/2.htm`]);
+        expect(requests).toEqual([
+            zipUrl,
+            `${base}index.htm`,
+            `${base}01/2.htm`,
+        ]);
         expect(
             await readFile(path.join(out, 'tst_wp', 'gen.usx'), 'utf-8')
         ).toContain('And on the seventh day.');
@@ -703,9 +729,39 @@ describe('fetchWordprojectTranslations()', () => {
                     : new Response(pages[url]);
             },
         });
-        expect(requests).toEqual([zipUrl, `${base}01/2.htm`]);
+        expect(requests).toEqual([
+            zipUrl,
+            `${base}index.htm`,
+            `${base}01/2.htm`,
+        ]);
         expect(
             await readFile(path.join(out, 'tst_wp', 'gen.usx'), 'utf-8')
         ).toContain('Thus the heavens.');
+    });
+
+    it('should take the book list from the website instead of the zip', async () => {
+        const writer = new ZipWriter(new Uint8ArrayWriter());
+        for (const [url, page] of Object.entries(pages)) {
+            await writer.add(
+                `test_new/${url.slice(base.length)}`,
+                new TextReader(
+                    url.endsWith('index.htm')
+                        ? // Both books link to Genesis, like Zechariah links to Malachi in the Danish zip.
+                          `<a href="01/1.htm">Genesis</a><a href="01/1.htm">John</a>`
+                        : page
+                )
+            );
+        }
+        const zip = await writer.close();
+        const zipUrl = getWordprojectZipUrl(translation);
+        const out = path.join(dir, 'out');
+        await fetchWordprojectTranslations(out, {
+            catalog: [translation],
+            fetch: async (url) =>
+                url === zipUrl ? new Response(zip) : fakeFetch(url),
+        });
+        expect((await readdir(path.join(out, 'tst_wp'))).sort()).toContain(
+            'jhn.usx'
+        );
     });
 });
