@@ -1374,11 +1374,11 @@ async function start() {
         .description(
             'Downloads Bible texts from wordproject.org, converts them to USX and places them in the given directory, ready for import-translations.\n' +
                 'Translations can be given by ID (e.g. amh_wp) or by their wordproject.org folder (e.g. am). ' +
-                'Defaults to every translation that the API does not already have a copy of. Run list-wordproject-translations to see them.'
+                'Defaults to the translations that the API does not already have and that may be published (public domain, plus the non-commercial Amharic Bible). Run list-wordproject-translations to see them.'
         )
         .option(
-            '--include-duplicates',
-            'Also fetch translations that the API already has a copy of (only when no translations are given)'
+            '--all',
+            'Fetch every translation in the catalog instead of only the default ones (only when no translations are given). Check the license of each one before publishing it.'
         )
         .option(
             '--public-domain-only',
@@ -1409,7 +1409,7 @@ async function start() {
         .action(async (dir: string, translations: string[], options: any) => {
             await fetchWordprojectTranslations(dir, {
                 translations,
-                includeDuplicates: !!options.includeDuplicates,
+                all: !!options.all,
                 publicDomainOnly: !!options.publicDomainOnly,
                 overwrite: !!options.overwrite,
                 zip: options.zip !== false,
@@ -1428,7 +1428,10 @@ async function start() {
                 t.path,
                 t.language,
                 t.englishName,
-                t.publicDomain ? 'public domain' : 'unknown',
+                t.includeByDefault ? 'yes' : '',
+                t.publicDomain
+                    ? 'public-domain'
+                    : (t.licenseStatus ?? 'not checked'),
                 t.duplicateOf ? `same as ${t.duplicateOf}` : '',
             ]);
             const header = [
@@ -1436,6 +1439,7 @@ async function start() {
                 'folder',
                 'lang',
                 'name',
+                'default',
                 'license',
                 'duplicate',
             ];

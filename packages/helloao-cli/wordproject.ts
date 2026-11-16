@@ -89,7 +89,7 @@ export interface WordprojectTranslation {
 
     /**
      * The API translation that has the same text (or a close edition of it) and is at least as complete, if any.
-     * These translations are skipped unless `includeDuplicates` is set, since importing them would add a second copy of the same text.
+     * Importing these would add a second copy of the same text, so they are never downloaded by default.
      *
      * Found by comparing the text of 7 chapters (GEN 1, PSA 23, ISA 53, MAT 5, JHN 3, ROM 8, REV 22) of each Wordproject Bible
      * with every API translation in the same language (character similarity after removing punctuation and diacritics),
@@ -104,6 +104,48 @@ export interface WordprojectTranslation {
      * so every other text needs its license checked before it is published.
      */
     publicDomain?: boolean;
+
+    /**
+     * The license of a text that is not in the public domain but may be published under some terms.
+     * Written to the translation's metadata.json, along with {@link licenseNotice} and {@link licenseUrl}.
+     */
+    license?: License;
+
+    /**
+     * The notice that should be shown with the text. Defaults to a notice about where the text came from.
+     */
+    licenseNotice?: string;
+
+    /**
+     * The URL of the license. Defaults to {@link WORDPROJECT_COPYRIGHT_URL}.
+     */
+    licenseUrl?: string;
+
+    /**
+     * What a search for the text's copyright found (see wordproject-licenses.md):
+     * - `public-domain`: the text is in the public domain.
+     * - `non-commercial`: the text may be published, but not used commercially.
+     * - `copyrighted`: the text is copyrighted, so it must not be published.
+     * - `unknown`: the edition or its status could not be determined.
+     *
+     * Not set for the texts that the API already has (see {@link duplicateOf}), which weren't checked.
+     */
+    licenseStatus?:
+        | 'public-domain'
+        | 'non-commercial'
+        | 'copyrighted'
+        | 'unknown';
+
+    /**
+     * The edition that the text was identified as when its copyright was checked.
+     */
+    identifiedAs?: string;
+
+    /**
+     * Whether the text is downloaded when no translations are given.
+     * Only set for texts that the API doesn't already have (or has a less complete copy of) and that may be published.
+     */
+    includeByDefault?: boolean;
 
     /**
      * Whether verse texts start with the verse number of another versification, like `(22-1)`, that should be removed.
@@ -129,6 +171,9 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'ace',
         name: 'Alkitab Lam Basa Aceh',
         englishName: 'Acehnese Bible (Wordproject)',
+        licenseStatus: 'copyrighted',
+        identifiedAs:
+            "Alkitab Bahasa Aceh (Acehnese Bible), Lembaga Alkitab Indonesia (LAI); identical Gen 1:1 incl. 'atawa' alternative readings appears on bible.com version 2835 (LAIACE)",
     },
     {
         path: 'af_2',
@@ -136,6 +181,9 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'afr',
         name: 'Bybel',
         englishName: 'Afrikaans Bible (Wordproject)',
+        licenseStatus: 'copyrighted',
+        identifiedAs:
+            'Afrikaans Bybel 1933/1953 (Ou Vertaling, 1953 revised edition), Bybelgenootskap van Suid-Afrika (Bible Society of South Africa)',
     },
     {
         path: 'al',
@@ -143,6 +191,9 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'sqi',
         name: 'Bibla e Shenjtë',
         englishName: 'Albanian Bible (Wordproject)',
+        licenseStatus: 'copyrighted',
+        identifiedAs:
+            "Albanian Bible (Bibla e Shenjtë, 1994), Albanian Bible Society / Albanian Bible Institute, translated from the Italian Nuova Diodati (1991). Same text as Unbound Bible / BibleGateway 'ALB'",
     },
     {
         path: 'am',
@@ -151,6 +202,20 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         name: 'መጽሐፍ ቅዱስ',
         englishName: 'Amharic Bible (Wordproject)',
         notes: 'The same text as amh_amh, which only has the New Testament.',
+        licenseStatus: 'non-commercial',
+        identifiedAs:
+            "Amharic Bible 1962 ('Haile Selassie Bible'), Bible Society of Ethiopia / United Bible Societies",
+        includeByDefault: true,
+        license: {
+            publicDomain: false,
+            attribution: 'required',
+            commercialUse: 'not-allowed',
+            derivatives: 'not-allowed',
+            copyleft: false,
+        },
+        licenseNotice:
+            'Copyright © 1962, 2003 United Bible Societies. Used for non-commercial purposes only; commercial use requires written permission from the Bible Society of Ethiopia.',
+        licenseUrl: 'https://ebible.org/amh/copyright.htm',
     },
     {
         path: 'ar',
@@ -168,6 +233,9 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'ben',
         name: 'পবিত্র বাইবেল',
         englishName: 'Bengali Bible (Wordproject)',
+        licenseStatus: 'copyrighted',
+        identifiedAs:
+            'Bengali Holy Bible: Easy-to-Read Version (ERV-BN), (c) 2001-2006 World Bible Translation Center (now Bible League International)',
     },
     {
         path: 'bg',
@@ -175,6 +243,9 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'bul',
         name: 'Българска Библия',
         englishName: 'Bulgarian Bible (Wordproject)',
+        licenseStatus: 'unknown',
+        identifiedAs:
+            'Bulgarian Bible 1940 (Synodal/Bible Society edition of 1940) in modern spelling, probably via the Bibliata.com digital text (BG1940)',
     },
     {
         path: 'big5',
@@ -194,6 +265,9 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         englishName:
             'Chinese Catholic Bible - Si Gao Version, Traditional (Wordproject)',
         shortName: '思高本',
+        licenseStatus: 'copyrighted',
+        identifiedAs:
+            'Studium Biblicum Version (思高聖經), complete Bible 1968, Studium Biblicum O.F.M., Hong Kong (Traditional characters)',
     },
     {
         path: 'ceb',
@@ -201,6 +275,11 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'ceb',
         name: 'Bibliya',
         englishName: 'Cebuano Bible (Wordproject)',
+        licenseStatus: 'public-domain',
+        identifiedAs:
+            "Ang Biblia (Cebuano 'Bugna' Version), 1917, American Bible Society / Philippine Bible Society (inferred from the wording)",
+        publicDomain: true,
+        includeByDefault: true,
     },
     {
         path: 'cr',
@@ -209,6 +288,9 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         name: 'Biblija',
         englishName: 'Croatian Bible (Wordproject)',
         notes: 'The same text as hrv_iva, which is missing Esther.',
+        licenseStatus: 'copyrighted',
+        identifiedAs:
+            "Croatian 'Zagrebačka Biblija' (Zagreb Bible, 1968; ed. Jure Kaštelan & Bonaventura Duda), Kršćanska sadašnjost, Zagreb (identification by inference). Same text that the Unbound Bible / CrossWire 'CroSaric' module mislabels as the Šarić Bible",
     },
     {
         path: 'cz',
@@ -257,6 +339,9 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         name: 'Eestikeelne piibel',
         englishName: 'Estonian Bible (Wordproject)',
         notes: 'ekk_bib in the API is a different text that only has the New Testament.',
+        licenseStatus: 'copyrighted',
+        identifiedAs:
+            "Estonian Bible, Eesti Piibliselts tradition: wordproject calls it 'Eestikeelne Piibel 1997' (the 1997 Estonian Bible Society edition, a revision of the 1968 Kõpp/Pold Bible). Near-identical to CrossWire 'Est' (Gen 1:1 there reads 'taevad ja maa' instead of 'taeva ja maa')",
     },
     {
         path: 'fa',
@@ -274,6 +359,11 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'fin',
         name: 'Raamattu',
         englishName: 'Finnish Bible 1933/1938 (Wordproject)',
+        licenseStatus: 'public-domain',
+        identifiedAs:
+            'Finnish Kirkkoraamattu 1933/1938 (Pyhä Raamattu; OT adopted by the Church Assembly in 1933, NT in 1938), Evangelical Lutheran Church of Finland',
+        publicDomain: true,
+        includeByDefault: true,
     },
     {
         path: 'fj',
@@ -281,6 +371,9 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'fij',
         name: 'Ai Vola Tabu',
         englishName: 'Fijian Bible (Wordproject)',
+        licenseStatus: 'copyrighted',
+        identifiedAs:
+            "Modern Fijian translation, most likely the Fijian New Version (Ai Vola Tabu ena Vakavakadewa Vou), Bible Society in the South Pacific. It is NOT the 1902 Langham 'Fijian Old Version'.",
     },
     {
         path: 'fr',
@@ -310,6 +403,9 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         englishName:
             'Chinese Catholic Bible - Si Gao Version, Simplified (Wordproject)',
         shortName: '思高本',
+        licenseStatus: 'copyrighted',
+        identifiedAs:
+            'Studium Biblicum Version (思高圣经), 1968, Studium Biblicum O.F.M., Hong Kong (Simplified-character conversion)',
     },
     {
         path: 'gk',
@@ -327,6 +423,9 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         name: 'Βίβλος',
         englishName: 'Modern Greek Bible (Wordproject)',
         notes: 'The New Testament is in Ancient Greek (polytonic).',
+        licenseStatus: 'copyrighted',
+        identifiedAs:
+            "OT: Spyros Filos's demotic revision of the Vamvas Bible (FPB, 'Filos Pergamos Bible', 1994; latest edition 2013), Pergamos Publications, Athens. NT: a polytonic Byzantine/Textus-Receptus-type Ancient Greek NT, edition not identified",
     },
     {
         path: 'guj',
@@ -334,6 +433,9 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'guj',
         name: 'પવિત્ર બાઇબલ',
         englishName: 'Gujarati Bible (Wordproject)',
+        licenseStatus: 'copyrighted',
+        identifiedAs:
+            'Gujarati Holy Bible: Easy-to-Read Version (ERV-GU), (c) 1997-2009 World Bible Translation Center',
     },
     {
         path: 'he',
@@ -352,6 +454,11 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         name: 'Károli Biblia',
         englishName: 'Hungarian Károli Bible (Wordproject)',
         notes: 'The same Károli text as hun_bib, which only has the New Testament.',
+        licenseStatus: 'public-domain',
+        identifiedAs:
+            "Hungarian Károli Bible, 1908 revised edition (revideált Károli, revision of Gáspár Károli's 1590 translation, sponsored by the British and Foreign Bible Society)",
+        publicDomain: true,
+        includeByDefault: true,
     },
     {
         path: 'hy',
@@ -359,6 +466,9 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'hye',
         name: 'Հայերեն Աստվածաշունչ',
         englishName: 'Armenian Bible (Wordproject)',
+        licenseStatus: 'unknown',
+        identifiedAs:
+            'Western Armenian Bible in classical orthography (full OT+NT); exact edition not identified. Possibly a Bible Society Western Armenian edition (inference).',
     },
     {
         path: 'id_tb',
@@ -366,6 +476,9 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'ind',
         name: 'Alkitab Terjemahan Baru',
         englishName: 'Indonesian Terjemahan Baru (Wordproject)',
+        licenseStatus: 'copyrighted',
+        identifiedAs:
+            'Alkitab Terjemahan Baru (TB), 1974, Lembaga Alkitab Indonesia',
     },
     {
         path: 'ig',
@@ -373,6 +486,11 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'ibo',
         name: 'Akwụkwọ Nsọ',
         englishName: 'Igbo Bible (Wordproject)',
+        licenseStatus: 'public-domain',
+        identifiedAs:
+            "Union Igbo Bible ('Bible Nso', Union Version), NT c.1906-1909, complete Bible 1913, translated by Archdeacon Thomas John Dennis (CMS) with Igbo collaborators, published by the British and Foreign Bible Society; currently reprinted by the Bible Society of Nigeria (bible.com IGBOB, (c) 1906, 2006 BSN).",
+        publicDomain: true,
+        includeByDefault: true,
     },
     {
         path: 'in',
@@ -390,6 +508,9 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         name: 'Pavitra Baaibil',
         englishName: 'Hindi Bible - Romanized (Wordproject)',
         notes: 'A Hindi Bible in the Latin alphabet.',
+        licenseStatus: 'copyrighted',
+        identifiedAs:
+            "Romanized transliteration of the Hindi Bible 'Old Version' (O.V.), Bible Society of India (originally BFBS), the same text as wordproject's Devanagari Hindi Bible (/bibles/in/)",
     },
     {
         path: 'is',
@@ -397,6 +518,9 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'isl',
         name: 'Biblían',
         englishName: 'Icelandic Bible (Wordproject)',
+        licenseStatus: 'copyrighted',
+        identifiedAs:
+            'Icelandic Bible 1981 (Biblían – Heilög ritning, 10th Icelandic Bible; OT a light revision of 1912, new NT), Hið íslenska biblíufélag (Icelandic Bible Society)',
     },
     {
         path: 'it',
@@ -422,6 +546,9 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'khm',
         name: 'ព្រះគម្ពីរខ្មែរ',
         englishName: 'Khmer Bible (Wordproject)',
+        licenseStatus: 'copyrighted',
+        identifiedAs:
+            "Khmer Old Version (KOV, 'Hammond version'), 1954 / rev. 1962, translated by Arthur L. Hammond, Bible Society in Cambodia",
     },
     {
         path: 'kj',
@@ -440,6 +567,9 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'kaz',
         name: 'Қасиетті кітап',
         englishName: 'Kazakh Bible (Wordproject)',
+        licenseStatus: 'copyrighted',
+        identifiedAs:
+            'Киелі кітап, Kazakh Bible, «Орта Азия баспасы ЖШС» (Central Asia Publishing / kkitap.net), 2010+ edition',
     },
     {
         path: 'kn',
@@ -447,6 +577,9 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'kan',
         name: 'ಪವಿತ್ರ ಬೈಬಲ್',
         englishName: 'Kannada Bible (Wordproject)',
+        licenseStatus: 'unknown',
+        identifiedAs:
+            "Kannada Bible, Old Version (Bible Society of India / BFBS 'Kannada O.V.'), the committee revision that Wikipedia says was completed by c.1934 (inference)",
     },
     {
         path: 'kr',
@@ -463,6 +596,9 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'lug',
         name: "Baibuli y'Oluganda",
         englishName: 'Luganda Bible (Wordproject)',
+        licenseStatus: 'copyrighted',
+        identifiedAs:
+            'Luganda Bible 1968 (Baibuli Entukuvu, LUG68), Bible Society of Uganda',
     },
     {
         path: 'mar',
@@ -470,6 +606,9 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'mar',
         name: 'मराठी बायबल',
         englishName: 'Marathi Bible (Wordproject)',
+        licenseStatus: 'copyrighted',
+        identifiedAs:
+            'Marathi Holy Bible: Easy-to-Read Version (ERV-MR), (c) 1992-2010 World Bible Translation Center',
     },
     {
         path: 'ml',
@@ -486,6 +625,9 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'khk',
         name: 'Монгол Ариун Библи',
         englishName: 'Mongolian Bible (Wordproject)',
+        licenseStatus: 'copyrighted',
+        identifiedAs:
+            'Ариун Библи 2004 (АБ2004), Mongolian Union Bible Society (formerly the Mongolian Bible Translation Committee)',
     },
     {
         path: 'my',
@@ -502,6 +644,9 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'npi',
         name: 'पवित्र बाइबल (सरल नेपाली)',
         englishName: 'Nepali Bible (Wordproject)',
+        licenseStatus: 'copyrighted',
+        identifiedAs:
+            "Nepali Holy Bible: Easy-to-Read Version (NPIERV, 'Saral Nepali'), 2004, World Bible Translation Center / Bible League International",
     },
     {
         path: 'new/hau',
@@ -509,6 +654,9 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'hau',
         name: 'Littafi Mai Tsarki',
         englishName: 'Hausa Bible (Wordproject)',
+        licenseStatus: 'copyrighted',
+        identifiedAs:
+            "Probably 'Littafi Mai Tsarki' (HAU), the Hausa Bible of the Bible Society of Nigeria (Common Language-style text; bible.com version 71, text (c) 2015 Bible Society of Nigeria). NOT Biblica's Hausa Contemporary Bible / Open Hausa (SRK/BSRK), whose Gen 1:1 reads 'A farko-farko, Allah ya halicci sama da kasa'.",
     },
     {
         path: 'new/kde',
@@ -526,6 +674,9 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         name: 'Kĩrĩkanĩro',
         englishName: 'Kikuyu Bible (Wordproject)',
         notes: 'Wordproject only has 55 books of this Bible.',
+        licenseStatus: 'copyrighted',
+        identifiedAs:
+            "Kikuyu (Gikuyu) Bible, 'Kiugo Githeru kia Ngai', Bible Society of Kenya, 1965 (first complete Kikuyu Bible), apparently in a later edition with tilde vowels (bible.com GKY, version 1622).",
     },
     {
         path: 'new/kin',
@@ -533,6 +684,9 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'kin',
         name: 'Isezerano Rishya',
         englishName: 'Kinyarwanda New Testament (Wordproject)',
+        licenseStatus: 'copyrighted',
+        identifiedAs:
+            "Kinyarwanda 'Bibiliya Ijambo ry'Imana' (BIR), new translation by the Bible Society of Rwanda (La Societe Biblique au Rwanda) with local churches (c. 2004); Wordproject has the NT only.",
     },
     {
         path: 'new/lin',
@@ -549,6 +703,9 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'mas',
         name: 'Biblia Sinyati',
         englishName: 'Maasai New Testament (Wordproject)',
+        licenseStatus: 'copyrighted',
+        identifiedAs:
+            "Maasai 'Biblia Sinyati' (New Testament portion), Bible Society of Kenya (with Bible Society of Tanzania); a revised Maasai Bible is (c) 2018 Bible Society of Kenya (bible.com 1816/3310). Exact edition (original vs. 2018 revision) not confirmed.",
     },
     {
         path: 'new/orm',
@@ -557,6 +714,9 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         name: 'Macaafa Qulqulluu',
         englishName: 'Oromo New Testament (Wordproject)',
         notes: 'Wordproject has the New Testament and a few Old Testament books.',
+        licenseStatus: 'unknown',
+        identifiedAs:
+            "Unidentified Oromo (Afaan Oromoo) NT plus Genesis and Ruth. Most likely a Bible Society of Ethiopia 'Macaafa Qulqulluu' text (the 1997 Latin-script Oromo Bible) or a later Ethiopian translation; same John 3:16 wording is quoted in Adventist Oromo Sabbath School lessons.",
     },
     {
         path: 'new/run',
@@ -564,6 +724,9 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'run',
         name: 'Bibiliya Yera',
         englishName: 'Kirundi New Testament (Wordproject)',
+        licenseStatus: 'copyrighted',
+        identifiedAs:
+            "Kirundi 'Bibiliya Yera' (1951/1967), Bible Society of Burundi (bible.com RUN1967, version 2944), apparently in modernised spelling.",
     },
     {
         path: 'new/sna',
@@ -580,6 +743,9 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'vmw',
         name: 'Biblia Emakhuwa',
         englishName: 'Makhuwa New Testament (Wordproject)',
+        licenseStatus: 'unknown',
+        identifiedAs:
+            "Unidentified Makhuwa (Emakhuwa, vmw) New Testament. Probably the Sociedade Biblica de Mocambique's Makhuwa translation (complete Bible 1982; a newer Emakhuwa Bible was finished later), but not confirmed. It is not the Makhuwa-Meetto (mgh) texts in the API, which are a different language.",
     },
     {
         path: 'new/yor',
@@ -588,6 +754,11 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         name: 'Bibeli Mimọ',
         englishName: 'Yoruba Bible (Wordproject)',
         notes: 'Related to yor_bib, but a different edition.',
+        licenseStatus: 'public-domain',
+        identifiedAs:
+            "Bibeli Mimo - the classic Yoruba Bible (1900 complete edition by the CMS/BFBS translators, building on Samuel Ajayi Crowther's work), as reprinted by the Bible Society of Nigeria (bible.com 'YCE'/'BM' and 'YBCV - Yoruba Bible 1884 Edition (Crowther)').",
+        publicDomain: true,
+        includeByDefault: true,
     },
     {
         path: 'nl',
@@ -600,10 +771,15 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
     },
     {
         path: 'no',
-        id: 'nno_wp',
-        language: 'nno',
-        name: 'Bibelen',
-        englishName: 'Norwegian Nynorsk Bible (Wordproject)',
+        id: 'nob_wp',
+        language: 'nob',
+        name: 'Bibelen 1930',
+        englishName: 'Norwegian Bokmål Bible 1930 (Wordproject)',
+        licenseStatus: 'public-domain',
+        identifiedAs:
+            'Norwegian Bible 1930, Det Norske Bibelselskap (Riksmål/Bokmål, NOT Nynorsk)',
+        publicDomain: true,
+        includeByDefault: true,
     },
     {
         path: 'or',
@@ -611,6 +787,9 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'ory',
         name: 'ପବିତ୍ର ବାଇବଲ',
         englishName: 'Oriya Bible (Wordproject)',
+        licenseStatus: 'copyrighted',
+        identifiedAs:
+            'Oriya/Odia Holy Bible: Easy-to-Read Version (ERV-OR), (c) 1992-2010 World Bible Translation Center',
     },
     {
         path: 'pa',
@@ -618,6 +797,9 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'pan',
         name: 'ਬਾਇਬਲ',
         englishName: 'Punjabi Bible (Wordproject)',
+        licenseStatus: 'copyrighted',
+        identifiedAs:
+            'MIXED text: Old Testament = Punjabi Easy-to-Read Version (ERV-PA, (c) 1992-2010 WBTC); New Testament = Punjabi (Gurmukhi) Old Version, Bible Society of India (edition not identified)',
     },
     {
         path: 'pl',
@@ -625,6 +807,10 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'pol',
         name: 'Biblia Gdańska',
         englishName: 'Polish Gdańsk Bible (Wordproject)',
+        licenseStatus: 'public-domain',
+        identifiedAs: 'Polish Biblia Gdańska (1632 translation, 1881 edition)',
+        publicDomain: true,
+        includeByDefault: true,
     },
     {
         path: 'pn',
@@ -633,6 +819,11 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         name: 'Shèng Jīng',
         englishName: 'Chinese Union Version - Pinyin (Wordproject)',
         notes: 'The Chinese Union Version in Pinyin.',
+        licenseStatus: 'public-domain',
+        identifiedAs:
+            'Chinese Union Version (和合本, 1919) in Hanyu Pinyin with tone marks; romanizer unknown (possibly Wordproject or an older CUV-Pinyin e-text)',
+        publicDomain: true,
+        includeByDefault: true,
     },
     {
         path: 'po-BR',
@@ -642,6 +833,9 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         englishName: 'Portuguese Almeida Corrigida Fiel (Wordproject)',
         shortName: 'ACF',
         notes: 'A different Almeida edition from por_blj and por_bsl.',
+        licenseStatus: 'copyrighted',
+        identifiedAs:
+            'Almeida Corrigida Fiel (ACF), Sociedade Bíblica Trinitariana do Brasil (1994/1995/2007/2011)',
     },
     {
         path: 'po',
@@ -651,6 +845,9 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         englishName: 'Portuguese Almeida Revista e Corrigida (Wordproject)',
         shortName: 'ARC',
         notes: 'A different Almeida edition from por_blj and por_bsl.',
+        licenseStatus: 'copyrighted',
+        identifiedAs:
+            'João Ferreira de Almeida, Edição Revista e Corrigida (ARC) in European Portuguese spelling: the Sociedade Bíblica de Portugal edition (the 1898 Revista e Corrigida, updated 1968 and later re-spelled). It is NOT the 1911 public-domain printing.',
     },
     {
         path: 'pus',
@@ -659,6 +856,9 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         name: 'انجیل مقدس',
         englishName: 'Pashto Bible (Wordproject)',
         direction: 'rtl',
+        licenseStatus: 'unknown',
+        identifiedAs:
+            "Unidentified modern Pashto translation (Afghan-style vocabulary: 'خدای پاک', 'عیسی مسیح'); not the 1895 Peshawar Bible",
     },
     {
         path: 'ro',
@@ -667,6 +867,11 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         name: 'Biblia Cornilescu',
         englishName: 'Romanian Cornilescu Bible (Wordproject)',
         notes: 'The Cornilescu 1924 text in the Latin alphabet. The API has it in Cyrillic letters as ron_924.',
+        licenseStatus: 'public-domain',
+        identifiedAs:
+            'Dumitru Cornilescu Romanian Bible, 1924 edition (British and Foreign Bible Society), original pre-1993 spelling with î, not the 2010/2014 revision',
+        publicDomain: true,
+        includeByDefault: true,
     },
     {
         path: 'ru',
@@ -684,6 +889,11 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'swe',
         name: 'Bibeln 1917',
         englishName: 'Swedish Bible 1917 (Wordproject)',
+        licenseStatus: 'public-domain',
+        identifiedAs:
+            "Swedish Bible 1917 (Bibeln, Gustav V's 1917 Church Bible, Bibelkommissionen), Project Runeberg text",
+        publicDomain: true,
+        includeByDefault: true,
     },
     {
         path: 'si',
@@ -691,6 +901,11 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'sin',
         name: 'ශුද්ධ වූ බයිබලය',
         englishName: 'Sinhala Bible (Wordproject)',
+        licenseStatus: 'public-domain',
+        identifiedAs:
+            "Sinhala Revised Old Version / 'Union Version' (Ceylon Bible Society, complete Bible 1938)",
+        publicDomain: true,
+        includeByDefault: true,
     },
     {
         path: 'so',
@@ -726,6 +941,9 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'swh',
         name: 'Biblia Takatifu',
         englishName: 'Swahili Union Version (Wordproject)',
+        licenseStatus: 'copyrighted',
+        identifiedAs:
+            'Swahili Union Version (Biblia Takatifu, SUV), 1952, Bible Society of Kenya & Bible Society of Tanzania',
     },
     {
         path: 'tel',
@@ -733,6 +951,11 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'tel',
         name: 'పవిత్ర బైబిల్',
         englishName: 'Telugu Bible (Wordproject)',
+        licenseStatus: 'public-domain',
+        identifiedAs:
+            "Telugu Bible, Old Version (BSI/BFBS; Lyman Jewett et al. 1880s, revised 1904; the 'Telugu Bible 1929 edition' text)",
+        publicDomain: true,
+        includeByDefault: true,
     },
     {
         path: 'ti',
@@ -749,6 +972,9 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'tuk',
         name: 'Mukaddes Kitap',
         englishName: 'Turkmen Bible (Wordproject)',
+        licenseStatus: 'copyrighted',
+        identifiedAs:
+            'Mukaddes Kitap, Turkmen Bible (Latin script), Institute for Bible Translation (Mukaddes Kitaby Terjime Instituty), 2016',
     },
     {
         path: 'tl',
@@ -756,6 +982,11 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'tgl',
         name: 'Ang Dating Biblia',
         englishName: 'Tagalog Ang Dating Biblia 1905 (Wordproject)',
+        licenseStatus: 'public-domain',
+        identifiedAs:
+            'Ang Dating Biblia (Tagalog), 1905, British & Foreign Bible Society / American Bible Society',
+        publicDomain: true,
+        includeByDefault: true,
     },
     {
         path: 'tm',
@@ -772,6 +1003,9 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'tur',
         name: 'Kutsal Kitap',
         englishName: 'Turkish Bible (Wordproject)',
+        licenseStatus: 'copyrighted',
+        identifiedAs:
+            "Kutsal Kitap Yeni Çeviri (New Turkish Bible), Kitab-ı Mukaddes Şirketi (Bible Society in Turkey) and Yeni Yaşam Yayınları, 2001/2009. Wordproject labels it '1989', but the text is not a 1989 edition.",
     },
     {
         path: 'uk',
@@ -779,6 +1013,9 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'ukr',
         name: 'Українська Біблія - Огієнко',
         englishName: 'Ukrainian Bible - Ohienko (Wordproject)',
+        licenseStatus: 'unknown',
+        identifiedAs:
+            "Ivan Ohienko (Metropolitan Ilarion) Ukrainian Bible, published 1962 by the United Bible Societies / BFBS (wordproject: 'Огієнко, 1962')",
     },
     {
         path: 'uk_ik',
@@ -786,6 +1023,9 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'ukr',
         name: 'Українська Біблія - Хоменко',
         englishName: 'Ukrainian Bible - Khomenko (Wordproject)',
+        licenseStatus: 'copyrighted',
+        identifiedAs:
+            'Ivan Khomenko Ukrainian Catholic Bible (Святе Письмо Старого і Нового Завіту), Basilian Fathers (OSBM), Rome 1963 (later revisions 1983, 2004)',
     },
     {
         path: 'ur',
@@ -794,6 +1034,9 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         name: 'انجیل مقدس',
         englishName: 'Urdu Bible (Wordproject)',
         direction: 'rtl',
+        licenseStatus: 'unknown',
+        identifiedAs:
+            "Urdu Revised Version 'Kitab-e-Muqaddas' (BFBS / Bible Society of India / Pakistan Bible Society; revised 1930s-1943; NT revised again 2010). Exact edition not determined",
     },
     {
         path: 'vg',
@@ -821,6 +1064,9 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'xho',
         name: 'IZibhalo Ezingcwele',
         englishName: 'Xhosa Bible (Wordproject)',
+        licenseStatus: 'copyrighted',
+        identifiedAs:
+            'isiXhosa Bible 1975 revision (XHO75), Bible Society of South Africa (bible.com version 281).',
     },
     {
         path: 'zu_2',
@@ -828,6 +1074,9 @@ export const WORDPROJECT_TRANSLATIONS: WordprojectTranslation[] = [
         language: 'zul',
         name: 'IBhayibheli',
         englishName: 'Zulu Bible (Wordproject)',
+        licenseStatus: 'copyrighted',
+        identifiedAs:
+            "isiZulu Bible 1959 ('IBhayibheli Elingcwele', ZUL59), Bible Society of South Africa, in its 1997 new-orthography edition.",
     },
 ];
 
@@ -1327,7 +1576,7 @@ export function createWordprojectMetadata(
               derivatives: 'allowed',
               copyleft: false,
           }
-        : null;
+        : (translation.license ?? null);
     return {
         id: translation.id,
         name: translation.name,
@@ -1336,10 +1585,12 @@ export function createWordprojectMetadata(
         language: translation.language,
         direction: translation.direction ?? 'ltr',
         website,
-        licenseUrl: WORDPROJECT_COPYRIGHT_URL,
-        licenseNotice: translation.publicDomain
-            ? `This text is in the public domain. It was downloaded from Wordproject (${website}).`
-            : `This text was downloaded from Wordproject (${website}), which publishes it in good faith as a text that is believed to be in the public domain. See ${WORDPROJECT_COPYRIGHT_URL}.`,
+        licenseUrl: translation.licenseUrl ?? WORDPROJECT_COPYRIGHT_URL,
+        licenseNotice:
+            translation.licenseNotice ??
+            (translation.publicDomain
+                ? `This text is in the public domain. It was downloaded from Wordproject (${website}).`
+                : `This text was downloaded from Wordproject (${website}), which publishes it in good faith as a text that is believed to be in the public domain. See ${WORDPROJECT_COPYRIGHT_URL}.`),
         license,
     };
 }
@@ -1486,14 +1737,15 @@ export function findWordprojectTranslations(
  */
 export interface FetchWordprojectTranslationsOptions {
     /**
-     * The IDs (or Wordproject folders) of the translations to fetch. Defaults to every translation that is not a duplicate.
+     * The IDs (or Wordproject folders) of the translations to fetch. Defaults to the ones that are included by default.
      */
     translations?: string[];
 
     /**
-     * Whether translations that the API already has a copy of should be fetched when no translations are given.
+     * Whether every translation in the catalog should be fetched when no translations are given,
+     * instead of only the ones that are included by default (see {@link WordprojectTranslation.includeByDefault}).
      */
-    includeDuplicates?: boolean;
+    all?: boolean;
 
     /**
      * Whether only translations that are known to be in the public domain should be fetched.
@@ -1543,9 +1795,7 @@ export function selectWordprojectTranslations(
     let selected =
         options.translations && options.translations.length > 0
             ? findWordprojectTranslations(options.translations, catalog)
-            : catalog.filter(
-                  (t) => options.includeDuplicates || !t.duplicateOf
-              );
+            : catalog.filter((t) => options.all || t.includeByDefault);
     if (options.publicDomainOnly) {
         selected = selected.filter((t) => t.publicDomain);
     }

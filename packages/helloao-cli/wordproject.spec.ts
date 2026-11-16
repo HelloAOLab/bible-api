@@ -370,16 +370,38 @@ describe('WORDPROJECT_TRANSLATIONS', () => {
 });
 
 describe('selectWordprojectTranslations()', () => {
-    it('should skip duplicates by default', () => {
+    it('should only select the default translations by default', () => {
         const selected = selectWordprojectTranslations({});
+        expect(selected.map((t) => t.id).sort()).toEqual(
+            [
+                'amh_wp',
+                'ceb_wp',
+                'cmn_wppy',
+                'fin_wp',
+                'hun_wp',
+                'ibo_wp',
+                'nob_wp',
+                'pol_wp',
+                'ron_wp',
+                'sin_wp',
+                'swe_wp',
+                'tel_wp',
+                'tgl_wp',
+                'yor_wp',
+            ].sort()
+        );
         expect(selected.some((t) => t.duplicateOf)).toBe(false);
-        expect(selected.map((t) => t.id)).toContain('amh_wp');
+        expect(
+            selected.every(
+                (t) => t.publicDomain || t.licenseStatus === 'non-commercial'
+            )
+        ).toBe(true);
     });
 
-    it('should include duplicates when asked', () => {
-        expect(
-            selectWordprojectTranslations({ includeDuplicates: true })
-        ).toHaveLength(WORDPROJECT_TRANSLATIONS.length);
+    it('should select every translation when asked', () => {
+        expect(selectWordprojectTranslations({ all: true })).toHaveLength(
+            WORDPROJECT_TRANSLATIONS.length
+        );
     });
 
     it('should find translations by ID or folder', () => {
@@ -398,7 +420,7 @@ describe('selectWordprojectTranslations()', () => {
 
     it('should filter to public domain texts', () => {
         const selected = selectWordprojectTranslations({
-            includeDuplicates: true,
+            all: true,
             publicDomainOnly: true,
         });
         expect(selected.length).toBeGreaterThan(0);
@@ -407,15 +429,34 @@ describe('selectWordprojectTranslations()', () => {
 });
 
 describe('createWordprojectMetadata()', () => {
+    it('should write the license of non-commercial texts', () => {
+        const amh = WORDPROJECT_TRANSLATIONS.find((t) => t.id === 'amh_wp')!;
+        expect(createWordprojectMetadata(amh)).toMatchObject({
+            licenseUrl: 'https://ebible.org/amh/copyright.htm',
+            licenseNotice: expect.stringContaining(
+                '1962, 2003 United Bible Societies'
+            ),
+            license: {
+                publicDomain: false,
+                commercialUse: 'not-allowed',
+            },
+        });
+    });
+
+    it('should not set a license for texts that are not public domain', () => {
+        const hau = WORDPROJECT_TRANSLATIONS.find((t) => t.id === 'hau_wp')!;
+        expect(createWordprojectMetadata(hau).license).toBeNull();
+    });
+
     it('should only set a license for public domain texts', () => {
         const kjv = WORDPROJECT_TRANSLATIONS.find((t) => t.path === 'kj')!;
-        const amh = WORDPROJECT_TRANSLATIONS.find((t) => t.path === 'am')!;
+        const hau = WORDPROJECT_TRANSLATIONS.find((t) => t.path === 'new/hau')!;
         expect(createWordprojectMetadata(kjv).license?.publicDomain).toBe(true);
-        expect(createWordprojectMetadata(amh)).toMatchObject({
-            id: 'amh_wp',
-            language: 'amh',
+        expect(createWordprojectMetadata(hau)).toMatchObject({
+            id: 'hau_wp',
+            language: 'hau',
             direction: 'ltr',
-            website: 'https://www.wordproject.org/bibles/am/index.htm',
+            website: 'https://www.wordproject.org/bibles/new/hau/index.htm',
             license: null,
         });
     });
@@ -430,6 +471,7 @@ describe('fetchWordprojectTranslations()', () => {
         name: 'Test Bible',
         englishName: 'Test Bible (Wordproject)',
         publicDomain: true,
+        includeByDefault: true,
     };
     const base = 'https://www.wordproject.org/bibles/test/';
     const pages: Record<string, string> = {
