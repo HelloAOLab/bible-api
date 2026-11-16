@@ -2,12 +2,21 @@
     "db": "./free-use-bible-api.db",
     "exclude": [],
     "sources": [
-        { "type": "translations", "path": "../sources/ebible" },
+        {
+            "type": "translations",
+            "path": "../sources/ebible",
+            "exclude": ["amh_amh", "BSB"]
+        },
         { "type": "translations", "path": "../sources/fetch-bible" },
         { "type": "translations", "path": "../sources/osis" },
+        { "type": "translations", "path": "../sources/wordproject" },
         {
             "type": "translations",
             "path": "../bible-translations/translations"
+        },
+        {
+            "type": "translations",
+            "path": "../sources/bsb"
         },
         {
             "type": "api",

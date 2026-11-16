@@ -64,6 +64,9 @@ This is the log of changes for the Free Use Bible API.
 -   Added `source-fetch-bible-translations` and `list-fetch-bible-translations` commands.
 -   `import-translations` now accepts multiple directories.
 -   Added `fetch-osis-translations` and `convert-osis-to-usfm` commands for OSIS sources.
+-   Added `fetch-wordproject-translations` and `list-wordproject-translations` commands, which download the Bible texts on [wordproject.org](https://www.wordproject.org/bibles/index.htm) (from each Bible's zip download when there is one) and convert them to USX for `import-translations`. Use the `fetch:bible:wordproject` and `import:bible:wordproject` scripts.
+    -   By default only the 14 texts that the API doesn't already have and that may be published are downloaded (13 public domain texts and the non-commercial Amharic Bible). See [wordproject-licenses.md](./packages/helloao-cli/wordproject-licenses.md) for the license research behind each text, and use `--all` to download every text.
+    -   The complete Amharic Bible from Wordproject replaces `amh_amh`, which only had the New Testament. eBible's copy is no longer downloaded, and `import-translations` skips it. Sync configs should exclude `amh_amh` from the eBible source (see `sync.config.example.json`).
 -   `import-commentary`, `import-commentaries`, and `sync` can import commentaries from [SWORD](https://crosswire.org/sword/) modules (`zCom`, `zCom4`, `RawCom`, and `RawCom4` with the KJV versification), either extracted or as `.zip` files. See the [CLI README](./packages/helloao-cli/README.md).
 -   Added the `fetch-sword-commentaries` command (`npm run fetch:sword:commentaries`), which downloads the commentaries from the [CrossWire module repository](https://www.crosswire.org/sword/modules/ModDisp.jsp?modType=Commentaries) with a `metadata.json` for each (license, English name, language). By default it only downloads the public domain and openly licensed commentaries that can be imported.
 
