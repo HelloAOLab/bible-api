@@ -10,28 +10,35 @@
     },
     "repository": "https://github.com/HelloAOLab/bible-api",
     "scripts": {
-        "dev": "vuepress dev",
-        "build": "vuepress build --dest ../build/docs",
+        "dev": "pnpm generate:seed-bible-reference && vuepress dev",
+        "build": "pnpm generate:seed-bible-reference && vuepress build --dest ../build/docs",
+        "generate:seed-bible-reference": "node .vuepress/seed-bible/generate-reference.mjs",
         "build:cloudflare": "node ./cloudflare/prepare-site.mjs",
         "build:cloudflare:preview": "node ./cloudflare/prepare-site.mjs --preview",
         "deploy:cloudflare": "pnpm build && pnpm build:cloudflare && wrangler deploy"
     },
     "license": "MIT",
     "devDependencies": {
+        "@preact/signals": "^2.9.1",
+        "preact": "^10.29.8",
         "sass-embedded": "^1.83.0",
+        "seed-bible": "1.18.0",
+        "typedoc": "0.28.20",
+        "typedoc-plugin-markdown": "4.14.1",
+        "typedoc-plugin-missing-exports": "^4.1.4",
         "vuepress": "^2.0.0-rc.31",
         "wrangler": "^4.40.0"
     },
     "dependencies": {
         "@vuepress/bundler-vite": "2.0.0-rc.31",
         "@vuepress/plugin-back-to-top": "2.0.0-rc.131",
+        "@vuepress/plugin-markdown-include": "2.0.0-rc.132",
         "@vuepress/plugin-medium-zoom": "2.0.0-rc.131",
         "@vuepress/plugin-search": "2.0.0-rc.131",
         "@vuepress/plugin-seo": "2.0.0-rc.132",
         "@vuepress/plugin-shiki": "2.0.0-rc.132",
         "@vuepress/plugin-sitemap": "2.0.0-rc.132",
         "@vuepress/theme-default": "2.0.0-rc.132",
-        "@vuepress/plugin-markdown-include": "2.0.0-rc.132",
         "vue": "^3.4.32"
     }
 }
