@@ -28,6 +28,10 @@ This is the log of changes for the Free Use Bible API.
 -   Added two public domain Japanese Bibles: `jpn_kou` (口語訳, Kougo-yaku) and `jpn_bun` (文語訳, Bungo-yaku).
 -   Line breaks that start a paragraph now include the paragraph marker (e.g. `"paragraph": "p"`), and `.simple.json` verses list mid-verse paragraphs in `paragraphs`. More translations now have paragraph breaks.
 -   Fixed section headings (`\s`, `\s1`–`\s4`) in the middle of a verse being included in the verse text for translations imported from USX (including the BSB). They are now inline headings (`{ "heading": "..." }`), like they are for USFM. For example, the speaker headings in Song of Songs 1:4.
+-   Added audio for the Chinese Union Version (`cmn_cuv`, `cmn_cuvmps`, `cmn_cuvmpt`, `cmn_cu1`), read in Mandarin by the `mandarin` reader.
+-   Added the [Wordproject](https://www.wordproject.org/bibles/audio/index.htm) audio Bibles as the `wordproject` reader in `thisChapterAudioLinks` for 25 translations, including `eng_kjv`, `spa_r09`, `fra_lsg`, `deu_l12`, `rus_syn`, `arb_vdv`, `kor_old`, `jpn_kou`, and `HINIRV`.
+    -   The Wordproject texts `amh_wp`, `hun_wp`, and `ron_wp` use the audio of `amh_amh`, `hun_bib`, and `ron_924`.
+    -   The Chinese Union Version translations also have `wordproject_mandarin` and `wordproject_cantonese` readers. `cmn_wppy` (the CUV in Pinyin) has all of the CUV audio.
 
 #### :warning: Changes
 
@@ -71,6 +75,10 @@ This is the log of changes for the Free Use Bible API.
     -   The complete Amharic Bible from Wordproject replaces `amh_amh`, which only had the New Testament. eBible's copy is no longer downloaded, and `import-translations` skips it. Sync configs should exclude `amh_amh` from the eBible source (see `sync.config.example.json`).
 -   `import-commentary`, `import-commentaries`, and `sync` can import commentaries from [SWORD](https://crosswire.org/sword/) modules (`zCom`, `zCom4`, `RawCom`, and `RawCom4` with the KJV versification), either extracted or as `.zip` files. See the [CLI README](./packages/helloao-cli/README.md).
 -   Added the `fetch-sword-commentaries` command (`npm run fetch:sword:commentaries`), which downloads the commentaries from the [CrossWire module repository](https://www.crosswire.org/sword/modules/ModDisp.jsp?modType=Commentaries) with a `metadata.json` for each (license, English name, language). By default it only downloads the public domain and openly licensed commentaries that can be imported.
+-   Added the `import-audio-timings-folder` command, which imports one reader's verse timings from a folder of per-book `.biblejson` files (the format of the [SDA church app](https://github.com/New-York-Chinese-Seventh-day-Adventist/sda-church-app/tree/main/assets/bible/audio-timings)). Chapters whose timings don't match the translation's verses are skipped and listed. Supports `--books` and `--dry-run`. See the [CLI README](./packages/helloao-cli/README.md).
+-   Added the `fetch:wordproject:audio` script, which downloads the Wordproject audio Bibles into the folder structure the audio host serves (`api/{translation}/{book}/{chapter}/audio/{reader}.mp3`). Use `--list` to see which translation each audio Bible is matched to.
+-   Added the `rename:cuv:audio` script, which renames a flat folder of chapter audio files (e.g. `CUV_B01C001.mp3`) into the same folder structure.
+-   `sync` now reprocesses only the translations whose audio changed when the known audio changes, instead of every translation.
 
 #### :bug: Bug Fixes
 
@@ -79,6 +87,7 @@ This is the log of changes for the Free Use Bible API.
 -   `source-translations` re-downloads translations missing from the output directory.
 -   `ignorelist.txt` now accepts translation IDs.
 -   SWORD commentaries that store their text in chapter or verse blocks (`BlockType=CHAPTER` or `VERSE`, like Barnes, Robertson's Word Pictures, and the NET notes) can now be imported. Only book blocks were read before.
+-   Fixed commentary CSV imports dropping a book when its book row is missing. This restores nine books of the Adam Clarke commentary (`adam-clarke`), whose chapter introductions had been filed under the previous book (e.g. the Deuteronomy 7 introduction appeared in Numbers 7).
 
 #### :warning: Changes
 
