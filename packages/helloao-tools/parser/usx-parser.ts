@@ -174,12 +174,7 @@ export class USXParser {
                 yield chapter;
             } else if (child.nodeName === 'para') {
                 const style = child.getAttribute('style');
-                if (
-                    style === 's1' ||
-                    style === 's2' ||
-                    style === 's3' ||
-                    style === 's4'
-                ) {
+                if (isSectionHeadingStyle(style)) {
                     yield {
                         type: 'heading',
                         content: child.textContent ? [child.textContent] : [],
@@ -208,12 +203,7 @@ export class USXParser {
             } else if (element.nodeName === 'para') {
                 const style = element.getAttribute('style');
                 const paragraph = paragraphStyle(style);
-                if (
-                    style === 's1' ||
-                    style === 's2' ||
-                    style === 's3' ||
-                    style === 's4'
-                ) {
+                if (isSectionHeadingStyle(style)) {
                     yield {
                         type: 'heading',
                         content: element.textContent
@@ -237,7 +227,7 @@ export class USXParser {
                 }
 
                 const verse = this.parseVerse(element, chapter, nodes);
-                const trailing = hoistTrailingBreaks(verse.content);
+                const trailing = hoistTrailingContent(verse.content);
                 yield verse;
                 yield* trailing;
             }
@@ -260,6 +250,7 @@ export class USXParser {
         | FootnoteReference
         | Text
         | InlineLineBreak
+        | InlineHeading
         | AnnotatedContent<string | Text>
     > {
         let lastParent: Element | null = null;
@@ -298,6 +289,25 @@ export class USXParser {
                     nodes.rewind(1);
                 }
                 break;
+            }
+
+            if (
+                node instanceof Element &&
+                node.nodeName === 'para' &&
+                isSectionHeadingStyle(node.getAttribute('style'))
+            ) {
+                // A section heading in the middle of a verse (e.g. the speaker
+                // headings in Song of Songs). Keep it as an inline heading
+                // instead of letting its text become part of the verse.
+                for (let _ of children(nodes, node)) {
+                    // consume the heading's children so that their text isn't
+                    // added to the verse
+                }
+                const heading = trimText(node.textContent || '').trim();
+                if (heading) {
+                    yield { heading };
+                }
+                continue;
             }
 
             const parent = node.parentElement!;
@@ -817,6 +827,40 @@ function* iterateCharContent(char: Element): IterableIterator<string | Text> {
     } else {
         yield text;
     }
+}
+
+/**
+ * Determines whether the given para style is a section heading (s, s1 - s4).
+ */
+function isSectionHeadingStyle(style: string | null): boolean {
+    return (
+        style === 's' ||
+        style === 's1' ||
+        style === 's2' ||
+        style === 's3' ||
+        style === 's4'
+    );
+}
+
+/**
+ * Removes the line breaks and headings at the end of the given verse content and
+ * returns them as chapter content, so that a heading before the next verse
+ * becomes a chapter heading instead of an inline heading.
+ */
+function hoistTrailingContent(content: Verse['content']): ChapterContent[] {
+    const result: ChapterContent[] = [];
+    while (content.length) {
+        const last = content.at(-1);
+        if (typeof last === 'object' && 'lineBreak' in last) {
+            result.unshift(...hoistTrailingBreaks(content));
+        } else if (typeof last === 'object' && 'heading' in last) {
+            content.pop();
+            result.unshift({ type: 'heading', content: [last.heading] });
+        } else {
+            break;
+        }
+    }
+    return result;
 }
 
 function trimText(text: string): string {
