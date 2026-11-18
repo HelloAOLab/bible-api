@@ -47,6 +47,7 @@ import {
 } from './actions.js';
 import { getPrismaDb } from './db.js';
 import { sync } from './sync.js';
+import { sourceAllTranslationsFromConfig } from './source-config.js';
 import { BSB_USFM_ZIP_URL, fetchBsbTranslation } from './bsb.js';
 import {
     FETCH_BIBLE_COLLECTION_REF,
@@ -1212,9 +1213,14 @@ async function start() {
         });
 
     program
-        .command('source-all-translations <dir> [translations...]')
+        .command('source-all-translations [dir] [translations...]')
         .description(
-            'Finds translation sources from eBible and fetch.bible, and downloads them (along with the pinned OSIS translations and the Berean Standard Bible from bereanbible.com) into the given directory so that they can be imported with import-translations.\nTranslations available from eBible are downloaded from eBible, and the rest are downloaded from fetch.bible. Only new and changed translations are downloaded.'
+            'Finds translation sources from eBible and fetch.bible, and downloads them (along with the pinned OSIS translations and the Berean Standard Bible from bereanbible.com) into the given directory so that they can be imported with import-translations.\nTranslations available from eBible are downloaded from eBible, and the rest are downloaded from fetch.bible. Only new and changed translations are downloaded.\n' +
+                'With --config (or when <dir> is omitted, ./source.config.json), the database, the sources, and the directories they are downloaded to are read from the config, and every argument is a translation ID. See the README for its format.'
+        )
+        .option(
+            '--config <path>',
+            'Read the database, sources, and directories from this source config.'
         )
         .option(
             '--no-convert-to-usx3',
@@ -1266,24 +1272,73 @@ async function start() {
             'The branch (or other git ref) of the fetch.bible collection to download from',
             FETCH_BIBLE_COLLECTION_REF
         )
-        .action(async (dir, translations, options) => {
-            await sourceAllTranslations(dir, translations, {
-                ...program.opts(),
-                convertToUsx3: options.convertToUsx3,
-                bibleMultiConverterPath: options.bibleMultiConverterPath,
-                conversionConcurrency: options.conversionConcurrency,
-                useDatabase: options.database !== false,
-                overwrite: options.overwrite,
-                fetchBibleDir: options.fetchBibleDir,
-                osisDir: options.osisDir,
-                includeOsis: options.osis !== false,
-                bsbDir: options.bsbDir,
-                includeBsb: options.bsb !== false,
-                manifestUrl: options.manifestUrl,
-                repo: options.collectionRepo,
-                ref: options.collectionRef,
-            });
-        });
+        .action(
+            async (
+                dir: string | undefined,
+                translations: string[],
+                options: any,
+                command: Command
+            ) => {
+                const sharedOptions = {
+                    ...program.opts(),
+                    convertToUsx3: options.convertToUsx3,
+                    bibleMultiConverterPath: options.bibleMultiConverterPath,
+                    conversionConcurrency: options.conversionConcurrency,
+                    useDatabase: options.database !== false,
+                    overwrite: options.overwrite,
+                };
+
+                if (options.config || dir === undefined) {
+                    // The sources and their directories come from the config,
+                    // so the options that set them can't be used.
+                    const conflicting = [
+                        'fetchBibleDir',
+                        'osis',
+                        'osisDir',
+                        'bsb',
+                        'bsbDir',
+                        'manifestUrl',
+                        'collectionRepo',
+                        'collectionRef',
+                    ].filter(
+                        (key) => command.getOptionValueSource(key) === 'cli'
+                    );
+                    if (conflicting.length > 0) {
+                        command.error(
+                            `error: ${conflicting.map((key) => command.options.find((o) => o.attributeName() === key)!.long).join(', ')} can't be used with a source config. Set the sources in the config instead.`
+                        );
+                    }
+
+                    const configPath = options.config ?? './source.config.json';
+                    const ids = [
+                        ...(options.config && dir !== undefined ? [dir] : []),
+                        ...translations,
+                    ];
+                    await sourceAllTranslationsFromConfig(configPath, ids, {
+                        ...sharedOptions,
+                        // Only override the config when the option was given
+                        convertToUsx3:
+                            command.getOptionValueSource('convertToUsx3') ===
+                            'cli'
+                                ? options.convertToUsx3
+                                : undefined,
+                    });
+                    return;
+                }
+
+                await sourceAllTranslations(dir, translations, {
+                    ...sharedOptions,
+                    fetchBibleDir: options.fetchBibleDir,
+                    osisDir: options.osisDir,
+                    includeOsis: options.osis !== false,
+                    bsbDir: options.bsbDir,
+                    includeBsb: options.bsb !== false,
+                    manifestUrl: options.manifestUrl,
+                    repo: options.collectionRepo,
+                    ref: options.collectionRef,
+                });
+            }
+        );
 
     program
         .command('list-fetch-bible-translations [search]')

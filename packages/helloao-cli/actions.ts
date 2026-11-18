@@ -268,6 +268,12 @@ export interface SourceAllTranslationsOptions extends Omit<
     'ebibleDir' | 'includeEBible' | 'ebibleCoverage' | 'catalog'
 > {
     /**
+     * Whether translations that eBible doesn't provide should be downloaded from fetch.bible.
+     * Defaults to true.
+     */
+    includeFetchBible?: boolean;
+
+    /**
      * The directory that translations from fetch.bible should be downloaded to.
      * Defaults to the same directory as the eBible translations.
      */
@@ -2553,6 +2559,7 @@ export async function sourceAllTranslations(
     const logger = log.getLogger();
     const {
         convertToUsx3 = true,
+        includeFetchBible = true,
         fetchBibleDir: _,
         osisDir: __,
         includeOsis = true,
@@ -2567,7 +2574,7 @@ export async function sourceAllTranslations(
     // The directories that translations are sourced into, without duplicates
     const sourceDirs = [
         outputDir,
-        fetchBibleDir,
+        ...(includeFetchBible ? [fetchBibleDir] : []),
         ...(includeOsis ? [osisDir] : []),
         ...(includeBsb ? [bsbDir] : []),
     ].filter(
@@ -2596,10 +2603,16 @@ export async function sourceAllTranslations(
         }
     }
 
-    logger.log('Fetching eBible and fetch.bible metadata...');
+    logger.log(
+        includeFetchBible
+            ? 'Fetching eBible and fetch.bible metadata...'
+            : 'Fetching eBible metadata...'
+    );
     const [ebibleSources, catalog] = await Promise.all([
         fetchEBibleMetadata(),
-        fetchFetchBibleCatalog(options),
+        includeFetchBible
+            ? fetchFetchBibleCatalog(options)
+            : Promise.resolve([] as FetchBibleCatalogEntry[]),
     ]);
 
     // The ignorelists of every directory apply to every source
@@ -2645,12 +2658,14 @@ export async function sourceAllTranslations(
     logger.log('');
     logger.log('TRANSLATION SOURCES:');
     logger.log(`   eBible: ${ebibleAvailable.length} translations`);
-    logger.log(
-        `   fetch.bible: ${catalog.length} translations (${catalog.length - fetchBibleOnly.length} are also available from eBible)`
-    );
-    logger.log(
-        `   Translations that will be sourced from fetch.bible: ${fetchBibleOnly.length}`
-    );
+    if (includeFetchBible) {
+        logger.log(
+            `   fetch.bible: ${catalog.length} translations (${catalog.length - fetchBibleOnly.length} are also available from eBible)`
+        );
+        logger.log(
+            `   Translations that will be sourced from fetch.bible: ${fetchBibleOnly.length}`
+        );
+    }
     if (includeOsis) {
         logger.log(`   Pinned OSIS: ${osisSources.length} translations`);
     }
@@ -2674,7 +2689,9 @@ export async function sourceAllTranslations(
     );
     if (ebibleUnavailable.size > 0) {
         logger.log(
-            `${ebibleUnavailable.size} translations could not be downloaded from eBible. They will be sourced from fetch.bible if available.`
+            includeFetchBible
+                ? `${ebibleUnavailable.size} translations could not be downloaded from eBible. They will be sourced from fetch.bible if available.`
+                : `${ebibleUnavailable.size} translations could not be downloaded from eBible.`
         );
     }
     const ebibleCoverage = createEBibleCoverage(
@@ -2684,21 +2701,28 @@ export async function sourceAllTranslations(
         )
     );
 
-    logger.log('');
-    logger.log('=== Sourcing translations from fetch.bible ===');
-    const fetchBibleResult = await sourceFetchBibleTranslations(
-        fetchBibleDir,
-        translations,
-        {
-            ...sourceOptions,
-            convertToUsx3,
-            bibleMultiConverterPath,
-            catalog,
-            ebibleCoverage,
-            ebibleDir: outputDir,
-            ignorelist: otherSourcesIgnorelist,
-        }
-    );
+    let fetchBibleResult: SourceTranslationsResult = {
+        downloaded: [],
+        failed: [],
+        unavailable: [],
+    };
+    if (includeFetchBible) {
+        logger.log('');
+        logger.log('=== Sourcing translations from fetch.bible ===');
+        fetchBibleResult = await sourceFetchBibleTranslations(
+            fetchBibleDir,
+            translations,
+            {
+                ...sourceOptions,
+                convertToUsx3,
+                bibleMultiConverterPath,
+                catalog,
+                ebibleCoverage,
+                ebibleDir: outputDir,
+                ignorelist: otherSourcesIgnorelist,
+            }
+        );
+    }
 
     const osisResult: SourceTranslationsResult = {
         downloaded: [],
@@ -2769,9 +2793,11 @@ export async function sourceAllTranslations(
     logger.log('');
     logger.log('SOURCING SUMMARY:');
     logger.log(`   Downloaded from eBible: ${ebibleResult.downloaded.length}`);
-    logger.log(
-        `   Downloaded from fetch.bible: ${fetchBibleResult.downloaded.length}`
-    );
+    if (includeFetchBible) {
+        logger.log(
+            `   Downloaded from fetch.bible: ${fetchBibleResult.downloaded.length}`
+        );
+    }
     if (includeOsis) {
         logger.log(
             `   Downloaded from pinned OSIS sources: ${osisResult.downloaded.length}`

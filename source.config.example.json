@@ -1,0 +1,10 @@
+{
+    "db": "./free-use-bible-api.db",
+    "ignorelist": [],
+    "sources": [
+        { "type": "ebible", "path": "./sources/ebible" },
+        { "type": "fetch-bible", "path": "./sources/fetch-bible" },
+        { "type": "osis", "path": "./sources/osis" },
+        { "type": "bsb", "path": "./sources/bsb" }
+    ]
+}
