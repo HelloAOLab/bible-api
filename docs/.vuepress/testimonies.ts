@@ -52,11 +52,11 @@ export const TESTIMONIES: Testimony[] = [
         quote: 'It’s the best Bible API ever. It’s on seedbible.org (the best Bible reading environment) and we use it in aquilla.app.',
     },
     {
-        name: 'Samson Usamel',
+        name: 'Samson Usmael',
         role: 'Agelgel, makers of Turumba',
-        photo: '/people/samson-usamel.jpg',
+        photo: '/people/samson-usmael.jpg',
         link: { text: 'Turumba', url: 'https://turumba.net/' },
-        quote: 'As someone from Ethiopia, I can tell you access to the Bible has been difficult. This opens a new door for creators to create, for innovators to innovate, and to take the word of God to where people are.',
+        quote: 'As someone in Ethiopia, I can tell you access to the Bible has been difficult. This opens a new door for creators to create, for innovators to innovate, and to take the word of God to where people are.',
     },
     {
         name: 'Maxwell Warren',
