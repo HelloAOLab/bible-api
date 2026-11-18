@@ -16,6 +16,7 @@ import { log } from '@helloao/tools';
 import { InputTranslationMetadata } from '@helloao/tools/generation/common-types.js';
 import {
     convertUsfmToUsx3,
+    USFM_PREPROCESSING_VERSION,
     findBibleMultiConverterJar,
     printConversionInstructions,
     promptForBibleMultiConverter,
@@ -147,7 +148,9 @@ export async function fetchBsbTranslation(
     const content = new Uint8Array(await response.arrayBuffer());
     const sha256 = createHash('sha256').update(content).digest('hex');
     const marker = `Source: ${url}\nSHA-256: ${sha256}\nFormat: ${
-        convertToUsx3 ? 'USX3' : 'USFM'
+        convertToUsx3
+            ? `USX3\nPreprocessing: ${USFM_PREPROCESSING_VERSION}`
+            : 'USFM'
     }\n`;
 
     if (
