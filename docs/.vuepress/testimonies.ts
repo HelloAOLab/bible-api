@@ -42,6 +42,7 @@ export const TESTIMONIES: Testimony[] = [
     {
         name: 'Ryder Wishart, PhD',
         role: 'CEO, Frontier R&D, makers of Aquilla',
+        photo: '/people/ryder-wishart.jpg',
         quote: 'It’s the best Bible API ever. It’s on seedbible.org (the best Bible reading environment) and we use it in aquilla.app.',
     },
     {
