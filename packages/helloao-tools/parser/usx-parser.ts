@@ -47,7 +47,7 @@ enum NodeType {
  * The version of the parser.
  * Used to determine whether input files need to be re-parsed.
  */
-export const PARSER_VERSION = 5;
+export const PARSER_VERSION = 6;
 
 /**
  * Defines a class that is able to parse USX content.
@@ -594,7 +594,7 @@ export class USXParser {
         if (node instanceof Element && node.nodeName === 'note') {
             yield* this.iterateNote(nodes, node, chapter, verse);
         } else if (node instanceof Element && node.nodeName === 'char') {
-            yield* this.iterateChar(nodes, node);
+            yield* this.iterateChar(nodes, node, chapter, verse);
         } else if (
             node instanceof Element &&
             node.nodeName === 'para' &&
@@ -671,8 +671,12 @@ export class USXParser {
 
     *iterateChar(
         nodes: RewindableIterator<Node>,
-        node: Element
-    ): IterableIterator<string | Text | AnnotatedContent<string | Text>> {
+        node: Element,
+        chapter: Chapter,
+        verse?: Verse
+    ): IterableIterator<
+        string | Text | FootnoteReference | AnnotatedContent<string | Text>
+    > {
         const style = node.getAttribute('style');
         let text = '';
 
@@ -699,7 +703,39 @@ export class USXParser {
             currentAnnotations = null;
         };
 
+        // Yields the text collected so far, with its words, and starts over.
+        const flush = function* (): IterableIterator<
+            string | Text | AnnotatedContent<string | Text>
+        > {
+            endCurrentWord();
+            const content: string | Text =
+                style === 'wj'
+                    ? {
+                          text,
+                          wordsOfJesus: true,
+                      }
+                    : text;
+
+            if (words.length > 0) {
+                yield {
+                    annotatedContent: content,
+                    words: words.splice(0),
+                };
+            } else {
+                yield content;
+            }
+            text = '';
+        };
+
         for (let char of children(nodes, node)) {
+            if (char instanceof Element && char.nodeName === 'note') {
+                // A note inside a char (such as a footnote in the words of
+                // Jesus) splits the char's text instead of becoming part of it.
+                yield* flush();
+                yield* this.iterateNote(nodes, char, chapter, verse);
+                continue;
+            }
+
             if (char.nodeType !== NodeType.Text) {
                 continue;
             }
@@ -714,24 +750,7 @@ export class USXParser {
 
             text += char.textContent || '';
         }
-        endCurrentWord();
-
-        const content: string | Text =
-            style === 'wj'
-                ? {
-                      text,
-                      wordsOfJesus: true,
-                  }
-                : text;
-
-        if (words.length > 0) {
-            yield {
-                annotatedContent: content,
-                words,
-            };
-        } else {
-            yield content;
-        }
+        yield* flush();
 
         // if (!parentChar(node) && !parentNote(node)) {
         //     yield *iterateCharContent(node);

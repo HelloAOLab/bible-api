@@ -1544,6 +1544,99 @@ describe('USXParser', () => {
             });
         });
 
+        it('should support footnotes that are nested in the words of Jesus', () => {
+            const usx = `
+                <usx version="3.0">
+                    <book code="JHN" style="id">- Berean Standard Bible</book>
+                    <chapter number="3" style="c" sid="JHN 3"/>
+                    <para style="p"><verse number="16" style="v" sid="JHN 3:16"/><char style="wj">For God so loved the world that He gave His one and only<note style="f" caller="+"><char style="fr">3:16 </char><char style="ft">Or </char><char style="ft">only begotten </char><char style="ft">or </char><char style="fqa">unique</char><char style="ft">; also in verse 18</char></note> Son, that everyone who believes in Him shall not perish but have eternal life.</char><verse eid="JHN 3:16"/></para>
+                </usx>
+            `;
+            const tree = parser.parse(usx);
+            expect(withoutWords(tree)).toEqual({
+                type: 'root',
+                id: 'JHN',
+                content: [
+                    {
+                        type: 'chapter',
+                        number: 3,
+                        content: [
+                            {
+                                type: 'line_break',
+                                paragraph: 'p',
+                            },
+                            {
+                                type: 'verse',
+                                number: 16,
+                                content: [
+                                    {
+                                        text: 'For God so loved the world that He gave His one and only',
+                                        wordsOfJesus: true,
+                                    },
+                                    {
+                                        noteId: 0,
+                                    },
+                                    {
+                                        text: 'Son, that everyone who believes in Him shall not perish but have eternal life.',
+                                        wordsOfJesus: true,
+                                    },
+                                ],
+                            },
+                        ],
+                        footnotes: [
+                            {
+                                noteId: 0,
+                                caller: '+',
+                                text: 'Or only begotten or unique; also in verse 18',
+                                reference: {
+                                    chapter: 3,
+                                    verse: 16,
+                                },
+                            },
+                        ],
+                    },
+                ],
+            });
+        });
+
+        it('should ignore cross references that are nested in the words of Jesus', () => {
+            const usx = `
+                <usx version="3.0">
+                    <book code="MAT" style="id">- World English Bible</book>
+                    <chapter number="5" style="c" sid="MAT 5"/>
+                    <para style="p"><verse number="3" style="v" sid="MAT 5:3"/><char style="wj">for theirs is the Kingdom of Heaven.<note style="x" caller="-"><char style="xo">5:3 </char><char style="xt">Isaiah 57:15; 66:2</char></note> Blessed are those who mourn.</char><verse eid="MAT 5:3"/></para>
+                </usx>
+            `;
+            const tree = parser.parse(usx);
+            expect(withoutWords(tree)).toEqual({
+                type: 'root',
+                id: 'MAT',
+                content: [
+                    {
+                        type: 'chapter',
+                        number: 5,
+                        content: [
+                            {
+                                type: 'line_break',
+                                paragraph: 'p',
+                            },
+                            {
+                                type: 'verse',
+                                number: 3,
+                                content: [
+                                    {
+                                        text: 'for theirs is the Kingdom of Heaven. Blessed are those who mourn.',
+                                        wordsOfJesus: true,
+                                    },
+                                ],
+                            },
+                        ],
+                        footnotes: [],
+                    },
+                ],
+            });
+        });
+
         it('should support verses that span multiple paragraphs', () => {
             const usx = `
                 <usx version="3.0">
@@ -2314,6 +2407,47 @@ describe('USXParser', () => {
                     end: 13,
                     strongs: ['H7225'],
                     text: 'beginning',
+                },
+            ]);
+        });
+
+        it('should anchor words around footnotes in the words of Jesus', () => {
+            const usx = `
+            <usx version="3.0">
+                <book code="JHN" style="id">- Berean Standard Bible</book>
+                <chapter number="3" style="c" sid="JHN 3"/>
+                <para style="p"><verse number="16" style="v" sid="JHN 3:16"/><char style="wj"><char style="w" strong="G846">His</char> <char style="w" strong="G3439">only</char><note style="f" caller="+"><char style="fr">3:16 </char><char style="ft">Or only begotten</char></note> <char style="w" strong="G5207">Son</char>, <char style="w" strong="G2443">that</char></char><verse eid="JHN 3:16"/></para>
+            </usx>`;
+            const tree = parser.parse(usx);
+
+            expect(wordsWithText(tree, 3, 16)).toEqual([
+                {
+                    contentIndex: 0,
+                    start: 0,
+                    end: 3,
+                    strongs: ['G846'],
+                    text: 'His',
+                },
+                {
+                    contentIndex: 0,
+                    start: 4,
+                    end: 8,
+                    strongs: ['G3439'],
+                    text: 'only',
+                },
+                {
+                    contentIndex: 2,
+                    start: 0,
+                    end: 3,
+                    strongs: ['G5207'],
+                    text: 'Son',
+                },
+                {
+                    contentIndex: 2,
+                    start: 5,
+                    end: 9,
+                    strongs: ['G2443'],
+                    text: 'that',
                 },
             ]);
         });
