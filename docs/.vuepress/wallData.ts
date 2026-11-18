@@ -7,15 +7,15 @@
  * Claims beyond the goal are reported as going to the Free Use Fund. On the
  * page, "claimed" is labelled "Pledged".
  *
- * Current base (November 13, 2026):
- *   four active monthly donors on better.giving, $125 + $70 + $3 + $20 =
- *     $218 a month (the $20 donor joined Nov 4, 2026)
- *     pledged: 12 months of 2027 ($2,616) plus Nov and Dec 2026 payments
- *       ($436) = $3,052
- *     received so far: Nov 4 $20, Nov 7 $70, Nov 13 $125 = $215
+ * Current base (November 17, 2026):
+ *   five active monthly donors on better.giving, $125 + $70 + $20 + $20 + $3
+ *     = $238 a month (a $20 donor joined Nov 4, another Nov 17, 2026)
+ *     pledged: 12 months of 2027 ($2,856) plus Nov and Dec 2026 payments
+ *       ($476) = $3,332
+ *     received so far: Nov 4 $20, Nov 7 $70, Nov 13 $125, Nov 17 $20 = $235
  *   $5,000 annual support, received
- *   $2 one-time gift, Oct 31, 2026, received
- *   others = { claimed: 3052 + 5000 + 2 = 8054, received: 215 + 5000 + 2 = 5217 }
+ *   one-time gifts, received: Oct 31 $2, Nov 15 $20 = $22
+ *   others = { claimed: 3332 + 5000 + 22 = 8354, received: 235 + 5000 + 22 = 5257 }
  * Amounts are gross gifts, before processing fees.
  * Shown anonymously until each donor agrees to be named.
  *
@@ -72,6 +72,6 @@ export const WALL_DATA: WallData = {
     year: 2027,
     goal: 500000,
     unit: 240,
-    others: { claimed: 8054, received: 5217 },
+    others: { claimed: 8354, received: 5257 },
     supporters: [],
 };
