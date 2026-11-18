@@ -1,6 +1,7 @@
 {
     "db": "./free-use-bible-api.db",
     "ignorelist": [],
+    "bibleMultiConverterPath": "./tools/BibleMultiConverter.jar",
     "sources": [
         { "type": "ebible", "path": "./sources/ebible" },
         { "type": "fetch-bible", "path": "./sources/fetch-bible" },

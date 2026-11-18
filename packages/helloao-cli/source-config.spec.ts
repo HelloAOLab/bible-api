@@ -1,10 +1,11 @@
 import path from 'node:path';
 import { tmpdir } from 'node:os';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import {
     getSourceAllTranslationsOptions,
     loadSourceConfig,
 } from './source-config';
+import { findBibleMultiConverterJar } from './conversion';
 
 describe('source config', () => {
     let dir: string;
@@ -103,6 +104,39 @@ describe('source config', () => {
         expect(options.conversionConcurrency).toBe(2);
         expect(options.convertToUsx3).toBe(true);
         expect(options.overwrite).toBe(true);
+    });
+
+    it('should use the BibleMultiConverter path from the config', async () => {
+        const jarPath = path.resolve(dir, 'tools/BibleMultiConverter.jar');
+        mkdirSync(path.dirname(jarPath));
+        writeFileSync(jarPath, '');
+        writeConfig({
+            bibleMultiConverterPath: 'tools/BibleMultiConverter.jar',
+            sources: [{ type: 'ebible', path: 'ebible' }],
+        });
+
+        const { options } = getSourceAllTranslationsOptions(
+            await loadSourceConfig(configPath)
+        );
+        expect(options.bibleMultiConverterPath).toBe(jarPath);
+        await expect(
+            findBibleMultiConverterJar(options.bibleMultiConverterPath)
+        ).resolves.toBe(jarPath);
+
+        // The command line path overrides the config
+        const { options: overridden } = getSourceAllTranslationsOptions(
+            await loadSourceConfig(configPath),
+            { bibleMultiConverterPath: '/other/BibleMultiConverter.jar' }
+        );
+        expect(overridden.bibleMultiConverterPath).toBe(
+            '/other/BibleMultiConverter.jar'
+        );
+    });
+
+    it('should fail when the given BibleMultiConverter path does not exist', async () => {
+        await expect(
+            findBibleMultiConverterJar(path.resolve(dir, 'missing.jar'))
+        ).rejects.toThrow(/was not found at the given path/);
     });
 
     it('should require exactly one ebible source', async () => {

@@ -1918,7 +1918,9 @@ export async function sourceTranslations(
             source: EBibleSource;
         }> = [];
         // Try to find BibleMultiConverter.jar
-        let jarPath = await findBibleMultiConverterJar(bibleMultiConverterPath);
+        let jarPath = convertToUsx3
+            ? await findBibleMultiConverterJar(bibleMultiConverterPath)
+            : null;
 
         if (!jarPath && convertToUsx3) {
             jarPath = await promptForBibleMultiConverter();

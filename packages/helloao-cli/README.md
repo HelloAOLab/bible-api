@@ -171,6 +171,7 @@ Like `sync`, `source-all-translations` can read its settings from a JSON config 
     "db": "./free-use-bible-api.db",
     "ignorelist": ["amh_amh"],
     "convertToUsx3": true,
+    "bibleMultiConverterPath": "./tools/BibleMultiConverter.jar",
     "conversionConcurrency": 4,
     "sources": [
         { "type": "ebible", "path": "./sources/ebible" },
@@ -195,7 +196,7 @@ Paths in the config are relative to the config file, and `--db` overrides `db`. 
 
 -   **Sources.** `ebible` is required. `fetch-bible` downloads the translations that eBible doesn't have from the fetch.bible collection (`manifestUrl`, `repo`, and `ref` are optional and only allowed here). `osis` downloads the pinned OSIS translations, and `bsb` downloads the Berean Standard Bible from bereanbible.com. Each type can be listed once, and a source that is left out isn't downloaded from (without `bsb`, the BSB is downloaded from eBible). Sources can share a directory.
 -   **Ignorelist.** `ignorelist` lists translations that are never downloaded (by eBible ID, fetch.bible ID, or translation ID), in addition to the `ignorelist.txt` file of each source directory.
--   **Conversion.** `convertToUsx3`, `bibleMultiConverterPath` (relative to the config file), and `conversionConcurrency` set the USFM to USX3 conversion. `--no-convert-to-usx3`, `--bible-multi-converter-path`, and `--conversion-concurrency` override them.
+-   **Conversion.** `convertToUsx3` and `conversionConcurrency` set the USFM to USX3 conversion. `bibleMultiConverterPath` is the path to `BibleMultiConverter.jar`, relative to the config file; without it, the jar is searched for in the usual places (like `./tools/BibleMultiConverter.jar`), and you're asked for its location if it isn't found. If the jar isn't at the given path, the command stops with an error instead of searching. `--no-convert-to-usx3`, `--bible-multi-converter-path`, and `--conversion-concurrency` override them.
 -   **Command line.** With a config, every argument is a translation ID to download, and `--overwrite` and `--no-database` still work. The options that choose sources and directories (`--fetch-bible-dir`, `--osis-dir`, `--no-osis`, `--bsb-dir`, `--no-bsb`, `--manifest-url`, `--collection-repo`, and `--collection-ref`) can't be combined with a config.
 -   **Importing.** To import the downloaded translations with `sync`, add each source's directory to the sync config as a `translations` source.
 
