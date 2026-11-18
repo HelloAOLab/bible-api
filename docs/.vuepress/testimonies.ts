@@ -29,6 +29,11 @@ export interface Testimony {
     quote: string;
     /** True if they also support AO Lab. */
     gave?: boolean;
+    /**
+     * Optional link to their organization or project, as thanks for the
+     * testimony. `text` is the part of `role` that becomes the link.
+     */
+    link?: { text: string; url: string };
 }
 
 /* From the case for support. */
@@ -43,7 +48,15 @@ export const TESTIMONIES: Testimony[] = [
         name: 'Ryder Wishart, PhD',
         role: 'CEO, Frontier R&D, makers of Aquilla',
         photo: '/people/ryder-wishart.jpg',
+        link: { text: 'Aquilla', url: 'https://aquilla.app/' },
         quote: 'It’s the best Bible API ever. It’s on seedbible.org (the best Bible reading environment) and we use it in aquilla.app.',
+    },
+    {
+        name: 'Samson Usamel',
+        role: 'Agelgel, makers of Turumba',
+        photo: '/people/samson-usamel.jpg',
+        link: { text: 'Turumba', url: 'https://turumba.net/' },
+        quote: 'As someone from Ethiopia, I can tell you access to the Bible has been difficult. This opens a new door for creators to create, for innovators to innovate, and to take the word of God to where people are.',
     },
     {
         name: 'Maxwell Warren',

@@ -90,6 +90,18 @@ const initials = (n: string) =>
         .join('')
         .toUpperCase();
 
+/* The role, split so the linked organization becomes a link. */
+function roleParts(t: Testimony): { text: string; url?: string }[] {
+    const role = t.role ?? '';
+    const i = t.link ? role.indexOf(t.link.text) : -1;
+    if (!t.link || i < 0) return [{ text: role }];
+    return [
+        { text: role.slice(0, i) },
+        { text: t.link.text, url: t.link.url },
+        { text: role.slice(i + t.link.text.length) },
+    ].filter((p) => p.text);
+}
+
 const moreLabel = computed(() =>
     open.value
         ? r.value.showLess
@@ -178,7 +190,24 @@ function openFromRiver(e: MouseEvent) {
                                 <p class="rv-q">&ldquo;{{ e.t.quote }}&rdquo;</p>
                                 <p class="rv-who">
                                     <b>{{ e.t.name }}</b>
-                                    <small v-if="e.t.role"> {{ e.t.role }}</small>
+                                    <small v-if="e.t.role">
+                                        <template
+                                            v-for="(part, pi) in roleParts(e.t)"
+                                            :key="pi"
+                                            ><a
+                                                v-if="part.url"
+                                                :href="part.url"
+                                                target="_blank"
+                                                rel="noopener"
+                                                :tabindex="
+                                                    copy === 2 ? -1 : undefined
+                                                "
+                                                >{{ part.text }}</a
+                                            ><template v-else>{{
+                                                part.text
+                                            }}</template></template
+                                        ></small
+                                    >
                                     <small v-if="e.t.gave">
                                         {{ r.supporter }}</small
                                     >
@@ -303,8 +332,20 @@ function openFromRiver(e: MouseEvent) {
 .rv-who small {
     font-size: inherit;
 }
+.rv-who small a {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-color: var(--line-strong);
+    text-underline-offset: 3px;
+}
+@media (hover: hover) {
+    .rv-who small a:hover {
+        color: var(--text);
+        text-decoration-color: currentColor;
+    }
+}
 .rv-who small::before {
-    content: '\00b7\00a0';
+    content: '\00a0\00b7\00a0';
 }
 .rv-face {
     flex: none;
