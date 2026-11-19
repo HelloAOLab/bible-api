@@ -506,13 +506,14 @@ onBeforeUnmount(() => {
                                 >{{ labels.home.datasetsLink }} &rarr;</span
                             >
                         </RouteLink>
-                        <div class="card">
+                        <!-- The Seed Bible pages are only in English. -->
+                        <RouteLink class="card" to="/seed-bible/">
                             <h3>{{ labels.home.seedBibleTitle }}</h3>
                             <p>{{ labels.home.seedBibleBody }}</p>
-                            <span class="go pending">{{
-                                labels.home.seedBibleComing
-                            }}</span>
-                        </div>
+                            <span class="go"
+                                >{{ labels.home.seedBibleLink }} &rarr;</span
+                            >
+                        </RouteLink>
                     </div>
                 </div>
             </section>
@@ -1090,9 +1091,6 @@ onBeforeUnmount(() => {
         padding-top: 18px;
         font-weight: 600;
         font-size: 15px;
-    }
-    .card .go.pending {
-        color: var(--muted);
     }
 
     .matrix-wrap {

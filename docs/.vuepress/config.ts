@@ -10,12 +10,14 @@ import { markdownIncludePlugin } from '@vuepress/plugin-markdown-include';
 import type {
     DefaultThemeLocaleData,
     NavbarOptions,
+    SidebarItemOptions,
     SidebarOptions,
 } from '@vuepress/theme-default';
 import type { SiteLocaleConfig } from 'vuepress';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { mergeLabels, type Labels } from './labels';
+import { referenceCodeLinksPlugin } from './seed-bible/referenceCodeLinks.mjs';
 import type { Verses } from './verses';
 
 const hostname = 'https://bible.helloao.org';
@@ -75,6 +77,9 @@ const humanize = (path: string) =>
 const sectionNames: Record<string, string> = {
     '/guide/': 'Guide',
     '/reference/': 'Reference',
+    '/seed-bible/': 'Seed Bible',
+    '/seed-bible/guide/': 'Guides',
+    '/seed-bible/reference/': 'API Reference',
 };
 
 /**
@@ -168,6 +173,12 @@ const navbar = (prefix: string, labels: Labels): NavbarOptions => [
         link: `${prefix}sdks/`,
     },
     {
+        // The Seed Bible pages are only in English, so every language links
+        // to the English ones.
+        text: labels.nav.seedBible,
+        link: '/seed-bible/',
+    },
+    {
         text: 'GitHub',
         link: 'https://github.com/HelloAOLab/bible-api',
     },
@@ -176,6 +187,77 @@ const navbar = (prefix: string, labels: Labels): NavbarOptions => [
         link: localePage(prefix, 'support'),
     },
 ];
+
+/**
+ * The sidebar of the Seed Bible extension API reference, written by
+ * .vuepress/seed-bible/generate-reference.mjs next to the pages it generates.
+ * `pnpm dev` and `pnpm build` generate it first; without it the reference
+ * pages don't exist either, so the sidebar just leaves them out.
+ */
+const seedBibleReferenceSidebar = (): SidebarOptions[string] => {
+    const file = path.join(docsDir, 'seed-bible', 'reference', 'sidebar.json');
+    if (!existsSync(file)) {
+        console.warn(
+            'The Seed Bible API reference has not been generated. Run `pnpm generate:seed-bible`.'
+        );
+        return [];
+    }
+    const { version, items } = JSON.parse(readFileSync(file, 'utf8')) as {
+        version: string;
+        items: SidebarItemOptions[];
+    };
+    const underReference = (item: SidebarItemOptions): SidebarItemOptions => {
+        if (typeof item === 'string') {
+            return `reference/${item}`;
+        }
+        return {
+            ...item,
+            ...('link' in item && item.link
+                ? { link: `reference/${item.link}` }
+                : {}),
+            ...('children' in item && item.children
+                ? { children: item.children.map(underReference) }
+                : {}),
+        } as SidebarItemOptions;
+    };
+    return [
+        {
+            text: `API Reference (v${version})`,
+            link: 'reference/',
+            collapsible: false,
+            children: items.map(underReference),
+        },
+    ];
+};
+
+/**
+ * The guides that .vuepress/seed-bible/generate-guides.mjs brings in from the
+ * seed-bible repository. Like the reference, they're generated before
+ * `pnpm dev` and `pnpm build`, and left out if they haven't been.
+ */
+const seedBibleGuidesSidebar = (): SidebarOptions[string] => {
+    const guides = [
+        { file: 'developer-guide', text: 'Developer Guide' },
+        { file: 'extension-api', text: 'Extension API' },
+        { file: 'extension-security', text: 'Security Model' },
+    ].filter(({ file }) =>
+        existsSync(path.join(docsDir, 'seed-bible', 'guide', `${file}.md`))
+    );
+    if (!guides.length) {
+        return [];
+    }
+    return [
+        {
+            text: 'Guides',
+            link: 'guide/',
+            collapsible: false,
+            children: guides.map(({ file, text }) => ({
+                text,
+                link: `guide/${file}.md`,
+            })),
+        },
+    ];
+};
 
 const sidebar = (prefix: string, labels: Labels): SidebarOptions => ({
     [`${prefix}guide/`]: [
@@ -244,6 +326,20 @@ const sidebar = (prefix: string, labels: Labels): SidebarOptions => ({
             ],
         },
     ],
+    // Only in English; see the navbar.
+    ...(prefix === '/'
+        ? {
+              '/seed-bible/': [
+                  {
+                      text: labels.nav.seedBible,
+                      link: '',
+                      collapsible: false,
+                  },
+                  ...seedBibleGuidesSidebar(),
+                  ...seedBibleReferenceSidebar(),
+              ],
+          }
+        : {}),
 });
 
 /** Per-language site settings, keyed by the path each language lives under. */
@@ -392,7 +488,7 @@ export default defineUserConfig({
         }),
         shikiPlugin({
             // options
-            langs: ['ts', 'json', 'bash'],
+            langs: ['ts', 'tsx', 'json', 'bash'],
             theme: 'dark-plus',
         }),
         seoPlugin({
@@ -480,5 +576,7 @@ export default defineUserConfig({
         }),
         mediumZoomPlugin(),
         markdownIncludePlugin({}),
+        // Wraps shikiPlugin's code blocks, so it must come after it.
+        referenceCodeLinksPlugin({ docsDir, base }),
     ],
 });

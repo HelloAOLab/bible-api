@@ -3,6 +3,7 @@
         "guide": "Guide",
         "reference": "Reference",
         "sdks": "SDKs",
+        "seedBible": "Seed Bible",
         "support": "Support",
         "translationsBooksChapters": "Translations, Books, & Chapters",
         "commentaries": "Commentaries",
@@ -39,7 +40,7 @@
         "datasetsLink": "Browse datasets",
         "seedBibleTitle": "Seed Bible Developer Docs",
         "seedBibleBody": "Utilize and extend our open platform instead of starting from scratch.",
-        "seedBibleComing": "Coming December",
+        "seedBibleLink": "Extension API reference",
         "compareTitle": "A Few Bible APIs Compared",
         "compareCaption": "What the Free Use Bible API and three widely used Bible APIs let you do",
         "compareCorner": "What you may do",
@@ -247,7 +248,7 @@
         "audio": "Bible audio",
         "commentaries": "Bible commentaries",
         "datasets": "Bible data sets",
-        "seedBibleSoon": "Seed Bible (Coming soon)",
+        "seedBible": "Seed Bible extensions",
         "discordShort": "Discord",
         "newsletterShort": "Newsletter",
         "freeUseFund": "Free Use Fund",
@@ -558,7 +559,6 @@
                 "body": "Build on our open Bible platform, or extend it."
             }
         },
-        "seedBibleComing": "Developer docs coming December",
         "fundTitle": "Introducing the Free Use Fund.",
         "fundBody1": "It’s going to take all of us to get this done.",
         "fundBody2": "We’re launching a project-based fund to kickstart an open ecosystem for global Christianity.",
