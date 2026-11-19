@@ -172,15 +172,6 @@ function referenceTarget(code, section) {
 
 const referenceHref = (target) => `../reference/${target}`;
 
-/** Matches any documented name as a whole word, longest first. */
-const symbolPattern = new RegExp(
-    `\\b(${[...reference.symbols.keys()]
-        .filter(linkableName)
-        .sort((a, b) => b.length - a.length)
-        .join('|')})\\b`,
-    'g'
-);
-
 /**
  * Links a guide to the API reference:
  *
@@ -188,20 +179,18 @@ const symbolPattern = new RegExp(
  *   `sb.notes.create`) links to it, the first time it appears in a section.
  * - A heading naming something (### `sb.notes`) gets a "Reference:" line
  *   under it, since a link inside the heading itself would be easy to miss.
- * - A TypeScript code block that uses documented types gets a "Reference:"
- *   line after it, listing them; links can't go inside the code.
  *
- * Runs after the guide's own links are rewritten, so it only adds links.
+ * Types inside code blocks are linked when the page is rendered, by
+ * referenceCodeLinks.mjs. Runs after the guide's own links are rewritten, so it only adds links.
  */
 function linkToReference(lines) {
     const out = [];
     let linked = new Set();
     let section = null;
     let fence = null;
-    let block = [];
 
-    const referenceLine = (indent, targets) =>
-        `${indent}**Reference:** ${targets
+    const referenceLine = (targets) =>
+        `**Reference:** ${targets
             .map(([text, target]) => `[\`${text}\`](${referenceHref(target)})`)
             .join(' · ')}`;
 
@@ -218,42 +207,20 @@ function linkToReference(lines) {
     };
 
     for (const line of lines) {
-        const marker = /^(\s*)(`{3,}|~{3,})(\w*)/.exec(line);
+        const marker = /^(\s*)(`{3,}|~{3,})/.exec(line);
         if (fence) {
             out.push(line);
             if (
                 marker &&
-                marker[2][0] === fence.marker[0] &&
-                marker[2].length >= fence.marker.length
+                marker[2][0] === fence[0] &&
+                marker[2].length >= fence.length
             ) {
-                if (/^(ts|tsx|js|jsx|typescript)$/.test(fence.language)) {
-                    const names = [
-                        ...new Set(
-                            [...block.join('\n').matchAll(symbolPattern)].map(
-                                (match) => match[1]
-                            )
-                        ),
-                    ];
-                    const targets = fresh(
-                        names.map((name) => [name, reference.symbols.get(name)])
-                    );
-                    if (targets.length) {
-                        out.push('', referenceLine(fence.indent, targets));
-                    }
-                }
                 fence = null;
-            } else {
-                block.push(line);
             }
             continue;
         }
         if (marker) {
-            fence = {
-                indent: marker[1],
-                marker: marker[2],
-                language: marker[3],
-            };
-            block = [];
+            fence = marker[2];
             out.push(line);
             continue;
         }
@@ -272,7 +239,7 @@ function linkToReference(lines) {
                 ])
             );
             if (heading > 1 && targets.length) {
-                out.push('', referenceLine('', targets));
+                out.push('', referenceLine(targets));
             }
             continue;
         }

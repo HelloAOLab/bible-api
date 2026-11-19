@@ -17,6 +17,7 @@ import type { SiteLocaleConfig } from 'vuepress';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { mergeLabels, type Labels } from './labels';
+import { referenceCodeLinksPlugin } from './seed-bible/referenceCodeLinks.mjs';
 import type { Verses } from './verses';
 
 const hostname = 'https://bible.helloao.org';
@@ -575,5 +576,7 @@ export default defineUserConfig({
         }),
         mediumZoomPlugin(),
         markdownIncludePlugin({}),
+        // Wraps shikiPlugin's code blocks, so it must come after it.
+        referenceCodeLinksPlugin({ docsDir, base }),
     ],
 });

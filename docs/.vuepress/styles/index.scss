@@ -150,6 +150,22 @@
     }
 }
 
+// Types linked to the Seed Bible API reference inside code blocks (see
+// seed-bible/referenceCodeLinks.mjs). They keep the highlighting's colour,
+// rather than the prose links' text colour, which is unreadable on the dark
+// code background.
+div[class*='language-'] pre a.code-link {
+    color: inherit;
+    font-weight: inherit;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
+
+    &:hover {
+        text-decoration-color: currentColor;
+    }
+}
+
 // Navbar: a quiet bar with a hairline, bold wordmark and muted links.
 .vp-navbar {
     border-bottom: 1px solid var(--vp-c-divider);
