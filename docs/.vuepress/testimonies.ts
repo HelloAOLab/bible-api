@@ -39,6 +39,13 @@ export interface Testimony {
 /* From the case for support. */
 export const TESTIMONIES: Testimony[] = [
     {
+        name: 'Samson Usmael',
+        role: 'Agelgel, makers of Turumba',
+        photo: '/people/samson-usmael.jpg',
+        link: { text: 'Turumba', url: 'https://turumba.net/' },
+        quote: 'As someone in Ethiopia, I can tell you access to the Bible has been difficult. This opens a new door for creators to create, for innovators to innovate, and to take the word of God to where people are.',
+    },
+    {
         name: 'Ted Hallum',
         role: 'Director of Analytics & Information Management, Ligonier Ministries',
         photo: '/people/ted-hallum.jpg',
@@ -50,13 +57,6 @@ export const TESTIMONIES: Testimony[] = [
         photo: '/people/ryder-wishart.jpg',
         link: { text: 'Aquilla', url: 'https://aquilla.app/' },
         quote: 'It’s the best Bible API ever. It’s on seedbible.org (the best Bible reading environment) and we use it in aquilla.app.',
-    },
-    {
-        name: 'Samson Usmael',
-        role: 'Agelgel, makers of Turumba',
-        photo: '/people/samson-usmael.jpg',
-        link: { text: 'Turumba', url: 'https://turumba.net/' },
-        quote: 'As someone in Ethiopia, I can tell you access to the Bible has been difficult. This opens a new door for creators to create, for innovators to innovate, and to take the word of God to where people are.',
     },
     {
         name: 'Maxwell Warren',
