@@ -21,7 +21,7 @@ This directory contains the source for [bible.helloao.org/docs](https://bible.he
 The Seed Bible section has two generated parts, both for the [`seed-bible`](https://www.npmjs.com/package/seed-bible) version in `package.json`:
 
 - `seed-bible/reference/`: the API reference, generated from the npm package's type declarations by `.vuepress/seed-bible/generate-reference.mjs`, which says which of the package's entry points are documented.
-- `seed-bible/guide/`: the developer guide, extension API guide and security model, downloaded from `docs/` in the seed-bible repository at that version's release tag by `.vuepress/seed-bible/generate-guides.mjs`. Downloads are cached in `.vuepress/.cache`. Edit the guides in the seed-bible repository.
+- `seed-bible/guide/`: the developer guide, extension API guide and security model, downloaded from `docs/` in the seed-bible repository at that version's release tag by `.vuepress/seed-bible/generate-guides.mjs`. Downloads are cached in `.vuepress/.cache`. Edit the guides in the seed-bible repository. The generator also links them to the API reference: inline code that names something documented there (`SandboxNote`, `sb.notes.create`, or `create` in the `sb.notes` section) links to it, and headings and TypeScript code blocks that use documented names get a **Reference:** line. So the reference is generated first.
 
 `pnpm dev` and `pnpm build` generate both first; `pnpm generate:seed-bible` (run in this directory) does it on its own. They're git ignored, so don't edit them: to document a newer Seed Bible release, update the `seed-bible` version in `package.json`. `seed-bible/README.md` is the section's hand-written landing page.
 

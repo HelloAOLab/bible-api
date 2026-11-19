@@ -136,6 +136,18 @@
     &:hover {
         text-decoration-color: var(--vp-c-text);
     }
+
+    // The light underline vanishes against inline code's grey background,
+    // which made a linked `SandboxNote` look like plain code.
+    > code {
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        text-decoration-color: var(--vp-c-text-subtle);
+    }
+
+    &:hover > code {
+        text-decoration-color: var(--vp-c-text);
+    }
 }
 
 // Navbar: a quiet bar with a hairline, bold wordmark and muted links.

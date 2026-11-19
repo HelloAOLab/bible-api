@@ -16,16 +16,23 @@
  *
  * Usage: node .vuepress/seed-bible/generate-guides.mjs
  */
-import { slugify } from '@mdit-vue/shared';
 import { createRequire } from 'node:module';
 import { existsSync } from 'node:fs';
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {
+    forEachProseLine,
+    headingText,
+    headings,
+    readReferenceIndex,
+    uniqueSlugs,
+} from './markdown.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const docsDir = path.resolve(here, '../..');
 const outDir = path.join(docsDir, 'seed-bible', 'guide');
+const referenceDir = path.join(docsDir, 'seed-bible', 'reference');
 
 const REPO = 'HelloAOLab/seed-bible';
 
@@ -59,35 +66,6 @@ async function download(file) {
     return text;
 }
 
-/** Calls `fn` with each line that isn't inside a fenced code block. */
-function forEachProseLine(lines, fn) {
-    let fence = null;
-    lines.forEach((line, i) => {
-        const marker = /^\s*(`{3,}|~{3,})/.exec(line)?.[1];
-        if (marker) {
-            if (!fence) {
-                fence = marker;
-            } else if (
-                marker[0] === fence[0] &&
-                marker.length >= fence.length
-            ) {
-                fence = null;
-            }
-            return;
-        }
-        if (!fence) {
-            fn(line, i);
-        }
-    });
-}
-
-/** A heading's text as both sites see it: links, emphasis and code marks removed. */
-const headingText = (heading) =>
-    heading
-        .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
-        .replace(/[`*_]/g, '')
-        .trim();
-
 /** GitHub's anchor for a heading. */
 const githubSlug = (text) =>
     text
@@ -101,23 +79,10 @@ const githubSlug = (text) =>
  */
 function anchorMap(markdown) {
     const map = new Map();
-    const seen = { github: new Map(), vuepress: new Map() };
-    const unique = (counts, slug) => {
-        const count = counts.get(slug) ?? 0;
-        counts.set(slug, count + 1);
-        return count ? `${slug}-${count}` : slug;
-    };
-    forEachProseLine(markdown.split('\n'), (line) => {
-        const heading = /^#{1,6}\s+(.*?)\s*#*\s*$/.exec(line)?.[1];
-        if (!heading) {
-            return;
-        }
-        const text = headingText(heading);
-        map.set(
-            unique(seen.github, githubSlug(text)),
-            unique(seen.vuepress, slugify(text))
-        );
-    });
+    const unique = uniqueSlugs();
+    for (const { text, anchor } of headings(markdown)) {
+        map.set(unique(githubSlug(text)), anchor);
+    }
     // Explicit anchors (<a id="…">) are the same on both sites.
     for (const [, id] of markdown.matchAll(/<a id="([^"]+)"><\/a>/g)) {
         map.set(id, id);
@@ -175,6 +140,163 @@ function rewriteLink(file, destination) {
     return target ? `./${guide}${anchor}` : anchor;
 }
 
+const reference = readReferenceIndex(referenceDir);
+
+/**
+ * Whether a documented name is distinctive enough to link wherever it
+ * appears. A one- or two-letter name (the `T` component) is more often a
+ * type parameter or a variable in an example.
+ */
+const linkableName = (name) => !!name && name.length >= 3;
+
+/**
+ * What a piece of inline code names in the API reference, if anything.
+ * `section` is the `sb` property whose section of the guide it's in
+ * (`sb.notes`), where the guide calls its methods by their bare names.
+ */
+function referenceTarget(code, section) {
+    // `sb.notes`, `sb.notes.create`, `sb.permissions.request(...)`
+    const member = /^(sb(?:\.\w+){0,2})(?:\(.*\))?$/.exec(code)?.[1];
+    if (member && reference.members.has(member)) {
+        return reference.members.get(member);
+    }
+    // `create` or `create(...)` in the sb.notes section
+    const method = /^(\w+)(?:\(.*\))?$/.exec(code)?.[1];
+    if (section && method && reference.members.has(`${section}.${method}`)) {
+        return reference.members.get(`${section}.${method}`);
+    }
+    // `SandboxNote`, `defineExtension`, `createTestHost(extension)`
+    const name = /^(\w+)(?:\(.*\))?$/.exec(code)?.[1];
+    return (linkableName(name) && reference.symbols.get(name)) ?? null;
+}
+
+const referenceHref = (target) => `../reference/${target}`;
+
+/** Matches any documented name as a whole word, longest first. */
+const symbolPattern = new RegExp(
+    `\\b(${[...reference.symbols.keys()]
+        .filter(linkableName)
+        .sort((a, b) => b.length - a.length)
+        .join('|')})\\b`,
+    'g'
+);
+
+/**
+ * Links a guide to the API reference:
+ *
+ * - Inline code naming something in the reference (`SandboxNote`,
+ *   `sb.notes.create`) links to it, the first time it appears in a section.
+ * - A heading naming something (### `sb.notes`) gets a "Reference:" line
+ *   under it, since a link inside the heading itself would be easy to miss.
+ * - A TypeScript code block that uses documented types gets a "Reference:"
+ *   line after it, listing them; links can't go inside the code.
+ *
+ * Runs after the guide's own links are rewritten, so it only adds links.
+ */
+function linkToReference(lines) {
+    const out = [];
+    let linked = new Set();
+    let section = null;
+    let fence = null;
+    let block = [];
+
+    const referenceLine = (indent, targets) =>
+        `${indent}**Reference:** ${targets
+            .map(([text, target]) => `[\`${text}\`](${referenceHref(target)})`)
+            .join(' · ')}`;
+
+    /** Keeps the targets not yet linked in this section, and marks them linked. */
+    const fresh = (targets) => {
+        const result = [];
+        for (const [text, target] of targets) {
+            if (target && !linked.has(target)) {
+                linked.add(target);
+                result.push([text, target]);
+            }
+        }
+        return result;
+    };
+
+    for (const line of lines) {
+        const marker = /^(\s*)(`{3,}|~{3,})(\w*)/.exec(line);
+        if (fence) {
+            out.push(line);
+            if (
+                marker &&
+                marker[2][0] === fence.marker[0] &&
+                marker[2].length >= fence.marker.length
+            ) {
+                if (/^(ts|tsx|js|jsx|typescript)$/.test(fence.language)) {
+                    const names = [
+                        ...new Set(
+                            [...block.join('\n').matchAll(symbolPattern)].map(
+                                (match) => match[1]
+                            )
+                        ),
+                    ];
+                    const targets = fresh(
+                        names.map((name) => [name, reference.symbols.get(name)])
+                    );
+                    if (targets.length) {
+                        out.push('', referenceLine(fence.indent, targets));
+                    }
+                }
+                fence = null;
+            } else {
+                block.push(line);
+            }
+            continue;
+        }
+        if (marker) {
+            fence = {
+                indent: marker[1],
+                marker: marker[2],
+                language: marker[3],
+            };
+            block = [];
+            out.push(line);
+            continue;
+        }
+
+        const heading = /^(#{1,6})\s/.exec(line)?.[1].length;
+        if (heading) {
+            if (heading <= 3) {
+                linked = new Set();
+                section = /^#{1,3}\s+`(sb\.\w+)`\s*$/.exec(line)?.[1] ?? null;
+            }
+            out.push(line);
+            const targets = fresh(
+                [...line.matchAll(/`([^`]+)`/g)].map((match) => [
+                    match[1].replace(/\(.*\)$/, ''),
+                    referenceTarget(match[1]),
+                ])
+            );
+            if (heading > 1 && targets.length) {
+                out.push('', referenceLine('', targets));
+            }
+            continue;
+        }
+
+        out.push(
+            line.replace(
+                /(\[[^\]]*\]\([^)]*\))|`([^`]+)`/g,
+                (match, link, code) => {
+                    if (link) {
+                        return match;
+                    }
+                    const target = referenceTarget(code, section);
+                    if (!target || linked.has(target)) {
+                        return match;
+                    }
+                    linked.add(target);
+                    return `[${match}](${referenceHref(target)})`;
+                }
+            )
+        );
+    }
+    return out;
+}
+
 if (existsSync(outDir)) {
     await rm(outDir, { recursive: true });
 }
@@ -189,7 +311,7 @@ for (const [file, markdown] of sources) {
                 `${open}${rewriteLink(file, destination)}${close}`
         );
     });
-    const body = lines.join('\n').trimEnd();
+    const body = linkToReference(lines).join('\n').trimEnd();
     const title = headingText(/^#\s+(.*)$/m.exec(markdown)?.[1] ?? file);
     const source = `https://github.com/${REPO}/blob/${tag}/docs/${file}`;
 
