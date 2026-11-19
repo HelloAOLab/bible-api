@@ -39,6 +39,13 @@ export interface Testimony {
 /* From the case for support. */
 export const TESTIMONIES: Testimony[] = [
     {
+        name: 'Ryder Wishart, PhD',
+        role: 'CEO, Frontier R&D, makers of Aquilla',
+        photo: '/people/ryder-wishart.jpg',
+        link: { text: 'Aquilla', url: 'https://aquilla.app/' },
+        quote: 'It’s the best Bible API ever. It’s on seedbible.org (the best Bible reading environment) and we use it in aquilla.app.',
+    },
+    {
         name: 'Samson Usmael',
         role: 'Agelgel, makers of Turumba',
         photo: '/people/samson-usmael.jpg',
@@ -50,13 +57,6 @@ export const TESTIMONIES: Testimony[] = [
         role: 'Director of Analytics & Information Management, Ligonier Ministries',
         photo: '/people/ted-hallum.jpg',
         quote: 'If you’re a Christian developer wanting to incorporate God’s Word into your project unencumbered, then AO Lab’s Free Use Bible API is the single most important piece of infrastructure on planet Earth.',
-    },
-    {
-        name: 'Ryder Wishart, PhD',
-        role: 'CEO, Frontier R&D, makers of Aquilla',
-        photo: '/people/ryder-wishart.jpg',
-        link: { text: 'Aquilla', url: 'https://aquilla.app/' },
-        quote: 'It’s the best Bible API ever. It’s on seedbible.org (the best Bible reading environment) and we use it in aquilla.app.',
     },
     {
         name: 'Maxwell Warren',
