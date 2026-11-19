@@ -17,14 +17,21 @@ import { log } from '@helloao/tools';
 const execFile = promisify(execFileCallback);
 
 /**
- * Finds BibleMultiConverter.jar automatically in common locations
+ * Finds BibleMultiConverter.jar automatically in common locations.
+ * @param providedPath The path to BibleMultiConverter.jar. If given, it is used instead of searching,
+ * and an error is thrown when it doesn't exist (so that a typo isn't silently replaced by another copy).
  */
 export async function findBibleMultiConverterJar(
     providedPath?: string
 ): Promise<string | null> {
     const logger = log.getLogger();
     //Use provided path
-    if (providedPath && existsSync(providedPath)) {
+    if (providedPath) {
+        if (!existsSync(providedPath)) {
+            throw new Error(
+                `BibleMultiConverter.jar was not found at the given path: ${path.resolve(providedPath)}`
+            );
+        }
         return providedPath;
     }
 

@@ -62,6 +62,9 @@ This is the log of changes for the Free Use Bible API.
 -   Added the `source-all-translations` command, which downloads translations from eBible, [fetch.bible](https://fetch.bible), and pinned OSIS sources into one directory, downloading only new and changed translations.
     -   Each translation is downloaded from only one source, preferring eBible.
     -   `--conversion-concurrency <n>` limits concurrent USFM-to-USX3 conversions to reduce memory usage.
+    -   Can read the database, the sources, and their directories from a JSON config (`--config <path>`, or `./source.config.json` when no directory is given), like `sync`. See `source.config.example.json` and the [CLI README](./packages/helloao-cli/README.md#sourcing-translations-from-a-config).
+    -   The config can set the path to `BibleMultiConverter.jar` (`bibleMultiConverterPath`).
+-   A `--bible-multi-converter-path` (or `bibleMultiConverterPath`) that doesn't exist is now an error, instead of silently falling back to another copy of the jar or asking for one.
 -   Added `source-fetch-bible-translations` and `list-fetch-bible-translations` commands.
 -   `import-translations` now accepts multiple directories.
 -   Added `fetch-osis-translations` and `convert-osis-to-usfm` commands for OSIS sources.
