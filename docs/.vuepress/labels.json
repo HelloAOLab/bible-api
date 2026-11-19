@@ -11,7 +11,7 @@
         "selectLanguage": "Select language"
     },
     "home": {
-        "milestone": "Celebrating 100,000,000+ API requests this year!",
+        "milestone": "Celebrating 115+ million API calls this year!",
         "tagline": "An easy-to-use and fully featured JSON API for Scripture.",
         "quickStart": "Quick Start",
         "more": "Together we can build an open ecosystem for global Christianity.",
@@ -121,8 +121,8 @@
             }
         },
         "forbidEnd": "Under these terms, Timothy could not have obeyed Paul.",
-        "englishTitle": "Without adapting and sharing Scripture, we would have no English Bible.",
-        "englishBody": "Yet many modern translators adapt work they cannot attribute, then demand attribution and forbid adaptation.",
+        "englishTitle": "Without adapting and sharing Scripture,\nwe would have no modern Bible translations.",
+        "englishBody": "Yet most translators today adapt work they cannot attribute, then demand attribution and forbid adaptation.",
         "hinderTitle": "But that’s not Paul’s attitude.",
         "licencesTitle": "Even in our API, few translations are ideal.",
         "licenceUses": {

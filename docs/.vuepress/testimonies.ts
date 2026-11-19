@@ -39,12 +39,6 @@ export interface Testimony {
 /* From the case for support. */
 export const TESTIMONIES: Testimony[] = [
     {
-        name: 'Ted Hallum',
-        role: 'Director of Analytics & Information Management, Ligonier Ministries',
-        photo: '/people/ted-hallum.jpg',
-        quote: 'If you’re a Christian developer wanting to incorporate God’s Word into your project unencumbered, then AO Lab’s Free Use Bible API is the single most important piece of infrastructure on planet Earth.',
-    },
-    {
         name: 'Ryder Wishart, PhD',
         role: 'CEO, Frontier R&D, makers of Aquilla',
         photo: '/people/ryder-wishart.jpg',
@@ -57,6 +51,12 @@ export const TESTIMONIES: Testimony[] = [
         photo: '/people/samson-usmael.jpg',
         link: { text: 'Turumba', url: 'https://turumba.net/' },
         quote: 'As someone in Ethiopia, I can tell you access to the Bible has been difficult. This opens a new door for creators to create, for innovators to innovate, and to take the word of God to where people are.',
+    },
+    {
+        name: 'Ted Hallum',
+        role: 'Director of Analytics & Information Management, Ligonier Ministries',
+        photo: '/people/ted-hallum.jpg',
+        quote: 'If you’re a Christian developer wanting to incorporate God’s Word into your project unencumbered, then AO Lab’s Free Use Bible API is the single most important piece of infrastructure on planet Earth.',
     },
     {
         name: 'Maxwell Warren',

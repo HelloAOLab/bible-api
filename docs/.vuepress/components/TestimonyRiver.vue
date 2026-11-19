@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /**
  * The testimony river under the cause heading on the home page. One lane of
- * testimony cards drifts by, with "Your testimony here" second and then after
+ * testimony cards drifts by, with "Your testimony here" third and then after
  * every three. Once there are EXPAND_AT testimonies, "See all" opens it into
  * several lanes moving at different speeds. Lanes pause on hover and focus,
  * and hold still for reduced motion. Data in ../testimonies.ts.
@@ -49,7 +49,7 @@ const canOpen = computed(() => items.value.length >= EXPAND_AT);
 type Entry = { invite: true } | { invite: false; t: Testimony };
 
 /* An invite after testimony number `from`, then after every three more. The
-   first lane uses 0, so the invite is the second card on the page. Other
+   first lane uses 1, so the invite is the third card on the page. Other
    lanes start later, so the invites never line up in a column. */
 function sequence(list: Testimony[], from: number): Entry[] {
     const out: Entry[] = [];
@@ -75,7 +75,7 @@ const lanes = computed(() => {
         list.forEach((t, i) => groups[i % k].push(t));
     }
     return groups.map((g, i) => ({
-        entries: sequence(g, [0, 2, 1][i % 3]),
+        entries: sequence(g, [1, 0, 2][i % 3]),
         rev: i % 2 === 1,
         secs: Math.round(Math.max(36, g.length * 1.4 * 9) * (1 + i * 0.25)),
     }));
