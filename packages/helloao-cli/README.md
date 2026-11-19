@@ -54,9 +54,10 @@ Commands:
   source-fetch-bible-translations [options] <dir> [translations...]
                                                          Finds translation sources from fetch.bible and downloads them.
                                                          Translations that are already provided by eBible are skipped.
-  source-all-translations [options] <dir> [translations...]
+  source-all-translations [options] [dir] [translations...]
                                                          Finds translation sources from eBible and fetch.bible, and downloads them (along with the pinned OSIS translations and the Berean Standard Bible from bereanbible.com) into the given directory so that they can be imported with import-translations.
                                                          Translations available from eBible are downloaded from eBible, and the rest are downloaded from fetch.bible. Only new and changed translations are downloaded.
+                                                         With --config (or when <dir> is omitted, ./source.config.json), the database, the sources, and the directories they are downloaded to are read from the config, and every argument is a translation ID. See the README for its format.
   list-fetch-bible-translations [search]                 List available fetch.bible translations. Optionally filter by search term.
   list-ebible-translations [search]                      List available eBible translations. Optionally filter by search term.
   refresh-ebible-licenses [options] [translations...]    Detects the licenses of the eBible translations that are already in the database and stores them.
@@ -83,7 +84,7 @@ Commands:
 
 > **eBible licenses.** `source-translations` detects the license of each eBible translation (from the Creative Commons link on its ebible.org details page, falling back to a "public domain" copyright notice) and stores it in `metadata.json`. To add licenses to a database that was imported before license detection existed, run `helloao refresh-ebible-licenses --db <path> --dir <sourced translations dir>`. It updates the `license` column of each eBible translation in place, and `--dir` also writes the licenses into the matching `metadata.json` files so that a later re-import doesn't clear them. Translations whose license can't be detected are left unchanged.
 
-> **Sourcing translations.** `source-all-translations <dir>` is the one command for keeping a directory of translations up to date. It reconciles the translation lists from [eBible](https://ebible.org) and [fetch.bible](https://fetch.bible) so that each translation is downloaded from only one source: translations that eBible has are downloaded from eBible (like `source-translations`), and translations that only fetch.bible has (or that eBible lists but has no USFM download for) are downloaded from the [fetch.bible collection](https://github.com/gracious-tech/fetch_collection). Downloads are tracked in the database (`--db`), so later runs only download new and changed translations. Changes are detected from the git history of the fetch.bible collection: each run looks up the collection's latest commit with the GitHub API (3 requests) and compares the git tree SHA of each translation's directory with the one that was downloaded, and files are downloaded from that exact commit. Set `GITHUB_TOKEN` to raise the GitHub API rate limit; if the API is unavailable, changes are detected from each translation's `meta.json` instead. Use `--collection-repo` and `--collection-ref` to download from a fork or another branch. USFM files are converted to USX3 with [BibleMultiConverter](https://github.com/schierlm/BibleMultiConverter) (use `--no-convert-to-usx3` to keep the USFM files). Up to 10 conversions run at once; each one is a separate Java process, so lower this with `--conversion-concurrency <n>` to reduce memory usage (the same option works with `source-translations` and `source-fetch-bible-translations`). Every translation gets a `metadata.json` (including its license), so the directory can be imported straight away with `import-translations <dir>`. To keep the fetch.bible translations in their own directory, add `--fetch-bible-dir <fetch dir>`; `<dir>` then only holds the eBible translations, and both are imported with `import-translations <dir> <fetch dir>`. When a translation that was downloaded from fetch.bible later becomes available from eBible, its copy in the fetch.bible directory is removed so that it isn't imported twice. Translations listed in `<dir>/ignorelist.txt` (or the fetch.bible directory's `ignorelist.txt`) (by eBible ID, fetch.bible ID, or translation ID) are never downloaded. To only download from fetch.bible, use `source-fetch-bible-translations <dir>`, which skips translations that the database (or `--ebible-dir`) shows were already downloaded from eBible. Translations that came from fetch.bible have a `fetch-bible.txt` file in their directory. The pinned OSIS translations (the ones `fetch-osis-translations` downloads, such as `jpn_kou`) are fetched as well, after their SHA-256 hashes are checked, and are never downloaded from eBible or fetch.bible. They have an `osis.txt` file in their directory that records their source, so they are only downloaded again when their source or metadata changes (or with `--overwrite`). Put them in their own directory with `--osis-dir <osis dir>`, or skip them with `--no-osis`. The Berean Standard Bible is downloaded from bereanbible.com (like `fetch-bsb`) instead of eBible, and is only replaced when the download changes. Put it in its own directory with `--bsb-dir <bsb dir>`, or use `--no-bsb` to source it from eBible like the other translations.
+> **Sourcing translations.** `source-all-translations <dir>` is the one command for keeping a directory of translations up to date. It reconciles the translation lists from [eBible](https://ebible.org) and [fetch.bible](https://fetch.bible) so that each translation is downloaded from only one source: translations that eBible has are downloaded from eBible (like `source-translations`), and translations that only fetch.bible has (or that eBible lists but has no USFM download for) are downloaded from the [fetch.bible collection](https://github.com/gracious-tech/fetch_collection). Downloads are tracked in the database (`--db`), so later runs only download new and changed translations. Changes are detected from the git history of the fetch.bible collection: each run looks up the collection's latest commit with the GitHub API (3 requests) and compares the git tree SHA of each translation's directory with the one that was downloaded, and files are downloaded from that exact commit. Set `GITHUB_TOKEN` to raise the GitHub API rate limit; if the API is unavailable, changes are detected from each translation's `meta.json` instead. Use `--collection-repo` and `--collection-ref` to download from a fork or another branch. USFM files are converted to USX3 with [BibleMultiConverter](https://github.com/schierlm/BibleMultiConverter) (use `--no-convert-to-usx3` to keep the USFM files). Up to 10 conversions run at once; each one is a separate Java process, so lower this with `--conversion-concurrency <n>` to reduce memory usage (the same option works with `source-translations` and `source-fetch-bible-translations`). Every translation gets a `metadata.json` (including its license), so the directory can be imported straight away with `import-translations <dir>`. To keep the fetch.bible translations in their own directory, add `--fetch-bible-dir <fetch dir>`; `<dir>` then only holds the eBible translations, and both are imported with `import-translations <dir> <fetch dir>`. When a translation that was downloaded from fetch.bible later becomes available from eBible, its copy in the fetch.bible directory is removed so that it isn't imported twice. Translations listed in `<dir>/ignorelist.txt` (or the fetch.bible directory's `ignorelist.txt`) (by eBible ID, fetch.bible ID, or translation ID) are never downloaded. To only download from fetch.bible, use `source-fetch-bible-translations <dir>`, which skips translations that the database (or `--ebible-dir`) shows were already downloaded from eBible. Translations that came from fetch.bible have a `fetch-bible.txt` file in their directory. The pinned OSIS translations (the ones `fetch-osis-translations` downloads, such as `jpn_kou`) are fetched as well, after their SHA-256 hashes are checked, and are never downloaded from eBible or fetch.bible. They have an `osis.txt` file in their directory that records their source, so they are only downloaded again when their source or metadata changes (or with `--overwrite`). Put them in their own directory with `--osis-dir <osis dir>`, or skip them with `--no-osis`. The Berean Standard Bible is downloaded from bereanbible.com (like `fetch-bsb`) instead of eBible, and is only replaced when the download changes. Put it in its own directory with `--bsb-dir <bsb dir>`, or use `--no-bsb` to source it from eBible like the other translations. The database and the sources can also be read from a config file instead; see [Sourcing translations from a config](#sourcing-translations-from-a-config).
 
 > **SWORD commentaries.** `import-commentary`, `import-commentaries`, and `sync` can import commentaries from [SWORD](https://crosswire.org/sword/) modules, like the ones from the [CrossWire module repository](https://crosswire.org/sword/modules/ModDisp.jsp?modType=Commentaries). Put the module's `.zip` file in the commentary's directory, or extract it there (so that the directory contains `mods.d/` and `modules/`). The commentary's metadata comes from the module's `.conf` file: its ID is the module name in lowercase (e.g. `clarke`), and its name is the module's `Description`. To change any of these, add a `metadata.json` with just the values to override (e.g. `{ "id": "adam-clarke" }`). The `zCom`, `zCom4`, `RawCom`, and `RawCom4` drivers are supported, with the KJV versification and OSIS, ThML, GBF, or plain text markup. Entries are converted to plain text, with one line per paragraph; notes are left out. Book and chapter headings become the book and chapter introductions, and a comment that covers several verses (a linked entry) is only listed under its first verse. Some commentaries (like Adam Clarke's) start each comment with a "Verse N" heading: the heading is removed, and any text before the "Verse 1" heading becomes the chapter introduction.
 
@@ -161,11 +162,49 @@ Only the items imported by the sync are uploaded, so translations that were impo
 
 The sync state is stored in the `SyncSource`, `SyncUpload`, `SyncPendingDelete`, and `SyncDestination` tables of the database. The first sync of an existing database imports every source and uploads every item once.
 
+### Sourcing translations from a config
+
+Like `sync`, `source-all-translations` can read its settings from a JSON config instead of the command line. The config sets the database that tracks downloads and lists the sources to download translations from, with the directory each one is downloaded to:
+
+```json
+{
+    "db": "./free-use-bible-api.db",
+    "ignorelist": ["amh_amh"],
+    "convertToUsx3": true,
+    "bibleMultiConverterPath": "./tools/BibleMultiConverter.jar",
+    "conversionConcurrency": 4,
+    "sources": [
+        { "type": "ebible", "path": "./sources/ebible" },
+        {
+            "type": "fetch-bible",
+            "path": "./sources/fetch-bible",
+            "repo": "gracious-tech/fetch_collection",
+            "ref": "main"
+        },
+        { "type": "osis", "path": "./sources/osis" },
+        { "type": "bsb", "path": "./sources/bsb" }
+    ]
+}
+```
+
+```
+helloao source-all-translations --config ./source.config.json [translations...]
+helloao source-all-translations    # reads ./source.config.json
+```
+
+Paths in the config are relative to the config file, and `--db` overrides `db`. See `source.config.example.json` in the repository for a starting point.
+
+-   **Sources.** `ebible` is required. `fetch-bible` downloads the translations that eBible doesn't have from the fetch.bible collection (`manifestUrl`, `repo`, and `ref` are optional and only allowed here). `osis` downloads the pinned OSIS translations, and `bsb` downloads the Berean Standard Bible from bereanbible.com. Each type can be listed once, and a source that is left out isn't downloaded from (without `bsb`, the BSB is downloaded from eBible). Sources can share a directory.
+-   **Ignorelist.** `ignorelist` lists translations that are never downloaded (by eBible ID, fetch.bible ID, or translation ID), in addition to the `ignorelist.txt` file of each source directory.
+-   **Conversion.** `convertToUsx3` and `conversionConcurrency` set the USFM to USX3 conversion. `bibleMultiConverterPath` is the path to `BibleMultiConverter.jar`, relative to the config file; without it, the jar is searched for in the usual places (like `./tools/BibleMultiConverter.jar`), and you're asked for its location if it isn't found. If the jar isn't at the given path, the command stops with an error instead of searching. `--no-convert-to-usx3`, `--bible-multi-converter-path`, and `--conversion-concurrency` override them.
+-   **Command line.** With a config, every argument is a translation ID to download, and `--overwrite` and `--no-database` still work. The options that choose sources and directories (`--fetch-bible-dir`, `--osis-dir`, `--no-osis`, `--bsb-dir`, `--no-bsb`, `--manifest-url`, `--collection-repo`, and `--collection-ref`) can't be combined with a config.
+-   **Importing.** To import the downloaded translations with `sync`, add each source's directory to the sync config as a `translations` source.
+
 The `@helloao/cli` package can also be used as a library.
 
 The library exports a variety of actions, utilities, and supporting classes designed to assist with generating and managing a Free Use Bible API.
 
-There are 7 main exports:
+There are 8 main exports:
 
 -   `actions` - This export contains function versions of the CLI commands. They make it easy to call a CLI command from a script.
 -   `db` - This export contains functions that make working with a database easier. It supports operations like importing translations into a database, inserting chapters, verses, etc. and getting an updated database instance from a path.
@@ -174,6 +213,7 @@ There are 7 main exports:
 -   `uploads` - This export contains functions that make it easy to upload an API to a destination like S3, the local filesystem, or a zip archive.
 -   `s3` - This export contains a class that can upload files to S3.
 -   `sync` - This export contains the function version of the `sync` command (`sync()` and `syncWithConfig()`) and the functions that find, import, and upload the sources in a sync config.
+-   `sourceConfig` - This export contains `sourceAllTranslationsFromConfig()`, which runs `source-all-translations` from a source config, and `loadSourceConfig()`.
 
 Here are some common operations that you might want to perform:
 
