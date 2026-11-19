@@ -4,6 +4,7 @@ import {
     resolvers,
     useSiteLocaleData,
 } from 'vuepress/client';
+import AgentBootstrap from './components/AgentBootstrap.vue';
 import NewsletterDialog from './components/NewsletterDialog.vue';
 import ScrollCue from './components/ScrollCue.vue';
 import FlywheelLayout from './layouts/FlywheelLayout.vue';
@@ -52,6 +53,11 @@ export default defineClientConfig({
     // The newsletter dialog opens from any link with the class
     // js-newsletter-trigger. The scroll cue sits bottom right on every page.
     rootComponents: [NewsletterDialog, ScrollCue],
+
+    // Components that markdown pages use by name.
+    enhance({ app }) {
+        app.component('AgentBootstrap', AgentBootstrap);
+    },
 
     // Arabic and Urdu read right to left. The page's `lang` is set from the
     // locale, but nothing sets `dir`, so do it here as the reader switches
