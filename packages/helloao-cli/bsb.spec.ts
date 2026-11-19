@@ -16,6 +16,7 @@ jest.mock('./conversion.js', () => ({
     findBibleMultiConverterJar: jest.fn(async () => '/fake/converter.jar'),
     promptForBibleMultiConverter: jest.fn(async () => null),
     convertUsfmToUsx3: jest.fn(),
+    USFM_PREPROCESSING_VERSION: 1,
 }));
 
 const encoder = new TextEncoder();

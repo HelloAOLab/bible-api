@@ -98,6 +98,10 @@ model EBibleSource {
     // The SHA-256 hash of the source
     // Can be used to determine if the source has changed
     sha256 String?
+
+    // The version of the USFM preprocessing (USFM_PREPROCESSING_VERSION) that the source was converted to USX3 with.
+    // Null if the source was not converted. Sources converted with an older version are downloaded again.
+    usfmPreprocessingVersion Int?
 }
 
 // A translation that is available from the fetch.bible collection
@@ -145,6 +149,10 @@ model FetchBibleSource {
     // The SHA-256 hash of the source metadata
     // Can be used to determine if the source has changed
     sha256 String?
+
+    // The version of the USFM preprocessing (USFM_PREPROCESSING_VERSION) that the source was converted to USX3 with.
+    // Null if the source was not converted. Sources converted with an older version are downloaded again.
+    usfmPreprocessingVersion Int?
 }
 
 // Files that were input into the API generator

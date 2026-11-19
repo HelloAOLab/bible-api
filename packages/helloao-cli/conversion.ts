@@ -1,6 +1,14 @@
-import { mkdir, readdir } from 'node:fs/promises';
+import {
+    mkdir,
+    mkdtemp,
+    readdir,
+    readFile,
+    rm,
+    writeFile,
+} from 'node:fs/promises';
 import { existsSync } from 'fs';
-import path from 'path';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 import { execFile as execFileCallback } from 'child_process';
 import { promisify } from 'util';
 import { confirm, input } from '@inquirer/prompts';
@@ -92,7 +100,88 @@ export async function promptForBibleMultiConverter(): Promise<string | null> {
 }
 
 /**
- * Converts USFM directory to USX3 using BibleMultiConverter
+ * The version of the USFM preprocessing that convertUsfmToUsx3() does.
+ * Increase this when preprocessUsfm() changes so that fetchers that skip unchanged sources
+ * (e.g. fetchBsbTranslation()) convert them again.
+ */
+export const USFM_PREPROCESSING_VERSION = 1;
+
+/**
+ * Determines whether a source that was converted to USX3 with the given preprocessing version needs to be converted again,
+ * because it was converted before the current USFM preprocessing (or wasn't converted at all).
+ * @param version The preprocessing version that the source was converted with. Null or undefined if it wasn't converted.
+ */
+export function isUsfmPreprocessingOutdated(
+    version: number | null | undefined
+): boolean {
+    return version !== USFM_PREPROCESSING_VERSION;
+}
+
+/**
+ * Matches a USFM 3 reference (`\\ref TEXT|TARGET\\ref*`), including the nested form (`\\+ref ...\\+ref*`).
+ * Group 1 is the "+" of a nested marker, group 2 is the display text, and group 3 is the optional link target
+ * (e.g. `PSA 91:11-12` or `loc="PSA 91:11-12"`).
+ */
+const USFM_REF_REGEX =
+    /\\(\+?)ref\s((?:(?!\\\+?ref\*)[^|])*?)(?:\|((?:(?!\\\+?ref\*)[\s\S])*?))?\\\1ref\*/g;
+
+/**
+ * The extensions of the files that are treated as USFM by preprocessUsfmDirectory().
+ */
+const USFM_EXTENSIONS = new Set(['.usfm', '.sfm']);
+
+/**
+ * Rewrites the USFM markup that BibleMultiConverter doesn't understand so that the converted USX3 contains
+ * only the text that readers should see.
+ *
+ * - `\\ref TEXT|TARGET\\ref*` is replaced by `TEXT`. BibleMultiConverter doesn't know the `\\ref` marker, so it drops
+ *   the markers and keeps the text on both sides of the pipe (e.g. "Psalm 91:11–12|PSA 91:11-12"), and it adds a space
+ *   where the opening marker was (e.g. "( 1 Enoch 1:9|1:9)"). See https://github.com/HelloAOLab/bible-api/issues/144.
+ *
+ * @param usfm The USFM content.
+ * @returns The preprocessed USFM content.
+ */
+export function preprocessUsfm(usfm: string): string {
+    return usfm.replace(USFM_REF_REGEX, (_match, _plus, text: string) => text);
+}
+
+/**
+ * Copies the files in the given directory to the given output directory and runs preprocessUsfm() on every USFM file.
+ * Other files are copied unchanged.
+ * @param inputDir The directory that contains the USFM files.
+ * @param outputDir The directory that the preprocessed files should be written to.
+ * @returns The number of USFM files that were changed.
+ */
+export async function preprocessUsfmDirectory(
+    inputDir: string,
+    outputDir: string
+): Promise<number> {
+    await mkdir(outputDir, { recursive: true });
+    let changed = 0;
+    for (const entry of await readdir(inputDir, { withFileTypes: true })) {
+        if (!entry.isFile()) {
+            continue;
+        }
+        const inputPath = path.join(inputDir, entry.name);
+        const outputPath = path.join(outputDir, entry.name);
+        const content = await readFile(inputPath);
+        if (USFM_EXTENSIONS.has(path.extname(entry.name).toLowerCase())) {
+            const text = content.toString('utf-8');
+            const processed = preprocessUsfm(text);
+            if (processed !== text) {
+                changed += 1;
+                await writeFile(outputPath, processed, 'utf-8');
+                continue;
+            }
+        }
+        await writeFile(outputPath, content);
+    }
+    return changed;
+}
+
+/**
+ * Converts USFM directory to USX3 using BibleMultiConverter.
+ * The USFM files are first preprocessed with preprocessUsfm() in a temporary directory, so the input directory is not modified.
  */
 export async function convertUsfmToUsx3(
     inputDir: string,
@@ -100,8 +189,20 @@ export async function convertUsfmToUsx3(
     jarPath: string
 ): Promise<boolean> {
     const logger = log.getLogger();
+    let preprocessedDir: string | null = null;
     try {
         logger.log(`Converting USFM files from ${inputDir} to USX3 format...`);
+
+        preprocessedDir = await mkdtemp(
+            path.join(tmpdir(), 'bible-api-usfm-preprocessed-')
+        );
+        const changed = await preprocessUsfmDirectory(
+            inputDir,
+            preprocessedDir
+        );
+        if (changed > 0) {
+            logger.log(`Preprocessed ${changed} USFM files before conversion.`);
+        }
 
         // Handle overwrite logic for output directory
         // if (overwrite && existsSync(outputDir)) {
@@ -118,7 +219,7 @@ export async function convertUsfmToUsx3(
             jarPath,
             'ParatextConverter',
             'USFM',
-            inputDir,
+            preprocessedDir,
             'USX3',
             outputDir,
             '*.usx',
@@ -147,6 +248,10 @@ export async function convertUsfmToUsx3(
     } catch (error: any) {
         logger.error('Conversion failed:', error.message);
         return false;
+    } finally {
+        if (preprocessedDir) {
+            await rm(preprocessedDir, { recursive: true, force: true });
+        }
     }
 }
 

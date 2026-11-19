@@ -69,6 +69,8 @@ import {
     findBibleMultiConverterJar,
     promptForBibleMultiConverter,
     convertUsfmToUsx3,
+    isUsfmPreprocessingOutdated,
+    USFM_PREPROCESSING_VERSION,
     printConversionInstructions,
 } from './conversion.js';
 import { loadMetadataOverride } from './meta.js';
@@ -1756,16 +1758,18 @@ export async function sourceTranslations(
         logger.log('Connecting to database for download tracking...');
         db = await database.getDb(options.db);
         sourceExists = db.prepare(
-            'SELECT usfmZipEtag, usfmDownloadDate FROM EBibleSource WHERE id = @id AND sha256 = @sha256;'
+            'SELECT usfmZipEtag, usfmDownloadDate, usfmPreprocessingVersion FROM EBibleSource WHERE id = @id AND sha256 = @sha256;'
         );
         let skippedByDatabase = 0;
         let sourcesChecked = 0;
         let notDownloaded = 0;
+        let outdatedConversion = 0;
 
         filteredSources = filteredSources.filter((source) => {
             const existingSource = sourceExists.get(source) as {
                 usfmZipEtag: string;
                 usfmDownloadDate: string;
+                usfmPreprocessingVersion: number | null;
             };
             sourcesChecked++;
             if (existingSource) {
@@ -1780,6 +1784,17 @@ export async function sourceTranslations(
                 source.usfmZipEtag = existingSource.usfmZipEtag;
                 source.usfmDownloadDate =
                     existingSource.usfmDownloadDate as any;
+
+                if (
+                    convertToUsx3 &&
+                    isUsfmPreprocessingOutdated(
+                        existingSource.usfmPreprocessingVersion
+                    )
+                ) {
+                    // Converted before the current USFM preprocessing (or not converted at all)
+                    outdatedConversion++;
+                    return true;
+                }
 
                 // If specific translations were requested, include sources that match
                 if (
@@ -1809,8 +1824,9 @@ export async function sourceTranslations(
         logger.log(`   • Checked: ${sourcesChecked}`);
         logger.log(`   • Skipped: ${skippedByDatabase}`);
         logger.log(`   • New: ${notDownloaded}`);
+        logger.log(`   • Outdated USX3 conversion: ${outdatedConversion}`);
         logger.log(
-            `   • Needs Update: ${filteredSources.length - notDownloaded}`
+            `   • Needs Update: ${filteredSources.length - notDownloaded - outdatedConversion}`
         );
 
         sourceUpsert = db.prepare(`INSERT INTO EBibleSource(
@@ -1819,14 +1835,14 @@ export async function sourceTranslations(
             newTestamentBooks, newTestamentChapters, newTestamentVerses,
             apocryphaBooks, apocryphaChapters, apocryphaVerses,
             redistributable, sourceDate, updateDate, usfmDownloadDate,
-            usfmDownloadPath, sha256, usfmZipUrl, usfmZipEtag, FCBHID
+            usfmDownloadPath, sha256, usfmZipUrl, usfmZipEtag, FCBHID, usfmPreprocessingVersion
         ) VALUES (
             @id, @translationId, @title, @shortTitle, @languageCode, @textDirection, @copyright, @description,
             @oldTestamentBooks, @oldTestamentChapters, @oldTestamentVerses,
             @newTestamentBooks, @newTestamentChapters, @newTestamentVerses,
             @apocryphaBooks, @apocryphaChapters, @apocryphaVerses,
             @redistributable, @sourceDate, @updateDate, @usfmDownloadDate,
-            @usfmDownloadPath, @sha256, @usfmZipUrl, @usfmZipEtag, @FCBHID
+            @usfmDownloadPath, @sha256, @usfmZipUrl, @usfmZipEtag, @FCBHID, @usfmPreprocessingVersion
         ) ON CONFLICT(id) DO UPDATE SET
             translationId = excluded.translationId, title = excluded.title, shortTitle = excluded.shortTitle,
             languageCode = excluded.languageCode, textDirection = excluded.textDirection, copyright = excluded.copyright,
@@ -1839,7 +1855,7 @@ export async function sourceTranslations(
             updateDate = excluded.updateDate, usfmDownloadDate = excluded.usfmDownloadDate,
             usfmDownloadPath = excluded.usfmDownloadPath, sha256 = excluded.sha256,
             usfmZipUrl = excluded.usfmZipUrl, usfmZipEtag = excluded.usfmZipEtag,
-            FCBHID = excluded.FCBHID;
+            FCBHID = excluded.FCBHID, usfmPreprocessingVersion = excluded.usfmPreprocessingVersion;
         `);
     } else {
         logger.log('Database connection skipped (tracking disabled)');
@@ -2072,6 +2088,7 @@ export async function sourceTranslations(
                             source.usfmDownloadDate =
                                 DateTime.utc().toISO() as any;
                             source.usfmDownloadPath = outputDir;
+                            source.usfmPreprocessingVersion = null;
                             if (sourceUpsert) {
                                 sourceUpsert.run(source);
                             }
@@ -2124,6 +2141,8 @@ export async function sourceTranslations(
                             source.usfmDownloadDate =
                                 DateTime.utc().toISO() as any;
                             source.usfmDownloadPath = outputPath;
+                            source.usfmPreprocessingVersion =
+                                USFM_PREPROCESSING_VERSION;
                             sourceUpsert.run(source);
                         }
                         numConverted++;
@@ -2319,11 +2338,12 @@ export async function sourceFetchBibleTranslations(
         let sourceUpsert: Sql.Statement | null = null;
         if (db) {
             const sourceExists = db.prepare(
-                'SELECT sha256, gitTreeSha, downloadDate, downloadPath FROM FetchBibleSource WHERE id = @id;'
+                'SELECT sha256, gitTreeSha, downloadDate, downloadPath, usfmPreprocessingVersion FROM FetchBibleSource WHERE id = @id;'
             );
             let unchanged = 0;
             let newSources = 0;
             let changedSources = 0;
+            let outdatedConversion = 0;
 
             selected = selected.filter((entry) => {
                 const existing = sourceExists.get({ id: entry.source.id }) as
@@ -2332,6 +2352,7 @@ export async function sourceFetchBibleTranslations(
                           gitTreeSha: string | null;
                           downloadDate: string | null;
                           downloadPath: string | null;
+                          usfmPreprocessingVersion: number | null;
                       }
                     | undefined;
                 const outputPath = path.resolve(
@@ -2350,6 +2371,16 @@ export async function sourceFetchBibleTranslations(
                 } else if (hasFetchBibleSourceChanged(existing, entry.source)) {
                     changedSources++;
                     return true;
+                } else if (
+                    convertToUsx3 &&
+                    entry.source.sourceFormat === 'usfm' &&
+                    isUsfmPreprocessingOutdated(
+                        existing.usfmPreprocessingVersion
+                    )
+                ) {
+                    // Converted before the current USFM preprocessing (or not converted at all)
+                    outdatedConversion++;
+                    return true;
                 } else if (hasTranslations) {
                     // Explicitly requested translations are always re-downloaded
                     return true;
@@ -2363,15 +2394,18 @@ export async function sourceFetchBibleTranslations(
             logger.log(`   • Skipped (unchanged): ${unchanged}`);
             logger.log(`   • New: ${newSources}`);
             logger.log(`   • Needs Update: ${changedSources}`);
+            logger.log(`   • Outdated USX3 conversion: ${outdatedConversion}`);
 
             sourceUpsert = db.prepare(`INSERT INTO FetchBibleSource(
                 id, translationId, languageCode, name, englishName, abbreviation, textDirection, year,
                 ebibleId, sourceService, sourceFormat, sourceUpdated, sourceRevision,
-                attribution, attributionUrl, gitCommitSha, gitTreeSha, downloadDate, downloadPath, sha256
+                attribution, attributionUrl, gitCommitSha, gitTreeSha, downloadDate, downloadPath, sha256,
+                usfmPreprocessingVersion
             ) VALUES (
                 @id, @translationId, @languageCode, @name, @englishName, @abbreviation, @textDirection, @year,
                 @ebibleId, @sourceService, @sourceFormat, @sourceUpdated, @sourceRevision,
-                @attribution, @attributionUrl, @gitCommitSha, @gitTreeSha, @downloadDate, @downloadPath, @sha256
+                @attribution, @attributionUrl, @gitCommitSha, @gitTreeSha, @downloadDate, @downloadPath, @sha256,
+                @usfmPreprocessingVersion
             ) ON CONFLICT(id) DO UPDATE SET
                 translationId = excluded.translationId, languageCode = excluded.languageCode,
                 name = excluded.name, englishName = excluded.englishName, abbreviation = excluded.abbreviation,
@@ -2381,7 +2415,7 @@ export async function sourceFetchBibleTranslations(
                 attribution = excluded.attribution, attributionUrl = excluded.attributionUrl,
                 gitCommitSha = excluded.gitCommitSha, gitTreeSha = excluded.gitTreeSha,
                 downloadDate = excluded.downloadDate, downloadPath = excluded.downloadPath,
-                sha256 = excluded.sha256;
+                sha256 = excluded.sha256, usfmPreprocessingVersion = excluded.usfmPreprocessingVersion;
             `);
         } else if (!overwrite) {
             const before = selected.length;
@@ -2420,10 +2454,14 @@ export async function sourceFetchBibleTranslations(
 
         const recordDownload = (
             entry: FetchBibleCatalogEntry,
-            outputPath: string
+            outputPath: string,
+            converted: boolean
         ) => {
             entry.source.downloadDate = DateTime.utc().toISO() as any;
             entry.source.downloadPath = outputPath;
+            entry.source.usfmPreprocessingVersion = converted
+                ? USFM_PREPROCESSING_VERSION
+                : null;
             sourceUpsert?.run(entry.source);
             result.downloaded.push(entry.source.translationId);
         };
@@ -2472,7 +2510,7 @@ export async function sourceFetchBibleTranslations(
                         entry,
                     });
                 } else {
-                    recordDownload(entry, outputPath);
+                    recordDownload(entry, outputPath, false);
                 }
             } catch (err) {
                 logger.error(`Error processing ${source.translationId}:`, err);
@@ -2509,7 +2547,7 @@ export async function sourceFetchBibleTranslations(
                         jarPath!
                     );
                     if (success) {
-                        recordDownload(entry, outputPath);
+                        recordDownload(entry, outputPath, true);
                         numConverted++;
                     } else {
                         result.failed.push(entry.source.translationId);

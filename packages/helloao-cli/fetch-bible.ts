@@ -469,6 +469,7 @@ export function createFetchBibleSource(
         gitTreeSha: git.treeSha ?? null,
         downloadDate: null,
         downloadPath: null,
+        usfmPreprocessingVersion: null,
         sha256: null,
     };
 

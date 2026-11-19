@@ -189,6 +189,7 @@ describe('createFetchBibleSource()', () => {
             sourceRevision: 0,
             downloadDate: null,
             downloadPath: null,
+            usfmPreprocessingVersion: null,
         });
         expect(source.sha256).toMatch(/^[0-9a-f]{64}$/);
     });

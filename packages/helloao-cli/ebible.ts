@@ -92,6 +92,7 @@ export async function fetchEBibleMetadata(): Promise<EBibleSource[]> {
             usfmZipUrl: null,
             usfmZipEtag: null,
             sha256: null,
+            usfmPreprocessingVersion: null,
         };
 
         source.sha256 = sha256()
