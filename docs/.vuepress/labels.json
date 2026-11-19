@@ -248,7 +248,7 @@
         "audio": "Bible audio",
         "commentaries": "Bible commentaries",
         "datasets": "Bible data sets",
-        "seedBibleSoon": "Seed Bible (Coming soon)",
+        "seedBible": "Seed Bible extensions",
         "discordShort": "Discord",
         "newsletterShort": "Newsletter",
         "freeUseFund": "Free Use Fund",
@@ -559,7 +559,6 @@
                 "body": "Build on our open Bible platform, or extend it."
             }
         },
-        "seedBibleComing": "Developer docs coming December",
         "fundTitle": "Introducing the Free Use Fund.",
         "fundBody1": "It’s going to take all of us to get this done.",
         "fundBody2": "We’re launching a project-based fund to kickstart an open ecosystem for global Christianity.",
