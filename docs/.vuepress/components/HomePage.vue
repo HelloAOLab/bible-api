@@ -350,6 +350,9 @@ function whenVisible(
 
 // A label may carry a "\n" where the line should break on wide screens.
 const causeLines = computed(() => labels.value.home.causeTitle.split('\n'));
+const englishLines = computed(() =>
+    labels.value.home.englishTitle.split('\n')
+);
 
 onMounted(() => {
     confetti();
@@ -643,7 +646,13 @@ onBeforeUnmount(() => {
 
             <section class="section beat fg" id="english">
                 <div class="shell">
-                    <h2 class="fg-h">{{ labels.home.englishTitle }}</h2>
+                    <h2 class="fg-h">
+                        <template v-for="(line, i) in englishLines" :key="i"
+                            ><br v-if="i" class="lb" />{{
+                                i ? ' ' + line : line
+                            }}</template
+                        >
+                    </h2>
                     <p class="fg-p fg-p-wide">{{ labels.home.englishBody }}</p>
                 </div>
             </section>
@@ -1018,8 +1027,12 @@ onBeforeUnmount(() => {
         max-width: none;
     }
     @media (max-width: 720px) {
-        .cause-h br.lb {
+        .cause-h br.lb,
+        #english .fg-h br.lb {
             display: none;
+        }
+        #english .fg-h {
+            max-width: 28ch;
         }
         .cause-h.has-break {
             max-width: 22ch;
@@ -1205,7 +1218,7 @@ onBeforeUnmount(() => {
         text-wrap: balance;
     }
     #english .fg-h {
-        max-width: 28ch;
+        max-width: none;
         font-size: clamp(32px, 3.9vw, 54px);
     }
     #english {
