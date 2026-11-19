@@ -52,7 +52,7 @@ Seed Bible (https://seedbible.org) is an open Bible reader. An extension adds so
 
 [Seed Bible](https://seedbible.org) is an open Bible reader that anyone can extend. An extension adds something to the reader: a toolbar button, a pane, a source of study content, a chat assistant. You build it in your own project and share it as a link; users install it from that link.
 
-This section is the API reference for extensions: every package an extension imports, and every type, function and component in them. Each page is generated from the `seed-bible` npm package itself, so it always matches what you install.
+This section has the guides to building one, and an API reference with every package an extension imports and every type, function and component in them. Both come from the Seed Bible release named in the sidebar, so they match what you install.
 
 ## Start here
 
@@ -62,7 +62,7 @@ New to extensions? Create a project and run it in Seed Bible in a few minutes:
 npm create seed-bible-extension@latest my-extension
 ```
 
-The [developer guide](https://github.com/HelloAOLab/seed-bible/blob/develop/docs/developer-guide.md) walks through what that project contains and how to build on it. The [extension security model](https://github.com/HelloAOLab/seed-bible/blob/develop/docs/extension-security.md) explains why extensions run in their own sandbox and how permissions work.
+The [developer guide](./guide/developer-guide.md) walks through what that project contains and how to build on it. Keep the [extension API guide](./guide/extension-api.md) open while you write code: it covers every `sb` call, `extension.json` field, error and limit, with examples. The [security model](./guide/extension-security.md) explains why extensions run in their own sandbox and how permissions work.
 
 ## Packages
 
@@ -86,8 +86,8 @@ import { createTestHost } from 'seed-bible/extensions/testing'; // tests only
 - **Unexported types.** Each package has an "Unexported types" page for types its exports use but that the package doesn't export by name, such as the error codes in `SandboxError.code`. They're listed so every type in the reference links somewhere, but you can't import them; use the value directly (`"permission_denied"`) or derive the type (`SandboxError["code"]`).
 
 <!--
-The pages under reference/ are generated (and git ignored), so edit nothing
-there. `pnpm generate:seed-bible-reference` rebuilds them from the seed-bible
-package in docs/package.json, and `pnpm dev` / `pnpm build` run it first. To
-document a newer release of Seed Bible, update that dependency.
+The pages under reference/ and guide/ are generated (and git ignored), so
+edit nothing there. `pnpm generate:seed-bible` rebuilds them for the
+seed-bible version in docs/package.json, and `pnpm dev` / `pnpm build` run it
+first. To document a newer release of Seed Bible, update that dependency.
 -->

@@ -77,6 +77,7 @@ const sectionNames: Record<string, string> = {
     '/guide/': 'Guide',
     '/reference/': 'Reference',
     '/seed-bible/': 'Seed Bible',
+    '/seed-bible/guide/': 'Guides',
     '/seed-bible/reference/': 'API Reference',
 };
 
@@ -196,7 +197,7 @@ const seedBibleReferenceSidebar = (): SidebarOptions[string] => {
     const file = path.join(docsDir, 'seed-bible', 'reference', 'sidebar.json');
     if (!existsSync(file)) {
         console.warn(
-            'The Seed Bible API reference has not been generated. Run `pnpm generate:seed-bible-reference`.'
+            'The Seed Bible API reference has not been generated. Run `pnpm generate:seed-bible`.'
         );
         return [];
     }
@@ -224,6 +225,35 @@ const seedBibleReferenceSidebar = (): SidebarOptions[string] => {
             link: 'reference/',
             collapsible: false,
             children: items.map(underReference),
+        },
+    ];
+};
+
+/**
+ * The guides that .vuepress/seed-bible/generate-guides.mjs brings in from the
+ * seed-bible repository. Like the reference, they're generated before
+ * `pnpm dev` and `pnpm build`, and left out if they haven't been.
+ */
+const seedBibleGuidesSidebar = (): SidebarOptions[string] => {
+    const guides = [
+        { file: 'developer-guide', text: 'Developer Guide' },
+        { file: 'extension-api', text: 'Extension API' },
+        { file: 'extension-security', text: 'Security Model' },
+    ].filter(({ file }) =>
+        existsSync(path.join(docsDir, 'seed-bible', 'guide', `${file}.md`))
+    );
+    if (!guides.length) {
+        return [];
+    }
+    return [
+        {
+            text: 'Guides',
+            link: 'guide/',
+            collapsible: false,
+            children: guides.map(({ file, text }) => ({
+                text,
+                link: `guide/${file}.md`,
+            })),
         },
     ];
 };
@@ -304,6 +334,7 @@ const sidebar = (prefix: string, labels: Labels): SidebarOptions => ({
                       link: '',
                       collapsible: false,
                   },
+                  ...seedBibleGuidesSidebar(),
                   ...seedBibleReferenceSidebar(),
               ],
           }

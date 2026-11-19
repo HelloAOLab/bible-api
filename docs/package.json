@@ -10,15 +10,16 @@
     },
     "repository": "https://github.com/HelloAOLab/bible-api",
     "scripts": {
-        "dev": "pnpm generate:seed-bible-reference && vuepress dev",
-        "build": "pnpm generate:seed-bible-reference && vuepress build --dest ../build/docs",
-        "generate:seed-bible-reference": "node .vuepress/seed-bible/generate-reference.mjs",
+        "dev": "pnpm generate:seed-bible && vuepress dev",
+        "build": "pnpm generate:seed-bible && vuepress build --dest ../build/docs",
+        "generate:seed-bible": "node .vuepress/seed-bible/generate-reference.mjs && node .vuepress/seed-bible/generate-guides.mjs",
         "build:cloudflare": "node ./cloudflare/prepare-site.mjs",
         "build:cloudflare:preview": "node ./cloudflare/prepare-site.mjs --preview",
         "deploy:cloudflare": "pnpm build && pnpm build:cloudflare && wrangler deploy"
     },
     "license": "MIT",
     "devDependencies": {
+        "@mdit-vue/shared": "3.0.2",
         "@preact/signals": "^2.9.1",
         "preact": "^10.29.8",
         "sass-embedded": "^1.83.0",

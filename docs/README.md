@@ -16,9 +16,14 @@ description: An easy-to-use and fully featured JSON API for Scripture. No API ke
 
 This directory contains the source for [bible.helloao.org/docs](https://bible.helloao.org/docs/), built with VuePress. Run `pnpm dev:docs` from the repository root to preview it and `pnpm build:docs` to build it.
 
-## Seed Bible Extension API Reference
+## Seed Bible Extension Docs
 
-The pages under `seed-bible/reference/` are generated from the type declarations of the [`seed-bible`](https://www.npmjs.com/package/seed-bible) npm package, so they document exactly what an extension developer installs. `pnpm dev` and `pnpm build` generate them first; `pnpm generate:seed-bible-reference` (run in this directory) does it on its own. They're git ignored, so don't edit them: to document a newer Seed Bible release, update the `seed-bible` version in `package.json`. The generator, `.vuepress/seed-bible/generate-reference.mjs`, says which of the package's entry points are documented. `seed-bible/README.md` is the section's hand-written landing page.
+The Seed Bible section has two generated parts, both for the [`seed-bible`](https://www.npmjs.com/package/seed-bible) version in `package.json`:
+
+- `seed-bible/reference/`: the API reference, generated from the npm package's type declarations by `.vuepress/seed-bible/generate-reference.mjs`, which says which of the package's entry points are documented.
+- `seed-bible/guide/`: the developer guide, extension API guide and security model, downloaded from `docs/` in the seed-bible repository at that version's release tag by `.vuepress/seed-bible/generate-guides.mjs`. Downloads are cached in `.vuepress/.cache`. Edit the guides in the seed-bible repository.
+
+`pnpm dev` and `pnpm build` generate both first; `pnpm generate:seed-bible` (run in this directory) does it on its own. They're git ignored, so don't edit them: to document a newer Seed Bible release, update the `seed-bible` version in `package.json`. `seed-bible/README.md` is the section's hand-written landing page.
 
 The Seed Bible section is English only, so `pnpm translate:docs` skips it.
 
