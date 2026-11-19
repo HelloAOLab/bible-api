@@ -100,6 +100,17 @@ export async function promptForBibleMultiConverter(): Promise<string | null> {
 export const USFM_PREPROCESSING_VERSION = 1;
 
 /**
+ * Determines whether a source that was converted to USX3 with the given preprocessing version needs to be converted again,
+ * because it was converted before the current USFM preprocessing (or wasn't converted at all).
+ * @param version The preprocessing version that the source was converted with. Null or undefined if it wasn't converted.
+ */
+export function isUsfmPreprocessingOutdated(
+    version: number | null | undefined
+): boolean {
+    return version !== USFM_PREPROCESSING_VERSION;
+}
+
+/**
  * Matches a USFM 3 reference (`\\ref TEXT|TARGET\\ref*`), including the nested form (`\\+ref ...\\+ref*`).
  * Group 1 is the "+" of a nested marker, group 2 is the display text, and group 3 is the optional link target
  * (e.g. `PSA 91:11-12` or `loc="PSA 91:11-12"`).
