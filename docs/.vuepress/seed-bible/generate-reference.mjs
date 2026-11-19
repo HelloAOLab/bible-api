@@ -20,9 +20,10 @@ import {
 } from 'typedoc-plugin-markdown';
 import { createRequire } from 'node:module';
 import { existsSync, realpathSync } from 'node:fs';
-import { mkdir, rm, writeFile } from 'node:fs/promises';
+import { mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { format } from 'prettier';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const docsDir = path.resolve(here, '../..');
@@ -139,6 +140,11 @@ const app = await Application.bootstrapWithPlugins({
     // The site's sidebar and title take over from TypeDoc's own header.
     hidePageHeader: true,
     useCodeBlocks: true,
+    // Show each property's and parameter's whole type in its signature
+    // (`app: { isMobile: …; toast: (message: string) => … }`) rather than
+    // `app: object` and `(message) =>`, with the types only further down.
+    expandObjects: true,
+    expandParameters: true,
     parametersFormat: 'table',
     enumMembersFormat: 'table',
     typeDeclarationFormat: 'list',
@@ -199,6 +205,74 @@ await app.generateOutputs(project);
 if (app.logger.hasErrors()) {
     process.exit(1);
 }
+
+/**
+ * Formats a signature the way the reader would write it. The plugin indents
+ * nested object types unevenly, which expanded types make plain to see.
+ *
+ * A signature is a member (`notes: {…};`, `list(ref): …;`), which isn't
+ * valid on its own, a declaration (`function f(…)`, `type T = …`), or a bare
+ * type (`{ … }`), so it's tried as each of those in turn. One Prettier can't
+ * parse is left as it was.
+ */
+async function formatSignature(code) {
+    const options = { parser: 'typescript', printWidth: 80 };
+    try {
+        const wrapped = await format(`interface __ {\n${code}\n}`, options);
+        const lines = wrapped.trimEnd().split('\n');
+        if (lines[0] === 'interface __ {' && lines.at(-1) === '}') {
+            return lines
+                .slice(1, -1)
+                .map((line) => line.replace(/^ {2}/, ''))
+                .join('\n');
+        }
+    } catch {
+        // Not a member; try it as a declaration.
+    }
+    try {
+        return (await format(code, options)).trimEnd();
+    } catch {
+        // Not a declaration either; it may be a bare type (`{ … }`).
+    }
+    try {
+        const wrapped = (await format(`type __ = ${code}`, options)).trimEnd();
+        return wrapped.replace(/^type __ = /, '').replace(/;$/, '');
+    } catch {
+        return code;
+    }
+}
+
+/**
+ * Formats every signature code block in the generated pages. Examples (the
+ * blocks under an "Example" heading) are left exactly as their authors wrote
+ * them.
+ */
+async function formatSignatures(dir) {
+    const files = (await readdir(dir, { recursive: true })).filter((file) =>
+        file.endsWith('.md')
+    );
+    for (const file of files) {
+        const fullPath = path.join(dir, file);
+        const markdown = await readFile(fullPath, 'utf8');
+        const parts = markdown.split(/(```ts\n[\s\S]*?\n```)/);
+        let heading = '';
+        for (let i = 0; i < parts.length; i++) {
+            if (i % 2 === 0) {
+                const headings = [...parts[i].matchAll(/^#+\s+(.*)$/gm)];
+                heading = headings.at(-1)?.[1] ?? heading;
+                continue;
+            }
+            if (/^Examples?$/.test(heading)) {
+                continue;
+            }
+            const code = parts[i].slice('```ts\n'.length, -'\n```'.length);
+            parts[i] = `\`\`\`ts\n${await formatSignature(code)}\n\`\`\``;
+        }
+        await writeFile(fullPath, parts.join(''));
+    }
+}
+
+await formatSignatures(outDir);
 
 const linkOf = (item) => item.path?.replace(/\\/g, '/');
 
