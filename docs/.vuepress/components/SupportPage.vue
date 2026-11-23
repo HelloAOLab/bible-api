@@ -775,6 +775,7 @@ onBeforeUnmount(() => {
                 <div class="shell">
                     <div class="head">
                         <h2>{{ s.merchTitle }}</h2>
+                        <p>{{ s.merchBody }}</p>
                     </div>
                     <div class="cta left">
                         <a
