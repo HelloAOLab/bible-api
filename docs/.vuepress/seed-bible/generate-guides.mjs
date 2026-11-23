@@ -1,13 +1,14 @@
 /**
- * Brings Seed Bible's extension guides (the developer guide, the extension
- * API guide and the security model) into the docs site, under
- * docs/seed-bible/guide/.
+ * Brings Seed Bible's guides (the developer guide, the extension API guide,
+ * the security model and the integration reference) into the docs site,
+ * under docs/seed-bible/guide/.
  *
  * They're written in the seed-bible repository, in docs/. They're taken from
  * the release tag of the `seed-bible` version in docs/package.json, the same
  * version the generated API reference documents, so the guides and the
  * reference always describe the same release. The download is cached in
- * .vuepress/.cache, so it only happens once per version.
+ * .vuepress/.cache, so it only happens once per version. A guide added to
+ * seed-bible after that release is left out until the version is bumped.
  *
  * GitHub and VuePress name heading anchors differently ("1. Quick start" is
  * #1-quick-start on GitHub and #_1-quick-start here), so links between and
@@ -36,11 +37,15 @@ const referenceDir = path.join(docsDir, 'seed-bible', 'reference');
 
 const REPO = 'HelloAOLab/seed-bible';
 
-/** The guides, by their file name in seed-bible's docs/. */
-const GUIDES = [
-    'developer-guide.md',
-    'extension-api.md',
-    'extension-security.md',
+/**
+ * The guides, by their file name in seed-bible's docs/. An optional guide is
+ * skipped when the pinned release doesn't have it yet.
+ */
+const GUIDE_FILES = [
+    { file: 'developer-guide.md' },
+    { file: 'extension-api.md' },
+    { file: 'extension-security.md' },
+    { file: 'integration-reference.md', optional: true },
 ];
 
 const require = createRequire(import.meta.url);
@@ -48,13 +53,16 @@ const { version } = require('seed-bible/package.json');
 const tag = `v${version}`;
 const cacheDir = path.join(here, '..', '.cache', 'seed-bible-guides', tag);
 
-async function download(file) {
+async function download(file, optional) {
     const cached = path.join(cacheDir, file);
     if (existsSync(cached)) {
         return readFile(cached, 'utf8');
     }
     const url = `https://raw.githubusercontent.com/${REPO}/${tag}/docs/${file}`;
     const response = await fetch(url);
+    if (optional && response.status === 404) {
+        return null;
+    }
     if (!response.ok) {
         throw new Error(
             `Could not download ${url} (HTTP ${response.status}). Is ${tag} tagged in ${REPO}?`
@@ -105,9 +113,15 @@ function description(markdown) {
 }
 
 const sources = new Map();
-for (const file of GUIDES) {
-    sources.set(file, await download(file));
+for (const { file, optional } of GUIDE_FILES) {
+    const markdown = await download(file, optional);
+    if (markdown === null) {
+        console.log(`${file} is not in ${REPO}@${tag} yet; leaving it out.`);
+    } else {
+        sources.set(file, markdown);
+    }
 }
+const GUIDES = [...sources.keys()];
 const anchors = new Map(
     [...sources].map(([file, markdown]) => [file, anchorMap(markdown)])
 );
