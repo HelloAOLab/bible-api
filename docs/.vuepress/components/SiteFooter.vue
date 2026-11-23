@@ -9,6 +9,7 @@ import {
 import { labelHtml } from '../composables/formatLabel';
 
 const DISCORD_URL = 'https://discord.com/invite/NbEZMCJmqC';
+const MERCH_URL = 'https://www.bonfire.com/store/ao-lab/';
 const GITHUB_URL = 'https://github.com/HelloAOLab/bible-api';
 const ISSUES_URL = 'https://github.com/HelloAOLab/bible-api/issues';
 // Links to the newsletter open NewsletterDialog.vue. Without script they go
@@ -167,6 +168,9 @@ const aoLabLogoDark = withBase('/ao_lab_logo_dark.png');
                     <p class="lbl2">AO Lab</p>
                     <ul>
                         <li><a href="https://helloao.org">AO Lab</a></li>
+                        <li>
+                            <a :href="MERCH_URL">{{ labels.footer.merch }}</a>
+                        </li>
                         <li>
                             <a :href="DISCORD_URL">{{
                                 labels.footer.discordShort

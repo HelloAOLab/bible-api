@@ -255,7 +255,8 @@
         "nonprofit": "A 501(c)(3) nonprofit",
         "established": "Established 2/2/2022",
         "privacy": "Privacy",
-        "terms": "Terms"
+        "terms": "Terms",
+        "merch": "Merch"
     },
     "wall": {
         "heading": "Annual support for {{ year }}",
@@ -431,7 +432,9 @@
         "thanksTitle": "Thank you so much!",
         "thanksBody": "Every show of support reminds us we are not alone\nand proves this is a global effort by Christians for Christians.",
         "signOff": "In Christ,",
-        "team": "The AO Lab Team"
+        "team": "The AO Lab Team",
+        "merchTitle": "Check out our merch!",
+        "merchButton": "Shop the AO Lab store"
     },
     "fund": {
         "eyebrow": "Introducing the",
