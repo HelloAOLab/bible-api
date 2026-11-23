@@ -201,10 +201,15 @@ onBeforeUnmount(() => io?.disconnect());
                         <div v-for="card in CARDS" :key="card" class="card">
                             <h3>{{ o.cards[card].title }}</h3>
                             <p>{{ o.cards[card].body }}</p>
-                            <span
+                            <!-- The Seed Bible pages are only in English. -->
+                            <RouteLink
                                 v-if="card === 'seedBible'"
-                                class="go pending"
-                                >{{ o.seedBibleComing }}</span
+                                class="go"
+                                to="/seed-bible/"
+                                >{{
+                                    labels.home.seedBibleLink
+                                }}
+                                &rarr;</RouteLink
                             >
                         </div>
                     </div>
@@ -223,7 +228,9 @@ onBeforeUnmount(() => io?.disconnect());
                                 class="btn primary"
                                 :to="localePage('/free-use-fund.html')"
                                 >{{ o.fundLink }}
-                                <span aria-hidden="true">&rarr;</span></RouteLink
+                                <span aria-hidden="true"
+                                    >&rarr;</span
+                                ></RouteLink
                             >
                         </div>
                         <VerseQuote :verse="verses.wholeBody" />
@@ -250,7 +257,9 @@ onBeforeUnmount(() => io?.disconnect());
                                     labels.home.newsletterPrompt
                                 }}</small>
                                 <strong
-                                    >{{ labels.home.newsletterLink }}
+                                    >{{
+                                        labels.home.newsletterLink
+                                    }}
                                     &rarr;</strong
                                 >
                                 <p>{{ labels.home.newsletterBody }}</p>
@@ -262,7 +271,9 @@ onBeforeUnmount(() => io?.disconnect());
                             >
                                 <small>{{ labels.home.discordPrompt }}</small>
                                 <strong
-                                    >{{ labels.home.contributeDiscord }}
+                                    >{{
+                                        labels.home.contributeDiscord
+                                    }}
                                     &#8599;</strong
                                 >
                                 <p>{{ labels.home.discordBody }}</p>
@@ -565,11 +576,17 @@ onBeforeUnmount(() => io?.disconnect());
         font-weight: 600;
         font-size: 15px;
     }
-    .card .go.pending {
-        color: var(--muted);
+    .card a.go {
+        color: var(--text);
+        text-decoration: underline;
+        text-decoration-color: transparent;
+        text-underline-offset: 3px;
     }
-    // the cards sit under a centred heading and proof row, and carry no
-    // links here, so centre their text and let them hug it
+    .card a.go:hover {
+        text-decoration-color: currentColor;
+    }
+    // the cards sit under a centred heading and proof row, and only the
+    // Seed Bible one carries a link, so centre their text and let them hug it
     @media (min-width: 621px) {
         .card {
             min-height: 0;

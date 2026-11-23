@@ -61,8 +61,12 @@ const MARKER_FILE = '.translated-docs';
 const LABELS_FILE = '.vuepress/labels.json';
 const TRANSLATED_LABELS_FILE = 'labels.json';
 
-/** Directories under the source root that never contain translatable pages. */
-const IGNORED_DIRS = new Set(['node_modules', 'site-root']);
+/**
+ * Directories under the source root that never contain translatable pages.
+ * The Seed Bible section is English only: most of it is an API reference
+ * generated from the seed-bible package's type declarations.
+ */
+const IGNORED_DIRS = new Set(['node_modules', 'site-root', 'seed-bible']);
 
 /** Frontmatter keys whose values are shown to readers. */
 const TRANSLATABLE_FRONTMATTER_KEYS = new Set([

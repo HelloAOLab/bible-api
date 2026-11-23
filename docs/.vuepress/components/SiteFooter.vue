@@ -158,9 +158,10 @@ const aoLabLogoDark = withBase('/ao_lab_logo_dark.png');
                             >
                         </li>
                         <li>
-                            <span class="soon">{{
-                                labels.footer.seedBibleSoon
-                            }}</span>
+                            <!-- The Seed Bible pages are only in English. -->
+                            <RouteLink to="/seed-bible/">{{
+                                labels.footer.seedBible
+                            }}</RouteLink>
                         </li>
                     </ul>
                 </div>
@@ -360,10 +361,6 @@ const aoLabLogoDark = withBase('/ao_lab_logo_dark.png');
     }
     .foot-cols a {
         color: var(--text-2);
-    }
-    .foot-cols .soon {
-        color: var(--muted);
-        cursor: default;
     }
     .foot-cols a:hover {
         color: var(--text);
