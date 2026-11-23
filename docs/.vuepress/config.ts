@@ -240,6 +240,7 @@ const seedBibleGuidesSidebar = (): SidebarOptions[string] => {
         { file: 'developer-guide', text: 'Developer Guide' },
         { file: 'extension-api', text: 'Extension API' },
         { file: 'extension-security', text: 'Security Model' },
+        { file: 'integration-reference', text: 'Integration Reference' },
     ].filter(({ file }) =>
         existsSync(path.join(docsDir, 'seed-bible', 'guide', `${file}.md`))
     );
