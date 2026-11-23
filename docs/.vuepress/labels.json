@@ -11,7 +11,7 @@
         "selectLanguage": "Select language"
     },
     "home": {
-        "milestone": "Celebrating 115+ million API calls this year!",
+        "milestone": "Celebrating 120+ million API calls this year!",
         "tagline": "An easy-to-use and fully featured JSON API for Scripture.",
         "quickStart": "Quick Start",
         "more": "Together we can build an open ecosystem for global Christianity.",
@@ -255,7 +255,8 @@
         "nonprofit": "A 501(c)(3) nonprofit",
         "established": "Established 2/2/2022",
         "privacy": "Privacy",
-        "terms": "Terms"
+        "terms": "Terms",
+        "merch": "Merch"
     },
     "wall": {
         "heading": "Annual support for {{ year }}",
@@ -431,7 +432,10 @@
         "thanksTitle": "Thank you so much!",
         "thanksBody": "Every show of support reminds us we are not alone\nand proves this is a global effort by Christians for Christians.",
         "signOff": "In Christ,",
-        "team": "The AO Lab Team"
+        "team": "The AO Lab Team",
+        "merchTitle": "Check out our merch!",
+        "merchBody": "Do we sell Free Use Bible API coffee mugs? Yes we do. If you’d like to see something added to the store, let us know!",
+        "merchButton": "Shop the AO Lab store"
     },
     "fund": {
         "eyebrow": "Introducing the",

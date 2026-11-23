@@ -771,6 +771,25 @@ onBeforeUnmount(() => {
                 </div>
             </section>
 
+            <section id="merch" class="section merch">
+                <div class="shell">
+                    <div class="head">
+                        <h2>{{ s.merchTitle }}</h2>
+                        <p>{{ s.merchBody }}</p>
+                    </div>
+                    <div class="cta left">
+                        <a
+                            class="btn"
+                            href="https://www.bonfire.com/store/ao-lab/"
+                            target="_blank"
+                            rel="noopener"
+                            >{{ s.merchButton }}
+                            <span aria-hidden="true">&#8599;</span></a
+                        >
+                    </div>
+                </div>
+            </section>
+
             <section class="section alt thanks">
                 <div class="shell">
                     <h2>{{ s.thanksTitle }}</h2>
@@ -847,6 +866,12 @@ onBeforeUnmount(() => {
     .story-steps strong {
         color: var(--text);
         font-weight: 700;
+    }
+    .merch {
+        border-top: 1px solid var(--line);
+    }
+    .merch .head {
+        margin-bottom: 24px;
     }
     .story-after {
         margin-top: 28px;
