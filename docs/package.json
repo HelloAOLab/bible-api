@@ -24,7 +24,7 @@
         "preact": "^10.29.8",
         "prettier": "^3.10.1",
         "sass-embedded": "^1.83.0",
-        "seed-bible": "1.18.0",
+        "seed-bible": "1.19.0",
         "typedoc": "0.28.20",
         "typedoc-plugin-markdown": "4.14.1",
         "typedoc-plugin-missing-exports": "^4.1.4",
