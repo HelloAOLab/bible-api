@@ -71,6 +71,8 @@ const UNION_CASE_NAMES: Record<string, string> = {
 const METHOD_NAMES: Record<string, string> = {
     getTranslationComplete: 'getCompleteTranslation',
     getSimpleTranslationComplete: 'getSimpleCompleteTranslation',
+    getCommentaryComplete: 'getCompleteCommentary',
+    getSimpleCommentaryComplete: 'getSimpleCompleteCommentary',
 };
 
 /**
@@ -79,6 +81,8 @@ const METHOD_NAMES: Record<string, string> = {
 const UNCACHED_OPERATIONS = new Set([
     'getTranslationComplete',
     'getSimpleTranslationComplete',
+    'getCommentaryComplete',
+    'getSimpleCommentaryComplete',
 ]);
 
 const SWIFT_KEYWORDS = new Set([

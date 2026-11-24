@@ -203,6 +203,7 @@ const syncConfigSchema = z.object({
                     useCommonName: z.boolean().optional(),
                     generateAudioFiles: z.boolean().optional(),
                     generateCompleteTranslationFiles: z.boolean().optional(),
+                    generateCompleteCommentaryFiles: z.boolean().optional(),
                     generateSimpleChapterFiles: z.boolean().optional(),
                     generateOpenApiDocument: z.boolean().optional(),
                 }),

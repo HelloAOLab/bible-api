@@ -139,6 +139,16 @@ New kinds of content and new values don't make responses fail to decode. Enums l
 - ``ApiSimpleCommentaryBookChapter``
 - ``SimpleCommentaryChapterData``
 
+### Complete Commentaries
+
+- ``ApiCommentaryComplete``
+- ``ApiCommentaryCompleteBook``
+- ``CommentaryCompleteChapter``
+- ``ApiCommentaryCompleteProfile``
+- ``ApiSimpleCommentaryComplete``
+- ``ApiSimpleCommentaryCompleteBook``
+- ``SimpleCommentaryCompleteChapter``
+
 ### Datasets
 
 - ``ApiAvailableDatasets``

@@ -38,6 +38,8 @@
 - ``getCommentaryBooks(commentary:endpoint:)``
 - ``getCommentaryBookChapter(commentary:book:chapter:endpoint:)``
 - ``getSimpleCommentaryBookChapter(commentary:book:chapter:endpoint:)``
+- ``getCompleteCommentary(commentary:endpoint:)``
+- ``getSimpleCompleteCommentary(commentary:endpoint:)``
 
 ### Datasets
 

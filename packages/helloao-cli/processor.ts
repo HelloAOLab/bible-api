@@ -161,6 +161,8 @@ export function getGeneratorVersion(
             generateAudioFiles: !!options.generateAudioFiles,
             generateCompleteTranslationFiles:
                 !!options.generateCompleteTranslationFiles,
+            generateCompleteCommentaryFiles:
+                !!options.generateCompleteCommentaryFiles,
             generateSimpleChapterFiles: !!options.generateSimpleChapterFiles,
             pathPrefix: options.pathPrefix ?? '',
         },

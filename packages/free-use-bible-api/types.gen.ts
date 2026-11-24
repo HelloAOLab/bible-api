@@ -1367,6 +1367,14 @@ export type ApiCommentary = {
      * Gets the name of the language in English. Null or undefined if the language doesn't have an english name.
      */
     languageEnglishName?: string;
+    /**
+     * The API link for downloading the complete commentary as a single JSON file. Relative to the API origin. Undefined if complete commentary files are not available.
+     */
+    completeCommentaryApiLink?: string;
+    /**
+     * The API link for downloading the complete commentary as a single JSON file, using the simplified chapter format. Relative to the API origin. Undefined if complete commentary files are not available.
+     */
+    simpleCompleteCommentaryApiLink?: string;
 };
 
 /**
@@ -1580,6 +1588,210 @@ export type SimpleCommentaryChapterData = {
      * The content of the chapter.
      */
     content: Array<SimpleChapterVerse>;
+};
+
+/**
+ * Defines the complete commentary download data. Maps to the /api/c/:commentaryId/complete.json endpoint.
+ */
+export type ApiCommentaryComplete = {
+    /**
+     * The commentary metadata.
+     */
+    commentary: ApiCommentary;
+    /**
+     * The complete list of books with all their chapters.
+     */
+    books: Array<ApiCommentaryCompleteBook>;
+    /**
+     * The complete list of profiles with all their content. Empty if the commentary has no profiles.
+     */
+    profiles: Array<ApiCommentaryCompleteProfile>;
+};
+
+/**
+ * A book in the complete commentary download.
+ */
+export type ApiCommentaryCompleteBook = {
+    id: BookId;
+    /**
+     * The name that the commentary provided for the book.
+     */
+    name: string;
+    /**
+     * The common name for the book.
+     */
+    commonName: string;
+    /**
+     * The commentary's introduction for the book. Undefined if the commentary didn't provide an introduction for the book.
+     */
+    introduction?: string;
+    /**
+     * The summary of the commentary's introduction for the book. Undefined if the commentary didn't provide a summary for the book.
+     */
+    introductionSummary?: string;
+    /**
+     * The order of the book in the Bible.
+     */
+    order: number;
+    /**
+     * The number of chapters in the book.
+     */
+    numberOfChapters: number;
+    /**
+     * The total number of verses in the book.
+     */
+    totalNumberOfVerses: number;
+    /**
+     * The complete list of chapters with all content.
+     */
+    chapters: Array<CommentaryCompleteChapter>;
+};
+
+/**
+ * A chapter in the complete commentary download.
+ */
+export type CommentaryCompleteChapter = {
+    /**
+     * The information for the chapter.
+     */
+    chapter: {
+        /**
+         * The number of the chapter.
+         */
+        number: number;
+        /**
+         * The introduction that the commentary provided to the chapter. Not all commentaries provide an introduction to a chapter.
+         */
+        introduction?: string;
+        /**
+         * The content of the chapter.
+         */
+        content: Array<ChapterVerse>;
+    };
+    /**
+     * The number of verses that the chapter contains.
+     */
+    numberOfVerses: number;
+};
+
+/**
+ * A profile in the complete commentary download.
+ */
+export type ApiCommentaryCompleteProfile = {
+    /**
+     * The ID of the profile.
+     */
+    id: string;
+    /**
+     * The subject of the profile.
+     */
+    subject: string;
+    /**
+     * The Bible reference that the profile is associated with. Null if the profile isn't associated with a specific Bible reference.
+     */
+    reference: VerseRef | null;
+    /**
+     * The content of the profile. This is an array of strings, where each string is a paragraph of the profile content.
+     */
+    content: Array<string>;
+};
+
+/**
+ * Defines a schema for verse references. A verse reference is a string that contains a book ID, chapter number, and verse number, such as "GEN 1:1". It can also contain an optional content part that comes after the verse reference, such as "GEN 1:1 In the beginning, God created the Heavens and the Earth." It can also contain optional endChapter and endVerse fields for references that span multiple chapters or verses, such as "GEN 1:1-2:3".
+ */
+export type VerseRef = {
+    book: BookId;
+    /**
+     * The chapter number that the reference starts at.
+     */
+    chapter: number;
+    /**
+     * The verse number that the reference starts at.
+     */
+    verse: number;
+    /**
+     * The rest of the content of the verse reference. This is the part of the string that comes after the verse reference. For example, in "GEN 1:1 In the beginning, God created the Heavens and the Earth.", the content would be "In the beginning, God created the Heavens and the Earth."
+     */
+    content?: string;
+    /**
+     * The chapter that the verse reference ends at. This is used for references that span multiple chapters, such as "GEN 1:1-2:3". In this case, the endChapter would be 2.
+     */
+    endChapter?: number;
+    /**
+     * The verse that the verse reference ends at. This is used for references that span multiple verses, such as "GEN 1:1-1:3". In this case, the endVerse would be 3.
+     */
+    endVerse?: number;
+};
+
+/**
+ * Defines the complete commentary download data, using the simplified chapter format. Maps to the /api/c/:commentaryId/complete.simple.json endpoint.
+ */
+export type ApiSimpleCommentaryComplete = {
+    /**
+     * The commentary metadata.
+     */
+    commentary: ApiCommentary;
+    /**
+     * The complete list of books with all their chapters.
+     */
+    books: Array<ApiSimpleCommentaryCompleteBook>;
+    /**
+     * The complete list of profiles with all their content. Empty if the commentary has no profiles.
+     */
+    profiles: Array<ApiCommentaryCompleteProfile>;
+};
+
+/**
+ * A book in the complete commentary download, using the simplified chapter format.
+ */
+export type ApiSimpleCommentaryCompleteBook = {
+    id: BookId;
+    /**
+     * The name that the commentary provided for the book.
+     */
+    name: string;
+    /**
+     * The common name for the book.
+     */
+    commonName: string;
+    /**
+     * The commentary's introduction for the book. Undefined if the commentary didn't provide an introduction for the book.
+     */
+    introduction?: string;
+    /**
+     * The summary of the commentary's introduction for the book. Undefined if the commentary didn't provide a summary for the book.
+     */
+    introductionSummary?: string;
+    /**
+     * The order of the book in the Bible.
+     */
+    order: number;
+    /**
+     * The number of chapters in the book.
+     */
+    numberOfChapters: number;
+    /**
+     * The total number of verses in the book.
+     */
+    totalNumberOfVerses: number;
+    /**
+     * The complete list of chapters with all content.
+     */
+    chapters: Array<SimpleCommentaryCompleteChapter>;
+};
+
+/**
+ * A chapter in the complete commentary download, using the simplified chapter format.
+ */
+export type SimpleCommentaryCompleteChapter = {
+    /**
+     * The simplified information for the chapter. Each verse contains a single text string, and the footnotes and formatting are represented by offsets into that string.
+     */
+    chapter: SimpleCommentaryChapterData;
+    /**
+     * The number of verses that the chapter contains.
+     */
+    numberOfVerses: number;
 };
 
 /**
@@ -2249,33 +2461,6 @@ export type DatasetEntityType =
     | 'groups'
     | 'lexicon'
     | 'categories';
-
-/**
- * Defines a schema for verse references. A verse reference is a string that contains a book ID, chapter number, and verse number, such as "GEN 1:1". It can also contain an optional content part that comes after the verse reference, such as "GEN 1:1 In the beginning, God created the Heavens and the Earth." It can also contain optional endChapter and endVerse fields for references that span multiple chapters or verses, such as "GEN 1:1-2:3".
- */
-export type VerseRef = {
-    book: BookId;
-    /**
-     * The chapter number that the reference starts at.
-     */
-    chapter: number;
-    /**
-     * The verse number that the reference starts at.
-     */
-    verse: number;
-    /**
-     * The rest of the content of the verse reference. This is the part of the string that comes after the verse reference. For example, in "GEN 1:1 In the beginning, God created the Heavens and the Earth.", the content would be "In the beginning, God created the Heavens and the Earth."
-     */
-    content?: string;
-    /**
-     * The chapter that the verse reference ends at. This is used for references that span multiple chapters, such as "GEN 1:1-2:3". In this case, the endChapter would be 2.
-     */
-    endChapter?: number;
-    /**
-     * The verse that the verse reference ends at. This is used for references that span multiple verses, such as "GEN 1:1-1:3". In this case, the endVerse would be 3.
-     */
-    endVerse?: number;
-};
 
 /**
  * Defines the schema for information about a person in a dataset.
@@ -3437,6 +3622,64 @@ export type GetSimpleCommentaryBookChapterResponses = {
 
 export type GetSimpleCommentaryBookChapterResponse =
     GetSimpleCommentaryBookChapterResponses[keyof GetSimpleCommentaryBookChapterResponses];
+
+export type GetCommentaryCompleteData = {
+    body?: never;
+    path: {
+        /**
+         * The commentary ID of the commentary to get the books or chapter content for.
+         */
+        commentary: string;
+    };
+    query?: never;
+    url: '/api/c/{commentary}/complete.json';
+};
+
+export type GetCommentaryCompleteErrors = {
+    /**
+     * 404 Not Found - The specified commentary was not found, or complete commentaries are not available.
+     */
+    404: unknown;
+};
+
+export type GetCommentaryCompleteResponses = {
+    /**
+     * 200 OK
+     */
+    200: ApiCommentaryComplete;
+};
+
+export type GetCommentaryCompleteResponse =
+    GetCommentaryCompleteResponses[keyof GetCommentaryCompleteResponses];
+
+export type GetSimpleCommentaryCompleteData = {
+    body?: never;
+    path: {
+        /**
+         * The commentary ID of the commentary to get the books or chapter content for.
+         */
+        commentary: string;
+    };
+    query?: never;
+    url: '/api/c/{commentary}/complete.simple.json';
+};
+
+export type GetSimpleCommentaryCompleteErrors = {
+    /**
+     * 404 Not Found - The specified commentary was not found, or complete commentaries are not available.
+     */
+    404: unknown;
+};
+
+export type GetSimpleCommentaryCompleteResponses = {
+    /**
+     * 200 OK
+     */
+    200: ApiSimpleCommentaryComplete;
+};
+
+export type GetSimpleCommentaryCompleteResponse =
+    GetSimpleCommentaryCompleteResponses[keyof GetSimpleCommentaryCompleteResponses];
 
 export type GetAvailableDatasetsData = {
     body?: never;

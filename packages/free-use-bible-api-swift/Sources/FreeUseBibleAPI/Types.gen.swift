@@ -2032,6 +2032,12 @@ public struct ApiCommentary: Codable, Hashable, Sendable {
     /// Gets the name of the language in English. Null or undefined if the language doesn't have an english name.
     public var languageEnglishName: String?
 
+    /// The API link for downloading the complete commentary as a single JSON file. Relative to the API origin. Undefined if complete commentary files are not available.
+    public var completeCommentaryApiLink: String?
+
+    /// The API link for downloading the complete commentary as a single JSON file, using the simplified chapter format. Relative to the API origin. Undefined if complete commentary files are not available.
+    public var simpleCompleteCommentaryApiLink: String?
+
     public init(
         id: String,
         name: String,
@@ -2049,7 +2055,9 @@ public struct ApiCommentary: Codable, Hashable, Sendable {
         totalNumberOfVerses: Int,
         totalNumberOfProfiles: Int,
         languageName: String? = nil,
-        languageEnglishName: String? = nil
+        languageEnglishName: String? = nil,
+        completeCommentaryApiLink: String? = nil,
+        simpleCompleteCommentaryApiLink: String? = nil
     ) {
         self.id = id
         self.name = name
@@ -2068,6 +2076,8 @@ public struct ApiCommentary: Codable, Hashable, Sendable {
         self.totalNumberOfProfiles = totalNumberOfProfiles
         self.languageName = languageName
         self.languageEnglishName = languageEnglishName
+        self.completeCommentaryApiLink = completeCommentaryApiLink
+        self.simpleCompleteCommentaryApiLink = simpleCompleteCommentaryApiLink
     }
 }
 
@@ -2348,6 +2358,251 @@ public struct SimpleCommentaryChapterData: Codable, Hashable, Sendable {
         self.number = number
         self.introduction = introduction
         self.content = content
+    }
+}
+
+/// Defines the complete commentary download data. Maps to the /api/c/:commentaryId/complete.json endpoint.
+public struct ApiCommentaryComplete: Codable, Hashable, Sendable {
+    /// The commentary metadata.
+    public var commentary: ApiCommentary
+
+    /// The complete list of books with all their chapters.
+    public var books: [ApiCommentaryCompleteBook]
+
+    /// The complete list of profiles with all their content. Empty if the commentary has no profiles.
+    public var profiles: [ApiCommentaryCompleteProfile]
+
+    public init(
+        commentary: ApiCommentary,
+        books: [ApiCommentaryCompleteBook],
+        profiles: [ApiCommentaryCompleteProfile]
+    ) {
+        self.commentary = commentary
+        self.books = books
+        self.profiles = profiles
+    }
+}
+
+/// A book in the complete commentary download.
+public struct ApiCommentaryCompleteBook: Codable, Hashable, Sendable {
+    public var id: BookId
+
+    /// The name that the commentary provided for the book.
+    public var name: String
+
+    /// The common name for the book.
+    public var commonName: String
+
+    /// The commentary's introduction for the book. Undefined if the commentary didn't provide an introduction for the book.
+    public var introduction: String?
+
+    /// The summary of the commentary's introduction for the book. Undefined if the commentary didn't provide a summary for the book.
+    public var introductionSummary: String?
+
+    /// The order of the book in the Bible.
+    public var order: Int
+
+    /// The number of chapters in the book.
+    public var numberOfChapters: Int
+
+    /// The total number of verses in the book.
+    public var totalNumberOfVerses: Int
+
+    /// The complete list of chapters with all content.
+    public var chapters: [CommentaryCompleteChapter]
+
+    public init(
+        id: BookId,
+        name: String,
+        commonName: String,
+        introduction: String? = nil,
+        introductionSummary: String? = nil,
+        order: Int,
+        numberOfChapters: Int,
+        totalNumberOfVerses: Int,
+        chapters: [CommentaryCompleteChapter]
+    ) {
+        self.id = id
+        self.name = name
+        self.commonName = commonName
+        self.introduction = introduction
+        self.introductionSummary = introductionSummary
+        self.order = order
+        self.numberOfChapters = numberOfChapters
+        self.totalNumberOfVerses = totalNumberOfVerses
+        self.chapters = chapters
+    }
+}
+
+/// A chapter in the complete commentary download.
+public struct CommentaryCompleteChapter: Codable, Hashable, Sendable {
+    /// The information for the chapter.
+    public var chapter: Chapter
+
+    /// The number of verses that the chapter contains.
+    public var numberOfVerses: Int
+
+    public init(
+        chapter: Chapter,
+        numberOfVerses: Int
+    ) {
+        self.chapter = chapter
+        self.numberOfVerses = numberOfVerses
+    }
+
+    public typealias Chapter = ApiCommentaryBookChapter.Chapter
+}
+
+/// A profile in the complete commentary download.
+public struct ApiCommentaryCompleteProfile: Codable, Hashable, Sendable {
+    /// The ID of the profile.
+    public var id: String
+
+    /// The subject of the profile.
+    public var subject: String
+
+    /// The Bible reference that the profile is associated with. Null if the profile isn't associated with a specific Bible reference.
+    public var reference: VerseRef?
+
+    /// The content of the profile. This is an array of strings, where each string is a paragraph of the profile content.
+    public var content: [String]
+
+    public init(
+        id: String,
+        subject: String,
+        reference: VerseRef? = nil,
+        content: [String]
+    ) {
+        self.id = id
+        self.subject = subject
+        self.reference = reference
+        self.content = content
+    }
+}
+
+/// Defines a schema for verse references. A verse reference is a string that contains a book ID, chapter number, and verse number, such as "GEN 1:1". It can also contain an optional content part that comes after the verse reference, such as "GEN 1:1 In the beginning, God created the Heavens and the Earth." It can also contain optional endChapter and endVerse fields for references that span multiple chapters or verses, such as "GEN 1:1-2:3".
+public struct VerseRef: Codable, Hashable, Sendable {
+    public var book: BookId
+
+    /// The chapter number that the reference starts at.
+    public var chapter: Int
+
+    /// The verse number that the reference starts at.
+    public var verse: Int
+
+    /// The rest of the content of the verse reference. This is the part of the string that comes after the verse reference. For example, in "GEN 1:1 In the beginning, God created the Heavens and the Earth.", the content would be "In the beginning, God created the Heavens and the Earth."
+    public var content: String?
+
+    /// The chapter that the verse reference ends at. This is used for references that span multiple chapters, such as "GEN 1:1-2:3". In this case, the endChapter would be 2.
+    public var endChapter: Int?
+
+    /// The verse that the verse reference ends at. This is used for references that span multiple verses, such as "GEN 1:1-1:3". In this case, the endVerse would be 3.
+    public var endVerse: Int?
+
+    public init(
+        book: BookId,
+        chapter: Int,
+        verse: Int,
+        content: String? = nil,
+        endChapter: Int? = nil,
+        endVerse: Int? = nil
+    ) {
+        self.book = book
+        self.chapter = chapter
+        self.verse = verse
+        self.content = content
+        self.endChapter = endChapter
+        self.endVerse = endVerse
+    }
+}
+
+/// Defines the complete commentary download data, using the simplified chapter format. Maps to the /api/c/:commentaryId/complete.simple.json endpoint.
+public struct ApiSimpleCommentaryComplete: Codable, Hashable, Sendable {
+    /// The commentary metadata.
+    public var commentary: ApiCommentary
+
+    /// The complete list of books with all their chapters.
+    public var books: [ApiSimpleCommentaryCompleteBook]
+
+    /// The complete list of profiles with all their content. Empty if the commentary has no profiles.
+    public var profiles: [ApiCommentaryCompleteProfile]
+
+    public init(
+        commentary: ApiCommentary,
+        books: [ApiSimpleCommentaryCompleteBook],
+        profiles: [ApiCommentaryCompleteProfile]
+    ) {
+        self.commentary = commentary
+        self.books = books
+        self.profiles = profiles
+    }
+}
+
+/// A book in the complete commentary download, using the simplified chapter format.
+public struct ApiSimpleCommentaryCompleteBook: Codable, Hashable, Sendable {
+    public var id: BookId
+
+    /// The name that the commentary provided for the book.
+    public var name: String
+
+    /// The common name for the book.
+    public var commonName: String
+
+    /// The commentary's introduction for the book. Undefined if the commentary didn't provide an introduction for the book.
+    public var introduction: String?
+
+    /// The summary of the commentary's introduction for the book. Undefined if the commentary didn't provide a summary for the book.
+    public var introductionSummary: String?
+
+    /// The order of the book in the Bible.
+    public var order: Int
+
+    /// The number of chapters in the book.
+    public var numberOfChapters: Int
+
+    /// The total number of verses in the book.
+    public var totalNumberOfVerses: Int
+
+    /// The complete list of chapters with all content.
+    public var chapters: [SimpleCommentaryCompleteChapter]
+
+    public init(
+        id: BookId,
+        name: String,
+        commonName: String,
+        introduction: String? = nil,
+        introductionSummary: String? = nil,
+        order: Int,
+        numberOfChapters: Int,
+        totalNumberOfVerses: Int,
+        chapters: [SimpleCommentaryCompleteChapter]
+    ) {
+        self.id = id
+        self.name = name
+        self.commonName = commonName
+        self.introduction = introduction
+        self.introductionSummary = introductionSummary
+        self.order = order
+        self.numberOfChapters = numberOfChapters
+        self.totalNumberOfVerses = totalNumberOfVerses
+        self.chapters = chapters
+    }
+}
+
+/// A chapter in the complete commentary download, using the simplified chapter format.
+public struct SimpleCommentaryCompleteChapter: Codable, Hashable, Sendable {
+    /// The simplified information for the chapter. Each verse contains a single text string, and the footnotes and formatting are represented by offsets into that string.
+    public var chapter: SimpleCommentaryChapterData
+
+    /// The number of verses that the chapter contains.
+    public var numberOfVerses: Int
+
+    public init(
+        chapter: SimpleCommentaryChapterData,
+        numberOfVerses: Int
+    ) {
+        self.chapter = chapter
+        self.numberOfVerses = numberOfVerses
     }
 }
 
@@ -3291,42 +3546,6 @@ public struct DatasetEntityType: RawRepresentable, Codable, Hashable, Sendable, 
         .lexicon,
         .categories,
     ]
-}
-
-/// Defines a schema for verse references. A verse reference is a string that contains a book ID, chapter number, and verse number, such as "GEN 1:1". It can also contain an optional content part that comes after the verse reference, such as "GEN 1:1 In the beginning, God created the Heavens and the Earth." It can also contain optional endChapter and endVerse fields for references that span multiple chapters or verses, such as "GEN 1:1-2:3".
-public struct VerseRef: Codable, Hashable, Sendable {
-    public var book: BookId
-
-    /// The chapter number that the reference starts at.
-    public var chapter: Int
-
-    /// The verse number that the reference starts at.
-    public var verse: Int
-
-    /// The rest of the content of the verse reference. This is the part of the string that comes after the verse reference. For example, in "GEN 1:1 In the beginning, God created the Heavens and the Earth.", the content would be "In the beginning, God created the Heavens and the Earth."
-    public var content: String?
-
-    /// The chapter that the verse reference ends at. This is used for references that span multiple chapters, such as "GEN 1:1-2:3". In this case, the endChapter would be 2.
-    public var endChapter: Int?
-
-    /// The verse that the verse reference ends at. This is used for references that span multiple verses, such as "GEN 1:1-1:3". In this case, the endVerse would be 3.
-    public var endVerse: Int?
-
-    public init(
-        book: BookId,
-        chapter: Int,
-        verse: Int,
-        content: String? = nil,
-        endChapter: Int? = nil,
-        endVerse: Int? = nil
-    ) {
-        self.book = book
-        self.chapter = chapter
-        self.verse = verse
-        self.content = content
-        self.endChapter = endChapter
-        self.endVerse = endVerse
-    }
 }
 
 /// Defines the schema for information about a person in a dataset.

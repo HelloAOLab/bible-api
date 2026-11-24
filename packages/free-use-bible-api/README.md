@@ -79,7 +79,7 @@ const api = new FreeUseBibleApi({
 
 Only some chapters have audio timings. The keys of a chapter's `thisChapterAudioTimings` property identify the readers available to pass to `getTranslationBookChapterAudioTimings()`.
 
-The client provides callable methods for all 30 public API operations.
+The client provides callable methods for all 31 public API operations.
 
 ### Commentaries
 
@@ -87,6 +87,10 @@ The client provides callable methods for all 30 public API operations.
 -   `getCommentaryBooks(commentary, endpoint?)`
 -   `getCommentaryBookChapter(commentary, book, chapter, endpoint?)`
 -   `getSimpleCommentaryBookChapter(commentary, book, chapter, endpoint?)`
+-   `getCompleteCommentary(commentary, endpoint?)`
+-   `getSimpleCompleteCommentary(commentary, endpoint?)`
+
+`getCompleteCommentary()` and `getSimpleCompleteCommentary()` disable per-request cache internally because payloads are typically large.
 
 ### Datasets
 
@@ -139,6 +143,7 @@ Every translation and commentary chapter can also be fetched in a simplified for
 -   `getSimpleTranslationBookChapter(translation, book, chapter, endpoint?)`
 -   `getSimpleCommentaryBookChapter(commentary, book, chapter, endpoint?)`
 -   `getSimpleCompleteTranslation(translation, endpoint?)`
+-   `getSimpleCompleteCommentary(commentary, endpoint?)`
 -   `getSimpleChapter(chapter, endpoint?)` - follows a chapter's `simpleChapterApiLink`, or `null` if simplified chapters aren't available for it.
 -   `getSimpleTranslationBookChapterWords(translation, book, chapter, endpoint?)` / `getSimpleChapterWords(chapter, endpoint?)` - the same as the regular word annotations, but with offsets into the simplified verse text instead of a verse's content array.
 -   `getSimpleWordText(verse, word)` / `getSimpleVerseWords(verse, words)` - the same as `getWordText()`/`getVerseWords()`, but for simplified verses and annotations.

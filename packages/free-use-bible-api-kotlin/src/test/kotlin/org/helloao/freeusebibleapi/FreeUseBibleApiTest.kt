@@ -112,6 +112,20 @@ class FreeUseBibleApiTest {
     }
 
     @Test
+    fun `gets complete commentaries without caching them`() = runTest {
+        val complete = api.getCompleteCommentary("comment")
+        api.getCompleteCommentary("comment")
+        val simple = api.getSimpleCompleteCommentary("comment")
+        api.getSimpleCompleteCommentary("comment")
+
+        assertEquals("/api/c/comment/complete.json", complete.commentary.completeCommentaryApiLink)
+        assertEquals(listOf(1), complete.books.single().chapters.map { it.chapter.number })
+        assertEquals("Chapter introduction", simple.books.single().chapters.single().chapter.introduction)
+        assertEquals(listOf("adam-and-eve"), complete.profiles.map { it.id })
+        assertEquals(4, http.requests.size)
+    }
+
+    @Test
     fun `gets audio timings`() = runTest {
         val timings = api.getTranslationBookChapterAudioTimings("bsb", "GEN", 1, "hays")
 

@@ -27,6 +27,10 @@ This is the log of changes for the Free Use Bible API.
 -   Added roughly 100 translations from [fetch.bible](https://fetch.bible).
 -   Added two public domain Japanese Bibles: `jpn_kou` (口語訳, Kougo-yaku) and `jpn_bun` (文語訳, Bungo-yaku).
 -   Line breaks that start a paragraph now include the paragraph marker (e.g. `"paragraph": "p"`), and `.simple.json` verses list mid-verse paragraphs in `paragraphs`. More translations now have paragraph breaks.
+-   Added complete commentary downloads, which contain every book, chapter, and profile of a commentary in one file, like the complete translation downloads.
+    -   `GET /api/c/{commentary}/complete.json`
+    -   `GET /api/c/{commentary}/complete.simple.json` (simplified chapter format)
+    -   Commentaries have new `completeCommentaryApiLink` and `simpleCompleteCommentaryApiLink` fields that link to them.
 -   Fixed section headings (`\s`, `\s1`–`\s4`) in the middle of a verse being included in the verse text for translations imported from USX (including the BSB). They are now inline headings (`{ "heading": "..." }`), like they are for USFM. For example, the speaker headings in Song of Songs 1:4.
 
 #### :warning: Changes
@@ -47,6 +51,7 @@ This is the log of changes for the Free Use Bible API.
     -   Light and dark mode, with customizable colors and fonts.
 -   The `free-use-bible-api` client has new methods for the new datasets: `getDatasetVerses()`, `getDatasetCategories()`, `getDatasetCategory()`, `getDatasetLexicon()`, and `getDatasetLexiconEntry()`.
 -   The `free-use-bible-api` client has new `getVerseOfTheDay(date)` and `pickVerseOfTheDay(verses, date)` functions. The same date always gives the same verse, and verses don't repeat within a year. See [Picking a Verse of the Day](https://bible.helloao.org/docs/reference/datasets/#picking-a-verse-of-the-day).
+-   The `free-use-bible-api` client and the Kotlin and Swift SDKs have new `getCompleteCommentary()` and `getSimpleCompleteCommentary()` methods. Like the complete translation methods, they don't cache the response.
 -   `free-use-bible-api` client requests can be cancelled with an `AbortSignal` (`{ signal }`).
 -   The MCP server (`packages/seed-bible-mcp`) has a new `getVerseOfTheDay` tool.
 
@@ -72,6 +77,7 @@ This is the log of changes for the Free Use Bible API.
 -   Added `fetch-wordproject-translations` and `list-wordproject-translations` commands, which download the Bible texts on [wordproject.org](https://www.wordproject.org/bibles/index.htm) (from each Bible's zip download when there is one) and convert them to USX for `import-translations`. Use the `fetch:bible:wordproject` and `import:bible:wordproject` scripts.
     -   By default only the 14 texts that the API doesn't already have and that may be published are downloaded (13 public domain texts and the non-commercial Amharic Bible). See [wordproject-licenses.md](./packages/helloao-cli/wordproject-licenses.md) for the license research behind each text, and use `--all` to download every text.
     -   The complete Amharic Bible from Wordproject replaces `amh_amh`, which only had the New Testament. eBible's copy is no longer downloaded, and `import-translations` skips it. Sync configs should exclude `amh_amh` from the eBible source (see `sync.config.example.json`).
+-   `upload-api-files` and the other API generation commands generate complete commentary files. Use `--no-generate-complete-commentary-files` to skip them, or set `generateCompleteCommentaryFiles` to `false` on a `sync` destination.
 -   `import-commentary`, `import-commentaries`, and `sync` can import commentaries from [SWORD](https://crosswire.org/sword/) modules (`zCom`, `zCom4`, `RawCom`, and `RawCom4` with the KJV versification), either extracted or as `.zip` files. See the [CLI README](./packages/helloao-cli/README.md).
 -   Added the `fetch-sword-commentaries` command (`npm run fetch:sword:commentaries`), which downloads the commentaries from the [CrossWire module repository](https://www.crosswire.org/sword/modules/ModDisp.jsp?modType=Commentaries) with a `metadata.json` for each (license, English name, language). By default it only downloads the public domain and openly licensed commentaries that can be imported.
 

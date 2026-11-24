@@ -668,6 +668,10 @@ async function start() {
             'Whether to skip generating complete translation files.'
         )
         .option(
+            '--no-generate-complete-commentary-files',
+            'Whether to skip generating complete commentary files.'
+        )
+        .option(
             '--no-generate-simple-chapter-files',
             'Whether to skip generating simplified chapter files.'
         )
@@ -755,6 +759,10 @@ async function start() {
         .option(
             '--no-generate-complete-translation-files',
             'Whether to skip generating complete translation files.'
+        )
+        .option(
+            '--no-generate-complete-commentary-files',
+            'Whether to skip generating complete commentary files.'
         )
         .option(
             '--no-generate-simple-chapter-files',
@@ -861,6 +869,10 @@ async function start() {
             'Whether to skip generating complete translation files.'
         )
         .option(
+            '--no-generate-complete-commentary-files',
+            'Whether to skip generating complete commentary files.'
+        )
+        .option(
             '--no-generate-simple-chapter-files',
             'Whether to skip generating simplified chapter files.'
         )
@@ -903,6 +915,10 @@ async function start() {
         .option(
             '--no-generate-complete-translation-files',
             'Whether to skip generating complete translation files.'
+        )
+        .option(
+            '--no-generate-complete-commentary-files',
+            'Whether to skip generating complete commentary files.'
         )
         .option(
             '--no-generate-simple-chapter-files',
@@ -971,6 +987,10 @@ async function start() {
         .option(
             '--no-generate-complete-translation-files',
             'Whether to skip generating complete translation files.'
+        )
+        .option(
+            '--no-generate-complete-commentary-files',
+            'Whether to skip generating complete commentary files.'
         )
         .option(
             '--no-generate-simple-chapter-files',

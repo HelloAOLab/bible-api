@@ -126,6 +126,19 @@ export interface Commentary {
      * Null or undefined if the language doesn't have an english name.
      */
     languageEnglishName?: string;
+
+    /**
+     * The API link for downloading the complete commentary as a single JSON file.
+     * Undefined if complete commentary files are not available.
+     */
+    completeCommentaryApiLink?: string;
+
+    /**
+     * The API link for downloading the complete commentary as a single JSON file,
+     * using the simplified chapter format.
+     * Undefined if complete commentary files are not available.
+     */
+    simpleCompleteCommentaryApiLink?: string;
 }
 ```
 
@@ -150,7 +163,9 @@ export interface Commentary {
             "totalNumberOfChapters": 854,
             "totalNumberOfVerses": 13318,
             "languageName": "English",
-            "languageEnglishName": "English"
+            "languageEnglishName": "English",
+            "completeCommentaryApiLink": "/api/c/adam-clarke/complete.json",
+            "simpleCompleteCommentaryApiLink": "/api/c/adam-clarke/complete.simple.json"
         }
     ]
 }
@@ -733,3 +748,213 @@ export interface CommentaryProfileContent {
 }
 ```
 
+## Get an entire Commentary
+
+`GET https://bible.helloao.org/api/c/{commentary}/complete.json`
+
+Gets the content of an entire commentary in one file: every book, every chapter, and every profile.
+
+-   `commentary` is the ID of the commentary (e.g. `tyndale`).
+
+A version that uses the simplified chapter format is available at `https://bible.helloao.org/api/c/{commentary}/complete.simple.json`. Its chapters are the same as the ones from [the simplified chapter endpoint](#get-a-chapter-from-a-commentary).
+
+The `completeCommentaryApiLink` and `simpleCompleteCommentaryApiLink` fields on each commentary link to these files.
+
+### Code Example
+
+::: code-tabs#lang
+
+@tab JavaScript
+
+```ts:no-line-numbers title="fetch-commentary-complete.js"
+const commentary = 'tyndale';
+
+// Get every book, chapter, and profile in the Tyndale commentary
+fetch(`https://bible.helloao.org/api/c/${commentary}/complete.json`)
+    .then(request => request.json())
+    .then(complete => {
+        console.log('Tyndale:', complete);
+    });
+```
+
+@tab cURL
+
+```bash:no-line-numbers
+curl https://bible.helloao.org/api/c/tyndale/complete.json
+```
+
+:::
+
+### Structure
+
+```typescript:no-line-numbers title="commentary-complete.ts"
+/**
+ * Defines the complete commentary download data.
+ * Maps to the /api/c/:commentaryId/complete.json endpoint.
+ */
+export interface CommentaryComplete {
+    /**
+     * The commentary metadata.
+     */
+    commentary: Commentary;
+
+    /**
+     * The complete list of books with all their chapters.
+     */
+    books: CommentaryCompleteBook[];
+
+    /**
+     * The complete list of profiles with all their content.
+     * Empty if the commentary has no profiles.
+     */
+    profiles: CommentaryCompleteProfile[];
+}
+
+/**
+ * A book in the complete commentary download.
+ */
+export interface CommentaryCompleteBook {
+    /**
+     * The ID of the book.
+     */
+    id: string;
+
+    /**
+     * The name that the commentary provided for the book.
+     */
+    name: string;
+
+    /**
+     * The common name for the book.
+     */
+    commonName: string;
+
+    /**
+     * The commentary's introduction for the book.
+     * Undefined if the commentary didn't provide an introduction for the book.
+     */
+    introduction?: string;
+
+    /**
+     * The summary of the commentary's introduction for the book.
+     * Undefined if the commentary didn't provide a summary for the book.
+     */
+    introductionSummary?: string;
+
+    /**
+     * The order of the book in the Bible.
+     */
+    order: number;
+
+    /**
+     * The number of chapters in the book.
+     */
+    numberOfChapters: number;
+
+    /**
+     * The total number of verses in the book.
+     */
+    totalNumberOfVerses: number;
+
+    /**
+     * The complete list of chapters with all content.
+     */
+    chapters: CommentaryCompleteChapter[];
+}
+
+/**
+ * A chapter in the complete commentary download.
+ */
+export interface CommentaryCompleteChapter {
+    /**
+     * The number of verses that the chapter contains.
+     */
+    numberOfVerses: number;
+
+    /**
+     * The information for the chapter.
+     * In complete.simple.json, this uses the simplified chapter format.
+     */
+    chapter: CommentaryChapterData;
+}
+
+/**
+ * A profile in the complete commentary download.
+ */
+export interface CommentaryCompleteProfile {
+    /**
+     * The ID of the profile.
+     */
+    id: string;
+
+    /**
+     * The subject of the profile.
+     */
+    subject: string;
+
+    /**
+     * The Bible reference that the profile is associated with.
+     * Null if the profile isn't associated with a specific Bible reference.
+     */
+    reference: VerseRef | null;
+
+    /**
+     * The content of the profile.
+     * Each string is a paragraph of the profile content.
+     */
+    content: string[];
+}
+```
+
+### Example
+
+```json:no-line-numbers title="/api/c/tyndale/complete.json"
+{
+    "commentary": {
+        "id": "tyndale",
+        "name": "Tyndale Open Study Notes",
+        "...": "...",
+        "completeCommentaryApiLink": "/api/c/tyndale/complete.json",
+        "simpleCompleteCommentaryApiLink": "/api/c/tyndale/complete.simple.json"
+    },
+    "books": [
+        {
+            "id": "GEN",
+            "name": "Genesis",
+            "commonName": "Genesis",
+            "introduction": "...",
+            "order": 1,
+            "numberOfChapters": 50,
+            "totalNumberOfVerses": 1533,
+            "chapters": [
+                {
+                    "numberOfVerses": 31,
+                    "chapter": {
+                        "number": 1,
+                        "content": [
+                            {
+                                "type": "verse",
+                                "number": 1,
+                                "content": ["..."]
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    ],
+    "profiles": [
+        {
+            "id": "aaron",
+            "subject": "Aaron",
+            "reference": {
+                "book": "EXO",
+                "chapter": 4,
+                "verse": 14,
+                "endVerse": 16
+            },
+            "content": ["Aaron\n\nMoses’ older brother, Aaron (see Exod 6:20; 7:7), ..."]
+        }
+    ]
+}
+```

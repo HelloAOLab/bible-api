@@ -59,6 +59,12 @@ export interface SyncDestinationConfig extends Pick<
     generateCompleteTranslationFiles?: boolean;
 
     /**
+     * Whether to generate complete commentary files for each commentary.
+     * Defaults to true.
+     */
+    generateCompleteCommentaryFiles?: boolean;
+
+    /**
      * Whether to generate simplified chapter files for each translation and commentary chapter.
      * Defaults to true.
      */
@@ -131,6 +137,8 @@ export async function syncDestination(
         generateAudioFiles: destination.generateAudioFiles,
         generateCompleteTranslationFiles:
             destination.generateCompleteTranslationFiles ?? true,
+        generateCompleteCommentaryFiles:
+            destination.generateCompleteCommentaryFiles ?? true,
         generateSimpleChapterFiles:
             destination.generateSimpleChapterFiles ?? true,
         pretty: destination.pretty,

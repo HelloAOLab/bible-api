@@ -164,6 +164,32 @@ extension FreeUseBibleAPI {
         try await getJSON("api/c/\(encodePathComponent(commentary))/\(encodePathComponent(book.rawValue))/\(encodePathComponent(String(chapter))).simple.json", endpoint: endpoint)
     }
 
+    /// Get the complete content of a specific commentary, including every book, chapter, and profile.
+    ///
+    /// The results of this endpoint are very large, so the response is not cached.
+    ///
+    /// `GET /api/c/{commentary}/complete.json`
+    ///
+    /// - Parameters:
+    ///   - commentary: The commentary ID of the commentary to get the books or chapter content for.
+    ///   - endpoint: The API endpoint to use for the request. If not provided, the endpoint of the client is used.
+    public func getCompleteCommentary(commentary: String, endpoint: URL? = nil) async throws -> ApiCommentaryComplete {
+        try await getJSON("api/c/\(encodePathComponent(commentary))/complete.json", endpoint: endpoint, useCache: false)
+    }
+
+    /// Get the complete content of a specific commentary, including every book, chapter, and profile, using the simplified format. In the simplified format, the content of each verse is a single string instead of a list of formatted content, and the footnotes are available on the verse that they occur in, along with the offset that they occur at.
+    ///
+    /// The results of this endpoint are very large, so the response is not cached.
+    ///
+    /// `GET /api/c/{commentary}/complete.simple.json`
+    ///
+    /// - Parameters:
+    ///   - commentary: The commentary ID of the commentary to get the books or chapter content for.
+    ///   - endpoint: The API endpoint to use for the request. If not provided, the endpoint of the client is used.
+    public func getSimpleCompleteCommentary(commentary: String, endpoint: URL? = nil) async throws -> ApiSimpleCommentaryComplete {
+        try await getJSON("api/c/\(encodePathComponent(commentary))/complete.simple.json", endpoint: endpoint, useCache: false)
+    }
+
     /// Get the list of available datasets.
     ///
     /// `GET /api/available_datasets.json`
