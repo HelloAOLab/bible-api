@@ -2,6 +2,7 @@
 // Used directly by the Cloudflare Worker and adapted for Node.js in node.ts.
 import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js';
 import { createBibleMcpServer, type BibleMcpOptions } from './mcp.js';
+import { renderWebsite } from './website.js';
 
 export interface HandlerOptions extends BibleMcpOptions {
     /** Path the MCP endpoint is served from. Defaults to /mcp */
@@ -15,6 +16,19 @@ const CORS_HEADERS: Record<string, string> = {
         'Content-Type, Accept, Authorization, Mcp-Session-Id, Mcp-Protocol-Version, Last-Event-ID',
     'Access-Control-Expose-Headers': 'Mcp-Session-Id, Mcp-Protocol-Version',
 };
+
+/**
+ * Whether a person opened the URL in a browser. MCP clients never ask for
+ * text/html (their GET asks for text/event-stream), so people who paste the
+ * /mcp URL into a browser get the setup page instead of a protocol error.
+ */
+function isBrowserPageRequest(request: Request): boolean {
+    if (request.method !== 'GET') return false;
+    const accept = request.headers.get('Accept') ?? '';
+    return (
+        accept.includes('text/html') && !accept.includes('text/event-stream')
+    );
+}
 
 function withCors(res: Response): Response {
     const headers = new Headers(res.headers);
@@ -43,6 +57,18 @@ export async function handleRequest(
 
     if (request.method === 'OPTIONS') {
         return new Response(null, { status: 204, headers: CORS_HEADERS });
+    }
+
+    if (
+        (url.pathname === '/' || url.pathname === endpoint) &&
+        isBrowserPageRequest(request)
+    ) {
+        const endpointUrl = new URL(endpoint, url.origin).toString();
+        return withCors(
+            new Response(renderWebsite({ endpointUrl }), {
+                headers: { 'Content-Type': 'text/html; charset=utf-8' },
+            })
+        );
     }
 
     if (url.pathname === '/' || url.pathname === '/health') {
