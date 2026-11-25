@@ -62,6 +62,6 @@ On Workers, set `BIBLE_API_BASE` under `vars` in `wrangler.jsonc` (or with `--va
 
 ## Setup page
 
-Opening `/` or `/mcp` in a browser shows a page that explains what the server is and how to connect it to Claude, Claude Code, ChatGPT, VS Code, Cursor, and other apps (`src/website.ts`). Its setup steps use the URL the page was opened from, so they're right wherever the server is deployed.
+Opening `/` or `/mcp` in a browser shows a page that explains what the server is and how to connect it to Claude, Claude Code, Codex, ChatGPT, VS Code, Cursor, and other apps (`src/website.ts`). Its setup steps use the URL the page was opened from, so they're right wherever the server is deployed.
 
 Only browser page loads get the page: a `GET` that accepts `text/html` and not `text/event-stream`. MCP clients never ask for HTML, so they're unaffected, and other requests to `GET /` (and every request to `GET /health`) still get the JSON status response.

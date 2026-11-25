@@ -13,6 +13,12 @@ describe('renderWebsite()', () => {
             '&quot;url&quot;: &quot;https://bible-mcp.example/mcp&quot;'
         );
         expect(html).toContain('&quot;mcp-remote&quot;');
+        expect(html).toContain(
+            'codex mcp add seed-bible --url https://bible-mcp.example/mcp'
+        );
+        expect(html).toContain(
+            '[mcp_servers.seed-bible]\nurl = &quot;https://bible-mcp.example/mcp&quot;'
+        );
     });
 
     it('gives a no-code settings route for apps that have one', () => {
@@ -27,7 +33,7 @@ describe('renderWebsite()', () => {
             expect(panel(id)).toContain('<span class="pill">No code</span>');
             expect(panel(id)).toContain('<code>https://x.example/mcp</code>');
         }
-        for (const id of ['cursor', 'claude-code']) {
+        for (const id of ['cursor', 'claude-code', 'codex']) {
             expect(panel(id)).not.toContain('No code');
         }
     });

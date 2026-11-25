@@ -148,6 +148,17 @@ ${codeBlock(`claude mcp add --transport http ${SERVER_KEY} ${endpointUrl}`)}
 <p>Add <code>--scope user</code> to use it in every project, not just the current one. Run <code>/mcp</code> inside Claude Code to check that it's connected.</p>`,
         },
         {
+            id: 'codex',
+            label: 'Codex',
+            config: `
+<p>Run this in your terminal:</p>
+${codeBlock(`codex mcp add ${SERVER_KEY} --url ${endpointUrl}`)}
+<p>Run <code>/mcp</code> inside Codex to check that it's connected. The Codex IDE extension reads the same settings, so this also sets it up there.</p>
+<h4 class="method">Or with a config file</h4>
+<p>Add this to <code>~/.codex/config.toml</code>:</p>
+${codeBlock(`[mcp_servers.${SERVER_KEY}]\nurl = "${endpointUrl}"`)}`,
+        },
+        {
             id: 'other',
             label: 'Other apps',
             gui: `
