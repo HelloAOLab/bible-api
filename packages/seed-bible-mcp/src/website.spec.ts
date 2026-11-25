@@ -15,6 +15,23 @@ describe('renderWebsite()', () => {
         expect(html).toContain('&quot;mcp-remote&quot;');
     });
 
+    it('gives a no-code settings route for apps that have one', () => {
+        const html = renderWebsite({ endpointUrl: 'https://x.example/mcp' });
+        const panel = (id: string) =>
+            html.slice(
+                html.indexOf(`id="panel-${id}"`),
+                html.indexOf('</section>', html.indexOf(`id="panel-${id}"`))
+            );
+
+        for (const id of ['claude', 'chatgpt', 'vscode', 'other']) {
+            expect(panel(id)).toContain('<span class="pill">No code</span>');
+            expect(panel(id)).toContain('<code>https://x.example/mcp</code>');
+        }
+        for (const id of ['cursor', 'claude-code']) {
+            expect(panel(id)).not.toContain('No code');
+        }
+    });
+
     it('lists every tool the server registers', () => {
         const html = renderWebsite({ endpointUrl: 'https://x.example/mcp' });
 

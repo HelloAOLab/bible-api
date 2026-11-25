@@ -49,7 +49,7 @@ This is the log of changes for the Free Use Bible API.
 -   The `free-use-bible-api` client has new `getVerseOfTheDay(date)` and `pickVerseOfTheDay(verses, date)` functions. The same date always gives the same verse, and verses don't repeat within a year. See [Picking a Verse of the Day](https://bible.helloao.org/docs/reference/datasets/#picking-a-verse-of-the-day).
 -   `free-use-bible-api` client requests can be cancelled with an `AbortSignal` (`{ signal }`).
 -   The MCP server (`packages/seed-bible-mcp`) has a new `getVerseOfTheDay` tool.
--   The MCP server (`packages/seed-bible-mcp`) now has a setup page. Opening its URL (`/` or `/mcp`) in a browser explains what it is and how to connect it to Claude, Claude Code, ChatGPT, VS Code, Cursor, and other apps. MCP clients and the JSON status response are unchanged.
+-   The MCP server (`packages/seed-bible-mcp`) now has a setup page. Opening its URL (`/` or `/mcp`) in a browser explains what it is and how to connect it to Claude, Claude Code, ChatGPT, VS Code, Cursor, and other apps. Apps that can add a server from their settings screens (Claude, ChatGPT, VS Code) are marked "No code" and lead with those steps. MCP clients and the JSON status response are unchanged.
 
 ### :hammer_and_wrench: Tool Changes
 

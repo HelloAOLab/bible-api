@@ -66,84 +66,100 @@ function codeBlock(code: string): string {
 interface SetupGuide {
     id: string;
     label: string;
-    body: string;
+    /** Steps that use only the app's own settings screens, no typing of code. */
+    gui?: string;
+    /** Steps that use a terminal command or a config file. */
+    config?: string;
 }
 
 function setupGuides(endpointUrl: string): SetupGuide[] {
     const url = `<code>${escapeHtml(endpointUrl)}</code>`;
+    const vscodeJson = JSON.stringify(
+        { servers: { [SERVER_KEY]: { type: 'http', url: endpointUrl } } },
+        null,
+        2
+    );
+    const cursorJson = JSON.stringify(
+        { mcpServers: { [SERVER_KEY]: { url: endpointUrl } } },
+        null,
+        2
+    );
     return [
         {
             id: 'claude',
             label: 'Claude',
-            body: `
-<p>Works on claude.ai, the Claude desktop app, and the Claude mobile apps (once added, the connector follows your account).</p>
+            gui: `
+<p>Add it once on claude.ai or in the Claude desktop app, and it's available everywhere you use Claude, including the mobile apps.</p>
 <ol>
-  <li>Open <strong>Settings → Connectors</strong>.</li>
-  <li>Choose <strong>Add custom connector</strong>.</li>
-  <li>Name it <strong>Seed Bible</strong> and paste this URL: ${url}</li>
-  <li>Leave the authentication settings empty and choose <strong>Add</strong>.</li>
-  <li>In a new chat, make sure Seed Bible is turned on in the tools menu, then ask about a passage.</li>
+  <li>Go to <strong>Customize → Connectors</strong> (or open <a href="https://claude.ai/customize/connectors">claude.ai/customize/connectors</a>).</li>
+  <li>Click <strong>+ Add</strong>, then <strong>Add custom connector</strong>.</li>
+  <li>Name it <strong>Seed Bible</strong>, paste this URL: ${url}, and click <strong>Continue</strong>.</li>
+  <li>Under <strong>Authentication</strong>, choose <strong>No sign in</strong>. Leave <strong>Request headers</strong> empty.</li>
+  <li>Click <strong>Add</strong>.</li>
+  <li>In a chat, click <strong>+</strong> at the lower left, open <strong>Connectors</strong>, and turn on Seed Bible.</li>
 </ol>
-<p class="note">On Team and Enterprise plans, an owner may need to add the connector for the organization first.</p>`,
+<p class="note">Free plans can add one custom connector. On Team and Enterprise plans, an owner adds it first under <strong>Organization settings → Connectors</strong>; members then click <strong>Connect</strong> next to it in <strong>Customize → Connectors</strong>.</p>`,
+        },
+        {
+            id: 'chatgpt',
+            label: 'ChatGPT',
+            gui: `
+<ol>
+  <li>Open <strong>Settings → Apps &amp; Connectors → Advanced settings</strong> and turn on <strong>Developer mode</strong>.</li>
+  <li>Back in <strong>Apps &amp; Connectors</strong>, click <strong>Create</strong>.</li>
+  <li>Name it <strong>Seed Bible</strong> and paste this URL as the <strong>MCP Server URL</strong>: ${url}</li>
+  <li>Set <strong>Authentication</strong> to <strong>No authentication</strong>, confirm that you trust the app, and click <strong>Create</strong>.</li>
+  <li>In a chat, click <strong>+</strong>, open <strong>Developer mode</strong>, and pick Seed Bible.</li>
+</ol>
+<p class="note">ChatGPT renames these menus often. If the steps don't match, search ChatGPT's help pages for “developer mode”.</p>`,
+        },
+        {
+            id: 'vscode',
+            label: 'VS Code',
+            gui: `
+<ol>
+  <li>Open the Command Palette (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd>, or <kbd>⌘</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd> on a Mac).</li>
+  <li>Run <strong>MCP: Add Server…</strong> and choose <strong>HTTP</strong>.</li>
+  <li>Paste this URL: ${url}</li>
+  <li>Name it <strong>seed-bible</strong>, then choose <strong>Global</strong> (every project) or <strong>Workspace</strong> (this project only).</li>
+  <li>Open Copilot Chat, switch to <strong>Agent</strong> mode, and ask about a passage.</li>
+</ol>`,
+            config: `
+<p>Add this to <code>.vscode/mcp.json</code> in your project:</p>
+${codeBlock(vscodeJson)}`,
+        },
+        {
+            id: 'cursor',
+            label: 'Cursor',
+            config: `
+<ol>
+  <li>Open <strong>Cursor Settings → Tools &amp; MCP</strong> and click <strong>New MCP Server</strong>. Cursor opens its <code>mcp.json</code> file (<code>~/.cursor/mcp.json</code>, used in every project).</li>
+  <li>Paste this in and save:</li>
+</ol>
+${codeBlock(cursorJson)}
+<p>Back in <strong>Tools &amp; MCP</strong>, Seed Bible should appear with a green dot. To use it in one project only, put the same file at <code>.cursor/mcp.json</code> in that project instead.</p>`,
         },
         {
             id: 'claude-code',
             label: 'Claude Code',
-            body: `
+            config: `
 <p>Run this in your terminal:</p>
 ${codeBlock(`claude mcp add --transport http ${SERVER_KEY} ${endpointUrl}`)}
 <p>Add <code>--scope user</code> to use it in every project, not just the current one. Run <code>/mcp</code> inside Claude Code to check that it's connected.</p>`,
         },
         {
-            id: 'chatgpt',
-            label: 'ChatGPT',
-            body: `
-<ol>
-  <li>Open <strong>Settings → Apps &amp; Connectors → Advanced settings</strong> and turn on <strong>Developer mode</strong>.</li>
-  <li>Back in <strong>Apps &amp; Connectors</strong>, choose <strong>Create</strong>.</li>
-  <li>Name it <strong>Seed Bible</strong>, paste this URL as the MCP server URL: ${url}, and set authentication to <strong>No authentication</strong>.</li>
-  <li>In a chat, pick Seed Bible from the <strong>+</strong> menu under <strong>Developer mode</strong>.</li>
-</ol>
-<p class="note">ChatGPT's menu names change often. If these steps don't match, look for “connectors” or “developer mode” in ChatGPT's help pages.</p>`,
-        },
-        {
-            id: 'vscode',
-            label: 'VS Code',
-            body: `
-<p>Add this to <code>.vscode/mcp.json</code> in your project (or run <strong>MCP: Add Server…</strong> from the Command Palette and choose <strong>HTTP</strong>):</p>
-${codeBlock(
-    JSON.stringify(
-        { servers: { [SERVER_KEY]: { type: 'http', url: endpointUrl } } },
-        null,
-        2
-    )
-)}
-<p>Then use Copilot Chat in <strong>Agent</strong> mode.</p>`,
-        },
-        {
-            id: 'cursor',
-            label: 'Cursor',
-            body: `
-<p>Add this to <code>~/.cursor/mcp.json</code> (every project) or <code>.cursor/mcp.json</code> (one project):</p>
-${codeBlock(
-    JSON.stringify(
-        { mcpServers: { [SERVER_KEY]: { url: endpointUrl } } },
-        null,
-        2
-    )
-)}`,
-        },
-        {
             id: 'other',
             label: 'Other apps',
-            body: `
-<p>Any app that supports remote MCP servers can connect. Give it these details:</p>
+            gui: `
+<p>Most apps that support remote MCP servers have a settings screen to add one, often under a name like <strong>Connectors</strong>, <strong>Integrations</strong>, <strong>Tools</strong>, or <strong>MCP servers</strong>. Give it these details:</p>
 <dl class="facts">
+  <dt>Name</dt><dd>Seed Bible</dd>
   <dt>URL</dt><dd>${url}</dd>
-  <dt>Transport</dt><dd>Streamable HTTP</dd>
+  <dt>Type</dt><dd>Remote / HTTP (Streamable HTTP)</dd>
   <dt>Authentication</dt><dd>None</dd>
-</dl>
-<p>If an app only supports local (stdio) servers, bridge to it with <a href="https://www.npmjs.com/package/mcp-remote">mcp-remote</a>:</p>
+</dl>`,
+            config: `
+<p>If an app only supports local (stdio) servers in a config file, bridge to it with <a href="https://www.npmjs.com/package/mcp-remote">mcp-remote</a>:</p>
 ${codeBlock(
     JSON.stringify(
         {
@@ -162,6 +178,15 @@ ${codeBlock(
     ];
 }
 
+function guideBody(guide: SetupGuide): string {
+    if (!guide.gui) return guide.config ?? '';
+    const gui = `<h4 class="method"><span class="pill">No code</span> In ${escapeHtml(
+        guide.id === 'other' ? "the app's" : `${guide.label}'s`
+    )} settings</h4>${guide.gui}`;
+    if (!guide.config) return gui;
+    return `${gui}<h4 class="method">Or with a config file</h4>${guide.config}`;
+}
+
 export function renderWebsite({ endpointUrl }: WebsiteOptions): string {
     const guides = setupGuides(endpointUrl);
     const tabs = guides
@@ -169,7 +194,9 @@ export function renderWebsite({ endpointUrl }: WebsiteOptions): string {
             (g, i) =>
                 `<button type="button" role="tab" id="tab-${g.id}" aria-controls="panel-${g.id}" aria-selected="${
                     i === 0
-                }"${i === 0 ? '' : ' tabindex="-1"'}>${escapeHtml(g.label)}</button>`
+                }"${i === 0 ? '' : ' tabindex="-1"'}>${escapeHtml(g.label)}${
+                    g.gui ? '<span class="pill">No code</span>' : ''
+                }</button>`
         )
         .join('');
     const panels = guides
@@ -177,7 +204,7 @@ export function renderWebsite({ endpointUrl }: WebsiteOptions): string {
             (g) =>
                 `<section role="tabpanel" id="panel-${g.id}" aria-labelledby="tab-${g.id}"><h3 class="panel-title">${escapeHtml(
                     g.label
-                )}</h3>${g.body}</section>`
+                )}</h3>${guideBody(g)}</section>`
         )
         .join('');
     const tools = TOOLS.map(
@@ -262,6 +289,12 @@ html:not(.js) [role="tablist"] { display: none; }
 html:not(.js) [role="tabpanel"] { border-top: 1px solid var(--border); border-radius: 10px; margin-bottom: 12px; }
 ol { padding-left: 22px; }
 ol li { margin-bottom: 6px; }
+.pill { display: inline-block; background: var(--accent-soft); color: var(--accent); border-radius: 999px; padding: 0 8px; font-size: 0.72rem; font-weight: 600; line-height: 1.6; vertical-align: 0.1em; white-space: nowrap; }
+[role="tab"] .pill { margin-left: 6px; }
+.method { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 1rem; margin: 0 0 8px; }
+.method:not(:first-child) { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border); }
+.js .panel-title + .method { margin-top: 0; padding-top: 0; border-top: none; }
+kbd { font: 0.85em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; border: 1px solid var(--border); border-bottom-width: 2px; border-radius: 4px; padding: 0 4px; background: var(--surface); }
 .note { color: var(--muted); font-size: 0.9rem; }
 .code { position: relative; margin: 8px 0 12px; }
 .code pre { margin: 0; background: var(--code-bg); border-radius: 8px; padding: 14px 16px; padding-right: 72px; overflow-x: auto; }
@@ -299,7 +332,7 @@ footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border
   <p>That matters because a model answering from memory can misquote a verse or mix up translations. With this server, it reads the passage from the <a href="https://bible.helloao.org">Free Use Bible API</a> and quotes it word for word.</p>
 
   <h2>Set it up</h2>
-  <p>Pick your app. Each one takes about a minute.</p>
+  <p>Pick your app. Each one takes about a minute. Apps marked <span class="pill">No code</span> can be set up entirely from their settings screens: just copy the URL above and paste it in.</p>
   <div role="tablist" aria-label="Apps">${tabs}</div>
   ${panels}
 
