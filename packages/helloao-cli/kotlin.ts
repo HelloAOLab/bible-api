@@ -838,6 +838,7 @@ export const FREE_USE_BIBLE_API_KOTLIN_MODEL_OPTIONS: KotlinModelOptions = {
     names: {
         'ApiTranslationBookChapter.chapter': 'ChapterData',
         'ApiCommentaryBookChapter.chapter': 'CommentaryChapterData',
+        'CommentaryCompleteChapter.chapter': 'CommentaryChapterData',
         'ChapterFootnote.reference': 'ChapterFootnoteReference',
         'ChapterVerse.content[]': 'VerseContent',
         'ChapterHebrewSubtitle.content[]': 'HebrewSubtitleContent',

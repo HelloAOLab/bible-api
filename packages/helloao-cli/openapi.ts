@@ -20,7 +20,9 @@ import {
     ApiDatasetPlaceSchema,
     ApiDatasetPlacesSchema,
     ApiDatasetVersesSchema,
+    ApiCommentaryCompleteSchema,
     ApiSimpleCommentaryBookChapterSchema,
+    ApiSimpleCommentaryCompleteSchema,
     ApiSimpleTranslationBookChapterSchema,
     ApiSimpleTranslationBookChapterWordsSchema,
     ApiSimpleTranslationCompleteSchema,
@@ -498,6 +500,58 @@ export function createFreeUseBibleApiOpenApiDocument(): any {
                         '404': {
                             description:
                                 '404 Not Found - The specified commentary, book, or chapter was not found.',
+                        },
+                    },
+                },
+            },
+            '/api/c/{commentary}/complete.json': {
+                get: {
+                    operationId: 'getCommentaryComplete',
+                    description:
+                        'Get the complete content of a specific commentary, including every book, chapter, and profile.',
+                    requestParams: {
+                        path: z.object({
+                            commentary,
+                        }),
+                    },
+                    responses: {
+                        '200': {
+                            description: '200 OK',
+                            content: {
+                                'application/json': {
+                                    schema: ApiCommentaryCompleteSchema,
+                                },
+                            },
+                        },
+                        '404': {
+                            description:
+                                '404 Not Found - The specified commentary was not found, or complete commentaries are not available.',
+                        },
+                    },
+                },
+            },
+            '/api/c/{commentary}/complete.simple.json': {
+                get: {
+                    operationId: 'getSimpleCommentaryComplete',
+                    description:
+                        'Get the complete content of a specific commentary, including every book, chapter, and profile, using the simplified format. In the simplified format, the content of each verse is a single string instead of a list of formatted content, and the footnotes are available on the verse that they occur in, along with the offset that they occur at.',
+                    requestParams: {
+                        path: z.object({
+                            commentary,
+                        }),
+                    },
+                    responses: {
+                        '200': {
+                            description: '200 OK',
+                            content: {
+                                'application/json': {
+                                    schema: ApiSimpleCommentaryCompleteSchema,
+                                },
+                            },
+                        },
+                        '404': {
+                            description:
+                                '404 Not Found - The specified commentary was not found, or complete commentaries are not available.',
                         },
                     },
                 },

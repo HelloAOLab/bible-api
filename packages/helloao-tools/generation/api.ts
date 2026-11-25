@@ -144,6 +144,20 @@ export interface ApiOutput {
     commentaryBookChapters: ApiCommentaryBookChapter[];
 
     /**
+     * The complete commentary data for each commentary.
+     * Omitted unless complete commentary generation is enabled.
+     * This maps to the /api/c/:commentaryId/complete.json endpoint.
+     */
+    commentaryComplete?: ApiCommentaryComplete[];
+
+    /**
+     * The complete commentary data for each commentary, in the simplified format.
+     * Omitted unless complete commentary generation is enabled.
+     * This maps to the /api/c/:commentaryId/complete.simple.json endpoint.
+     */
+    simpleCommentaryComplete?: ApiSimpleCommentaryComplete[];
+
+    /**
      * The list of chapters for each commentary book, in the simplified format.
      * Omitted unless simplified chapter generation is enabled.
      * This maps to the following endpoint:
@@ -935,12 +949,212 @@ export const ApiCommentarySchema = CommentarySchema.extend({
         description:
             "Gets the name of the language in English. Null or undefined if the language doesn't have an english name.",
     }),
+
+    /**
+     * The API link for downloading the complete commentary as a single JSON file.
+     *
+     * Undefined if complete commentary files are not available.
+     */
+    completeCommentaryApiLink: z.string().optional().meta({
+        description:
+            'The API link for downloading the complete commentary as a single JSON file. Relative to the API origin. Undefined if complete commentary files are not available.',
+    }),
+
+    /**
+     * The API link for downloading the complete commentary as a single JSON file,
+     * using the simplified chapter format.
+     *
+     * Undefined if complete commentary files are not available.
+     */
+    simpleCompleteCommentaryApiLink: z.string().optional().meta({
+        description:
+            'The API link for downloading the complete commentary as a single JSON file, using the simplified chapter format. Relative to the API origin. Undefined if complete commentary files are not available.',
+    }),
 }).meta({
     id: 'ApiCommentary',
     description: 'Defines a commentary that is used in the API.',
 });
 
 export type ApiCommentary = z.infer<typeof ApiCommentarySchema>;
+
+/**
+ * A chapter in the complete commentary download.
+ */
+export const CommentaryCompleteChapterSchema =
+    CommentaryBookChapterSchema.extend({
+        /**
+         * The number of verses that the chapter contains.
+         */
+        numberOfVerses: z.number().meta({
+            description: 'The number of verses that the chapter contains.',
+        }),
+    }).meta({
+        id: 'CommentaryCompleteChapter',
+        description: 'A chapter in the complete commentary download.',
+    });
+
+export type CommentaryCompleteChapter = z.infer<
+    typeof CommentaryCompleteChapterSchema
+>;
+
+/**
+ * A chapter in the complete commentary download, using the simplified chapter format.
+ */
+export const SimpleCommentaryCompleteChapterSchema =
+    CommentaryCompleteChapterSchema.extend({
+        /**
+         * The simplified information for the chapter.
+         */
+        chapter: z
+            .lazy(() => SimpleCommentaryChapterDataSchema)
+            .meta({
+                description:
+                    'The simplified information for the chapter. Each verse contains a single text string, and the footnotes and formatting are represented by offsets into that string.',
+            }),
+    }).meta({
+        id: 'SimpleCommentaryCompleteChapter',
+        description:
+            'A chapter in the complete commentary download, using the simplified chapter format.',
+    });
+
+export type SimpleCommentaryCompleteChapter = z.infer<
+    typeof SimpleCommentaryCompleteChapterSchema
+>;
+
+/**
+ * A book in the complete commentary download.
+ */
+export const ApiCommentaryCompleteBookSchema = CommentaryBookSchema.extend({
+    /**
+     * The number of chapters in the book.
+     */
+    numberOfChapters: z.number().meta({
+        description: 'The number of chapters in the book.',
+    }),
+
+    /**
+     * The total number of verses in the book.
+     */
+    totalNumberOfVerses: z.number().meta({
+        description: 'The total number of verses in the book.',
+    }),
+
+    /**
+     * The complete list of chapters with all content.
+     */
+    chapters: z.array(CommentaryCompleteChapterSchema).meta({
+        description: 'The complete list of chapters with all content.',
+    }),
+}).meta({
+    id: 'ApiCommentaryCompleteBook',
+    description: 'A book in the complete commentary download.',
+});
+
+export type ApiCommentaryCompleteBook = z.infer<
+    typeof ApiCommentaryCompleteBookSchema
+>;
+
+/**
+ * A book in the complete commentary download, using the simplified chapter format.
+ */
+export const ApiSimpleCommentaryCompleteBookSchema =
+    ApiCommentaryCompleteBookSchema.extend({
+        /**
+         * The complete list of chapters with all content.
+         */
+        chapters: z.array(SimpleCommentaryCompleteChapterSchema).meta({
+            description: 'The complete list of chapters with all content.',
+        }),
+    }).meta({
+        id: 'ApiSimpleCommentaryCompleteBook',
+        description:
+            'A book in the complete commentary download, using the simplified chapter format.',
+    });
+
+export type ApiSimpleCommentaryCompleteBook = z.infer<
+    typeof ApiSimpleCommentaryCompleteBookSchema
+>;
+
+/**
+ * A profile in the complete commentary download.
+ */
+export const ApiCommentaryCompleteProfileSchema =
+    CommentaryProfileSchema.extend({
+        /**
+         * The content of the profile.
+         */
+        content: z.array(z.string()).meta({
+            description:
+                'The content of the profile. This is an array of strings, where each string is a paragraph of the profile content.',
+        }),
+    }).meta({
+        id: 'ApiCommentaryCompleteProfile',
+        description: 'A profile in the complete commentary download.',
+    });
+
+export type ApiCommentaryCompleteProfile = z.infer<
+    typeof ApiCommentaryCompleteProfileSchema
+>;
+
+/**
+ * Defines the complete commentary download data.
+ * Maps to the /api/c/:commentaryId/complete.json endpoint.
+ */
+export const ApiCommentaryCompleteSchema = z
+    .object({
+        /**
+         * The commentary metadata.
+         */
+        commentary: z
+            .lazy(() => ApiCommentarySchema)
+            .meta({
+                description: 'The commentary metadata.',
+            }),
+
+        /**
+         * The complete list of books with all their chapters.
+         */
+        books: z.array(ApiCommentaryCompleteBookSchema).meta({
+            description: 'The complete list of books with all their chapters.',
+        }),
+
+        /**
+         * The complete list of profiles with all their content.
+         */
+        profiles: z.array(ApiCommentaryCompleteProfileSchema).meta({
+            description:
+                'The complete list of profiles with all their content. Empty if the commentary has no profiles.',
+        }),
+    })
+    .meta({
+        id: 'ApiCommentaryComplete',
+        description:
+            'Defines the complete commentary download data. Maps to the /api/c/:commentaryId/complete.json endpoint.',
+    });
+
+export type ApiCommentaryComplete = z.infer<typeof ApiCommentaryCompleteSchema>;
+
+/**
+ * Defines the complete commentary download data, using the simplified chapter format.
+ * Maps to the /api/c/:commentaryId/complete.simple.json endpoint.
+ */
+export const ApiSimpleCommentaryCompleteSchema =
+    ApiCommentaryCompleteSchema.extend({
+        /**
+         * The complete list of books with all their chapters.
+         */
+        books: z.array(ApiSimpleCommentaryCompleteBookSchema).meta({
+            description: 'The complete list of books with all their chapters.',
+        }),
+    }).meta({
+        id: 'ApiSimpleCommentaryComplete',
+        description:
+            'Defines the complete commentary download data, using the simplified chapter format. Maps to the /api/c/:commentaryId/complete.simple.json endpoint.',
+    });
+
+export type ApiSimpleCommentaryComplete = z.infer<
+    typeof ApiSimpleCommentaryCompleteSchema
+>;
 
 /**
  * Defines an interface that contains information about the books that are available for a translation.
@@ -3379,6 +3593,11 @@ export interface GenerateApiOptions {
     generateCompleteTranslationFiles?: boolean;
 
     /**
+     * Whether to generate complete commentary files for each commentary.
+     */
+    generateCompleteCommentaryFiles?: boolean;
+
+    /**
      * Whether to generate simplified chapter files for each translation and commentary chapter.
      * In the simplified format, the content of each verse is a single string instead of a list of
      * formatted content, and the footnotes are available on the verses that they occur in.
@@ -3435,6 +3654,11 @@ export function generateApiForDataset(
         options.generateCompleteTranslationFiles
     ) {
         api.simpleTranslationBookChapterWords = [];
+    }
+
+    if (options.generateCompleteCommentaryFiles) {
+        api.commentaryComplete = [];
+        api.simpleCommentaryComplete = [];
     }
 
     const getNativeName = options.getNativeName;
@@ -4010,6 +4234,17 @@ export function generateApiForDataset(
                 'json',
                 apiPathPrefix
             ),
+            completeCommentaryApiLink: options.generateCompleteCommentaryFiles
+                ? completeCommentaryApiLink(commentary.id, apiPathPrefix)
+                : undefined,
+            simpleCompleteCommentaryApiLink:
+                options.generateCompleteCommentaryFiles
+                    ? completeCommentaryApiLink(
+                          commentary.id,
+                          apiPathPrefix,
+                          SIMPLE_JSON_EXTENSION
+                      )
+                    : undefined,
             numberOfBooks: books.length,
             totalNumberOfChapters: 0,
             totalNumberOfVerses: 0,
@@ -4231,6 +4466,70 @@ export function generateApiForDataset(
                         : null,
                 });
             }
+        }
+
+        if (api.commentaryComplete && api.simpleCommentaryComplete) {
+            // Build the complete commentary data for download.
+            // The regular and simplified files only differ by the content of each
+            // chapter, so they share the book grouping, profiles, and per-chapter metadata.
+            const completeBooks = commentaryBooks.books.map((book) => ({
+                book,
+                chapters: commentaryChapters.filter(
+                    (ch) => ch.book.id === book.id
+                ),
+            }));
+
+            const completeBook = <T>(
+                book: ApiCommentaryBook,
+                chapters: T[]
+            ) => ({
+                id: book.id,
+                name: book.name,
+                commonName: book.commonName,
+                introduction: book.introduction,
+                introductionSummary: book.introductionSummary,
+                order: book.order,
+                numberOfChapters: book.numberOfChapters,
+                totalNumberOfVerses: book.totalNumberOfVerses,
+                chapters,
+            });
+
+            const completeProfiles: ApiCommentaryCompleteProfile[] = (
+                profiles ?? []
+            ).map((profile) => ({
+                id: profile.id,
+                subject: profile.subject,
+                reference: profile.reference,
+                content: profile.content,
+            }));
+
+            api.commentaryComplete.push({
+                commentary: apiCommentary,
+                books: completeBooks.map(({ book, chapters }) =>
+                    completeBook(
+                        book,
+                        chapters.map((ch) => ({
+                            numberOfVerses: ch.numberOfVerses,
+                            chapter: ch.chapter,
+                        }))
+                    )
+                ),
+                profiles: completeProfiles,
+            });
+
+            api.simpleCommentaryComplete.push({
+                commentary: apiCommentary,
+                books: completeBooks.map(({ book, chapters }) =>
+                    completeBook(
+                        book,
+                        chapters.map((ch) => ({
+                            numberOfVerses: ch.numberOfVerses,
+                            chapter: simplifyCommentaryChapter(ch.chapter),
+                        }))
+                    )
+                ),
+                profiles: completeProfiles,
+            });
         }
 
         api.availableCommentaries.commentaries.push(apiCommentary);
@@ -5167,6 +5466,29 @@ export function generateFilesForApi(api: ApiOutput): OutputFile[] {
         );
     }
 
+    // Generate complete commentary download files
+    for (let complete of api.commentaryComplete ?? []) {
+        if (complete.commentary.completeCommentaryApiLink) {
+            files.push(
+                jsonFile(
+                    complete.commentary.completeCommentaryApiLink,
+                    complete
+                )
+            );
+        }
+    }
+
+    for (let complete of api.simpleCommentaryComplete ?? []) {
+        if (complete.commentary.simpleCompleteCommentaryApiLink) {
+            files.push(
+                jsonFile(
+                    complete.commentary.simpleCompleteCommentaryApiLink,
+                    complete
+                )
+            );
+        }
+    }
+
     for (let profileContent of api.commentaryProfileContents) {
         files.push(
             jsonFile(profileContent.profile.thisProfileLink, profileContent)
@@ -5335,6 +5657,21 @@ export function completeTranslationApiLink(
     extension: string = 'json'
 ): string {
     return `${prefix}/api/${translationId}/complete.${extension}`;
+}
+
+/**
+ * Gets the API Link for the complete commentary download endpoint.
+ * @param commentaryId The ID of the commentary.
+ * @param prefix The path prefix.
+ * @param extension The extension of the file. Use SIMPLE_JSON_EXTENSION for the simplified format.
+ * @returns
+ */
+export function completeCommentaryApiLink(
+    commentaryId: string,
+    prefix: string = '',
+    extension: string = 'json'
+): string {
+    return `${prefix}/api/c/${commentaryId}/complete.${extension}`;
 }
 
 /**

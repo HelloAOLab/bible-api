@@ -89,6 +89,10 @@ Only some chapters have audio timings. The keys of a chapter's `thisChapterAudio
 -   `getCommentaryBooks(commentary:)`
 -   `getCommentaryBookChapter(commentary:book:chapter:)`
 -   `getSimpleCommentaryBookChapter(commentary:book:chapter:)`
+-   `getCompleteCommentary(commentary:)`
+-   `getSimpleCompleteCommentary(commentary:)`
+
+`getCompleteCommentary()` and `getSimpleCompleteCommentary()` are never cached because their responses are very large.
 
 ### Datasets
 

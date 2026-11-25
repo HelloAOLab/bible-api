@@ -176,6 +176,39 @@ public class FreeUseBibleApi(
         getJson(ApiCommentaryBooks.serializer(), "api/c/${encode(commentary)}/books.json", endpoint)
 
     /**
+     * Gets the complete content of a specific Bible commentary, including every book, chapter, and profile.
+     *
+     * The results of this endpoint are very large, so the response is not cached.
+     * @param commentary The ID of the commentary to get the complete content for.
+     * @param endpoint The API endpoint to use for the request. If not provided, the default endpoint will be used.
+     */
+    public suspend fun getCompleteCommentary(commentary: String, endpoint: String? = null): ApiCommentaryComplete =
+        getJson(
+            ApiCommentaryComplete.serializer(),
+            "api/c/${encode(commentary)}/complete.json",
+            endpoint,
+            cache = false,
+        )
+
+    /**
+     * Gets the complete content of a specific Bible commentary, using the simplified chapter format.
+     *
+     * The results of this endpoint are very large, so the response is not cached.
+     * @param commentary The ID of the commentary to get the complete content for.
+     * @param endpoint The API endpoint to use for the request. If not provided, the default endpoint will be used.
+     */
+    public suspend fun getSimpleCompleteCommentary(
+        commentary: String,
+        endpoint: String? = null,
+    ): ApiSimpleCommentaryComplete =
+        getJson(
+            ApiSimpleCommentaryComplete.serializer(),
+            "api/c/${encode(commentary)}/complete.simple.json",
+            endpoint,
+            cache = false,
+        )
+
+    /**
      * Gets the list of books for a given dataset.
      * @param dataset The ID of the dataset to get the books for.
      * @param endpoint The API endpoint to use for the request. If not provided, the default endpoint will be used.

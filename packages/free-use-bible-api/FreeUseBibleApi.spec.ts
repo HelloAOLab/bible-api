@@ -33,6 +33,8 @@ const operationMethods = {
         'getSimpleTranslationBookChapterWords',
     GetTranslationComplete: 'getCompleteTranslation',
     GetSimpleTranslationComplete: 'getSimpleCompleteTranslation',
+    GetCommentaryComplete: 'getCompleteCommentary',
+    GetSimpleCommentaryComplete: 'getSimpleCompleteCommentary',
     GetAvailableCommentaries: 'getAvailableCommentaries',
     GetCommentaryBooks: 'getCommentaryBooks',
     GetCommentaryBookChapter: 'getCommentaryBookChapter',
@@ -237,6 +239,30 @@ describe('FreeUseBibleApi', () => {
         expect(fetchMock).toHaveBeenNthCalledWith(
             1,
             'https://bible.helloao.org/api/BSB/complete.json'
+        );
+    });
+
+    it('does not cache complete commentary responses', async () => {
+        fetchMock
+            .mockResolvedValueOnce(jsonResponse({ books: [], profiles: [] }))
+            .mockResolvedValueOnce(jsonResponse({ books: [], profiles: [] }))
+            .mockResolvedValueOnce(jsonResponse({ books: [], profiles: [] }))
+            .mockResolvedValueOnce(jsonResponse({ books: [], profiles: [] }));
+
+        const api = new FreeUseBibleApi();
+        await api.getCompleteCommentary('tyndale');
+        await api.getCompleteCommentary('tyndale');
+        await api.getSimpleCompleteCommentary('tyndale');
+        await api.getSimpleCompleteCommentary('tyndale');
+
+        expect(fetchMock).toHaveBeenCalledTimes(4);
+        expect(fetchMock).toHaveBeenNthCalledWith(
+            1,
+            'https://bible.helloao.org/api/c/tyndale/complete.json'
+        );
+        expect(fetchMock).toHaveBeenNthCalledWith(
+            3,
+            'https://bible.helloao.org/api/c/tyndale/complete.simple.json'
         );
     });
 

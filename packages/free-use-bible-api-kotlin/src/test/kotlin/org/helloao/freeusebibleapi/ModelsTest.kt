@@ -134,6 +134,8 @@ class ModelsTest {
             p.endsWith("/available_commentaries.json") -> ApiAvailableCommentaries.serializer()
             p.endsWith("/available_datasets.json") -> ApiAvailableDatasets.serializer()
             Regex("api/c/[^/]+/books\\.json$").containsMatchIn(p) -> ApiCommentaryBooks.serializer()
+            Regex("api/c/[^/]+/complete\\.json$").containsMatchIn(p) -> ApiCommentaryComplete.serializer()
+            Regex("api/c/[^/]+/complete\\.simple\\.json$").containsMatchIn(p) -> ApiSimpleCommentaryComplete.serializer()
             Regex("api/c/[^/]+/[^/]+/\\d+\\.simple\\.json$").containsMatchIn(p) -> ApiSimpleCommentaryBookChapter.serializer()
             Regex("api/c/[^/]+/[^/]+/\\d+\\.json$").containsMatchIn(p) -> ApiCommentaryBookChapter.serializer()
             Regex("api/d/[^/]+/books\\.json$").containsMatchIn(p) -> ApiDatasetBooks.serializer()

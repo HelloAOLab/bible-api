@@ -143,6 +143,10 @@ export async function uploadApiFilesFromDatabase(
         logger.log('Generating complete translation files');
     }
 
+    if (options.generateCompleteCommentaryFiles) {
+        logger.log('Generating complete commentary files');
+    }
+
     if (options.generateSimpleChapterFiles) {
         logger.log('Generating simplified chapter files');
     }
@@ -232,6 +236,10 @@ export async function serializeAndUploadDatasets(
 
     if (options.generateCompleteTranslationFiles) {
         logger.log('Generating complete translation files');
+    }
+
+    if (options.generateCompleteCommentaryFiles) {
+        logger.log('Generating complete commentary files');
     }
 
     if (options.generateSimpleChapterFiles) {

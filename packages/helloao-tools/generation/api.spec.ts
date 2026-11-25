@@ -4237,6 +4237,187 @@ describe('generateApiForDataset() simplified chapters', () => {
         });
     });
 
+    describe('complete commentary files', () => {
+        function generateCompleteTree(
+            inputFiles: InputFile[],
+            options: GenerateApiOptions
+        ) {
+            const dataset = generateDataset(inputFiles, new DOMParser() as any);
+            return fileTree(
+                generateFilesForApi(generateApiForDataset(dataset, options))
+            );
+        }
+
+        const profileFiles: InputFile[] = [
+            {
+                fileType: 'commentary/tyndale-xml',
+                content: [
+                    `<items release="1.25">`,
+                    `<item name="AdamAndEve" typename="Profile" product="TyndaleOpenStudyNotes">`,
+                    `<title>Adam and Eve</title>`,
+                    `<refs>Gen.1.7-4.2</refs>`,
+                    `<body>`,
+                    `<p class="profile-title">Adam and Eve</p>`,
+                    `<p class="profile-body-fl">Adam was the first man, the father of the human race.</p>`,
+                    `</body>`,
+                    `</item>`,
+                    `</items>`,
+                ].join('\n'),
+                metadata: commentary,
+            },
+        ];
+
+        it('should not generate complete commentary files by default', () => {
+            const tree = generateCompleteTree(commentaryFiles, {});
+
+            expect(tree['/api/c/comment/complete.json']).toBeUndefined();
+            expect(tree['/api/c/comment/complete.simple.json']).toBeUndefined();
+
+            const apiCommentary = tree['/api/c/comment/books.json'].commentary;
+            expect(apiCommentary.completeCommentaryApiLink).toBeUndefined();
+            expect(
+                apiCommentary.simpleCompleteCommentaryApiLink
+            ).toBeUndefined();
+        });
+
+        it('should not be enabled by the complete translation option', () => {
+            const tree = generateCompleteTree(commentaryFiles, {
+                generateCompleteTranslationFiles: true,
+            });
+
+            expect(tree['/api/c/comment/complete.json']).toBeUndefined();
+        });
+
+        it('should generate a complete file with every book and chapter', () => {
+            const tree = generateCompleteTree(commentaryFiles, {
+                generateCompleteCommentaryFiles: true,
+            });
+
+            const books = tree['/api/c/comment/books.json'];
+            expect(books.commentary.completeCommentaryApiLink).toBe(
+                '/api/c/comment/complete.json'
+            );
+            expect(books.commentary.simpleCompleteCommentaryApiLink).toBe(
+                '/api/c/comment/complete.simple.json'
+            );
+            expect(
+                tree['/api/available_commentaries.json'].commentaries[0]
+                    .completeCommentaryApiLink
+            ).toBe('/api/c/comment/complete.json');
+
+            const complete = tree['/api/c/comment/complete.json'];
+
+            expect(complete).toEqual({
+                commentary: books.commentary,
+                books: [
+                    {
+                        id: 'GEN',
+                        name: 'Genesis',
+                        commonName: 'Genesis',
+                        introduction: 'Genesis Book Intro',
+                        order: 1,
+                        numberOfChapters: 1,
+                        totalNumberOfVerses: 1,
+                        chapters: [
+                            {
+                                numberOfVerses: 1,
+                                chapter:
+                                    tree['/api/c/comment/GEN/1.json'].chapter,
+                            },
+                        ],
+                    },
+                ],
+                profiles: [],
+            });
+        });
+
+        it('should generate a simplified complete file alongside the regular one', () => {
+            const tree = generateCompleteTree(commentaryFiles, {
+                generateCompleteCommentaryFiles: true,
+                generateSimpleChapterFiles: true,
+            });
+
+            const simple = tree['/api/c/comment/complete.simple.json'];
+            const regular = tree['/api/c/comment/complete.json'];
+
+            expect(simple.commentary).toEqual(regular.commentary);
+            expect(simple.profiles).toEqual(regular.profiles);
+
+            const { chapters: simpleChapters, ...simpleBook } = simple.books[0];
+            const { chapters: regularChapters, ...regularBook } =
+                regular.books[0];
+            expect(simpleBook).toEqual(regularBook);
+            expect(simpleChapters[0].numberOfVerses).toBe(
+                regularChapters[0].numberOfVerses
+            );
+            expect(simpleChapters[0].chapter).toEqual(
+                tree['/api/c/comment/GEN/1.simple.json'].chapter
+            );
+        });
+
+        it('should generate a simplified complete file even when simplified chapters are disabled', () => {
+            const tree = generateCompleteTree(commentaryFiles, {
+                generateCompleteCommentaryFiles: true,
+                generateSimpleChapterFiles: false,
+            });
+
+            expect(
+                tree['/api/c/comment/complete.simple.json'].books[0].chapters[0]
+                    .chapter
+            ).toEqual({
+                number: 1,
+                introduction: 'Chapter introduction',
+                content: [
+                    {
+                        type: 'verse',
+                        number: 1,
+                        text: 'This is the commentary for Genesis 1:1.',
+                        footnotes: [],
+                    },
+                ],
+            });
+            expect(tree['/api/c/comment/GEN/1.simple.json']).toBeUndefined();
+        });
+
+        it('should include the content of every profile', () => {
+            const tree = generateCompleteTree(profileFiles, {
+                generateCompleteCommentaryFiles: true,
+            });
+
+            const complete = tree['/api/c/comment/complete.json'];
+            const profile = tree['/api/c/comment/profiles/adam-and-eve.json'];
+
+            expect(complete.books).toEqual([]);
+            expect(complete.profiles).toEqual([
+                {
+                    id: profile.profile.id,
+                    subject: profile.profile.subject,
+                    reference: profile.profile.reference,
+                    content: profile.content,
+                },
+            ]);
+            expect(
+                tree['/api/c/comment/complete.simple.json'].profiles
+            ).toEqual(complete.profiles);
+        });
+
+        it('should use the given path prefix', () => {
+            const tree = generateCompleteTree(commentaryFiles, {
+                generateCompleteCommentaryFiles: true,
+                pathPrefix: '/prefix',
+            });
+
+            expect(
+                tree['/prefix/api/c/comment/complete.json'].commentary
+                    .completeCommentaryApiLink
+            ).toBe('/prefix/api/c/comment/complete.json');
+            expect(
+                tree['/prefix/api/c/comment/complete.simple.json'].commentary
+                    .simpleCompleteCommentaryApiLink
+            ).toBe('/prefix/api/c/comment/complete.simple.json');
+        });
+    });
+
     describe('word annotations', () => {
         // Genesis 1 has annotations, Genesis 2 does not.
         const wordFiles: InputFile[] = [

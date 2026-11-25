@@ -23,7 +23,9 @@ import type {
     ApiDatasetPlace,
     ApiDatasetPlaces,
     ApiDatasetVerses,
+    ApiCommentaryComplete,
     ApiSimpleCommentaryBookChapter,
+    ApiSimpleCommentaryComplete,
     ApiSimpleTranslationBookChapter,
     ApiSimpleTranslationBookChapterWords,
     ApiSimpleTranslationComplete,
@@ -306,6 +308,50 @@ export class FreeUseBibleApi {
             `api/c/${encodedCommentary}/books.json`,
             endpoint,
             options
+        );
+    }
+
+    /**
+     * Gets the complete content of a specific Bible commentary, including every book, chapter, and profile.
+     *
+     * The results of this endpoint are very large, so the response is not cached.
+     * @param commentary The ID of the commentary to get the complete content for.
+     * @param endpoint The API endpoint to use for the request. If not provided, the default endpoint will be used.
+     * @param options Options for the request, such as an `AbortSignal` that cancels it.
+     */
+    async getCompleteCommentary(
+        commentary: string,
+        endpoint?: string,
+        options?: RequestOptions
+    ): Promise<ApiCommentaryComplete> {
+        const encodedCommentary = encodeURIComponent(commentary);
+        return this._getJson<ApiCommentaryComplete>(
+            `api/c/${encodedCommentary}/complete.json`,
+            endpoint,
+            options,
+            false
+        );
+    }
+
+    /**
+     * Gets the complete content of a specific Bible commentary, using the simplified chapter format.
+     *
+     * The results of this endpoint are very large, so the response is not cached.
+     * @param commentary The ID of the commentary to get the complete content for.
+     * @param endpoint The API endpoint to use for the request. If not provided, the default endpoint will be used.
+     * @param options Options for the request, such as an `AbortSignal` that cancels it.
+     */
+    async getSimpleCompleteCommentary(
+        commentary: string,
+        endpoint?: string,
+        options?: RequestOptions
+    ): Promise<ApiSimpleCommentaryComplete> {
+        const encodedCommentary = encodeURIComponent(commentary);
+        return this._getJson<ApiSimpleCommentaryComplete>(
+            `api/c/${encodedCommentary}/complete.simple.json`,
+            endpoint,
+            options,
+            false
         );
     }
 

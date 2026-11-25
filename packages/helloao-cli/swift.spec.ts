@@ -38,13 +38,14 @@ describe('generateSwiftClient()', () => {
             (p) => p.get.operationId
         );
         expect(operationIds.length).toBeGreaterThan(0);
+        const renamed: Record<string, string> = {
+            getTranslationComplete: 'getCompleteTranslation',
+            getSimpleTranslationComplete: 'getSimpleCompleteTranslation',
+            getCommentaryComplete: 'getCompleteCommentary',
+            getSimpleCommentaryComplete: 'getSimpleCompleteCommentary',
+        };
         for (const id of operationIds) {
-            const methodName =
-                id === 'getTranslationComplete'
-                    ? 'getCompleteTranslation'
-                    : id === 'getSimpleTranslationComplete'
-                      ? 'getSimpleCompleteTranslation'
-                      : id;
+            const methodName = renamed[id] ?? id;
             expect(generated.operations).toContain(
                 `public func ${methodName}(`
             );

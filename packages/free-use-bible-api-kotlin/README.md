@@ -106,6 +106,10 @@ Only some chapters have audio timings. The keys of a chapter's `thisChapterAudio
 - `getCommentaryBooks(commentary, endpoint?)`
 - `getCommentaryBookChapter(commentary, book, chapter, endpoint?)`
 - `getSimpleCommentaryBookChapter(commentary, book, chapter, endpoint?)`
+- `getCompleteCommentary(commentary, endpoint?)`
+- `getSimpleCompleteCommentary(commentary, endpoint?)`
+
+`getCompleteCommentary()` and `getSimpleCompleteCommentary()` are never cached because their responses are very large.
 
 ### Datasets
 
@@ -155,6 +159,7 @@ Every translation and commentary chapter can also be fetched in a simplified for
 - `getSimpleTranslationBookChapter(translation, book, chapter, endpoint?)`
 - `getSimpleCommentaryBookChapter(commentary, book, chapter, endpoint?)`
 - `getSimpleCompleteTranslation(translation, endpoint?)`
+- `getSimpleCompleteCommentary(commentary, endpoint?)`
 - `getSimpleChapter(chapter, endpoint?)` - follows a chapter's `simpleChapterApiLink`, or returns `null` if simplified chapters aren't available for it.
 - `getSimpleTranslationBookChapterWords(translation, book, chapter, endpoint?)` / `getSimpleChapterWords(chapter, endpoint?)` - the same as the regular word annotations, but with offsets into the simplified verse text.
 - `getSimpleWordText(verse, word)` / `getSimpleVerseWords(verse, words)` - the same as `getWordText()`/`getVerseWords()`, but for simplified verses.

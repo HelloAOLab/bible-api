@@ -1523,6 +1523,16 @@ public data class ApiCommentary(
      * Gets the name of the language in English. Null or undefined if the language doesn't have an english name.
      */
     public val languageEnglishName: String? = null,
+
+    /**
+     * The API link for downloading the complete commentary as a single JSON file. Relative to the API origin. Undefined if complete commentary files are not available.
+     */
+    public val completeCommentaryApiLink: String? = null,
+
+    /**
+     * The API link for downloading the complete commentary as a single JSON file, using the simplified chapter format. Relative to the API origin. Undefined if complete commentary files are not available.
+     */
+    public val simpleCompleteCommentaryApiLink: String? = null,
 )
 
 /**
@@ -1779,6 +1789,244 @@ public data class SimpleCommentaryChapterData(
      * The content of the chapter.
      */
     public val content: List<SimpleChapterVerse>,
+)
+
+/**
+ * Defines the complete commentary download data. Maps to the /api/c/:commentaryId/complete.json endpoint.
+ */
+@Serializable
+public data class ApiCommentaryComplete(
+    /**
+     * The commentary metadata.
+     */
+    public val commentary: ApiCommentary,
+
+    /**
+     * The complete list of books with all their chapters.
+     */
+    public val books: List<ApiCommentaryCompleteBook>,
+
+    /**
+     * The complete list of profiles with all their content. Empty if the commentary has no profiles.
+     */
+    public val profiles: List<ApiCommentaryCompleteProfile>,
+)
+
+/**
+ * A book in the complete commentary download.
+ */
+@Serializable
+public data class ApiCommentaryCompleteBook(
+    /**
+     * IDs for books. Follows the USFM standard (https://ubsicap.github.io/usfm/identification/books.html)
+     */
+    public val id: BookId,
+
+    /**
+     * The name that the commentary provided for the book.
+     */
+    public val name: String,
+
+    /**
+     * The common name for the book.
+     */
+    public val commonName: String,
+
+    /**
+     * The commentary's introduction for the book. Undefined if the commentary didn't provide an introduction for the book.
+     */
+    public val introduction: String? = null,
+
+    /**
+     * The summary of the commentary's introduction for the book. Undefined if the commentary didn't provide a summary for the book.
+     */
+    public val introductionSummary: String? = null,
+
+    /**
+     * The order of the book in the Bible.
+     */
+    public val order: Int,
+
+    /**
+     * The number of chapters in the book.
+     */
+    public val numberOfChapters: Int,
+
+    /**
+     * The total number of verses in the book.
+     */
+    public val totalNumberOfVerses: Int,
+
+    /**
+     * The complete list of chapters with all content.
+     */
+    public val chapters: List<CommentaryCompleteChapter>,
+)
+
+/**
+ * A chapter in the complete commentary download.
+ */
+@Serializable
+public data class CommentaryCompleteChapter(
+    /**
+     * The information for the chapter.
+     */
+    public val chapter: CommentaryChapterData,
+
+    /**
+     * The number of verses that the chapter contains.
+     */
+    public val numberOfVerses: Int,
+)
+
+/**
+ * A profile in the complete commentary download.
+ */
+@Serializable
+public data class ApiCommentaryCompleteProfile(
+    /**
+     * The ID of the profile.
+     */
+    public val id: String,
+
+    /**
+     * The subject of the profile.
+     */
+    public val subject: String,
+
+    /**
+     * The Bible reference that the profile is associated with. Null if the profile isn't associated with a specific Bible reference.
+     */
+    public val reference: VerseRef? = null,
+
+    /**
+     * The content of the profile. This is an array of strings, where each string is a paragraph of the profile content.
+     */
+    public val content: List<String>,
+)
+
+/**
+ * Defines a schema for verse references. A verse reference is a string that contains a book ID, chapter number, and verse number, such as "GEN 1:1". It can also contain an optional content part that comes after the verse reference, such as "GEN 1:1 In the beginning, God created the Heavens and the Earth." It can also contain optional endChapter and endVerse fields for references that span multiple chapters or verses, such as "GEN 1:1-2:3".
+ */
+@Serializable
+public data class VerseRef(
+    /**
+     * IDs for books. Follows the USFM standard (https://ubsicap.github.io/usfm/identification/books.html)
+     */
+    public val book: BookId,
+
+    /**
+     * The chapter number that the reference starts at.
+     */
+    public val chapter: Int,
+
+    /**
+     * The verse number that the reference starts at.
+     */
+    public val verse: Int,
+
+    /**
+     * The rest of the content of the verse reference. This is the part of the string that comes after the verse reference. For example, in "GEN 1:1 In the beginning, God created the Heavens and the Earth.", the content would be "In the beginning, God created the Heavens and the Earth."
+     */
+    public val content: String? = null,
+
+    /**
+     * The chapter that the verse reference ends at. This is used for references that span multiple chapters, such as "GEN 1:1-2:3". In this case, the endChapter would be 2.
+     */
+    public val endChapter: Int? = null,
+
+    /**
+     * The verse that the verse reference ends at. This is used for references that span multiple verses, such as "GEN 1:1-1:3". In this case, the endVerse would be 3.
+     */
+    public val endVerse: Int? = null,
+)
+
+/**
+ * Defines the complete commentary download data, using the simplified chapter format. Maps to the /api/c/:commentaryId/complete.simple.json endpoint.
+ */
+@Serializable
+public data class ApiSimpleCommentaryComplete(
+    /**
+     * The commentary metadata.
+     */
+    public val commentary: ApiCommentary,
+
+    /**
+     * The complete list of books with all their chapters.
+     */
+    public val books: List<ApiSimpleCommentaryCompleteBook>,
+
+    /**
+     * The complete list of profiles with all their content. Empty if the commentary has no profiles.
+     */
+    public val profiles: List<ApiCommentaryCompleteProfile>,
+)
+
+/**
+ * A book in the complete commentary download, using the simplified chapter format.
+ */
+@Serializable
+public data class ApiSimpleCommentaryCompleteBook(
+    /**
+     * IDs for books. Follows the USFM standard (https://ubsicap.github.io/usfm/identification/books.html)
+     */
+    public val id: BookId,
+
+    /**
+     * The name that the commentary provided for the book.
+     */
+    public val name: String,
+
+    /**
+     * The common name for the book.
+     */
+    public val commonName: String,
+
+    /**
+     * The commentary's introduction for the book. Undefined if the commentary didn't provide an introduction for the book.
+     */
+    public val introduction: String? = null,
+
+    /**
+     * The summary of the commentary's introduction for the book. Undefined if the commentary didn't provide a summary for the book.
+     */
+    public val introductionSummary: String? = null,
+
+    /**
+     * The order of the book in the Bible.
+     */
+    public val order: Int,
+
+    /**
+     * The number of chapters in the book.
+     */
+    public val numberOfChapters: Int,
+
+    /**
+     * The total number of verses in the book.
+     */
+    public val totalNumberOfVerses: Int,
+
+    /**
+     * The complete list of chapters with all content.
+     */
+    public val chapters: List<SimpleCommentaryCompleteChapter>,
+)
+
+/**
+ * A chapter in the complete commentary download, using the simplified chapter format.
+ */
+@Serializable
+public data class SimpleCommentaryCompleteChapter(
+    /**
+     * The simplified information for the chapter. Each verse contains a single text string, and the footnotes and formatting are represented by offsets into that string.
+     */
+    public val chapter: SimpleCommentaryChapterData,
+
+    /**
+     * The number of verses that the chapter contains.
+     */
+    public val numberOfVerses: Int,
 )
 
 /**
@@ -2623,42 +2871,6 @@ public data class DatasetEntityRef(
  * The type of an entity in a dataset. Matches the collection segment of the entity API paths, so the API link for an entity can be constructed as `/api/d/{dataset}/{type}/{id}.json`.
  */
 public typealias DatasetEntityType = String
-
-/**
- * Defines a schema for verse references. A verse reference is a string that contains a book ID, chapter number, and verse number, such as "GEN 1:1". It can also contain an optional content part that comes after the verse reference, such as "GEN 1:1 In the beginning, God created the Heavens and the Earth." It can also contain optional endChapter and endVerse fields for references that span multiple chapters or verses, such as "GEN 1:1-2:3".
- */
-@Serializable
-public data class VerseRef(
-    /**
-     * IDs for books. Follows the USFM standard (https://ubsicap.github.io/usfm/identification/books.html)
-     */
-    public val book: BookId,
-
-    /**
-     * The chapter number that the reference starts at.
-     */
-    public val chapter: Int,
-
-    /**
-     * The verse number that the reference starts at.
-     */
-    public val verse: Int,
-
-    /**
-     * The rest of the content of the verse reference. This is the part of the string that comes after the verse reference. For example, in "GEN 1:1 In the beginning, God created the Heavens and the Earth.", the content would be "In the beginning, God created the Heavens and the Earth."
-     */
-    public val content: String? = null,
-
-    /**
-     * The chapter that the verse reference ends at. This is used for references that span multiple chapters, such as "GEN 1:1-2:3". In this case, the endChapter would be 2.
-     */
-    public val endChapter: Int? = null,
-
-    /**
-     * The verse that the verse reference ends at. This is used for references that span multiple verses, such as "GEN 1:1-1:3". In this case, the endVerse would be 3.
-     */
-    public val endVerse: Int? = null,
-)
 
 /**
  * Defines the schema for information about a person in a dataset.

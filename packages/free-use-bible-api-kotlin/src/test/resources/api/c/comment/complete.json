@@ -1,0 +1,63 @@
+{
+    "commentary": {
+        "id": "comment",
+        "name": "Commentary",
+        "englishName": "Commentary",
+        "language": "eng",
+        "licenseUrl": "https://example.com/terms.htm",
+        "website": "https://example.com",
+        "textDirection": "ltr",
+        "availableFormats": ["json"],
+        "listOfBooksApiLink": "/api/c/comment/books.json",
+        "listOfProfilesApiLink": "/api/c/comment/profiles.json",
+        "numberOfBooks": 1,
+        "totalNumberOfChapters": 1,
+        "totalNumberOfVerses": 1,
+        "totalNumberOfProfiles": 1,
+        "completeCommentaryApiLink": "/api/c/comment/complete.json",
+        "simpleCompleteCommentaryApiLink": "/api/c/comment/complete.simple.json"
+    },
+    "books": [
+        {
+            "id": "GEN",
+            "name": "Genesis",
+            "commonName": "Genesis",
+            "introduction": "Genesis Book Intro",
+            "order": 1,
+            "numberOfChapters": 1,
+            "totalNumberOfVerses": 1,
+            "chapters": [
+                {
+                    "numberOfVerses": 1,
+                    "chapter": {
+                        "number": 1,
+                        "content": [
+                            {
+                                "type": "verse",
+                                "number": 1,
+                                "content": [
+                                    "This is the commentary for Genesis 1:1."
+                                ]
+                            }
+                        ],
+                        "introduction": "Chapter introduction"
+                    }
+                }
+            ]
+        }
+    ],
+    "profiles": [
+        {
+            "id": "adam-and-eve",
+            "subject": "Adam and Eve",
+            "reference": {
+                "book": "GEN",
+                "chapter": 1,
+                "verse": 7,
+                "endChapter": 4,
+                "endVerse": 2
+            },
+            "content": ["Adam was the first man, the father of the human race."]
+        }
+    ]
+}
