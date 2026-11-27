@@ -7,15 +7,17 @@
  * Claims beyond the goal are reported as going to the Free Use Fund. On the
  * page, "claimed" is labelled "Pledged".
  *
- * Current base (November 17, 2026):
+ * Current base (November 27, 2026):
  *   five active monthly donors on better.giving, $125 + $70 + $20 + $20 + $3
  *     = $238 a month (a $20 donor joined Nov 4, another Nov 17, 2026)
  *     pledged: 12 months of 2027 ($2,856) plus Nov and Dec 2026 payments
  *       ($476) = $3,332
- *     received so far: Nov 4 $20, Nov 7 $70, Nov 13 $125, Nov 17 $20 = $235
+ *     received so far: Nov 4 $20, Nov 7 $70, Nov 13 $125, Nov 17 $20,
+ *       Nov 24 $3 = $238
  *   $5,000 annual support, received
- *   one-time gifts, received: Oct 31 $2, Nov 15 $20 = $22
- *   others = { claimed: 3332 + 5000 + 22 = 8354, received: 235 + 5000 + 22 = 5257 }
+ *   one-time gifts, received: Oct 31 $2, Nov 15 $20, Nov 25 $70 (CAD 100.00
+ *     = USD 70.07), Regent Bank $1,000 = $1,092
+ *   others = { claimed: 3332 + 5000 + 1092 = 9424, received: 238 + 5000 + 1092 = 6330 }
  * Amounts are gross gifts, before processing fees.
  * Shown anonymously until each donor agrees to be named.
  *
@@ -72,6 +74,6 @@ export const WALL_DATA: WallData = {
     year: 2027,
     goal: 500000,
     unit: 240,
-    others: { claimed: 8354, received: 5257 },
+    others: { claimed: 9424, received: 6330 },
     supporters: [],
 };
